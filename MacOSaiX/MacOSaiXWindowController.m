@@ -131,6 +131,7 @@
 //		[tileShapesPopUpButton setFrameSize:NSMakeSize(maxWidth, [tileShapesPopUpButton frame].size.height)];
 //		[tileShapesPopUpButton selectItemAtIndex:0];
 //		[self setTileShapesPlugIn:self];
+		[[self document] setTileShapes:[[[NSClassFromString(@"MacOSaiXRectangularTileShapes") alloc] init] autorelease]];
 		
 			// Fill in the description of the current tile shapes.
 		id	tileShapesDescription = [[[self document] tileShapes] briefDescription];
@@ -176,7 +177,7 @@
 		[[editorTable tableColumnWithIdentifier:@"image"] setDataCell:[[[NSImageCell alloc] init] autorelease]];
 	}
 	
-	[self setViewMode:viewMosaicAndTilesSetup];
+	[self setViewMode:viewMosaicAlone];	//viewMosaicAndTilesSetup];
 	[mosaicView setDocument:[self document]];
 	
 		// For some reason IB insists on setting the drawer width to 200.  Have to set the size in code instead.
@@ -742,10 +743,10 @@
         [editorChooseImage setEnabled:NO];	// YES];	temp for 2.0a1
         [editorUseSelectedImage setEnabled:NO];	// YES];	temp for 2.0a1
         
-        selectedTileImages = [[NSMutableArray arrayWithCapacity:[selectedTile matchCount]] retain];
-        int	i;
-        for (i = 0; i < [selectedTile matchCount]; i++)
-            [selectedTileImages addObject:[NSNull null]];
+//        selectedTileImages = [[NSMutableArray arrayWithCapacity:[selectedTile matchCount]] retain];
+//        int	i;
+//        for (i = 0; i < [selectedTile matchCount]; i++)
+//            [selectedTileImages addObject:[NSNull null]];
     }
     
     [editorTable reloadData];
@@ -1611,7 +1612,7 @@
 		return [[[self document] imageSources] count];
 		
     if (aTableView == editorTable)
-		return (selectedTile == nil ? 0 : [selectedTile matchCount]);
+		return 0;	// TODO: (selectedTile == nil ? 0 : [selectedTile matchCount]);
 	
 	return 0;
 }
