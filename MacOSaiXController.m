@@ -1,41 +1,21 @@
 #import <Foundation/Foundation.h>
 #import "MacOSaiXController.h"
-#import "Matcher.h"
+#import "Tiles.h"
 
 @implementation MacOSaiXController
 
 - (void)applicationDidFinishLaunching:(NSNotification *)note
 {
-    NSPort		*port1,  *port2;
-    NSArray		*portArray;
-    NSConnection	*kitConnection;
-    
-    // Spawn a thread that will do the actual work of matching images
-    port1 = [NSPort port];
-    port2 = [NSPort port];
-    
-    kitConnection = [[NSConnection alloc] initWithReceivePort:port1 sendPort:port2];
-    [kitConnection setRootObject:self];
-    
-    portArray = [NSArray arrayWithObjects:port2, port1, nil];	// ports intentionally switched here
-    [NSThread detachNewThreadSelector:@selector(connectWithPorts:) toTarget:[Matcher class]
-	withObject:portArray];
-}
-
-- (void)setServer:(id)anObject
-{
-    [anObject setProtocolForProxy:@protocol(MatcherMethods)];
-    matcher = (id <MatcherMethods>)[anObject retain];
-    return;
 }
 
 -(void)awakeFromNib
 {
     inProgress = NO;
-    matcherIdle = YES;
     pixPath = [[NSHomeDirectory() stringByAppendingString:@"/Pictures"] retain];
+    mosaicLock = [[NSLock alloc] init];
 }
 
+// Called by the 'Go' button
 - (void)startMosaic:(id)sender
 {
     int			tilesWide, tilesHigh, result, x, y;
@@ -43,14 +23,11 @@
     NSRect		subRect;
     NSSize		pixletSize;
     NSImage		*pixletImage;
-    NSBitmapImageRep	*pixletRep;
     NSPoint		thePoint;
     NSAffineTransform	*translate = [NSAffineTransform transform];
     NSBezierPath	*tileOutline, *clipPath;
     NSEnumerator	*tileEnumerator;
-    NSData		*tileData;
     Tile		*tile;
-//    NSMutableArray	*tileImages;
     
     // prompt the user for the image to make a mosaic from
     result = [oPanel runModalForDirectory:[NSHomeDirectory() stringByAppendingPathComponent:@"Pictures"]
@@ -81,6 +58,7 @@
 	    subRect.origin.y = y * pixletSize.height;
 	    [tileOutlines addObject:[NSBezierPath bezierPathWithRect:subRect]];
 	}
+    NSLog(@"Created clip paths.\n");
     
     bestMatch = (float *)malloc(sizeof(float) * [tileOutlines count]);
     for (x = 0 ; x < [tileOutlines count]; x++)
@@ -91,10 +69,7 @@
     //	set the images clip path to bounds
     //	copy the sub-rect from the original image
     //	extract the bitmap rep
-    _tiles = [[TileCollection alloc] init];
-//    _tileImages = [[NSMutableArray arrayWithCapacity:[tileOutlines count]] retain];
-//    _tileImages = (NSBitmapImageRep **)malloc([tileOutlines count] * sizeof(NSBitmapImageRep *));
-    x = 0;
+    _tiles = [[NSMutableArray arrayWithCapacity:0] retain];
     tileEnumerator= [tileOutlines objectEnumerator];
     while (tileOutline = [tileEnumerator nextObject])
     {
@@ -111,26 +86,16 @@
 	[NSGraphicsContext restoreGraphicsState];
 	subRect.origin = NSMakePoint(0, 0);
 	subRect.size = [pixletImage size];
-	pixletRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:subRect];
-	tileData = [NSData dataWithBytes:[pixletRep bitmapData]
-			   length:(subRect.size.height * [pixletRep bytesPerRow])];
-	tile = [[Tile alloc] init];
-	[tile setSize:[pixletImage size]];
-	[tile setBitmapData:tileData];
-	[_tiles addTile:tile];
-	//[tile autorelease];
-	//[tileData autorelease];
-	[pixletRep release];
-	
-//	[_tileImages addObject:[[[NSBitmapImageRep alloc] initWithFocusedViewRect:subRect] retain]];
-//	_tileImages[x++] = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:subRect] retain];
+	tile = [Tile alloc];
+	[tile setBitmapRep:[[NSBitmapImageRep alloc] initWithFocusedViewRect:subRect]];
+	[tile setSize:subRect.size];
+	[_tiles addObject:tile];
 	[pixletImage unlockFocus];
 	[pixletImage release];
+	pixletImage = nil;
     }
-    [matcher setTileCollection:_tiles];
-//    [self setTileImages:tileImages];
-//    tileImagesTransporter = [[ArrayTransporter alloc] retain];
-//    [tileImagesTransporter setArray:tileImages];
+    NSLog(@"Created pixlets.\n");
+
     [originalView setImage:originalImage];
     
     mosaicImage = [[NSImage alloc] initWithSize:[originalImage size]];
@@ -138,152 +103,163 @@
     
     //[goButton setTitle:@"Stop"];
     
+    timer = [NSTimer scheduledTimerWithTimeInterval:10
+		     target:(id)self
+		     selector:@selector(processAFile:)
+		     userInfo:nil
+		     repeats:YES];
+		     
+    somethingChanged = NO;
     timer = [NSTimer scheduledTimerWithTimeInterval:1
 		     target:(id)self
-		     selector:@selector(processFiles:)
+		     selector:@selector(updateDisplay:)
 		     userInfo:nil
 		     repeats:YES];
 }
 
-- (void)setTileImages:(NSMutableArray *)newTileImages
-{
-/*    NSMutableArray *oldTileImages = nil;
-    if (_tileImages != newTileImages)		// If they're the same, do nothing
-    {
-	oldTileImages = _tileImages;		// Copy the reference
-	_tileImages = [newTileImages retain];	// First retain the new object
-	[oldTileImages release];		// Then release the old object
-    }
 
-    return;*/
+- (void)updateDisplay:(id)timer
+{
+    if (somethingChanged)
+    {
+	[mosaicLock lock];
+	[mosaicImage recache];
+	[mosaicView setImage:mosaicImage];
+	[[mosaicView superview] setNeedsDisplay:YES];
+	[mosaicView display];
+	[window display];
+	[mosaicLock unlock];
+    }
 }
 
 
-// This methos gets called repeatedy while an image is being processed.
+// This method gets called repeatedy while an image is being processed.
 // It walks through the collection of images, one per invocation,
 // and tells the processing thread to work on an image. 
-- (void)processFiles:(id)timer
+- (void)processAFile:(id)timer
 {
     NSString	*file;
     
-    if (!inProgress || !matcherIdle) return;
+    [timer invalidate];	//run only once for debug
+    
+    if (!inProgress) return;
     
     while ((file = [enumerator nextObject])) // && imageCount < maxImages)
     {
-	if ([[NSImage imageFileTypes] containsObject:[file pathExtension]])
+	if ([[NSImage imageFileTypes] containsObject:[file pathExtension]])	// if it's an image
 	{
-	    matcherIdle = NO;
-	    [matcher calculateMatchesWithFile:[pixPath stringByAppendingPathComponent:file] connection:self];
+	    NSLog(@"About to process file %@\n", file);
+	    [NSThread detachNewThreadSelector:@selector(calculateMatchesWithFile:)
+		      toTarget:self
+		      withObject:[pixPath stringByAppendingPathComponent:file]];
 	    break;
 	}
 	//[file release];
     }
 }
 
-- (void *)getTileImages
-{
-    return (void *)_tileImages;
-}
 
-- (NSBitmapImageRep *)getTileImageRep:(int)index
+- (void)calculateMatchesWithFile:(id)filePath
 {
-    return [_tileImages objectAtIndex:index];
-}
-
-// this gets called from the matcher thread
-- (void)checkInMatch:(float)matchValue atIndex:(int)index forFile:(NSString *)filePath
-{
-    NSImage	*pixletImage;
-//    int		index;
-    NSPoint	thePoint;
+    NSAutoreleasePool		*pool;
+    int				imageCount, index = 0;
+    NSImage			*pixletImage;
+    NSRect			subRect;
+    NSPoint			thePoint;
+    NSBitmapImageRep		*pixletRep;
+    float			matchValue;
+    Tile			*tile;
     
-    imageCount++;
+    NSLog(@"Entering calculateMatchesWithFile...");
 
-    if (matchValue > bestMatch[index])
+    pool = [[NSAutoreleasePool alloc] init];
+
+    imageCount = [_tiles count];
+    
+    // load the pixlet image
+    pixletImage = [[NSImage alloc] initWithContentsOfFile:filePath];
+    if ([pixletImage isValid])
     {
-	pixletImage = [[NSImage alloc] initWithContentsOfFile:filePath];
-	if ([pixletImage isValid])
+	//create an NSBitmapImageRep from the image for direct pixel access
+	[pixletImage setScalesWhenResized:YES];
+	
+	// loop through the tiles of the main image and compute the pixlet's match
+	for (index = 0; index < imageCount; index++)
 	{
-	    [pixletImage setScalesWhenResized:YES];
-	
-	    bestMatch[index] = matchValue;
-	    [pixletImage setSize:[[tileOutlines objectAtIndex:index] bounds].size];
-	    [mosaicImage lockFocus];
-//		[NSGraphicsContext saveGraphicsState];
-//		[[tileOutlines objectAtIndex:index] addClip];
-	    thePoint = [[tileOutlines objectAtIndex:index] bounds].origin;
-	    [pixletImage compositeToPoint:thePoint operation:NSCompositeCopy];
-//		[NSGraphicsContext restoreGraphicsState];
-	    [mosaicImage unlockFocus];
-	    //[mosaicView setImage:mosaicImage];
-	
-//    [imagesMatched setEditable:YES];
-//    [imagesMatched insertText:[NSString stringWithFormat: @"%d", imageCount]];
-//    [imagesMatched setEditable:NO];
-
+	    NSLog(@"About to compare tile %s to pixlet %d of main image.\n", filePath, index);
+	    tile = [_tiles objectAtIndex:index];
+	    NSAssert(tile != nil, @"tile is nil");
+	    
+	    // Scale the pixlet to the same size as the tile
+	    [pixletImage setSize:[tile size]];
+	    subRect.origin.x = subRect.origin.y = 0.0;
+	    subRect.size = [pixletImage size];
+	    [pixletImage lockFocus];
+	    pixletRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0, 0, [pixletImage size].width, [pixletImage size].height)];
+	    [pixletImage unlockFocus];
+	    NSAssert(pixletRep, @"pixletRep not allocated");
+	    
+	    // Calculate how well they match, and if it's better than the previous best, add it to the mosaic
+	    matchValue = [self computeMatch:tile with:pixletRep];
+	    if (matchValue > bestMatch[index])
+	    {
+		bestMatch[index] = matchValue;
+		[mosaicLock lock];
+		[mosaicImage lockFocus];
+    //		[NSGraphicsContext saveGraphicsState];
+    //		[[tileOutlines objectAtIndex:index] addClip];
+		thePoint = [[tileOutlines objectAtIndex:index] bounds].origin;
+		[pixletImage compositeToPoint:thePoint operation:NSCompositeCopy];
+    //		[NSGraphicsContext restoreGraphicsState];
+		[mosaicImage unlockFocus];
+		somethingChanged = YES;
+		[mosaicLock unlock];
+	    }
+	    
+	    // Clean up
+	    [pixletRep release];
+	    pixletRep = nil;
+	    NSLog(@"Finished comparing tile %s to pixlet %d of main image.\n", filePath, index);
 	}
-	[pixletImage release];
     }
     
-    if (index == 99) matcherIdle = YES;
+    // [mosaicView setNeedsDisplay:somethingChanged];
+    
+    // More clean up
+    [pixletImage release];
+    pixletImage = nil;
+    //[filePath release];
+
+    [pool release];
+    pool = nil;
+    [NSThread exit];
 }
 
-
-
-
-
-/*	    // load the pixlet image and create an NSBitmapImageRep from it for direct pixel access
-	    pixletImage = [[NSImage alloc]initByReferencingFile:[pixPath stringByAppendingPathComponent:file]];
-	    //NSAssert([pixletImage isValid], @"Tile image invalid");
-	    if ([pixletImage isValid])
-	    {
-		[pixletImage setScalesWhenResized:YES];
-		[pixletImage setSize:pixletSize];
-		subRect.origin.x = subRect.origin.y = 0.0;
-		[pixletImage lockFocus];
-		pixletRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:subRect];
-		[pixletImage unlockFocus];
-		
-		// loop through the tiles of the main image and check the pixlet's match against the previous best
-		for (x = 0; x < tilesWide; x++)
-		    for (y = 0; y < tilesHigh; y++)
-		    {
-			thisMatch = [self computeMatch:subImage[x][y] with:pixletRep];
-			if (thisMatch > bestMatch[x][y])
-			{
-			    thePoint.x = x * pixletSize.width;
-			    thePoint.y = y * pixletSize.height;
-			    [mosaicImage lockFocus];
-			    [pixletImage compositeToPoint:thePoint operation:NSCompositeCopy];
-			    [mosaicImage unlockFocus];
-			    bestMatch[x][y] = thisMatch;
-			}
-		    }
-		[pixletRep release];
-		[pixletImage release];
-	    }
-    
-
-- (float)computeMatch:(NSBitmapImageRep *)imageRep1 with:(NSBitmapImageRep *)imageRep2
+- (float)computeMatch:(Tile *)tile with:(NSBitmapImageRep *)imageRep
 {
-    int			x, y, redDiff, greenDiff, blueDiff;
+    int			width, height, x, y, redDiff, greenDiff, blueDiff;
     unsigned char	*bitmap1, *bitmap2;
     float		matchValue = 0.0;
     
-    if (imageRep1 == NULL || imageRep2 == NULL) return 0.0;
-    bitmap1 = [imageRep1 bitmapData];
-    bitmap2 = [imageRep2 bitmapData];
-    for (x = 0; x < [imageRep1 pixelsWide]; x++)
-	for (y = 0; y < [imageRep1 pixelsHigh]; y++)
+    if (tile == nil || imageRep == nil) return 0.0;
+    
+    bitmap1 = [[tile bitmapRep] bitmapData];    NSAssert(bitmap1 != nil, @"bitmap1 is nil");
+    bitmap2 = [imageRep bitmapData];		NSAssert(bitmap2 != nil, @"bitmap2 is nil");
+    width = [tile size].width;
+    height = [tile size].height;
+    for (x = 0; x < width; x++)
+	for (y = 0; y < height; y++)
 	{
-	    redDiff = (256 - abs(*bitmap1++ - *bitmap2++)) / 8.0;
-	    greenDiff = (256 - abs(*bitmap1++ - *bitmap2++)) / 8.0;
-	    blueDiff = (256 - abs(*bitmap1++ - *bitmap2++)) / 8.0;
+	    redDiff = (256 - abs(*bitmap1++ - *bitmap2++)) / 32.0;
+	    greenDiff = (256 - abs(*bitmap1++ - *bitmap2++)) / 32.0;
+	    blueDiff = (256 - abs(*bitmap1++ - *bitmap2++)) / 32.0;
 	    bitmap1++; bitmap2++;	//skip alpha value
 	    
 	    matchValue += redDiff * greenDiff * blueDiff;
 	}
+    NSLog(@"Match value=%f\n", matchValue);
     return matchValue;
-}*/
+}
+
 
 @end

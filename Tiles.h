@@ -9,15 +9,15 @@
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
 
-@interface Tile : NSObject <NSCopying>
+@interface Tile : NSObject
 {
-    NSSize	_size;
-    NSData	*_bitmapData;
+    NSSize		_size;
+    NSBitmapImageRep	*_bitmapRep;
 }
 - (NSSize)size;
 - (void)setSize:(NSSize)size;
-- (NSData *)bitmapData;
-- (void)setBitmapData:(NSData *)data;
+- (NSBitmapImageRep *)bitmapRep;
+- (void)setBitmapRep:(NSBitmapImageRep *)data;
 @end
 
 

@@ -28,6 +28,7 @@
 
     [[NSRunLoop currentRunLoop] run];
     [pool release];
+    pool = nil;
     [NSThread exit];
 
     return;
@@ -37,6 +38,7 @@
 - (id)initWithProxy:(id)proxyObject
 {
     //[self init];	// perform inherited init methods?
+    _tiles = nil;
     [proxyObject setProtocolForProxy:@protocol(ControllerMethods)];
     clientProxy = (id <ControllerMethods>)[proxyObject retain];
     return self;
@@ -44,8 +46,10 @@
 
 - (void)setTileCollection:(TileCollection *)tiles
 {
+    NSLog(@"Setting tile collection");
     if (_tiles != nil) [_tiles autorelease];
     _tiles = [tiles retain];
+    NSLog(@"Exiting setTileCollection");
 }
 
 //- (oneway void)calculateMatches:(in NSMutableArray*)tileImages withFile:(NSString*)filePath
@@ -60,9 +64,12 @@
     //NSMutableArray		*tileImages;
     Tile			*tile;
     
+    NSLog(@"Entering calculateMatchesWithFile...");
     NSAssert(_tiles != nil, @"_tiles is nil");
     //tileImages = (NSMutableArray *)[clientProxy getTileImages];
+    NSLog(@"Getting count of tiles");
     imageCount = [_tiles count];
+    
 //    match = (float *)malloc(sizeof(float) * imageCount);
     
     // load the pixlet image
@@ -75,6 +82,7 @@
 	// loop through the tiles of the main image and compute the pixlet's match
 	for (index = 0; index < imageCount; index++)
 	{
+	    NSLog(@"About to compare tile %s to pixlet %d of main image.\n", filePath, index);
 	    //tileImageRep = [(NSMutableArray *)_tiles objectAtIndex:index];
 	    //[clientProxy getTileImageRep:index];
 	    //NSAssert(tileImageRep, @"tileImageRep is nil");
@@ -90,9 +98,12 @@
 	    matchValue = [self computeMatch:tile with:pixletRep];
 	    [clientProxy checkInMatch:matchValue atIndex:index forFile:filePath];
 	    [pixletRep release];
+	    pixletRep = nil;
+	    NSLog(@"Finished comparing tile %s to pixlet %d of main image.\n", filePath, index);
 	}
     }
     [pixletImage release];
+    pixletImage = nil;
     //[filePath release];
     
     // check in the matches
@@ -128,6 +139,7 @@
 	    	(blueDiff < 16 && (redDiff < 32 || greenDiff < 32))) matchValue += 1.0;
 	    if (redDiff < 16 && greenDiff < 16 && blueDiff < 16) matchValue += 4.0;	*/
 	}
+    NSLog(@"Match value=%f\n", matchValue);
     return matchValue;
 }
 

@@ -17,23 +17,25 @@
 
 - (void)setSize:(NSSize)size
 {
-    _size = size;
+    _size.width = size.width;
+    _size.height = size.height;
 }
 
-- (NSData *)bitmapData
+- (NSBitmapImageRep *)bitmapRep
 {
-    return _bitmapData;
+    return _bitmapRep;
 }
 
-- (void)setBitmapData:(NSData *)data
+- (void)setBitmapRep:(NSBitmapImageRep *)data
 {
-    NSData *oldData;
+    NSBitmapImageRep *oldData;
     
-    if (data != _bitmapData)
+    if (data != _bitmapRep)
     {
-	oldData = _bitmapData;
-	_bitmapData = [data retain];
+	oldData = _bitmapRep;
+	_bitmapRep = [data retain];
 	[oldData release];
+	oldData = nil;
     }
 }
 
@@ -124,6 +126,7 @@
 
 - (int)count
 {
+    NSLog(@"About to send count to NSMutableArray");
     return [_tiles count];
 }
 
