@@ -10,6 +10,7 @@
 #import "MacOSaiX.h"
 #import "MacOSaiXWindowController.h"
 #import "MacOSaiXDocument.h"
+#import "MacOSaiXImageCache.h"
 #import "Tiles.h"
 #import "MosaicView.h"
 #import "OriginalView.h"
@@ -22,7 +23,7 @@
 - (void)updateStatus:(NSTimer *)timer;
 - (void)synchronizeMenus;
 - (void)updateEditor;
-- (BOOL)showTileMatchInEditor:(ImageMatch *)tileMatch selecting:(BOOL)selecting;
+- (BOOL)showTileMatchInEditor:(MacOSaiXImageMatch *)tileMatch selecting:(BOOL)selecting;
 - (NSImage *)createEditorImage:(int)rowIndex;
 - (void)allowUserToChooseImageOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
     contextInfo:(void *)context;
@@ -92,7 +93,8 @@
 			NSString	*originalPath = [originalDict objectForKey:@"Path"],
 						*originalName = [originalDict objectForKey:@"Name"];
 			NSImage		*originalThumbnail = [[NSImage alloc] initWithData:[originalDict objectForKey:@"Thumbnail Data"]];
-			[originalThumbnail setCacheMode:NSImageCacheNever];
+			[originalThumbnail setCachedSeparately:YES];
+//			[originalThumbnail setCacheMode:NSImageCacheNever];
 			
 			if ([[NSFileManager defaultManager] fileExistsAtPath:originalPath])
 			{
@@ -407,6 +409,7 @@
 		if ([[self document] wasStarted])
 		{
 				// Make sure the tiles can't be tweaked now that the mosaic was started.
+			[originalImagePopUpButton setEnabled:NO];
 			[changeTileShapesButton setEnabled:NO];
 			[imageUseCountPopUpButton setEnabled:NO];
 			[neighborhoodSizePopUpButton setEnabled:NO];
@@ -847,7 +850,7 @@
 }
 
 
-- (BOOL)showTileMatchInEditor:(ImageMatch *)tileMatch selecting:(BOOL)selecting
+- (BOOL)showTileMatchInEditor:(MacOSaiXImageMatch *)tileMatch selecting:(BOOL)selecting
 {
 //    if (selectedTile == nil) return NO;
 //    
@@ -875,7 +878,7 @@
     NSPoint				origin;
     NSBezierPath		*bezierPath = [NSBezierPath bezierPath];
     
-	ImageMatch	*imageMatch = [[selectedTile matches] objectAtIndex:rowIndex];
+	MacOSaiXImageMatch	*imageMatch = [[selectedTile matches] objectAtIndex:rowIndex];
 	image = [[[self document] imageCache] imageForIdentifier:[imageMatch imageIdentifier] 
 												  fromSource:[imageMatch imageSource]];
     if (image == nil)
@@ -1079,47 +1082,37 @@
 }
 
 
-- (void)setZoom:(id)sender
+- (IBAction)setZoom:(id)sender
 {
+		// Calculate the currently centered point of the mosaic image independent of the zoom factor.
+	NSRect	frame = [[mosaicScrollView contentView] frame],
+			visibleRect = [mosaicView visibleRect];
+	NSPoint	centerPoint = NSMakePoint(NSMidX(visibleRect) / zoom, NSMidY(visibleRect) / zoom);
+	
+		// Update the zoom factor based on who called this method.
     if ([sender isKindOfClass:[NSMenuItem class]])
     {
-		if ([[sender title] isEqualToString:@"Minimum"]) zoom = 0.0;
-		if ([[sender title] isEqualToString:@"Medium"]) zoom = 0.5;
-		if ([[sender title] isEqualToString:@"Maximum"]) zoom = 1.0;
+		if ([[sender title] isEqualToString:@"Minimum"]) zoom = [zoomSlider minValue];
+		if ([[sender title] isEqualToString:@"Medium"]) zoom = ([zoomSlider maxValue] - [zoomSlider minValue]) / 2.0;
+		if ([[sender title] isEqualToString:@"Maximum"]) zoom = [zoomSlider maxValue];
     }
     else zoom = [zoomSlider floatValue];
     
-    // set the zoom...
+		// Sync the slider with the current zoom setting.
     [zoomSlider setFloatValue:zoom];
     
-	[mosaicView setFrame:[[mosaicScrollView contentView] frame]];
-/*
-    if (mosaicImage != nil)
-    {
-		NSRect	bounds, frame;
-		
-		frame = NSMakeRect(0, 0,
-				[[mosaicScrollView contentView] frame].size.width + ([mosaicImage size].width - 
-				[[mosaicScrollView contentView] frame].size.width) * zoom,
-				[[mosaicScrollView contentView] frame].size.height + ([mosaicImage size].height - 
-				[[mosaicScrollView contentView] frame].size.height) * zoom);
-		bounds = NSMakeRect(NSMidX([[mosaicScrollView contentView] bounds]) * frame.size.width / 
-						[mosaicView frame].size.width,
-					NSMidY([[mosaicScrollView contentView] bounds]) * frame.size.height / 
-						[mosaicView frame].size.height,
-					frame.size.width -
-						(frame.size.width - [[mosaicScrollView contentView] frame].size.width) * zoom,
-					frame.size.height -
-						(frame.size.height - [[mosaicScrollView contentView] frame].size.height) * zoom);
-		bounds.origin.x = MIN(MAX(0, bounds.origin.x - bounds.size.width / 2.0),
-							  frame.size.width - bounds.size.width);
-		bounds.origin.y = MIN(MAX(0, bounds.origin.y - bounds.size.height / 2.0),
-							  frame.size.height - bounds.size.height);
-		[mosaicView setFrame:frame];
-		[[mosaicScrollView contentView] setBounds:bounds];
-		[mosaicScrollView setNeedsDisplay:YES];
-    }
-*/
+		// Update the frame and bounds of the mosaic view.
+	frame.size.width *= zoom;
+	frame.size.height *= zoom;
+	[mosaicView setFrame:frame];
+	[mosaicView setBounds:frame];
+	
+		// Reset the scroll position so that the previous center point is as close to the center as possible.
+	visibleRect = [mosaicView visibleRect];
+	centerPoint.x *= zoom;
+	centerPoint.y *= zoom;
+	[mosaicView scrollPoint:NSMakePoint(centerPoint.x - NSWidth(visibleRect) / 2.0, 
+										centerPoint.y - NSHeight(visibleRect) / 2.0)];
 }
 
 
@@ -1333,7 +1326,8 @@
 	[NSThread setThreadPriority:0.1];
 
     NSImage		*exportImage = [[NSImage alloc] initWithSize:NSMakeSize([exportWidth intValue], [exportHeight intValue])];
-	[exportImage setCacheMode:NSImageCacheNever];
+	[exportImage setCachedSeparately:YES];
+//	[exportImage setCacheMode:NSImageCacheNever];
 	NS_DURING
 		[exportImage lockFocus];
 	NS_HANDLER
@@ -1358,10 +1352,10 @@
         [clipPath addClip];
 		
 			// Get the image in use by this tile.
-		ImageMatch	*match = [tile displayedImageMatch];
-		NSImageRep	*pixletImageRep = [[[self document] imageCache] imageRepAtSize:[clipPath bounds].size 
-																	 forIdentifier:[match imageIdentifier] 
-																	    fromSource:[match imageSource]];
+		MacOSaiXImageMatch	*match = [tile displayedImageMatch];
+		NSImageRep			*pixletImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[clipPath bounds].size 
+																					  forIdentifier:[match imageIdentifier] 
+																						 fromSource:[match imageSource]];
 		
 			// Translate the tile's outline (in unit space) to the size of the exported image.
 		NSRect		drawRect;
