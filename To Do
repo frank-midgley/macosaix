@@ -108,18 +108,20 @@ Ordered array:		images, fileIDs
 =======================================================================================
 
 Rework TODO:
+¥	Make sure pixels are being pulled from bitmaps correctly
+¥	Make all image identifiers strings (still used as plist dictionary key?)
 ¥	Make neighborhood calculation more efficient or threaded
-¥	Create MacOSaiXWindowController
+¥	Split MacOSaiXWindowController out of MacOSaiXDocument
 ¥	Rework MosaicView to not use a stored image but redraw the tiles as needed in -drawRect:.  Would allow for better zooming.
 Ã	Uniqueness
 ¥	Saving (plug-ins state)
 ¥	Image sources GUI (whole utility drawer, actually)
 ¥	Get rid of framework?
 ¥	Hexagonal & puzzle tile shapes
-¥	Glyph & google sources
+¥	Glyph & Google sources
 ¥	Original image view (scaling/tinting)
 ¥	Pausing
-¥	Banded exporting
+¥	Buffered exporting
 ¥	Editor
 ¥	Disable editor until after mosaic has started
 ¥	Push regions to next major release
@@ -127,10 +129,34 @@ Rework TODO:
 
 
 2.0a1 To Do:
-¥	Disable saving
+Ã	Disable saving
 ¥	List of what is/isn't working
 ¥	Test on Jaguar
 Ã	Activate newly added image sources
-¥	Enable remove source button or disable it
+Ã	Enable remove source button or disable it
 ¥	Purge image cache directory on document dealloc
 ¥	Disable tiles setup after mosaic starts?
+Ã	Turn down priority of worker threads
+
+
+
+Working:
+	Rectangular tiles
+	Tile neighborhood/uniqueness control
+	Directory source
+	QuickTime source
+	Exporting
+	Pause/Resume
+
+Not Working:
+	Saving
+	Preferences
+	Hex Tiles
+	Puzzle Tiles
+	Google Source
+	Glyph Source
+	Removing Sources
+	Editor
+
+
+
