@@ -9,9 +9,11 @@
 #import <Foundation/Foundation.h>
 #import <MacOSaiXPlugins/ImageSource.h>
 
-@interface DirectoryImageSource : ImageSource {
+@interface DirectoryImageSource : ImageSource
+{
     NSDirectoryEnumerator	*_enumerator;
     NSString				*_directoryPath, *_nextFile;
+	BOOL					_haveMoreImages;
 }
 
 @end
