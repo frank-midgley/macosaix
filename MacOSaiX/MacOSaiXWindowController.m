@@ -1795,7 +1795,10 @@
 				return [NSString stringWithFormat:@"%@\n(%ld images found)", descriptor, imageCount];
 			else if ([descriptor isKindOfClass:[NSAttributedString class]])
 			{
-				// TODO: append attributed string
+				NSString	*stringToAppend = [NSString stringWithFormat:@"\n(%ld images found)", imageCount];
+				descriptor = [descriptor mutableCopy];
+				[(NSMutableAttributedString *)descriptor appendAttributedString:
+					[[[NSAttributedString alloc] initWithString:stringToAppend] autorelease]];
 				return descriptor;
 			}
 			else
@@ -1846,6 +1849,33 @@
 #pragma mark Text field delegate methods
 
 
+- (NSButton *)bottomRightButtonInWindow:(NSWindow *)window
+{
+	NSButton		*bottomRightButton = nil;
+	NSMutableArray	*viewQueue = [NSMutableArray arrayWithObject:[window contentView]];
+	NSPoint			maxOrigin = {0.0, 0.0};
+	
+	while ([viewQueue count] > 0)
+	{
+		NSView	*nextView = [viewQueue objectAtIndex:0];
+		[viewQueue removeObjectAtIndex:0];
+		if ([nextView isKindOfClass:[NSButton class]])	//&& [nextView frame].origin.y > 0.0)
+		{
+//			NSLog(@"Checking \"%@\" at %f, %f", [(NSButton *)nextView title], [nextView frame].origin.x, [nextView frame].origin.y);
+			if ([nextView frame].origin.x > maxOrigin.x)	//|| [nextView frame].origin.y < maxOrigin.y)
+			{
+				bottomRightButton = (NSButton *)nextView;
+				maxOrigin = [nextView frame].origin;
+			}
+		}
+		else
+			[viewQueue addObjectsFromArray:[nextView subviews]];
+	}
+	
+	return bottomRightButton;
+}
+
+
 - (void)controlTextDidChange:(NSNotification *)notification
 {
 	NSSize	originalImageSize = [[[self document] originalImage] size];
@@ -1854,6 +1884,15 @@
 		[exportHeight setIntValue:[exportWidth intValue] / originalImageSize.width * originalImageSize.height + 0.5];
 	else if ([notification object] == exportHeight)
 		[exportWidth setIntValue:[exportHeight intValue] / originalImageSize.height * originalImageSize.width + 0.5];
+	
+	NSButton	*saveButton = [self bottomRightButtonInWindow:[[notification object] window]];
+	if ([exportWidth intValue] > 10000 || [exportHeight intValue] > 10000)
+	{
+		NSBeep();
+		[saveButton setEnabled:NO];
+	}
+	else
+		[saveButton setEnabled:YES];
 }
 
 
