@@ -156,9 +156,10 @@
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 	NSImage		*image = nil;
+	NSString	*fullPath = [directoryPath stringByAppendingPathComponent:identifier];
 	
 	NS_DURING
-		image = [[[NSImage alloc] initWithContentsOfFile:[directoryPath stringByAppendingPathComponent:identifier]] autorelease];
+		image = [[[NSImage alloc] initWithContentsOfFile:fullPath] autorelease];
 		if (!image)
 		{
 				// The image might have the wrong or a missing file extension so 
