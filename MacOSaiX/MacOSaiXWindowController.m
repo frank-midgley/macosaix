@@ -6,14 +6,9 @@
 	Copyright (c) 2004 Frank M. Midgley. All rights reserved.
 */
 
-//#import <HIToolbox/MacWindows.h>
-#import "MacOSaiX.h"
 #import "MacOSaiXWindowController.h"
-#import "MacOSaiXDocument.h"
+#import "MacOSaiX.h"
 #import "MacOSaiXImageCache.h"
-#import "Tiles.h"
-#import "MosaicView.h"
-#import "OriginalView.h"
 #import "NSImage+MacOSaiX.h"
 #import <unistd.h>
 #import <pthread.h>
@@ -94,7 +89,6 @@
 						*originalName = [originalDict objectForKey:@"Name"];
 			NSImage		*originalThumbnail = [[NSImage alloc] initWithData:[originalDict objectForKey:@"Thumbnail Data"]];
 			[originalThumbnail setCachedSeparately:YES];
-//			[originalThumbnail setCacheMode:NSImageCacheNever];
 			
 			if ([[NSFileManager defaultManager] fileExistsAtPath:originalPath])
 			{
@@ -111,7 +105,7 @@
 		}
 		[originalImagePopUpButton selectItemAtIndex:0];
 		
-		[[self document] setTileShapes:[[[NSClassFromString(@"MacOSaiXRectangularTileShapes") alloc] init] autorelease]];
+//		[[self document] setTileShapes:[[[NSClassFromString(@"MacOSaiXRectangularTileShapes") alloc] init] autorelease]];
 		
 			// Fill in the description of the current tile shapes.
 		id	tileShapesDescription = [[[self document] tileShapes] briefDescription];
@@ -127,13 +121,6 @@
 		}
 		else
 			[tileShapesDescriptionField setStringValue:@"No description available"];
-		
-			// Set the image use count and neighborhood size pop-ups.
-		int				popUpIndex = [imageUseCountPopUpButton indexOfItemWithTag:[[self document] imageUseCount]];
-		[imageUseCountPopUpButton selectItemAtIndex:popUpIndex];
-		popUpIndex = [[self document] neighborhoodSize] - 1;
-		if (popUpIndex >= 0 && popUpIndex < [neighborhoodSizePopUpButton numberOfItems])
-			[neighborhoodSizePopUpButton selectItemAtIndex:popUpIndex];
 		
 			// Set up the "Image Sources" tab
 		[imageSourcesTableView setDoubleAction:@selector(editImageSource:)];
@@ -154,6 +141,8 @@
 			[[imageSourcesPopUpButton lastItem] setRepresentedObject:imageSourceClass];
 		}
 	}
+	
+	[self synchronizeGUIWithDocument];
 	
 	[tileShapesBox setContentViewMargins:NSMakeSize(16.0, 16.0)];
 	
@@ -203,7 +192,19 @@
 	
 		// Default to the most recently used original or prompt to choose one
 		// if no previous original was found.
-	[self performSelector:@selector(chooseOriginalImage:) withObject:self afterDelay:0.0];
+	if (![[self document] fileName])
+		[self performSelector:@selector(chooseOriginalImage:) withObject:self afterDelay:0.0];
+}
+
+
+- (void)synchronizeGUIWithDocument
+{
+		// Set the image use count and neighborhood size pop-ups.
+	int				popUpIndex = [imageUseCountPopUpButton indexOfItemWithTag:[[self document] imageUseCount]];
+	[imageUseCountPopUpButton selectItemAtIndex:popUpIndex];
+	popUpIndex = [[self document] neighborhoodSize] - 1;
+	if (popUpIndex >= 0 && popUpIndex < [neighborhoodSizePopUpButton numberOfItems])
+		[neighborhoodSizePopUpButton selectItemAtIndex:popUpIndex];
 }
 
 
@@ -253,11 +254,20 @@
 						   contextInfo:(void *)context
 {
     if (returnCode == NSOKButton)
+		[[self document] setOriginalImagePath:[[sheet filenames] objectAtIndex:0]];
+}
+
+
+- (void)originalImageDidChange:(NSNotification *)notification
+{
+	if (!pthread_main_np())
+		[self performSelectorOnMainThread:@selector(originalImageDidChange:) 
+							   withObject:notification 
+							waitUntilDone:YES];
+	else
 	{
-		NSString	*imagePath = [[sheet filenames] objectAtIndex:0];
-		[[self document] setOriginalImagePath:imagePath];
-		
 			// Remember this original in the user's defaults so they can easily re-choose it for future mosaics.
+		NSString		*originalImagePath = [[self document] originalImagePath];
 		NSImage			*originalImage = [[self document] originalImage];
 		NSImage			*thumbnailImage = [originalImage copyWithLargestDimension:32.0];
 		NSMutableArray	*originals = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] mutableCopy] autorelease];
@@ -267,7 +277,7 @@
 			NSEnumerator	*originalEnumerator = [originals objectEnumerator];
 			NSDictionary	*originalDict = nil;
 			while (originalDict = [originalEnumerator nextObject])
-				if ([[originalDict objectForKey:@"Path"] isEqualToString:imagePath])
+				if ([[originalDict objectForKey:@"Path"] isEqualToString:originalImagePath])
 				{
 					[originals removeObject:originalDict];
 					break;
@@ -276,8 +286,8 @@
 		else
 			originals = [NSMutableArray array];
 		[originals insertObject:[NSDictionary dictionaryWithObjectsAndKeys:
-									imagePath, @"Path", 
-									[[imagePath lastPathComponent] stringByDeletingPathExtension], @"Name", 
+									originalImagePath, @"Path", 
+									[[originalImagePath lastPathComponent] stringByDeletingPathExtension], @"Name", 
 									[thumbnailImage TIFFRepresentation], @"Thumbnail Data",
 									nil]
 						atIndex:0];
@@ -288,98 +298,94 @@
 		NSEnumerator	*itemEnumerator = [[[originalImagePopUpButton menu] itemArray] objectEnumerator];
 		NSMenuItem		*item = nil;
 		while (item = [itemEnumerator nextObject])
-			if ([[item representedObject] isEqualToString:imagePath])
+			if ([[item representedObject] isEqualToString:originalImagePath])
 			{
 				[[originalImagePopUpButton menu] removeItem:item];
 				break;
 			}
 		NSMenuItem	*originalItem = [[[NSMenuItem alloc] init] autorelease];
-		[originalItem setTitle:[[imagePath lastPathComponent] stringByDeletingPathExtension]];
-		[originalItem setRepresentedObject:imagePath];
+		[originalItem setTitle:[[originalImagePath lastPathComponent] stringByDeletingPathExtension]];
+		[originalItem setRepresentedObject:originalImagePath];
 		[originalImageThumbView setImage:thumbnailImage];
 		[[originalImagePopUpButton menu] insertItem:originalItem atIndex:0];
 		[originalImagePopUpButton selectItemAtIndex:0];
 		
 		[thumbnailImage release];
+		
+			// Set the zoom so that all of the new image is displayed.
+		[zoomSlider setFloatValue:0.0];
+		[self setZoom:self];
+		
+			// Resize the window to respect the original's aspect ratio
+		NSRect	curFrame = [[self window] frame];
+		NSSize	newSize = [self windowWillResize:[self window] toSize:curFrame.size];
+		[[self window] setFrame:NSMakeRect(NSMinX(curFrame), NSMaxY(curFrame) - newSize.height, newSize.width, newSize.height)
+						display:YES
+						animate:YES];
+		
+		[self updateStatus:nil];
+		
+			// Create the toolbar icons for the View Original/View Mosaic item.  Toolbar item images 
+			// must be 32x32 so we center the thumbnail in an image of the correct size.
+		[originalToolbarImage release];
+		originalToolbarImage = [[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)];
+		NSImage	*newToolbarImage = [[[[self document] originalImage] copyWithLargestDimension:32.0] autorelease];
+		NSSize	thumbSize = [newToolbarImage size];
+		[originalToolbarImage lockFocus];
+			if (thumbSize.width > thumbSize.height)
+				[newToolbarImage compositeToPoint:NSMakePoint(0.0, (32.0 - thumbSize.height) / 2.0) operation:NSCompositeCopy];
+			else
+				[newToolbarImage compositeToPoint:NSMakePoint((32.0 - thumbSize.width) / 2.0, 0.0) operation:NSCompositeCopy];
+		[originalToolbarImage unlockFocus];
+			// Create a version that looks like a 4x4 mosaic.
+		[mosaicToolbarImage release];
+		mosaicToolbarImage = [originalToolbarImage copy];
+		[mosaicToolbarImage lockFocus];
+			float	quarterWidth = thumbSize.width / 4.0,
+					quarterHeight = thumbSize.height / 4.0,
+					xStart = 0.0,
+					yStart = 0.0;
+			if (thumbSize.width > thumbSize.height)
+				yStart = (32.0 - thumbSize.height) / 2.0;
+			else
+				xStart = (32.0 - thumbSize.width) / 2.0;
+			
+				// Lighten the top and left edges.
+			[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
+			int	i;
+			for (i = 0; i < 4; i++)
+			{
+				[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + 0.0, 
+															  yStart + (i + 1) * quarterHeight - 0.5)
+										  toPoint:NSMakePoint(xStart + quarterWidth * 4.0 - 0.5, 
+															  yStart + (i + 1) * quarterHeight - 0.5)];
+				[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + i * quarterWidth + 0.5, 
+															  yStart + 0.0)
+										  toPoint:NSMakePoint(xStart + i * quarterWidth + 0.5, 
+															  yStart + quarterHeight * 4.0 - 0.5)];
+			}
+			
+				// Darken the bottom and right edges.
+			[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
+			for (i = 0; i < 4; i++)
+			{
+				[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + 0.5, 
+															  yStart + i * quarterHeight + 0.5)
+										  toPoint:NSMakePoint(xStart + quarterWidth * 4.0, 
+															  yStart + i * quarterHeight + 0.5)];
+				[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + (i + 1) * quarterWidth - 0.5, 
+															  yStart + 0.0)
+										  toPoint:NSMakePoint(xStart + (i + 1) * quarterWidth - 0.5, 
+															  yStart + quarterHeight * 4.0 - 0.5)];
+			}
+		[mosaicToolbarImage unlockFocus];
+		
+			// Update the toolbar item.
+		if ([mosaicView viewOriginal])
+			[toggleOriginalToolbarItem setImage:mosaicToolbarImage];
+		else
+			[toggleOriginalToolbarItem setImage:originalToolbarImage];
 	}
-}
-
-
-- (void)originalImageDidChange:(NSNotification *)notification
-{
-		// Set the zoom so that all of the new image is displayed.
-    [zoomSlider setFloatValue:0.0];
-    [self setZoom:self];
-	
-		// Resize the window to respect the original's aspect ratio
-	NSRect	curFrame = [[self window] frame];
-	NSSize	newSize = [self windowWillResize:[self window] toSize:curFrame.size];
-	[[self window] setFrame:NSMakeRect(NSMinX(curFrame), NSMaxY(curFrame) - newSize.height, newSize.width, newSize.height)
-					display:YES
-					animate:YES];
-	
-	[self updateStatus:nil];
-	
-		// Create the toolbar icons for the View Original/View Mosaic item.  Toolbar item images 
-		// must be 32x32 so we center the thumbnail in an image of the correct size.
-	[originalToolbarImage release];
-	originalToolbarImage = [[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)];
-	NSImage	*thumbnailImage = [[[[self document] originalImage] copyWithLargestDimension:32.0] autorelease];
-	NSSize	thumbSize = [thumbnailImage size];
-	[originalToolbarImage lockFocus];
-		if (thumbSize.width > thumbSize.height)
-			[thumbnailImage compositeToPoint:NSMakePoint(0.0, (32.0 - thumbSize.height) / 2.0) operation:NSCompositeCopy];
-		else
-			[thumbnailImage compositeToPoint:NSMakePoint((32.0 - thumbSize.width) / 2.0, 0.0) operation:NSCompositeCopy];
-	[originalToolbarImage unlockFocus];
-		// Create a version that looks like a 4x4 mosaic.
-	[mosaicToolbarImage release];
-	mosaicToolbarImage = [originalToolbarImage copy];
-	[mosaicToolbarImage lockFocus];
-		float	quarterWidth = thumbSize.width / 4.0,
-				quarterHeight = thumbSize.height / 4.0,
-				xStart = 0.0,
-				yStart = 0.0;
-		if (thumbSize.width > thumbSize.height)
-			yStart = (32.0 - thumbSize.height) / 2.0;
-		else
-			xStart = (32.0 - thumbSize.width) / 2.0;
-		
-			// Lighten the top and left edges.
-		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
-		int	i;
-		for (i = 0; i < 4; i++)
-		{
-			[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + 0.0, 
-														  yStart + (i + 1) * quarterHeight - 0.5)
-									  toPoint:NSMakePoint(xStart + quarterWidth * 4.0 - 0.5, 
-														  yStart + (i + 1) * quarterHeight - 0.5)];
-			[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + i * quarterWidth + 0.5, 
-														  yStart + 0.0)
-									  toPoint:NSMakePoint(xStart + i * quarterWidth + 0.5, 
-														  yStart + quarterHeight * 4.0 - 0.5)];
-		}
-		
-			// Darken the bottom and right edges.
-		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
-		for (i = 0; i < 4; i++)
-		{
-			[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + 0.5, 
-														  yStart + i * quarterHeight + 0.5)
-									  toPoint:NSMakePoint(xStart + quarterWidth * 4.0, 
-														  yStart + i * quarterHeight + 0.5)];
-			[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + (i + 1) * quarterWidth - 0.5, 
-														  yStart + 0.0)
-									  toPoint:NSMakePoint(xStart + (i + 1) * quarterWidth - 0.5, 
-														  yStart + quarterHeight * 4.0 - 0.5)];
-		}
-	[mosaicToolbarImage unlockFocus];
-	
-		// Update the toolbar item.
-	if ([mosaicView viewOriginal])
-		[toggleOriginalToolbarItem setImage:mosaicToolbarImage];
-	else
-		[toggleOriginalToolbarItem setImage:originalToolbarImage];
 }
 
 
@@ -569,10 +575,27 @@
 		[tileShapesEditor release];
 		tileShapesEditor = [[tileShapesEditorClass alloc] init];
 		
-			// Swap in the view of the new editor.
+			// Swap in the view of the new editor.  Make sure the panel is big enough to contain the view's minimum size.
+		float	widthDiff = MAX(0.0, [tileShapesEditor editorViewMinimumSize].width - [[tileShapesBox contentView] frame].size.width),
+				heightDiff = MAX(0.0, [tileShapesEditor editorViewMinimumSize].height - [[tileShapesBox contentView] frame].size.height);
+		NSSize	currentPanelSize = [[tileShapesPanel contentView] frame].size;
+		[tileShapesPanel setContentSize:NSMakeSize(currentPanelSize.width + widthDiff, currentPanelSize.height + heightDiff)];
 		[[tileShapesEditor editorView] setFrame:[[tileShapesBox contentView] frame]];
 		[[tileShapesEditor editorView] setAutoresizingMask:[[tileShapesBox contentView] autoresizingMask]];
 		[tileShapesBox setContentView:[tileShapesEditor editorView]];
+		
+			// Re-establish the key view loop:
+			// 1. Focus on the editor view's first responder.
+			// 2. Set the next key view of the last view in the editor's loop to the cancel button.
+			// 3. Set the next key view of the OK button to the first view in the editor's loop.
+		[tileShapesPanel setInitialFirstResponder:(NSView *)[tileShapesEditor editorViewFirstResponder]];
+		NSView	*lastKeyView = (NSView *)[tileShapesEditor editorViewFirstResponder];
+		while ([lastKeyView nextKeyView] && 
+				[[lastKeyView nextKeyView] isDescendantOf:[tileShapesEditor editorView]] &&
+				[lastKeyView nextKeyView] != [tileShapesEditor editorViewFirstResponder])
+			lastKeyView = [lastKeyView nextKeyView];
+		[lastKeyView setNextKeyView:cancelTileShapesButton];
+		[setTileShapesButton setNextKeyView:(NSView *)[tileShapesEditor editorViewFirstResponder]];
 		
 			// Get the existing tile shapes from our document.
 			// If they are not of the class the user just chose then create a new one with default settings.
@@ -621,7 +644,11 @@
 
 - (void)tileShapesDidChange:(NSNotification *)notification
 {
-	[tileShapesDescriptionField setStringValue:[[[self document] tileShapes] briefDescription]];
+	NSString	*tileShapesDescription = [[[self document] tileShapes] briefDescription];
+	if (tileShapesDescription)
+		[tileShapesDescriptionField setStringValue:tileShapesDescription];
+	else
+		[tileShapesDescriptionField setStringValue:@"No description available"];
 	[totalTilesField setIntValue:[[[self document] tiles] count]];
 	
 	if (selectedTile)
@@ -647,49 +674,65 @@
 
 
 #pragma mark -
-#pragma mark Image Sources tab methods
+#pragma mark Image Sources methods
+
+
+- (void)editImageSourceInSheet:(id<MacOSaiXImageSource>)originalImageSource
+{
+	id<MacOSaiXImageSource>				editableSource = [[originalImageSource copyWithZone:[self zone]] autorelease];
+	
+	imageSourceEditorController = [[[[originalImageSource class] editorClass] alloc] init];
+	
+		// Make sure the panel is big enough to contain the view's minimum size.
+	float	widthDiff = MAX(0.0, [imageSourceEditorController editorViewMinimumSize].width - [[imageSourceEditorBox contentView] frame].size.width),
+			heightDiff = MAX(0.0, [imageSourceEditorController editorViewMinimumSize].height - [[imageSourceEditorBox contentView] frame].size.height);
+	NSSize	currentPanelSize = [[imageSourceEditorPanel contentView] frame].size;
+	[imageSourceEditorPanel setContentSize:NSMakeSize(currentPanelSize.width + widthDiff, currentPanelSize.height + heightDiff)];
+	[[imageSourceEditorController editorView] setFrame:[[imageSourceEditorBox contentView] frame]];
+	[[imageSourceEditorController editorView] setAutoresizingMask:[[imageSourceEditorBox contentView] autoresizingMask]];
+	
+		// Now that the sheet is big enough we can swap in the controller's editor view.
+	[imageSourceEditorBox setContentView:[imageSourceEditorController editorView]];
+
+	[imageSourceEditorController setOKButton:imageSourceEditorOKButton];	// so the controller can disable it for invalid settings
+	[imageSourceEditorController editImageSource:editableSource];
+	
+		// Re-establish the key view loop:
+		// 1. Focus on the editor view's first responder.
+		// 2. Set the next key view of the last view in the editor's loop to the cancel button.
+		// 3. Set the next key view of the OK button to the first view in the editor's loop.
+	[imageSourceEditorPanel setInitialFirstResponder:(NSView *)[imageSourceEditorController editorViewFirstResponder]];
+	NSView	*lastKeyView = (NSView *)[imageSourceEditorController editorViewFirstResponder];
+	while ([lastKeyView nextKeyView] && 
+			[[lastKeyView nextKeyView] isDescendantOf:[imageSourceEditorController editorView]] &&
+			[lastKeyView nextKeyView] != [imageSourceEditorController editorViewFirstResponder])
+		lastKeyView = [lastKeyView nextKeyView];
+	[lastKeyView setNextKeyView:imageSourceEditorCancelButton];
+	[imageSourceEditorOKButton setNextKeyView:(NSView *)[imageSourceEditorController editorViewFirstResponder]];
+	
+	[NSApp beginSheet:imageSourceEditorPanel 
+	   modalForWindow:[self window]
+		modalDelegate:self 
+	   didEndSelector:@selector(imageSourceEditorDidEnd:returnCode:contextInfo:) 
+		  contextInfo:[[NSArray arrayWithObjects:editableSource, originalImageSource, nil] retain]];
+}
 
 
 - (void)addNewImageSource:(id)sender
 {
 	if ([imageSourcesPopUpButton indexOfSelectedItem] > 0)
 	{
-		Class								imageSourceClass = [[imageSourcesPopUpButton selectedItem] representedObject];
-		id<MacOSaiXImageSource>				newSource = [[[imageSourceClass alloc] init] autorelease];
-		id<MacOSaiXImageSourceController>	controller = [[[[imageSourceClass editorClass] alloc] init] autorelease];
+		Class	imageSourceClass = [[imageSourcesPopUpButton selectedItem] representedObject];
 		
-		[imageSourceEditorBox setContentView:[controller imageSourceView]];
-		[controller setOKButton:imageSourceEditorOKButton];
-		[controller editImageSource:newSource];
-		
-		[NSApp beginSheet:imageSourceEditorPanel 
-		   modalForWindow:[self window]
-		    modalDelegate:self 
-		   didEndSelector:@selector(imageSourceEditorDidEnd:returnCode:contextInfo:) 
-			  contextInfo:[[NSArray arrayWithObjects:newSource, controller, nil] retain]];
+		[self editImageSourceInSheet:[[[imageSourceClass alloc] init] autorelease]];
 	}
 }
 
 
 - (IBAction)editImageSource:(id)sender
 {
-	// TBD: check if sheet already displayed?
-	
 	if (sender == imageSourcesTableView)
-	{
-		id<MacOSaiXImageSource>				originalSource = [[[self document] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]],
-											newSource = [[originalSource copyWithZone:[self zone]] autorelease];
-		id<MacOSaiXImageSourceController>	controller = [[[[[newSource class] editorClass] alloc] init] autorelease];
-		
-		[imageSourceEditorBox setContentView:[controller imageSourceView]];
-		[controller editImageSource:newSource];
-		
-		[NSApp beginSheet:imageSourceEditorPanel 
-		   modalForWindow:[self window]
-		    modalDelegate:self 
-		   didEndSelector:@selector(imageSourceEditorDidEnd:returnCode:contextInfo:) 
-			  contextInfo:[[NSArray arrayWithObjects:newSource, controller, originalSource, nil] retain]];
-	}
+		[self editImageSourceInSheet:[[[self document] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]]];
 }
 
 
@@ -709,13 +752,12 @@
 {
 	NSArray								*parameters = (NSArray *)contextInfo;
 	id<MacOSaiXImageSource>				editedImageSource = [parameters objectAtIndex:0],
-										originalImageSource = ([parameters count] == 3 ? [parameters lastObject] : nil);
-//	id<MacOSaiXImageSourceController>	controller = [parameters objectAtIndex:1];
+										originalImageSource = [parameters objectAtIndex:1];
 	
 	[sheet orderOut:self];
 	
 		// Do this before adding the source so we don't run into thread safety issues with QuickTime.
-	[imageSourceEditorBox setContentView:nil];
+	[imageSourceEditorBox setContentView:[[[NSView alloc] initWithFrame:[[imageSourceEditorBox contentView] frame]] autorelease]];
 	
 	if (returnCode == NSOKButton)
 	{
@@ -1331,7 +1373,6 @@
 
     NSImage		*exportImage = [[NSImage alloc] initWithSize:NSMakeSize([exportWidth intValue], [exportHeight intValue])];
 	[exportImage setCachedSeparately:YES];
-//	[exportImage setCacheMode:NSImageCacheNever];
 	NS_DURING
 		[exportImage lockFocus];
 	NS_HANDLER
@@ -1486,48 +1527,67 @@
 }
 
 
-- (NSSize)windowWillResize:(NSWindow *)sender toSize:(NSSize)proposedFrameSize
+- (NSSize)windowWillResize:(NSWindow *)resizingWindow toSize:(NSSize)proposedFrameSize
 {
-    float	aspectRatio = [[[self document] originalImage] size].width / [[[self document] originalImage] size].height,
-			windowTop = [sender frame].origin.y + [sender frame].size.height,
-			minHeight = 413;
-    NSSize	diff;
-    NSRect	screenFrame = [[sender screen] frame];
-    
-    proposedFrameSize.width = MIN(MAX(proposedFrameSize.width, 132),
-								  screenFrame.size.width - [sender frame].origin.x);
-    diff.width = [sender frame].size.width - [[sender contentView] frame].size.width;
-    diff.height = [sender frame].size.height - [[sender contentView] frame].size.height;
-    proposedFrameSize.width -= diff.width;
-    windowTop -= diff.height + 16 + (statusBarShowing ? [statusBarView frame].size.height : 0);
-    
-    // Calculate the height of the window based on the proposed width
-    //   and preserve the aspect ratio of the mosaic image.
-    // If the height is too big for the screen, lower the width.
-	proposedFrameSize.height = (proposedFrameSize.width - 16) / aspectRatio;
-	if (proposedFrameSize.height > windowTop || proposedFrameSize.height < minHeight)
+	if (resizingWindow == [self window])
 	{
-	    proposedFrameSize.height = (proposedFrameSize.height < minHeight) ? minHeight : windowTop;
-	    proposedFrameSize.width = proposedFrameSize.height * aspectRatio + 16;
+		float	aspectRatio = [[[self document] originalImage] size].width / [[[self document] originalImage] size].height,
+				windowTop = [resizingWindow frame].origin.y + [resizingWindow frame].size.height,
+				minHeight = 413;
+		NSSize	diff;
+		NSRect	screenFrame = [[resizingWindow screen] frame];
+		
+		proposedFrameSize.width = MIN(MAX(proposedFrameSize.width, 132),
+									  screenFrame.size.width - [resizingWindow frame].origin.x);
+		diff.width = [resizingWindow frame].size.width - [[resizingWindow contentView] frame].size.width;
+		diff.height = [resizingWindow frame].size.height - [[resizingWindow contentView] frame].size.height;
+		proposedFrameSize.width -= diff.width;
+		windowTop -= diff.height + 16 + (statusBarShowing ? [statusBarView frame].size.height : 0);
+		
+		// Calculate the height of the window based on the proposed width
+		//   and preserve the aspect ratio of the mosaic image.
+		// If the height is too big for the screen, lower the width.
+		proposedFrameSize.height = (proposedFrameSize.width - 16) / aspectRatio;
+		if (proposedFrameSize.height > windowTop || proposedFrameSize.height < minHeight)
+		{
+			proposedFrameSize.height = (proposedFrameSize.height < minHeight) ? minHeight : windowTop;
+			proposedFrameSize.width = proposedFrameSize.height * aspectRatio + 16;
+		}
+		
+		// add height of scroll bar and status bar (if showing)
+		proposedFrameSize.height += 16 + (statusBarShowing ? [statusBarView frame].size.height : 0);
+		
+		[self setZoom:self];
+		
+		proposedFrameSize.height += diff.height;
+		proposedFrameSize.width += diff.width;
 	}
-    
-    // add height of scroll bar and status bar (if showing)
-    proposedFrameSize.height += 16 + (statusBarShowing ? [statusBarView frame].size.height : 0);
-    
-    [self setZoom:self];
-    
-    proposedFrameSize.height += diff.height;
-    proposedFrameSize.width += diff.width;
+	else if (resizingWindow == tileShapesPanel)
+	{
+	}
+	else if (resizingWindow == imageSourceEditorPanel)
+	{
+		NSSize	panelSize = [imageSourceEditorPanel frame].size,
+				editorBoxSize = [[imageSourceEditorBox contentView] frame].size;
+		float	minWidth = (panelSize.width - editorBoxSize.width) + [imageSourceEditorController editorViewMinimumSize].width,
+				minHeight = (panelSize.height - editorBoxSize.height) + [imageSourceEditorController editorViewMinimumSize].height;
+		
+		proposedFrameSize.width = MAX(proposedFrameSize.width, minWidth);
+		proposedFrameSize.height = MAX(proposedFrameSize.height, minHeight);
+	}
 
     return proposedFrameSize;
 }
 
 
-- (NSRect)windowWillUseStandardFrame:(NSWindow *)sender defaultFrame:(NSRect)defaultFrame
+- (NSRect)windowWillUseStandardFrame:(NSWindow *)window defaultFrame:(NSRect)defaultFrame
 {
-    defaultFrame.size = [self windowWillResize:sender toSize:defaultFrame.size];
+	if (window == [self window])
+	{
+		defaultFrame.size = [self windowWillResize:window toSize:defaultFrame.size];
 
-    [mosaicScrollView setNeedsDisplay:YES];
+		[mosaicScrollView setNeedsDisplay:YES];
+	}
     
     return defaultFrame;
 }
