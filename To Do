@@ -137,7 +137,7 @@ Rework TODO:
 ¥	Purge image cache directory on document dealloc
 ¥	Disable tiles setup after mosaic starts?
 Ã	Turn down priority of worker threads
-
+¥	Change idle message
 
 
 Working:
