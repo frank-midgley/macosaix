@@ -64,6 +64,7 @@
 		[mosaicImage autorelease];
 		mosaicImage = [[NSImage alloc] initWithSize:NSMakeSize(1600.0, 1600.0 * [originalImage size].height / [originalImage size].width)];
 		[mosaicImage setCachedSeparately:YES];
+		[mosaicImage setCacheMode:NSImageCacheNever];
 		
 		[mosaicImage lockFocus];
 			[[NSColor blackColor] set];
@@ -113,30 +114,30 @@
 	else
 		newImageRep = blackRep;
 	
-	if (newImageRep)
-	{
-			// Draw the tile's new image in the mosaic
-		NSSize			newImageRepSize = [newImageRep size];
-		NSRect			drawRect;
-		
-			// scale the image to the tile's size, but preserve it's aspect ratio
-		if ([clipPath bounds].size.width / newImageRepSize.width <
-			[clipPath bounds].size.height / newImageRepSize.height)
+	[mosaicImageLock lock];
+		if (newImageRep)
 		{
-			drawRect.size = NSMakeSize([clipPath bounds].size.height * newImageRepSize.width / newImageRepSize.height,
-									   [clipPath bounds].size.height);
-			drawRect.origin = NSMakePoint([clipPath bounds].origin.x - (drawRect.size.width - [clipPath bounds].size.width) / 2.0,
-										  [clipPath bounds].origin.y);
-		}
-		else
-		{
-			drawRect.size = NSMakeSize([clipPath bounds].size.width,
-									   [clipPath bounds].size.width * newImageRepSize.height / newImageRepSize.width);
-			drawRect.origin = NSMakePoint([clipPath bounds].origin.x,
-										  [clipPath bounds].origin.y - (drawRect.size.height - [clipPath bounds].size.height) /2.0);
-		}		
-			// ...
-		[mosaicImageLock lock];
+				// Draw the tile's new image in the mosaic
+			NSSize			newImageRepSize = [newImageRep size];
+			NSRect			drawRect;
+			
+				// scale the image to the tile's size, but preserve it's aspect ratio
+			if ([clipPath bounds].size.width / newImageRepSize.width <
+				[clipPath bounds].size.height / newImageRepSize.height)
+			{
+				drawRect.size = NSMakeSize([clipPath bounds].size.height * newImageRepSize.width / newImageRepSize.height,
+										   [clipPath bounds].size.height);
+				drawRect.origin = NSMakePoint([clipPath bounds].origin.x - (drawRect.size.width - [clipPath bounds].size.width) / 2.0,
+											  [clipPath bounds].origin.y);
+			}
+			else
+			{
+				drawRect.size = NSMakeSize([clipPath bounds].size.width,
+										   [clipPath bounds].size.width * newImageRepSize.height / newImageRepSize.width);
+				drawRect.origin = NSMakePoint([clipPath bounds].origin.x,
+											  [clipPath bounds].origin.y - (drawRect.size.height - [clipPath bounds].size.height) /2.0);
+			}
+			
 			NS_DURING
 				[mosaicImage lockFocus];
 					[clipPath setClip];
@@ -147,11 +148,11 @@
 			NS_ENDHANDLER
 			
 			[tilesNeedingDisplay addObject:tileToRefresh];
-		[mosaicImageLock unlock];
-	}
-	
-	if ([lastUpdate timeIntervalSinceNow] < -0.1)
-		[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:nil waitUntilDone:YES];
+		}
+		
+		if ([lastUpdate timeIntervalSinceNow] < -0.1)
+			[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:nil waitUntilDone:NO];
+	[mosaicImageLock unlock];
 }
 
 
