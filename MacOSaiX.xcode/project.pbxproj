@@ -458,6 +458,8 @@
 				00EAAC6100853DFB7F000001,
 				9287C13A075A5CC6004C07EF,
 				923384DB072180700010BE04,
+				92F00CE207C1B1D0004F6D06,
+				92F00CE307C1B1D0004F6D06,
 				928F724A0661214000873AE2,
 				928F726C066121AE00873AE2,
 				92BFFEC1079A2DD50052CC4C,
@@ -535,6 +537,7 @@
 				080E96DDFE201D6D7F000001,
 				F5EE25FD03901F9D01705684,
 				29B97323FDCFA39411CA2CEA,
+				92F00CC907C1AA31004F6D06,
 				19C28FACFE9D520D11CA2CBB,
 				F54D1108020F41F001000116,
 			);
@@ -790,6 +793,8 @@
 				9289DDA9073D713100C88091,
 				01BBDECD0747081400F17A9F,
 				9287C13B075A5CC6004C07EF,
+				92F00CCE07C1AA55004F6D06,
+				92F00CE407C1B1D0004F6D06,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -853,6 +858,7 @@
 				92951FF9068A7FE900366ACB,
 				92BFFEC3079A2DD50052CC4C,
 				01AC3A3C07B0997C0025F915,
+				92F00D0807C1B52B004F6D06,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -923,6 +929,8 @@
 				9289DDA8073D713100C88091,
 				9289DDAA073D713100C88091,
 				01BBDECE0747081400F17A9F,
+				92F00CCF07C1AA55004F6D06,
+				92F00CE507C1B1D0004F6D06,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1718,6 +1726,7 @@
 				928F725B066121A700873AE2,
 				928F725D066121A700873AE2,
 				928F725F066121A700873AE2,
+				92F00D0607C1B52B004F6D06,
 			);
 			isa = PBXGroup;
 			name = "Nib's";
@@ -2149,6 +2158,108 @@
 		};
 		92BFFEC3079A2DD50052CC4C = {
 			fileRef = 92BFFEC1079A2DD50052CC4C;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		92F00CC907C1AA31004F6D06 = {
+			children = (
+				92F00CCB07C1AA55004F6D06,
+			);
+			isa = PBXGroup;
+			name = "Third Party Code";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		92F00CCB07C1AA55004F6D06 = {
+			children = (
+				92F00CCC07C1AA55004F6D06,
+				92F00CCD07C1AA55004F6D06,
+			);
+			isa = PBXGroup;
+			name = MacPAD;
+			path = "Third Party Code/MacPAD";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		92F00CCC07C1AA55004F6D06 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			path = MacPADSocket.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		92F00CCD07C1AA55004F6D06 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			path = MacPADSocket.m;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		92F00CCE07C1AA55004F6D06 = {
+			fileRef = 92F00CCC07C1AA55004F6D06;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		92F00CCF07C1AA55004F6D06 = {
+			fileRef = 92F00CCD07C1AA55004F6D06;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		92F00CE207C1B1D0004F6D06 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = MacOSaiXUpdateAvailableController.h;
+			path = MacOSaiX/MacOSaiXUpdateAvailableController.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		92F00CE307C1B1D0004F6D06 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = MacOSaiXUpdateAvailableController.m;
+			path = MacOSaiX/MacOSaiXUpdateAvailableController.m;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		92F00CE407C1B1D0004F6D06 = {
+			fileRef = 92F00CE207C1B1D0004F6D06;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		92F00CE507C1B1D0004F6D06 = {
+			fileRef = 92F00CE307C1B1D0004F6D06;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		92F00D0607C1B52B004F6D06 = {
+			children = (
+				92F00D0707C1B52B004F6D06,
+			);
+			isa = PBXVariantGroup;
+			name = "Update Available.nib";
+			path = "";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		92F00D0707C1B52B004F6D06 = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.nib;
+			name = English;
+			path = "MacOSaiX/English.lproj/Update Available.nib";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		92F00D0807C1B52B004F6D06 = {
+			fileRef = 92F00D0607C1B52B004F6D06;
 			isa = PBXBuildFile;
 			settings = {
 			};
