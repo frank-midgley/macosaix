@@ -33,6 +33,12 @@
 	[_pauseLock unlock];
 }
 
+- (BOOL)canRefetchImages
+{
+	return YES;
+}
+
+
 - (NSImage *)image {return nil;}
 - (NSString *)descriptor {return nil;}
 

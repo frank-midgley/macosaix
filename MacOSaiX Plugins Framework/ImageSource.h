@@ -20,6 +20,8 @@
 		int		_imageCount;
 }
 
+- (BOOL)canRefetchImages;
+
 	// methods for filling an Image Sources NSTableView
 - (NSImage *)image;
 - (NSString *)descriptor;

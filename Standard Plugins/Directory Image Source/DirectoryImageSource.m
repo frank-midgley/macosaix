@@ -37,6 +37,12 @@
 }
 
 
+- (BOOL)canRefetchImages
+{
+	return YES;
+}
+
+
 - (id)nextImageIdentifier
 {
     NSString	*nextFile = nil,
