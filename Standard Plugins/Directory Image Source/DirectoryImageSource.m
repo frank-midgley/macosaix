@@ -117,7 +117,7 @@
 			if (iPhotoLibraryIndex == NSNotFound || thumbsIndex < iPhotoLibraryIndex || originalsIndex < iPhotoLibraryIndex)
 			{
 				NS_DURING
-					image = [[NSImage alloc] initWithContentsOfFile:fullPath];
+					image = [[[NSImage alloc] initWithContentsOfFile:fullPath] autorelease];
 				NS_HANDLER
 					// should something be logged?
 					NSLog(@"%@ is not a valid image file.", fullPath);
