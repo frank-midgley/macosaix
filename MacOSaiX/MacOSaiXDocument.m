@@ -16,7 +16,6 @@
 
 @interface MacOSaiXDocument (PrivateMethods)
 - (void)chooseOriginalImage;
-- (void)setTilesSetupPlugIn:(id)sender;
 - (void)spawnImageSourceThreads;
 - (void)synchronizeMenus;
 - (BOOL)started;
@@ -303,7 +302,7 @@
 
 - (BOOL)started
 {
-	return ([[tiles objectAtIndex:0] bitmapRep] != nil);
+	return ([[tiles objectAtIndex:0] bitmapRep] != nil);	// huh?
 }
 
 
@@ -345,6 +344,21 @@
 	{
 		if (![self started])
 		{
+				// Make sure the tiles can't be tweaked now that the mosaic was started.
+			[tilesSetupPopUpButton setEnabled:NO];
+			NSMutableArray	*views = [NSMutableArray arrayWithObject:tilesSetupView];
+			while ([views count] > 0)
+			{
+				NSView	*view = [views objectAtIndex:0];
+				
+				if ([view respondsToSelector:@selector(setEnabled:)])
+					[(NSControl *)view setEnabled:NO];
+				
+				[views addObjectsFromArray:[view subviews]];
+				[views removeObjectAtIndex:0];
+			}
+			[neighborhoodSizePopUpButton setEnabled:NO];
+			
 			[NSApplication detachDrawingThread:@selector(createTileCollectionWithOutlines:)
 									  toTarget:self
 									withObject:nil];
@@ -926,7 +940,7 @@
 {
 	BOOL	sourceHasMoreImages = YES;
 
-	NSLog(@"Enumerating image source %@\n", imageSource);
+//	NSLog(@"Enumerating image source %@\n", imageSource);
 	
 		// Don't usurp the main thread.
 	[NSThread setThreadPriority:0.1];
@@ -1112,7 +1126,8 @@
 						cachedRepIndex = -1;
 				NS_HANDLER
 					// TBD: how to handle this?
-					NSLog(@"Could not create cached bitmap.");
+					cachedRepIndex = -1;
+					NSLog(@"Could not create cached bitmap (%@).", [localException name]);
 				NS_ENDHANDLER
 				
 				[scratchImage unlockFocus];
@@ -1362,7 +1377,7 @@
 #pragma mark -
 #pragma mark Tile setup methods
 
-- (void)setTilesSetupPlugIn:(id)sender
+- (IBAction)setTilesSetupPlugIn:(id)sender
 {
 	NSString		*selectedPlugIn = [tilesSetupPopUpButton titleOfSelectedItem];
 	NSEnumerator	*enumerator = [[[NSApp delegate] tilesSetupControllerClasses] objectEnumerator];

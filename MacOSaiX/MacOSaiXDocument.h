@@ -131,19 +131,22 @@ typedef enum
 - (IBAction)toggleImageSourcesDrawer:(id)sender;
 - (IBAction)togglePause:(id)sender;
 
-- (IBAction)setNeighborhoodSize:(id)sender;
 - (IBAction)selectTileAtPoint:(NSPoint)thePoint;
 
-	// Editor methods
+	// Tiles tab methods
+- (IBAction)setTilesSetupPlugIn:(id)sender;
+- (IBAction)setNeighborhoodSize:(id)sender;
+
+	// Images tab methods
+- (IBAction)addImageSource:(ImageSource *)imageSource;
+- (IBAction)showCurrentImageSources;
+- (IBAction)setImageSourcesPlugIn:(id)sender;
+
+	// Editor tab methods
 - (IBAction)useCustomImage:(id)sender;
 - (IBAction)useBestUniqueMatch:(id)sender;
 - (IBAction)allowUserToChooseImage:(id)sender;
 - (IBAction)useSelectedImage:(id)sender;
-
-	// Image sources methods
-- (void)addImageSource:(ImageSource *)imageSource;
-- (void)showCurrentImageSources;
-- (void)setImageSourcesPlugIn:(id)sender;
 
 	// Export image methods
 - (IBAction)beginExportImage:(id)sender;
