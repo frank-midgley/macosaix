@@ -10,16 +10,15 @@
 	NSMutableDictionary			*directNeighbors;
 
     NSString					*originalImagePath;
-    NSImage						*originalImage, *mosaicImage, *mosaicUpdateImage;
-    NSLock						*mosaicImageLock, *refindUniqueTilesLock, *imageQueueLock;
-    NSTimer						*updateDisplayTimer, *animateTileTimer;
-    NSMutableArray				*imageSources, *tiles, *imageQueue, *selectedTileImages;
+    NSImage						*originalImage;
+    NSLock						*refindUniqueTilesLock, *imageQueueLock;
+    NSMutableArray				*imageSources, *tiles, *imageQueue;
 	NSArray						*tileOutlines;
-    NSMutableDictionary			*toolbarItems;
-    NSToolbarItem				*viewToolbarItem, *pauseToolbarItem;
+	NSBezierPath				*combinedOutlines;
     BOOL						documentIsClosing,	// flag set to true when document is closing
-								mosaicStarted, paused, statusBarShowing,
-								updateTilesFlag, mosaicImageUpdated,
+								mosaicStarted, 
+								paused, 
+								updateTilesFlag, 
 								windowFinishedLoading,	// flag to indicate nib was loaded
 								finishLoading;	// flag to indicate doc was not new,
 												// so perform second phase of initializing
@@ -27,17 +26,13 @@
 								unfetchableCount;
 	NSLock						*pauseLock;
 	int							tileCreationPercentComplete;
-    NSArray						*removedSubviews;
     BOOL						createTilesThreadAlive,
 								calculateImageMatchesThreadAlive,
 								exportImageThreadAlive;
 	int							enumerationThreadCount;
-    float						overallMatch, lastDisplayMatch, zoom;
-    Tile						*selectedTile;
-    NSBezierPath				*combinedOutlines;
+    float						overallMatch, lastDisplayMatch;
     NSDate						*lastSaved;
     int							autosaveFrequency;
-    NSRect						storedWindowFrame;
     NSMutableArray				*tileImages;
     NSLock						*tileImagesLock,
 								*calculateImageMatchesThreadLock,
@@ -53,6 +48,9 @@
 }
 
 - (void)setOriginalImagePath:(NSString *)path;
+- (NSString *)originalImagePath;
+- (NSImage *)originalImage;
+
 - (void)setTileOutlines:(NSArray *)tileOutlines;
 - (void)setNeighborhoodSize:(int)size;
 
@@ -81,3 +79,7 @@
 - (MacOSaiXImageCache *)imageCache;
 
 @end
+
+
+	// Notifications
+extern NSString	*MacOSaiXOriginalImageDidChangeNotification;

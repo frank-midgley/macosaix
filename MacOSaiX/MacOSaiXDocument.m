@@ -7,21 +7,19 @@
 */
 
 
-#import <HIToolbox/MacWindows.h>
+//#import <HIToolbox/MacWindows.h>
 #import "MacOSaiX.h"
 #import "MacOSaiXDocument.h"
 #import "MacOSaiXWindowController.h"
 #import "Tiles.h"
-#import "MosaicView.h"
-#import "OriginalView.h"
-#import <unistd.h>
+//#import <unistd.h>
 
 	// The maximum size of the image URL queue
 #define MAXIMAGEURLS 10
-	// The maximum width or height of the cached thumbnail images
-#define kThumbnailMax 64.0
-    // The number of cached images that will be held in memory at any one time.
-#define IMAGE_CACHE_SIZE 100
+
+
+	// Notifications
+NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDidChangeNotification";
 
 
 @interface MacOSaiXDocument (PrivateMethods)
@@ -94,8 +92,28 @@
 
 - (void)setOriginalImagePath:(NSString *)path
 {
-	originalImagePath = [path copy];
-	originalImage = [[NSImage alloc] initWithContentsOfFile:originalImagePath];
+	if (![path isEqualToString:originalImagePath])
+	{
+		[originalImagePath release];
+		[originalImage release];
+		
+		originalImagePath = [[NSString stringWithString:path] retain];
+		originalImage = [[NSImage alloc] initWithContentsOfFile:path];
+		
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXOriginalImageDidChangeNotification object:self];
+	}
+}
+
+
+- (NSString *)originalImagePath
+{
+	return originalImagePath;
+}
+
+
+- (NSImage *)originalImage
+{
+	return originalImage;
 }
 
 
@@ -393,12 +411,8 @@
 	
 	// finish loading tiles
 	tileOutlines = nil;
-	combinedOutlines = [[NSBezierPath bezierPath] retain];
 	for (index = 0; index < [tiles count]; index++)
-	{
-	    [combinedOutlines appendBezierPath:[[tiles objectAtIndex:index] outline]];
-	    [[tiles objectAtIndex:index] setDocument:self];
-	}
+	    [(Tile *)[tiles objectAtIndex:index] setDocument:self];
 	
 	imagesMatched = [[storage objectForKey:@"imagesMatched"] longValue];
 	
@@ -406,7 +420,7 @@
 	
 //	viewMode = [[storage objectForKey:@"viewMode"] intValue];
 	
-	storedWindowFrame = [[storage objectForKey:@"window frame"] rectValue];
+//	storedWindowFrame = [[storage objectForKey:@"window frame"] rectValue];
     
 	paused = ([[storage objectForKey:@"paused"] intValue] == 1 ? YES : NO);
 	
@@ -424,6 +438,35 @@
 
 #pragma mark
 #pragma mark Tile management
+
+
+- (void)calculateTileNeighborhoods
+{
+		// At a minimum each tile neighbors its direct neighbors.
+	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+	Tile			*tile = nil;
+	while (tile = [tileEnumerator nextObject])
+		[tile setNeighbors:[directNeighbors objectForKey:[NSString stringWithFormat:@"%p", tile]]];
+	
+	int	degreeOfSeparation;
+	for (degreeOfSeparation = 1; degreeOfSeparation < neighborhoodSize; degreeOfSeparation++)
+	{
+			// Add the direct neighbors of every tile's neighbor to the tile's neighborhood.
+		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+		Tile			*tile = nil;
+		while (tile = [tileEnumerator nextObject])
+		{ 
+			NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
+			NSEnumerator		*neighborEnumerator = [[tile neighbors] objectEnumerator];
+			Tile				*neighbor = nil;
+			
+			while (![self isClosing] && (neighbor = [neighborEnumerator nextObject]))
+				[tile addNeighbors:[directNeighbors objectForKey:[NSString stringWithFormat:@"%p", neighbor]]];
+			
+			[pool2 release];
+		}
+	}
+}
 
 
 - (void)setTileOutlines:(NSArray *)inTileOutlines
@@ -481,7 +524,7 @@
 		[directNeighbors setObject:directNeighborArray forKey:[NSString stringWithFormat:@"%p", tile]];
 	}
 	
-//	[self setNeighborhoodSize:self];
+	[self calculateTileNeighborhoods];
 		
 	mosaicStarted = NO;
 }
@@ -495,30 +538,7 @@
 	
 	// TODO: what if a mosaic is already in the works?  how do we reset?
 	
-		// At a minimum each tile neighbors its direct neighbors.
-	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-	Tile			*tile = nil;
-	while (tile = [tileEnumerator nextObject])
-		[tile setNeighbors:[directNeighbors objectForKey:[NSString stringWithFormat:@"%p", tile]]];
-	
-	int	degreeOfSeparation;
-	for (degreeOfSeparation = 1; degreeOfSeparation < neighborhoodSize; degreeOfSeparation++)
-	{
-			// Add the direct neighbors of every tile's neighbor to the tile's neighborhood.
-		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-		Tile			*tile = nil;
-		while (tile = [tileEnumerator nextObject])
-		{ 
-			NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
-			NSEnumerator		*neighborEnumerator = [[tile neighbors] objectEnumerator];
-			Tile				*neighbor = nil;
-			
-			while (![self isClosing] && (neighbor = [neighborEnumerator nextObject]))
-				[tile addNeighbors:[directNeighbors objectForKey:[NSString stringWithFormat:@"%p", neighbor]]];
-			
-			[pool2 release];
-		}
-	}
+	[self calculateTileNeighborhoods];
 }
 
 
@@ -792,9 +812,11 @@
 				// Just cache a thumbnail, no need to waste the disk since we can refetch.
 			NSSize				thumbnailSize, pixletImageSize = [pixletImage size];
 			if (pixletImageSize.width > pixletImageSize.height)
-				thumbnailSize = NSMakeSize(kThumbnailMax, pixletImageSize.height * kThumbnailMax / pixletImageSize.width);
+				thumbnailSize = NSMakeSize(kImageCacheThumbnailSize, 
+										   pixletImageSize.height * kImageCacheThumbnailSize / pixletImageSize.width);
 			else
-				thumbnailSize = NSMakeSize(pixletImageSize.width * kThumbnailMax / pixletImageSize.height, kThumbnailMax);
+				thumbnailSize = NSMakeSize(pixletImageSize.width * kImageCacheThumbnailSize / pixletImageSize.height, 
+										   kImageCacheThumbnailSize);
 			NSImage				*thumbnailImage = [[NSImage alloc] initWithSize:thumbnailSize];
 			
 			BOOL				haveFocus = NO;
@@ -952,11 +974,6 @@
 	[NSThread setThreadPriority:0.1];
 
     BOOL	tilesAddedToRefreshSet = NO;
-    
-		// set up a transform so we can scale the tiles to the mosaic's size (tiles are defined on a unit square)
-	NSAffineTransform	*transform = [NSAffineTransform transform];
-    [transform translateXBy:0.5 yBy:0.5];	// line up with pixel boundaries
-	[transform scaleXBy:[mosaicImage size].width yBy:[mosaicImage size].height];
 
         // Make a local copy of the set of tiles to refresh and then clear 
         // the main set so new tiles can be added while we work.
@@ -990,42 +1007,12 @@
                 NSLog(@"Could not load image\t%@", [imageMatch imageIdentifier]);
             else
             {
-                    // Draw the tile's new image in the mosaic
-                NSBezierPath	*clipPath = [transform transformBezierPath:[tileToRefresh outline]];
-                NSRect			drawRect;
-    
-                    // scale the image to the tile's size, but preserve it's aspect ratio
-                if ([clipPath bounds].size.width / [matchImage size].width <
-                    [clipPath bounds].size.height / [matchImage size].height)
-                {
-                    drawRect.size = NSMakeSize([clipPath bounds].size.height * [matchImage size].width /
-                                    [matchImage size].height,
-                                    [clipPath bounds].size.height);
-                    drawRect.origin = NSMakePoint([clipPath bounds].origin.x - 
-                                    (drawRect.size.width - [clipPath bounds].size.width) / 2.0,
-                                    [clipPath bounds].origin.y);
-                }
-                else
-                {
-                    drawRect.size = NSMakeSize([clipPath bounds].size.width,
-                                    [clipPath bounds].size.width * [matchImage size].height /
-                                    [matchImage size].width);
-                    drawRect.origin = NSMakePoint([clipPath bounds].origin.x,
-                                    [clipPath bounds].origin.y - 
-                                    (drawRect.size.height - [clipPath bounds].size.height) /2.0);
-                }
-                    // ...
-                [mosaicImageLock lock];
-                    NS_DURING
-                        [mosaicImage lockFocus];
-                            [clipPath setClip];
-                            [matchImage drawInRect:drawRect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
-                        [mosaicImage unlockFocus];
-                    NS_HANDLER
-                        NSLog(@"Could not lock focus on mosaic image");
-                    NS_ENDHANDLER
-                    mosaicImageUpdated = YES;
-                [mosaicImageLock unlock];
+				[[NSNotificationCenter defaultCenter] postNotificationName:@"Tile Image Changed" 
+																	object:self
+																  userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
+																				tileToRefresh, @"Tile",
+																				matchImage, @"New Image",
+																				nil]];
             }
         }
 		
@@ -1106,12 +1093,6 @@
 {
 	if (documentIsClosing)
 		return;	// make sure to do the steps below only once (not sure why this method sometimes gets called twice...)
-
-		// stop the timers
-	if ([updateDisplayTimer isValid]) [updateDisplayTimer invalidate];
-	[updateDisplayTimer release];
-	if ([animateTileTimer isValid]) [animateTileTimer invalidate];
-	[animateTileTimer release];
 	
 		// let other threads know we are closing
 	documentIsClosing = YES;
@@ -1142,7 +1123,6 @@
     [tiles release];
     [tileOutlines release];
     [imageQueue release];
-    [combinedOutlines release];
     [lastSaved release];
     [tileImages release];
     [tileImagesLock release];
