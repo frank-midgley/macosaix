@@ -38,13 +38,14 @@ typedef enum
 	
 		// Setup tab
 	IBOutlet NSPopUpButton			*originalImagePopUpButton,
-									*tilesSetupPopUpButton;
-	IBOutlet NSBox					*tilesSetupView;
-	TilesSetupController			*tilesSetupController;
+									*tileShapesPopUpButton;
+	IBOutlet NSView					*tileShapesView;
+	id<MacOSaiXTileShapesEditor>	tileShapesEditor;
+	id<MacOSaiXTileShapes>			tileShapesBeingEdited;
+	IBOutlet NSButton				*setTileShapesButton;
 	IBOutlet NSTextField			*totalTilesField;
 	IBOutlet NSPopUpButton			*neighborhoodSizePopUpButton;
 	int								neighborhoodSize;
-	NSMutableDictionary				*directNeighbors;
 	
 		// Images tab
 	IBOutlet NSPopUpButton			*imageSourcesPopUpButton;
@@ -105,11 +106,10 @@ typedef enum
 
 - (IBAction)selectTileAtPoint:(NSPoint)thePoint;
 
-	// Original tab methods
+	// Setup tab methods
 - (IBAction)chooseOriginalImage:(id)sender;
-
-	// Tiles tab methods
-- (IBAction)setTilesSetupPlugIn:(id)sender;
+- (IBAction)setTileShapesPlugIn:(id)sender;
+- (IBAction)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes;
 - (IBAction)setNeighborhoodSize:(id)sender;
 
 	// Images tab methods

@@ -52,6 +52,10 @@
 												 selector:@selector(documentDidChangeState:) 
 													 name:MacOSaiXDocumentDidChangeStateNotification 
 												   object:[self document]];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(tileShapesDidChange:) 
+													 name:MacOSaiXTileShapesDidChangeStateNotification 
+												   object:[self document]];
 	}
 	
     return self;
@@ -84,7 +88,7 @@
 
 	{
 			// Set up the "Setup" tab
-		[tilesSetupView setTitlePosition:NSNoTitle];
+//		[tileShapesView setTitlePosition:NSNoTitle];
 		
 			// Populate the original image pop-up menu
 		NSEnumerator	*originalEnumerator = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] objectEnumerator];
@@ -112,13 +116,17 @@
 		}
 		[originalImagePopUpButton selectItemAtIndex:0];
 		
-			// Load the names of the tile setup plug-ins
-		NSEnumerator	*enumerator = [[[NSApp delegate] tilesSetupControllerClasses] objectEnumerator];
-		Class			tilesSetupControllerClass;
-		[tilesSetupPopUpButton removeAllItems];
-		while (tilesSetupControllerClass = [enumerator nextObject])
-			[tilesSetupPopUpButton addItemWithTitle:[tilesSetupControllerClass name]];
-		[self setTilesSetupPlugIn:self];
+			// Load the names of the tile shapes plug-ins
+		NSEnumerator	*enumerator = [[(MacOSaiX *)[NSApp delegate] tileShapesClasses] objectEnumerator];
+		Class			tileShapesClass = nil;
+		[tileShapesPopUpButton removeAllItems];
+		while (tileShapesClass = [enumerator nextObject])
+		{
+			[tileShapesPopUpButton addItemWithTitle:[tileShapesClass name]];
+			[[tileShapesPopUpButton lastItem] setRepresentedObject:tileShapesClass];
+		}
+		[tileShapesPopUpButton selectItemAtIndex:0];
+		[self setTileShapesPlugIn:self];
 		
 			// Restore the last neighborhood size that the user chose.
 		int				popUpIndex = [[NSUserDefaults standardUserDefaults] integerForKey:@"Neighborhood Size"] - 1;
@@ -327,8 +335,8 @@
 		if ([[[[self document] tiles] objectAtIndex:0] bitmapRep] == nil)
 		{
 				// Make sure the tiles can't be tweaked now that the mosaic was started.
-			[tilesSetupPopUpButton setEnabled:NO];
-			NSMutableArray	*views = [NSMutableArray arrayWithObject:tilesSetupView];
+			[tileShapesPopUpButton setEnabled:NO];
+			NSMutableArray	*views = [NSMutableArray arrayWithObject:tileShapesView];
 			while ([views count] > 0)
 			{
 				NSView	*view = [views objectAtIndex:0];
@@ -393,20 +401,26 @@
     NSString	*statusMessage, *fullMessage;
     
     // update the status bar
-    if ([[self document] isCreatingTiles])
+	if ([[[self document] tiles] count] == 0)
+		statusMessage = @"You have not chosen any tile shapes";
+	else if ([[[self document] imageSources] count] == 0)
+		statusMessage = @"You have not added any image sources";
+	else if (![[self document] wasStarted])
+		statusMessage = @"Ready to begin.  Click the Start Mosaic button in the toolbar.";
+	else if ([[self document] isExtractingTileImagesFromOriginal])
 		statusMessage = [NSString stringWithFormat:@"Extracting tile images (%f%%)", 
 												   [[self document] tileCreationPercentComplete]];
-    else if ([[self document] isCalculatingImageMatches] && [[self document] isCalculatingDisplayedImages])
+	else if ([[self document] isCalculatingImageMatches] && [[self document] isCalculatingDisplayedImages])
 		statusMessage = [NSString stringWithString:@"Matching and finding unique tiles..."];
-    else if ([[self document] isCalculatingImageMatches])
+	else if ([[self document] isCalculatingImageMatches])
 		statusMessage = [NSString stringWithString:@"Matching images..."];
-    else if ([[self document] isCalculatingDisplayedImages])
+	else if ([[self document] isCalculatingDisplayedImages])
 		statusMessage = [NSString stringWithString:@"Finding unique tiles..."];
-    else if ([[self document] isPaused])
+	else if ([[self document] isPaused])
 		statusMessage = [NSString stringWithString:@"Paused"];
-    else if ([[self document] isEnumeratingImageSources])
+	else if ([[self document] isEnumeratingImageSources])
 		statusMessage = [NSString stringWithString:@"Looking for new images..."];
-    else
+	else
 		statusMessage = [NSString stringWithString:@"No more images"];
 	
     fullMessage = [NSString stringWithFormat:@"Images: %d     Quality: %2.1f%%     Status: %@",
@@ -448,48 +462,70 @@
 }
 
 
-- (void)setTileOutlines:(NSArray *)tileOutlines
+#pragma mark -
+#pragma mark Tile shapes methods
+
+
+- (IBAction)setTileShapesPlugIn:(id)sender
 {
-	[totalTilesField setIntValue:[tileOutlines count]];
+	Class			tileShapesClass = [[tileShapesPopUpButton selectedItem] representedObject],
+					tileShapesEditorClass = [tileShapesClass editorClass];
 	
-	[[self document] setTileOutlines:tileOutlines];
-	[mosaicView setTileOutlines:tileOutlines];
-	
-	if (selectedTile)
-		[self selectTileAtPoint:tileSelectionPoint];
+	if (tileShapesEditorClass)
+	{
+			// Release any previous editor and create a new one using the selected class.
+		[tileShapesEditor release];
+		tileShapesEditor = [[tileShapesEditorClass alloc] init];
+		
+			// Swap in the view of the new editor.
+		NSRect	frame = [tileShapesView frame];
+		NSView	*superView = [tileShapesView superview];
+		[tileShapesView removeFromSuperview];
+		
+		[[tileShapesEditor editorView] setAutoresizingMask:NSViewNotSizable];
+		[[tileShapesEditor editorView] setFrame:frame];
+		[superView addSubview:[tileShapesEditor editorView]];
+		[[tileShapesEditor editorView] setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+		tileShapesView = [tileShapesEditor editorView];	// the superview retains it.
+		
+			// Get the existing tile shapes from our document.
+			// If they are not of the class the user just chose then create a new one with default settings.
+		if ([[[self document] tileShapes] class] == tileShapesClass)
+			tileShapesBeingEdited = [[[self document] tileShapes] copyWithZone:[self zone]];
+		else
+			tileShapesBeingEdited = [[tileShapesClass alloc] init];
+		
+		[tileShapesEditor editTileShapes:tileShapesBeingEdited forOriginalImage:[[self document] originalImage]];
+	}
+	else
+	{
+		NSTextField	*errorView = [[[NSTextField alloc] initWithFrame:[tileShapesView frame]] autorelease];
+		
+		[errorView setStringValue:@"Could not load the plug-in"];
+		[[tileShapesView superview] addSubview:errorView];
+		[tileShapesView removeFromSuperview];
+		tileShapesView = errorView;	// the superview retains it.
+	}
 }
 
 
-#pragma mark -
-#pragma mark Tile setup methods
-
-- (IBAction)setTilesSetupPlugIn:(id)sender
+- (IBAction)setTileShapes:(id)sender
 {
-	NSString		*selectedPlugIn = [tilesSetupPopUpButton titleOfSelectedItem];
-	NSEnumerator	*enumerator = [[[NSApp delegate] tilesSetupControllerClasses] objectEnumerator];
-	Class			tilesSetupControllerClass;
+		// TODO: warn if mosaic in progress
+	[[self document] setTileShapes:tileShapesBeingEdited];
+	[tileShapesBeingEdited release];
+	tileShapesBeingEdited = nil;
+}	
+
+
+- (void)tileShapesDidChange:(NSNotification *)notification
+{
+	[totalTilesField setIntValue:[[[self document] tiles] count]];
 	
-	while (tilesSetupControllerClass = [enumerator nextObject])
-		if ([selectedPlugIn isEqualToString:[tilesSetupControllerClass name]])
-		{
-			if (tilesSetupController)
-			{
-					// remove the tile setup that was have been set before
-				[tilesSetupView setContentView:nil];
-				[tilesSetupController release];
-			}
-			
-				// create an instance of the class for this document
-			tilesSetupController = [[tilesSetupControllerClass alloc] init];
-			
-				// let the plug-in know how to message back to us
-			[tilesSetupController setDelegate:self];
-			
-				// Display the plug-in's view
-			[tilesSetupView setContentView:[tilesSetupController setupView]];
-			
-			return;
-		}
+	if (selectedTile)
+		[self selectTileAtPoint:tileSelectionPoint];
+	
+	[self updateStatus:nil];
 }
 
 
@@ -1604,6 +1640,9 @@
     [viewToolbarMenuItem release];
     [tileImages release];
     
+	[tileShapesEditor release];
+	[tileShapesBeingEdited release];
+	
     [super dealloc];
 }
 
