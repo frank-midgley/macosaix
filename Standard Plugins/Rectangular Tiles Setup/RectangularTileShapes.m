@@ -80,6 +80,12 @@
 }
 
 
+- (id)briefDescription
+{
+	return [NSString stringWithFormat:@"%d by %d rectangles", tilesAcross, tilesDown];
+}
+
+
 - (NSString *)settingsAsXMLElement
 {
 	return [NSString stringWithFormat:@"<DIMENSIONS ACROSS=\"%d\" DOWN=\"%d\"/>", tilesAcross, tilesDown];

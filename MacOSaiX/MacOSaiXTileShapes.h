@@ -21,6 +21,9 @@
 
 // TBD: initWithXML or parser callbacks?
 
+	// A human-readable NSString, NSAttributedString or NSImage that briefly describes this instance's settings.
+- (id)briefDescription;
+
 - (NSString *)settingsAsXMLElement;
 
 - (NSArray *)shapes;
