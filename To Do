@@ -121,6 +121,8 @@ Ordered array:		images, fileIDs
 ¥	Easy way to switch main image between original and mosaic
 ¥	Add preferences API for image source plug-ins
 ¥	Add preferences API for tile shapes plug-ins
+	Image cache
+¥		purge unused images in disk cache on save
 
 2.0a2 To Do:
 Ã	Uniqueness
@@ -130,21 +132,26 @@ Ordered array:		images, fileIDs
 Ã	Change idle message
 Ã	Pausing
 Ã	Split MacOSaiXWindowController out of MacOSaiXDocument
+Ã	Rework tile shapes plug-in API to get rid of framework
+Ã	Rework rectangular shapes plug-in to conform with new API
 ¥	Saving (+ plug-ins state)
-¥	Image cache purging (on save)
-¥	Rework tile shapes plug-in API to get rid of framework
-¥	Rework rectangular shapes plug-in to conform with new API
+¥	Loading
+	Image cache
+¥		Make in-memory cache size, rather than count, dependent
+¥	Resume toolbar icon should read Start before mosaic has begun
 ¥	Rework hexagonal shapes plug-in to conform with new API
 ¥	Rework puzzle shapes plug-in to conform with new API
-¥	Google source:
+	Google source:
+¥		Meaningful description in table
 ¥		Make sure cache doesn't fill disk
 ¥	Show average aspect ratio in setup
-¥	QuickTime source:
+	QuickTime source:
 ¥		Show aspect ratio
 ¥		Scale movie when sheet presented
 ¥		Recent movies
-¥	Directory source:
-¥		Recent movies
+	Directory source:
+¥		Find images by more than extension
+¥		Recent directories
 ¥		Show more folder levels
 x	Original image view (scaling/tinting)
 	
