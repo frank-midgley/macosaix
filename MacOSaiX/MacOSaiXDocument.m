@@ -284,8 +284,8 @@
     paused = YES;
 
     // wait for threads to pause
-    while (enumerateImageSourcesThreadAlive || calculateImageMatchesThreadAlive)
-		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
+//    while (enumerateImageSourcesThreadAlive || calculateImageMatchesThreadAlive)
+//		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
     
 #if 1
 	[self save];
@@ -585,8 +585,7 @@
 			// Release our lock on the GUI in case the main thread needs it.
 		[[drawWindow contentView] unlockFocus];
 		
-		index++;
-		extractionPercentComplete = (int)(index * 100.0 / [tileOutlines count]);
+		extractionPercentComplete = (int)(index * 50.0 / [tileOutlines count]);
 	}
 
 //    [[drawWindow contentView] unlockFocus];
@@ -619,6 +618,7 @@
 				[tile addNeighbor:tile2];
 				
 //		NSLog(@"Tile at %p has %d neighbors.", tile, [[tile neighbors] count]);
+		extractionPercentComplete = 50 + (int)(index * 50.0 / [tileOutlines count]);
 	}
 	
     [(OriginalView *)originalView setTileOutlines:combinedOutline];
@@ -1898,27 +1898,27 @@
 }
 
 
-- (void)setJPEGExport:(id)sender
+- (IBAction)setJPEGExport:(id)sender
 {
     exportFormat = NSJPEGFileType;
     [savePanel setRequiredFileType:@"jpg"];
 }
 
 
-- (void)setTIFFExport:(id)sender;
+- (IBAction)setTIFFExport:(id)sender;
 {
     exportFormat = NSTIFFFileType;
     [savePanel setRequiredFileType:@"tiff"];
 }
 
 
-- (void)setExportWidthFromHeight:(id)sender
+- (IBAction)setExportWidthFromHeight:(id)sender
 {
     [exportWidth setIntValue:[exportHeight intValue] / [originalImage size].height * [originalImage size].width + 0.5];
 }
 
 
-- (void)setExportHeightFromWidth:(id)sender
+- (IBAction)setExportHeightFromWidth:(id)sender
 {
     [exportHeight setIntValue:[exportWidth intValue] / [originalImage size].width * [originalImage size].height + 0.5];
 }
