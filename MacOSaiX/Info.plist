@@ -38,7 +38,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>2.0a2</string>
 	<key>CFBundleVersion</key>
-	<string>2.0a2</string>
+	<string>2.0a3</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
