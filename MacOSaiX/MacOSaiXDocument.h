@@ -25,10 +25,10 @@
     NSMutableArray				*imageSources,
 								*tiles;
 	id<MacOSaiXTileShapes>		tileShapes;
-	float						averageTileAspectRatio;
+	NSSize						averageUnitTileSize;
 	
-	int							imageUseCount;
-	int							neighborhoodSize;
+	int							imageUseCount,
+								imageReuseDistance;
 
 		// Document state
     BOOL						documentIsClosing,	// flag set to true when document is closing
@@ -70,11 +70,12 @@
 
 - (void)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes;
 - (id<MacOSaiXTileShapes>)tileShapes;
-- (float)averageTileAspectRatio;
+- (NSSize)averageUnitTileSize;
 
 - (int)imageUseCount;
 - (void)setImageUseCount:(int)count;
-- (int)neighborhoodSize;
+- (int)imageReuseDistance;
+- (void)setImageReuseDistance:(int)distance;
 
 - (BOOL)wasStarted;
 - (BOOL)isPaused;

@@ -13,6 +13,7 @@
 #import "MacOSaiXImageCache.h"
 #import "Tiles.h"
 #import "NSImage+MacOSaiX.h"
+#import "NSString+MacOSaiX.h"
 
 
 	// The maximum size of the image URL queue
@@ -79,6 +80,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		enumerationCounts = [[NSMutableDictionary dictionary] retain];
 		
 		[self setImageUseCount:[[defaults objectForKey:@"Image Use Count"] intValue]];
+		[self setImageReuseDistance:10];
 	}
 	
     return self;
@@ -481,7 +483,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				[fileHandle writeData:[@"</TILE_SHAPES_SETTINGS>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				
 				[fileHandle writeData:[@"<IMAGE_USAGE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-				[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\"/>\n", [self imageUseCount], [self neighborhoodSize]] dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\"/>\n", [self imageUseCount], [self imageReuseDistance]] dataUsingEncoding:NSUTF8StringEncoding]];
 				[fileHandle writeData:[@"</IMAGE_USAGE>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				
 //				NSDictionary	*imagesInUse = [self imagesInUse];
@@ -730,17 +732,8 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 
 			// Invoke the parser.
 		if (!CFXMLParserParse(parser))
-			NSLog(@"Parsing failed: %@", (NSString *)CFXMLParserCopyErrorDescription(parser));
+			NSLog(@"Parsing failed at line %d: %@", CFXMLParserGetLineNumber(parser), (NSString *)CFXMLParserCopyErrorDescription(parser));
 	}
-	
-//	[[self mainWindowController] setProgressMessage:@"Calculating average tile size..."];
-//	NSEnumerator	*tileEnumerator = [[self tiles] objectEnumerator];
-//	NSBezierPath	*tileOutline = nil;
-//	float			totalAspectRatio = 0.0;
-//	while (tileOutline = [[tileEnumerator nextObject] outline])
-//		totalAspectRatio += (NSWidth([tileOutline bounds]) * [originalImage size].width) / 
-//							(NSHeight([tileOutline bounds]) * [originalImage size].height);
-//	averageTileAspectRatio = totalAspectRatio / [[self tiles] count];
 	
 	[[self mainWindowController] setProgressMessage:@"Extracting tile images from original..."];
 	[self extractTileImagesFromOriginalImage];
@@ -839,7 +832,8 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 																   waitUntilDone:NO];
 				
 				int					sourceIndex = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"SOURCE"] intValue];
-				NSString			*imageIdentifier = [(NSDictionary *)nodeInfo->attributes objectForKey:@"ID"];
+				NSString			*imageIdentifier = [NSString stringByUnescapingXMLEntites:
+															[(NSDictionary *)nodeInfo->attributes objectForKey:@"ID"]];
 				float				matchValue = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"VALUE"] floatValue];
 				
 				newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
@@ -849,7 +843,6 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 			}
 			else
 			{
-				// TODO: hand off unknown elements to image source or tile shapes objects
 				newObject = [[NSMutableDictionary dictionaryWithDictionary:(NSDictionary *)nodeInfo->attributes] retain];
 				[(NSMutableDictionary *)newObject setObject:elementType forKey:@"Element Type"];
 			}
@@ -1030,14 +1023,15 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 			// Create a new tile collection from the outlines.
 		NSEnumerator	*tileOutlineEnumerator = [tileOutlines objectEnumerator];
 		NSBezierPath	*tileOutline = nil;
-		float			totalAspectRatio = 0.0;
+		averageUnitTileSize = NSZeroSize;
 		while (tileOutline = [tileOutlineEnumerator nextObject])
 		{
-			totalAspectRatio += (NSWidth([tileOutline bounds]) * [originalImage size].width) / 
-								(NSHeight([tileOutline bounds]) * [originalImage size].height);
+			averageUnitTileSize.width += NSWidth([tileOutline bounds]);
+			averageUnitTileSize.height += NSHeight([tileOutline bounds]);
 			[self addTile:[[[MacOSaiXTile alloc] initWithOutline:tileOutline fromDocument:self] autorelease]];
 		}
-		averageTileAspectRatio = totalAspectRatio / [tileOutlines count];
+		averageUnitTileSize.width /= [tileOutlines count];
+		averageUnitTileSize.height /= [tileOutlines count];
 	}
 	
 		// Let anyone who cares know that our tile shapes (and thus our tiles array) have changed.
@@ -1056,9 +1050,9 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 }
 
 
-- (float)averageTileAspectRatio
+- (NSSize)averageUnitTileSize
 {
-	return averageTileAspectRatio;
+	return averageUnitTileSize;
 }
 
 
@@ -1079,9 +1073,15 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 }
 
 
-- (int)neighborhoodSize
+- (int)imageReuseDistance
 {
-	return neighborhoodSize;
+	return imageReuseDistance;
+}
+
+
+- (void)setImageReuseDistance:(int)distance
+{
+	imageReuseDistance = distance;
 }
 
 
@@ -1538,6 +1538,10 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 			
 				// Loop through the list of better matches and pick the first items (up to the use count) 
 				// that aren't too close together.
+			float				minDistanceApart = [self imageReuseDistance] * [self imageReuseDistance] *
+												   ([self averageUnitTileSize].width * [self averageUnitTileSize].width +
+													[self averageUnitTileSize].height * [self averageUnitTileSize].height / 
+													originalImageAspectRatio / originalImageAspectRatio);
 			NSMutableArray		*matchesToUpdate = [NSMutableArray array];
 			NSEnumerator		*betterMatchEnumerator = [betterMatches objectEnumerator];
 			MacOSaiXImageMatch	*betterMatch = nil;
@@ -1558,8 +1562,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 					closestDistance = MIN(closestDistance, distanceSquared);
 				}
 				
-				if ([matchesToUpdate count] == 0 ||
-					closestDistance > (1 / originalImageAspectRatio) * (1 / originalImageAspectRatio) / 4.0)
+				if ([matchesToUpdate count] == 0 || closestDistance >= minDistanceApart)
 					[matchesToUpdate addObject:betterMatch];
 			}
 			
@@ -1646,7 +1649,15 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource
 {
+	NSEnumerator		*tileEnumerator = [tiles objectEnumerator];
+	MacOSaiXTile		*tile = nil;
+	while (tile = [tileEnumerator nextObject])
+		if ([[tile imageMatch] imageSource] == imageSource)
+			[tile setImageMatch:nil];
+	
 	[imageSources removeObject:imageSource];
+	
+	[self updateChangeCount:NSChangeDone];
 	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
 }
