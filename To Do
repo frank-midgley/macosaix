@@ -4,10 +4,9 @@ Ideas for future versions:
 	Statistics drawer/window (matches per second, etc.)
 	Width of status text problem (works when shown/hidden)
 	Better versioning in documents (XML may satisfy this since DTD can be versioned)
-	Should pause also pause uniqueness thread?
 	Does save reset autosave clock?
 	Indicate best unique match in editor table
-	Disable 'center on selected tile' menu choice when not using Tiles or Editor tab
+	Disable 'center on selected tile' menu choice when no tile is selected
 	Trim solid borders for alternate image
 	More export image panel options
 		resolution
@@ -15,7 +14,6 @@ Ideas for future versions:
 		vector output (Glyphs only?)
 	Add code to support crop limit
 	Autosave on/off switch
-	Toggle outline switch in editor?
 	"Must include" images
 	Printing (greeting card format?)
 	Grayscale option
@@ -35,13 +33,13 @@ Ideas for future versions:
 		Color palettes
 		Font selection
 		Text selection (e.g. decl. of ind.)
-	Don't use each tile more than x times
+		Limit on images generated (so it doesn't overpower other sources)
+Ã	Don't use each tile more than x times
+	"option to replace ALL instances of one tile with another picture"
+	Button/menu item to not use selected image anywhere.  (probably in editor)
+	AppleScript support
 
-Glyph crashes:
-    CGS TrebuchetMS-Bold 12.00 pt.	Glyph 251
-    22 916
-    Beijing (58)	8340
-
+=======================================================================================
 
 Riemersma metric:
     http://ourworld.compuserve.com/homepages/compuphase/cmetric.htm
@@ -107,7 +105,7 @@ Ordered array:		images, fileIDs
 ¥	Make sure pixels are being pulled from bitmaps correctly
 ¥	Make neighborhood calculation more efficient or threaded
 ¥	Rework MosaicView to not use a stored image but redraw the tiles as needed in -drawRect:.  Would allow for better zooming.
-¥	Buffered exporting
+¥	Buffered exporting (allow larger sizes)
 ¥	Editor
 ¥	Rework prefs
 ¥	Enable image source removal (includes purging of its images...)
@@ -115,14 +113,14 @@ Ordered array:		images, fileIDs
 ¥	Get rid of lines in exporting
 ¥	Compare straight color match vs. Riemersma
 ¥	Version check
-¥	Link to home page in About box or help menu
+Ã	Link to home page in About box or help menu
 ¥	Resurrect Glyph source
-¥	Minimum sizing for image source editor sheet
-¥	Easy way to switch main image between original and mosaic
+¥	Sizing of tile shapes and image source editor sheets
 ¥	Add preferences API for image source plug-ins
 ¥	Add preferences API for tile shapes plug-ins
 	Image cache
 ¥		purge unused images in disk cache on save
+Ã	Rename Tiles class to MacOSaiXTile
 
 2.0a2 To Do:
 ?	Uniqueness
@@ -137,9 +135,11 @@ Ordered array:		images, fileIDs
 	Image cache
 Ã		Make in-memory cache size, rather than count, dependent
 ¥	Saving (+ plug-ins state)
-¥	Loading
-¥	Add ability to toggle between displaying original or mosaic.
+¥	Loading (+ plug-ins state)
+¥	Get zoom working again
+Ã	Add ability to toggle between displaying original or mosaic.
 ¥	Resume toolbar icon should read Start before mosaic has begun
+¥	Preference/option for what to display for non-unique tiles.
 ¥	Rework hexagonal shapes plug-in to conform with new API
 ¥	Rework puzzle shapes plug-in to conform with new API
 	Google source:
@@ -151,11 +151,26 @@ Ordered array:		images, fileIDs
 ¥		Scale movie when sheet presented
 ¥		Recent movies
 	Directory source:
-¥		Find images by more than extension
+Ã		Find images by more than extension
 ¥		Recent directories
 ¥		Show more folder levels
 x	Original image view (scaling/tinting)
 	
 
 =======================================================================================
+
+
+For each image:
+	For each tile:
+		If image match better than current image match then add tile to list of possibles
+*	Calculate which tiles should use the image based on user settings:
+		Each image can be used 1-° times.
+			and
+		Tiles using the same image must be (some distance) apart.
+	For each tile to update:
+		Add tile's previous image to queue of images to match
+		Set the tile's image to this image
+
+=======================================================================================
+
 
