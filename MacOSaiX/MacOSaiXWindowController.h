@@ -144,8 +144,6 @@
 - (IBAction)beginExportImage:(id)sender;
 - (IBAction)setJPEGExport:(id)sender;
 - (IBAction)setTIFFExport:(id)sender;
-- (IBAction)setExportWidthFromHeight:(id)sender;
-- (IBAction)setExportHeightFromWidth:(id)sender;
 
 	// Progress panel methods
 - (void)displayProgressPanelWithMessage:(NSString *)message;
