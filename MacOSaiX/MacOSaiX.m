@@ -56,7 +56,7 @@
 }
 
 
-- (void)openPreferences:(id)sender
+- (void)openPreferences2:(id)sender
 {
     PreferencesController	*windowController;
     

@@ -17,7 +17,7 @@
 					*_loadedPlugInPaths;
 }
 
-- (void)openPreferences:(id)sender;
+- (void)openPreferences2:(id)sender;
 - (void)discoverPlugIns;
 - (NSArray *)tilesSetupControllerClasses;
 - (NSArray *)imageSourceControllerClasses;
