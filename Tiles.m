@@ -1,140 +1,73 @@
-//
-//  Tiles.m
-//  MacOSaiX
-//
-//  Created by fmidgley on Mon Apr 11 2001.
-//  Copyright (c) 2001 __CompanyName__. All rights reserved.
-//
-
 #import "Tiles.h"
+#import "TileMatch.h"
 
 @implementation Tile
 
-- (NSSize)size
+- (void)setOutline:(NSBezierPath *)outline
 {
-    return _size;
+    NSBezierPath	*oldOutline;
+    
+    if (outline != _outline)
+    {
+	oldOutline = _outline;
+	_outline = [outline retain];
+	[oldOutline release];
+	oldOutline = nil;
+    }
 }
 
-- (void)setSize:(NSSize)size
+
+- (NSBezierPath *)outline
 {
-    _size.width = size.width;
-    _size.height = size.height;
+    return _outline;
 }
+
+
+- (void)setBitmapRep:(NSBitmapImageRep *)bitmapRep
+{
+    NSBitmapImageRep	*oldBitmapRep;
+    
+    if (bitmapRep != _bitmapRep)
+    {
+	oldBitmapRep = _bitmapRep;
+	_bitmapRep = [bitmapRep retain];
+	[oldBitmapRep release];
+	oldBitmapRep = nil;
+    }
+}
+
 
 - (NSBitmapImageRep *)bitmapRep
 {
     return _bitmapRep;
 }
 
-- (void)setBitmapRep:(NSBitmapImageRep *)data
+
+- (void)addMatchingFile:(NSString *)filePath withValue:(double)matchValue
 {
-    NSBitmapImageRep *oldData;
+    TileMatch*		newMatch;
+    int			index = 0;
     
-    if (data != _bitmapRep)
+    // Don't bother if it's no better than the current 10 best
+    if ([_matches count] == 10 && [[_matches lastObject] matchValue] > matchValue) return;
+    
+    newMatch = [[TileMatch alloc] init];
+    if (newMatch == nil)
     {
-	oldData = _bitmapRep;
-	_bitmapRep = [data retain];
-	[oldData release];
-	oldData = nil;
+	NSLog(@"Could not allocate new TileMatch");
+	return;
     }
+    [newMatch setFilePath:filePath];
+    [newMatch setMatchValue:matchValue];
+    
+    // Determine where in the list it belongs (the best match should always be at index 0)
+    while (index < [_matches count] && [[_matches objectAtIndex:index] matchValue] > matchValue) index++;
+
+    [_matches insertObject:newMatch atIndex:index];
+    
+    // Only keep the best 10 matches
+    if ([_matches count] == 11)
+	[_matches removeLastObject];
 }
 
 @end
-
-
-@implementation TileCollection
-
-- (id)ZZZcopyWithZone:(NSZone *)zone
-{
-    id copy = [[[self class] allocWithZone: zone] init];
-    
-    return copy;
-}
-
-- (id) ZZZreplacementObjectForPortCoder: (NSPortCoder*)aCoder
-{
-    return self;
-}
-
-- (void) dealloc
-{
-    [_tiles release];
-    [super dealloc];
-}
-    
-- (void) ZZZencodeWithCoder: (NSCoder*)aCoder
-{
-    char	isNil = (_tiles == nil ? 1 : 0);
-
-    [aCoder encodeValueOfObjCType: @encode(char) at: &isNil];
-    if (isNil == 0)
-    {
-	unsigned  count = [_tiles count];
-
-	[aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
-	if (count > 0)
-        {
-	    id		a[count];
-	    unsigned	i;
-
-	    [_tiles getObjects: a];
-	    for (i = 0; i < count; i++)
-		[aCoder encodeBycopyObject: a[i]];
-        }
-    }
-}
-
-- (id) ZZZinitWithCoder: (NSCoder*)aCoder
-{
-    char  isNil;
-
-    [aCoder decodeValueOfObjCType: @encode(char)
-                             at: &isNil];
-    if (isNil == 0)
-    {
-	unsigned    count;
-
-	[aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
-	if (count > 0)
-	{
-	    id            contents[count];
-	    unsigned      i;
-
-	    for (i = 0; i < count; i ++)
-		contents[i] = [aCoder decodeObject];
-	    _tiles = [[NSArray alloc] initWithObjects:contents count:count];
-	}
-	else
-	    _tiles = [NSArray new];
-    }
-    else
-	_tiles = nil;
-	
-    return self;
-}
-
-- (id)init
-{
-    _tiles = [NSMutableArray arrayWithCapacity:0];
-    return self;
-}
-
-- (void)addTile:(Tile *)tile
-{
-    [_tiles addObject:tile];
-}
-
-- (int)count
-{
-    NSLog(@"About to send count to NSMutableArray");
-    return [_tiles count];
-}
-
-- (Tile *)tileAtIndex:(int)index
-{
-    return [_tiles objectAtIndex:index];
-}
-
-@end
-
-

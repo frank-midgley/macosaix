@@ -9,23 +9,21 @@
     IBOutlet id			originalView;
     IBOutlet id			imagesMatched;
     IBOutlet id			goButton;
-    id				timer;
+    IBOutlet id			progressIndicator;
     NSImage			*originalImage, *mosaicImage;
     NSMutableArray		*tileOutlines;
     NSMutableArray		*_tiles;
     float			*bestMatch;
     NSDirectoryEnumerator	*enumerator;
-    int				imageCount, maxImages, matcherThreadCount;
+    int				imageCount, maxImages;
     BOOL			inProgress, somethingChanged;
-//    id <MatcherMethods>		matcher;	// proxy to the matcher object in the detached thread
     NSString			*pixPath;
-    NSLock			*mosaicLock, *threadCountLock;
+    NSLock			*mosaicLock;
 }
 
 - (void)startMosaic:(id)sender;
 - (void)updateDisplay:(id)timer;
-- (void)feedMatcher:(id)timer;
-- (void)calculateMatchesWithNextFile:(id)foo;
+- (void)enumerateAndMatchFiles:(id)foo;
 - (float)computeMatch:(Tile *)tile with:(NSBitmapImageRep *)imageRep previousBest:(float)prevBest;
 
 // application delegate methods

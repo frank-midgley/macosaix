@@ -11,23 +11,15 @@
 
 @interface Tile : NSObject
 {
-    NSSize		_size;
+    NSBezierPath	*_outline;
     NSBitmapImageRep	*_bitmapRep;
+    NSMutableArray	*_matches;
 }
-- (NSSize)size;
-- (void)setSize:(NSSize)size;
-- (NSBitmapImageRep *)bitmapRep;
+
+- (void)setOutline:(NSBezierPath *)outline;
+- (NSBezierPath *)outline;
 - (void)setBitmapRep:(NSBitmapImageRep *)data;
-@end
+- (NSBitmapImageRep *)bitmapRep;
+- (void)addMatchingFile:(NSString *)filePath withValue:(double)matchValue;
 
-
-@interface TileCollection : NSObject <NSCopying>
-{
-  NSMutableArray *_tiles;
-}
-- (id)init;
-- (id)copyWithZone:(NSZone *)zone;
-- (void)addTile:(Tile *)tile;
-- (int)count;
-- (Tile *)tileAtIndex:(int)index;
 @end
