@@ -840,57 +840,61 @@
 		while (![[drawWindow contentView] lockFocusIfCanDraw])
 			[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
 		
-			// Determine the bounds of the tile in the original image and in the scratch window.
-		NSBezierPath	*tileOutline = [tile outline];
-		NSRect  origRect = NSMakeRect([tileOutline bounds].origin.x * [originalImage size].width,
-									  [tileOutline bounds].origin.y * [originalImage size].height,
-									  [tileOutline bounds].size.width * [originalImage size].width,
-									  [tileOutline bounds].size.height * [originalImage size].height),
-				destRect = (origRect.size.width > origRect.size.height) ?
-							NSMakeRect(0, 0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE * origRect.size.height / origRect.size.width) : 
-							NSMakeRect(0, 0, TILE_BITMAP_SIZE * origRect.size.width / origRect.size.height, TILE_BITMAP_SIZE);
-		
-			// Start with a black image to overwrite any previous scratch contents.
-		[[NSColor blackColor] set];
-		[[NSBezierPath bezierPathWithRect:destRect] fill];
-		
-			// Copy out the portion of the original image contained by the tile's outline.
-		[originalImage drawInRect:destRect fromRect:origRect operation:NSCompositeCopy fraction:1.0];
-		NSBitmapImageRep	*tileRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect] autorelease];
-		if (tileRep == nil) NSLog(@"Could not create tile bitmap");
-        #if 0
-            [[tileRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0] 
-                writeToFile:[NSString stringWithFormat:@"/tmp/MacOSaiX/%4d.tiff", index] atomically:NO];
-        #endif
-	
-			// Calculate a mask image using the tile's outline that is the same size as the image
-			// extracted from the original.  The mask will be white for pixels that are inside the 
-			// tile and black outside.
-            // (This would work better if we could just replace the previous rep's alpha channel
-            //  but I haven't figured out an easy way to do that yet.)
-        [[NSGraphicsContext currentContext] saveGraphicsState];	// so we can undo the clip
-				// Start with a black background.
-            [[NSColor blackColor] set];
-            [[NSBezierPath bezierPathWithRect:destRect] fill];
+		NS_DURING
+				// Determine the bounds of the tile in the original image and in the scratch window.
+			NSBezierPath	*tileOutline = [tile outline];
+			NSRect  origRect = NSMakeRect([tileOutline bounds].origin.x * [originalImage size].width,
+										  [tileOutline bounds].origin.y * [originalImage size].height,
+										  [tileOutline bounds].size.width * [originalImage size].width,
+										  [tileOutline bounds].size.height * [originalImage size].height),
+					destRect = (origRect.size.width > origRect.size.height) ?
+								NSMakeRect(0, 0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE * origRect.size.height / origRect.size.width) : 
+								NSMakeRect(0, 0, TILE_BITMAP_SIZE * origRect.size.width / origRect.size.height, TILE_BITMAP_SIZE);
 			
-				// Fill the tile's outline with white.
-			NSAffineTransform  *transform = [NSAffineTransform transform];
-			[transform scaleXBy:destRect.size.width / [tileOutline bounds].size.width
-                            yBy:destRect.size.height / [tileOutline bounds].size.height];
-            [transform translateXBy:[tileOutline bounds].origin.x * -1
-                                yBy:[tileOutline bounds].origin.y * -1];
-            [[NSColor whiteColor] set];
-            [[transform transformBezierPath:tileOutline] fill];
+				// Start with a black image to overwrite any previous scratch contents.
+			[[NSColor blackColor] set];
+			[[NSBezierPath bezierPathWithRect:destRect] fill];
 			
-				// Copy out the mask image and store it in the tile.
-				// TO DO: RGB is wasting space, should be grayscale.
-            NSBitmapImageRep	*maskRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect] autorelease];
-			[tile setBitmapRep:tileRep withMask:maskRep];
+				// Copy out the portion of the original image contained by the tile's outline.
+			[originalImage drawInRect:destRect fromRect:origRect operation:NSCompositeCopy fraction:1.0];
+			NSBitmapImageRep	*tileRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect] autorelease];
+			if (tileRep == nil) NSLog(@"Could not create tile bitmap");
 			#if 0
-				[[maskRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0] 
-					writeToFile:[NSString stringWithFormat:@"/tmp/MacOSaiX/%4dMask.tiff", index] atomically:NO];
+				[[tileRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0] 
+					writeToFile:[NSString stringWithFormat:@"/tmp/MacOSaiX/%4d.tiff", index] atomically:NO];
 			#endif
-        [[NSGraphicsContext currentContext] restoreGraphicsState];
+		
+				// Calculate a mask image using the tile's outline that is the same size as the image
+				// extracted from the original.  The mask will be white for pixels that are inside the 
+				// tile and black outside.
+				// (This would work better if we could just replace the previous rep's alpha channel
+				//  but I haven't figured out an easy way to do that yet.)
+			[[NSGraphicsContext currentContext] saveGraphicsState];	// so we can undo the clip
+					// Start with a black background.
+				[[NSColor blackColor] set];
+				[[NSBezierPath bezierPathWithRect:destRect] fill];
+				
+					// Fill the tile's outline with white.
+				NSAffineTransform  *transform = [NSAffineTransform transform];
+				[transform scaleXBy:destRect.size.width / [tileOutline bounds].size.width
+								yBy:destRect.size.height / [tileOutline bounds].size.height];
+				[transform translateXBy:[tileOutline bounds].origin.x * -1
+									yBy:[tileOutline bounds].origin.y * -1];
+				[[NSColor whiteColor] set];
+				[[transform transformBezierPath:tileOutline] fill];
+				
+					// Copy out the mask image and store it in the tile.
+					// TO DO: RGB is wasting space, should be grayscale.
+				NSBitmapImageRep	*maskRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect] autorelease];
+				[tile setBitmapRep:tileRep withMask:maskRep];
+				#if 0
+					[[maskRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0] 
+						writeToFile:[NSString stringWithFormat:@"/tmp/MacOSaiX/%4dMask.tiff", index] atomically:NO];
+				#endif
+			[[NSGraphicsContext currentContext] restoreGraphicsState];
+		NS_HANDLER
+			NSLog(@"Exception raised while extracting tile images: %@", [localException name]);
+		NS_ENDHANDLER
 		
 			// Release our lock on the GUI in case the main thread needs it.
 		[[drawWindow contentView] unlockFocus];
