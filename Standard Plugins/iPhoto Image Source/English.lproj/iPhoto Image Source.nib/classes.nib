@@ -1,0 +1,13 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {chooseAlbum = id; }; 
+            CLASS = MacOSaiXiPhotoImageSourceController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {albumsPopUp = NSPopUpButton; editorView = NSView; iconView = NSImageView; }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}
