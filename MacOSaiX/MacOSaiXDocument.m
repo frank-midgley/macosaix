@@ -8,7 +8,7 @@
 #import <unistd.h>
 
 	// The maximum size of the image URL queue
-#define MAXIMAGEURLS 32
+#define MAXIMAGEURLS 10
 	// The maximum width or height of the cached thumbnail images
 #define kThumbnailMax 64.0
     // The number of cached images that will be held in memory at any one time.
@@ -224,6 +224,7 @@
 		imageSources = [[NSMutableArray arrayWithCapacity:4] retain];
 		[[imageSourcesTable tableColumnWithIdentifier:@"Image Source Type"]
 			setDataCell:[[[NSImageCell alloc] init] autorelease]];
+		[imageSourcesRemoveButton setEnabled:NO];	// temporarily disabled for 2.0a1
 	
 			// Load the image source plug-ins and create an instance of each controller
 		NSEnumerator	*enumerator = [[[NSApp delegate] imageSourceControllerClasses] objectEnumerator];
@@ -255,6 +256,8 @@
 	}
 	
 	[self setViewMode:viewMosaicAndTilesSetup];
+	
+		// For some reason IB insists on setting the drawer width to 200.  Have to set the size in code instead.
 	[utilitiesDrawer setContentSize:NSMakeSize(400, [utilitiesDrawer contentSize].height)];
     
     documentIsClosing = NO;	// gets set to true when threads for this document should shut down
@@ -365,6 +368,29 @@
 #pragma mark Save and Open methods
 
 
+- (IBAction)saveDocument:(id)sender
+{
+	NSBeginAlertSheet(@"MacOSaiX", @"Dang", nil, nil, mainWindow, nil, nil, nil, nil, @"Saving is not available in this version.");
+}
+
+- (IBAction)saveDocumentAs:(id)sender
+{
+	[self saveDocument:sender];
+}
+
+
+- (IBAction)saveDocumentTo:(id)sender
+{
+	[self saveDocument:sender];
+}
+
+
+- (IBAction)revertDocumentToSaved:(id)sender
+{
+	[self saveDocument:sender];
+}
+
+
 - (BOOL)writeToFile:(NSString *)fileName ofType:(NSString *)type;
 {
 	BOOL			success = NO,
@@ -426,6 +452,9 @@
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	NSString			*savePath = [parameters objectAtIndex:0];
 	BOOL				wasPaused = [[parameters objectAtIndex:1] boolValue];
+	
+		// Don't usurp the main thread.
+	[NSThread setThreadPriority:0.1];
 	
 			// Create the master save file in XML format.
 	NSString	*xmlPath = [savePath stringByAppendingPathComponent:@"Mosaic new.xml"];
@@ -781,7 +810,10 @@
 		return;
     else
 		createTilesThreadAlive = YES;
-
+	
+		// Don't usurp the main thread.
+	[NSThread setThreadPriority:0.1];
+	
     int					index = 0;
     NSAutoreleasePool   *pool = [[NSAutoreleasePool alloc] init];
 
@@ -883,6 +915,9 @@
 
 	NSLog(@"Enumerating image source %@\n", imageSource);
 	
+		// Don't usurp the main thread.
+	[NSThread setThreadPriority:0.1];
+	
 		// don't do anything if the source is dry
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	sourceHasMoreImages = [imageSource hasMoreImages];
@@ -947,6 +982,9 @@
     NSImage				*scratchImage = [[[NSImage alloc] initWithSize:NSMakeSize(1024, 1024)] autorelease];
 	
 //	NSLog(@"Calculating image matches\n");
+	
+		// Don't usurp the main thread.
+	[NSThread setThreadPriority:0.1];
 
 	[imageQueueLock lock];
     while (!documentIsClosing && [imageQueue count] > 0)
@@ -1106,6 +1144,9 @@
 	[calculateDisplayedImagesThreadLock unlock];
 
 //	NSLog(@"Calculating displayed images\n");
+	
+		// Don't usurp the main thread.
+	[NSThread setThreadPriority:0.1];
 
     BOOL	tilesAddedToRefreshSet = NO;
     
@@ -1562,14 +1603,14 @@
     {
         if ([selectedTile userChosenImageMatch])
         {
-            [editorUseCustomImage setState:NSOnState];
+            [editorUseCustomImage setState:NSOffState];	// NSOnState];	temp for 2.0a1
             [editorUseBestUniqueMatch setState:NSOffState];
 // TODO:            [editorUserChosenImage setImage:[[selectedTile userChosenImageMatch] image]];
         }
         else
         {
             [editorUseCustomImage setState:NSOffState];
-            [editorUseBestUniqueMatch setState:NSOnState];
+            [editorUseBestUniqueMatch setState:NSOffState];	// NSOnState];	temp for 2.0a1
             [editorUserChosenImage setImage:nil];
             
             NSImage	*image = [[[NSImage alloc] initWithSize:[[selectedTile bitmapRep] size]] autorelease];
@@ -1577,8 +1618,8 @@
             [editorUserChosenImage setImage:image];
         }
     
-        [editorChooseImage setEnabled:YES];
-        [editorUseSelectedImage setEnabled:YES];
+        [editorChooseImage setEnabled:NO];	// YES];	temp for 2.0a1
+        [editorUseSelectedImage setEnabled:NO];	// YES];	temp for 2.0a1
         
         selectedTileImages = [[NSMutableArray arrayWithCapacity:[selectedTile matchCount]] retain];
         int	i;
@@ -1820,17 +1861,17 @@
 	{
 		case viewMosaicAndOriginal:
 			[mosaicView setViewMode:viewMosaic];
-			[utilitiesTabView selectTabViewItemWithIdentifier:@"Original Image"];
+			[utilitiesTabView selectTabViewItemWithIdentifier:@"Original"];
 			[utilitiesDrawer open];
 			break;
 		case viewMosaicAndTilesSetup:
 			[mosaicView setViewMode:viewTilesOutline];
-			[utilitiesTabView selectTabViewItemWithIdentifier:@"Tiles Setup"];
+			[utilitiesTabView selectTabViewItemWithIdentifier:@"Tiles"];
 			[utilitiesDrawer open];
 			break;
 		case viewMosaicAndRegions:
 			[mosaicView setViewMode:viewImageRegions];
-			[utilitiesTabView selectTabViewItemWithIdentifier:@"Image Regions"];
+			[utilitiesTabView selectTabViewItemWithIdentifier:@"Images"];
 			[utilitiesDrawer open];
 			break;
 		case viewMosaicEditor:
@@ -1839,7 +1880,7 @@
 			[self updateEditor];
 			[editorTable scrollRowToVisible:0];
 			[editorTable reloadData];
-			[utilitiesTabView selectTabViewItemWithIdentifier:@"Tile Editor"];
+			[utilitiesTabView selectTabViewItemWithIdentifier:@"Editor"];
 			[utilitiesDrawer open];
 			break;
 		case viewMosaicAlone:
@@ -2108,7 +2149,9 @@
 - (void)exportImage:(NSString *)exportFilename
 {
     NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	NSAssert(pool, @"Could not allocate pool");
+	
+		// Don't usurp the main thread.
+	[NSThread setThreadPriority:0.1];
 
     exportImageThreadAlive = YES;
     
@@ -2438,7 +2481,9 @@
 			 contextInfo:(void *)contextInfo
 {
 		// pause threads so document dirty state doesn't change
-    if (!paused) [self togglePause:nil];
+    if (!paused)
+		[self pause];
+	
     while (createTilesThreadAlive || enumerateImageSourcesThreadAlive || calculateImageMatchesThreadAlive || calculateDisplayedImagesThreadAlive)
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
     
