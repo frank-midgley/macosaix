@@ -77,7 +77,8 @@
 	if (!neighborSet)
 		neighborSet = [[NSMutableSet setWithCapacity:10] retain];
 	
-	[neighborSet addObject:neighboringTile];
+	if (neighboringTile != self)
+		[neighborSet addObject:neighboringTile];
 }
 
 
@@ -87,6 +88,7 @@
 		neighborSet = [[NSMutableSet setWithCapacity:10] retain];
 	
 	[neighborSet addObjectsFromArray:neighboringTiles];
+	[neighborSet removeObject:self];
 }
 
 
@@ -159,8 +161,10 @@
     bytesPerPixel2 = [matchRep hasAlpha] ? 4 : 3;
     bytesPerRow2 = [matchRep bytesPerRow];
     
-    prevWorst = ([imageMatches count] == 0 || [imageMatches count] < ([neighborSet count] + 1)) ? 
-					WORST_CASE_PIXEL_MATCH : [[imageMatches lastObject] matchValue];
+	[imageMatchesLock lock];
+		prevWorst = ([imageMatches count] == 0 || [imageMatches count] < ([neighborSet count] + 1)) ? 
+						WORST_CASE_PIXEL_MATCH : [[imageMatches lastObject] matchValue];
+	[imageMatchesLock unlock];
 
 		// one of the offsets should be 0
     x_off = ([matchRep size].width - [bitmapRep size].width) / 2.0;
@@ -213,9 +217,11 @@
 		return NO;
     
 		// Determine where in the list it belongs (the best match should always be at index 0)
-    for (index = 0; index < [imageMatches count]; index++)
-        if (matchValue < [[imageMatches objectAtIndex:index] matchValue])
-            break;
+	[imageMatchesLock lock];
+		for (index = 0; index < [imageMatches count]; index++)
+			if (matchValue < [[imageMatches objectAtIndex:index] matchValue])
+				break;
+	[imageMatchesLock unlock];
 
 /*
     left = 0; right = matchCount; index = 0;
@@ -260,14 +266,18 @@
 
 - (ImageMatch *)displayedImageMatch
 {
-	if (userChosenImageMatch)
-		return [[userChosenImageMatch retain] autorelease];
-	else if (bestImageMatch)
-		return [[bestImageMatch retain] autorelease];
-	else if ([imageMatches count] > 0)
-		return [imageMatches objectAtIndex:0];
-	else
-		return nil;
+	ImageMatch	*match = nil;
+	
+	[imageMatchesLock lock];
+		if (userChosenImageMatch)
+			match = [[userChosenImageMatch retain] autorelease];
+		else if (bestImageMatch)
+			match = [[bestImageMatch retain] autorelease];
+		else if ([imageMatches count] > 0)
+			match = [imageMatches objectAtIndex:0];
+	[imageMatchesLock unlock];
+	
+	return match;
 }
 
 
@@ -278,9 +288,9 @@
 	BOOL	bestMatchChanged = NO;
 	
         // If the user has picked a specific image to use then no calculation is necessary
-	if ([imageMatches count]> 0 && !userChosenImageMatch)
-	{
-        [imageMatchesLock lock];
+	[imageMatchesLock lock];
+		if ([imageMatches count]> 0 && !userChosenImageMatch)
+		{
 		#if 0
 			bestMatchTileImage = nil;
 			
@@ -327,7 +337,7 @@
 			NSEnumerator	*matchEnumerator = [imageMatches objectEnumerator];
 			ImageMatch		*imageMatch = nil,
 							*originalBestMatch = bestImageMatch;
-			[bestImageMatch release];
+			[bestImageMatch autorelease];
 			bestImageMatch = nil;
 			while (!bestImageMatch && (imageMatch = [matchEnumerator nextObject]))
 				if (![imagesInUseByNeighbors containsObject:[NSArray arrayWithObjects:
@@ -338,10 +348,18 @@
 //				else
 //					NSLog(@"phew");
 			
+				// If we can't be unique then go for our best match.
+			if (!bestImageMatch && [imageMatches count] > 0)
+			{
+				if ([imageMatches count] == [neighborSet count] + 1)
+					NSLog(@"Huh?");
+				bestImageMatch = [[imageMatches objectAtIndex:0] retain];
+			}
+			
 			bestMatchChanged = (originalBestMatch != bestImageMatch);
 		#endif
-        [imageMatchesLock unlock];
-	}
+		}
+	[imageMatchesLock unlock];
 	
 	return bestMatchChanged;
 }
@@ -384,25 +402,25 @@
 
 - (NSArray *)matches
 {
-    return imageMatches;
+    NSArray	*matchesCopy = nil;
+	
+	[imageMatchesLock lock];
+		matchesCopy = [NSArray arrayWithArray:imageMatches];
+	[imageMatchesLock unlock];
+	
+	return matchesCopy;
 }
 
 
 - (int)matchCount
 {
-    return [imageMatches count];
-}
-
-
-- (void)lockMatches
-{
-    [imageMatchesLock lock];
-}
-
-
-- (void)unlockMatches
-{
-    [imageMatchesLock unlock];
+	int	count = 0;
+	
+	[imageMatchesLock lock];
+		count = [imageMatches count];
+	[imageMatchesLock unlock];
+	
+    return count;
 }
 
 

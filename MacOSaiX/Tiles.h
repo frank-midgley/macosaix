@@ -70,8 +70,6 @@
 
 - (NSArray *)matches;
 - (int)matchCount;
-- (void)lockMatches;
-- (void)unlockMatches;
 
 - (float)matchValueForImageIdentifer:(id<NSCopying>)imageIdentifier fromImageSource:(ImageSource *)imageSource;
 
