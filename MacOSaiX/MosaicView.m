@@ -5,13 +5,9 @@
 @implementation MosaicView
 
 
-- (id)initWithCoder:(NSCoder *)coder
+- (void)awakeFromNib
 {
-    if (self = [super initWithCoder:coder])
-	{
-		mosaicImageLock = [[NSLock alloc] init];
-	}
-    return self;
+	mosaicImageLock = [[NSLock alloc] init];
 }
 
 
@@ -91,7 +87,7 @@
 		NS_ENDHANDLER
 	[mosaicImageLock unlock];
 	
-	[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:tile waitUntilDone:YES];
+	[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:tile waitUntilDone:NO];
 }
 
 

@@ -31,8 +31,6 @@ MosaicViewMode;
     int					phase;
 }
 
-- (id)init;
-
 - (void)setDocument:(MacOSaiXDocument *)inDocument;
 
 - (void)setViewMode:(MosaicViewMode)mode;
