@@ -8,6 +8,7 @@
 
 #import "DirectoryImageSource.h"
 #import "DirectoryImageSourceController.h"
+#import "NSString+MacOSaiX.h"
 
 
 @implementation DirectoryImageSource
@@ -44,7 +45,9 @@
 
 - (NSString *)settingsAsXMLElement
 {
-	return [NSString stringWithFormat:@"<DIRECTORY PATH=\"%@\" LAST_USED_SUB_PATH=\"%@\"/>", [self path], lastEnumeratedPath];
+	return [NSString stringWithFormat:@"<DIRECTORY PATH=\"%@\" LAST_USED_SUB_PATH=\"%@\"/>", 
+									  [NSString stringByEscapingXMLEntites:[self path]], 
+									  [NSString stringByEscapingXMLEntites:lastEnumeratedPath]];
 }
 
 
@@ -53,9 +56,9 @@
 	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
 	
 	if ([settingType isEqualToString:@"DIRECTORY"])
-		[self setPath:[[settingDict objectForKey:@"PATH"] description]];
+		[self setPath:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"PATH"] description]]];
 	else if ([settingType isEqualToString:@"LAST_USED_SUB_PATH"])
-		lastEnumeratedPath = [[[settingDict objectForKey:@"LAST_USED_SUB_PATH"] description] retain];
+		lastEnumeratedPath = [[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"LAST_USED_SUB_PATH"] description]] retain];
 }
 
 
@@ -67,7 +70,7 @@
 
 - (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict
 {
-//	[self updateQueryAndDescriptor];
+	// not needed
 }
 
 
