@@ -14,7 +14,7 @@
 
 @interface DirectoryImageSourceController : NSObject <MacOSaiXImageSourceController>
 {
-	IBOutlet NSView			*imageSourceView;
+	IBOutlet NSView			*editorView;
 
 	IBOutlet NSImageView	*pathComponent1ImageView,
 							*pathComponent2ImageView,
@@ -26,6 +26,7 @@
 							*pathComponent3TextField,
 							*pathComponent4TextField,
 							*pathComponent5TextField;
+	IBOutlet NSButton		*changeDirectoryButton;
 	
 		// The image source instance currently being edited.
 	DirectoryImageSource	*currentImageSource;

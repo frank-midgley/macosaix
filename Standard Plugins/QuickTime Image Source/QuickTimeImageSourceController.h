@@ -13,11 +13,12 @@
 
 @interface QuickTimeImageSourceController : NSObject <MacOSaiXImageSourceController>
 {
-	IBOutlet NSView			*imageSourceView;
+	IBOutlet NSView			*editorView;
 	
 	IBOutlet NSMovieView	*movieView;
 	IBOutlet NSTextField	*movieNameTextField;
 	IBOutlet NSPopUpButton	*recentMoviesPopUpButton;
+	IBOutlet NSButton		*chooseMovieFileButton;
 	
 	NSButton				*okButton;
 	

@@ -13,11 +13,24 @@
 @implementation DirectoryImageSourceController
 
 
-- (NSView *)imageSourceView
+- (NSView *)editorView
 {
-	if (!imageSourceView)
+	if (!editorView)
 		[NSBundle loadNibNamed:@"Directory Image Source" owner:self];
-	return imageSourceView;
+	
+	return editorView;
+}
+
+
+- (NSSize)editorViewMinimumSize
+{
+	return NSMakeSize(318.0, 176.0);
+}
+
+
+- (NSResponder *)editorViewFirstResponder
+{
+	return changeDirectoryButton;
 }
 
 
@@ -142,7 +155,7 @@
 
 - (IBAction)chooseDirectory:(id)sender
 {
-	NSWindow		*window = [imageSourceView window];
+	NSWindow		*window = [editorView window];
 	// TODO: use parent if in drawer, but not if in sheet
 	
     NSOpenPanel		*oPanel = [NSOpenPanel openPanel];

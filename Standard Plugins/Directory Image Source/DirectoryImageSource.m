@@ -44,7 +44,30 @@
 
 - (NSString *)settingsAsXMLElement
 {
-	return [NSString stringWithFormat:@"<DIRECTORY PATH=\"%@\"/>", [self path]];
+	return [NSString stringWithFormat:@"<DIRECTORY PATH=\"%@\" LAST_USED_SUB_PATH=\"%@\"/>", [self path], lastEnumeratedPath];
+}
+
+
+- (void)useSavedSetting:(NSDictionary *)settingDict
+{
+	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
+	
+	if ([settingType isEqualToString:@"DIRECTORY"])
+		[self setPath:[[settingDict objectForKey:@"PATH"] description]];
+	else if ([settingType isEqualToString:@"LAST_USED_SUB_PATH"])
+		lastEnumeratedPath = [[[settingDict objectForKey:@"LAST_USED_SUB_PATH"] description] retain];
+}
+
+
+- (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict
+{
+	// not needed
+}
+
+
+- (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict
+{
+//	[self updateQueryAndDescriptor];
 }
 
 
@@ -73,6 +96,7 @@
     directoryDescriptor = [[NSAttributedString alloc] initWithString:directoryPath attributes:attributeDict];
 
 		// Most importantly set up the enumerator that lets us walk through the directory.
+	[directoryEnumerator autorelease];
 	directoryEnumerator = [[[NSFileManager defaultManager] enumeratorAtPath:directoryPath] retain];
 	haveMoreImages = (directoryEnumerator != nil);
 }
@@ -108,6 +132,22 @@
 	NSString		*subPath = nil;
 	NSFileManager	*fileManager = [NSFileManager defaultManager];
 	
+	if (!pathsHaveBeenEnumerated)
+	{
+			// Find the closest ancestor of the last file we enumerated that still exists on disk.
+		while ([lastEnumeratedPath length] > 0 && 
+			   ![fileManager fileExistsAtPath:[directoryPath stringByAppendingPathComponent:lastEnumeratedPath]])
+			lastEnumeratedPath = [lastEnumeratedPath stringByDeletingLastPathComponent];
+		
+			// Enumerate past all of the images that were previously found.
+		if ([lastEnumeratedPath length] > 0)
+			do
+				subPath = [directoryEnumerator nextObject];
+			while (![subPath isEqualToString:lastEnumeratedPath]);
+			
+		pathsHaveBeenEnumerated = YES;
+	}
+	
 		// Enumerate our directory until we find a valid image file or run out of files.
 	do
 	{
@@ -118,7 +158,10 @@
 			unsigned int	iPhotoLibraryIndex = [pathComponents indexOfObject:@"iPhoto Library"],
 							thumbsIndex = [pathComponents indexOfObject:@"Thumbs"],
 							originalsIndex = [pathComponents indexOfObject:@"Originals"];
-				
+			
+			[lastEnumeratedPath release];
+			lastEnumeratedPath = [subPath retain];
+			
 				// If the path doesn't point to an iPhoto thumb or original then try to open it.
 				// Otherwise we get duplicates of iPhoto images in the mosaic.
 			if ([[[fileManager fileAttributesAtPath:fullPath traverseLink:NO] fileType]	
@@ -185,6 +228,7 @@
 - (void)dealloc
 {
 	[directoryPath release];
+	[lastEnumeratedPath release];
 	[directoryImage release];
 	[directoryDescriptor release];
 	[directoryEnumerator release];

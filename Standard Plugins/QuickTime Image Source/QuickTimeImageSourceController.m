@@ -13,12 +13,24 @@
 @implementation QuickTimeImageSourceController
 
 
-- (NSView *)imageSourceView
+- (NSView *)editorView
 {
-	if (!imageSourceView)
+	if (!editorView)
 		[NSBundle loadNibNamed:@"QuickTime Image Source" owner:self];
 	
-	return imageSourceView;
+	return editorView;
+}
+
+
+- (NSSize)editorViewMinimumSize
+{
+	return NSMakeSize(350.0, 220.0);
+}
+
+
+- (NSResponder *)editorViewFirstResponder
+{
+	return chooseMovieFileButton;
 }
 
 
@@ -55,7 +67,7 @@
     [oPanel beginSheetForDirectory:nil
 							  file:nil
 							 types:nil	//[NSMovie movieUnfilteredFileTypes]
-					modalForWindow:[imageSourceView window]
+					modalForWindow:[editorView window]
 					 modalDelegate:self
 					didEndSelector:@selector(chooseMovieDidEnd:returnCode:contextInfo:)
 					   contextInfo:nil];
