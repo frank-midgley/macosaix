@@ -1,5 +1,6 @@
 #import <Cocoa/Cocoa.h>
 #import "Tiles.h"
+#import "MacOSaiXTileShapes.h"
 #import "MacOSaiXImageSource.h"
 #import "MacOSaiXImageCache.h"
 
@@ -13,7 +14,7 @@
     NSImage						*originalImage;
     NSLock						*refindUniqueTilesLock, *imageQueueLock;
     NSMutableArray				*imageSources, *tiles, *imageQueue;
-	NSArray						*tileOutlines;
+	id<MacOSaiXTileShapes>		tileShapes;
 	NSBezierPath				*combinedOutlines;
     BOOL						documentIsClosing,	// flag set to true when document is closing
 								mosaicStarted, 
@@ -53,16 +54,19 @@
 - (NSString *)originalImagePath;
 - (NSImage *)originalImage;
 
-- (void)setTileOutlines:(NSArray *)tileOutlines;
+- (void)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes;
+- (id<MacOSaiXTileShapes>)tileShapes;
+
 - (void)setNeighborhoodSize:(int)size;
 
+- (BOOL)wasStarted;
 - (BOOL)isPaused;
 - (void)pause;
 - (void)resume;
 
 - (BOOL)isClosing;
 
-- (BOOL)isCreatingTiles;
+- (BOOL)isExtractingTileImagesFromOriginal;
 - (float)tileCreationPercentComplete;
 - (NSArray *)tiles;
 
@@ -86,3 +90,4 @@
 	// Notifications
 extern NSString	*MacOSaiXDocumentDidChangeStateNotification;
 extern NSString	*MacOSaiXOriginalImageDidChangeNotification;
+extern NSString *MacOSaiXTileShapesDidChangeStateNotification;

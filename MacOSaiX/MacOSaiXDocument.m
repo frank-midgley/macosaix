@@ -22,6 +22,7 @@
 	// Notifications
 NSString	*MacOSaiXDocumentDidChangeStateNotification = @"MacOSaiXDocumentDidChangeStateNotification";
 NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDidChangeNotification";
+NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDidChangeStateNotification";
 
 
 @interface MacOSaiXDocument (PrivateMethods)
@@ -30,7 +31,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 - (void)lockWhilePaused;
 - (void)updateMosaicImage:(NSMutableArray *)updatedTiles;
 - (void)calculateImageMatches:(id)path;
-- (void)createTileCollectionWithOutlines:(id)object;
+- (void)extractTileImagesFromOriginalImage:(id)object;
 - (void)updateEditor;
 - (BOOL)showTileMatchInEditor:(ImageMatch *)tileMatch selecting:(BOOL)selecting;
 - (NSImage *)createEditorImage:(int)rowIndex;
@@ -127,6 +128,12 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 #pragma mark Pausing/resuming
 
 
+- (BOOL)wasStarted
+{
+	return mosaicStarted;
+}
+
+
 - (BOOL)isPaused
 {
 	return paused;
@@ -138,7 +145,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 	if (!paused)
 	{
 			// Wait for the one-shot startup thread to end.
-		while ([self isCreatingTiles])
+		while ([self isExtractingTileImagesFromOriginal])
 			[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 
 			// Tell the enumeration threads to stop sending in any new images.
@@ -169,7 +176,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 	if (paused)
 	{
 		if ([[tiles objectAtIndex:0] bitmapRep] == nil)
-			[NSApplication detachDrawingThread:@selector(createTileCollectionWithOutlines:)
+			[NSApplication detachDrawingThread:@selector(extractTileImagesFromOriginalImage)
 									  toTarget:self
 									withObject:nil];
 		else
@@ -178,6 +185,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 			[pauseLock unlock];
 			
 			paused = NO;
+			mosaicStarted = YES;
 			
 			[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
 		}
@@ -546,11 +554,13 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 }
 
 
-- (void)setTileOutlines:(NSArray *)inTileOutlines
+- (void)setTileShapes:(id<MacOSaiXTileShapes>)inTileShapes
 {
-	[inTileOutlines retain];
-	[tileOutlines autorelease];
-	tileOutlines = inTileOutlines;
+	[inTileShapes retain];
+	[tileShapes autorelease];
+	tileShapes = inTileShapes;
+	
+	NSArray	*tileOutlines = [tileShapes shapes];
 	
 		// Discard any tiles created from a previous set of outlines.
 	if (!tiles)
@@ -569,6 +579,11 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 			// Add this outline to the master path used to draw all of the tile outlines over the full image.
 		[combinedOutline appendBezierPath:tileOutline];
 	}
+	
+		// Let anyone who cares know that our tile shapes (and thus our tiles array) have changed.
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
+														object:self 
+													  userInfo:nil];
 	
 		// Calculate the directly neighboring tiles of each tile.  This is used to calculate
 		// each tile's neighborhood when combined with the neighborhood size setting.
@@ -607,6 +622,12 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 }
 
 
+- (id<MacOSaiXTileShapes>)tileShapes
+{
+	return tileShapes;
+}
+
+
 - (void)setNeighborhoodSize:(int)size
 {
 	neighborhoodSize = size;
@@ -616,12 +637,14 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 	// TODO: what if a mosaic is already in the works?  how do we reset?
 	
 	[self calculateTileNeighborhoods];
+	
+	mosaicStarted = NO;
 }
 
 
-- (void)createTileCollectionWithOutlines:(id)object
+- (void)extractTileImagesFromOriginalImage
 {
-    if (tileOutlines == nil || originalImage == nil)
+    if ([tiles count] == 0 || originalImage == nil)
 		return;
 
 	createTilesThreadAlive = YES;
@@ -715,7 +738,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 			// Release our lock on the GUI in case the main thread needs it.
 		[[drawWindow contentView] unlockFocus];
 		
-		tileCreationPercentComplete = (int)(index * 50.0 / [tileOutlines count]);
+		tileCreationPercentComplete = (int)(index * 100.0 / [tiles count]);
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
 	}
 	
@@ -732,7 +755,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 }
 
 
-- (BOOL)isCreatingTiles
+- (BOOL)isExtractingTileImagesFromOriginal
 {
 	return createTilesThreadAlive;
 }
@@ -1112,6 +1135,8 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 {
 	[imageSources addObject:imageSource];
 	
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
+	
 	[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) 
 							  toTarget:self 
 							withObject:imageSource];
@@ -1121,6 +1146,8 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource
 {
 	[imageSources removeObject:imageSource];
+	
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
 }
 
 
@@ -1134,7 +1161,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
     if (!paused)
 		[self pause];
 	
-    while ([self isCreatingTiles]  || [self isCalculatingImageMatches] || [self isCalculatingDisplayedImages])
+    while ([self isExtractingTileImagesFromOriginal] || [self isCalculatingImageMatches] || [self isCalculatingDisplayedImages])
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
     
     [super canCloseDocumentWithDelegate:delegate shouldCloseSelector:shouldCloseSelector 
@@ -1157,8 +1184,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 	documentIsClosing = YES;
 	
 		// wait for the threads to shut down
-	while (createTilesThreadAlive || enumerationThreadCount > 0 || calculateImageMatchesThreadAlive || 
-		   calculateDisplayedImagesThreadAlive)
+    while ([self isExtractingTileImagesFromOriginal] || [self isCalculatingImageMatches] || [self isCalculatingDisplayedImages])
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
 		
 		// Give the image sources a chance to clean up before we close shop
@@ -1182,7 +1208,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 	[enumerationCountsLock release];
 	[enumerationCounts release];
     [tiles release];
-    [tileOutlines release];
+    [tileShapes release];
     [imageQueue release];
     [lastSaved release];
     [tileImages release];
