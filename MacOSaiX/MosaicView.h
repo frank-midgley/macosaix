@@ -29,6 +29,8 @@ MosaicViewMode;
 		// ivars for viewHighlightedTile
     Tile*				highlightedTile;
     int					phase;
+	
+	NSMutableArray		*tilesNeedingDisplay;
 }
 
 - (void)setDocument:(MacOSaiXDocument *)inDocument;
