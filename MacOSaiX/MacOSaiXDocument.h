@@ -39,6 +39,8 @@ typedef enum
 	TilesSetupController			*tilesSetupController;
 	IBOutlet NSTextField			*totalTilesField;
 	IBOutlet NSPopUpButton			*neighborhoodSizePopUpButton;
+	int								neighborhoodSize;
+	NSMutableArray					*directNeighbors;
 	
 		// Images tab
 	IBOutlet NSPopUpButton			*imageSourcesPopUpButton;

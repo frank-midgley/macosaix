@@ -168,19 +168,22 @@
     refindUniqueTilesLock = [[NSLock alloc] init];
 //    refindUniqueTiles = YES;
     
-		// create timers to update the window and animate any selected tile
+		// Create a timer to update the window once per second.
     updateDisplayTimer = [[NSTimer scheduledTimerWithTimeInterval:1.0
 							   target:(id)self
 							 selector:@selector(updateDisplay:)
 							 userInfo:nil
 							  repeats:YES] retain];
+		// Create a timer to animate any selected tile ten times per second.
+		// TODO: only do this when a tile is highlighted and in Tiles or Editor mode.
     animateTileTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1
 							 target:(id)self
 						       selector:@selector(animateSelectedTile:)
 						       userInfo:nil
 							repeats:YES] retain];
-
-    if (combinedOutlines) [originalView setTileOutlines:combinedOutlines];
+	
+    if (combinedOutlines)
+		[originalView setTileOutlines:combinedOutlines];
     [originalView setImage:originalImage];
 
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -695,12 +698,6 @@
 }
 
 
-/*    [mosaicImageDrawWindow autorelease];
-    mosaicImageDrawWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0,
-								  [mosaicImage size].width,
-								  [mosaicImage size].height)
-							 styleMask:NSBorderlessWindowMask
-							   backing:NSBackingStoreBuffered defer:NO];*/
 - (void)setTileOutlines:(NSArray *)inTileOutlines
 {
 	[inTileOutlines retain];
@@ -709,6 +706,59 @@
 	
 	[mosaicView setTileOutlines:tileOutlines];
 	[totalTilesField setIntValue:[tileOutlines count]];
+	
+		// Discard any tiles created from a previous set of outlines.
+	if (!tiles)
+		tiles = [[NSMutableArray arrayWithCapacity:[tileOutlines count]] retain];
+	else
+		[tiles removeAllObjects];
+
+		// Create a new tile collection from the outlines.
+	NSEnumerator	*tileOutlineEnumerator = [tileOutlines objectEnumerator];
+	NSBezierPath	*tileOutline = nil,
+					*combinedOutline = [NSBezierPath bezierPath];
+    while (tileOutline = [tileOutlineEnumerator nextObject])
+	{
+		[tiles addObject:[[[Tile alloc] initWithOutline:tileOutline fromDocument:self] autorelease]];
+		
+			// Add this outline to the master path used to draw all of the tile outlines over the full image.
+		[combinedOutline appendBezierPath:tileOutline];
+	}
+		// Pass the master outline to the original view.
+    [(OriginalView *)originalView setTileOutlines:combinedOutline];
+	
+		// Calculate the directly neighboring tiles of each tile.  This is used to calculate
+		// each tile's neighborhood when combined with the neighborhood size setting.
+	if (!directNeighbors)
+		directNeighbors = [[NSMutableArray array] retain];
+	else
+		[directNeighbors removeAllObjects];
+	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+	Tile			*tile = nil;
+    while (tile = [tileEnumerator nextObject])
+	{
+		NSRect	tileBounds = [[tile outline] bounds],
+				zoomedTileBounds = NSZeroRect;
+		
+			// scale the rect up slightly so it overlaps with it's neighbors
+		zoomedTileBounds.size = NSMakeSize(tileBounds.size.width * 1.01, tileBounds.size.height * 1.01);
+		zoomedTileBounds.origin.x += NSMidX(tileBounds) - NSMidX(zoomedTileBounds);
+		zoomedTileBounds.origin.y += NSMidY(tileBounds) - NSMidY(zoomedTileBounds);
+		
+			// Loop through the other tiles and add as neighbors any that intersect.
+			// TO DO: This currently just checks if the bounding boxes of the tiles intersect.
+			//        For non-rectangular tiles this will not be accurate enough.
+		NSMutableArray	*directNeighborArray = [NSMutableArray array];
+		NSEnumerator	*tileEnumerator2 = [tiles objectEnumerator];
+		Tile			*tile2 = nil;
+		while (tile2 = [tileEnumerator2 nextObject])
+			if (tile2 != tile && NSIntersectsRect(zoomedTileBounds, [[tile2 outline] bounds]))
+				[directNeighborArray addObject:tile2];
+		
+		[directNeighbors addObject:directNeighborArray];
+	}
+	
+	[self setNeighborhoodSize:self];
 	
 	mosaicStarted = NO;
 }
@@ -737,41 +787,32 @@
 
     int					index = 0;
     NSAutoreleasePool   *pool = [[NSAutoreleasePool alloc] init];
-    NSWindow			*drawWindow;
-    NSBezierPath		*combinedOutline = [NSBezierPath bezierPath];
 
 		// create an offscreen window to draw into (it will have a single, empty view the size of the window)
-    drawWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(-10000, -10000,
-								  [originalImage size].width, 
-								  [originalImage size].height)
-					     styleMask:NSBorderlessWindowMask
-					       backing:NSBackingStoreBuffered defer:NO];
+    NSWindow			*drawWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(-10000, -10000,
+																					   [originalImage size].width, 
+																					   [originalImage size].height)
+																  styleMask:NSBorderlessWindowMask
+																    backing:NSBackingStoreBuffered 
+																	  defer:NO];
     
-    tiles = [[NSMutableArray arrayWithCapacity:[tileOutlines count]] retain];
-    
-	/* Loop through each tile outline and:
-		1.  Create a Tile instance.
-		2.  Copy out the rect of the original image that this tile covers.
-		3.  Calculate an image mask that indicates which part of the copied rect is contained within the tile's outline.
+	/* Loop through each tile and:
+		1. Copy out the rect of the original image that this tile covers.
+		2. Calculate an image mask that indicates which part of the copied rect is contained within the tile's outline.
+		3. ?
 	*/
-	NSEnumerator	*tileOutlineEnumerator = [tileOutlines objectEnumerator];
-	NSBezierPath	*tileOutline = nil;
-    while (!documentIsClosing && (tileOutline = [tileOutlineEnumerator nextObject]))
+	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+	Tile			*tile = nil;
+    while (!documentIsClosing && (tile = [tileEnumerator nextObject]))
 	{
-			// Create the tile and add it to the collection.
-		Tile				*tile = [[[Tile alloc] initWithOutline:tileOutline fromDocument:self] autorelease];
-		[tiles addObject:tile];
-		
 		index++;
-		
-			// Add this outline to the master path used to draw all of the tile outlines over the full image.
-		[combinedOutline appendBezierPath:tileOutline];
 		
 			// Lock focus on our 'scratch' window.
 		while (![[drawWindow contentView] lockFocusIfCanDraw])
 			[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
 		
 			// Determine the bounds of the tile in the original image and in the scratch window.
+		NSBezierPath	*tileOutline = [tile outline];
 		NSRect  origRect = NSMakeRect([tileOutline bounds].origin.x * [originalImage size].width,
 									  [tileOutline bounds].origin.y * [originalImage size].height,
 									  [tileOutline bounds].size.width * [originalImage size].width,
@@ -830,70 +871,6 @@
 
 //    [[drawWindow contentView] unlockFocus];
     [drawWindow close];
-
-		// Calculate the directly neighboring tiles of each tile based on number of tiles away repeats are allowed.
-		// For example if tiles are allowed to repeat past 1 neighbor than the direct neighbors of a tile
-		// would be in its neighbor set.  If 2 then the direct neighbors and all of their direct neighbors
-		// would be in the set.
-		// TO DO: This currently only calculates the direct neighbors.
-	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-	Tile			*tile = nil;
-	index = 0;
-    while (!documentIsClosing && (tile = [tileEnumerator nextObject]))
-	{
-		NSRect	tileBounds = [[tile outline] bounds],
-				zoomedTileBounds = NSZeroRect;
-		
-			// scale the rect up slightly so it overlaps with it's neighbors
-		zoomedTileBounds.size = NSMakeSize(tileBounds.size.width * 1.01, tileBounds.size.height * 1.01);
-		zoomedTileBounds.origin.x += NSMidX(tileBounds) - NSMidX(zoomedTileBounds);
-		zoomedTileBounds.origin.y += NSMidY(tileBounds) - NSMidY(zoomedTileBounds);
-		
-			// Loop through the other tiles and add as neighbors any that intersect.
-			// TO DO: This currently just checks if the bounding boxes of the tiles intersect.
-			//        For non-rectangular tiles this will not be accurate enough.
-		NSEnumerator	*tileEnumerator2 = [tiles objectEnumerator];
-		Tile			*tile2 = nil;
-		while (!documentIsClosing && (tile2 = [tileEnumerator2 nextObject]))
-			if (tile2 != tile && NSIntersectsRect(zoomedTileBounds, [[tile2 outline] bounds]))
-				[tile addNeighbor:tile2];
-				
-		index++;
-		
-//		NSLog(@"Tile at %p has %d neighbors.", tile, [[tile neighbors] count]);
-		extractionPercentComplete = 50.0 + (int)(index * 50.0 / [tileOutlines count]);
-	}
-	
-	int	neighborhoodSize = 3;
-	if (neighborhoodSize > 1)	// the code above already handled neighborhoods of size 1
-	{
-			// First make a copy of the direct neighbors of each tile.
-		NSMutableArray	*directNeighbors = [NSMutableArray array];
-		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-		Tile			*tile = nil;
-		while (!documentIsClosing && (tile = [tileEnumerator nextObject]))
-			[directNeighbors addObject:[tile neighbors]];	// -neighbors returns a new collection that is unaffected by the calls below
-			
-		int	degreeOfSeparation;
-		for (degreeOfSeparation = 1; degreeOfSeparation < neighborhoodSize; degreeOfSeparation++)
-		{
-				// Add the direct neighbors of every tile's neighbor to the tile.
-			tileEnumerator = [tiles objectEnumerator];
-			while (!documentIsClosing && (tile = [tileEnumerator nextObject]))
-			{ 
-				NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
-				NSEnumerator		*neighborEnumerator = [[tile neighbors] objectEnumerator];
-				Tile				*neighbor = nil;
-				
-				while (!documentIsClosing && (neighbor = [neighborEnumerator nextObject]))
-					[tile addNeighbors:[directNeighbors objectAtIndex:[tiles indexOfObjectIdenticalTo:neighbor]]];
-				
-				[pool2 release];
-			}
-		}
-	}
-	
-    [(OriginalView *)originalView setTileOutlines:combinedOutline];
     
 		// ...
 	[self spawnImageSourceThreads];
@@ -1352,15 +1329,36 @@
 
 - (IBAction)setNeighborhoodSize:(id)sender
 {
-	// TODO
-			{
-				[refreshTilesSetLock lock];
-					[refreshTilesSet addObjectsFromArray:tiles];
-				[refreshTilesSetLock unlock];
-
-				if (!calculateDisplayedImagesThreadAlive)
-					[NSApplication detachDrawingThread:@selector(calculateDisplayedImages:) toTarget:self withObject:nil];
-			}
+	neighborhoodSize = [neighborhoodSizePopUpButton indexOfSelectedItem] + 1;
+	
+	// TODO: what if a mosaic is already in the works?  how do we reset?
+	
+		// At a minimum each tile neighbors its direct neighbors.
+	NSEnumerator	*tileEnumerator = [tiles objectEnumerator],
+					*directNeighborsEnumerator = [directNeighbors objectEnumerator];
+	Tile			*tile = nil;
+	NSArray			*directNeighborArray = nil;
+	while ((tile = [tileEnumerator nextObject]) && (directNeighborArray = [directNeighborsEnumerator nextObject]))
+		[tile setNeighbors:directNeighborArray];
+	
+	int	degreeOfSeparation;
+	for (degreeOfSeparation = 1; degreeOfSeparation < neighborhoodSize; degreeOfSeparation++)
+	{
+			// Add the direct neighbors of every tile's neighbor to the tile's neighborhood.
+		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+		Tile			*tile = nil;
+		while (tile = [tileEnumerator nextObject])
+		{ 
+			NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
+			NSEnumerator		*neighborEnumerator = [[tile neighbors] objectEnumerator];
+			Tile				*neighbor = nil;
+			
+			while (!documentIsClosing && (neighbor = [neighborEnumerator nextObject]))
+				[tile addNeighbors:[directNeighbors objectAtIndex:[tiles indexOfObjectIdenticalTo:neighbor]]];
+			
+			[pool2 release];
+		}
+	}
 }
 
 
@@ -1515,27 +1513,28 @@
 
 - (void)selectTileAtPoint:(NSPoint)thePoint
 {
-    int	i;
-    
-    if ([mosaicView viewMode] != viewHighlightedTile) return;
-    
     thePoint.x = thePoint.x / [mosaicView frame].size.width;
     thePoint.y = thePoint.y / [mosaicView frame].size.height;
     
         // TBD: this isn't terribly efficient...
+    int	i;
     for (i = 0; i < [tiles count]; i++)
         if ([[[tiles objectAtIndex:i] outline] containsPoint:thePoint])
         {
-            [editorLabel setStringValue:@"Image to use for selected tile:"];
-            [editorUseCustomImage setEnabled:YES];
-            [editorUseBestUniqueMatch setEnabled:YES];
             selectedTile = [tiles objectAtIndex:i];
-            
             [mosaicView highlightTile:selectedTile];
-            [editorTable scrollRowToVisible:0];
-            [self updateEditor];
-            
-            return;
+			
+			if ([mosaicView viewMode] == viewHighlightedTile)
+			{
+				[editorLabel setStringValue:@"Image to use for selected tile:"];
+				[editorUseCustomImage setEnabled:YES];
+				[editorUseBestUniqueMatch setEnabled:YES];
+				
+				[editorTable scrollRowToVisible:0];
+				[self updateEditor];
+            }
+			
+			break;
         }
 }
 
