@@ -282,6 +282,20 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					// Write out the XML header.
 				[fileHandle writeData:[@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				[fileHandle writeData:[@"<!DOCTYPE plist PUBLIC \"-//Frank M. Midgley//DTD MacOSaiX 1.0//EN\" \"http://homepage.mac.com/knarf/DTDs/MacOSaiX-1.0.dtd\">\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
+
+					// Write out the tile shapes settings
+				NSString		*className = NSStringFromClass([tileShapes class]);
+				NSMutableString	*tileShapesXML = [NSMutableString stringWithString:
+																[[tileShapes settingsAsXMLElement] stringByTrimmingCharactersInSet:
+																	[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
+				[tileShapesXML replaceOccurrencesOfString:@"\n" withString:@"\n\t" options:0 range:NSMakeRange(0, [tileShapesXML length])];
+				[tileShapesXML insertString:@"\t" atIndex:0];
+				[tileShapesXML appendString:@"\n"];
+				[fileHandle writeData:[[NSString stringWithFormat:@"<TILE_SHAPES_SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[tileShapesXML dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[@"</TILE_SHAPES_SETTINGS>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				
+				[fileHandle writeData:[[NSString stringWithFormat:@"<TILE_NEIGHBORHOOD SIZE=\"%d\">\n\n", neighborhoodSize] dataUsingEncoding:NSUTF8StringEncoding]];
 				
 					// Write out the image sources.
 				[fileHandle writeData:[@"<IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
@@ -290,24 +304,18 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				{
 					id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:index];
 					NSString				*className = NSStringFromClass([imageSource class]);
+					NSMutableString			*imageSourceXML = [NSMutableString stringWithString:
+																[[imageSource settingsAsXMLElement] stringByTrimmingCharactersInSet:
+																	[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
 					
-					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\">\n", index] dataUsingEncoding:NSUTF8StringEncoding]];
-					[fileHandle writeData:[[NSString stringWithFormat:@"\t\t<SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
-			//		[fileHandle writeData:[[imageSource XMLRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
-					[fileHandle writeData:[@"\t\t</SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					[imageSourceXML replaceOccurrencesOfString:@"\n" withString:@"\n\t\t" options:0 range:NSMakeRange(0, [imageSourceXML length])];
+					[imageSourceXML insertString:@"\t\t" atIndex:0];
+					[imageSourceXML appendString:@"\n"];
+					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\">\n", index, className] dataUsingEncoding:NSUTF8StringEncoding]];
+					[fileHandle writeData:[imageSourceXML dataUsingEncoding:NSUTF8StringEncoding]];
 					[fileHandle writeData:[@"\t</IMAGE_SOURCE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				}
 				[fileHandle writeData:[@"</IMAGE_SOURCES>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
-
-					// Write out the tiles setup
-					// TODO: needs rework once tile setup is freed from framework
-//				NSString	*className = NSStringFromClass([tilesSetupController class]);
-				[fileHandle writeData:[@"<TILES_SETUP>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-//				[fileHandle writeData:[[NSString stringWithFormat:@"\t\t<SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
-//				[fileHandle writeData:[[tilesSetupController XMLRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
-//				[fileHandle writeData:[@"\t</SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-				[fileHandle writeData:[[NSString stringWithFormat:@"\t\t<NEIGHBORHOOD SIZE=\"%d\">\n", neighborhoodSize] dataUsingEncoding:NSUTF8StringEncoding]];
-				[fileHandle writeData:[@"</TILES_SETUP>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				
 					// Write out the cached images
 				[fileHandle writeData:[[imageCache xmlDataWithImageSources:imageSources] dataUsingEncoding:NSUTF8StringEncoding]];
@@ -366,7 +374,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					NSEnumerator	*matchEnumerator = [[tile matches] objectEnumerator];
 					ImageMatch		*match = nil;
 					while (match = [matchEnumerator nextObject])
-						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<MATCH SOURCE_ID=\"%d\" IMAGE_ID=\"%@\" VALUE=\"%0.6f\"%@>\n", 
+						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<MATCH SOURCE_ID=\"%d\" IMAGE_ID=\"%@\" VALUE=\"%0.2f\"%@>\n", 
 															[imageSources indexOfObjectIdenticalTo:[match imageSource]],
 															[match imageIdentifier], [match matchValue],
 															(match == [tile userChosenImageMatch] ? @"USER_CHOSEN" : @"")] 
@@ -923,6 +931,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
 	
     NSImage				*scratchImage = [[[NSImage alloc] initWithSize:NSMakeSize(1024, 1024)] autorelease];
+	[scratchImage setCachedSeparately:YES];
 	[scratchImage setCacheMode:NSImageCacheNever];
 	
 //	NSLog(@"Calculating image matches\n");
