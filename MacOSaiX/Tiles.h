@@ -12,7 +12,7 @@
 @class MacOSaiXTile;
 @class MacOSaiXDocument;
 
-@interface ImageMatch : NSObject
+@interface MacOSaiXImageMatch : NSObject
 {
     float					matchValue;
     id<MacOSaiXImageSource>	imageSource;
@@ -28,7 +28,7 @@
 - (id<MacOSaiXImageSource>)imageSource;
 - (NSString *)imageIdentifier;
 - (MacOSaiXTile *)tile;
-- (NSComparisonResult)compare:(ImageMatch *)otherMatch;
+- (NSComparisonResult)compare:(MacOSaiXImageMatch *)otherMatch;
 
 @end
 
@@ -43,7 +43,7 @@
 	NSMutableDictionary	*imagesInUseByNeighbors;
 	NSBitmapImageRep	*bitmapRep,				// The portion of the original image that is in this tile
 						*maskRep;
-	ImageMatch			*imageMatch,
+	MacOSaiXImageMatch	*imageMatch,
 						*nonUniqueImageMatch,
 						*userChosenImageMatch;	// will be nil if user has not choosen an image
 	MacOSaiXDocument	*document;				// The document this tile is a part of (non-retained)
@@ -72,12 +72,12 @@
 //- (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep fromCachedImage:(CachedImage *)cachedImage
 //				  forDocument:(NSDocument *)document;
 
-- (ImageMatch *)imageMatch;
-- (void)setImageMatch:(ImageMatch *)match;
+- (MacOSaiXImageMatch *)imageMatch;
+- (void)setImageMatch:(MacOSaiXImageMatch *)match;
 
 - (void)setUserChosenImageIdentifer:(NSString *)imageIdentifier fromImageSource:(id<MacOSaiXImageSource>)imageSource;
-- (ImageMatch *)userChosenImageMatch;
+- (MacOSaiXImageMatch *)userChosenImageMatch;
 
-- (ImageMatch *)displayedImageMatch;
+- (MacOSaiXImageMatch *)displayedImageMatch;
 
 @end

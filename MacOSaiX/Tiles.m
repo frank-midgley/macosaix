@@ -3,7 +3,7 @@
 #import "MacOSaiXDocument.h"
 
 
-@implementation ImageMatch
+@implementation MacOSaiXImageMatch
 
 
 - (id)initWithMatchValue:(float)inMatchValue 
@@ -47,7 +47,7 @@
 }
 
 
-- (NSComparisonResult)compare:(ImageMatch *)otherMatch
+- (NSComparisonResult)compare:(MacOSaiXImageMatch *)otherMatch
 {
 	float	otherMatchValue = [otherMatch matchValue];
 	
@@ -222,10 +222,10 @@
 	if (!imageMatch && (!nonUniqueImageMatch || matchValue < [nonUniqueImageMatch matchValue]))
 	{
 		[nonUniqueImageMatch autorelease];
-		nonUniqueImageMatch = [[ImageMatch alloc] initWithMatchValue:matchValue 
-												  forImageIdentifier:imageIdentifier 
-													 fromImageSource:imageSource 
-															 forTile:self];
+		nonUniqueImageMatch = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
+														  forImageIdentifier:imageIdentifier 
+															 fromImageSource:imageSource 
+																	 forTile:self];
 		
 		if (!userChosenImageMatch && NO)	// TODO: check showBestNonUniqueMatch pref
 			[self sendImageChangedNotification];
@@ -235,12 +235,13 @@
 }
 
 
-- (void)setImageMatch:(ImageMatch *)match
+- (void)setImageMatch:(MacOSaiXImageMatch *)match
 {
 	[imageMatch autorelease];
 	imageMatch = [match retain];
 	
 		// Now that we have a real match we don't need the placeholder anymore.
+		// TBD: or do we?  what if this gets set back to nil?
 	[nonUniqueImageMatch autorelease];
 	nonUniqueImageMatch = nil;
 	
@@ -249,7 +250,7 @@
 }
 
 
-- (ImageMatch *)imageMatch
+- (MacOSaiXImageMatch *)imageMatch
 {
 	return imageMatch;
 }
@@ -273,7 +274,7 @@
     else
     {
 		if (userChosenImageMatch == nil)
-			userChosenImageMatch = (ImageMatch *)malloc(sizeof(ImageMatch));
+			userChosenImageMatch = (MacOSaiXImageMatch *)malloc(sizeof(MacOSaiXImageMatch));
 		else
 			[document tileImageIndexNotInUse:userChosenImageMatch->tileImageIndex];
 		userChosenImageMatch->matchValue = 0;
@@ -285,13 +286,13 @@
 }
 
 
-- (ImageMatch *)userChosenImageMatch;
+- (MacOSaiXImageMatch *)userChosenImageMatch;
 {
 	return [[userChosenImageMatch retain] autorelease];
 }
 
 
-- (ImageMatch *)displayedImageMatch
+- (MacOSaiXImageMatch *)displayedImageMatch
 {
 	if (userChosenImageMatch)
 		return userChosenImageMatch;
