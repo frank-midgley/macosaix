@@ -1,21 +1,23 @@
 #import <string.h>
 #import "Tiles.h"
-//#import "TileMatch.h"
+
 
 @implementation Tile
 
-- (id)init
+
+- (id)initWithOutline:(NSBezierPath *)outline fromDocument:(NSDocument *)document
 {
     self = [super init];
     
     _tileMatchesLock = [[NSLock alloc] init];
     _bestMatchLock = [[NSLock alloc] init];
 	NSAssert(_tileMatchesLock != nil, @"Could not alloc/init tile matches lock");
-    _outline = nil;
+    _outline = [outline copy];
     _bitmapRep = nil;
     _matches = nil;
     _matchCount = 0;
     _userChosenImageMatch = nil;
+    _document = document;
     
     return self;
 }
@@ -53,10 +55,12 @@
 }
 
 
-- (void)setBitmapRep:(NSBitmapImageRep *)bitmapRep
+- (void)setBitmapRep:(NSBitmapImageRep *)bitmapRep withMask:(NSBitmapImageRep *)maskRep
 {
     [_bitmapRep autorelease];
     _bitmapRep = [bitmapRep retain];
+    [_maskRep autorelease];
+    _maskRep = [maskRep retain];
 }
 
 
@@ -66,22 +70,16 @@
 }
 
 
-- (void)setDocument:(NSDocument *)document
-{
-    _document = document;
-}
-
-
 	// Match this tile's bitmap against matchRep and return whether the new match is better
 	// than this tile's previous worst.
 - (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep fromTileImage:(TileImage *)tileImage
 				  forDocument:(NSDocument *)document
 {
-    int				bytesPerPixel1, bytesPerRow1, bytesPerPixel2, bytesPerRow2;
+    int				bytesPerPixel1, bytesPerRow1, bytesPerPixel2, bytesPerRow2, maskBytesPerPixel, maskBytesPerRow;
     int				pixelCount = 0, pixelsLeft;
     int				x, y, x_off, y_off, x_size, y_size;
     int				index = 0, left, right;
-    unsigned char	*bitmap1, *bitmap2;
+    unsigned char	*bitmap1, *bitmap2, *maskBitmap;
     float			prevWorst, matchValue = 0.0;
     
     if (matchRep == nil) return NO;
@@ -96,9 +94,12 @@
 		// pixels in imageRep outside of _bitmapRep centered in imageRep will be ignored
     
     bitmap1 = [_bitmapRep bitmapData];	NSAssert(bitmap1 != nil, @"bitmap1 is nil");
+    maskBitmap = [_maskRep bitmapData];
     bitmap2 = [matchRep bitmapData];	NSAssert(bitmap2 != nil, @"bitmap2 is nil");
     bytesPerPixel1 = [_bitmapRep hasAlpha] ? 4 : 3;
     bytesPerRow1 = [_bitmapRep bytesPerRow];
+    maskBytesPerPixel = [_maskRep hasAlpha] ? 4 : 3;
+    maskBytesPerRow = [_maskRep bytesPerRow];
     bytesPerPixel2 = [matchRep hasAlpha] ? 4 : 3;
     bytesPerRow2 = [matchRep bytesPerRow];
     
@@ -117,20 +118,25 @@
 		for (y = 0; y < y_size; y++)
 		{
             unsigned char	*bitmap1_off = bitmap1 + x * bytesPerPixel1 + y * bytesPerRow1,
-                            *bitmap2_off = bitmap2 + (x + x_off) * bytesPerPixel2 + (y + y_off) * bytesPerRow2;
+                            *bitmap2_off = bitmap2 + (x + x_off) * bytesPerPixel2 + (y + y_off) * bytesPerRow2,
+                            *mask_off = maskBitmap + x * maskBytesPerPixel + y * maskBytesPerRow;
                 
                 // If there's no alpha channel or the alpha channel bit is not 0 then consider this pixel
-			if (bytesPerPixel1 == 3 || *bitmap1_off > 0)
+//			if (bytesPerPixel1 == 3 || *bitmap1_off > 0)
 			{
                 int		redDiff = *bitmap1_off - *bitmap2_off, 
                         greenDiff = *(bitmap1_off + 1) - *(bitmap2_off + 1), 
                         blueDiff = *(bitmap1_off + 2) - *(bitmap2_off + 2);
 				float	redAverage = (*bitmap1_off + *bitmap2_off) / 2.0;
                 
-				matchValue += (2.0 + redAverage / 256.0) * redDiff * redDiff + 
-                              4 * greenDiff * greenDiff + 
-                              (2 + (255.0 - redAverage) / 256.0) * blueDiff * blueDiff;
-//                matchValue += redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff;
+#if 0
+				matchValue += ((2.0 + redAverage / 256.0) * redDiff * redDiff + 
+                               4 * greenDiff * greenDiff + 
+                               (2 + (255.0 - redAverage) / 256.0) * blueDiff * blueDiff)
+                               * ((*mask_off) / 256.0); // weighted by alpha value from mask
+#else
+                matchValue += (redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff) * ((*mask_off) / 256.0);
+#endif
 				pixelCount++;
 			}
 		}
@@ -149,9 +155,10 @@
     if (matchValue > prevWorst) return NO;
     
 		// Determine where in the list it belongs (the best match should always be at index 0)
-    for (index = 0; index < _matchCount - 1; index++)
+    for (index = 0; index < _matchCount; index++)
         if (matchValue < _matches[index].matchValue)
             break;
+
 /*
     left = 0; right = _matchCount; index = 0;
     while (right > left)
@@ -165,29 +172,32 @@
 */	
 //	NSLog(@"      Adding matching image (%f) to tile %p at index %d", matchValue, self, index);
 
-    [_tileMatchesLock lock];
-            // If we already have the max number of matches we need then let go of our worst match
-		if (_matchCount == [_neighborSet count] + 1)
-        {
-                // If our worst match was our current best then signal the need to recalculate
-            if (_bestMatchTileImage == _matches[_matchCount - 1].tileImage)
-                [self calculateBestMatch];
-                //_bestMatchTileImage = nil;
-			[_matches[_matchCount - 1].tileImage imageIsNotInUse];
-        }
+    if (index < ([_neighborSet count] + 1))
+    {
+        [_tileMatchesLock lock];
+                // If we already have the max number of matches we need then let go of our worst match
+            if (_matchCount == [_neighborSet count] + 1)
+            {
+                    // If our worst match was our current best then signal the need to recalculate
+                if (_bestMatchTileImage == _matches[_matchCount - 1].tileImage)
+                    [self calculateBestMatch];
+                    //_bestMatchTileImage = nil;
+                [_matches[_matchCount - 1].tileImage imageIsNotInUse];
+            }
+            
+                // Add the new match to the list of matches at the correct position
+            bcopy(&_matches[index], &_matches[index + 1], sizeof(TileMatch) * ([_neighborSet count] - index));
+            _matches[index].matchValue = matchValue;
+            _matches[index].tileImage = tileImage;
+            
+            [tileImage imageIsInUse];
+            
+            if (_matchCount <= [_neighborSet count]) _matchCount++;
+        [_tileMatchesLock unlock];
         
-			// Add the new match to the list of matches at the correct position
-		bcopy(&_matches[index], &_matches[index + 1], sizeof(TileMatch) * ([_neighborSet count] - index));
-		_matches[index].matchValue = matchValue;
-		_matches[index].tileImage = tileImage;
-		
-		[tileImage imageIsInUse];
-		
-		if (_matchCount <= [_neighborSet count]) _matchCount++;
-    [_tileMatchesLock unlock];
-    
-		// mark the document as needing saving
-    [document updateChangeCount:NSChangeDone];
+            // mark the document as needing saving
+        [document updateChangeCount:NSChangeDone];
+    }
     
     return YES;
 }
@@ -217,7 +227,7 @@
 		return;
 	
     [_bestMatchLock lock];
-#if 1
+#if 0
         _bestMatchTileImage = nil;
         
         int	i;
@@ -238,9 +248,6 @@
         if (!_bestMatchTileImage)
             _bestMatchTileImage = _matches[0].tileImage;
 #else
-            // Start by going for our best match.
-        _bestMatchTileImage = _matches[0].tileImage;
-
             // Get the set of tile images used by our neighbors
         NSMutableSet	*tileImagesInUseByNeighbors = [NSMutableSet set];
         NSEnumerator	*neighborEnumerator = [_neighborSet objectEnumerator];
@@ -252,6 +259,9 @@
             if (neighborsTileImage) [tileImagesInUseByNeighbors addObject:neighborsTileImage];
         }
             
+            // Start by going for our best match.
+        _bestMatchTileImage = _matches[0].tileImage;
+
             // Loop through our matches and pick the first one not in use by any of our neighbors
         int	i;
         for (i = 1; i < _matchCount; i++)
@@ -343,7 +353,8 @@
 
 - (void)dealloc
 {
-    if (_userChosenImageMatch != nil) free(_userChosenImageMatch);
+    if (_userChosenImageMatch)
+		free(_userChosenImageMatch);
     [_tileMatchesLock release];
     [_bestMatchLock release];
     [_outline release];

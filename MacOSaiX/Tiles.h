@@ -19,7 +19,8 @@ typedef struct _TileMatch
 {
     NSBezierPath		*_outline;		// The shape of this tile
 	NSMutableSet		*_neighborSet;	// A set containing tiles that are considered neighbors of this tile
-    NSBitmapImageRep	*_bitmapRep;		// The portion of the original image that is in this tile
+    NSBitmapImageRep	*_bitmapRep,		// The portion of the original image that is in this tile
+                        *_maskRep;
     TileMatch			*_matches;		// Array of TileMatches
     int					_matchCount;
     NSLock				*_tileMatchesLock,	// thread safety
@@ -30,6 +31,9 @@ typedef struct _TileMatch
     NSDocument			*_document;		// The document this tile is a part of
 }
 
+	// designated initializer
+- (id)initWithOutline:(NSBezierPath *)outline fromDocument:(NSDocument *)document;
+
 - (void)addNeighbor:(Tile *)neighboringTile;
 - (void)removeNeighbor:(Tile *)nonNeighboringTile;
 - (NSArray *)neighbors;
@@ -37,7 +41,7 @@ typedef struct _TileMatch
 - (void)setOutline:(NSBezierPath *)outline;
 - (NSBezierPath *)outline;
 
-- (void)setBitmapRep:(NSBitmapImageRep *)data;
+- (void)setBitmapRep:(NSBitmapImageRep *)bitmapRep withMask:(NSBitmapImageRep *)maskRep;
 - (NSBitmapImageRep *)bitmapRep;
 
 - (void)setDocument:(NSDocument *)document;
