@@ -46,6 +46,7 @@
 - (id)initWithOutline:(NSBezierPath *)outline fromDocument:(NSDocument *)document;
 
 - (void)addNeighbor:(Tile *)neighboringTile;
+- (void)addNeighbors:(NSArray *)neighboringTiles;
 - (void)removeNeighbor:(Tile *)nonNeighboringTile;
 - (NSArray *)neighbors;
 

@@ -81,6 +81,15 @@
 }
 
 
+- (void)addNeighbors:(NSArray *)neighboringTiles
+{
+	if (!neighborSet)
+		neighborSet = [[NSMutableSet setWithCapacity:10] retain];
+	
+	[neighborSet addObjectsFromArray:neighboringTiles];
+}
+
+
 - (void)removeNeighbor:(Tile *)nonNeighboringTile
 {
 	[neighborSet removeObject:nonNeighboringTile];
