@@ -1,6 +1,6 @@
 #import "MacOSaiX.h"
 #import "PreferencesController.h"
-#import <MacOSaiXPlugins/TilesSetupController.h>
+#import "MacOSaiXTileShapes.h"
 #import "MacOSaiXImageSource.h"
 
 
@@ -11,21 +11,10 @@
 {
 	isalpha('a');	// get rid of weak linking warning
 
-    NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
+    NSUserDefaults		*defaults = [NSUserDefaults standardUserDefaults];
     NSMutableDictionary	*appDefaults = [NSMutableDictionary dictionary];
     
     [appDefaults setObject:@"15" forKey:@"Autosave Frequency"];
-//    [appDefaults setObject:@"Rectangles" forKey:@"Tile Shapes"];
-//    [appDefaults setObject:@"20" forKey:@"Tiles Wide"];
-//    [appDefaults setObject:@"20" forKey:@"Tiles High"];
-/*
-    [appDefaults setObject:[NSArchiver archivedDataWithRootObject:[NSMutableArray arrayWithObjects:
-				    [[ImageSource alloc] init], 
-				    [[DirectoryImageSource alloc]
-					initWithObject:[NSHomeDirectory() stringByAppendingString:@"/Pictures"]],
-				    nil]]
-		    forKey:@"Image Sources"];
-*/
     [defaults registerDefaults:appDefaults];
     [defaults setBool:YES forKey:@"AppleDockIconEnabled"];
 }
@@ -35,9 +24,9 @@
 {
 	if (self = [super init])
 	{
-		_tilesSetupControllerClasses = [[NSMutableArray arrayWithCapacity:1] retain];
+		tileShapesClasses = [[NSMutableArray arrayWithCapacity:1] retain];
 		imageSourceClasses = [[NSMutableArray arrayWithCapacity:4] retain];
-		_loadedPlugInPaths = [[NSMutableArray arrayWithCapacity:5] retain];
+		loadedPlugInPaths = [[NSMutableArray arrayWithCapacity:5] retain];
 	}
 	return self;
 }
@@ -45,21 +34,27 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
+	// TODO: version check
+	
 		// Do an initial discovery of plug-ins
-//	[self discoverPlugIns];
+		// (Now done lazily in MacOSaiXWindowController.)
+	//[self discoverPlugIns];
 
-    // To provide a service:
+		// To provide a service:
     //[NSApp setServicesProvider:[[EncryptoClass alloc] init]];
 }
 
 
-- (void)newMacOSaiXWithPasteboard:(NSPasteboard *)pBoard userObject:(id)userObj error:(NSString **)error
-{
-}
+//- (void)newMacOSaiXWithPasteboard:(NSPasteboard *)pBoard userObject:(id)userObj error:(NSString **)error
+//{
+//}
 
 
-- (void)openPreferences2:(id)sender
+- (void)openPreferences:(id)sender
 {
+#if 1
+	NSRunAlertPanel(@"Preferences" , @"Preferences are not available in this version.", @"Drat", nil, nil);
+#else
     PreferencesController	*windowController;
     
     windowController = [[PreferencesController alloc] initWithWindowNibName:@"Preferences"];
@@ -67,6 +62,7 @@
     [[windowController window] makeKeyAndOrderFront:self];
 
     // The windowController object will now take input and, if the user OK's, save the preferences
+#endif
 }
 
 
@@ -82,7 +78,7 @@
 	{
 		NSString	*plugInPath = [plugInsPath stringByAppendingPathComponent:plugInSubPath];
 		
-		if ([_loadedPlugInPaths containsObject:plugInPath])
+		if ([loadedPlugInPaths containsObject:plugInPath])
 			[pathEnumerator skipDescendents];
 		else
 		{
@@ -92,16 +88,16 @@
 			{
 				Class	plugInPrincipalClass = [plugInBundle principalClass];
 				
-				if (plugInPrincipalClass && [plugInPrincipalClass isSubclassOfClass:[TilesSetupController class]])
+				if (plugInPrincipalClass && [plugInPrincipalClass conformsToProtocol:@protocol(MacOSaiXTileShapes)])
 				{
-					[_tilesSetupControllerClasses addObject:plugInPrincipalClass];
-					[_loadedPlugInPaths addObject:plugInsPath];
+					[tileShapesClasses addObject:plugInPrincipalClass];
+					[loadedPlugInPaths addObject:plugInsPath];
 				}
 
 				if (plugInPrincipalClass && [plugInPrincipalClass conformsToProtocol:@protocol(MacOSaiXImageSource)])
 				{
 					[imageSourceClasses addObject:plugInPrincipalClass];
-					[_loadedPlugInPaths addObject:plugInsPath];
+					[loadedPlugInPaths addObject:plugInsPath];
 				}
 
 					// don't look inside this bundle for other bundles
@@ -112,9 +108,9 @@
 }
 
 
-- (NSArray *)tilesSetupControllerClasses
+- (NSArray *)tileShapesClasses
 {
-	return _tilesSetupControllerClasses;
+	return tileShapesClasses;
 }
 
 
