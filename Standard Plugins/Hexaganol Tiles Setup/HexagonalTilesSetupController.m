@@ -60,7 +60,7 @@
 														[NSNumber numberWithInt:tilesWide], @"Tiles Wide", 
 														[NSNumber numberWithInt:tilesHigh], @"Tiles High", 
 														nil]
-											  forKey:@"Rectangular Tiles"];
+											  forKey:@"Hexagonal Tiles"];
 }
 
 
@@ -104,15 +104,15 @@
 {
     int				x, y;
     float			xSize = 1.0 / (tilesWide - 1.0/3.0), ySize = 1.0 / tilesHigh, originX, originY;
-    NSBezierPath	*tileOutline;
-    NSMutableArray	*tileOutlines = [NSMutableArray arrayWithCapacity:x * y];
+    NSMutableArray	*tileOutlines = [NSMutableArray arrayWithCapacity:(tilesWide * tilesHigh)];
     
     for (x = 0; x < tilesWide; x++)
         for (y = 0; y < ((x % 2 == 0) ? tilesHigh : tilesHigh + 1); y++)
         {
             originX = xSize * (x - 1.0 / 3.0);
             originY = ySize * ((x % 2 == 0) ? y : y - 0.5);
-            tileOutline = [NSBezierPath bezierPath];
+			
+            NSBezierPath	*tileOutline = [NSBezierPath bezierPath];
             [tileOutline moveToPoint:NSMakePoint(MIN(MAX(originX + xSize / 3, 0) , 1),
                             MIN(MAX(originY, 0) , 1))];
             [tileOutline lineToPoint:NSMakePoint(MIN(MAX(originX + xSize, 0) , 1),

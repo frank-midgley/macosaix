@@ -105,7 +105,7 @@
 {
 	int				x, y;
 	NSRect			tileRect = NSMakeRect(0, 0, 1.0 / tilesWide, 1.0 / tilesHigh);
-	NSMutableArray	*tileOutlines = [NSMutableArray arrayWithCapacity:x * y];
+	NSMutableArray	*tileOutlines = [NSMutableArray arrayWithCapacity:(tilesWide * tilesHigh)];
 		
     for (y = tilesHigh - 1; y >= 0; y--)
 		for (x = 0; x < tilesWide; x++)
