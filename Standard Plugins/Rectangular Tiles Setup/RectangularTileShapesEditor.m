@@ -143,7 +143,7 @@
 	
 	if (tilesAcross >= [tilesAcrossStepper minValue] && tilesAcross <= [tilesAcrossStepper maxValue])
 	{
-		[currentTileShapes setTilesAcross:[tilesAcrossStepper intValue]];
+		[currentTileShapes setTilesAcross:tilesAcross];
 		[tilesAcrossStepper setIntValue:tilesAcross];
 		[tilesAcrossTextField setIntValue:tilesAcross];
 		[self updatePlugInDefaults];
@@ -170,7 +170,7 @@
 	
 	if (tilesDown >= [tilesDownStepper minValue] && tilesDown <= [tilesDownStepper maxValue])
 	{
-		[currentTileShapes setTilesDown:[tilesDownStepper intValue]];
+		[currentTileShapes setTilesDown:tilesDown];
 		[tilesDownStepper setIntValue:tilesDown];
 		[tilesDownTextField setIntValue:tilesDown];
 		[self updatePlugInDefaults];
