@@ -21,7 +21,7 @@
 
 
 @interface MacOSaiXWindowController (PrivateMethods)
-- (void)updateStatus:(NSTimer *)timer;
+- (void)documentDidChangeState:(NSNotification *)notification;
 - (void)updateTileSizeFields;
 - (void)synchronizeMenus;
 - (void)updateEditor;
@@ -190,7 +190,7 @@
 		[self performSelector:@selector(chooseOriginalImage:) withObject:self afterDelay:0.0];
 	}
 	
-	[self updateStatus:nil];
+	[self documentDidChangeState:nil];
 }
 
 
@@ -322,7 +322,7 @@
 						display:YES
 						animate:YES];
 		
-		[self updateStatus:nil];
+		[self documentDidChangeState:nil];
 		
 			// Create the toolbar icons for the View Original/View Mosaic item.  Toolbar item images 
 			// must be 32x32 so we center the thumbnail in an image of the correct size.
@@ -395,14 +395,16 @@
 {
 	if (![[self document] isPaused])
 	{
+		[self displayProgressPanelWithMessage:@"Pausing..."];
+		[[self document] pause];
+		[self closeProgressPanel];
+		
 			// Update the toolbar.
 		[pauseToolbarItem setLabel:@"Resume"];
 		[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
 		
 			// Update the menu bar.
 		[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Resume Matching"];
-		
-		[[self document] pause];
 	}
 }
 
@@ -411,6 +413,8 @@
 {
 	if ([[self document] isPaused])
 	{
+		[[self document] resume];
+		
 		if ([[self document] wasStarted])
 		{
 				// Make sure the tiles can't be tweaked now that the mosaic was started.
@@ -419,17 +423,13 @@
 			[imageUseCountPopUpButton setEnabled:NO];
 //			[neighborhoodSizePopUpButton setEnabled:NO];
 		}
-		else
-		{
-				// Update the toolbar
-			[pauseToolbarItem setLabel:@"Pause"];
-			[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
-			
-				// Update the menu bar
-			[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Pause Matching"];
-		}
 		
-		[[self document] resume];
+			// Update the toolbar
+		[pauseToolbarItem setLabel:@"Pause"];
+		[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
+		
+			// Update the menu bar
+		[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Pause Matching"];
 	}
 }
 
@@ -446,59 +446,44 @@
 
 - (void)documentDidChangeState:(NSNotification *)notification
 {
-	[self performSelectorOnMainThread:@selector(updateStatus:) withObject:nil waitUntilDone:NO];
-}
-
-
-//- (void)documentDidChangeState:(NSNotification *)notification
-//{
-//	[statusUpdateTimerLock lock];
-//		if (![statusUpdateTimer isValid])
-//		{
-//			[statusUpdateTimer release];
-//			statusUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:0.5 
-//																  target:self 
-//																selector:@selector(updateStatus:) 
-//																userInfo:nil 
-//																 repeats:NO] retain];
-//		}
-//	[statusUpdateTimerLock unlock];
-//}
-
-
-- (void)updateStatus:(NSTimer *)timer
-{
-    NSString	*statusMessage = nil;
-    
-    // update the status bar
-	if (![[self document] originalImage])
-		statusMessage = @"You have not chosen the original image";
-	else if ([[[self document] tiles] count] == 0)
-		statusMessage = @"You have not set the tile shapes";
-	else if ([[[self document] imageSources] count] == 0)
-		statusMessage = @"You have not added any image sources";
-	else if ([[self document] isExtractingTileImagesFromOriginal])
-		statusMessage = [NSString stringWithFormat:@"Extracting tile images (%.0f%%)", 
-												   [[self document] tileCreationPercentComplete]];
-	else if (![[self document] wasStarted])
-		statusMessage = @"Ready to begin.  Click the Start Mosaic button in the toolbar.";
-	else if ([[self document] isCalculatingImageMatches])
-		statusMessage = [NSString stringWithString:@"Matching images..."];
-	else if ([[self document] isPaused])
-		statusMessage = [NSString stringWithString:@"Paused"];
-	else if ([[self document] isEnumeratingImageSources])
-		statusMessage = [NSString stringWithString:@"Looking for new images..."];
+	if (!pthread_main_np())
+		[self performSelectorOnMainThread:@selector(documentDidChangeState:) withObject:notification waitUntilDone:NO];
 	else
-		statusMessage = [NSString stringWithString:@"Done"];
-	
-    [statusMessageView setStringValue:[NSString stringWithFormat:@"Images: %d     Quality: %2.1f%%     Status: %@",
-																 [[self document] imagesMatched], 
-																 overallMatch, 
-																 statusMessage]];
-    
-		// update the image sources table
-    [imageSourcesTableView reloadData];
+	{
+		NSString	*statusMessage = nil;
+		
+		// update the status bar
+		if (![[self document] originalImage])
+			statusMessage = @"You have not chosen the original image";
+		else if ([[[self document] tiles] count] == 0)
+			statusMessage = @"You have not set the tile shapes";
+		else if ([[[self document] imageSources] count] == 0)
+			statusMessage = @"You have not added any image sources";
+		else if ([[self document] isExtractingTileImagesFromOriginal])
+			statusMessage = [NSString stringWithFormat:@"Extracting tile images (%.0f%%)", 
+													   [[self document] tileCreationPercentComplete]];
+		else if (![[self document] wasStarted])
+			statusMessage = @"Ready to begin.  Click the Start Mosaic button in the toolbar.";
+		else if ([[self document] isCalculatingImageMatches])
+			statusMessage = [NSString stringWithString:@"Matching images..."];
+		else if ([[self document] isPaused])
+			statusMessage = [NSString stringWithString:@"Paused"];
+		else if ([[self document] isEnumeratingImageSources])
+			statusMessage = [NSString stringWithString:@"Looking for new images..."];
+		else
+			statusMessage = [NSString stringWithString:@"Done"];
+		
+		[statusMessageView setStringValue:[NSString stringWithFormat:@"Images: %d     Quality: %2.1f%%     Status: %@",
+																	 [[self document] imagesMatched], 
+																	 overallMatch, 
+																	 statusMessage]];
+		
+		[imageSourcesTableView reloadData];
+		[totalTilesField setIntValue:[[[self document] tiles] count]];
+		[self updateTileSizeFields];
+	}
 }
+
 
 
 - (void)synchronizeMenus
@@ -508,7 +493,8 @@
 	[[viewMenu itemWithTag:0] setState:([mosaicView viewOriginal] ? NSOnState : NSOffState)];
 	[[viewMenu itemWithTag:1] setState:([mosaicView viewOriginal] ? NSOffState : NSOnState)];
 
-	[[viewMenu itemWithTitle:@"Show Status Bar"] setTitle:(statusBarShowing ? @"Hide Status Bar" : @"Show Status Bar")];
+	[[viewMenu itemAtIndex:[viewMenu indexOfItemWithTarget:nil andAction:@selector(toggleTileOutlines:)]] setTitle:([mosaicView viewTileOutlines] ? @"Hide Tile Outlines" : @"Show Tile Outlines")];
+	[[viewMenu itemAtIndex:[viewMenu indexOfItemWithTarget:nil andAction:@selector(toggleStatusBar:)]] setTitle:(statusBarShowing ? @"Hide Status Bar" : @"Show Status Bar")];
 }
 
 
@@ -691,51 +677,14 @@
 }
 
 
-- (NSString *)stringValueForAspectRatio:(float)aspectRatio
-{
-	int			xInt,
-				yInt;
-	float		minDiff = INFINITY;
-	NSString	*ratioString = @"";
-	
-	for (xInt = 1; xInt < 10; xInt++)
-	{
-		yInt = (xInt / aspectRatio);
-		if (fabsf(aspectRatio - (float)xInt / (float)yInt) > 
-			fabsf(aspectRatio - (float)xInt / (float)(yInt + 1)))
-			yInt++;
-		
-		float	curDiff = fabsf(aspectRatio - (float)xInt / (float)yInt);
-		
-		if (curDiff < minDiff)
-		{
-			minDiff = curDiff;
-			ratioString = [NSString stringWithFormat:@"%dx%d", xInt, yInt];
-		}
-	}
-	
-	return ratioString;
-}
-
-
 - (void)updateTileSizeFields
 {
-	if (selectedTile)
-	{
-			// Show the selected tile's size.
-		[tileSizeLabelField setStringValue:@"Selected tile size:"];
-		NSSize	tileUnitSize = [[selectedTile outline] bounds].size,
-				originalSize = [[[self document] originalImage] size];
-		float	tileSize = (tileUnitSize.width * originalSize.width) / 
-						   (tileUnitSize.height * originalSize.height);
-		[tileSizeField setStringValue:[self stringValueForAspectRatio:tileSize]];
-	}
-	else
-	{
-			// Show the average tile size.
-		[tileSizeLabelField setStringValue:@"Average tile size:"];
-		[tileSizeField setStringValue:[self stringValueForAspectRatio:[[self document] averageTileAspectRatio]]];
-	}
+	NSSize	tileUnitSize = (selectedTile ? [[selectedTile outline] bounds].size : [[self document] averageUnitTileSize]),
+			originalSize = [[[self document] originalImage] size];
+	float	aspectRatio = (tileUnitSize.width * originalSize.width) / 
+						  (tileUnitSize.height * originalSize.height);
+	[tileSizeLabelField setStringValue:(selectedTile ? @"Selected tile size:" : @"Average tile size:")];
+	[tileSizeField setStringValue:[NSString stringWithAspectRatio:aspectRatio]];
 }
 
 
@@ -751,7 +700,7 @@
 	if (selectedTile)
 		[self selectTileAtPoint:tileSelectionPoint];
 	
-	[self updateStatus:nil];
+	[self documentDidChangeState:nil];
 
 	[self updateTileSizeFields];
 }
@@ -878,9 +827,14 @@
 
 - (IBAction)removeImageSource:(id)sender
 {
-	id<MacOSaiXImageSource>	imageSource = [[[self document] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]];
-	
-	[[self document] removeImageSource:imageSource];
+	if (NSRunAlertPanel(@"Are you sure you wish to remove the selected image source?", 
+						@"All tiles that were using images from this source will be changed to black.", 
+						@"Remove", @"Cancel", nil) == NSAlertDefaultReturn)
+	{
+		id<MacOSaiXImageSource>	imageSource = [[[self document] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]];
+		
+		[[self document] removeImageSource:imageSource];
+	}
 }
 
 
@@ -1236,6 +1190,7 @@
 - (IBAction)toggleTileOutlines:(id)sender
 {
 	[mosaicView setViewTileOutlines:![mosaicView viewTileOutlines]];
+	[self synchronizeMenus];
 }
 
 
@@ -1333,7 +1288,6 @@
 		newFrame.size.height -= [statusBarView frame].size.height;
 		newFrame.size = [self windowWillResize:[self window] toSize:newFrame.size];
 		[[self window] setFrame:newFrame display:YES animate:YES];
-		[[viewMenu itemWithTitle:@"Hide Status Bar"] setTitle:@"Show Status Bar"];
     }
     else
     {
@@ -1352,9 +1306,9 @@
 			[statusBarView addSubview:[removedSubviews objectAtIndex:i]];
 		}
 		[removedSubviews release]; removedSubviews = nil;
-	
-		[[viewMenu itemWithTitle:@"Show Status Bar"] setTitle:@"Hide Status Bar"];
     }
+	
+	[self synchronizeMenus];
 }
 
 
@@ -1888,7 +1842,11 @@
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
-    if ([notification object] == editorTable)
+    if ([notification object] == imageSourcesTableView)
+	{
+		[imageSourcesRemoveButton setEnabled:([imageSourcesTableView selectedRow] != -1)];
+	}
+    else if ([notification object] == editorTable)
     {
 //        int	selectedRow = [editorTable selectedRow];
 //        
