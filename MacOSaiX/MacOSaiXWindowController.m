@@ -711,6 +711,9 @@
 	
 	[sheet orderOut:self];
 	
+		// Do this before adding the source so we don't run into thread safety issues with QuickTime.
+	[imageSourceEditorBox setContentView:nil];
+	
 	if (returnCode == NSOKButton)
 	{
 		[[self document] removeImageSource:originalImageSource];
@@ -719,7 +722,6 @@
 		[imageSourcesTableView reloadData];
 	}
 	
-	[imageSourceEditorBox setContentView:nil];
 	[(id)contextInfo release];
 }
 
@@ -1588,7 +1590,7 @@
     }
 	else if ([itemIdentifier isEqualToString:@"Settings Drawer"])
     {
-		[toolbarItem setImage:[NSImage imageNamed:@"UtilityDrawer"]];
+		[toolbarItem setImage:[NSImage imageNamed:@"Settings"]];
 		[toolbarItem setLabel:@"Settings"];
 		[toolbarItem setPaletteLabel:@"Settings"];
 		[toolbarItem setTarget:settingsDrawer];

@@ -4,6 +4,11 @@
 #import "Tiles.h"
 
 
+@interface MosaicView (PrivateMethods)
+- (void)tileShapesDidChange:(NSNotification *)notification;
+@end
+
+
 @implementation MosaicView
 
 
@@ -48,14 +53,14 @@
 
 - (void)originalImageDidChange:(NSNotification *)notification
 {
-//	if (originalImage != inOriginalImage && viewMode == viewTilesOutline)
-//		[self setNeedsDisplay:YES];
 	NSImage	*originalImage = [document originalImage];
 	
 		// Create an NSImage to hold the mosaic image (somewhat arbitrary size)
 	[mosaicImageLock lock];
 		[mosaicImage autorelease];
 		mosaicImage = [[NSImage alloc] initWithSize:NSMakeSize(1600.0, 1600.0 * [originalImage size].height / [originalImage size].width)];
+		[mosaicImage setCachedSeparately:YES];
+		
 		[mosaicImage lockFocus];
 			[[NSColor blackColor] set];
 			NSRectFill(NSMakeRect(0.0, 0.0, [mosaicImage size].width, [mosaicImage size].height));
@@ -68,7 +73,7 @@
 		[mosaicImageTransform scaleXBy:[mosaicImage size].width yBy:[mosaicImage size].height];
 	[mosaicImageLock unlock];
 	
-	[self performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:nil waitUntilDone:NO];
+	[self performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:nil waitUntilDone:YES];
 }
 
 
@@ -136,7 +141,7 @@
 			NS_ENDHANDLER
 		[mosaicImageLock unlock];
 		
-		[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:tile waitUntilDone:NO];
+		[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:tile waitUntilDone:YES];
 	}
 
 	[pool release];

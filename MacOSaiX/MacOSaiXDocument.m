@@ -1049,6 +1049,9 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 					
 					// TODO: are we losing an image if documentIsClosing?
 					
+					[image setCachedSeparately:YES];
+					[image setCacheMode:NSImageCacheNever];
+					
 					[imageQueue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 												image, @"Image",
 												imageSource, @"Image Source", 
