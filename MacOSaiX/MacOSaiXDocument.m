@@ -61,6 +61,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		imageQueueLock = [[NSLock alloc] init];
 
 		calculateImageMatchesThreadLock = [[NSLock alloc] init];
+		betterMatchesCache = [[NSMutableDictionary dictionary] retain];
 		
 			// set up ivars for "calculateDisplayedImages" thread
 		calculateDisplayedImagesThreadAlive = NO;
@@ -195,7 +196,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	{
 			// Wait for the one-shot startup thread to end.
 		while ([self isExtractingTileImagesFromOriginal])
-			[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 
 			// Tell the enumeration threads to stop sending in any new images.
 		[pauseLock lock];
@@ -204,7 +205,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			// TBD: can we condition lock here instead of poll?
 			// TBD: this could block the main thread
 		while ([self isCalculatingImageMatches])	//|| [self isCalculatingDisplayedImages])
-			[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 		
 		paused = YES;
 		
@@ -1169,46 +1170,70 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 			pixletImageIdentifier = [imageCache cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
 		
 			// Find the tiles that match this image better than their current image.
-		NSMutableArray	*betterMatches = [NSMutableArray array];
-		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-		Tile			*tile = nil;
-		while ((tile = [tileEnumerator nextObject]) && !documentIsClosing)
+		NSString		*pixletKey = [NSString stringWithFormat:@"%p %@", pixletImageSource, pixletImageIdentifier];
+		NSMutableArray	*betterMatches = [betterMatchesCache objectForKey:pixletKey];
+		if (betterMatches)
 		{
-			NSAutoreleasePool	*pool3 = [[NSAutoreleasePool alloc] init];
-			
-				// Get a rep for the image scaled to the tile's bitmap size.
-			NSBitmapImageRep	*imageRep = [[self imageCache] imageRepAtSize:[[tile bitmapRep] size] 
-																forIdentifier:pixletImageIdentifier 
-																   fromSource:pixletImageSource];
-	
-				// If the rep is valid and it matches the tile better than the tile's current image 
-				// then add this tile to the list of tiles that could be updated.
-			if (imageRep)
+				// Remove any tiles from the list that have gotten a better match since the list was cached.
+			NSEnumerator	*betterMatchEnumerator = [[NSArray arrayWithArray:betterMatches] objectEnumerator];
+			ImageMatch		*betterMatch = nil;
+			while ((betterMatch = [betterMatchEnumerator nextObject]) && !documentIsClosing)
+				if ([[[betterMatch tile] imageMatch] matchValue] < [betterMatch matchValue])
+					[betterMatches removeObjectIdenticalTo:betterMatch];
+		}
+		else
+		{
+				// Loop through all of the tiles and calculate how well this image matches.
+			betterMatches = [NSMutableArray array];
+			NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+			Tile			*tile = nil;
+			while ((tile = [tileEnumerator nextObject]) && !documentIsClosing)
 			{
-				float	matchValue = [tile matchValueForImageRep:imageRep
-												  withIdentifier:pixletImageIdentifier
-											     fromImageSource:pixletImageSource];
+				NSAutoreleasePool	*pool3 = [[NSAutoreleasePool alloc] init];
 				
-				if (![tile imageMatch] || 
-					matchValue < [[tile imageMatch] matchValue] ||
-					(matchValue == [[tile imageMatch] matchValue] && 
-					 [[tile imageMatch] imageSource] == pixletImageSource && 
-					 [[[tile imageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier]))
-					[betterMatches addObject:[[[ImageMatch alloc] initWithMatchValue:matchValue 
-															      forImageIdentifier:pixletImageIdentifier 
-																     fromImageSource:pixletImageSource
-																		     forTile:tile] autorelease]];
+					// Get a rep for the image scaled to the tile's bitmap size.
+				NSBitmapImageRep	*imageRep = [[self imageCache] imageRepAtSize:[[tile bitmapRep] size] 
+																	forIdentifier:pixletImageIdentifier 
+																	   fromSource:pixletImageSource];
+		
+				if (imageRep)
+				{
+						// Calculate how well this image matches this tile.
+					float	matchValue = [tile matchValueForImageRep:imageRep
+													  withIdentifier:pixletImageIdentifier
+													 fromImageSource:pixletImageSource];
+					
+						// If the tile does not already have a match or 
+						//    this image matches better than the tile's current best or
+						//    this image is the same as the tile's current best
+						// then add it to the list of tile's that might get this image.
+					if (![tile imageMatch] || 
+						matchValue < [[tile imageMatch] matchValue] ||
+						([[tile imageMatch] imageSource] == pixletImageSource && 
+						 [[[tile imageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier]))
+						[betterMatches addObject:[[[ImageMatch alloc] initWithMatchValue:matchValue 
+																	  forImageIdentifier:pixletImageIdentifier 
+																		 fromImageSource:pixletImageSource
+																				 forTile:tile] autorelease]];
+				}
+				
+				[pool3 release];
 			}
 			
-			[pool3 release];
+			[betterMatches sortUsingSelector:@selector(compare:)];
+			[betterMatchesCache setObject:betterMatches forKey:pixletKey];
 		}
 		
-			// Figure out which tiles should be set to use the image based on the user's settings.
-		[betterMatches sortUsingSelector:@selector(compare:)];
-#if 1
-			// Just allow one use of each image for now.
-		if ([betterMatches count] > 0)
+		if ([betterMatches count] == 0)
 		{
+			NSLog(@"%@ from %@ is not needed", pixletImageIdentifier, pixletImageSource);
+			[betterMatchesCache removeObjectForKey:pixletKey];
+		}
+		else
+		{
+			// Figure out which tiles should be set to use the image based on the user's settings.
+#if 1
+				// Just allow one use of each image for now.
 			ImageMatch	*betterMatch = [betterMatches objectAtIndex:0];
 			Tile		*tile = [betterMatch tile];
 			
@@ -1231,20 +1256,21 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 			
 			[tile setImageMatch:betterMatch];
 			[self updateChangeCount:NSChangeDone];
-		}
 #else
-		NSEnumerator	*matchEnumerator = [betterMatches objectEnumerator];
-		ImageMatch		*betterMatch = nil;
-		while ((betterMatch = [matchEnumerator nextObject]) && !documentIsClosing)
-		{
-			Tile	*tile = [betterMatch tile];
-//			if ( ??? )
+			NSEnumerator	*matchEnumerator = [betterMatches objectEnumerator];
+			ImageMatch		*betterMatch = nil;
+			while ((betterMatch = [matchEnumerator nextObject]) && !documentIsClosing)
 			{
-				[tile setImageMatch:betterMatch];
-				[self updateChangeCount:NSChangeDone];
+				Tile	*tile = [betterMatch tile];
+	//			if ( ??? )
+				{
+					[tile setImageMatch:betterMatch];
+					[self updateChangeCount:NSChangeDone];
+				}
 			}
-		}
 #endif
+		}
+		
 		if (pixletImage)
 			imagesMatched++;
 		
@@ -1475,6 +1501,8 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 	[enumerationThreadCountLock release];
 	[enumerationCountsLock release];
 	[enumerationCounts release];
+	[betterMatchesCache release];
+	[calculateImageMatchesThreadLock release];
     [tiles release];
     [tileShapes release];
     [imageQueue release];

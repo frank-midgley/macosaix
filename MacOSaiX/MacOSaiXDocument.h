@@ -42,6 +42,7 @@
     NSLock						*calculateImageMatchesThreadLock;
 	BOOL						calculateImageMatchesThreadAlive;
     long						imagesMatched;
+	NSMutableDictionary			*betterMatchesCache;
 	
 		// Calculate displayed images
 	NSMutableSet				*refreshTilesSet;
