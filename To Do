@@ -108,6 +108,7 @@ Ordered array:		images, fileIDs
 =======================================================================================
 
 Rework TODO:
+¥	Make neighborhood calculation more efficient or threaded
 ¥	Create MacOSaiXWindowController
 ¥	Rework MosaicView to not use a stored image but redraw the tiles as needed in -drawRect:.  Would allow for better zooming.
 Ã	Uniqueness
