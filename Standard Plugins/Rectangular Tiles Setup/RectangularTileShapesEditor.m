@@ -59,7 +59,7 @@
 														[NSNumber numberWithInt:[currentTileShapes tilesAcross]], @"Tiles Across", 
 														[NSNumber numberWithInt:[currentTileShapes tilesDown]], @"Tiles Down", 
 														nil]
-											  forKey:@"Rectangular Tiles"];
+											  forKey:@"Rectangular Tile Shapes"];
 }
 
 
@@ -94,6 +94,15 @@
     [tilesDownTextField setIntValue:[tilesDownStepper intValue]];
 	
 	[self updatePlugInDefaults];
+}
+
+
+- (void)dealloc
+{
+	[currentTileShapes release];
+	[editorView release];	// we are responsible for releasing any top-level objects in the nib
+	
+	[super dealloc];
 }
 
 
