@@ -25,7 +25,7 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 
 + (NSString *)name
 {
-	return "QuickTime";
+	return @"QuickTime";
 }
 
 
@@ -35,7 +35,13 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 }
 
 
-- (void)lockQuickTime
++ (BOOL)allowMultipleImageSources
+{
+	return YES;
+}
+
+
++ (void)lockQuickTime
 {
 	if (!sQuickTimeLock)
 		sQuickTimeLock = [[NSRecursiveLock alloc] init];
@@ -50,7 +56,7 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 }
 
 
-- (void)unlockQuickTime
++ (void)unlockQuickTime
 {
 //	void (*funcPtr)() = CFBundleGetFunctionPointerForName(CFBundleGetBundleWithIdentifier(CFSTR("com.apple.QuickTime")),
 //															 CFSTR("ExitMoviesOnThread"));
@@ -66,87 +72,122 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 {
 	if (self = [super init])
 	{
-		FSRef		movieRef;
-		OSStatus	status = FSPathMakeRef([path fileSystemRepresentation], &movieRef, NULL);
-	
-		moviePath = [path retain];
-		if (status == noErr)
-		{
-			FSSpec	movieSpec;
-			OSErr	err = FSGetCatalogInfo(&movieRef, kFSCatInfoNone, NULL, NULL, &movieSpec, NULL);
-		
-			if (err == noErr)
-			{
-				short	theRefNum;
-	
-				EnterMovies();
-				err = OpenMovieFile(&movieSpec, &theRefNum, fsRdPerm);
-				if (err == noErr)
-				{
-					err = NewMovieFromFile(&movie, theRefNum, 0, NULL, newMovieActive, NULL);
-					
-					if (err == noErr)
-					{
-						Rect		movieBounds;
-						
-						GetMovieBox(movie, &movieBounds);
-						OffsetRect(&movieBounds, -movieBounds.left, -movieBounds.top);
-						SetMovieBox(movie, &movieBounds);
-						
-                        minIncrement = GetMovieTimeScale(movie) / 5;   // equals 5 fps
-						duration = GetMovieDuration(movie);
-						
-						[self setCurrentImage:[self imageForIdentifier:[NSNumber numberWithLong:GetMoviePosterTime(movie)]]];
-					}
-					
-					CloseMovieFile(theRefNum);
-				}
-			}
-		}
-		if (!movie)
-		{
-			[self autorelease];
-			self = nil;
-		}
+		[self setPath:path];
+		currentImageLock = [[NSLock alloc] init];
 	}
+
     return self;
+}
+
+
+- (id)copyWithZone:(NSZone *)zone
+{
+	QuickTimeImageSource	*copy = [[QuickTimeImageSource allocWithZone:zone] initWithPath:[self path]];
+	
+	return copy;
+}
+
+
+- (NSString *)path
+{
+	return moviePath;
+}
+
+
+- (void)setPath:(NSString *)path
+{
+	[moviePath release];
+	moviePath = [path copy];
+	[movie release];
+	movie = nil;
+
+	if (path)
+	{
+		[[self class] lockQuickTime];
+		
+		movie = [[NSMovie alloc] initWithURL:[NSURL fileURLWithPath:path] byReference:YES];
+		Movie		qtMovie = [movie QTMovie];
+		
+			// Get the movie's aspect ratio and move its origin to {0, 0}.
+		Rect		movieBounds;
+		GetMovieBox(qtMovie, &movieBounds);
+		aspectRatio = (float)(movieBounds.right - movieBounds.left) / (float)(movieBounds.bottom - movieBounds.top);
+		OffsetRect(&movieBounds, -movieBounds.left, -movieBounds.top);
+		SetMovieBox(qtMovie, &movieBounds);
+		
+			// Get the frame rate and duration of the movie.
+		minIncrement = GetMovieTimeScale(qtMovie) / 5;   // equals 5 fps
+		duration = GetMovieDuration(qtMovie);
+		
+			// Set the initial image displayed in the sources table to the poster frame.
+		NSString	*posterFrameIdentifier = [NSString stringWithFormat:@"%ld", GetMoviePosterTime(qtMovie)];
+		[self setCurrentImage:[self imageForIdentifier:posterFrameIdentifier]];
+		
+		[[self class] unlockQuickTime];
+	}
+}
+
+
+- (NSMovie *)movie
+{
+	return movie;
+}
+
+
+- (float)aspectRatio
+{
+	return aspectRatio;
 }
 
 
 - (void)setCurrentImage:(NSImage *)image
 {
-	[currentImage autorelease];
-	currentImage = [[NSImage alloc] initWithSize:NSMakeSize(64.0, 64.0)];
-	
-	NS_DURING
-		[currentImage lockFocus];
-			if ([image size].width > [image size].height)
-				[image drawInRect:NSMakeRect(0, (64.0 - 64.0 / [image size].width * [image size].height) / 2.0, 64, 64 / [image size].width * [image size].height)
-						 fromRect:NSZeroRect
-						operation:NSCompositeCopy
-						 fraction:1.0];
-			else
-				[image drawInRect:NSMakeRect((64.0 - 64.0 / [image size].height * [image size].width) / 2.0, 0, 64.0 / [image size].height * [image size].width, 64)
-						 fromRect:NSZeroRect
-						operation:NSCompositeCopy
-						 fraction:1.0];
-		[currentImage unlockFocus];
-	NS_HANDLER
-	NS_ENDHANDLER
+	[currentImageLock lock];
+		[currentImage autorelease];
+		currentImage = [[NSImage alloc] initWithSize:NSMakeSize(64.0, 64.0)];
+		[currentImage setCacheMode:NSImageCacheNever];
+		
+		NS_DURING
+			[currentImage lockFocus];
+				if ([image size].width > [image size].height)
+					[image drawInRect:NSMakeRect(0, (64.0 - 64.0 / [image size].width * [image size].height) / 2.0, 64, 64 / [image size].width * [image size].height)
+							 fromRect:NSZeroRect
+							operation:NSCompositeCopy
+							 fraction:1.0];
+				else
+					[image drawInRect:NSMakeRect((64.0 - 64.0 / [image size].height * [image size].width) / 2.0, 0, 64.0 / [image size].height * [image size].width, 64)
+							 fromRect:NSZeroRect
+							operation:NSCompositeCopy
+							 fraction:1.0];
+				
+				// TODO: draw a rough progress indicator at the bottom of the image
+			[currentImage unlockFocus];
+		NS_HANDLER
+			NSLog(@"QuickTime Image Source: Could not set current image.");
+		NS_ENDHANDLER
+	[currentImageLock unlock];
 }
 
 
 	// return the image to be displayed in the list of image sources
 - (NSImage *)image;
 {
-    return currentImage ? currentImage : [[NSWorkspace sharedWorkspace] iconForFile:moviePath];
+	NSImage	*image = nil;
+	
+	[currentImageLock lock];
+		image = (currentImage ? [[currentImage retain] autorelease] : 
+								[[NSWorkspace sharedWorkspace] iconForFile:moviePath]);
+	[currentImageLock unlock];
+	
+	return image;
 }
 
 
 	// return the text to be displayed in the list of image sources
 - (NSString *)descriptor
 {
-    return moviePath;
+    return moviePath ? [[moviePath lastPathComponent] stringByDeletingPathExtension] : 
+					   @"No movie has been specified";
 }
 
 
@@ -158,7 +199,7 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 
 - (NSImage *)nextImageAndIdentifier:(NSString **)identifier;
 {
-	NSMutableArray	*parameters = [NSMutableArray array];
+	NSMutableDictionary	*parameters = [NSMutableDictionary dictionary];
 	
 	[self nextImageAndIdentifierOnMainThread:parameters];
 	
@@ -166,29 +207,50 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 //						   withObject:parameters
 //						waitUntilDone:YES];
 	
-	return ([parameters count] > 0 ? [parameters objectAtIndex:0] : nil);
+	*identifier = [parameters objectForKey:@"identifier"];
+	return [parameters objectForKey:@"image"];
 }
 
 
-- (void)nextImageAndIdentifierOnMainThread:(NSMutableArray *)parameters
+- (void)nextImageAndIdentifierOnMainThread:(NSMutableDictionary *)parameters
 {
-    TimeValue   nextInterestingTime = 0;
-    
-	GetMovieNextInterestingTime (movie, nextTimeStep, 0, nil, currentTimeValue, 1, &nextInterestingTime, nil);
-	OSErr   err = GetMoviesError();
+	[[self class] lockQuickTime];
 	
-	if (err != noErr)
-		NSLog(@"Error %d getting next interesting time.", err);
-	else
+		// TODO: Rather than using the next interesting time use the image matching code to 
+		//       detect when the image changes significantly.
+    Movie		qtMovie = [movie QTMovie];
+	TimeValue   nextInterestingTime = 0;
+	NSString	*identifier = nil;
+	NSImage		*image = nil;
+	
+	do
 	{
-		if (nextInterestingTime - currentTimeValue < minIncrement)
-			currentTimeValue += minIncrement;
+		GetMovieNextInterestingTime (qtMovie, nextTimeStep, 0, nil, currentTimeValue, 1, &nextInterestingTime, nil);
+		OSErr   err = GetMoviesError();
+		
+		if (err != noErr)
+			NSLog(@"Error %d getting next interesting time.", err);
 		else
-			currentTimeValue = nextInterestingTime;
-	}
+		{
+			if (nextInterestingTime - currentTimeValue < minIncrement)
+				currentTimeValue += minIncrement;
+			else
+				currentTimeValue = nextInterestingTime;
+		}
+		
+		identifier = [NSString stringWithFormat:@"%ld", currentTimeValue];
+		image = [self imageForIdentifier:identifier];
+	} while (!image && currentTimeValue < duration);
 	
-	[parameters addObject:[NSString stringWithFormat:@"%ld", currentTimeValue]];
-	[parameters addObject:[self imageForIdentifier:[parameters objectAtIndex:0]]];
+	if (image)
+	{
+		[self setCurrentImage:image];
+		
+		[parameters setObject:identifier forKey:@"identifier"];
+		[parameters setObject:image forKey:@"image"];
+	}
+
+	[[self class] unlockQuickTime];
 }
 
 
@@ -207,11 +269,14 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 
 - (void)imageForIdentifierOnMainThread:(NSArray *)parameters
 {
+	[[self class] lockQuickTime];
+
+    Movie		qtMovie = [movie QTMovie];
 	TimeValue	requestedTime = [[parameters objectAtIndex:0] intValue];
 	
 	if (requestedTime <= duration)
 	{
-		PicHandle	picHandle = GetMoviePict(movie, requestedTime);
+		PicHandle	picHandle = GetMoviePict(qtMovie, requestedTime);
 		OSErr       err = GetMoviesError();
 		if (err != noErr)
 			NSLog(@"Error %d getting movie picture.", err);
@@ -233,17 +298,40 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 			NS_ENDHANDLER
 			
 			KillPicture(picHandle);
-			
-			if (requestedTime == currentTimeValue)
-				[self setCurrentImage:imageAtTimeValue];
 		}
 	}
+	
+	[[self class] unlockQuickTime];
+}
+
+
+- (void)reset
+{
+	currentTimeValue = 0;
+	
+		// Set the initial image displayed in the sources table to the poster frame.
+	[[self class] lockQuickTime];
+    Movie		qtMovie = [movie QTMovie];
+	if (qtMovie)
+	{
+		NSString	*posterFrameIdentifier = [NSString stringWithFormat:@"%ld", GetMoviePosterTime(qtMovie)];
+		[self setCurrentImage:[self imageForIdentifier:posterFrameIdentifier]];
+	}
+	else
+		[self setCurrentImage:nil];	// TBD: return QT icon?  should this even be possible?
+	[[self class] unlockQuickTime];
 }
 
 
 - (void)dealloc
 {
 	[moviePath release];
+	[movie release];
+	[currentImageLock lock];
+		[currentImage release];
+		currentImage = nil;
+	[currentImageLock unlock];
+	[currentImageLock release];
 	
 	[super dealloc];
 }

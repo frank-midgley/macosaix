@@ -2,18 +2,16 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            ACTIONS = {addImageSource = id; cancelAddImageSource = id; }; 
-            CLASS = ImageSourceController; 
-            LANGUAGE = ObjC; 
-            OUTLETS = {"_imageSourceView" = NSView; }; 
-            SUPERCLASS = NSWindowController; 
-        }, 
-        {
             ACTIONS = {chooseMovie = id; }; 
             CLASS = QuickTimeImageSourceController; 
             LANGUAGE = ObjC; 
-            OUTLETS = {"_okButton" = NSButton; "_pathField" = NSTextField; }; 
-            SUPERCLASS = ImageSourceController; 
+            OUTLETS = {
+                imageSourceView = NSView; 
+                movieNameTextField = NSTextField; 
+                movieView = NSMovieView; 
+                recentMoviesPopUpButton = NSPopUpButton; 
+            }; 
+            SUPERCLASS = NSObject; 
         }
     ); 
     IBVersion = 1; 

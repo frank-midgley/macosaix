@@ -13,34 +13,36 @@
 @implementation QuickTimeImageSourceController
 
 
-+ (NSString *)name
-{
-	isalpha('a');	// get rid of weak linking warning
-	return @"QuickTime";
-}
-
-
 - (NSView *)imageSourceView
 {
-	if (!_imageSourceView)
+	if (!imageSourceView)
 		[NSBundle loadNibNamed:@"QuickTime Image Source" owner:self];
-	return _imageSourceView;
+	
+	return imageSourceView;
 }
 
 
-- (void)editImageSource:(ImageSource *)imageSource
+- (void)setOKButton:(NSButton *)button
 {
-	if (imageSource)
-	{
-		[_pathField setStringValue:[imageSource descriptor]];
-		[_okButton setTitle:@"Save QuickTime Source"];
-	}
-	else
-	{		// we're being asked to add a new image source
-		[_pathField setStringValue:@""];
-		[_okButton setTitle:@"Add QuickTime Source"];
-		[self chooseMovie:self];
-	}
+	okButton = button;
+	
+		// Set up to get notified when the window changes size so that we can adjust the
+		// width of the movie view in a way that preserves the movie's aspect ratio.
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResizeNotification object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(windowDidResize:) 
+												 name:NSWindowDidResizeNotification 
+											   object:[okButton window]];
+}
+
+
+- (void)editImageSource:(id<MacOSaiXImageSource>)imageSource
+{
+	[currentImageSource release];
+	currentImageSource = [imageSource retain];
+	
+	[movieNameTextField setStringValue:[imageSource descriptor]];
+	[movieView setMovie:[(QuickTimeImageSource *)imageSource movie]];
 }
 
 
@@ -51,27 +53,54 @@
     [oPanel setCanChooseFiles:YES];
     [oPanel setCanChooseDirectories:NO];
     [oPanel beginSheetForDirectory:nil
-			      file:nil
-			     types:nil
-		    modalForWindow:[self window]
-		     modalDelegate:self
-		    didEndSelector:@selector(chooseMovieDidEnd:returnCode:contextInfo:)
-		       contextInfo:nil];
+							  file:nil
+							 types:[NSMovie movieUnfilteredFileTypes]
+					modalForWindow:[imageSourceView window]
+					 modalDelegate:self
+					didEndSelector:@selector(chooseMovieDidEnd:returnCode:contextInfo:)
+					   contextInfo:nil];
 }
 
 
 - (void)chooseMovieDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode contextInfo:(void *)context
 {
     if (returnCode == NSOKButton)
-		[_pathField setStringValue:[[sheet filenames] objectAtIndex:0]];
-	[_okButton setEnabled:![[_pathField stringValue] isEqualToString:@""]];
+	{
+			// Update the image source.
+		[currentImageSource setPath:[[sheet filenames] objectAtIndex:0]];
+		
+			// Refresh the GUI from the updated image source.
+		[movieNameTextField setStringValue:[currentImageSource descriptor]];
+		[movieView setMovie:[currentImageSource movie]];
+		
+			// Update the recent movies pop-up menu
+		
+	}
+	
+	[okButton setEnabled:([currentImageSource movie] != nil)];
 }
 
 
-- (void)addImageSource:(id)sender
+- (void)windowDidResize:(NSNotification *)notification
 {
-	[[self document] addImageSource:[[[QuickTimeImageSource alloc] initWithPath:[_pathField stringValue]] autorelease]];
-	[self showCurrentImageSources];
+	if ([currentImageSource movie])
+	{
+		NSRect	movieFrame = [movieView frame];
+		int		newMovieWidth = (movieFrame.size.height - 16.0) * [currentImageSource aspectRatio];
+		
+		movieFrame.size.width = newMovieWidth;
+		movieFrame.origin.x = ([[movieView superview] frame].size.width - movieFrame.size.width) / 2.0;
+		[movieView setFrame:movieFrame];
+	}
+}
+
+
+- (void)dealloc
+{
+	[currentImageSource release];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResizeNotification object:nil];
+	
+	[super dealloc];
 }
 
 

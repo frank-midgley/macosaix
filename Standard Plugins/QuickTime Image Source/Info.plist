@@ -25,6 +25,6 @@
 	<key>CFBundleVersion</key>
 	<string>2.0a1</string>
 	<key>NSPrincipalClass</key>
-	<string>QuickTimeImageSourceController</string>
+	<string>QuickTimeImageSource</string>
 </dict>
 </plist>

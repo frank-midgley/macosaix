@@ -9,17 +9,25 @@
 #import <Cocoa/Cocoa.h>
 #import <QuickTime/QuickTime.h>
 
-#import <MacOSaiXmageSource.h>
+#import "MacOSaiXImageSource.h"
 
 
-@interface QuickTimeImageSource <MacOSaiXImageSource>
+@interface QuickTimeImageSource : NSObject <MacOSaiXImageSource>
 {
     NSString	*moviePath;
-	Movie		movie;
+	NSMovie		*movie;
+	float		aspectRatio;
 	TimeValue	minIncrement,
                 currentTimeValue, 
                 duration;
+	NSLock		*currentImageLock;
 	NSImage		*currentImage;
 }
+
+- (NSString *)path;
+- (void)setPath:(NSString *)path;
+
+- (NSMovie *)movie;
+- (float)aspectRatio;
 
 @end

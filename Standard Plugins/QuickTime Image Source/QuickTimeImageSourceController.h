@@ -7,16 +7,23 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <MacOSaiXPlugIns/ImageSourceController.h>
+#import "MacOSaiXImageSource.h"
+#import "QuickTimeImageSource.h"
 
 
-@interface QuickTimeImageSourceController : ImageSourceController
+@interface QuickTimeImageSourceController : NSObject <MacOSaiXImageSourceController>
 {
-	IBOutlet NSTextField	*_pathField;
-	IBOutlet NSButton		*_okButton;
+	IBOutlet NSView			*imageSourceView;
+	
+	IBOutlet NSMovieView	*movieView;
+	IBOutlet NSTextField	*movieNameTextField;
+	IBOutlet NSPopUpButton	*recentMoviesPopUpButton;
+	
+	NSButton				*okButton;
+	
+	QuickTimeImageSource	*currentImageSource;
 }
 
-- (void)chooseMovie:(id)sender;
-- (void)chooseMovieDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode contextInfo:(void *)context;
+- (IBAction)chooseMovie:(id)sender;
 
 @end
