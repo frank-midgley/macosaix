@@ -15,7 +15,8 @@
                 setJPEGExport = id; 
                 setNeighborhoodSize = id; 
                 setTIFFExport = id; 
-                setTilesSetupPlugIn = id; 
+                setTileShapes = id; 
+                setTileShapesPlugIn = id; 
                 setViewAloneMode = id; 
                 setViewCompareMode = id; 
                 setViewEditMode = id; 
@@ -56,10 +57,12 @@
                 progressPanelCancelButton = NSButton; 
                 progressPanelIndicator = NSProgressIndicator; 
                 progressPanelLabel = NSTextField; 
+                setTileShapesButton = NSButton; 
                 statusBarView = NSView; 
                 statusMessageView = NSTextField; 
-                tilesSetupPopUpButton = NSPopUpButton; 
-                tilesSetupView = NSBox; 
+                tileShapesEditor = id; 
+                tileShapesPopUpButton = NSPopUpButton; 
+                tileShapesView = NSView; 
                 totalTilesField = NSTextField; 
                 utilitiesDrawer = NSDrawer; 
                 utilitiesTabView = NSTabView; 
