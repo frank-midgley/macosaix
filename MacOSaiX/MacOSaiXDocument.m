@@ -85,20 +85,20 @@
 
 - (void)chooseOriginalImage
 {
-	[self chooseOriginalImageOpenPanelDidEnd:nil returnCode:NSOKButton contextInfo:nil];
+//	[self chooseOriginalImageOpenPanelDidEnd:nil returnCode:NSOKButton contextInfo:nil];
 
-//    NSOpenPanel	*oPanel = [NSOpenPanel openPanel];
-//    
-//		// prompt the user for the image to make a mosaic from
-//    [oPanel setCanChooseFiles:YES];
-//    [oPanel setCanChooseDirectories:NO];
-//    [oPanel beginSheetForDirectory:nil
-//							  file:nil
-//							 types:[NSImage imageFileTypes]
-//					modalForWindow:mainWindow
-//					 modalDelegate:self
-//					didEndSelector:@selector(chooseOriginalImageOpenPanelDidEnd:returnCode:contextInfo:)
-//					   contextInfo:nil];
+    NSOpenPanel	*oPanel = [NSOpenPanel openPanel];
+    
+		// prompt the user for the image to make a mosaic from
+    [oPanel setCanChooseFiles:YES];
+    [oPanel setCanChooseDirectories:NO];
+    [oPanel beginSheetForDirectory:nil
+							  file:nil
+							 types:[NSImage imageFileTypes]
+					modalForWindow:mainWindow
+					 modalDelegate:self
+					didEndSelector:@selector(chooseOriginalImageOpenPanelDidEnd:returnCode:contextInfo:)
+					   contextInfo:nil];
 }
 
 
@@ -113,7 +113,11 @@
 	}
 
 		// remember and load the image the user chose
-	originalImageURL = [[NSURL fileURLWithPath:@"/Users/fmidgley/Documents/test/kim_sean.jpg"] retain];//[[[sheet URLs] objectAtIndex:0] retain];
+#if 0
+	originalImageURL = [[NSURL fileURLWithPath:@"/Users/fmidgley/Documents/test/kim_sean.jpg"] retain];
+#else
+	originalImageURL = [[[sheet URLs] objectAtIndex:0] retain];
+#endif
 	originalImage = [[NSImage alloc] initWithContentsOfURL:originalImageURL];
 	
 		// Create an NSImage to hold the mosaic image (somewhat arbitrary size)
@@ -363,7 +367,7 @@
     
     // update the status bar
     if (createTilesThreadAlive)
-		statusMessage = [NSString stringWithString:@"Extracting tile images..."];
+		statusMessage = [NSString stringWithFormat:@"Extracting tile images (%d%%)", extractionPercentComplete];
     else if (calculateImageMatchesThreadAlive && calculateDisplayedImagesThreadAlive)
 		statusMessage = [NSString stringWithString:@"Matching and finding unique tiles..."];
     else if (calculateImageMatchesThreadAlive)
@@ -566,12 +570,15 @@
 			[tile setBitmapRep:tileRep withMask:maskRep];
 			#if 0
 				[[maskRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0] 
-					writeToFile:[NSString stringWithFormat:@"/tmp/MacOSaiX/%4dMask.tiff", index++] atomically:NO];
+					writeToFile:[NSString stringWithFormat:@"/tmp/MacOSaiX/%4dMask.tiff", index] atomically:NO];
 			#endif
         [[NSGraphicsContext currentContext] restoreGraphicsState];
 		
 			// Release our lock on the GUI in case the main thread needs it.
 		[[drawWindow contentView] unlockFocus];
+		
+		index++;
+		extractionPercentComplete = (int)(index / [tileOutlines count] * 100.0);
 	}
 
 //    [[drawWindow contentView] unlockFocus];
@@ -1261,15 +1268,17 @@
 		} while ([imageData length] > 4096);
 		[imageData writeToFile:[self filePathForCachedImageID:imageID] atomically:NO];
 		
+		NSMutableDictionary	*imageSourceCache = [self cacheDictionaryForImageSource:imageSource];
+		
 			// Associate the ID with the image source/image identifier combo
-		[[self cacheDictionaryForImageSource:imageSource] setObject:[NSNumber numberWithLong:imageID] forKey:imageIdentifier];
+		[imageSourceCache setObject:[NSNumber numberWithLong:imageID] forKey:imageIdentifier];
 		
 			// Cache the image for efficient retrieval.
 		[imageCache setObject:image forKey:[NSNumber numberWithLong:imageID]];
 		[orderedCache insertObject:image atIndex:0];
-		if ([orderedCache count] > 1000)
+		if ([orderedCache count] > 100)
 		{
-			[imageCache removeObjectForKey:[orderedCache lastObject]];
+			[imageCache removeObjectForKey:[imageSourceCache objectForKey:imageIdentifier]];
 			[orderedCache removeLastObject];
 		}
 	[cacheLock unlock];
@@ -2299,6 +2308,17 @@
     [super close];
 }
 
+
+#pragma mark
+
+
+//- (void)save
+//{
+//	
+//}
+
+
+#pragma mark
 
 
 - (void)dealloc

@@ -70,6 +70,7 @@ typedef enum
 												// so perform second phase of initializing
     long						imagesMatched,
 								cachedImageCount;
+	int							extractionPercentComplete;
 	NSMutableDictionary			*cachedImagesDictionary;
 	NSString					*cachedImagesPath;
 	
