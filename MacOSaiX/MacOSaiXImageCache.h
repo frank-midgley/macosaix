@@ -38,6 +38,8 @@
 					   forIdentifier:(NSString *)imageIdentifier 
 						  fromSource:(id<MacOSaiXImageSource>)imageSource;
 
+- (void)removeCachedImageRepsFromSource:(id<MacOSaiXImageSource>)imageSource;
+
 - (NSString *)xmlDataWithImageSources:(NSArray *)imageSources;
 
 @end

@@ -250,8 +250,8 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 			scalableHitCount++;
 			NSImage		*scaledImage = [[NSImage alloc] initWithSize:repSize];
 			NSRect		scaledRect = NSMakeRect(0.0, 0.0, repSize.width, repSize.height);
-//			[scaledImage setCacheMode:NSImageCacheNever];
 			[scaledImage setCachedSeparately:YES];
+			[scaledImage setCacheMode:NSImageCacheNever];
 			NS_DURING
 				[scaledImage lockFocus];
 					[scalableRep drawInRect:NSMakeRect(0.0, 0.0, repSize.width, repSize.height)];
@@ -268,7 +268,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 				// There is no rep we can use in the memory cache.
 				// See if we have the image in our disk cache, otherwise re-request it from the source.
 			missCount++;
-			NSLog(@"Cache miss rate: %.3f%%", missCount * 100.0 / (perfectHitCount + scalableHitCount + missCount));
+//			NSLog(@"Cache miss rate: %.3f%%", missCount * 100.0 / (perfectHitCount + scalableHitCount + missCount));
 			
 			NSImage		*image = nil;
 			NSNumber	*imageID = [diskCache objectForKey:imageKey];
@@ -284,7 +284,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
             if ([image isValid])
 			{
 				[image setCachedSeparately:YES];
-//				[image setCacheMode:NSImageCacheNever];
+				[image setCacheMode:NSImageCacheNever];
 				
 					// Ignore whatever DPI was set for the image.  We just care about the bitmap.
 				NSImageRep	*originalRep = [[image representations] objectAtIndex:0];
@@ -302,6 +302,25 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 	[cacheLock unlock];
 	
 	return imageRep;
+}
+
+
+- (void)removeCachedImageRepsFromSource:(id<MacOSaiXImageSource>)imageSource
+{
+	[cacheLock lock];
+		NSEnumerator	*keyEnumerator = [memoryCache keyEnumerator];
+		NSString		*key = nil;
+		while (key = [keyEnumerator nextObject])
+			if ([self imageSourceFromKey:key] == imageSource)
+			{
+				[memoryCache removeObjectForKey:key];
+				[nativeImageSizeDict removeObjectForKey:key];
+				
+				unsigned	keyIndex = [imageKeyRecencyArray indexOfObjectIdenticalTo:key];
+				[imageKeyRecencyArray removeObjectAtIndex:keyIndex];
+				[imageRepRecencyArray removeObjectAtIndex:keyIndex];
+			}
+	[cacheLock unlock];
 }
 
 
