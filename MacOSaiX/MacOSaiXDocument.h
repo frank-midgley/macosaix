@@ -14,35 +14,40 @@ typedef enum
 
 @interface MacOSaiXDocument : NSDocument 
 {
-    IBOutlet MosaicView			*mosaicView;
-	IBOutlet NSScrollView		*mosaicScrollView;
-	IBOutlet NSTextField		*statusMessageView;
-    IBOutlet NSDrawer			*utilitiesDrawer;
-    IBOutlet NSTabView			*utilitiesTabView;
-    IBOutlet NSView				*statusBarView;
-    IBOutlet id					zoomToolbarView, zoomSlider;
-    IBOutlet NSMenu				*zoomToolbarSubmenu;
+    IBOutlet MosaicView				*mosaicView;
+	IBOutlet NSScrollView			*mosaicScrollView;
+	IBOutlet NSTextField			*statusMessageView;
+    IBOutlet NSDrawer				*utilitiesDrawer;
+    IBOutlet NSTabView				*utilitiesTabView;
+    IBOutlet NSView					*statusBarView;
+    IBOutlet id						zoomToolbarView, zoomSlider;
+    IBOutlet NSMenu					*zoomToolbarSubmenu;
+	
+		// Progress panel
+    IBOutlet NSPanel				*progressPanel;
+	IBOutlet NSTextField			*progressPanelLabel;
+	IBOutlet NSProgressIndicator	*progressPanelIndicator;
+	IBOutlet NSButton				*progressPanelCancelButton;
 	
 		// Export panel
-    IBOutlet id					exportProgressPanel, exportProgressLabel, exportProgressIndicator;
-    IBOutlet id					exportPanelAccessoryView;
-	IBOutlet NSTextField		*exportWidth, *exportHeight;
+    IBOutlet id						exportPanelAccessoryView;
+	IBOutlet NSTextField			*exportWidth, *exportHeight;
     
 		// Tiles setup tab
-	IBOutlet NSPopUpButton		*tilesSetupPopUpButton;
-	IBOutlet NSBox				*tilesSetupView;
-	IBOutlet NSTextField		*totalTilesField;
-	TilesSetupController		*tilesSetupController;
+	IBOutlet NSPopUpButton			*tilesSetupPopUpButton;
+	IBOutlet NSBox					*tilesSetupView;
+	IBOutlet NSTextField			*totalTilesField;
+	TilesSetupController			*tilesSetupController;
 	
 		// Image sources tab
-	IBOutlet NSPopUpButton		*imageSourcesPopUpButton;
-	IBOutlet NSTabView			*imageSourcesTabView;
-	IBOutlet NSTableView		*imageSourcesTable;
-	IBOutlet NSButton			*imageSourcesRemoveButton;
+	IBOutlet NSPopUpButton			*imageSourcesPopUpButton;
+	IBOutlet NSTabView				*imageSourcesTabView;
+	IBOutlet NSTableView			*imageSourcesTable;
+	IBOutlet NSButton				*imageSourcesRemoveButton;
 	
 		// Original tab
-    IBOutlet OriginalView		*originalView;
-    IBOutlet id					showOutlinesSwitch;
+    IBOutlet OriginalView			*originalView;
+    IBOutlet id						showOutlinesSwitch;
 		
 		// Tile editor tab
     IBOutlet NSTextField		*editorLabel;
@@ -94,7 +99,6 @@ typedef enum
     NSLock						*tileImagesLock,
 								*calculateImageMatchesThreadLock;
     NSBitmapImageFileType		exportFormat;
-    NSSavePanel					*savePanel;
 	ImageSource					*manualImageSource;
 	
 		// ivars for the calculate displayed images thread

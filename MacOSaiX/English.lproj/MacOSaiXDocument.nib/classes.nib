@@ -37,9 +37,6 @@
                 editorUserChosenImage = NSImageView; 
                 exportHeight = NSTextField; 
                 exportPanelAccessoryView = id; 
-                exportProgressIndicator = id; 
-                exportProgressLabel = id; 
-                exportProgressPanel = id; 
                 exportWidth = NSTextField; 
                 imageSourcesPopUpButton = NSPopUpButton; 
                 imageSourcesRemoveButton = NSButton; 
@@ -49,6 +46,10 @@
                 mosaicScrollView = NSScrollView; 
                 mosaicView = MosaicView; 
                 originalView = OriginalView; 
+                progressPanel = NSPanel; 
+                progressPanelCancelButton = NSButton; 
+                progressPanelIndicator = NSProgressIndicator; 
+                progressPanelLabel = NSTextField; 
                 showOutlinesSwitch = id; 
                 statusBarView = NSView; 
                 statusMessageView = NSTextField; 
