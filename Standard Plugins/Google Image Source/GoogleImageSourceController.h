@@ -1,17 +1,29 @@
-//
-//  GoogleImageSource.h
-//  MacOSaiX
-//
-//  Created by Frank Midgley on Wed Mar 13 2002.
-//  Copyright (c) 2001 __MyCompanyName__. All rights reserved.
-//
+/*
+	GoogleImageSourceController.h
+	MacOSaiX
 
-#import <Foundation/Foundation.h>
-#import <MacOSaiXPlugIns/ImageSourceController.h>
+	Created by Frank Midgley on Wed Mar 13 2002.
+	Copyright (c) 2002-2004 Frank M. Midgley. All rights reserved.
+*/
+
+#import <Cocoa/Cocoa.h>
 #import "GoogleImageSource.h"
 
-@interface GoogleImageSourceController : ImageSourceController
+@interface GoogleImageSourceController : NSObject <MacOSaiXImageSourceController>
 {
+	IBOutlet NSView			*imageSourceView;
+	IBOutlet NSTextField	*requiredTermsTextField,
+							*optionalTermsTextField,
+							*excludedTermsTextField,
+							*siteTextField;
+	IBOutlet NSPopUpButton	*colorSpacePopUpButton,
+							*adultContentFilteringPopUpButton;
+
+	NSButton				*okButton;
+	GoogleImageSource		*currentImageSource;
 }
+
+- (IBAction)setColorSpace:(id)sender;
+- (IBAction)setAdultContentFiltering:(id)sender;
 
 @end

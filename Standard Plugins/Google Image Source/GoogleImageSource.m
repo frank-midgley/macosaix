@@ -1,53 +1,218 @@
+/*
+	GoogleImageSource.m
+	MacOSaiX
+
+	Created by Frank Midgley on Wed Mar 13 2002.
+	Copyright (c) 2002-2004 Frank M. Midgley. All rights reserved.
+*/
+
 #import "GoogleImageSource.h"
+#import "GoogleImageSourceController.h"
 #import <CoreFoundation/CFURL.h>
+#import <sys/time.h>
+
+
+	// The image cache is shared between all instances so we need a class level lock.
+static NSLock	*imageCacheLock = nil;
+static NSString	*imageCachePath = nil;
+
+
+NSString *escapedNSString(NSString *string)
+{
+	NSString	*escapedString = (NSString *)CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)string, 
+																					 NULL, NULL, kCFStringEncodingUTF8);
+	return [escapedString autorelease];
+}
+
 
 @implementation GoogleImageSource
 
-- (id)initWithObject:(id)theObject
-{
-    [super initWithObject:theObject];
 
-    if ([theObject isKindOfClass:[NSString class]])
-    {
-		NSString *encodedQuery;
-		
-		_query = [theObject copy];
-		encodedQuery = (NSString *)CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)_query, 
-											NULL, NULL, kCFStringEncodingUTF8);
-		_imageURLQueue = [[NSMutableArray arrayWithCapacity:0] retain];
++ (void)load
+{
+	imageCachePath = [[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"] 
+											stringByAppendingPathComponent:@"Caches"]
+											stringByAppendingPathComponent:@"MacOSaiX Google Images"] retain];
+	if (![[NSFileManager defaultManager] fileExistsAtPath:imageCachePath])
+		[[NSFileManager defaultManager] createDirectoryAtPath:imageCachePath attributes:nil];
 	
-		_nextGooglePage = [[NSURL URLWithString:[@"http://images.google.com/images?name=ie&name=oe&hl=en&q=" 
-							stringByAppendingString:encodedQuery]] retain];
-    }
-    else
-    {
-		[self autorelease];
-		return nil;
-    }
-    return self;
+	imageCacheLock = [[NSLock alloc] init];
 }
 
 
-- (id)initWithCoder:(NSCoder *)coder
++ (NSString *)name
 {
-    self = [super initWithCoder:coder];
-    _query = [[coder decodeObject] retain];
-    _nextGooglePage= [[coder decodeObject] retain];
-    _imageURLQueue = [[coder decodeObject] retain];
-    return self;
+	return @"Google";
 }
 
 
-- (void)encodeWithCoder:(NSCoder *)coder
++ (Class)editorClass
 {
-    [super encodeWithCoder:coder];
-    [coder encodeObject:_query];
-    [coder encodeObject:_nextGooglePage];
-    [coder encodeObject:_imageURLQueue];
+	return [GoogleImageSourceController class];
 }
 
 
-- (NSImage *)typeImage;
++ (BOOL)allowMultipleImageSources
+{
+	return YES;
+}
+
+
+- (id)init
+{
+	if (self = [super init])
+	{
+		if ([[NSFileManager defaultManager] fileExistsAtPath:imageCachePath])
+		{
+			imageURLQueue = [[NSMutableArray array] retain];
+		}
+		else
+		{
+			[self autorelease];
+			self = nil;
+		}
+	}
+	
+	return self;
+}
+
+
+- (void)updateQueryAndDescriptor
+{
+	[urlBase autorelease];
+	urlBase = [[NSMutableString stringWithString:@"http://images.google.com/images?svnum=10&hl=en&"] retain];
+	if (requiredTerms && [requiredTerms length] > 0)
+		[urlBase appendString:[NSString stringWithFormat:@"as_q=%@&", escapedNSString(requiredTerms)]];
+	if (optionalTerms && [optionalTerms length] > 0)
+		[urlBase appendString:[NSString stringWithFormat:@"as_oq=%@&", escapedNSString(optionalTerms)]];
+	if (excludedTerms && [excludedTerms length] > 0)
+		[urlBase appendString:[NSString stringWithFormat:@"as_eq=%@&", escapedNSString(excludedTerms)]];
+	switch (colorSpace)
+	{
+		case anyColorSpace:
+			[urlBase appendString:@"imgc=&"]; break;
+		case rgbColorSpace:
+			[urlBase appendString:@"imgc=color&"]; break;
+		case grayscaleColorSpace:
+			[urlBase appendString:@"imgc=gray&"]; break;
+		case blackAndWhiteColorSpace:
+			[urlBase appendString:@"imgc=mono&"]; break;
+	}
+	if (siteString && [siteString length] > 0)
+		[urlBase appendString:[NSString stringWithFormat:@"as_sitesearch=%@&", escapedNSString(siteString)]];
+	switch (adultContentFiltering)
+	{
+		case strictFiltering:
+			[urlBase appendString:@"safe=active&"]; break;
+		case moderateFiltering:
+			[urlBase appendString:@"safe=images&"]; break;
+		case noFiltering:
+			[urlBase appendString:@"safe=off&"]; break;
+	}
+	[urlBase appendString:@"start="];
+
+	[descriptor autorelease];
+	descriptor = [[NSMutableString string] retain];
+	[descriptor appendString:@"something..."];
+}
+
+
+- (void)setRequiredTerms:(NSString *)terms
+{
+	[requiredTerms autorelease];
+	requiredTerms = [terms copy];
+	
+	[self updateQueryAndDescriptor];
+}
+
+
+- (NSString *)requiredTerms
+{
+	return requiredTerms;
+}
+
+
+- (void)setOptionalTerms:(NSString *)terms
+{
+	[optionalTerms autorelease];
+	optionalTerms = [terms copy];
+	
+	[self updateQueryAndDescriptor];
+}
+
+
+- (NSString *)optionalTerms
+{
+	return optionalTerms;
+}
+
+
+- (void)setExcludedTerms:(NSString *)terms
+{
+	[excludedTerms autorelease];
+	excludedTerms = [terms copy];
+	
+	[self updateQueryAndDescriptor];
+}
+
+
+- (NSString *)excludedTerms
+{
+	return excludedTerms;
+}
+
+
+- (void)setColorSpace:(GoogleColorSpace)inColorSpace
+{
+	colorSpace = inColorSpace;
+	
+	[self updateQueryAndDescriptor];
+}
+
+
+- (GoogleColorSpace)colorSpace
+{
+	return colorSpace;
+}
+
+
+- (void)setSiteString:(NSString *)string
+{
+	[siteString autorelease];
+	siteString = [string copy];
+	
+	[self updateQueryAndDescriptor];
+}
+
+
+- (NSString *)siteString
+{
+	return siteString;
+}
+
+
+- (void)setAdultContentFiltering:(GoogleAdultContentFiltering)filtering
+{
+	adultContentFiltering = filtering;
+	
+	[self updateQueryAndDescriptor];
+}
+
+
+- (GoogleAdultContentFiltering)adultContentFiltering
+{
+	return adultContentFiltering;
+}
+
+
+- (void)reset
+{
+	[imageURLQueue removeAllObjects];
+	startIndex = 0;
+}
+
+
+- (NSImage *)image;
 {
     return [NSImage imageNamed:@"GoogleImageSource"];
 }
@@ -55,103 +220,161 @@
 
 - (NSString *)descriptor
 {
-    return [_query stringByAppendingString:@" images"];
+    return descriptor;
 }
 
 
-- (id)nextImageIdentifier
+- (id)copyWithZone:(NSZone *)zone
 {
-    NSURL	*possibleNextGooglePage = nil;
-    
-		// if queue is empty, get next page from Google and parse out the image URL's
-		// and the link to the next page
-    if ([_imageURLQueue count] == 0 && _nextGooglePage)
-	{
-		NSString		*URLcontent;
-		NSArray			*tags;
-		int			index;
-		NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-		
-			// get the HTML of the results page
-		URLcontent = [NSString stringWithContentsOfURL:_nextGooglePage];
-		while (!URLcontent)
-		{
-			NSLog(@"Could not load URL %@", _nextGooglePage);
-			[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
-			URLcontent = [NSString stringWithContentsOfURL:_nextGooglePage];
-		}
-		
-		[_nextGooglePage autorelease];
-		_nextGooglePage = nil;
+	GoogleImageSource	*copy = [[GoogleImageSource allocWithZone:zone] init];
 	
-			// break up the HTML by tags and extract images and links
-		tags = [URLcontent componentsSeparatedByString:@"<"];
-		for (index = 0; index < [tags count]; index++)
+	[copy setRequiredTerms:requiredTerms];
+	[copy setOptionalTerms:optionalTerms];
+	[copy setExcludedTerms:excludedTerms];
+	[copy setColorSpace:colorSpace];
+	[copy setSiteString:siteString];
+	[copy setAdultContentFiltering:adultContentFiltering];
+	
+	return copy;
+}
+
+
+- (void)populateImageQueueFromNextPage
+{
+	while ([imageURLQueue count] == 0 && startIndex >= 0)
+	{
+		NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+		NSString			*nextPage = [urlBase stringByAppendingString:[NSString stringWithFormat:@"%d", startIndex]];
+		NSString			*URLcontent = [NSString stringWithContentsOfURL:[NSURL URLWithString:nextPage]];
+		
+		if (URLcontent)
 		{
-			NSString	*tag = [tags objectAtIndex:index];
-			NSRange		src;
+				// break up the HTML by img tags and look for image URLs
+			NSEnumerator	*tagEnumerator = [[URLcontent componentsSeparatedByString:@"<img "] objectEnumerator];
+			NSString		*tag = nil;
 			
-			if ([tag hasPrefix:@"img "])
+			[tagEnumerator nextObject];	// The first item didn't start with "<img ", the rest do.
+			while (tag = [tagEnumerator nextObject])
 			{
-				src = [tag rangeOfString:@" src="];
-				src.location += 5;
-				src.length = [tag length] - src.location;
-				tag = [tag substringWithRange:src];
+					// Find where the image URL starts.
+				NSRange		src = [tag rangeOfString:@"src="];
+				tag = [tag substringWithRange:NSMakeRange(src.location + 4, [tag length] - src.location - 4)];
+				
+					// Find where the image URL ends
 				src = [tag rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@" \">"]];
 				if (src.location != NSNotFound)
 					src.length = src.location;
 				else
 					src.length = [tag length];
 				src.location = 0;
-				if ([[tag substringWithRange:src] hasPrefix:@"/images?q="])
-				{
-					src.location = 10;	// only use what comes after "/images?q=" to save memory 
-					src.length -= 10;
-					[_imageURLQueue addObject:[tag substringWithRange:src]];
-				}
-				if ([tag hasPrefix:@"/nav_next"])
-				{
-					_nextGooglePage = [possibleNextGooglePage retain];
-				}
+				
+					// If the URL has the expected prefix then add it to the queue.
+				NSString	*imageURL = [tag substringWithRange:src];
+				if ([imageURL hasPrefix:@"/images?q="])
+					[imageURLQueue addObject:imageURL];
 			}
+			
+				// Check if there are any more pages of search results.
+			if ([URLcontent rangeOfString:@"nav_next.gif"].location == NSNotFound)
+				startIndex = -1;	// This was the last page of search results.
 			else
-				if ([tag hasPrefix:@"a href=/images?"])
-				{
-						// this will actually get hit for each page of results,
-						// but the link to the next page is the last one
-					src.location = 7;
-					src.length = [tag length] - 8;
-					possibleNextGooglePage = [NSURL URLWithString:[@"http://images.google.com"
-									stringByAppendingString:[tag substringWithRange:src]]];
-				}
+				startIndex += 20;
 		}
 		[pool release];
 	}
-    
-    if ([_imageURLQueue count] > 0)
-    {
-		NSString	*imageURLString = [[_imageURLQueue objectAtIndex:0] retain];
-		
-		[_imageURLQueue removeObjectAtIndex:0];
-		_imageCount++;
-		return imageURLString;
-    }
-    else
-		return nil;	// no more images
 }
 
 
-- (NSImage *)imageForIdentifier:(id)identifier
+- (BOOL)hasMoreImages
 {
-    NSImage	*image = [super imageForIdentifier:
-	[NSURL URLWithString:[NSString stringWithFormat:@"http://images.google.com/images?q=%@", identifier]]];
-    
-    if (image == nil)
-		image = [super imageForIdentifier:
-			[NSURL URLWithString:[NSString stringWithFormat:@"http://images.google.com/images?q=%@", 
-									identifier]]];
+	return ([imageURLQueue count] > 0 || startIndex >= 0);
+}
 
+
+- (NSImage *)nextImageAndIdentifier:(NSString **)identifier
+{
+	NSImage		*image = nil;
+    
+	do
+	{
+		if ([imageURLQueue count] == 0)
+			[self populateImageQueueFromNextPage];
+		else
+		{
+				// Get the image for the first identifier in the queue.
+			image = [self imageForIdentifier:[imageURLQueue objectAtIndex:0]];
+			if (image)
+				*identifier = [[[imageURLQueue objectAtIndex:0] retain] autorelease];
+			[imageURLQueue removeObjectAtIndex:0];
+		}
+	} while (!image && [self hasMoreImages]);
+	
+	return image;
+}
+
+
+- (NSImage *)imageForIdentifier:(NSString *)identifier
+{
+	NSImage		*image = nil;
+	
+	if ([identifier length] > 26)
+	{
+		NSString	*imageID = [identifier substringWithRange:NSMakeRange(14, 12)],
+					*imageFileName = [NSString stringWithFormat:@"%x%x%x%x%x%x%x%x%x%x%x%x",
+																[imageID characterAtIndex:0], [imageID characterAtIndex:1],
+																[imageID characterAtIndex:2], [imageID characterAtIndex:3],
+																[imageID characterAtIndex:4], [imageID characterAtIndex:5],
+																[imageID characterAtIndex:6], [imageID characterAtIndex:7],
+																[imageID characterAtIndex:8], [imageID characterAtIndex:9],
+																[imageID characterAtIndex:10], [imageID characterAtIndex:11]],
+					*imagePath = [imageCachePath stringByAppendingPathComponent:imageFileName];
+		NSData		*imageData = nil;
+		
+			// First check if we have this image in the cache.
+		[imageCacheLock lock];
+			if ([[NSFileManager defaultManager] fileExistsAtPath:imagePath])
+			{
+				imageData = [[[NSData alloc] initWithContentsOfFile:imagePath] autorelease];
+				utimes([imageCachePath fileSystemRepresentation], NULL);
+			}
+		[imageCacheLock unlock];
+		if (imageData)
+			image = [[[NSImage alloc] initWithData:imageData] autorelease];
+		
+			// If it's not in the cache or couldn't be read from the cache then
+			// fetch the image from Google.
+		if (!image)
+		{
+			NSURL	*imageURL = [NSURL URLWithString:[NSString stringWithFormat:@"http://images.google.com%@", identifier]];
+			
+			imageData = [[[NSData alloc] initWithContentsOfURL:imageURL] autorelease];
+			if (imageData)
+			{
+				image = [[[NSImage alloc] initWithData:imageData] autorelease];
+				[imageCacheLock lock];
+					[imageData writeToFile:imagePath atomically:NO];
+				
+					// TODO: purge oldest image(s) when cache size limit exceeded.
+				[imageCacheLock unlock];
+			}
+		}
+	}
+	
     return image;
 }
+
+
+- (void)dealloc
+{
+	[requiredTerms release];
+	[optionalTerms release];
+	[excludedTerms release];
+	[siteString release];
+	
+	[imageURLQueue release];
+	
+	[super dealloc];
+}
+
 
 @end
