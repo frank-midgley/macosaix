@@ -368,6 +368,11 @@
 		}
 	[imageMatchesLock unlock];
 	
+	if (bestMatchChanged)
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"Tile Image Changed" 
+															object:document
+														  userInfo:[NSDictionary dictionaryWithObject:self forKey:@"Tile"]];
+	
 	return bestMatchChanged;
 }
 
