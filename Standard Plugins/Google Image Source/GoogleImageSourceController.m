@@ -41,8 +41,7 @@
 
 - (void)editImageSource:(id<MacOSaiXImageSource>)imageSource
 {
-	[currentImageSource autorelease];
-	currentImageSource = [imageSource retain];
+	currentImageSource = (GoogleImageSource *)imageSource;
 	
 	[requiredTermsTextField setStringValue:([currentImageSource requiredTerms] ? [currentImageSource requiredTerms] : @"")];
 	[optionalTermsTextField setStringValue:([currentImageSource optionalTerms] ? [currentImageSource optionalTerms] : @"")];
@@ -74,14 +73,12 @@
 
 - (IBAction)setAdultContentFiltering:(id)sender
 {
-	[currentImageSource setColorSpace:[adultContentFilteringPopUpButton indexOfSelectedItem]];
+	[currentImageSource setAdultContentFiltering:[adultContentFilteringPopUpButton indexOfSelectedItem]];
 }
 
 
 - (void)dealloc
 {
-	[currentImageSource release];
-	
 	[super dealloc];
 }
 
