@@ -7,13 +7,15 @@
 
 + (void)initialize
 {
+	isalpha('a');	// get rid of weak linking warning
+
     NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
     NSMutableDictionary	*appDefaults = [NSMutableDictionary dictionary];
     
     [appDefaults setObject:@"15" forKey:@"Autosave Frequency"];
-    [appDefaults setObject:@"Rectangles" forKey:@"Tile Shapes"];
-    [appDefaults setObject:@"20" forKey:@"Tiles Wide"];
-    [appDefaults setObject:@"20" forKey:@"Tiles High"];
+//    [appDefaults setObject:@"Rectangles" forKey:@"Tile Shapes"];
+//    [appDefaults setObject:@"20" forKey:@"Tiles Wide"];
+//    [appDefaults setObject:@"20" forKey:@"Tiles High"];
 /*
     [appDefaults setObject:[NSArchiver archivedDataWithRootObject:[NSMutableArray arrayWithObjects:
 				    [[ImageSource alloc] init], 
@@ -27,15 +29,25 @@
 }
 
 
+- (id)init
+{
+	if (self = [super init])
+	{
+		_tilesSetupControllerClasses = [[NSMutableArray arrayWithCapacity:1] retain];
+		_imageSourceControllerClasses = [[NSMutableArray arrayWithCapacity:4] retain];
+		_loadedPlugInPaths = [[NSMutableArray arrayWithCapacity:5] retain];
+	}
+	return self;
+}
+
+
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
 		// Do an initial discovery of plug-ins
-	[self discoverPlugIns];
+//	[self discoverPlugIns];
 
     // To provide a service:
-    //EncryptoClass *encryptor;
-    //encryptor = [[EncryptoClass alloc] init];
-    //[NSApp setServicesProvider:encryptor];
+    //[NSApp setServicesProvider:[[EncryptoClass alloc] init]];
 }
 
 
@@ -80,7 +92,7 @@
 				
 				if (plugInPrincipalClass && [plugInPrincipalClass isSubclassOfClass:[TilesSetupController class]])
 				{
-					[_tileSetupControllerClasses addObject:plugInPrincipalClass];
+					[_tilesSetupControllerClasses addObject:plugInPrincipalClass];
 					[_loadedPlugInPaths addObject:plugInsPath];
 				}
 
@@ -98,9 +110,15 @@
 }
 
 
-- (NSArray *)tileSetupControllerClasses
+- (NSArray *)tilesSetupControllerClasses
 {
-	return _tileSetupControllerClasses;
+	return _tilesSetupControllerClasses;
+}
+
+
+- (NSArray *)imageSourceControllerClasses
+{
+	return _imageSourceControllerClasses;
 }
 
 
