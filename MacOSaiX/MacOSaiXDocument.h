@@ -1,11 +1,24 @@
+/*
+	MacOSaiXDocument.h
+	MacOSaiX
+
+	Created by Frank Midgley on Sun Oct 24 2004.
+	Copyright (c) 2004 Frank M. Midgley. All rights reserved.
+*/
+
+
 #import <Cocoa/Cocoa.h>
 #import "Tiles.h"
 #import "MacOSaiXTileShapes.h"
 #import "MacOSaiXImageSource.h"
 
 
+@class MacOSaiXWindowController;
+
+
 @interface MacOSaiXDocument : NSDocument 
 {
+	MacOSaiXWindowController	*mainWindowController;
     NSString					*originalImagePath;
     NSImage						*originalImage;
     NSMutableArray				*imageSources,

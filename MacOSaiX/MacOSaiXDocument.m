@@ -1,5 +1,5 @@
 /*
-	MacOSaiXDocument.h
+	MacOSaiXDocument.m
 	MacOSaiX
 
 	Created by Frank Midgley on Sun Oct 24 2004.
@@ -29,12 +29,17 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 @interface MacOSaiXDocument (PrivateMethods)
 - (void)addTile:(MacOSaiXTile *)tile;
-- (void)spawnImageSourceThreads;
 - (BOOL)started;
 - (void)lockWhilePaused;
+
 - (void)updateMosaicImage:(NSMutableArray *)updatedTiles;
-- (void)calculateImageMatches:(id)path;
+
+- (void)spawnImageSourceThreads;
+- (void)setImageCount:(unsigned long)imageCount forImageSource:(id<MacOSaiXImageSource>)imageSource;
+
 - (void)extractTileImagesFromOriginalImage:(id)object;
+- (void)calculateImageMatches:(id)path;
+
 - (void)updateEditor;
 - (BOOL)showTileMatchInEditor:(MacOSaiXImageMatch *)tileMatch selecting:(BOOL)selecting;
 - (NSImage *)createEditorImage:(int)rowIndex;
@@ -47,13 +52,15 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 {
     if (self = [super init])
     {
+		NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
+		
 		[self setHasUndoManager:FALSE];	// don't track undo-able changes
 		
 		paused = YES;
-		[self setTileShapes:[[[NSClassFromString(@"MacOSaiXRectangularTileShapes") alloc] init] autorelease]];
+		[self setTileShapes:[[[NSClassFromString([defaults objectForKey:@"Last Chosen Tile Shapes Class"]) alloc] init] autorelease]];
 		imageSources = [[NSMutableArray arrayWithCapacity:0] retain];
 		lastSaved = [[NSDate date] retain];
-		autosaveFrequency = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Autosave Frequency"] intValue];
+		autosaveFrequency = [[defaults objectForKey:@"Autosave Frequency"] intValue];
 
 		pauseLock = [[NSLock alloc] init];
 		[pauseLock lock];
@@ -72,7 +79,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		enumerationCountsLock = [[NSLock alloc] init];
 		enumerationCounts = [[NSMutableDictionary dictionary] retain];
 		
-		[self setNeighborhoodSize:5];
+		[self setImageUseCount:[[defaults objectForKey:@"Image Use Count"] intValue]];
+		[self setNeighborhoodSize:[[defaults objectForKey:@"Neighborhood Size"] intValue]];
 	}
 	
     return self;
@@ -81,10 +89,16 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 - (void)makeWindowControllers
 {
-	MacOSaiXWindowController	*controller = [[[MacOSaiXWindowController alloc] initWithWindowNibName:@"MacOSaiXDocument"] autorelease];
+	mainWindowController = [[[MacOSaiXWindowController alloc] initWithWindow:nil] autorelease];
 	
-	[self addWindowController:controller];
-	[controller showWindow:self];
+	[self addWindowController:mainWindowController];
+	[mainWindowController showWindow:self];
+}
+
+
+- (MacOSaiXWindowController *)mainWindowController
+{
+	return mainWindowController;
 }
 
 
@@ -139,7 +153,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		originalImagePath = [[NSString stringWithString:path] retain];
 		originalImage = [[NSImage alloc] initWithContentsOfFile:path];
 		[originalImage setCachedSeparately:YES];
-//		[originalImage setCacheMode:NSImageCacheNever];
 
 			// Ignore whatever DPI was set for the image.  We just care about the bitmap.
 		NSImageRep	*originalRep = [[originalImage representations] objectAtIndex:0];
@@ -214,12 +227,11 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 {
 	if (paused)
 	{
-		if ([[tiles objectAtIndex:0] bitmapRep] == nil)
+		if (![self wasStarted])
 		{
 				// Automatically start the mosaic.
 				// Show the mosaic image and start extracting the tile images.
-			if ([[self windowControllers] count] > 0)
-				[[[self windowControllers] objectAtIndex:0] setViewMosaic:self];
+			[[self mainWindowController] setViewMosaic:self];
 			[NSApplication detachDrawingThread:@selector(extractTileImagesFromOriginalImage)
 									  toTarget:self
 									withObject:nil];
@@ -230,7 +242,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			[pauseLock unlock];
 			
 			paused = NO;
-			mosaicStarted = YES;
 			
 			[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
 		}
@@ -239,7 +250,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 
 #pragma mark -
-#pragma mark Save and Open methods
+#pragma mark Saving
 
 
 - (BOOL)isSaving
@@ -278,8 +289,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	[self pause];
 	
 		// Display a sheet while the save is underway
-	[[[self windowControllers] objectAtIndex:0] displayProgressPanelWithMessage:@"Saving..."];
-// TODO:	[[[self windowControllers] objectAtIndex:0] setCancelAction:@selector(cancelSave) andTarget:self];
+	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving..."];
+// TODO:	[[self mainWindowController] setCancelAction:@selector(cancelSave) andTarget:self];
 	
 	NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
 											fileName, @"Save Path", 
@@ -311,7 +322,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		// Pause the mosaic so that it is in a static state while saving.
 	[self pause];
 	
-	[[[self windowControllers] objectAtIndex:0] displayProgressPanelWithMessage:@"Saving..."];
+	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving..."];
 
 	NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
 											fullDocumentPath, @"Save Path", 
@@ -386,7 +397,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	BOOL				saveSucceeded = NO;
 	NSString			*savePath = [parameters objectForKey:@"Save Path"];
-	NSSaveOperationType	saveOperation = [[parameters objectForKey:@"Save Operation"] intValue];
+//	NSSaveOperationType	saveOperation = [[parameters objectForKey:@"Save Operation"] intValue];
 	id					didSaveDelegate = [parameters objectForKey:@"Did Save Delegate"];
 	SEL					didSaveSelector = NSSelectorFromString([parameters objectForKey:@"Did Save Selector"]);
 	void				*contextInfo = (void *)[[parameters objectForKey:@"Context Info"] unsignedLongValue];
@@ -462,8 +473,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				{
 					id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:index];
 					NSString				*className = NSStringFromClass([imageSource class]);
-					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\">\n", 
-																	  index, className] 
+					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\">\n", 
+																	  index, className, [self countOfImagesFromSource:imageSource]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
 					
 						// Output the settings for this image source.
@@ -591,7 +602,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	NS_ENDHANDLER
 	
 		// Dismiss the "Saving..." sheet.
-	[[[self windowControllers] objectAtIndex:0] closeProgressPanel];
+	[[self mainWindowController] closeProgressPanel];
 	
 	[self setFileName:savePath];
 	[self setFileType:@"MacOSaiX Project"];
@@ -661,7 +672,7 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 	while ([[self windowControllers] count] == 0)
 		[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 	
-	[[[self windowControllers] objectAtIndex:0] displayProgressPanelWithMessage:@"Loading..."];
+	[[self mainWindowController] displayProgressPanelWithMessage:@"Loading..."];
 	
 	NSData	*xmlData = [NSData dataWithContentsOfFile:[fileName stringByAppendingPathComponent:@"Mosaic.xml"]];
 	
@@ -690,7 +701,7 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 			NSLog(@"Parsing failed: %@", (NSString *)CFXMLParserCopyErrorDescription(parser));
 	}
 	
-	[[[self windowControllers] objectAtIndex:0] closeProgressPanel];
+	[[self mainWindowController] closeProgressPanel];
 	
 	[pool release];
 }
@@ -723,15 +734,32 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 				
 				newObject = [[NSClassFromString(className) alloc] init];
 			}
+			else if ([elementType isEqualToString:@"IMAGE_USAGE"])
+			{
+				newObject = document;
+			}
+			else if ([elementType isEqualToString:@"IMAGE_REUSE"])
+			{
+				NSString	*imageReuseCount = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"COUNT"],
+							*imageReuseDistance = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"DISTANCE"];
+				
+				[document setImageUseCount:[imageReuseCount intValue]];
+				[document setNeighborhoodSize:[imageReuseDistance intValue]];
+				
+				newObject = document;
+			}
 			else if ([elementType isEqualToString:@"IMAGE_SOURCES"])
 			{
 				newObject = document;
 			}
 			else if ([elementType isEqualToString:@"IMAGE_SOURCE"])
 			{
-				NSString	*className = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"CLASS"];
+				NSString	*className = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"CLASS"],
+							*imageCount = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"IMAGE_COUNT"];
 				
 				newObject = [[NSClassFromString(className) alloc] init];
+				
+				[document setImageCount:[imageCount intValue] forImageSource:newObject];
 			}
 			else if ([elementType isEqualToString:@"TILES"])
 			{
@@ -792,21 +820,24 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 	NSMutableArray		*stack = [(NSArray *)info objectAtIndex:0];
 	MacOSaiXDocument	*document = (MacOSaiXDocument *)[stack objectAtIndex:0];
 
-//	if (parent == nil)
-//		parent = document;
-
 	if (parent == document && [(id)child isKindOfClass:[NSString class]])
+	{
+			// Set the original image path.
 		[document setOriginalImagePath:(NSString *)child];
-	else if (parent == document && [(id)child conformsToProtocol:@protocol(MacOSaiXTileShapes)])
-		[document setTileShapes:(id<MacOSaiXTileShapes>)child];
+	}
 	else if ([(id)parent conformsToProtocol:@protocol(MacOSaiXTileShapes)] && [(id)child isKindOfClass:[NSDictionary class]])
+	{
+			// Pass a setting on to the tile shapes instance.
 		[(id<MacOSaiXTileShapes>)parent useSavedSetting:(NSDictionary *)child];
-	else if (parent == document && [(id)child conformsToProtocol:@protocol(MacOSaiXImageSource)])
-		[document addImageSource:(id<MacOSaiXImageSource>)child];
+	}
 	else if ([(id)parent conformsToProtocol:@protocol(MacOSaiXImageSource)] && [(id)child isKindOfClass:[NSDictionary class]])
+	{
+			// Pass a setting on to one of the image sources.
 		[(id<MacOSaiXImageSource>)parent useSavedSetting:(NSDictionary *)child];
+	}
 	else if ([(id)parent isKindOfClass:[NSDictionary class]] && [(id)child isKindOfClass:[NSDictionary class]])
 	{
+			// Pass a nested setting on to either the tile shapes instance or one of the image source instances.
 		NSEnumerator	*stackEnumerator = [stack reverseObjectEnumerator];
 		id				stackObject = nil;
 		while (stackObject = [stackEnumerator nextObject])
@@ -817,11 +848,18 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 			}
 	}
 	else if (parent == document && [(id)child isKindOfClass:[MacOSaiXTile class]])
+	{
+			// Add a new tile to the document.
 		[document addTile:(MacOSaiXTile *)child];
+	}
 	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[NSBezierPath class]])
+	{
+			// Add the bezier path outline for a tile.
 		[(MacOSaiXTile *)parent setOutline:(NSBezierPath *)child];
+	}
 	else if ([(id)parent isKindOfClass:[NSBezierPath class]] && [(id)child isKindOfClass:[NSDictionary class]])
 	{
+			// Add a path element to a tile's outline.
 		NSBezierPath	*tileOutline = (NSBezierPath *)parent;
 		NSDictionary	*attributes = (NSDictionary *)child;
 		NSString		*elementType = [attributes objectForKey:@"Element Type"];
@@ -839,6 +877,7 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 	}
 	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[MacOSaiXImageMatch class]])
 	{
+			// Set a tile's best unique image match.
 		[(MacOSaiXTile *)parent setImageMatch:(MacOSaiXImageMatch *)child];
 		[(MacOSaiXImageMatch *)child setTile:(MacOSaiXTile *)parent];
 	}
@@ -850,14 +889,24 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	NSMutableArray		*stack = [(NSArray *)info objectAtIndex:0];
 	MacOSaiXDocument	*document = (MacOSaiXDocument *)[stack objectAtIndex:0];
 
-		// Release any objects we created in createStructure() now that they are retained by their parent.
-	if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXImageSource)] || 
-		[(id)newObject conformsToProtocol:@protocol(MacOSaiXTileShapes)] || 
-		[(id)newObject isKindOfClass:[MacOSaiXTile class]] || 
-		[(id)newObject isKindOfClass:[NSBezierPath class]] || 
-		[(id)newObject isKindOfClass:[NSDictionary class]] || 
-		[(id)newObject isKindOfClass:[MacOSaiXImageMatch class]])
+	if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXTileShapes)])
+	{
+		[document setTileShapes:(id<MacOSaiXTileShapes>)newObject];
 		[(id)newObject release];
+	}
+	else if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXImageSource)])
+	{
+		[document addImageSource:(id<MacOSaiXImageSource>)newObject];
+		[(id)newObject release];
+	}
+	else if ([(id)newObject isKindOfClass:[MacOSaiXTile class]] || 
+			 [(id)newObject isKindOfClass:[NSBezierPath class]] || 
+			 [(id)newObject isKindOfClass:[NSDictionary class]] || 
+			 [(id)newObject isKindOfClass:[MacOSaiXImageMatch class]])
+	{
+			// Release any objects we created in createStructure() now that they are retained by their parent.
+		[(id)newObject release];
+	}
 	
 	if ([(id)newObject isKindOfClass:[NSDictionary class]])
 	{
@@ -896,7 +945,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 //	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
 //	MacOSaiXTile	*tile = nil;
 //	while (tile = [tileEnumerator nextObject])
-//		[tile setNeighboringTiles:[directNeighbors objectForKey:[NSString stringWithFormat:@"%p", tile]]];
+//		[tile setNeighboringTiles:[directNeighbors objectForKey:[NSValue valueWithPointer:tile]]];
 //	
 //	int	degreeOfSeparation;
 //	for (degreeOfSeparation = 1; degreeOfSeparation < neighborhoodSize; degreeOfSeparation++)
@@ -911,7 +960,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 //			MacOSaiXTile		*neighbor = nil;
 //			
 //			while (![self isClosing] && (neighbor = [neighborEnumerator nextObject]))
-//				[tile addNeighbors:[directNeighbors objectForKey:[NSString stringWithFormat:@"%p", neighbor]]];
+//				[tile addNeighbors:[directNeighbors objectForKey:[NSValue valueWithPointer:neighbor]]];
 //			
 //			[pool2 release];
 //		}
@@ -978,7 +1027,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 //			if (tile2 != tile && NSIntersectsRect(zoomedTileBounds, [[tile2 outline] bounds]))
 //				[directNeighborArray addObject:tile2];
 //		
-//		[directNeighbors setObject:directNeighborArray forKey:[NSString stringWithFormat:@"%p", tile]];
+//		[directNeighbors setObject:directNeighborArray forKey:[NSValue valueWithPointer:tile]];
 //	}
 //	
 //	[self calculateTileNeighborhoods];
@@ -1002,7 +1051,12 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (void)setImageUseCount:(int)count
 {
-	imageUseCount = count;
+	if (imageUseCount != count)
+	{
+		imageUseCount = count;
+		[[NSUserDefaults standardUserDefaults] setInteger:imageUseCount forKey:@"Image Use Count"];
+		[[self mainWindowController] synchronizeGUIWithDocument];
+	}
 }
 
 
@@ -1014,15 +1068,18 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (void)setNeighborhoodSize:(int)size
 {
-	neighborhoodSize = size;
-	
-	[[NSUserDefaults standardUserDefaults] setInteger:neighborhoodSize forKey:@"Neighborhood Size"];
-	
-	// TODO: what if a mosaic is already in the works?  how do we reset?
-	
-	[self calculateTileNeighborhoods];
-	
-	mosaicStarted = NO;
+	if (neighborhoodSize != size)
+	{
+		neighborhoodSize = size;
+		[[NSUserDefaults standardUserDefaults] setInteger:neighborhoodSize forKey:@"Neighborhood Size"];
+		[[self mainWindowController] synchronizeGUIWithDocument];
+		
+		// TODO: what if a mosaic is already in the works?  how do we reset?
+		
+		[self calculateTileNeighborhoods];
+		
+		mosaicStarted = NO;	// ???
+	}
 }
 
 
@@ -1129,6 +1186,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
     [drawWindow close];
     
 		// Start up the mosaic
+	mosaicStarted = YES;
 	[self resume];
 
     [pool release];
@@ -1198,7 +1256,6 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 		
 			// Set the caching behavior of the image.  We'll be adding bitmap representations of various
 			// sizes to the image so it doesn't need to do any of its own caching.
-//		[image setCacheMode:NSImageCacheNever];
 		[image setCachedSeparately:YES];
 		
 		BOOL	imageIsValid = NO;
@@ -1228,7 +1285,6 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 					// TODO: are we losing an image if documentIsClosing?
 					
 					[image setCachedSeparately:YES];
-//					[image setCacheMode:NSImageCacheNever];
 					
 					[imageQueue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 												image, @"Image",
@@ -1237,9 +1293,9 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 												nil]];
 					
 					[enumerationCountsLock lock];
-						NSString		*key = [NSString stringWithFormat:@"%p", imageSource];
-						unsigned long	currentCount = [[enumerationCounts objectForKey:key] unsignedLongValue];
-						[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:currentCount + 1] forKey:key];
+						unsigned long	currentCount = [[enumerationCounts objectForKey:[NSValue valueWithPointer:imageSource]] unsignedLongValue];
+						[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:currentCount + 1] 
+											  forKey:[NSValue valueWithPointer:imageSource]];
 					[enumerationCountsLock unlock];
 				[imageQueueLock unlock];
 
@@ -1268,12 +1324,21 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 }
 
 
+- (void)setImageCount:(unsigned long)imageCount forImageSource:(id<MacOSaiXImageSource>)imageSource
+{
+	[enumerationCountsLock lock];
+		[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:imageCount]
+							  forKey:[NSValue valueWithPointer:imageSource]];
+	[enumerationCountsLock unlock];
+}
+
+
 - (unsigned long)countOfImagesFromSource:(id<MacOSaiXImageSource>)imageSource
 {
 	unsigned long	enumerationCount = 0;
 	
 	[enumerationCountsLock lock];
-		enumerationCount = [[enumerationCounts objectForKey:[NSString stringWithFormat:@"%p", imageSource]] unsignedLongValue];
+		enumerationCount = [[enumerationCounts objectForKey:[NSValue valueWithPointer:imageSource]] unsignedLongValue];
 	[enumerationCountsLock unlock];
 	
 	return enumerationCount;
@@ -1548,11 +1613,11 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 		NSDictionary	*metaContextInfo = [[NSDictionary dictionaryWithObjectsAndKeys:
 												delegate, @"Should Close Delegate", 
 												NSStringFromSelector(shouldCloseSelector), @"Should Close Selector", 
-												[NSString stringWithFormat:@"%p", contextInfo], @"Context Info",
+												[NSValue valueWithPointer:contextInfo], @"Context Info",
 												nil] retain];
 		
 		NSBeginAlertSheet(title, saveString, dontSaveString, cancelString, 
-						  [[[self windowControllers] objectAtIndex:0] window],
+						  [[self mainWindowController] window],
 						  self, nil, @selector(shouldCloseSheetDidDismiss:returnCode:contextInfo:), metaContextInfo, 
 						  message);
 	}
