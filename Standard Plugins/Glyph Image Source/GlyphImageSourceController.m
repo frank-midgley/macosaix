@@ -19,12 +19,11 @@
 	{
 		availableFontMembers = [[NSMutableDictionary dictionary] retain];
 		
-		builtinColorLists = [[NSArray arrayWithObjects:[[[NSColorList alloc] initWithName:@"Grayscale"] autorelease],
-													   [[[NSColorList alloc] initWithName:@"Redscale"] autorelease],
-													   [[[NSColorList alloc] initWithName:@"Greenscale"] autorelease],
-													   [[[NSColorList alloc] initWithName:@"Bluescale"] autorelease],
-													   [[[NSColorList alloc] initWithName:@"Sepia tone"] autorelease],
-													   nil] retain];
+		builtinColorLists = [[NSMutableArray array] retain];
+		NSEnumerator	*colorListNameEnumerator = [[MacOSaiXGlyphImageSource builtInColorListNames] objectEnumerator];
+		NSString		*colorListName = nil;
+		while (colorListName = [colorListNameEnumerator nextObject])
+			[builtinColorLists addObject:[[[NSColorList alloc] initWithName:colorListName] autorelease]];
 	}
 	
 	return self;
@@ -78,7 +77,11 @@
 - (void)updateSample:(NSTimer *)timer
 {
 	[currentImageSource reset];
+	
 	[sampleImageView setImage:[currentImageSource nextImageAndIdentifier:nil]];
+	
+	if (![sampleImageView image])
+		[timer setFireDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 }
 
 
@@ -246,6 +249,11 @@
 
 - (IBAction)setColorsOption:(id)sender
 {
+}
+
+
+- (IBAction)toggleColor:(id)sender
+{
 	NSColorList		*list = [colorsOutlineView itemAtRow:[colorsOutlineView selectedRow]];
 	NSString		*listClass = nil;
 	
@@ -257,15 +265,9 @@
 		listClass = @"Photoshop";
 	
 	if ([[currentImageSource colorListsOfClass:listClass] containsObject:[list name]])
-		[currentImageSource addColorList:[list name] ofClass:listClass];
-	else
 		[currentImageSource removeColorList:[list name] ofClass:listClass];
-}
-
-
-- (IBAction)toggleColor:(id)sender
-{
-	
+	else
+		[currentImageSource addColorList:[list name] ofClass:listClass];
 }
 
 
@@ -414,6 +416,18 @@
 		}
 		else
 		{
+			NSString	*listClass = nil;
+			if ([builtinColorLists containsObject:item])
+				listClass = @"Built-in";
+			else if ([systemWideColorLists containsObject:item])
+				listClass = @"System-wide";
+			else if ([photoshopColorLists containsObject:item])
+				listClass = @"Photoshop";
+			
+			if ([[currentImageSource colorListsOfClass:listClass] containsObject:[(NSColorList *)item name]])
+				[cell setState:NSOnState];
+			else
+				[cell setState:NSOffState];
 			[cell setEnabled:YES];
 			[cell setTitle:[(NSColorList *)item name]];
 		}

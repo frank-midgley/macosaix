@@ -23,6 +23,9 @@ static NSImage	*glyphSourceImage = nil;
 {
 	NSString	*imagePath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"GlyphImageSource"];
 	glyphSourceImage = [[NSImage alloc] initWithContentsOfFile:imagePath];
+	
+		// Seed the random number generator
+	srandom(time(NULL));
 }
 
 
@@ -44,11 +47,25 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
++ (NSArray *)builtInColorListNames
+{
+	return [NSArray arrayWithObjects:@"Grayscale", 
+									 @"Redscale", 
+									 @"Greenscale", 
+									 @"Bluescale", 
+									 @"Sepia Tone",
+									 nil];
+}
+
+
 - (id)init
 {
 	if (self = [super init])
 	{
 		fontNames = [[NSMutableArray array] retain];
+		
+		colorLists = [[NSMutableDictionary dictionary] retain];
+		
 		focusWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(-10000, -10000, 128, 128)
 							   styleMask:NSBorderlessWindowMask
 							 backing:NSBackingStoreBuffered defer:NO];
@@ -118,67 +135,124 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
+- (NSColor *)randomColor
+{
+	float	red = 0.0,
+			green = 0.0,
+			blue = 0.0;
+	
+	if ([colorLists count] == 0)
+	{
+		red = (random() % 256) / 256.0;
+		green = (random() % 256) / 256.0;
+		blue = (random() % 256) / 256.0;
+	}
+	else
+	{
+		NSString	*colorListClass = [[colorLists allKeys] objectAtIndex:(random() % [[colorLists allKeys] count])];
+		
+		if ([colorListClass isEqualToString:@"Built-in"])
+		{
+			NSArray		*colorClassLists = [colorLists objectForKey:colorListClass];
+			NSString	*colorListName = [colorClassLists objectAtIndex:(random() % [colorClassLists count])];
+			
+			if ([colorListName isEqualToString:@"Grayscale"])
+				red = green = blue = (random() % 256) / 256.0;
+			else if ([colorListName isEqualToString:@"Redscale"])
+			{
+				red = (random() % 256) / 256.0;
+				green = blue = (random() % (int)(red * 256.0)) / 256.0;
+			}
+			else if ([colorListName isEqualToString:@"Greenscale"])
+			{
+				green = 1.0;
+				red = blue = (random() % 256) / 256.0;
+			}
+			else if ([colorListName isEqualToString:@"Bluescale"])
+			{
+				blue = 1.0;
+				red = green = (random() % 256) / 256.0;
+			}
+			else if ([colorListName isEqualToString:@"Sepia Tone"])
+			{
+				red = (random() % 256) / 256.0;
+				green = red * (1.0 - (0.35 * (1.0 - 5.0 / 6.0)));
+				blue = red * (1.0 - 0.35);
+			}
+		}
+	}
+	
+	return [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];
+}
+
+
 - (NSImage *)nextImageAndIdentifier:(NSString **)identifier
 {
 	NSImage			*image = nil;
-	int				devRandom = open("/dev/random", O_RDONLY, 0);
 	
-	if (devRandom >= 0)
+	if ([fontNames count] > 0)
 	{
-		unsigned int	bytesRead, randomNumbers[10];
-
-		bytesRead = read(devRandom, randomNumbers, sizeof(int) * 10);
-		close(devRandom);
-
-		if (bytesRead >= sizeof(unsigned int) * 8 && [fontNames count] > 0)
+		unsigned int	fontNum = random() % [fontNames count];
+		NSFont			*font = [NSFont fontWithName:[fontNames objectAtIndex:fontNum] size:12.0];
+		
+		if (font)
 		{
-			unsigned int	fontNum = randomNumbers[0] % [fontNames count];
-			NSFont			*font = [NSFont fontWithName:[fontNames objectAtIndex:fontNum] size:12.0];
-			
-			if (font)
+			NSGlyph			glyphNum;
+			if ([self letterPool])
 			{
-				NSGlyph			glyphNum;
-				if ([self letterPool])
-				{
-					NSLayoutManager	*layoutManager = [[[NSLayoutManager alloc] init] autorelease];
-					NSDictionary	*attributes = [NSDictionary dictionaryWithObject:font
-																			  forKey:NSFontAttributeName];
-					NSTextStorage	*textStorage = [[NSTextStorage alloc] initWithString:[self letterPool]
-																			  attributes:attributes];
-					[textStorage addLayoutManager:layoutManager];
-					unsigned	glyphCount = [layoutManager numberOfGlyphs];
-					glyphNum = [layoutManager glyphAtIndex:randomNumbers[1] % glyphCount];
-				}
-				else
-					glyphNum = randomNumbers[1] % ([font numberOfGlyphs] - 1) + 1;
-				
-				NSBezierPath	*glyphPath = [NSBezierPath bezierPath];
-				NSRect			glyphRect;
-				
-				[focusWindowLock lock];
-					while (![[focusWindow contentView] lockFocusIfCanDraw])
-						[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
-					[glyphPath moveToPoint:NSZeroPoint];
-					[glyphPath appendBezierPathWithGlyph:glyphNum inFont:font];
-					glyphRect = [glyphPath bounds];
-					[[focusWindow contentView] unlockFocus];
-				[focusWindowLock unlock];
+				NSLayoutManager	*layoutManager = [[[NSLayoutManager alloc] init] autorelease];
+				NSDictionary	*attributes = [NSDictionary dictionaryWithObject:font
+																		  forKey:NSFontAttributeName];
+				NSTextStorage	*textStorage = [[NSTextStorage alloc] initWithString:[self letterPool]
+																		  attributes:attributes];
+				[textStorage addLayoutManager:layoutManager];
+				unsigned	glyphCount = [layoutManager numberOfGlyphs];
+				glyphNum = [layoutManager glyphAtIndex:random() % glyphCount];
+			}
+			else
+				glyphNum = random() % ([font numberOfGlyphs] - 1) + 1;
+			
+			NSBezierPath	*glyphPath = [NSBezierPath bezierPath];
+			NSRect			glyphRect;
+			
+			[focusWindowLock lock];
+				while (![[focusWindow contentView] lockFocusIfCanDraw])
+					[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
+				[glyphPath moveToPoint:NSZeroPoint];
+				[glyphPath appendBezierPathWithGlyph:glyphNum inFont:font];
+				glyphRect = [glyphPath bounds];
+				[[focusWindow contentView] unlockFocus];
+			[focusWindowLock unlock];
 
-				if (glyphRect.size.width > 0.0 && glyphRect.size.height > 0.0)
+			if (glyphRect.size.width > 0.0 && glyphRect.size.height > 0.0)
+			{
+				NSColor		*foregroundColor = [self randomColor],
+							*backgroundColor = [self randomColor];
+				
+					// Make sure the colors are a little different.
+				while (fabsf([foregroundColor redComponent] - [backgroundColor redComponent]) < 0.1 && 
+					   fabsf([foregroundColor greenComponent] - [backgroundColor greenComponent]) < 0.1 && 
+					   fabsf([foregroundColor blueComponent] - [backgroundColor blueComponent]) < 0.1)
 				{
-					NSString	*tempIdentifier = [NSString stringWithFormat:
-														@"%@\t%d %d %d %d %d %d %d", 
-														[fontNames objectAtIndex:fontNum], glyphNum,
-														randomNumbers[2] % 256, randomNumbers[3] % 256, 
-														randomNumbers[4] % 256, randomNumbers[5] % 256, 
-														randomNumbers[6] % 256, randomNumbers[7] % 256];
-					
-					image = [self imageForIdentifier:tempIdentifier];
-					if (image && identifier)
-					{
-						*identifier = tempIdentifier;
-						imageCount++;
-					}
+					foregroundColor = [self randomColor];
+					backgroundColor = [self randomColor];
+				}
+				
+				NSString	*tempIdentifier = [NSString stringWithFormat:
+													@"%@\t%d %d %d %d %d %d %d", 
+													[fontNames objectAtIndex:fontNum], glyphNum,
+													(int)(256.0 * [foregroundColor redComponent]), 
+													(int)(256.0 * [foregroundColor greenComponent]), 
+													(int)(256.0 * [foregroundColor blueComponent]), 
+													(int)(256.0 * [backgroundColor redComponent]), 
+													(int)(256.0 * [backgroundColor greenComponent]), 
+													(int)(256.0 * [backgroundColor blueComponent])];
+				
+				image = [self imageForIdentifier:tempIdentifier];
+				if (image && identifier)
+				{
+					*identifier = tempIdentifier;
+					imageCount++;
 				}
 			}
 		}
@@ -360,16 +434,33 @@ static NSImage	*glyphSourceImage = nil;
 
 - (void)addColorList:(NSString *)listName ofClass:(NSString *)listClass
 {
+	NSMutableArray	*membersOfClass = [colorLists objectForKey:listClass];
+	
+	if (!membersOfClass)
+	{
+		membersOfClass = [NSMutableArray arrayWithObject:listName];
+		[colorLists setObject:membersOfClass forKey:listClass];
+	}
+	else if (![membersOfClass containsObject:listName])
+	{
+		[membersOfClass addObject:listName];
+		[membersOfClass sortUsingSelector:@selector(caseInsensitiveCompare:)];
+	}
 }
 
 
 - (void)removeColorList:(NSString *)listName ofClass:(NSString *)listClass
 {
+	NSMutableArray	*membersOfClass = [colorLists objectForKey:listClass];
+	
+	if (membersOfClass)
+		[membersOfClass removeObject:listName];
 }
 
 
-- (void)colorListsOfClass:(NSString *)listClass
+- (NSArray *)colorListsOfClass:(NSString *)listClass
 {
+	return [NSArray arrayWithArray:[colorLists objectForKey:listClass]];
 }
 
 
@@ -411,7 +502,9 @@ static NSImage	*glyphSourceImage = nil;
 - (void)dealloc
 {
     [fontNames release];
+	[colorLists release];
 	[letterPool release];
+	
     [focusWindow close];
     [focusWindowLock release];
 	

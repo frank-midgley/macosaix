@@ -48,7 +48,7 @@
 	NSMutableDictionary			*availableFontMembers;
 	
 		// Colors table data sources
-	NSArray						*builtinColorLists,
+	NSMutableArray				*builtinColorLists,
 								*systemWideColorLists,
 								*photoshopColorLists;
 }

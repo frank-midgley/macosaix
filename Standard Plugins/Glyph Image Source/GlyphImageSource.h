@@ -11,17 +11,19 @@
 
 @interface MacOSaiXGlyphImageSource : NSObject <MacOSaiXImageSource>
 {
-    NSMutableArray	*fontNames,
-					*colorNames;
-	NSString		*letterPool;
-	unsigned long	imageCountLimit,
-					imageCount;
+    NSMutableArray		*fontNames;
+	NSMutableDictionary	*colorLists;
+	NSString			*letterPool;
+	unsigned long		imageCountLimit,
+						imageCount;
 
-	NSRect			glyphsBounds;
+	NSRect				glyphsBounds;
 	
-    NSWindow		*focusWindow;	// for offscreen drawing
-    NSLock			*focusWindowLock;
+    NSWindow			*focusWindow;	// for offscreen drawing
+    NSLock				*focusWindowLock;
 }
+
++ (NSArray *)builtInColorListNames;
 
 - (void)addFontWithName:(NSString *)fontName;
 - (void)removeFontWithName:(NSString *)fontName;
@@ -29,7 +31,7 @@
 
 - (void)addColorList:(NSString *)listName ofClass:(NSString *)listClass;
 - (void)removeColorList:(NSString *)listName ofClass:(NSString *)listClass;
-- (void)colorListsOfClass:(NSString *)listClass;
+- (NSArray *)colorListsOfClass:(NSString *)listClass;
 
 - (void)setLetterPool:(NSString *)pool;
 - (NSString *)letterPool;
