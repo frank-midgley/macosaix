@@ -13,6 +13,7 @@
 #import "Tiles.h"
 #import "MosaicView.h"
 #import "OriginalView.h"
+#import "NSImage+MacOSaiX.h"
 #import <unistd.h>
 
 
@@ -92,6 +93,7 @@
 			NSString	*originalPath = [originalDict objectForKey:@"Path"],
 						*originalName = [originalDict objectForKey:@"Name"];
 			NSImage		*originalThumbnail = [[NSImage alloc] initWithData:[originalDict objectForKey:@"Thumbnail Data"]];
+			[originalThumbnail setCacheMode:NSImageCacheNever];
 			
 			if ([[NSFileManager defaultManager] fileExistsAtPath:originalPath])
 			{
@@ -231,6 +233,7 @@
 		
 			// Remember this original in the user's defaults so they can easily re-choose it for future mosaics.
 		NSImage			*originalImage = [[self document] originalImage];
+		NSImage			*thumbnailImage = [originalImage copyWithLargestDimension:16.0];
 		NSMutableArray	*originals = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] mutableCopy] autorelease];
 		if (originals)
 		{
@@ -246,16 +249,6 @@
 		}
 		else
 			originals = [NSMutableArray array];
-		NSSize			origSize = [originalImage size];
-		NSImage			*thumbnailImage = [[[NSImage alloc] initWithSize:NSMakeSize(16.0, 16.0)] autorelease];
-		[thumbnailImage lockFocus];
-			if (origSize.width > origSize.height)
-				[originalImage drawInRect:NSMakeRect(0, (16.0 - 16.0 * origSize.height / origSize.width) / 2.0, 16.0, 16.0 * origSize.height / origSize.width) 
-								 fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
-			else
-				[originalImage drawInRect:NSMakeRect((16.0 - 16.0 * origSize.width / origSize.height) / 2.0, 0, 16.0 * origSize.width / origSize.height, 32.0)
-								 fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
-		[thumbnailImage unlockFocus];
 		[originals insertObject:[NSDictionary dictionaryWithObjectsAndKeys:
 									imagePath, @"Path", 
 									[[imagePath lastPathComponent] stringByDeletingPathExtension], @"Name", 
@@ -281,6 +274,8 @@
 			[originalItem setImage:thumbnailImage];
 		[[originalImagePopUpButton menu] insertItem:originalItem atIndex:0];
 		[originalImagePopUpButton selectItemAtIndex:0];
+		
+		[thumbnailImage release];
 		
 // TODO: Where should this be?
 //			// Create a timer to animate any selected tile ten times per second.
@@ -1214,6 +1209,7 @@
 	[NSThread setThreadPriority:0.1];
 
     NSImage		*exportImage = [[NSImage alloc] initWithSize:NSMakeSize([exportWidth intValue], [exportHeight intValue])];
+	[exportImage setCacheMode:NSImageCacheNever];
 	NS_DURING
 		[exportImage lockFocus];
 	NS_HANDLER
