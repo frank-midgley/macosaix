@@ -142,29 +142,32 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 
 - (void)setCurrentImage:(NSImage *)image
 {
+	NSImage	*newImage = [[NSImage alloc] initWithSize:NSMakeSize(64.0, 64.0)];
+	[newImage setCacheMode:NSImageCacheNever];
+	
+	NS_DURING
+		[newImage lockFocus];
+			if ([image size].width > [image size].height)
+				[image drawInRect:NSMakeRect(0, (64.0 - 64.0 / [image size].width * [image size].height) / 2.0, 64, 64 / [image size].width * [image size].height)
+						 fromRect:NSZeroRect
+						operation:NSCompositeCopy
+						 fraction:1.0];
+			else
+				[image drawInRect:NSMakeRect((64.0 - 64.0 / [image size].height * [image size].width) / 2.0, 0, 64.0 / [image size].height * [image size].width, 64)
+						 fromRect:NSZeroRect
+						operation:NSCompositeCopy
+						 fraction:1.0];
+			
+		// TODO: draw a rough progress indicator at the bottom of the image
+			
+		[newImage unlockFocus];
+	NS_HANDLER
+		NSLog(@"QuickTime Image Source: Could not set current image.");
+	NS_ENDHANDLER
+	
 	[currentImageLock lock];
 		[currentImage autorelease];
-		currentImage = [[NSImage alloc] initWithSize:NSMakeSize(64.0, 64.0)];
-		[currentImage setCacheMode:NSImageCacheNever];
-		
-		NS_DURING
-			[currentImage lockFocus];
-				if ([image size].width > [image size].height)
-					[image drawInRect:NSMakeRect(0, (64.0 - 64.0 / [image size].width * [image size].height) / 2.0, 64, 64 / [image size].width * [image size].height)
-							 fromRect:NSZeroRect
-							operation:NSCompositeCopy
-							 fraction:1.0];
-				else
-					[image drawInRect:NSMakeRect((64.0 - 64.0 / [image size].height * [image size].width) / 2.0, 0, 64.0 / [image size].height * [image size].width, 64)
-							 fromRect:NSZeroRect
-							operation:NSCompositeCopy
-							 fraction:1.0];
-				
-				// TODO: draw a rough progress indicator at the bottom of the image
-			[currentImage unlockFocus];
-		NS_HANDLER
-			NSLog(@"QuickTime Image Source: Could not set current image.");
-		NS_ENDHANDLER
+		currentImage = newImage;
 	[currentImageLock unlock];
 }
 
