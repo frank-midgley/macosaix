@@ -57,16 +57,11 @@
 			settings = {
 			};
 		};
-		01283240071B7298004ACF95 = {
-			fileRef = 926CE4E903E7627700C7E70E;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		01283247071B72B5004ACF95 = {
 			buildActionMask = 2147483647;
 			files = (
 				01453D55071B6F8000BCEC7C,
+				9287C13E075A5CC6004C07EF,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -127,7 +122,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				0128323A071B7297004ACF95,
-				01283240071B7298004ACF95,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -155,7 +149,6 @@
 				WRAPPER_EXTENSION = plugin;
 			};
 			dependencies = (
-				01453D4D071B6F3300BCEC7C,
 			);
 			isa = PBXNativeTarget;
 			name = "Puzzle Tiles Setup";
@@ -191,18 +184,6 @@
 			path = "Puzzle Tiles.plugin";
 			refType = 3;
 			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		01453D4C071B6F3300BCEC7C = {
-			containerPortal = 29B97313FDCFA39411CA2CEA;
-			isa = PBXContainerItemProxy;
-			proxyType = 1;
-			remoteGlobalIDString = 928489A506611CE6003B3514;
-			remoteInfo = "MacOSaiX Plugins Framework";
-		};
-		01453D4D071B6F3300BCEC7C = {
-			isa = PBXTargetDependency;
-			target = 928489A506611CE6003B3514;
-			targetProxy = 01453D4C071B6F3300BCEC7C;
 		};
 		01453D4E071B6F7900BCEC7C = {
 			children = (
@@ -288,26 +269,8 @@
 			settings = {
 			};
 		};
-		014DB62D071A2D5000DF68C0 = {
-			containerPortal = 29B97313FDCFA39411CA2CEA;
-			isa = PBXContainerItemProxy;
-			proxyType = 1;
-			remoteGlobalIDString = 928489A506611CE6003B3514;
-			remoteInfo = "MacOSaiX Plugins Framework";
-		};
-		014DB62E071A2D5000DF68C0 = {
-			isa = PBXTargetDependency;
-			target = 928489A506611CE6003B3514;
-			targetProxy = 014DB62D071A2D5000DF68C0;
-		};
 		01A1978E071A200E00B11558 = {
 			fileRef = F514D53C0390266E01B25AF1;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		01A19794071A201400B11558 = {
-			fileRef = 926CE4E903E7627700C7E70E;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -328,6 +291,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				01A197AE071A202E00B11558,
+				9287C13D075A5CC6004C07EF,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -406,7 +370,6 @@
 		01CB07E4071A1F2B00710BCF = {
 			buildActionMask = 2147483647;
 			files = (
-				01A19794071A201400B11558,
 				01A1978E071A200E00B11558,
 			);
 			isa = PBXFrameworksBuildPhase;
@@ -435,7 +398,6 @@
 				WRAPPER_EXTENSION = plugin;
 			};
 			dependencies = (
-				014DB62E071A2D5000DF68C0,
 			);
 			isa = PBXNativeTarget;
 			name = "Hexagonal Tiles Plug-in";
@@ -450,12 +412,6 @@
 			path = "Hexagonal Tiles.plugin";
 			refType = 3;
 			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		01DF6CEB070133DF00512549 = {
-			fileRef = 926CE4E903E7627700C7E70E;
-			isa = PBXBuildFile;
-			settings = {
-			};
 		};
 //010
 //011
@@ -490,6 +446,7 @@
 				F566B486028052CF01000108,
 				00EAAC6000853DFB7F000001,
 				00EAAC6100853DFB7F000001,
+				9287C13A075A5CC6004C07EF,
 				923384DB072180700010BE04,
 				928F724A0661214000873AE2,
 				928F726C066121AE00873AE2,
@@ -514,7 +471,6 @@
 		19C28FACFE9D520D11CA2CBB = {
 			children = (
 				928489A306611CE6003B3514,
-				928489B406611CE6003B3514,
 				928489C406611CE6003B3514,
 				928489D406611CE6003B3514,
 				928489E506611CE6003B3514,
@@ -554,7 +510,6 @@
 			projectDirPath = "";
 			targets = (
 				9284897106611CE5003B3514,
-				928489A506611CE6003B3514,
 				928489B506611CE6003B3514,
 				928489D506611CE6003B3514,
 				928489C506611CE6003B3514,
@@ -567,7 +522,6 @@
 		29B97314FDCFA39411CA2CEA = {
 			children = (
 				080E96DDFE201D6D7F000001,
-				F5EE25F903901ECD01705684,
 				F5EE25FD03901F9D01705684,
 				29B97323FDCFA39411CA2CEA,
 				19C28FACFE9D520D11CA2CBB,
@@ -692,6 +646,8 @@
 		};
 		927FA75B03FA35EE000A0D3F = {
 			children = (
+				9287C153075A5F55004C07EF,
+				9287C154075A5F55004C07EF,
 				92902AEEC5B082BD00F96641,
 				92902AEFC5B082BD00F96641,
 				928F72930661226000873AE2,
@@ -793,7 +749,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				92848A1B06611CE6003B3514,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -824,6 +779,7 @@
 				9289DDA7073D713100C88091,
 				9289DDA9073D713100C88091,
 				01BBDECD0747081400F17A9F,
+				9287C13B075A5CC6004C07EF,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1016,7 +972,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				9284899F06611CE5003B3514,
-				01DF6CEB070133DF00512549,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1032,143 +987,6 @@
 			includeInIndex = 0;
 			isa = PBXFileReference;
 			path = MacOSaiX.app;
-			refType = 3;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		928489A506611CE6003B3514 = {
-			buildPhases = (
-				928489A606611CE6003B3514,
-				928489AA06611CE6003B3514,
-				928489AB06611CE6003B3514,
-				928489AF06611CE6003B3514,
-				928489B106611CE6003B3514,
-			);
-			buildRules = (
-			);
-			buildSettings = {
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				FRAMEWORK_VERSION = A;
-				INFOPLIST_FILE = "MacOSaiX Plugins Framework/Info.plist";
-				INSTALL_PATH = "@executable_path/../Frameworks";
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "-seg1addr 0x10000000";
-				OTHER_LIBTOOL_FLAGS = "";
-				OTHER_REZFLAGS = "";
-				PRINCIPAL_CLASS = "";
-				PRODUCT_NAME = MacOSaiXPlugins;
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
-				WRAPPER_EXTENSION = framework;
-			};
-			dependencies = (
-			);
-			isa = PBXNativeTarget;
-			name = "MacOSaiX Plugins Framework";
-			productInstallPath = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-			productName = "MacOSaiX Plugins";
-			productReference = 928489B406611CE6003B3514;
-			productType = "com.apple.product-type.framework";
-		};
-		928489A606611CE6003B3514 = {
-			buildActionMask = 2147483647;
-			files = (
-				928489A706611CE6003B3514,
-				928489A806611CE6003B3514,
-				928489A906611CE6003B3514,
-			);
-			isa = PBXHeadersBuildPhase;
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		928489A706611CE6003B3514 = {
-			fileRef = F5407215023FE6510100010A;
-			isa = PBXBuildFile;
-			settings = {
-				ATTRIBUTES = (
-					Public,
-				);
-			};
-		};
-		928489A806611CE6003B3514 = {
-			fileRef = F514D5A603949BA301B25AF1;
-			isa = PBXBuildFile;
-			settings = {
-				ATTRIBUTES = (
-					Public,
-				);
-			};
-		};
-		928489A906611CE6003B3514 = {
-			fileRef = 92902AEAC5B0821F00F96641;
-			isa = PBXBuildFile;
-			settings = {
-				ATTRIBUTES = (
-					Public,
-				);
-			};
-		};
-		928489AA06611CE6003B3514 = {
-			buildActionMask = 2147483647;
-			files = (
-				928F727C066121DE00873AE2,
-			);
-			isa = PBXResourcesBuildPhase;
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		928489AB06611CE6003B3514 = {
-			buildActionMask = 2147483647;
-			files = (
-				928489AC06611CE6003B3514,
-				928489AD06611CE6003B3514,
-				928489AE06611CE6003B3514,
-			);
-			isa = PBXSourcesBuildPhase;
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		928489AC06611CE6003B3514 = {
-			fileRef = F5407216023FE6510100010A;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		928489AD06611CE6003B3514 = {
-			fileRef = F514D5A703949BA301B25AF1;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		928489AE06611CE6003B3514 = {
-			fileRef = 92902AEBC5B0821F00F96641;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		928489AF06611CE6003B3514 = {
-			buildActionMask = 2147483647;
-			files = (
-				928489B006611CE6003B3514,
-			);
-			isa = PBXFrameworksBuildPhase;
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		928489B006611CE6003B3514 = {
-			fileRef = F514D53C0390266E01B25AF1;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		928489B106611CE6003B3514 = {
-			buildActionMask = 2147483647;
-			files = (
-			);
-			isa = PBXRezBuildPhase;
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		928489B406611CE6003B3514 = {
-			explicitFileType = wrapper.framework;
-			includeInIndex = 0;
-			isa = PBXFileReference;
-			path = MacOSaiXPlugins.framework;
 			refType = 3;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
@@ -1465,7 +1283,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				928489E006611CE6003B3514,
-				92848A1F06611CE6003B3514,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1512,7 +1329,6 @@
 				WRAPPER_EXTENSION = plugin;
 			};
 			dependencies = (
-				92848A1406611CE6003B3514,
 			);
 			isa = PBXNativeTarget;
 			name = "Rectangular Tiles Plug-In";
@@ -1525,6 +1341,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				928489E906611CE6003B3514,
+				9287C13C075A5CC6004C07EF,
+				9287C155075A5F55004C07EF,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1548,6 +1366,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				928489ED06611CE6003B3514,
+				9287C156075A5F55004C07EF,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1561,17 +1380,10 @@
 		928489EE06611CE6003B3514 = {
 			buildActionMask = 2147483647;
 			files = (
-				928489EF06611CE6003B3514,
 				928489F006611CE6003B3514,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
-		};
-		928489EF06611CE6003B3514 = {
-			fileRef = 926CE4E903E7627700C7E70E;
-			isa = PBXBuildFile;
-			settings = {
-			};
 		};
 		928489F006611CE6003B3514 = {
 			fileRef = F514D53C0390266E01B25AF1;
@@ -1721,18 +1533,6 @@
 			target = 928489E606611CE6003B3514;
 			targetProxy = 92848A0B06611CE6003B3514;
 		};
-		92848A1306611CE6003B3514 = {
-			containerPortal = 29B97313FDCFA39411CA2CEA;
-			isa = PBXContainerItemProxy;
-			proxyType = 1;
-			remoteGlobalIDString = 928489A506611CE6003B3514;
-			remoteInfo = "MacOSaiX Plugins Framework (Upgraded)";
-		};
-		92848A1406611CE6003B3514 = {
-			isa = PBXTargetDependency;
-			target = 928489A506611CE6003B3514;
-			targetProxy = 92848A1306611CE6003B3514;
-		};
 		92848A1706611CE6003B3514 = {
 			fileRef = 928489C406611CE6003B3514;
 			isa = PBXBuildFile;
@@ -1741,18 +1541,6 @@
 		};
 		92848A1A06611CE6003B3514 = {
 			fileRef = 928489F306611CE6003B3514;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		92848A1B06611CE6003B3514 = {
-			fileRef = 928489B406611CE6003B3514;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		92848A1F06611CE6003B3514 = {
-			fileRef = 928489B406611CE6003B3514;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -1801,6 +1589,69 @@
 		};
 		9286575A0734584600EFC32A = {
 			fileRef = 923384DB072180700010BE04;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		9287C13A075A5CC6004C07EF = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = MacOSaiXTileShapes.h;
+			path = MacOSaiX/MacOSaiXTileShapes.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		9287C13B075A5CC6004C07EF = {
+			fileRef = 9287C13A075A5CC6004C07EF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		9287C13C075A5CC6004C07EF = {
+			fileRef = 9287C13A075A5CC6004C07EF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		9287C13D075A5CC6004C07EF = {
+			fileRef = 9287C13A075A5CC6004C07EF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		9287C13E075A5CC6004C07EF = {
+			fileRef = 9287C13A075A5CC6004C07EF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		9287C153075A5F55004C07EF = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = RectangularTileShapes.h;
+			path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapes.h";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		9287C154075A5F55004C07EF = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = RectangularTileShapes.m;
+			path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapes.m";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		9287C155075A5F55004C07EF = {
+			fileRef = 9287C153075A5F55004C07EF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		9287C156075A5F55004C07EF = {
+			fileRef = 9287C154075A5F55004C07EF;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -1958,21 +1809,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		928F727B066121DE00873AE2 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = text.xml;
-			name = Info.plist;
-			path = "MacOSaiX Plugins Framework/Info.plist";
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		928F727C066121DE00873AE2 = {
-			fileRef = 928F727B066121DE00873AE2;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		928F728F0661226000873AE2 = {
 			children = (
 				928F72900661226000873AE2,
@@ -2014,7 +1850,7 @@
 				928F72940661226000873AE2,
 			);
 			isa = PBXVariantGroup;
-			name = RectangularTilesSetup.nib;
+			name = RectangularTileShapes.nib;
 			path = "";
 			refType = 4;
 			sourceTree = "<group>";
@@ -2023,7 +1859,7 @@
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.nib;
 			name = English;
-			path = "Standard Plugins/Rectangular Tiles Setup/English.lproj/RectangularTilesSetup.nib";
+			path = "Standard Plugins/Rectangular Tiles Setup/English.lproj/RectangularTileShapes.nib";
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -2211,30 +2047,12 @@
 			settings = {
 			};
 		};
-		92902AEAC5B0821F00F96641 = {
-			fileEncoding = 4;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			name = TilesSetupController.h;
-			path = "MacOSaiX Plugins Framework/TilesSetupController.h";
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		92902AEBC5B0821F00F96641 = {
-			fileEncoding = 4;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.objc;
-			name = TilesSetupController.m;
-			path = "MacOSaiX Plugins Framework/TilesSetupController.m";
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		92902AEEC5B082BD00F96641 = {
 			fileEncoding = 4;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
-			name = RectangularTilesSetupController.h;
-			path = "Standard Plugins/Rectangular Tiles Setup/RectangularTilesSetupController.h";
+			name = RectangularTileShapesEditor.h;
+			path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapesEditor.h";
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -2242,8 +2060,8 @@
 			fileEncoding = 4;
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
-			name = RectangularTilesSetupController.m;
-			path = "Standard Plugins/Rectangular Tiles Setup/RectangularTilesSetupController.m";
+			name = RectangularTileShapesEditor.m;
+			path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapesEditor.m";
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -2408,24 +2226,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		F514D5A603949BA301B25AF1 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			name = ImageSourceController.h;
-			path = "MacOSaiX Plugins Framework/ImageSourceController.h";
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		F514D5A703949BA301B25AF1 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.objc;
-			name = ImageSourceController.m;
-			path = "MacOSaiX Plugins Framework/ImageSourceController.m";
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		F528CBCA0274A44201E37B2D = {
 			isa = PBXFileReference;
 			lastKnownFileType = image.icns;
@@ -2449,24 +2249,6 @@
 			lastKnownFileType = sourcecode.c.objc;
 			name = NotifyingScrollView.m;
 			path = MacOSaiX/NotifyingScrollView.m;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		F5407215023FE6510100010A = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			name = ImageSource.h;
-			path = "MacOSaiX Plugins Framework/ImageSource.h";
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		F5407216023FE6510100010A = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.objc;
-			name = ImageSource.m;
-			path = "MacOSaiX Plugins Framework/ImageSource.m";
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -2715,21 +2497,6 @@
 			};
 			isa = PBXBuildStyle;
 			name = Profile;
-		};
-		F5EE25F903901ECD01705684 = {
-			children = (
-				F5407215023FE6510100010A,
-				F5407216023FE6510100010A,
-				F514D5A603949BA301B25AF1,
-				F514D5A703949BA301B25AF1,
-				92902AEAC5B0821F00F96641,
-				92902AEBC5B0821F00F96641,
-				928F727B066121DE00873AE2,
-			);
-			isa = PBXGroup;
-			name = "MacOSaiX Plugins Framework";
-			refType = 4;
-			sourceTree = "<group>";
 		};
 		F5EE25FD03901F9D01705684 = {
 			children = (
