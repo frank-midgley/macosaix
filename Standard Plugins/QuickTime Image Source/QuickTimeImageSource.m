@@ -1,21 +1,55 @@
 #import <AppKit/AppKit.h>
 #import <QuickTime/QuickTime.h>
 #import "QuickTimeImageSource.h"
+#import <pthread.h>
+
+
+static NSRecursiveLock  *sQuickTimeLock = nil;
+
+
+@interface QuickTimeImageSource (PrivateMethods)
+- (void)setCurrentImage:(NSImage *)image;
+@end
 
 
 @implementation QuickTimeImageSource
 
 
+- (void)lockQuickTime
+{
+	if (!sQuickTimeLock)
+		sQuickTimeLock = [[NSRecursiveLock alloc] init];
+	
+//	void (*funcPtr)(int) = CFBundleGetFunctionPointerForName(CFBundleGetBundleWithIdentifier(CFSTR("com.apple.QuickTime")),
+//															 CFSTR("EnterMoviesOnThread"));
+//	if (funcPtr)
+//		funcPtr(1L << 1);
+//    EnterMovies();
+
+	[sQuickTimeLock lock];
+}
+
+
+- (void)unlockQuickTime
+{
+//	void (*funcPtr)() = CFBundleGetFunctionPointerForName(CFBundleGetBundleWithIdentifier(CFSTR("com.apple.QuickTime")),
+//															 CFSTR("ExitMoviesOnThread"));
+//	if (funcPtr)
+//		funcPtr();
+//    ExitMovies();
+    
+	[sQuickTimeLock unlock];
+}
+
+
 - (id)initWithPath:(NSString *)path
 {
-	self = [super init];
-	if (self)
+	if (self = [super init])
 	{
 		FSRef		movieRef;
 		OSStatus	status = FSPathMakeRef([path fileSystemRepresentation], &movieRef, NULL);
 	
-		_moviePath = [path retain];
-		_curTimeValue = 0;
+		moviePath = [path retain];
 		if (status == noErr)
 		{
 			FSSpec	movieSpec;
@@ -29,23 +63,28 @@
 				err = OpenMovieFile(&movieSpec, &theRefNum, fsRdPerm);
 				if (err == noErr)
 				{
-					err = NewMovieFromFile(&_movie, theRefNum, 0, NULL, newMovieActive, NULL);
+					err = NewMovieFromFile(&movie, theRefNum, 0, NULL, newMovieActive, NULL);
 					
 					if (err == noErr)
 					{
 						Rect		movieBounds;
 						
-						GetMovieBox(_movie, &movieBounds);
+						GetMovieBox(movie, &movieBounds);
 						OffsetRect(&movieBounds, -movieBounds.left, -movieBounds.top);
-						SetMovieBox(_movie, &movieBounds);
+						SetMovieBox(movie, &movieBounds);
 						NSLog(@"Movie size:%d, %d", movieBounds.right, movieBounds.bottom);
+						
+                        minIncrement = GetMovieTimeScale(movie) / 10;   // equals 10 fps
+						duration = GetMovieDuration(movie);
+						
+						[self setCurrentImage:[self imageForIdentifier:[NSNumber numberWithLong:GetMoviePosterTime(movie)]]];
 					}
 					
 					CloseMovieFile(theRefNum);
 				}
 			}
 		}
-		if (!_movie)
+		if (!movie)
 		{
 			[self autorelease];
 			self = nil;
@@ -55,72 +94,138 @@
 }
 
 
+- (void)setCurrentImage:(NSImage *)image
+{
+	[currentImage autorelease];
+	currentImage = [[NSImage alloc] initWithSize:NSMakeSize(64.0, 64.0)];
+	
+	NS_DURING
+		[currentImage lockFocus];
+			if ([image size].width > [image size].height)
+				[image drawInRect:NSMakeRect(0, (64.0 - 64.0 / [image size].width * [image size].height) / 2.0, 64, 64 / [image size].width * [image size].height)
+						 fromRect:NSZeroRect
+						operation:NSCompositeCopy
+						 fraction:1.0];
+			else
+				[image drawInRect:NSMakeRect((64.0 - 64.0 / [image size].height * [image size].width) / 2.0, 0, 64.0 / [image size].height * [image size].width, 64)
+						 fromRect:NSZeroRect
+						operation:NSCompositeCopy
+						 fraction:1.0];
+		[currentImage unlockFocus];
+	NS_HANDLER
+	NS_ENDHANDLER
+}
+
+
 	// return the image to be displayed in the list of image sources
 - (NSImage *)image;
 {
-    return [[NSWorkspace sharedWorkspace] iconForFile:_moviePath];
+    return currentImage ? currentImage : [[NSWorkspace sharedWorkspace] iconForFile:moviePath];
 }
 
 
 	// return the text to be displayed in the list of image sources
 - (NSString *)descriptor
 {
-    return _moviePath;
+    return moviePath;
 }
 
 
 - (BOOL)hasMoreImages
 {
-	return _curTimeValue < GetMovieDuration(_movie);
+	return currentTimeValue < duration;
 }
 
 
 - (id)nextImageIdentifier
 {
-    _curTimeValue += 5;	//_duration;
-//    GetMovieNextInterestingTime (_movie, nextTimeMediaSample, 0, nil, _curTimeValue, 1, &_curTimeValue, &_duration);
-//    NSLog(@"Next interesting time=%@", [NSNumber numberWithLong:_curTimeValue]);
-	return [NSNumber numberWithLong:_curTimeValue];
+	NSMutableArray	*parameters = [NSMutableArray array];
+	
+	[self performSelectorOnMainThread:@selector(nextImageIdentifierOnMainThread:) 
+						   withObject:parameters
+						waitUntilDone:YES];
+	
+	return ([parameters count] > 0 ? [parameters objectAtIndex:0] : nil);
+}
+
+
+- (void)nextImageIdentifierOnMainThread:(NSMutableArray *)parameters
+{
+    TimeValue   nextInterestingTime = 0;
+    
+	GetMovieNextInterestingTime (movie, nextTimeStep, 0, nil, currentTimeValue, 1, &nextInterestingTime, nil);
+	OSErr   err = GetMoviesError();
+	
+	if (err != noErr)
+		NSLog(@"Error %d getting next interesting time.", err);
+	else
+	{
+		if (nextInterestingTime - currentTimeValue < minIncrement)
+			currentTimeValue += minIncrement;
+		else
+			currentTimeValue = nextInterestingTime;
+		_imageCount++;
+	}
+    
+//    NSLog(@"Next interesting time=%@", [NSNumber numberWithLong:currentTimeValue]);
+	
+	[parameters addObject:[NSNumber numberWithLong:currentTimeValue]];
 }
 
 
 - (NSImage *)imageForIdentifier:(id)identifier
 {
-	TimeValue	requestedTime = [identifier longValue];
+	NSImage		*imageAtTimeValue = [[[NSImage alloc] initWithSize:NSMakeSize(64, 64)] autorelease];
 	
-	if (requestedTime > GetMovieDuration(_movie)) return nil;
+	[self performSelectorOnMainThread:@selector(imageForIdentifierOnMainThread:) 
+						   withObject:[NSArray arrayWithObjects:identifier, imageAtTimeValue, nil]
+						waitUntilDone:YES];
 	
-	PicHandle	picHandle = GetMoviePict(_movie, requestedTime);
-	NSImage		*imageAtTimeValue = nil;
-	Rect		movieBounds = {0, 0, 0, 0};
+	if ([identifier longValue] == currentTimeValue)
+		[self setCurrentImage:imageAtTimeValue];
 	
-	if (picHandle)
+	return imageAtTimeValue;
+}
+
+
+- (void)imageForIdentifierOnMainThread:(NSArray *)parameters
+{
+	TimeValue	requestedTime = [[parameters objectAtIndex:0] longValue];
+	
+	if (requestedTime <= duration)
 	{
-		NSPICTImageRep	*imageRep = [NSPICTImageRep imageRepWithData:[NSData dataWithBytes:*picHandle 
-																					length:GetHandleSize((Handle)picHandle)]];
-		
-		movieBounds.top += 1;
-		if (imageAtTimeValue = [[[NSImage alloc] initWithSize:[imageRep size]] autorelease])
+		PicHandle	picHandle = GetMoviePict(movie, requestedTime);
+		OSErr       err = GetMoviesError();
+		if (err != noErr)
+			NSLog(@"Error %d getting movie picture.", err);
+		else if (picHandle)
 		{
+			NSPICTImageRep	*imageRep = [NSPICTImageRep imageRepWithData:[NSData dataWithBytes:*picHandle 
+																						length:GetHandleSize((Handle)picHandle)]];
+			NSImage			*imageAtTimeValue = [parameters objectAtIndex:1];
+			
 			[imageAtTimeValue setScalesWhenResized:YES];
+			[imageAtTimeValue setSize:[imageRep size]];
+			
 			NS_DURING
 				[imageAtTimeValue lockFocus];
-					[imageRep drawAtPoint:NSMakePoint(0,0)];
+					[imageRep drawAtPoint:NSZeroPoint];
 				[imageAtTimeValue unlockFocus];
 			NS_HANDLER
 				NSLog(@"QuickTime Image Source: Could not lock focus on image");
 			NS_ENDHANDLER
+			
+			KillPicture(picHandle);
 		}
-		
-		KillPicture(picHandle);
 	}
-    return imageAtTimeValue;
 }
 
 
 - (void)dealloc
 {
-	[_moviePath release];
+	[moviePath release];
+	
+	[super dealloc];
 }
 
 
