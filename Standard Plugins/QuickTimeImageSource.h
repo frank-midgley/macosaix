@@ -13,9 +13,11 @@
 
 @interface QuickTimeImageSource : ImageSource
 {
-    NSString	*_moviePath;
-	Movie		_movie;
-	TimeValue	_curTimeValue, _duration;
+    NSString	*moviePath;
+	Movie		movie;
+	TimeValue	minIncrement,
+                currentTimeValue, 
+                duration;
 }
 
 @end

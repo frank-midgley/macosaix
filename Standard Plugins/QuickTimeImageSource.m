@@ -6,6 +6,7 @@
 
 static NSRecursiveLock  *sQuickTimeLock = nil;
 
+
 @implementation QuickTimeImageSource
 
 
@@ -14,10 +15,11 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 	if (!sQuickTimeLock)
 		sQuickTimeLock = [[NSRecursiveLock alloc] init];
 	
-	void (*funcPtr)(int) = CFBundleGetFunctionPointerForName(CFBundleGetBundleWithIdentifier(CFSTR("com.apple.QuickTime")),
-															 CFSTR("EnterMoviesOnThread"));
-	if (funcPtr)
-		funcPtr(1L << 1);
+//	void (*funcPtr)(int) = CFBundleGetFunctionPointerForName(CFBundleGetBundleWithIdentifier(CFSTR("com.apple.QuickTime")),
+//															 CFSTR("EnterMoviesOnThread"));
+//	if (funcPtr)
+//		funcPtr(1L << 1);
+//    EnterMovies();
 
 	[sQuickTimeLock lock];
 }
@@ -25,24 +27,24 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 
 - (void)unlockQuickTime
 {
-	void (*funcPtr)() = CFBundleGetFunctionPointerForName(CFBundleGetBundleWithIdentifier(CFSTR("com.apple.QuickTime")),
-															 CFSTR("ExitMoviesOnThread"));
-	if (funcPtr)
-		funcPtr();
+//	void (*funcPtr)() = CFBundleGetFunctionPointerForName(CFBundleGetBundleWithIdentifier(CFSTR("com.apple.QuickTime")),
+//															 CFSTR("ExitMoviesOnThread"));
+//	if (funcPtr)
+//		funcPtr();
+//    ExitMovies();
+    
 	[sQuickTimeLock unlock];
 }
 
 
 - (id)initWithPath:(NSString *)path
 {
-	self = [super init];
-	if (self)
+	if (self = [super init])
 	{
 		FSRef		movieRef;
 		OSStatus	status = FSPathMakeRef([path fileSystemRepresentation], &movieRef, NULL);
 	
-		_moviePath = [path retain];
-		_curTimeValue = 0;
+		moviePath = [path retain];
 		if (status == noErr)
 		{
 			FSSpec	movieSpec;
@@ -56,25 +58,26 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 				err = OpenMovieFile(&movieSpec, &theRefNum, fsRdPerm);
 				if (err == noErr)
 				{
-					err = NewMovieFromFile(&_movie, theRefNum, 0, NULL, newMovieActive, NULL);
+					err = NewMovieFromFile(&movie, theRefNum, 0, NULL, newMovieActive, NULL);
 					
 					if (err == noErr)
 					{
 						Rect		movieBounds;
 						
-						GetMovieBox(_movie, &movieBounds);
+						GetMovieBox(movie, &movieBounds);
 						OffsetRect(&movieBounds, -movieBounds.left, -movieBounds.top);
-						SetMovieBox(_movie, &movieBounds);
+						SetMovieBox(movie, &movieBounds);
 						NSLog(@"Movie size:%d, %d", movieBounds.right, movieBounds.bottom);
 						
-						_duration = GetMovieDuration(_movie);
+                        minIncrement = GetMovieTimeScale(movie) / 30;   // at most 30 frames/second
+						duration = GetMovieDuration(movie);
 					}
 					
 					CloseMovieFile(theRefNum);
 				}
 			}
 		}
-		if (!_movie)
+		if (!movie)
 		{
 			[self autorelease];
 			self = nil;
@@ -87,36 +90,46 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 	// return the image to be displayed in the list of image sources
 - (NSImage *)image;
 {
-    return [[NSWorkspace sharedWorkspace] iconForFile:_moviePath];
+    return [[NSWorkspace sharedWorkspace] iconForFile:moviePath];
 }
 
 
 	// return the text to be displayed in the list of image sources
 - (NSString *)descriptor
 {
-    return _moviePath;
+    return moviePath;
 }
 
 
 - (BOOL)hasMoreImages
 {
-	return _curTimeValue < _duration;
+	return currentTimeValue < duration;
 }
 
 
 - (id)nextImageIdentifier
 {
+    TimeValue   nextInterestingTime = 0;
+    
 	[self lockQuickTime];
-		GetMovieNextInterestingTime (_movie, nextTimeStep, 0, nil, _curTimeValue, 1, &_curTimeValue, &_duration);
+		GetMovieNextInterestingTime (movie, nextTimeStep, 0, nil, currentTimeValue, 1, &nextInterestingTime, nil);
 		OSErr   err = GetMoviesError();
 	[self unlockQuickTime];
 	
 	if (err != noErr)
+    {
 		NSLog(@"Error %d getting next interesting time.", err);
+        return nil;
+    }
 	
-    NSLog(@"Next interesting time=%@", [NSNumber numberWithLong:_curTimeValue]);
+    if (nextInterestingTime - currentTimeValue < minIncrement)
+        currentTimeValue += minIncrement;
+    else
+        currentTimeValue = nextInterestingTime;
+    
+//    NSLog(@"Next interesting time=%@", [NSNumber numberWithLong:currentTimeValue]);
 	
-	return [NSNumber numberWithLong:_curTimeValue];
+	return [NSNumber numberWithLong:currentTimeValue];
 }
 
 
@@ -124,17 +137,17 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 {
 	TimeValue	requestedTime = [identifier longValue];
 	
-	if (requestedTime > _duration) return nil;
-	
-//	if (!pthread_main_np())
-//		CSSetComponentsThreadMode(kCSAcceptThreadSafeComponentsOnlyMode);
+	if (requestedTime > duration) return nil;
 	
 	[self lockQuickTime];
-		PicHandle	picHandle = GetMoviePict(_movie, requestedTime);
+		PicHandle	picHandle = GetMoviePict(movie, requestedTime);
+        OSErr       err = GetMoviesError();
 	[self unlockQuickTime];
-	OSErr   err = GetMoviesError();
 	if (err != noErr)
+    {
 		NSLog(@"Error %d getting movie picture.", err);
+        return nil;
+    }
 	
 	NSImage		*imageAtTimeValue = nil;
 	Rect		movieBounds = {0, 0, 0, 0};
@@ -165,7 +178,7 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 
 - (void)dealloc
 {
-	[_moviePath release];
+	[moviePath release];
 }
 
 
