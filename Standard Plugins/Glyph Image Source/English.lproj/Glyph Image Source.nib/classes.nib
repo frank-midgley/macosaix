@@ -2,7 +2,14 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            ACTIONS = {setCountOption = id; setTextOption = id; toggleColor = id; toggleFont = id; }; 
+            ACTIONS = {
+                setCountOption = id; 
+                setTextOption = id; 
+                toggleColor = id; 
+                toggleFont = id; 
+                toggleSelectedColors = id; 
+                toggleSelectedFonts = id; 
+            }; 
             CLASS = MacOSaiXGlyphImageSourceController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
@@ -11,10 +18,12 @@
                 countTextField = NSTextField; 
                 editorView = NSView; 
                 fontsOutlineView = NSOutlineView; 
-                okButton = NSButton; 
                 sampleImageView = NSImageView; 
+                sizeTextField = NSTextField; 
                 textMatrix = NSMatrix; 
                 textView = NSTextView; 
+                toggleColorsButton = NSButton; 
+                toggleFontsButton = NSButton; 
             }; 
             SUPERCLASS = NSObject; 
         }

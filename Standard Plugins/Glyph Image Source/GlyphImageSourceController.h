@@ -17,13 +17,16 @@
 	
 	IBOutlet NSOutlineView		*fontsOutlineView;
 	IBOutlet NSTableView		*colorsTableView;
+	IBOutlet NSButton			*toggleFontsButton,
+								*toggleColorsButton;
 	IBOutlet NSMatrix			*textMatrix,
 								*countMatrix;
 	IBOutlet NSTextView			*textView;
 	IBOutlet NSTextField		*countTextField;
 	IBOutlet NSImageView		*sampleImageView;
+	IBOutlet NSTextField		*sizeTextField;
 	
-	IBOutlet NSButton			*okButton;
+	NSButton					*okButton;
 	
 	MacOSaiXGlyphImageSource	*currentImageSource;
 	NSTimer						*sampleTimer;
@@ -33,7 +36,9 @@
 }
 
 - (IBAction)toggleFont:(id)sender;
+- (IBAction)toggleSelectedFonts:(id)sender;
 - (IBAction)toggleColor:(id)sender;
+- (IBAction)toggleSelectedColors:(id)sender;
 - (IBAction)setTextOption:(id)sender;
 - (IBAction)setCountOption:(id)sender;
 

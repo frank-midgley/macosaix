@@ -7,6 +7,7 @@
 //
 
 #import "GlyphImageSourceController.h"
+#import "NSString+MacOSaiX.h"
 
 
 @implementation MacOSaiXGlyphImageSourceController
@@ -23,7 +24,7 @@
 
 - (NSSize)editorViewMinimumSize
 {
-	return NSMakeSize(358.0, 266.0);
+	return NSMakeSize(450.0, 400.0);
 }
 
 
@@ -55,6 +56,21 @@
 - (void)setOKButton:(NSButton *)button
 {
 	okButton = button;
+}
+
+
+- (void)updateSample:(NSTimer *)timer
+{
+	[currentImageSource reset];
+	[sampleImageView setImage:[currentImageSource nextImageAndIdentifier:nil]];
+}
+
+
+- (void)updateSizeField
+{
+	NSSize	sourceSize = [currentImageSource glyphsSize];
+	[sizeTextField setStringValue:[NSString stringWithFormat:@"Size: %@", 
+										[NSString stringWithAspectRatio:sourceSize.width / sourceSize.height]]];
 }
 
 
@@ -114,13 +130,6 @@
 		[sampleTimer invalidate];
 		sampleTimer = nil;
 	}
-}
-
-
-- (void)updateSample:(NSTimer *)timer
-{
-	[currentImageSource reset];
-	[sampleImageView setImage:[currentImageSource nextImageAndIdentifier:nil]];
 }
 
 
@@ -184,10 +193,22 @@
 	}
 	
 	[fontsOutlineView reloadData];
+	[self updateSizeField];
+}
+
+
+- (IBAction)toggleSelectedFonts:(id)sender
+{
+	
 }
 
 
 - (IBAction)toggleColor:(id)sender
+{
+}
+
+
+- (IBAction)toggleSelectedColors:(id)sender
 {
 }
 

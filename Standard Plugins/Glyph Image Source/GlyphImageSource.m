@@ -14,7 +14,16 @@
 #import <unistd.h>
 
 
+static NSImage	*glyphSourceImage = nil;
+
 @implementation MacOSaiXGlyphImageSource
+
+
++ (void)load
+{
+	NSString	*imagePath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"GlyphImageSource"];
+	glyphSourceImage = [[NSImage alloc] initWithContentsOfFile:imagePath];
+}
 
 
 + (NSString *)name
@@ -93,7 +102,7 @@
 
 - (NSImage *)image;
 {
-	return [NSImage imageNamed:@"GlyphImageSource"];
+	return glyphSourceImage;
 }
 
 
@@ -314,6 +323,12 @@
 	}
 	
 	glyphsBounds = NSOffsetRect(glyphsBounds, -glyphsBounds.origin.x, -glyphsBounds.origin.y);
+}
+
+
+- (NSSize)glyphsSize
+{
+	return glyphsBounds.size;
 }
 
 

@@ -30,6 +30,8 @@
 - (void)setLetterPool:(NSString *)pool;
 - (NSString *)letterPool;
 
+- (NSSize)glyphsSize;
+
 - (void)setImageCountLimit:(unsigned long)limit;
 - (unsigned long)imageCountLimit;
 
