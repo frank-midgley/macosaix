@@ -31,6 +31,7 @@ MosaicViewMode;
     int					phase;
 	
 	NSMutableArray		*tilesNeedingDisplay;
+	NSDate				*lastUpdate;
 }
 
 - (void)setDocument:(MacOSaiXDocument *)inDocument;

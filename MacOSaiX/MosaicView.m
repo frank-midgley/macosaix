@@ -35,6 +35,12 @@
 }
 
 
+- (BOOL)isOpaque
+{
+	return YES;
+}
+
+
 - (void)originalImageDidChange:(NSNotification *)notification
 {
 //	if (originalImage != inOriginalImage && viewMode == viewTilesOutline)
@@ -132,11 +138,11 @@
 
 - (void)setTileNeedsDisplay:(Tile *)tile
 {
-//	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	
 	[tilesNeedingDisplay addObject:tile];
 	
-	if ([tilesNeedingDisplay count] > 32)
+	if ([tilesNeedingDisplay count] > 32 || [lastUpdate timeIntervalSinceNow] < -0.25)
 	{
 		NSAffineTransform	*transform = [[NSAffineTransform transform] retain];
 		[transform translateXBy:0.5 yBy:0.5];	// line up with pixel boundaries
@@ -148,9 +154,12 @@
 			[self setNeedsDisplayInRect:[[transform transformBezierPath:[tileNeedingDisplay outline]] bounds]];
 		
 		[tilesNeedingDisplay removeAllObjects];
+		
+		[lastUpdate release];
+		lastUpdate = [[NSDate date] retain];
 	}
 	
-//	[pool release];
+	[pool release];
 }
 
 
@@ -370,6 +379,7 @@
 	[mosaicImageTransform release];
 	[neighborhoodOutline release];
 	[tilesNeedingDisplay release];
+	[lastUpdate release];
 	[tilesOutline release];
 		
 	[super dealloc];
