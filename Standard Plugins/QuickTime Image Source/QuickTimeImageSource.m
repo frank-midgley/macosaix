@@ -8,7 +8,7 @@
 
 #import "QuickTimeImageSource.h"
 #import "QuickTimeImageSourceController.h"
-
+#import "NSString+MacOSaiX.h"
 #import <pthread.h>
 
 
@@ -84,7 +84,9 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 
 - (NSString *)settingsAsXMLElement
 {
-	return [NSString stringWithFormat:@"<MOVIE PATH=\"%@\"/ LAST_USED_TIME=\"%d\">", [self path], currentTimeValue];
+	return [NSString stringWithFormat:@"<MOVIE PATH=\"%@\" LAST_USED_TIME=\"%d\"/>", 
+									  [NSString stringByEscapingXMLEntites:[self path]], 
+									  currentTimeValue];
 }
 
 
@@ -93,7 +95,7 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
 	
 	if ([settingType isEqualToString:@"MOVIE"])
-		[self setPath:[[settingDict objectForKey:@"PATH"] description]];
+		[self setPath:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"PATH"] description]]];
 	else if ([settingType isEqualToString:@"LAST_USED_TIME"])
 		currentTimeValue = [[[settingDict objectForKey:@"LAST_USED_TIME"] description] intValue];
 }
@@ -175,7 +177,6 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 {
 	NSImage	*newImage = [[NSImage alloc] initWithSize:NSMakeSize(64.0, 64.0)];
 	[newImage setCachedSeparately:YES];
-//	[newImage setCacheMode:NSImageCacheNever];
 	
 	NS_DURING
 		[newImage lockFocus];
@@ -321,9 +322,7 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 																						length:GetHandleSize((Handle)picHandle)]];
 			NSImage			*imageAtTimeValue = [parameters objectAtIndex:1];
 			[imageAtTimeValue setCachedSeparately:YES];
-//			[imageAtTimeValue setCacheMode:NSImageCacheNever];
 			
-//			[imageAtTimeValue setScalesWhenResized:YES];
 			[imageAtTimeValue setSize:[imageRep size]];
 			
 			NS_DURING

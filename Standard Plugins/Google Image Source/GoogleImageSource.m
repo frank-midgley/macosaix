@@ -8,6 +8,7 @@
 
 #import "GoogleImageSource.h"
 #import "GoogleImageSourceController.h"
+#import "NSString+MacOSaiX.h"
 #import <CoreFoundation/CFURL.h>
 #import <sys/time.h>
 
@@ -87,28 +88,14 @@ NSString *escapedNSString(NSString *string)
 }
 
 
-- (NSString *)escapeXMLEntites:(NSString *)string
-{
-	NSMutableString	*escapedString = [NSMutableString stringWithString:(string ? string : @"")];
-	
-	[escapedString replaceOccurrencesOfString:@"&" withString:@"&amp;" options:0 range:NSMakeRange(0, [escapedString length])];
-	[escapedString replaceOccurrencesOfString:@"<" withString:@"&lt;" options:0 range:NSMakeRange(0, [escapedString length])];
-	[escapedString replaceOccurrencesOfString:@">" withString:@"&gt;" options:0 range:NSMakeRange(0, [escapedString length])];
-	[escapedString replaceOccurrencesOfString:@"'" withString:@"&apos;" options:0 range:NSMakeRange(0, [escapedString length])];
-	[escapedString replaceOccurrencesOfString:@"\"" withString:@"&quot;" options:0 range:NSMakeRange(0, [escapedString length])];
-	
-	return [NSString stringWithString:escapedString];
-}
-
-
 - (NSString *)settingsAsXMLElement
 {
 	NSMutableString	*settingsXML = [NSMutableString string];
 	
 	[settingsXML appendFormat:@"<TERMS REQUIRED=\"%@\"\n       OPTIONAL=\"%@\"\n       EXCLUDED=\"%@\"/>\n", 
-							  [self escapeXMLEntites:[self requiredTerms]],
-							  [self escapeXMLEntites:[self optionalTerms]],
-							  [self escapeXMLEntites:[self excludedTerms]]];
+							  [NSString stringByEscapingXMLEntites:[self requiredTerms]],
+							  [NSString stringByEscapingXMLEntites:[self optionalTerms]],
+							  [NSString stringByEscapingXMLEntites:[self excludedTerms]]];
 	
 	switch ([self colorSpace])
 	{
@@ -123,7 +110,7 @@ NSString *escapedNSString(NSString *string)
 	}
 	
 	if ([self siteString])
-		[settingsXML appendFormat:@"<SITE FILTER=\"%@\"/>\n", [self escapeXMLEntites:[self siteString]]];
+		[settingsXML appendFormat:@"<SITE FILTER=\"%@\"/>\n", [NSString stringByEscapingXMLEntites:[self siteString]]];
 	
 	switch ([self adultContentFiltering])
 	{
@@ -152,9 +139,9 @@ NSString *escapedNSString(NSString *string)
 	
 	if ([settingType isEqualToString:@"TERMS"])
 	{
-		[self setRequiredTerms:[[settingDict objectForKey:@"REQUIRED"] description]];
-		[self setOptionalTerms:[[settingDict objectForKey:@"OPTIONAL"] description]];
-		[self setExcludedTerms:[[settingDict objectForKey:@"EXCLUDED"] description]];
+		[self setRequiredTerms:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"REQUIRED"] description]]];
+		[self setOptionalTerms:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"OPTIONAL"] description]]];
+		[self setExcludedTerms:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"EXCLUDED"] description]]];
 	}
 	else if ([settingType isEqualToString:@"COLOR_SPACE"])
 	{
@@ -170,7 +157,7 @@ NSString *escapedNSString(NSString *string)
 			[self setColorSpace:blackAndWhiteColorSpace];
 	}
 	else if ([settingType isEqualToString:@"SITE"])
-		[self setSiteString:[[settingDict objectForKey:@"FILTER"] description]];
+		[self setSiteString:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"FILTER"] description]]];
 	else if ([settingType isEqualToString:@"ADULT_CONTENT"])
 	{
 		NSString	*filterValue = [[settingDict objectForKey:@"FILTER"] description];

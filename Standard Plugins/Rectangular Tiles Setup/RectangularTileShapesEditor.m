@@ -8,6 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import "RectangularTileShapesEditor.h"
+#import "NSString+MacOSaiX.h"
 
 
 @interface MacOSaiXRectangularTileShapesEditor (PrivateMethods)
@@ -50,30 +51,9 @@
 {
 	[tileCountTextField setIntValue:[tilesAcrossStepper intValue] * [tilesDownStepper intValue]];
 	
-	int			xInt,
-				yInt;
-	float		tileAspectRatio = (originalImageSize.width / [tilesAcrossStepper intValue]) / 
-								  (originalImageSize.height / [tilesDownStepper intValue]),
-				minDiff = INFINITY;
-	NSString	*ratioString = @"";
-	
-	for (xInt = 1; xInt < 10; xInt++)
-	{
-		yInt = (xInt / tileAspectRatio);
-		if (fabsf(tileAspectRatio - (float)xInt / (float)yInt) > 
-			fabsf(tileAspectRatio - (float)xInt / (float)(yInt + 1)))
-			yInt++;
-		
-		float	curDiff = fabsf(tileAspectRatio - (float)xInt / (float)yInt);
-		
-		if (curDiff < minDiff)
-		{
-			minDiff = curDiff;
-			ratioString = [NSString stringWithFormat:@"%dx%d", xInt, yInt];
-		}
-	}
-	
-	[tileSizeTextField setStringValue:ratioString];
+	float	tileAspectRatio = (originalImageSize.width / [tilesAcrossStepper intValue]) / 
+							  (originalImageSize.height / [tilesDownStepper intValue]);
+	[tileSizeTextField setStringValue:[NSString stringWithAspectRatio:tileAspectRatio]];
 }
 
 
