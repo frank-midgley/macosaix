@@ -8,6 +8,10 @@
 
 #import <Cocoa/Cocoa.h>
 
+
+#define kMacOSaiXTileShapesSettingType @"Element Type"
+
+
 @protocol MacOSaiXTileShapes <NSObject, NSCopying>
 
 	// Name to display in pop-up menu
@@ -24,7 +28,13 @@
 	// A human-readable NSString, NSAttributedString or NSImage that briefly describes this instance's settings.
 - (id)briefDescription;
 
+	// Methods for adding settings to a saved file.
 - (NSString *)settingsAsXMLElement;
+
+	// Methods called when loading settings from a saved mosaic.
+- (void)useSavedSetting:(NSDictionary *)settingDict;
+- (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict;
+- (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict;
 
 - (NSArray *)shapes;
 

@@ -130,7 +130,69 @@ NSString *escapedNSString(NSString *string)
 			[settingsXML appendString:@"<ADULT_CONTENT FILTER=\"NONE\"/>\n"]; break;
 	}
 	
+	[settingsXML appendFormat:@"<PAGE INDEX=\"%d\"/>\n", startIndex];
+	
+	NSEnumerator	*queuedURLEnumerator = [imageURLQueue objectEnumerator];
+	NSString		*queuedURL = nil;
+	while (queuedURL = [queuedURLEnumerator nextObject])
+		[settingsXML appendFormat:@"<QUEUED_IMAGE URL=\"%@\"/>\n", queuedURL];
+	
 	return settingsXML;
+}
+
+
+- (void)useSavedSetting:(NSDictionary *)settingDict
+{
+	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
+	
+	if ([settingType isEqualToString:@"TERMS"])
+	{
+		[self setRequiredTerms:[[settingDict objectForKey:@"REQUIRED"] description]];
+		[self setOptionalTerms:[[settingDict objectForKey:@"OPTIONAL"] description]];
+		[self setExcludedTerms:[[settingDict objectForKey:@"EXCLUDED"] description]];
+	}
+	else if ([settingType isEqualToString:@"COLOR_SPACE"])
+	{
+		NSString	*filterValue = [[settingDict objectForKey:@"FILTER"] description];
+		
+		if ([filterValue isEqualToString:@"ANY"])
+			[self setColorSpace:anyColorSpace];
+		else if ([filterValue isEqualToString:@"RGB"])
+			[self setColorSpace:rgbColorSpace];
+		else if ([filterValue isEqualToString:@"GRAYSCALE"])
+			[self setColorSpace:grayscaleColorSpace];
+		else if ([filterValue isEqualToString:@"B&W"])
+			[self setColorSpace:blackAndWhiteColorSpace];
+	}
+	else if ([settingType isEqualToString:@"SITE"])
+		[self setSiteString:[[settingDict objectForKey:@"FILTER"] description]];
+	else if ([settingType isEqualToString:@"ADULT_CONTENT"])
+	{
+		NSString	*filterValue = [[settingDict objectForKey:@"FILTER"] description];
+		
+		if ([filterValue isEqualToString:@"STRICT"])
+			[self setAdultContentFiltering:strictFiltering];
+		else if ([filterValue isEqualToString:@"MODERATE"])
+			[self setAdultContentFiltering:moderateFiltering];
+		else if ([filterValue isEqualToString:@"NONE"])
+			[self setAdultContentFiltering:noFiltering];
+	}
+	else if ([settingType isEqualToString:@"PAGE"])
+		startIndex = [[[settingDict objectForKey:@"INDEX"] description] intValue];
+	else if ([settingType isEqualToString:@"QUEUED_IMAGE"])
+		[imageURLQueue addObject:[[settingDict objectForKey:@"URL"] description]];
+}
+
+
+- (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict
+{
+	// not needed
+}
+
+
+- (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict
+{
+	[self updateQueryAndDescriptor];
 }
 
 

@@ -8,6 +8,10 @@
 
 #import <Cocoa/Cocoa.h>
 
+
+#define kMacOSaiXImageSourceSettingType @"Element Type"
+
+
 @protocol MacOSaiXImageSource <NSObject, NSCopying>
 
 	// Name to display in image source pop-up menu
@@ -18,9 +22,13 @@
 	// Whether multiple sources of this type can be added (maybe glyphs?)
 + (BOOL)allowMultipleImageSources;
 
-// TBD: initWithXML or parser callbacks?
-
+	// Methods for adding settings to a saved file.
 - (NSString *)settingsAsXMLElement;
+
+	// Methods called when loading settings from a saved mosaic.
+- (void)useSavedSetting:(NSDictionary *)settingDict;
+- (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict;
+- (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict;
 
 	// This method should return whether or not this source can
 - (NSImage *)image;

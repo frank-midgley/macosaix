@@ -94,6 +94,30 @@
 }
 
 
+- (void)useSavedSetting:(NSDictionary *)settingDict
+{
+	NSString	*settingType = [settingDict objectForKey:kMacOSaiXTileShapesSettingType];
+	
+	if ([settingType isEqualToString:@"DIMENSIONS"])
+	{
+		[self setTilesAcross:[[[settingDict objectForKey:@"ACROSS"] description] intValue]];
+		[self setTilesDown:[[[settingDict objectForKey:@"DOWN"] description] intValue]];
+	}
+}
+
+
+- (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict
+{
+	// not needed
+}
+
+
+- (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict
+{
+	// not needed
+}
+
+
 - (NSArray *)shapes
 {
 	int				x, y;
