@@ -26,10 +26,11 @@
 	IBOutlet NSImageView				*originalImageThumbView;
 	IBOutlet NSPopUpButton				*originalImagePopUpButton;
 	IBOutlet NSTextField				*tileShapesDescriptionField,
-										*totalTilesField;
+										*totalTilesField,
+										*tileSizeLabelField,
+										*tileSizeField;
 	IBOutlet NSButton					*changeTileShapesButton;
-	IBOutlet NSPopUpButton				*imageUseCountPopUpButton,
-										*neighborhoodSizePopUpButton;
+	IBOutlet NSPopUpButton				*imageUseCountPopUpButton;
 	IBOutlet NSPopUpButton				*imageSourcesPopUpButton;
 	IBOutlet NSTableView				*imageSourcesTableView;
 	IBOutlet NSButton					*imageSourcesRemoveButton;
@@ -106,6 +107,7 @@
 - (IBAction)setViewOriginalImage:(id)sender;
 - (IBAction)setViewMosaic:(id)sender;
 - (IBAction)toggleViewOriginal:(id)sender;
+- (BOOL)viewingOriginal;
 - (IBAction)toggleTileOutlines:(id)sender;
 - (IBAction)setZoom:(id)sender;
 - (IBAction)toggleStatusBar:(id)sender;
@@ -147,6 +149,7 @@
 	// Progress panel methods
 - (void)displayProgressPanelWithMessage:(NSString *)message;
 - (void)setProgressPercentComplete:(NSNumber *)percentComplete;
+- (void)setProgressMessage:(NSString *)message;
 - (void)closeProgressPanel;
 
 @end

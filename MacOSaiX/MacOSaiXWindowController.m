@@ -14,11 +14,15 @@
 #import <pthread.h>
 
 
-#define MAX_REFRESH_THREAD_COUNT 2
+#define kMatchingMenuItemTag	1
+
+
+#define MAX_REFRESH_THREAD_COUNT 1
 
 
 @interface MacOSaiXWindowController (PrivateMethods)
 - (void)updateStatus:(NSTimer *)timer;
+- (void)updateTileSizeFields;
 - (void)synchronizeMenus;
 - (void)updateEditor;
 - (BOOL)showTileMatchInEditor:(MacOSaiXImageMatch *)tileMatch selecting:(BOOL)selecting;
@@ -99,6 +103,7 @@
 						*originalName = [originalDict objectForKey:@"Name"];
 			NSImage		*originalThumbnail = [[NSImage alloc] initWithData:[originalDict objectForKey:@"Thumbnail Data"]];
 			[originalThumbnail setCachedSeparately:YES];
+			[originalThumbnail setCacheMode:NSImageCacheNever];
 			
 			if ([[NSFileManager defaultManager] fileExistsAtPath:originalPath])
 			{
@@ -164,46 +169,28 @@
 	[self setViewOriginalImage:self];
 	
 		// For some reason IB insists on setting the drawer width to 200.  Have to set the size in code instead.
-	[settingsDrawer setContentSize:NSMakeSize(400, [settingsDrawer contentSize].height)];
+	[settingsDrawer setContentSize:NSMakeSize(350, [settingsDrawer contentSize].height)];
 	[settingsDrawer open:self];
-	
-    selectedTile = nil;
     
-//    NSRect		windowFrame;
-//    if (finishLoading)
-//    {
-//		//	[self setViewMode:viewMode];
-//		
-//			// this doc was opened from a file
-//		if ([[self document] isPaused])
-//		{
-//			[pauseToolbarItem setLabel:@"Resume"];
-//			[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
-//			[[fileMenu itemWithTitle:@"Pause Matching"] setTitle:@"Resume Matching"];
-//		}
-//	
-//			//	broken & disabled until next version
-//		//	[self windowWillResize:[self window] toSize:storedWindowFrame.size];
-//		//	[[self window] setFrame:storedWindowFrame display:YES];
-//		windowFrame = [[self window] frame];
-//		windowFrame.size = [self windowWillResize:[self window] toSize:windowFrame.size];
-//		[[self window] setFrame:windowFrame display:YES animate:YES];
-//    }
-//    else
-//    {
-//			// this doc is new
-//		windowFrame = [[self window] frame];
-//		windowFrame.size = [self windowWillResize:[self window] toSize:windowFrame.size];
-//		[[self window] setFrame:windowFrame display:YES animate:YES];
-//    }
-//	[pauseToolbarItem setLabel:@"Start Mosaic"];
+	[self updateTileSizeFields];
+	
+	[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
+	if ([[self document] fileName])
+	{
+		[pauseToolbarItem setLabel:@"Resume"];
+		[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Resume Matching"];
+	}
+	else
+	{
+		[pauseToolbarItem setLabel:@"Start Mosaic"];
+		[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Start Mosaic"];
+		
+			// Default to the most recently used original or prompt to choose one
+			// if no previous original was found.
+		[self performSelector:@selector(chooseOriginalImage:) withObject:self afterDelay:0.0];
+	}
 	
 	[self updateStatus:nil];
-	
-		// Default to the most recently used original or prompt to choose one
-		// if no previous original was found.
-	if (![[self document] fileName])
-		[self performSelector:@selector(chooseOriginalImage:) withObject:self afterDelay:0.0];
 }
 
 
@@ -212,9 +199,11 @@
 		// Set the image use count and neighborhood size pop-ups.
 	int				popUpIndex = [imageUseCountPopUpButton indexOfItemWithTag:[[self document] imageUseCount]];
 	[imageUseCountPopUpButton selectItemAtIndex:popUpIndex];
-	popUpIndex = [[self document] neighborhoodSize] - 1;
-	if (popUpIndex >= 0 && popUpIndex < [neighborhoodSizePopUpButton numberOfItems])
-		[neighborhoodSizePopUpButton selectItemAtIndex:popUpIndex];
+//	popUpIndex = [[self document] neighborhoodSize] - 1;
+//	if (popUpIndex >= 0 && popUpIndex < [neighborhoodSizePopUpButton numberOfItems])
+//		[neighborhoodSizePopUpButton selectItemAtIndex:popUpIndex];
+	
+	[self updateTileSizeFields];
 }
 
 
@@ -411,7 +400,7 @@
 		[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
 		
 			// Update the menu bar.
-		[[fileMenu itemWithTitle:@"Pause Matching"] setTitle:@"Resume Matching"];
+		[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Resume Matching"];
 		
 		[[self document] pause];
 	}
@@ -428,7 +417,7 @@
 			[originalImagePopUpButton setEnabled:NO];
 			[changeTileShapesButton setEnabled:NO];
 			[imageUseCountPopUpButton setEnabled:NO];
-			[neighborhoodSizePopUpButton setEnabled:NO];
+//			[neighborhoodSizePopUpButton setEnabled:NO];
 		}
 		else
 		{
@@ -437,7 +426,7 @@
 			[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
 			
 				// Update the menu bar
-			[[fileMenu itemWithTitle:@"Resume Matching"] setTitle:@"Pause Matching"];
+			[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Pause Matching"];
 		}
 		
 		[[self document] resume];
@@ -509,22 +498,12 @@
     
 		// update the image sources table
     [imageSourcesTableView reloadData];
-    
-    // autosave if it's time
-//    if ([lastSaved timeIntervalSinceNow] < autosaveFrequency * -60)
-//    {
-//		[self saveDocument:self];
-//		[lastSaved autorelease];
-//		lastSaved = [[NSDate date] retain];
-//    }
-    
-    // 
 }
 
 
 - (void)synchronizeMenus
 {
-	[[fileMenu itemWithTag:1] setTitle:([[self document] isPaused] ? @"Resume Matching" : @"Pause Matching")];
+	[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:([[self document] isPaused] ? @"Resume Matching" : @"Pause Matching")];
 
 	[[viewMenu itemWithTag:0] setState:([mosaicView viewOriginal] ? NSOnState : NSOffState)];
 	[[viewMenu itemWithTag:1] setState:([mosaicView viewOriginal] ? NSOffState : NSOnState)];
@@ -570,10 +549,11 @@
 	{
 		NSAutoreleasePool	*innerPool = [[NSAutoreleasePool alloc] init];
 		
+		tileToRefresh = nil;
 		[tileRefreshLock lock];
 			if ([tilesToRefresh count] > 0)
 			{
-				tileToRefresh = [tilesToRefresh objectAtIndex:0];
+				tileToRefresh = [[[tilesToRefresh objectAtIndex:0] retain] autorelease];
 				[tilesToRefresh removeObjectAtIndex:0];
 			}
 		[tileRefreshLock unlock];
@@ -711,6 +691,54 @@
 }
 
 
+- (NSString *)stringValueForAspectRatio:(float)aspectRatio
+{
+	int			xInt,
+				yInt;
+	float		minDiff = INFINITY;
+	NSString	*ratioString = @"";
+	
+	for (xInt = 1; xInt < 10; xInt++)
+	{
+		yInt = (xInt / aspectRatio);
+		if (fabsf(aspectRatio - (float)xInt / (float)yInt) > 
+			fabsf(aspectRatio - (float)xInt / (float)(yInt + 1)))
+			yInt++;
+		
+		float	curDiff = fabsf(aspectRatio - (float)xInt / (float)yInt);
+		
+		if (curDiff < minDiff)
+		{
+			minDiff = curDiff;
+			ratioString = [NSString stringWithFormat:@"%dx%d", xInt, yInt];
+		}
+	}
+	
+	return ratioString;
+}
+
+
+- (void)updateTileSizeFields
+{
+	if (selectedTile)
+	{
+			// Show the selected tile's size.
+		[tileSizeLabelField setStringValue:@"Selected tile size:"];
+		NSSize	tileUnitSize = [[selectedTile outline] bounds].size,
+				originalSize = [[[self document] originalImage] size];
+		float	tileSize = (tileUnitSize.width * originalSize.width) / 
+						   (tileUnitSize.height * originalSize.height);
+		[tileSizeField setStringValue:[self stringValueForAspectRatio:tileSize]];
+	}
+	else
+	{
+			// Show the average tile size.
+		[tileSizeLabelField setStringValue:@"Average tile size:"];
+		[tileSizeField setStringValue:[self stringValueForAspectRatio:[[self document] averageTileAspectRatio]]];
+	}
+}
+
+
 - (void)tileShapesDidChange:(NSNotification *)notification
 {
 	NSString	*tileShapesDescription = [[[self document] tileShapes] briefDescription];
@@ -724,6 +752,8 @@
 		[self selectTileAtPoint:tileSelectionPoint];
 	
 	[self updateStatus:nil];
+
+	[self updateTileSizeFields];
 }
 
 
@@ -735,10 +765,10 @@
 
 - (IBAction)setNeighborhoodSize:(id)sender
 {
-	[[self document] setNeighborhoodSize:[neighborhoodSizePopUpButton indexOfSelectedItem] + 1];
-	
-	if (selectedTile)
-		[mosaicView highlightTile:selectedTile];
+//	[[self document] setNeighborhoodSize:[neighborhoodSizePopUpButton indexOfSelectedItem] + 1];
+//	
+//	if (selectedTile)
+//		[mosaicView highlightTile:selectedTile];
 }
 
 
@@ -840,6 +870,8 @@
 		[imageSourcesTableView reloadData];
 	}
 	
+	[imageSourceEditorController release];
+	imageSourceEditorController = nil;
 	[(id)contextInfo release];
 }
 
@@ -873,6 +905,7 @@
 			
 			if (tile == selectedTile)
 			{
+					// The selected tile was clicked so unselect it.
 				selectedTile = nil;
 				
 					// Get rid of the timer when no tile is selected.
@@ -882,6 +915,7 @@
 			}
 			else
 			{
+					// Select a new tile.
 				if (!selectedTile)
 				{
 						// Create a timer to animate the selected tile ten times per second.
@@ -894,6 +928,8 @@
 				
 				selectedTile = [tile retain];
 			}
+			
+			[self updateTileSizeFields];
 			
 			[mosaicView highlightTile:selectedTile];
 			
@@ -1191,6 +1227,12 @@
 }
 
 
+- (BOOL)viewingOriginal
+{
+	return ([mosaicView viewOriginal]);
+}
+
+
 - (IBAction)toggleTileOutlines:(id)sender
 {
 	[mosaicView setViewTileOutlines:![mosaicView viewTileOutlines]];
@@ -1332,30 +1374,21 @@
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
-    if ([[menuItem title] isEqualToString:@"Center on Selected Tile"])
+    if ([menuItem action] == @selector(centerViewOnSelectedTile:))
 		return (selectedTile != nil && zoom != 0.0);
-    else
-		return [[self document] validateMenuItem:menuItem];
+    else if ([menuItem action] == @selector(togglePause:))
+		return ([[[self document] imageSources] count] > 0);
+//	else
+//		return [[self document] validateMenuItem:menuItem];
 }
 
 
 - (void)togglePause:(id)sender
 {
-//	NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
-//	id<MacOSaiXImageSource>	imageSource;
-
 	if ([[self document] isPaused])
 		[self resume];
 	else
-	{
 		[self pause];
-//		[pauseToolbarItem setLabel:@"Resume"];
-//		[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
-//		[[fileMenu itemWithTitle:@"Pause Matching"] setTitle:@"Resume Matching"];
-//		while (imageSource = [imageSourceEnumerator nextObject])
-//			[imageSource pause];
-//		paused = YES;
-	}
 }
 
 
@@ -1442,12 +1475,14 @@
 
     NSImage		*exportImage = [[NSImage alloc] initWithSize:NSMakeSize([exportWidth intValue], [exportHeight intValue])];
 	[exportImage setCachedSeparately:YES];
+	[exportImage setCacheMode:NSImageCacheNever];
 	NS_DURING
 		[exportImage lockFocus];
 	NS_HANDLER
 		exportError = [NSString stringWithFormat:@"Could not draw images into mosaic.  (%@)", [localException reason]];
 	NS_ENDHANDLER
 	
+	[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
     NSAffineTransform	*transform = [NSAffineTransform transform];
     [transform scaleXBy:[exportImage size].width yBy:[exportImage size].height];
 	
@@ -1500,7 +1535,7 @@
         [NSGraphicsContext restoreGraphicsState];
         [pool2 release];
 		
-		[self setProgressPercentComplete:[NSNumber numberWithDouble:(tilesExported / tileCount * 100.0)] ];
+		[self setProgressPercentComplete:[NSNumber numberWithDouble:((double)tilesExported / (double)tileCount * 100.0)] ];
     }
 	
 		// Now convert the image into the desired output format.
@@ -1570,6 +1605,17 @@
 }
 
 
+- (void)setProgressMessage:(NSString *)message
+{
+	if (pthread_main_np())
+		[progressPanelLabel setStringValue:message];
+	else
+		[self performSelectorOnMainThread:@selector(setProgressMessage:) 
+							   withObject:message 
+							waitUntilDone:YES];
+}
+
+
 - (void)closeProgressPanel
 {
 	if (pthread_main_np())
@@ -1589,6 +1635,7 @@
 
 #pragma mark -
 #pragma mark Window delegate methods
+
 
 - (void)windowDidBecomeMain:(NSNotification *)aNotification
 {
@@ -1664,8 +1711,11 @@
 
 - (void)windowDidResize:(NSNotification *)notification
 {
-		// this method is called during animated window resizing, not windowWillResize
-    [self setZoom:self];
+	if ([notification object] == [self window])
+	{
+			// this method is called during animated window resizing, not windowWillResize
+		[self setZoom:self];
+	}
 }
 
 
@@ -1775,6 +1825,7 @@
 #pragma mark -
 #pragma mark Table delegate methods
 
+
 - (int)numberOfRowsInTableView:(NSTableView *)aTableView
 {
     if (aTableView == imageSourcesTableView)
@@ -1848,13 +1899,21 @@
 }
 
 
+#pragma mark -
+#pragma mark Text field delegate methods
+
+
+- (void)controlTextDidChange:(NSNotification *)notification
+{
+	id foo = [notification object];
+}
+
+
 #pragma mark
 
 
 - (void)dealloc
 {
-	NSLog(@"Dealloc'ing window controller");
-	
 	[selectedTile release];
     [selectedTileImages release];
     [toolbarItems release];
