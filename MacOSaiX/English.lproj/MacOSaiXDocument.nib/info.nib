@@ -17,7 +17,7 @@
 		<key>306</key>
 		<string>341 420 506 154 0 0 1152 746 </string>
 		<key>353</key>
-		<string>408 297 371 400 0 0 1152 746 </string>
+		<string>476 468 370 400 0 0 1280 1002 </string>
 		<key>663</key>
 		<string>386 277 414 440 0 0 1152 746 </string>
 		<key>67</key>
@@ -31,7 +31,6 @@
 	<array>
 		<integer>353</integer>
 		<integer>766</integer>
-		<integer>8</integer>
 	</array>
 	<key>IBSystem Version</key>
 	<string>7S215</string>
