@@ -9,7 +9,10 @@ Ideas for future versions:
 	Indicate best unique match in editor table
 	Disable 'center on selected tile' menu choice when not using Tiles or Editor tab
 	Trim solid borders for alternate image
-	More export image panel options (resolution, SVG format, ...)
+	More export image panel options
+		resolution
+		SVG format
+		vector output (Glyphs only?)
 	Add code to support crop limit
 	Autosave on/off switch
 	Toggle outline switch in editor?
