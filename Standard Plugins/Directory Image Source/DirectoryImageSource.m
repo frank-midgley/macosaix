@@ -133,13 +133,12 @@
 {
 	NSImage			*image = nil;
 	NSString		*subPath = nil;
-	NSFileManager	*fileManager = [NSFileManager defaultManager];
 	
 	if (!pathsHaveBeenEnumerated)
 	{
 			// Find the closest ancestor of the last file we enumerated that still exists on disk.
 		while ([lastEnumeratedPath length] > 0 && 
-			   ![fileManager fileExistsAtPath:[directoryPath stringByAppendingPathComponent:lastEnumeratedPath]])
+			   ![[NSFileManager defaultManager] fileExistsAtPath:[directoryPath stringByAppendingPathComponent:lastEnumeratedPath]])
 			lastEnumeratedPath = [lastEnumeratedPath stringByDeletingLastPathComponent];
 		
 			// Enumerate past all of the images that were previously found.
@@ -156,36 +155,27 @@
 	{
 		if (subPath = [directoryEnumerator nextObject])
 		{
-			NSString		*fullPath = [directoryPath stringByAppendingPathComponent:subPath];
-			NSArray			*pathComponents = [fullPath pathComponents];
-			unsigned int	iPhotoLibraryIndex = [pathComponents indexOfObject:@"iPhoto Library"],
-							thumbsIndex = [pathComponents indexOfObject:@"Thumbs"],
-							originalsIndex = [pathComponents indexOfObject:@"Originals"];
+			NSString	*fullPath = [directoryPath stringByAppendingPathComponent:subPath];
+			NSArray		*pathComponents = [fullPath pathComponents];
+			unsigned	iPhotoLibraryIndex = [pathComponents indexOfObject:@"iPhoto Library"],
+						thumbsIndex = 0,
+						originalsIndex = 0;
 			
 			[lastEnumeratedPath release];
 			lastEnumeratedPath = [subPath retain];
 			
+			if (iPhotoLibraryIndex != NSNotFound && iPhotoLibraryIndex < [pathComponents count] - 1)
+			{
+				NSArray *iPhotoLibraryPathComponents = [pathComponents subarrayWithRange:
+							NSMakeRange(iPhotoLibraryIndex + 1, [pathComponents count] - iPhotoLibraryIndex - 1)];
+				thumbsIndex = [iPhotoLibraryPathComponents indexOfObject:@"Thumbs"],
+				originalsIndex = [iPhotoLibraryPathComponents indexOfObject:@"Originals"];
+			}
+			
 				// If the path doesn't point to an iPhoto thumb or original then try to open it.
 				// Otherwise we get duplicates of iPhoto images in the mosaic.
-			if ([[[fileManager fileAttributesAtPath:fullPath traverseLink:NO] fileType]	
-					isEqualToString:NSFileTypeRegular] && 
-				iPhotoLibraryIndex == NSNotFound || thumbsIndex < iPhotoLibraryIndex || originalsIndex < iPhotoLibraryIndex)
-			{
-				NS_DURING
-					image = [[[NSImage alloc] initWithContentsOfFile:fullPath] autorelease];
-					
-					if (!image)
-					{
-							// The image might have the wrong or a missing file extension so 
-							// try init'ing it based on its contents instead.  This requires 
-							// more memory so only do this if initWithContentsOfFile fails.
-						NSData	*data = [[NSData alloc] initWithContentsOfFile:fullPath];
-						image = [[[NSImage alloc] initWithData:data] autorelease];
-					}
-				NS_HANDLER
-					NSLog(@"%@ is not a valid image file.", fullPath);
-				NS_ENDHANDLER
-			}
+			if ((iPhotoLibraryIndex == NSNotFound || (thumbsIndex == NSNotFound && originalsIndex == NSNotFound)))
+				image = [self imageForIdentifier:subPath];
 		}
 	}
 	while (subPath && !image);
@@ -202,21 +192,26 @@
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 	NSImage		*image = nil;
-	NSString	*fullPath = [directoryPath stringByAppendingPathComponent:identifier];
+	NSString	*fullPath = [directoryPath stringByAppendingPathComponent:identifier], 
+				*fileType = [[[NSFileManager defaultManager] fileAttributesAtPath:fullPath traverseLink:NO] fileType];
 	
-	NS_DURING
-		image = [[[NSImage alloc] initWithContentsOfFile:fullPath] autorelease];
-		if (!image)
-		{
-				// The image might have the wrong or a missing file extension so 
-				// try init'ing it based on its contents instead.  This requires 
-				// more memory so only do this if initWithContentsOfFile fails.
-			NSData	*data = [[NSData alloc] initWithContentsOfFile:fullPath];
-			image = [[[NSImage alloc] initWithData:data] autorelease];
-		}
-	NS_HANDLER
-		NSLog(@"%@ is not a valid image file.", [directoryPath stringByAppendingPathComponent:identifier]);
-	NS_ENDHANDLER
+	if ([fileType isEqualToString:NSFileTypeRegular])
+	{
+		NS_DURING
+			image = [[[NSImage alloc] initWithContentsOfFile:fullPath] autorelease];
+			if (!image)
+			{
+					// The image might have the wrong or a missing file extension so 
+					// try init'ing it based on its contents instead.  This requires 
+					// more memory so only do this if initWithContentsOfFile fails.
+				NSData	*data = [[NSData alloc] initWithContentsOfFile:fullPath];
+				image = [[[NSImage alloc] initWithData:data] autorelease];
+				[data release];
+			}
+		NS_HANDLER
+			NSLog(@"%@ is not a valid image file.", [directoryPath stringByAppendingPathComponent:identifier]);
+		NS_ENDHANDLER
+	}
 	
     return image;
 }
