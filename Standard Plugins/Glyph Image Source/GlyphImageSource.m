@@ -196,73 +196,77 @@ static NSImage	*glyphSourceImage = nil;
 {
 	NSImage	*image = nil;
 	
-	if ([fontNames count] > 0)
-	{
-		unsigned int	fontNum = random() % [fontNames count];
-		NSFont			*font = [NSFont fontWithName:[fontNames objectAtIndex:fontNum] size:12.0];
-		
-		if (font)
+	NS_DURING
+		if ([fontNames count] > 0)
 		{
-			NSGlyph			glyphNum;
-			if ([self letterPool])
-			{
-				NSLayoutManager	*layoutManager = [[[NSLayoutManager alloc] init] autorelease];
-				NSDictionary	*attributes = [NSDictionary dictionaryWithObject:font
-																		  forKey:NSFontAttributeName];
-				NSTextStorage	*textStorage = [[NSTextStorage alloc] initWithString:[self letterPool]
-																		  attributes:attributes];
-				[textStorage addLayoutManager:layoutManager];
-				unsigned	glyphCount = [layoutManager numberOfGlyphs];
-				glyphNum = [layoutManager glyphAtIndex:random() % glyphCount];
-			}
-			else
-				glyphNum = random() % ([font numberOfGlyphs] - 1) + 1;
+			unsigned int	fontNum = random() % [fontNames count];
+			NSFont			*font = [NSFont fontWithName:[fontNames objectAtIndex:fontNum] size:12.0];
 			
-			NSBezierPath	*glyphPath = [NSBezierPath bezierPath];
-			NSRect			glyphRect;
-			
-			[focusWindowLock lock];
-				while (![[focusWindow contentView] lockFocusIfCanDraw])
-					[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
-				[glyphPath moveToPoint:NSZeroPoint];
-				[glyphPath appendBezierPathWithGlyph:glyphNum inFont:font];
-				glyphRect = [glyphPath bounds];
-				[[focusWindow contentView] unlockFocus];
-			[focusWindowLock unlock];
-
-			if (glyphRect.size.width > 0.0 && glyphRect.size.height > 0.0)
+			if (font)
 			{
-				NSColor		*foregroundColor = [self randomColor],
-							*backgroundColor = [self randomColor];
-				
-					// Make sure the colors are a little different.
-				while (fabsf([foregroundColor redComponent] - [backgroundColor redComponent]) < 0.1 && 
-					   fabsf([foregroundColor greenComponent] - [backgroundColor greenComponent]) < 0.1 && 
-					   fabsf([foregroundColor blueComponent] - [backgroundColor blueComponent]) < 0.1)
+				NSGlyph			glyphNum;
+				if ([self letterPool])
 				{
-					foregroundColor = [self randomColor];
-					backgroundColor = [self randomColor];
+					NSLayoutManager	*layoutManager = [[[NSLayoutManager alloc] init] autorelease];
+					NSDictionary	*attributes = [NSDictionary dictionaryWithObject:font
+																			  forKey:NSFontAttributeName];
+					NSTextStorage	*textStorage = [[NSTextStorage alloc] initWithString:[self letterPool]
+																			  attributes:attributes];
+					[textStorage addLayoutManager:layoutManager];
+					unsigned	glyphCount = [layoutManager numberOfGlyphs];
+					glyphNum = [layoutManager glyphAtIndex:random() % glyphCount];
 				}
+				else
+					glyphNum = random() % ([font numberOfGlyphs] - 1) + 1;
 				
-				NSString	*tempIdentifier = [NSString stringWithFormat:
-													@"%@\t%d %d %d %d %d %d %d", 
-													[fontNames objectAtIndex:fontNum], glyphNum,
-													(int)(256.0 * [foregroundColor redComponent]), 
-													(int)(256.0 * [foregroundColor greenComponent]), 
-													(int)(256.0 * [foregroundColor blueComponent]), 
-													(int)(256.0 * [backgroundColor redComponent]), 
-													(int)(256.0 * [backgroundColor greenComponent]), 
-													(int)(256.0 * [backgroundColor blueComponent])];
+				NSBezierPath	*glyphPath = [NSBezierPath bezierPath];
+				NSRect			glyphRect;
 				
-				image = [self imageForIdentifier:tempIdentifier];
-				if (image && identifier)
+				[focusWindowLock lock];
+					while (![[focusWindow contentView] lockFocusIfCanDraw])
+						[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
+					[glyphPath moveToPoint:NSZeroPoint];
+					[glyphPath appendBezierPathWithGlyph:glyphNum inFont:font];
+					glyphRect = [glyphPath bounds];
+					[[focusWindow contentView] unlockFocus];
+				[focusWindowLock unlock];
+
+				if (glyphRect.size.width > 0.0 && glyphRect.size.height > 0.0)
 				{
-					*identifier = tempIdentifier;
-					imageCount++;
+					NSColor		*foregroundColor = [self randomColor],
+								*backgroundColor = [self randomColor];
+					
+						// Make sure the colors are a little different.
+					while (fabsf([foregroundColor redComponent] - [backgroundColor redComponent]) < 0.1 && 
+						   fabsf([foregroundColor greenComponent] - [backgroundColor greenComponent]) < 0.1 && 
+						   fabsf([foregroundColor blueComponent] - [backgroundColor blueComponent]) < 0.1)
+					{
+						foregroundColor = [self randomColor];
+						backgroundColor = [self randomColor];
+					}
+					
+					NSString	*tempIdentifier = [NSString stringWithFormat:
+														@"%@\t%d %d %d %d %d %d %d", 
+														[fontNames objectAtIndex:fontNum], glyphNum,
+														(int)(256.0 * [foregroundColor redComponent]), 
+														(int)(256.0 * [foregroundColor greenComponent]), 
+														(int)(256.0 * [foregroundColor blueComponent]), 
+														(int)(256.0 * [backgroundColor redComponent]), 
+														(int)(256.0 * [backgroundColor greenComponent]), 
+														(int)(256.0 * [backgroundColor blueComponent])];
+					
+					image = [self imageForIdentifier:tempIdentifier];
+					if (image && identifier)
+					{
+						*identifier = tempIdentifier;
+						imageCount++;
+					}
 				}
 			}
 		}
-	}
+	NS_HANDLER
+		NSLog(@"Failed to create glyph image: %@", [localException reason]);
+	NS_ENDHANDLER
 	
 	return image;
 }
