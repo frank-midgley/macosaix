@@ -33,39 +33,39 @@
 
 - (NSImage *)imageForIdentifier:(id)identifier
 {
-    NSData		*imageData;
+    NSData		*imageData = nil;
     NSImage		*image = nil;
     
     // the default method only accepts URL's
     if (![identifier isKindOfClass:[NSURL class]]) return nil;
     
     NS_DURING
-	imageData = [identifier resourceDataUsingCache:NO];
+		imageData = [identifier resourceDataUsingCache:NO];
     NS_HANDLER
-	if (imageData != nil) imageData = nil;
+		if (imageData != nil) imageData = nil;
     NS_ENDHANDLER
     if (imageData != nil)
     {
-	NS_DURING
-	    image = [[NSImage alloc] initWithData:imageData];
-	NS_HANDLER
-	    if (image != nil) image = nil;
-	NS_ENDHANDLER
-	if (image != nil)
-	{
-	    if ([image isValid] && [image size].width > 0 && [image size].height > 0)
-	    {
-		[image autorelease];
-		[image setCachedSeparately:NO];
-		[image setScalesWhenResized:YES];
-		[image setDataRetained:NO];	// saves much memory if image size is reduced
-	    }
-	    else
-	    {
-		[image release];
-		image = nil;
-	    }
-	}
+		NS_DURING
+			image = [[NSImage alloc] initWithData:imageData];
+		NS_HANDLER
+			if (image != nil) image = nil;
+		NS_ENDHANDLER
+		if (image != nil)
+		{
+			if ([image isValid] && [image size].width > 0 && [image size].height > 0)
+			{
+				[image autorelease];
+				[image setCachedSeparately:NO];
+				[image setScalesWhenResized:YES];
+				[image setDataRetained:NO];	// saves much memory if image size is reduced
+			}
+			else
+			{
+				[image release];
+				image = nil;
+			}
+		}
     }
     
     return image;
