@@ -82,6 +82,12 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 }
 
 
+- (NSString *)settingsAsXMLElement
+{
+	return [NSString stringWithFormat:@"<MOVIE PATH=\"%@\"/>", [self path]];
+}
+
+
 - (id)copyWithZone:(NSZone *)zone
 {
 	QuickTimeImageSource	*copy = [[QuickTimeImageSource allocWithZone:zone] initWithPath:[self path]];
@@ -179,10 +185,10 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 {
 	NSImage	*image = nil;
 	
-	[currentImageLock lock];
-		image = (currentImage ? [[currentImage retain] autorelease] : 
-								[[NSWorkspace sharedWorkspace] iconForFile:moviePath]);
-	[currentImageLock unlock];
+//	[currentImageLock lock];
+//		image = (currentImage ? [[currentImage retain] autorelease] : 
+//								[[NSWorkspace sharedWorkspace] iconForFile:moviePath]);
+//	[currentImageLock unlock];
 	
 	return image;
 }
@@ -249,7 +255,7 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 	
 	if (image)
 	{
-		[self setCurrentImage:image];
+//		[self setCurrentImage:image];
 		
 		[parameters setObject:identifier forKey:@"identifier"];
 		[parameters setObject:image forKey:@"image"];
