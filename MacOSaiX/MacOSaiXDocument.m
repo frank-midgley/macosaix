@@ -19,7 +19,7 @@
 - (void)setTilesSetupPlugIn:(id)sender;
 - (void)spawnImageSourceThreads;
 - (void)synchronizeMenus;
-- (void)startMosaic;
+- (BOOL)started;
 - (void)updateMosaicImage:(NSMutableArray *)updatedTiles;
 - (void)calculateImageMatches:(id)path;
 - (void)createTileCollectionWithOutlines:(id)object;
@@ -58,7 +58,7 @@
 			zoom = 0.0;
 			lastSaved = [[NSDate date] retain];
 			autosaveFrequency = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Autosave Frequency"] intValue];
-			finishLoading = windowFinishedLoading = NO;
+			finishLoading = NO;
 			exportProgressTileCount = 0;
 			exportFormat = NSJPEGFileType;
 			documentIsClosing = NO;
@@ -292,18 +292,9 @@
 }
 
 
-- (void)startMosaic
-{    
-	mosaicStarted = YES;
-    if (tiles == nil)
-			// spawn a thread to create a data structure for each tile including outlines, bitmaps, etc.
-		[NSApplication detachDrawingThread:@selector(createTileCollectionWithOutlines:)
-					toTarget:self withObject:nil];
-	else
-		[self spawnImageSourceThreads];
-    
-		// TODO: I can't remember what this is for...
-    windowFinishedLoading = YES;
+- (BOOL)started
+{
+	return ([[tiles objectAtIndex:0] bitmapRep] != nil);
 }
 
 
@@ -318,8 +309,8 @@
 			// Update the menu bar.
 		[[fileMenu itemWithTitle:@"Pause Matching"] setTitle:@"Resume Matching"];
 		
-			// Wait for the one-shot startup threads to end.
-		while (createTilesThreadAlive || enumerateImageSourcesThreadAlive)
+			// Wait for the one-shot startup thread to end.
+		while (createTilesThreadAlive)
 			[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 
 			// Tell the image sources to stop sending in any new images.
@@ -343,23 +334,29 @@
 {
 	if (paused)
 	{
-		if (!mosaicStarted)
-			[self startMosaic];	// spawn the image source threads
-		
-			// Update the toolbar
-		[pauseToolbarItem setLabel:@"Pause"];
-		[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
-		
-			// Update the menu bar
-		[[fileMenu itemWithTitle:@"Resume Matching"] setTitle:@"Pause Matching"];
-		
-			// Restart the image sources
-		NSEnumerator	*imageSourceEnumerator = [imageSources objectEnumerator];
-		ImageSource		*imageSource;
-		while (imageSource = [imageSourceEnumerator nextObject])
-			[imageSource resume];
-		
-		paused = NO;
+		if (![self started])
+		{
+			[NSApplication detachDrawingThread:@selector(createTileCollectionWithOutlines:)
+									  toTarget:self
+									withObject:nil];
+		}
+		else
+		{
+				// Update the toolbar
+			[pauseToolbarItem setLabel:@"Pause"];
+			[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
+			
+				// Update the menu bar
+			[[fileMenu itemWithTitle:@"Resume Matching"] setTitle:@"Pause Matching"];
+			
+				// Start or restart the image sources
+			NSEnumerator	*imageSourceEnumerator = [imageSources objectEnumerator];
+			ImageSource		*imageSource;
+			while (imageSource = [imageSourceEnumerator nextObject])
+				[imageSource resume];
+			
+			paused = NO;
+		}
 	}
 }
 
@@ -662,12 +659,12 @@
     [imageSourcesTable reloadData];
     
     // autosave if it's time
-    if ([lastSaved timeIntervalSinceNow] < autosaveFrequency * -60)
-    {
-		[self saveDocument:self];
-		[lastSaved autorelease];
-		lastSaved = [[NSDate date] retain];
-    }
+//    if ([lastSaved timeIntervalSinceNow] < autosaveFrequency * -60)
+//    {
+//		[self saveDocument:self];
+//		[lastSaved autorelease];
+//		lastSaved = [[NSDate date] retain];
+//    }
     
     // 
     if (exportImageThreadAlive)
@@ -868,12 +865,11 @@
 		
 		extractionPercentComplete = (int)(index * 50.0 / [tileOutlines count]);
 	}
-
-//    [[drawWindow contentView] unlockFocus];
+	
     [drawWindow close];
     
-		// ...
-	[self spawnImageSourceThreads];
+		// Start up the mosaic
+	[self resume];
 
     [pool release];
     
@@ -1388,11 +1384,14 @@
 		// if it's a new image source then add it to the array (paused if we haven't started yet)
 	if ([imageSources indexOfObjectIdenticalTo:imageSource] == NSNotFound)
 	{
-		if (!mosaicStarted)
+		if (![self started])
 			[imageSource pause];
+		
 		[imageSources addObject:imageSource];
+		[imageSourcesTable reloadData];
+		
+		[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) toTarget:self withObject:imageSource];
 	}
-	[imageSourcesTable reloadData];
 }
 
 
@@ -1780,6 +1779,7 @@
 #pragma mark -
 #pragma mark View methods
 
+
 - (void)setViewCompareMode:(id)sender;
 {
     [self setViewMode:viewMosaicAndOriginal];
@@ -1894,15 +1894,6 @@
 }
 
 
-- (BOOL)validateMenuItem:(NSMenuItem *)menuItem
-{
-    if ([[menuItem title] isEqualToString:@"Center on Selected Tile"])
-	return (viewMode == viewMosaicEditor && selectedTile != nil && zoom != 0.0);
-    else
-	return [super validateMenuItem:menuItem];
-}
-
-
 - (void)centerViewOnSelectedTile:(id)sender
 {
     NSPoint	contentOrigin = NSMakePoint(NSMidX([[selectedTile outline] bounds]),
@@ -1988,6 +1979,16 @@
 }
 
 
+- (void)toggleImageSourcesDrawer:(id)sender
+{
+    [utilitiesDrawer toggle:(id)sender];
+    if ([utilitiesDrawer state] == NSDrawerClosedState)
+		[[viewMenu itemWithTitle:@"Show Image Sources"] setTitle:@"Hide Image Sources"];
+    else
+		[[viewMenu itemWithTitle:@"Hide Image Sources"] setTitle:@"Show Image Sources"];
+}
+
+
 - (void)setShowOutlines:(id)sender
 {
     [originalView setDisplayTileOutlines:([showOutlinesSwitch state] == NSOnState)];
@@ -1998,13 +1999,12 @@
 #pragma mark Utility methods
 
 
-- (void)toggleImageSourcesDrawer:(id)sender
+- (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
-    [utilitiesDrawer toggle:(id)sender];
-    if ([utilitiesDrawer state] == NSDrawerClosedState)
-		[[viewMenu itemWithTitle:@"Show Image Sources"] setTitle:@"Hide Image Sources"];
+    if ([[menuItem title] isEqualToString:@"Center on Selected Tile"])
+	return (viewMode == viewMosaicEditor && selectedTile != nil && zoom != 0.0);
     else
-		[[viewMenu itemWithTitle:@"Hide Image Sources"] setTitle:@"Show Image Sources"];
+	return [super validateMenuItem:menuItem];
 }
 
 
@@ -2359,15 +2359,15 @@
 	{
 		int selectedIndex =  [tabView indexOfTabViewItem:tabViewItem];
 		
-		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Tiles Setup"])
+		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Tiles"])
 			[mosaicView setViewMode:viewTilesOutline];
-		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Image Sources"])
+		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Images"])
 			[mosaicView setViewMode:viewImageSources];
-		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Original Image"])
+		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Original"])
 			[mosaicView setViewMode:viewMosaic];
-		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Image Regions"])
+		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Regions"])
 			[mosaicView setViewMode:viewImageRegions];
-		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Tile Editor"])
+		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Editor"])
 			[mosaicView setViewMode:viewHighlightedTile];
 	}
 }
@@ -2480,6 +2480,7 @@
 - (void)dealloc
 {
 	[cachedImagesDictionary release];
+	[[NSFileManager defaultManager] removeFileAtPath:cachedImagesPath handler:nil];	// TODO: if still in /tmp...
     [originalImageURL release];
     [originalImage release];
     [mosaicImage release];
