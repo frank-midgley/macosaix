@@ -51,6 +51,246 @@
 //012
 //013
 //014
+		01283223071B7244004ACF95 = {
+			fileRef = 01453D4A071B6F2D00BCEC7C;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		0128323A071B7297004ACF95 = {
+			fileRef = F514D53C0390266E01B25AF1;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		01283240071B7298004ACF95 = {
+			fileRef = 926CE4E903E7627700C7E70E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		01283247071B72B5004ACF95 = {
+			buildActionMask = 2147483647;
+			files = (
+				01453D55071B6F8000BCEC7C,
+			);
+			isa = PBXHeadersBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		012833BB071B79C3004ACF95 = {
+			containerPortal = 29B97313FDCFA39411CA2CEA;
+			isa = PBXContainerItemProxy;
+			proxyType = 1;
+			remoteGlobalIDString = 01453D49071B6F2D00BCEC7C;
+			remoteInfo = "Puzzle Tiles Setup";
+		};
+		012833BC071B79C3004ACF95 = {
+			isa = PBXTargetDependency;
+			target = 01453D49071B6F2D00BCEC7C;
+			targetProxy = 012833BB071B79C3004ACF95;
+		};
+		01453C99071B6EE300BCEC7C = {
+			children = (
+				927FA75C03FA3607000A0D3F,
+				927FA75E03FA3621000A0D3F,
+				927FA75D03FA3614000A0D3F,
+				92F2B1D7048027570000011E,
+			);
+			isa = PBXGroup;
+			name = "Image Sources";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01453CA7071B6EED00BCEC7C = {
+			children = (
+				927FA75B03FA35EE000A0D3F,
+				928F72C4066122B000873AE2,
+				01453D3B071B6F0E00BCEC7C,
+			);
+			isa = PBXGroup;
+			name = "Tiles Setup";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01453D3B071B6F0E00BCEC7C = {
+			children = (
+				01453D52071B6F8000BCEC7C,
+				01453D53071B6F8000BCEC7C,
+				01453D4E071B6F7900BCEC7C,
+				01453D51071B6F8000BCEC7C,
+			);
+			isa = PBXGroup;
+			name = Puzzle;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01453D46071B6F2D00BCEC7C = {
+			buildActionMask = 2147483647;
+			files = (
+				01453D50071B6F7900BCEC7C,
+				01453D54071B6F8000BCEC7C,
+			);
+			isa = PBXResourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01453D47071B6F2D00BCEC7C = {
+			buildActionMask = 2147483647;
+			files = (
+				01453D56071B6F8000BCEC7C,
+			);
+			isa = PBXSourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01453D48071B6F2D00BCEC7C = {
+			buildActionMask = 2147483647;
+			files = (
+				0128323A071B7297004ACF95,
+				01283240071B7298004ACF95,
+			);
+			isa = PBXFrameworksBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01453D49071B6F2D00BCEC7C = {
+			buildPhases = (
+				01283247071B72B5004ACF95,
+				01453D46071B6F2D00BCEC7C,
+				01453D47071B6F2D00BCEC7C,
+				01453D48071B6F2D00BCEC7C,
+			);
+			buildRules = (
+			);
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+				GCC_PREFIX_HEADER = "";
+				INFOPLIST_FILE = "Standard Plugins/Puzzle Tiles Setup/Info.plist";
+				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Bundles";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "-framework Foundation -framework AppKit";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "Puzzle Tiles";
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
+				WRAPPER_EXTENSION = plugin;
+			};
+			dependencies = (
+				01453D4D071B6F3300BCEC7C,
+			);
+			isa = PBXNativeTarget;
+			name = "Puzzle Tiles Setup";
+			productName = "Puzzle Tiles Setup";
+			productReference = 01453D4A071B6F2D00BCEC7C;
+			productSettingsXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+<plist version=\"1.0\">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>Puzzle Tiles Setup</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.yourcompany.Puzzle_Tiles_Setup</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>1.0</string>
+</dict>
+</plist>
+";
+			productType = "com.apple.product-type.bundle";
+		};
+		01453D4A071B6F2D00BCEC7C = {
+			explicitFileType = wrapper.cfbundle;
+			includeInIndex = 0;
+			isa = PBXFileReference;
+			path = "Puzzle Tiles.plugin";
+			refType = 3;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		01453D4C071B6F3300BCEC7C = {
+			containerPortal = 29B97313FDCFA39411CA2CEA;
+			isa = PBXContainerItemProxy;
+			proxyType = 1;
+			remoteGlobalIDString = 928489A506611CE6003B3514;
+			remoteInfo = "MacOSaiX Plugins Framework";
+		};
+		01453D4D071B6F3300BCEC7C = {
+			isa = PBXTargetDependency;
+			target = 928489A506611CE6003B3514;
+			targetProxy = 01453D4C071B6F3300BCEC7C;
+		};
+		01453D4E071B6F7900BCEC7C = {
+			children = (
+				01453D4F071B6F7900BCEC7C,
+			);
+			isa = PBXVariantGroup;
+			name = PuzzleTilesSetup.nib;
+			path = "";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01453D4F071B6F7900BCEC7C = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.nib;
+			name = English;
+			path = "Standard Plugins/Puzzle Tiles Setup/English.lproj/PuzzleTilesSetup.nib";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01453D50071B6F7900BCEC7C = {
+			fileRef = 01453D4E071B6F7900BCEC7C;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		01453D51071B6F8000BCEC7C = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text.xml;
+			name = Info.plist;
+			path = "Standard Plugins/Puzzle Tiles Setup/Info.plist";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01453D52071B6F8000BCEC7C = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = PuzzleTilesSetupController.h;
+			path = "Standard Plugins/Puzzle Tiles Setup/PuzzleTilesSetupController.h";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01453D53071B6F8000BCEC7C = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = PuzzleTilesSetupController.m;
+			path = "Standard Plugins/Puzzle Tiles Setup/PuzzleTilesSetupController.m";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01453D54071B6F8000BCEC7C = {
+			fileRef = 01453D51071B6F8000BCEC7C;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		01453D55071B6F8000BCEC7C = {
+			fileRef = 01453D52071B6F8000BCEC7C;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		01453D56071B6F8000BCEC7C = {
+			fileRef = 01453D53071B6F8000BCEC7C;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		014DB625071A2C8D00DF68C0 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -195,7 +435,7 @@
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-framework Foundation -framework AppKit";
 				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = "Hexagonal Tiles Plug-in";
+				PRODUCT_NAME = "Hexagonal Tiles";
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
 				WRAPPER_EXTENSION = plugin;
@@ -213,7 +453,7 @@
 			explicitFileType = wrapper.cfbundle;
 			includeInIndex = 0;
 			isa = PBXFileReference;
-			path = "Hexagonal Tiles Plug-in.plugin";
+			path = "Hexagonal Tiles.plugin";
 			refType = 3;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
@@ -286,6 +526,7 @@
 				928489F306611CE6003B3514,
 				92848A0406611CE6003B3514,
 				01CB07E6071A1F2B00710BCF,
+				01453D4A071B6F2D00BCEC7C,
 			);
 			isa = PBXGroup;
 			name = Products;
@@ -325,6 +566,7 @@
 				928489F406611CE6003B3514,
 				928489E606611CE6003B3514,
 				01CB07E5071A1F2B00710BCF,
+				01453D49071B6F2D00BCEC7C,
 			);
 		};
 		29B97314FDCFA39411CA2CEA = {
@@ -440,7 +682,8 @@
 				928F72E80661237300873AE2,
 			);
 			isa = PBXGroup;
-			name = "Rectangular Tiles Setup";
+			name = Rectangular;
+			path = "";
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -454,7 +697,8 @@
 				928F72D80661230700873AE2,
 			);
 			isa = PBXGroup;
-			name = "Directory Image Source";
+			name = Directory;
+			path = "";
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -469,7 +713,8 @@
 				928F72E00661234700873AE2,
 			);
 			isa = PBXGroup;
-			name = "Google Image Source";
+			name = Google;
+			path = "";
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -484,7 +729,8 @@
 				928F72DC0661231B00873AE2,
 			);
 			isa = PBXGroup;
-			name = "Glyph Image Source";
+			name = Glyph;
+			path = "";
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -519,6 +765,7 @@
 				92848A0A06611CE6003B3514,
 				92848A0C06611CE6003B3514,
 				01A197B0071A203800B11558,
+				012833BC071B79C3004ACF95,
 			);
 			isa = PBXNativeTarget;
 			name = MacOSaiX.app;
@@ -542,10 +789,11 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				92848A1A06611CE6003B3514,
-				014DB63C071A2D8B00DF68C0,
 				92848A1706611CE6003B3514,
 				01DF729B070A5C6000512549,
+				92848A1A06611CE6003B3514,
+				014DB63C071A2D8B00DF68C0,
+				01283223071B7244004ACF95,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -798,6 +1046,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				FRAMEWORK_VERSION = A;
 				INFOPLIST_FILE = "MacOSaiX Plugins Framework/Info.plist";
+				INSTALL_PATH = "@executable_path/../Frameworks";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-seg1addr 0x10000000";
 				OTHER_LIBTOOL_FLAGS = "";
@@ -1840,7 +2089,7 @@
 				014DB625071A2C8D00DF68C0,
 			);
 			isa = PBXGroup;
-			name = "Hexagonal Tiles Setup";
+			name = Hexagonal;
 			path = "";
 			refType = 4;
 			sourceTree = "<group>";
@@ -1967,7 +2216,7 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
 			name = RectangularTilesSetupController.h;
-			path = "Standard Plugins/RectangularTilesSetupController.h";
+			path = "Standard Plugins/Rectangular Tiles Setup/RectangularTilesSetupController.h";
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -1976,7 +2225,7 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
 			name = RectangularTilesSetupController.m;
-			path = "Standard Plugins/RectangularTilesSetupController.m";
+			path = "Standard Plugins/Rectangular Tiles Setup/RectangularTilesSetupController.m";
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -2051,7 +2300,7 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
 			name = QuickTimeImageSource.h;
-			path = "Standard Plugins/QuickTimeImageSource.h";
+			path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSource.h";
 			refType = 2;
 			sourceTree = SOURCE_ROOT;
 		};
@@ -2060,7 +2309,7 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
 			name = QuickTimeImageSource.m;
-			path = "Standard Plugins/QuickTimeImageSource.m";
+			path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSource.m";
 			refType = 2;
 			sourceTree = SOURCE_ROOT;
 		};
@@ -2069,7 +2318,7 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
 			name = QuickTimeImageSourceController.h;
-			path = "Standard Plugins/QuickTimeImageSourceController.h";
+			path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSourceController.h";
 			refType = 2;
 			sourceTree = SOURCE_ROOT;
 		};
@@ -2078,7 +2327,7 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
 			name = QuickTimeImageSourceController.m;
-			path = "Standard Plugins/QuickTimeImageSourceController.m";
+			path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSourceController.m";
 			refType = 2;
 			sourceTree = SOURCE_ROOT;
 		};
@@ -2092,7 +2341,8 @@
 				928F72E40661235B00873AE2,
 			);
 			isa = PBXGroup;
-			name = "QuickTime Image Source";
+			name = QuickTime;
+			path = "";
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -2465,12 +2715,8 @@
 		};
 		F5EE25FD03901F9D01705684 = {
 			children = (
-				927FA75C03FA3607000A0D3F,
-				927FA75E03FA3621000A0D3F,
-				927FA75D03FA3614000A0D3F,
-				92F2B1D7048027570000011E,
-				928F72C4066122B000873AE2,
-				927FA75B03FA35EE000A0D3F,
+				01453C99071B6EE300BCEC7C,
+				01453CA7071B6EED00BCEC7C,
 			);
 			isa = PBXGroup;
 			name = "Standard Plugins";
