@@ -640,25 +640,41 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 // Loading the saved XML is currently done using the CFXML API so that we can run on Jaguar.
 // Once Jaguar support is no longer required this could be cleaned up by switching to the NSXML API.
 
+- (BOOL)readFromFile:(NSString *)fileName ofType:(NSString *)type
+{
+	[NSThread detachNewThreadSelector:@selector(loadXMLFile:) toTarget:self withObject:fileName];
+
+	return YES;
+}
+
 
 	// Parser callback prototypes.
 void		*createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info);
 void		addChild(CFXMLParserRef parser, void *parent, void *child, void *info);
 void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
-//CFDataRef	resolveExternalEntity(CFXMLParserRef parser, CFXMLExternalID *extID, void *info);
-//Boolean		handleError(CFXMLParserRef parser, CFXMLParserStatusCode error, void *info);
 
 
-- (BOOL)readFromFile:(NSString *)fileName ofType:(NSString *)type
+- (void)loadXMLFile:(NSString *)fileName
 {
-	BOOL	success = NO;
+	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	
+	while ([[self windowControllers] count] == 0)
+		[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+	
+	[[[self windowControllers] objectAtIndex:0] displayProgressPanelWithMessage:@"Loading..."];
+	
 	NSData	*xmlData = [NSData dataWithContentsOfFile:[fileName stringByAppendingPathComponent:@"Mosaic.xml"]];
 	
 	if (xmlData)
 	{
 			// Set up the parser callbacks and context.
 		CFXMLParserCallBacks	callbacks = {0, createStructure, addChild, endStructure, NULL, NULL};	//resolveExternalEntity, handleError};
-		CFXMLParserContext		context = {0, self, NULL, NULL, NULL};
+		NSMutableArray			*stack = [NSMutableArray arrayWithObject:self],
+								*contextArray = [NSMutableArray arrayWithObjects:stack, 
+																				 [NSNumber numberWithLong:[xmlData length]], 
+																				 [NSNumber numberWithInt:0], 
+																				 nil];
+		CFXMLParserContext		context = {0, contextArray, NULL, NULL, NULL};
 		
 			// Create the parser with the option to skip whitespace.
 		CFXMLParserRef			parser = CFXMLParserCreate(kCFAllocatorDefault, 
@@ -666,24 +682,25 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 														   NULL, 
 														   kCFXMLParserSkipWhitespace, 
 														   kCFXMLNodeCurrentVersion, 
-														   &callbacks,
+														   &callbacks, 
 														   &context);
 
 			// Invoke the parser.
-		success = CFXMLParserParse(parser);
-		
-		if (!success)
+		if (!CFXMLParserParse(parser))
 			NSLog(@"Parsing failed: %@", (NSString *)CFXMLParserCopyErrorDescription(parser));
 	}
 	
-	return success;
+	[[[self windowControllers] objectAtIndex:0] closeProgressPanel];
+	
+	[pool release];
 }
 
 
 void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 {
 	id					newObject = nil;
-	MacOSaiXDocument	*document = (MacOSaiXDocument *)info;
+	NSMutableArray		*stack = [(NSArray *)info objectAtIndex:0];
+	MacOSaiXDocument	*document = (MacOSaiXDocument *)[stack objectAtIndex:0];
 	
     switch (CFXMLNodeGetTypeCode(node))
 	{
@@ -761,7 +778,10 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
         default:
 			;
 	}
-
+	
+	if (newObject)
+		[stack addObject:newObject];
+	
     // Return the object that will be passed to the addChild and endStructure callbacks.
     return (void *)newObject;
 }
@@ -769,7 +789,8 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 
 void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 {
-	MacOSaiXDocument	*document = (MacOSaiXDocument *)info;
+	NSMutableArray		*stack = [(NSArray *)info objectAtIndex:0];
+	MacOSaiXDocument	*document = (MacOSaiXDocument *)[stack objectAtIndex:0];
 
 //	if (parent == nil)
 //		parent = document;
@@ -778,8 +799,23 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 		[document setOriginalImagePath:(NSString *)child];
 	else if (parent == document && [(id)child conformsToProtocol:@protocol(MacOSaiXTileShapes)])
 		[document setTileShapes:(id<MacOSaiXTileShapes>)child];
+	else if ([(id)parent conformsToProtocol:@protocol(MacOSaiXTileShapes)] && [(id)child isKindOfClass:[NSDictionary class]])
+		[(id<MacOSaiXTileShapes>)parent useSavedSetting:(NSDictionary *)child];
 	else if (parent == document && [(id)child conformsToProtocol:@protocol(MacOSaiXImageSource)])
 		[document addImageSource:(id<MacOSaiXImageSource>)child];
+	else if ([(id)parent conformsToProtocol:@protocol(MacOSaiXImageSource)] && [(id)child isKindOfClass:[NSDictionary class]])
+		[(id<MacOSaiXImageSource>)parent useSavedSetting:(NSDictionary *)child];
+	else if ([(id)parent isKindOfClass:[NSDictionary class]] && [(id)child isKindOfClass:[NSDictionary class]])
+	{
+		NSEnumerator	*stackEnumerator = [stack reverseObjectEnumerator];
+		id				stackObject = nil;
+		while (stackObject = [stackEnumerator nextObject])
+			if ([stackObject conformsToProtocol:@protocol(MacOSaiXTileShapes)] || [stackObject conformsToProtocol:@protocol(MacOSaiXImageSource)])
+			{
+				[stackObject addSavedChildSetting:(NSDictionary *)child toParent:(NSDictionary *)parent];
+				break;
+			}
+	}
 	else if (parent == document && [(id)child isKindOfClass:[MacOSaiXTile class]])
 		[document addTile:(MacOSaiXTile *)child];
 	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[NSBezierPath class]])
@@ -811,6 +847,9 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 
 void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 {
+	NSMutableArray		*stack = [(NSArray *)info objectAtIndex:0];
+	MacOSaiXDocument	*document = (MacOSaiXDocument *)[stack objectAtIndex:0];
+
 		// Release any objects we created in createStructure() now that they are retained by their parent.
 	if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXImageSource)] || 
 		[(id)newObject conformsToProtocol:@protocol(MacOSaiXTileShapes)] || 
@@ -819,6 +858,31 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 		[(id)newObject isKindOfClass:[NSDictionary class]] || 
 		[(id)newObject isKindOfClass:[MacOSaiXImageMatch class]])
 		[(id)newObject release];
+	
+	if ([(id)newObject isKindOfClass:[NSDictionary class]])
+	{
+		NSEnumerator	*stackEnumerator = [stack reverseObjectEnumerator];
+		id				stackObject = nil;
+		while (stackObject = [stackEnumerator nextObject])
+			if ([stackObject conformsToProtocol:@protocol(MacOSaiXTileShapes)] || [stackObject conformsToProtocol:@protocol(MacOSaiXImageSource)])
+			{
+				[stackObject savedSettingIsCompletelyLoaded:(NSDictionary *)newObject];
+				break;
+			}
+	}
+
+	[stack removeLastObject];
+	
+		// Update the progress.
+	long	lengthOfXML = [[(NSArray *)info objectAtIndex:1] longValue];
+	int		currentPercentage = CFXMLParserGetLocation(parser) * 100.0 / lengthOfXML;
+	
+	if (currentPercentage > [[(NSArray *)info objectAtIndex:2] intValue])
+	{
+		NSNumber	*percentComplete = [NSNumber numberWithInt:currentPercentage];
+		[[[document windowControllers] objectAtIndex:0] setProgressPercentComplete:percentComplete];
+		[(NSMutableArray *)info replaceObjectAtIndex:2 withObject:percentComplete];
+	}
 }
 
 
@@ -964,7 +1028,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (void)extractTileImagesFromOriginalImage
 {
-    if ([tiles count] == 0 || originalImage == nil)
+    if ([tiles count] == 0 || originalImage == nil || documentIsClosing)
 		return;
 
 	createTilesThreadAlive = YES;
@@ -1589,7 +1653,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	if (documentIsClosing)
 		return;	// make sure to do the steps below only once (not sure why this method sometimes gets called twice...)
 	
-		// Let the helper threads know we are closing and resume so that they can exit.
+		// Let the helper threads know we are closing and resume so that they can clean up and exit.
 	documentIsClosing = YES;
 	[self resume];
 	
