@@ -20,7 +20,6 @@ typedef enum
 
 	IBOutlet NSTextField			*statusMessageView;
 
-    IBOutlet NSDrawer				*utilitiesDrawer;
 
     IBOutlet NSView					*statusBarView;
 	
@@ -28,38 +27,26 @@ typedef enum
 	IBOutlet NSSlider				*zoomSlider;
     IBOutlet NSMenu					*zoomToolbarSubmenu;
 	
-		// Progress panel
-    IBOutlet NSPanel				*progressPanel;
-	IBOutlet NSTextField			*progressPanelLabel;
-	IBOutlet NSProgressIndicator	*progressPanelIndicator;
-	IBOutlet NSButton				*progressPanelCancelButton;
-	
-		// Export panel
-    IBOutlet NSView					*exportPanelAccessoryView;
-	IBOutlet NSTextField			*exportWidth, *exportHeight;
-	unsigned long					exportProgressTileCount;
-	
-		// Setup tab
+		// Settings drawer
+    IBOutlet NSDrawer				*settingsDrawer;
 	IBOutlet NSImageView			*originalImageThumbView;
 	IBOutlet NSPopUpButton			*originalImagePopUpButton;
 	IBOutlet NSTextField			*tileShapesDescriptionField,
-									*totalTilesField,
-									*tileSizeLabel,
-									*tileSizeField;
-	IBOutlet NSPopUpButton			*neighborhoodSizePopUpButton,
-									*imageUseCountPopUpButton;
-	
-		// Tile shapes sheet
-	IBOutlet NSPopUpButton			*tileShapesPopUpButton;
-	IBOutlet NSView					*tileShapesView;
-	id<MacOSaiXTileShapesEditor>	tileShapesEditor;
-	id<MacOSaiXTileShapes>			tileShapesBeingEdited;
-	IBOutlet NSButton				*setTileShapesButton;
-	
-		// Images tab
+									*totalTilesField;
+	IBOutlet NSButton				*changeTileShapesButton;
+	IBOutlet NSPopUpButton			*imageUseCountPopUpButton,
+									*neighborhoodSizePopUpButton;
 	IBOutlet NSPopUpButton			*imageSourcesPopUpButton;
 	IBOutlet NSTableView			*imageSourcesTableView;
 	IBOutlet NSButton				*imageSourcesRemoveButton;
+	
+		// Tile shapes sheet
+	IBOutlet NSPanel				*tileShapesPanel;
+	IBOutlet NSPopUpButton			*tileShapesPopUpButton;
+	IBOutlet NSBox					*tileShapesBox;
+	id<MacOSaiXTileShapesEditor>	tileShapesEditor;
+	id<MacOSaiXTileShapes>			tileShapesBeingEdited;
+	IBOutlet NSButton				*setTileShapesButton;
 	
 		// Image source editor
 	IBOutlet NSPanel				*imageSourceEditorPanel;
@@ -75,6 +62,17 @@ typedef enum
 									*editorUseSelectedImage;
 	IBOutlet NSTableView			*editorTable;
 //    IBOutlet NSTextField			*matchValueTextField;
+	
+		// Progress panel
+    IBOutlet NSPanel				*progressPanel;
+	IBOutlet NSTextField			*progressPanelLabel;
+	IBOutlet NSProgressIndicator	*progressPanelIndicator;
+	IBOutlet NSButton				*progressPanelCancelButton;
+	
+		// Export panel
+    IBOutlet NSView					*exportPanelAccessoryView;
+	IBOutlet NSTextField			*exportWidth, *exportHeight;
+	unsigned long					exportProgressTileCount;
 
     NSString						*originalImagePath;
     NSTimer							*animateTileTimer;
@@ -115,7 +113,7 @@ typedef enum
 
 - (IBAction)selectTileAtPoint:(NSPoint)thePoint;
 
-	// Setup drawer
+	// Settings drawer
 - (IBAction)chooseOriginalImage:(id)sender;
 - (IBAction)changeTileShapes:(id)sender;
 - (IBAction)setNeighborhoodSize:(id)sender;
@@ -124,7 +122,8 @@ typedef enum
 
 	// Tile shapes sheet
 - (IBAction)setTileShapesPlugIn:(id)sender;
-- (IBAction)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes;
+- (IBAction)setTileShapes:(id)sender;
+- (IBAction)cancelChangingTileShapes:(id)sender;
 
 	// Image source editor methods
 - (IBAction)saveImageSource:(id)sender;

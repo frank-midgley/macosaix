@@ -84,8 +84,7 @@
 	[[NSApp delegate] discoverPlugIns];
 
 	{
-			// Set up the "Setup" tab
-//		[tileShapesView setTitlePosition:NSNoTitle];
+		// Set up the settings drawer
 		
 			// Populate the original image pop-up menu
 		NSEnumerator	*originalEnumerator = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] objectEnumerator];
@@ -112,24 +111,6 @@
 		}
 		[originalImagePopUpButton selectItemAtIndex:0];
 		
-			// Load the names of the tile shapes plug-ins
-//		NSString		*titleFormat = @"%@ Tile Shapes";
-//		NSEnumerator	*enumerator = [[(MacOSaiX *)[NSApp delegate] tileShapesClasses] objectEnumerator];
-//		Class			tileShapesClass = nil;
-//		float			maxWidth = 0.0;
-//		[tileShapesPopUpButton removeAllItems];
-//		while (tileShapesClass = [enumerator nextObject])
-//		{
-//			[tileShapesPopUpButton addItemWithTitle:[NSString stringWithFormat:titleFormat, [tileShapesClass name]]];
-//			[[tileShapesPopUpButton lastItem] setRepresentedObject:tileShapesClass];
-//			
-//			[tileShapesPopUpButton selectItemAtIndex:[tileShapesPopUpButton numberOfItems] - 1];
-//			[tileShapesPopUpButton sizeToFit];
-//			maxWidth = MAX(maxWidth, [tileShapesPopUpButton frame].size.width);
-//		}
-//		[tileShapesPopUpButton setFrameSize:NSMakeSize(maxWidth, [tileShapesPopUpButton frame].size.height)];
-//		[tileShapesPopUpButton selectItemAtIndex:0];
-//		[self setTileShapesPlugIn:self];
 		[[self document] setTileShapes:[[[NSClassFromString(@"MacOSaiXRectangularTileShapes") alloc] init] autorelease]];
 		
 			// Fill in the description of the current tile shapes.
@@ -172,6 +153,8 @@
 		}
 	}
 	
+	[tileShapesBox setContentViewMargins:NSMakeSize(16.0, 16.0)];
+	
 	{	// Set up the "Editor" tab
 		[[editorTable tableColumnWithIdentifier:@"image"] setDataCell:[[[NSImageCell alloc] init] autorelease]];
 	}
@@ -180,8 +163,8 @@
 	[mosaicView setDocument:[self document]];
 	
 		// For some reason IB insists on setting the drawer width to 200.  Have to set the size in code instead.
-	[utilitiesDrawer setContentSize:NSMakeSize(400, [utilitiesDrawer contentSize].height)];
-	[utilitiesDrawer open:self];
+	[settingsDrawer setContentSize:NSMakeSize(400, [settingsDrawer contentSize].height)];
+	[settingsDrawer open:self];
 	
     selectedTile = nil;
     
@@ -372,18 +355,8 @@
 		if ([[self document] wasStarted])
 		{
 				// Make sure the tiles can't be tweaked now that the mosaic was started.
-			[tileShapesPopUpButton setEnabled:NO];
-			NSMutableArray	*views = [NSMutableArray arrayWithObject:tileShapesView];
-			while ([views count] > 0)
-			{
-				NSView	*view = [views objectAtIndex:0];
-				
-				if ([view respondsToSelector:@selector(setEnabled:)])
-					[(NSControl *)view setEnabled:NO];
-				
-				[views addObjectsFromArray:[view subviews]];
-				[views removeObjectAtIndex:0];
-			}
+			[changeTileShapesButton setEnabled:NO];
+			[imageUseCountPopUpButton setEnabled:NO];
 			[neighborhoodSizePopUpButton setEnabled:NO];
 		}
 		else
@@ -504,7 +477,38 @@
 
 - (IBAction)changeTileShapes:(id)sender
 {
-	
+			// Populate the tile shapes pop-up with the names of the currently available plug-ins.
+		[(MacOSaiX *)[NSApp delegate] discoverPlugIns];
+		NSEnumerator	*enumerator = [[(MacOSaiX *)[NSApp delegate] tileShapesClasses] objectEnumerator];
+		Class			tileShapesClass = nil;
+		int				currentlyUsedClassIndex = -1;
+		float			maxWidth = 0.0;
+		NSString		*titleFormat = @"%@ Tile Shapes";
+		[tileShapesPopUpButton removeAllItems];
+		while (tileShapesClass = [enumerator nextObject])
+		{
+			[tileShapesPopUpButton addItemWithTitle:[NSString stringWithFormat:titleFormat, [tileShapesClass name]]];
+			[[tileShapesPopUpButton lastItem] setRepresentedObject:tileShapesClass];
+			
+			[tileShapesPopUpButton selectItemAtIndex:[tileShapesPopUpButton numberOfItems] - 1];
+			[tileShapesPopUpButton sizeToFit];
+			maxWidth = MAX(maxWidth, [tileShapesPopUpButton frame].size.width);
+			
+			if ([[[self document] tileShapes] isKindOfClass:tileShapesClass])
+				currentlyUsedClassIndex = [tileShapesPopUpButton numberOfItems] - 1;
+		}
+		[tileShapesPopUpButton setFrameSize:NSMakeSize(maxWidth, [tileShapesPopUpButton frame].size.height)];
+		[tileShapesPopUpButton selectItemAtIndex:currentlyUsedClassIndex];
+		
+			// Populate the GUI with the current shape settings.
+		[self setTileShapesPlugIn:self];
+		
+			// Present a sheet to let the user modify the shape settings.
+		[NSApp beginSheet:tileShapesPanel 
+		   modalForWindow:[self window]
+		    modalDelegate:self 
+		   didEndSelector:@selector(tileShapesEditorDidEnd:returnCode:contextInfo:) 
+			  contextInfo:nil];
 }
 
 
@@ -520,15 +524,9 @@
 		tileShapesEditor = [[tileShapesEditorClass alloc] init];
 		
 			// Swap in the view of the new editor.
-		NSRect			frame = [tileShapesView frame];
-		unsigned int	autoResizingMask = [tileShapesView autoresizingMask];
-		NSView			*superView = [tileShapesView superview];
-		[tileShapesView removeFromSuperview];
-		
-		[[tileShapesEditor editorView] setFrame:frame];
-		[[tileShapesEditor editorView] setAutoresizingMask:autoResizingMask];
-		[superView addSubview:[tileShapesEditor editorView]];
-		tileShapesView = [tileShapesEditor editorView];	// the superview retains it.
+		[[tileShapesEditor editorView] setFrame:[[tileShapesBox contentView] frame]];
+		[[tileShapesEditor editorView] setAutoresizingMask:[[tileShapesBox contentView] autoresizingMask]];
+		[tileShapesBox setContentView:[tileShapesEditor editorView]];
 		
 			// Get the existing tile shapes from our document.
 			// If they are not of the class the user just chose then create a new one with default settings.
@@ -541,34 +539,55 @@
 	}
 	else
 	{
-		NSTextField	*errorView = [[[NSTextField alloc] initWithFrame:[tileShapesView frame]] autorelease];
+		NSTextField	*errorView = [[[NSTextField alloc] initWithFrame:[[tileShapesBox contentView] frame]] autorelease];
 		
 		[errorView setStringValue:@"Could not load the plug-in"];
 		[errorView setEditable:NO];
-		[[tileShapesView superview] addSubview:errorView];
-		[tileShapesView removeFromSuperview];
-		tileShapesView = errorView;	// the superview retains it.
 	}
 }
 
 
-- (IBAction)setTileShapes:(id)sender
+- (IBAction)setTileShapes:(id)sender;
 {
-		// TODO: warn if mosaic in progress
-	[[self document] setTileShapes:tileShapesBeingEdited];
+	[NSApp endSheet:tileShapesPanel returnCode:NSOKButton];
+}
+
+
+- (IBAction)cancelChangingTileShapes:(id)sender
+{
+	[NSApp endSheet:tileShapesPanel returnCode:NSCancelButton];
+}
+
+
+- (void)tileShapesEditorDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+	[sheet orderOut:self];
+	
+	if (returnCode == NSOKButton)
+		[[self document] setTileShapes:tileShapesBeingEdited];
+	
 	[tileShapesBeingEdited release];
 	tileShapesBeingEdited = nil;
-}	
+
+	[imageSourceEditorBox setContentView:nil];
+}
 
 
 - (void)tileShapesDidChange:(NSNotification *)notification
 {
+	[tileShapesDescriptionField setStringValue:[[[self document] tileShapes] briefDescription]];
 	[totalTilesField setIntValue:[[[self document] tiles] count]];
 	
 	if (selectedTile)
 		[self selectTileAtPoint:tileSelectionPoint];
 	
 	[self updateStatus:nil];
+}
+
+
+- (IBAction)setImageUseCount:(id)sender
+{
+//	[[self document] setImageUseCount:[[imageUseCountPopUpButton selectedItem] tag]];
 }
 
 
@@ -628,6 +647,18 @@
 }
 
 
+- (IBAction)saveImageSource:(id)sender;
+{
+	[NSApp endSheet:imageSourceEditorPanel returnCode:NSOKButton];
+}
+
+
+- (IBAction)cancelImageSource:(id)sender
+{
+	[NSApp endSheet:imageSourceEditorPanel returnCode:NSCancelButton];
+}
+
+
 - (void)imageSourceEditorDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
 	NSArray								*parameters = (NSArray *)contextInfo;
@@ -655,23 +686,6 @@
 	id<MacOSaiXImageSource>	imageSource = [[[self document] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]];
 	
 	[[self document] removeImageSource:imageSource];
-}
-
-
-#pragma mark -
-#pragma mark Images tab methods
-
-
-	// Image source editor methods
-- (IBAction)saveImageSource:(id)sender;
-{
-	[NSApp endSheet:imageSourceEditorPanel returnCode:NSOKButton];
-}
-
-
-- (IBAction)cancelImageSource:(id)sender
-{
-	[NSApp endSheet:imageSourceEditorPanel returnCode:NSCancelButton];
 }
 
 
@@ -998,15 +1012,15 @@
 	{
 		case viewMosaicAndOriginal:
 			[mosaicView setViewMode:viewMosaic];
-			[utilitiesDrawer open];
+			[settingsDrawer open];
 			break;
 		case viewMosaicAndTilesSetup:
 			[mosaicView setViewMode:viewTilesOutline];
-			[utilitiesDrawer open];
+			[settingsDrawer open];
 			break;
 		case viewMosaicAndRegions:
 			[mosaicView setViewMode:viewImageRegions];
-			[utilitiesDrawer open];
+			[settingsDrawer open];
 			break;
 		case viewMosaicEditor:
 			[mosaicView setViewMode:viewHighlightedTile];
@@ -1014,11 +1028,11 @@
 			[self updateEditor];
 			[editorTable scrollRowToVisible:0];
 			[editorTable reloadData];
-			[utilitiesDrawer open];
+			[settingsDrawer open];
 			break;
 		case viewMosaicAlone:
 			[mosaicView setViewMode:viewMosaic];
-			[utilitiesDrawer close];
+			[settingsDrawer close];
 			break;
     }
     [self synchronizeMenus];
@@ -1156,8 +1170,8 @@
 
 - (void)toggleImageSourcesDrawer:(id)sender
 {
-    [utilitiesDrawer toggle:(id)sender];
-    if ([utilitiesDrawer state] == NSDrawerClosedState)
+    [settingsDrawer toggle:(id)sender];
+    if ([settingsDrawer state] == NSDrawerClosedState)
 		[[viewMenu itemWithTitle:@"Show Image Sources"] setTitle:@"Hide Image Sources"];
     else
 		[[viewMenu itemWithTitle:@"Hide Image Sources"] setTitle:@"Show Image Sources"];
@@ -1536,14 +1550,14 @@
 		[toolbarItem setToolTip:@"Export an image of the mosaic"];
     }
 
-    if ([itemIdentifier isEqualToString:@"UtilityDrawer"])
+    if ([itemIdentifier isEqualToString:@"SettingsDrawer"])
     {
 		[toolbarItem setImage:[NSImage imageNamed:@"UtilityDrawer"]];
-		[toolbarItem setLabel:@"Utility Drawer"];
-		[toolbarItem setPaletteLabel:@"Utility Drawer"];
-		[toolbarItem setTarget:utilitiesDrawer];
+		[toolbarItem setLabel:@"Settings"];
+		[toolbarItem setPaletteLabel:@"Settings"];
+		[toolbarItem setTarget:settingsDrawer];
 		[toolbarItem setAction:@selector(toggle:)];
-		[toolbarItem setToolTip:@"Show/hide utility drawer"];
+		[toolbarItem setToolTip:@"Show/hide settings drawer"];
     }
 
     if ([itemIdentifier isEqualToString:@"Pause"])
@@ -1573,7 +1587,7 @@
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar;
 {
-    return [NSArray arrayWithObjects:@"Zoom", @"ExportImage", @"Pause", @"UtilityDrawer", 
+    return [NSArray arrayWithObjects:@"Zoom", @"ExportImage", @"Pause", @"SettingsDrawer", 
 				     NSToolbarCustomizeToolbarItemIdentifier, NSToolbarSpaceItemIdentifier,
 				     NSToolbarFlexibleSpaceItemIdentifier, NSToolbarSeparatorItemIdentifier,
 				     nil];
@@ -1583,7 +1597,7 @@
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar;
 {
     return [NSArray arrayWithObjects:@"Zoom", @"ExportImage", @"Pause", 
-									 NSToolbarFlexibleSpaceItemIdentifier, @"UtilityDrawer", nil];
+									 NSToolbarFlexibleSpaceItemIdentifier, @"SettingsDrawer", nil];
 }
 
 
