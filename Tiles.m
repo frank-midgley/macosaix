@@ -9,35 +9,25 @@
     _outline = nil;
     _bitmapRep = nil;
     _matches = [[NSMutableArray arrayWithCapacity:0] retain];
-    _displayUpdateQueue = nil;
     _displayMatch = nil;
     return self;
 }
 
 
-- (void)setDisplayUpdateQueue:(NSMutableArray *)displayUpdateQueue
+- (id)initWithCoder:(NSCoder *)coder
 {
-    NSMutableArray	*oldDisplayUpdateQueue;
-    
-    if (displayUpdateQueue != _displayUpdateQueue)
-    {
-	oldDisplayUpdateQueue = _displayUpdateQueue;
-	_displayUpdateQueue = [displayUpdateQueue retain];
-	[oldDisplayUpdateQueue release];
-    }
+    [self setOutline:[coder decodeObject]];
+    [self setBitmapRep:[coder decodeObject]];
+    _matches = [[coder decodeObject] retain];
+    _displayMatch = nil;
+    return self;
 }
 
 
 - (void)setOutline:(NSBezierPath *)outline
 {
-    NSBezierPath	*oldOutline;
-    
-    if (outline != _outline)
-    {
-	oldOutline = _outline;
-	_outline = [outline retain];
-	[oldOutline release];
-    }
+    [_outline autorelease];
+    _outline = [outline retain];
 }
 
 
@@ -179,6 +169,18 @@
 }
 
 
+- (void)setUserMatch:(TileMatch *)userMatch
+{
+    _userMatch = userMatch;
+}
+
+
+- (TileMatch *)userMatch
+{
+    return _userMatch;
+}
+
+
 - (float)displayMatchValue
 {
     return _displayMatchValue;
@@ -195,6 +197,8 @@
 {
     float	otherBest = [otherTile bestMatchValue];
     
+    if (_userMatch != nil) return NSOrderedAscending;
+    
     if (_bestMatchValue < otherBest)
 	return NSOrderedAscending;
     else if (_bestMatchValue > otherBest)
@@ -203,12 +207,19 @@
 }
 
 
+- (void)encodeWithCoder:(NSCoder *)coder
+{
+    [coder encodeObject:_outline];
+    [coder encodeObject:_bitmapRep];
+    [coder encodeObject:_matches];
+}
+
+
 - (void)dealloc
 {
     if (_outline != nil) [_outline release];
     if (_bitmapRep != nil) [_bitmapRep release];
     if (_matches != nil) [_matches release];
-    if (_displayUpdateQueue != nil) [_displayUpdateQueue release];
     [super dealloc];
 }
 

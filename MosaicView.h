@@ -12,11 +12,13 @@
 @interface MosaicView : NSImageView
 {
     Tile*	_highlightedTile;
+    int		_phase;
 }
 
 - (id)init;
 - (void)mouseDown:(NSEvent *)theEvent;
 - (void)highlightTile:(Tile *)tile;
+- (void)animateHighlight;
 - (void)drawRect:(NSRect)theRect;
 
 @end

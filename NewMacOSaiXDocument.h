@@ -20,25 +20,34 @@
     IBOutlet id		removeImageSourceButton;
     IBOutlet id		cropLimit;
     IBOutlet id		goButton;
+    IBOutlet id		googleTermPanel, googleTermField;
     NSImage		*_originalImage, *_previewImage;
     BOOL		_userCancelled;
     NSMutableArray	*_tileOutlines, *_imageSources;
+    NSBezierPath	*_mergedOutlines;
     int			_tilesWide, _tilesHigh;
 }
 
 - (void)chooseOriginalImage:(id)sender;
+- (void)chooseOriginalImageOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
+    contextInfo:(void *)context;
 - (void)setTileShapes:(id)sender;
 - (void)setTilesAcross:(id)sender;
 - (void)setTilesDown:(id)sender;
-- (void)addImageSource:(id)sender;
+- (void)addDirectoryImageSource:(id)sender;
+- (void)addDirectoryImageSourceOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
+    contextInfo:(void *)context;
+- (void)addGoogleImageSource:(id)sender;
+- (void)cancelAddGoogleImageSource:(id)sender;
+- (void)okAddGoogleImageSource:(id)sender;
 - (void)removeImageSource:(id)sender;
 - (void)setCropLimit:(id)sender;
 - (void)userCancelled:(id)sender;
 - (void)beginMacOSaiX:(id)sender;
 
-// private methods
 - (void)createTileOutlines;
 - (void)createRectangleTiles;
+- (void)createPuzzleTiles;
 - (void)createHexagonalTiles;
 - (void)updatePreview;
 

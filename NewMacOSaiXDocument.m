@@ -1,3 +1,7 @@
+#import <fcntl.h>
+#import <sys/types.h>
+#import <sys/uio.h>
+#import <unistd.h>
 #import "NewMacOSaiXDocument.h"
 #import "MacOSaiXDocument.h"
 #import "DirectoryImageSource.h"
@@ -152,6 +156,8 @@
         [self createRectangleTiles];
     else if ([title isEqualToString:@"Hexagons"])
         [self createHexagonalTiles];
+    else if ([title isEqualToString:@"Puzzle Pieces"])
+        [self createPuzzleTiles];
     if (_mergedOutlines != nil) [_mergedOutlines release];
     _mergedOutlines = [[NSBezierPath bezierPath] retain];
     for (i = 0; i < [_tileOutlines count]; i++)
@@ -212,6 +218,162 @@
 }
 
 
+- (void)createPuzzleTiles
+{
+    int			rand_fd = open("/dev/random",O_RDONLY,0), x, y, orientation;
+    float		xSize = 1.0 / _tilesWide, ySize = 1.0 / _tilesHigh, originX, originY;
+    NSBezierPath	*tileOutline;
+    BOOL		tabs[_tilesWide * 2 + 1][_tilesHigh];
+    
+    if (_tileOutlines != nil) [_tileOutlines release];
+    _tileOutlines = [[NSMutableArray arrayWithCapacity:0] retain];
+
+    // decide which way all of the tabs will point
+    for (x = 0; x < _tilesWide * 2 + 1; x++)
+	for (y = 0; y < _tilesHigh; y++)
+	{
+	    int bytesRead, random_number;
+	    
+	    bytesRead = read(rand_fd, &random_number, sizeof(random_number));
+	    tabs[x][y] = (random_number % 2 == 0 ? YES : NO);
+	}
+	    
+    for (x = 0; x < _tilesWide; x++)
+	for (y = 0; y < _tilesHigh; y++)
+	{
+	    originX = xSize * x;
+	    originY = ySize * y;
+	    tileOutline = [NSBezierPath bezierPath];
+	    [tileOutline moveToPoint:NSMakePoint(originX, originY)];
+	    
+	    if (y > 0)
+	    {
+		orientation = (tabs[x * 2][y - 1] ? 1 : -1);
+		[tileOutline lineToPoint:NSMakePoint(originX + xSize / 4, originY)];
+		[tileOutline curveToPoint:NSMakePoint(originX + xSize * 5 / 12,
+						      originY + ySize / 6 * orientation)
+			    controlPoint1:NSMakePoint(originX + xSize / 3,
+						      originY)
+			    controlPoint2:NSMakePoint(originX + xSize / 2,
+						      originY + ySize / 12 * orientation)];
+		[tileOutline curveToPoint:NSMakePoint(originX + xSize / 2,
+						      originY + ySize / 3 * orientation)
+			    controlPoint1:NSMakePoint(originX + xSize / 3,
+						      originY + ySize / 4 * orientation)
+			    controlPoint2:NSMakePoint(originX + xSize * 3 / 8,
+						      originY + ySize / 3 * orientation)];
+		[tileOutline curveToPoint:NSMakePoint(originX + xSize * 7 / 12,
+						      originY + ySize / 6 * orientation)
+			    controlPoint1:NSMakePoint(originX + xSize * 15 / 24,
+						      originY + ySize / 3 * orientation)
+			    controlPoint2:NSMakePoint(originX + xSize * 2 / 3,
+						      originY + ySize / 4 * orientation)];
+		[tileOutline curveToPoint:NSMakePoint(originX + xSize * 3 / 4,
+						      originY)
+			    controlPoint1:NSMakePoint(originX + xSize / 2,
+						      originY + ySize / 12 * orientation)
+			    controlPoint2:NSMakePoint(originX + xSize * 2 / 3,
+						      originY)];
+	    }
+	    [tileOutline lineToPoint:NSMakePoint(originX + xSize, originY)];
+	    if (x < _tilesWide - 1)
+	    {
+		orientation = (tabs[x * 2 + 1][y] ? 1 : -1);
+		[tileOutline lineToPoint:NSMakePoint(originX + xSize, originY + ySize / 4)];
+		[tileOutline curveToPoint:NSMakePoint(originX + xSize + xSize / 6 * orientation,
+						      originY + ySize * 5 / 12)
+			    controlPoint1:NSMakePoint(originX + xSize,
+						      originY + ySize / 3)
+			    controlPoint2:NSMakePoint(originX + xSize + xSize / 12 * orientation,
+						      originY + ySize / 2)];
+		[tileOutline curveToPoint:NSMakePoint(originX + xSize + xSize / 3 * orientation,
+						      originY + ySize / 2)
+			    controlPoint1:NSMakePoint(originX + xSize + xSize / 4 * orientation,
+						      originY + ySize / 3)
+			    controlPoint2:NSMakePoint(originX + xSize + xSize / 3 * orientation,
+						      originY + ySize * 3 / 8)];
+		[tileOutline curveToPoint:NSMakePoint(originX + xSize + xSize / 6 * orientation,
+						      originY + ySize * 7 / 12)
+			    controlPoint1:NSMakePoint(originX + xSize + xSize / 3 * orientation,
+						      originY + ySize * 15 / 24)
+			    controlPoint2:NSMakePoint(originX + xSize + xSize / 4 * orientation,
+						      originY + ySize * 2 / 3)];
+		[tileOutline curveToPoint:NSMakePoint(originX + xSize,
+						      originY + ySize * 3 / 4)
+			    controlPoint1:NSMakePoint(originX + xSize + xSize / 12 * orientation,
+						      originY + ySize / 2)
+			    controlPoint2:NSMakePoint(originX + xSize,
+						      originY + ySize * 2 / 3)];
+	    }
+	    [tileOutline lineToPoint:NSMakePoint(originX + xSize, originY + ySize)];
+	    if (y < _tilesHigh - 1)
+	    {
+		orientation = (tabs[x * 2][y] ? 1 : -1);
+		[tileOutline lineToPoint:NSMakePoint(originX + xSize * 3 / 4, originY + ySize)];
+		[tileOutline curveToPoint:NSMakePoint(originX + xSize * 7 / 12,
+						      originY + ySize + ySize / 6 * orientation)
+			    controlPoint1:NSMakePoint(originX + xSize * 2 / 3,
+						      originY + ySize)
+			    controlPoint2:NSMakePoint(originX + xSize / 2,
+						      originY + ySize + ySize / 12 * orientation)];
+		[tileOutline curveToPoint:NSMakePoint(originX + xSize / 2,
+						      originY + ySize + ySize / 3 * orientation)
+			    controlPoint1:NSMakePoint(originX + xSize * 2 / 3,
+						      originY + ySize + ySize / 4 * orientation)
+			    controlPoint2:NSMakePoint(originX + xSize * 15 / 24,
+						      originY + ySize + ySize / 3 * orientation)];
+		[tileOutline curveToPoint:NSMakePoint(originX + xSize * 5 / 12,
+						      originY + ySize + ySize / 6 * orientation)
+			    controlPoint1:NSMakePoint(originX + xSize * 3 / 8,
+						      originY + ySize + ySize / 3 * orientation)
+			    controlPoint2:NSMakePoint(originX + xSize / 3,
+						      originY + ySize + ySize / 4 * orientation)];
+		[tileOutline curveToPoint:NSMakePoint(originX + xSize / 4,
+						      originY + ySize)
+			    controlPoint1:NSMakePoint(originX + xSize / 2,
+						      originY + ySize + ySize / 12 * orientation)
+			    controlPoint2:NSMakePoint(originX + xSize / 3,
+						      originY + ySize)];
+	    }
+	    [tileOutline lineToPoint:NSMakePoint(originX, originY + ySize)];
+	    if (x > 0)
+	    {
+		orientation = (tabs[x * 2 - 1][y] ? 1 : -1);
+		[tileOutline lineToPoint:NSMakePoint(originX, originY + ySize * 3 / 4)];
+		[tileOutline curveToPoint:NSMakePoint(originX + xSize / 6 * orientation,
+						      originY + ySize * 7 / 12)
+			    controlPoint1:NSMakePoint(originX,
+						      originY + ySize * 2 / 3)
+			    controlPoint2:NSMakePoint(originX + xSize / 12 * orientation,
+						      originY + ySize / 2)];
+		[tileOutline curveToPoint:NSMakePoint(originX + xSize / 3 * orientation,
+						      originY + ySize / 2)
+			    controlPoint1:NSMakePoint(originX + xSize / 4 * orientation,
+						      originY + ySize * 2 / 3)
+			    controlPoint2:NSMakePoint(originX + xSize / 3 * orientation,
+						      originY + ySize * 15 / 24)];
+		[tileOutline curveToPoint:NSMakePoint(originX + xSize / 6 * orientation,
+						      originY + ySize * 5 / 12)
+			    controlPoint1:NSMakePoint(originX + xSize / 3 * orientation,
+						      originY + ySize * 3 / 8)
+			    controlPoint2:NSMakePoint(originX + xSize / 4 * orientation,
+						      originY + ySize / 3)];
+		[tileOutline curveToPoint:NSMakePoint(originX,
+						      originY + ySize / 4)
+			    controlPoint1:NSMakePoint(originX + xSize / 12 * orientation,
+						      originY + ySize / 2)
+			    controlPoint2:NSMakePoint(originX,
+						      originY + ySize / 3)];
+	    }
+	    [tileOutline closePath];
+	    [_tileOutlines addObject:tileOutline];
+	}
+	
+    close(rand_fd);
+    
+}
+
+
 - (int)numberOfRowsInTableView:(NSTableView *)aTableView
 {
     return [_imageSources count];
@@ -248,7 +410,6 @@
 - (void)updatePreview
 {
     NSAffineTransform	*transform;
-    int			i;
     
     if ([_originalImage size].width > [_originalImage size].height)
 	[_previewImage setSize:NSMakeSize([previewView bounds].size.width,
@@ -273,8 +434,6 @@
     [transform translateXBy:0.5 yBy:0.5];
     [transform scaleXBy:[_previewImage size].width yBy:[_previewImage size].height];
     [[NSColor colorWithCalibratedWhite:1.0 alpha: 0.5] set];
-//    for (i = 0; i < [_tileOutlines count]; i++)
-//    	[[transform transformBezierPath:[_tileOutlines objectAtIndex:i]] stroke];
     [[transform transformBezierPath:_mergedOutlines] stroke];
     [NSGraphicsContext restoreGraphicsState];
 

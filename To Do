@@ -1,18 +1,21 @@
 Must haves:
+    More intelligent image caching
     Get save/open project working
     iPhoto integration
-    Zoom in on individual tile (editor)
-    Restrict window resizing to preserve image's aspect ratio
-    Move pixlet image init'ing to image source threads
+    Problem when 'undoing' user selected match
+    Make window stay on screen when zooming
     Home page
     Document icon
-    Fix crashing around exporting mosaic image
     Running multiple mosaics at the same time
     Preferences window (default image sources, etc.)
     Handle spaces, etc. in Google terms
     Shutdown helper threads when window closes
     Add "Other Image..." button to editor
     Enable scroll bar for new dialog image sources
+    Add code to support crop limit
+    Proper quitting
+    Horizontal scaling of tile outline in editor with hexes is off
+    Toggle outline switch in editor?
 
 
 Bonuses:

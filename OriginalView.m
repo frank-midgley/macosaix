@@ -50,16 +50,13 @@
     [[self image] drawInRect:theRect fromRect:NSMakeRect(0, 0, [[self image] size].width,
 							 [[self image] size].height)
 		   operation:NSCompositeCopy fraction:1.0];
-    [[NSColor colorWithCalibratedWhite:1.0 alpha: 0.5] set];
-//    [[NSColor blackColor] set];
-//    NSRectFillUsingOperation(_focusRect, NSCompositeSourceAtop);
+    [[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
     bezierPath = [NSBezierPath bezierPath];
     [bezierPath moveToPoint:NSMakePoint(0, 0)];
     [bezierPath lineToPoint:NSMakePoint(0, [self frame].size.height)];
     [bezierPath lineToPoint:NSMakePoint([self frame].size.width, [self frame].size.height)];
     [bezierPath lineToPoint:NSMakePoint([self frame].size.width, 0)];
     [bezierPath closePath];
-//    [bezierPath setWindingRule:];
     [bezierPath appendBezierPath:[NSBezierPath bezierPathWithRect:_focusRect]];
     [bezierPath fill];
 }
