@@ -2,10 +2,10 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            ACTIONS = {savePreferences = id; userCancelled = id; }; 
+            ACTIONS = {setUpdateCheck = id; }; 
             CLASS = MacOSaiXPreferencesController; 
             LANGUAGE = ObjC; 
-            OUTLETS = {autosaveFrequencyField = id; okButton = id; }; 
+            OUTLETS = {autosaveFrequencyField = NSTextField; updateCheckBox = NSButton; }; 
             SUPERCLASS = NSWindowController; 
         }
     ); 

@@ -3,7 +3,7 @@
 //  MacOSaiX
 //
 //  Created by Frank Midgley on Wed May 01 2002.
-//  Copyright (c) 2001 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2001 Frank M. Midgley. All rights reserved.
 //
 
 #import "PreferencesController.h"
@@ -15,29 +15,32 @@
 - (void)windowDidLoad
 {
     NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
-    int				frequency = [[[defaults objectForKey:@"Autosave Frequency"] description] intValue];
-	
+
+    int				frequency = [defaults integerForKey:@"Autosave Frequency"];
 	if (frequency < 1)
 		frequency = 1;
-	
     [autosaveFrequencyField setIntValue:frequency];
+	
+	BOOL			checkForUpdate = [defaults boolForKey:@"Perform Update Check at Launch"];
+	[updateCheckBox setState:(checkForUpdate ? NSOnState : NSOffState)];
 }
 
 
-- (void)userCancelled:(id)sender
+- (IBAction)setUpdateCheck:(id)sender
 {
-    [self close];
+    NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
+	
+	[defaults setBool:([updateCheckBox state] == NSOnState) forKey:@"Perform Update Check at Launch"];
+    [defaults synchronize];
 }
 
 
-- (void)savePreferences:(id)sender
+- (void)controlTextDidChange:(NSNotification *)notification
 {
     NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
     
-    [defaults setObject:[autosaveFrequencyField stringValue] forKey:@"Autosave Frequency"];
+    [defaults setInteger:[autosaveFrequencyField intValue] forKey:@"Autosave Frequency"];
     [defaults synchronize];
-    
-    [self close];
 }
 
 

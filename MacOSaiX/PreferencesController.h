@@ -10,12 +10,10 @@
 
 @interface MacOSaiXPreferencesController : NSWindowController
 {
-    IBOutlet id		autosaveFrequencyField;
-    IBOutlet id		okButton;
-    BOOL		_userCancelled;
+    IBOutlet NSTextField	*autosaveFrequencyField;
+	IBOutlet NSButton		*updateCheckBox;
 }
 
-- (void)userCancelled:(id)sender;
-- (void)savePreferences:(id)sender;
+- (IBAction)setUpdateCheck:(id)sender;
 
 @end
