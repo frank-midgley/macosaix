@@ -468,7 +468,7 @@
     else
 		_createTilesThreadAlive = YES;
 
-    int					index;
+    int					index = 0;
     NSAutoreleasePool   *pool = [[NSAutoreleasePool alloc] init];
     NSWindow			*drawWindow;
     NSBezierPath		*combinedOutline = [NSBezierPath bezierPath];
@@ -481,7 +481,6 @@
 					       backing:NSBackingStoreBuffered defer:NO];
     
     _tiles = [[NSMutableArray arrayWithCapacity:[_tileOutlines count]] retain];
-	NSRect	*tileBounds = (NSRect *)malloc(sizeof(NSRect) * [_tileOutlines count]); 
     
 	/* Loop through each tile outline and:
 		1.  Create a Tile instance.
@@ -556,8 +555,6 @@
 		
 			// Release our lock on the GUI in case the main thread needs it.
 		[[drawWindow contentView] unlockFocus];
-		
-		tileBounds[index] = [tileOutline bounds];
 	}
 
 //    [[drawWindow contentView] unlockFocus];
