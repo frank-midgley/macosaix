@@ -1,0 +1,30 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {
+                restrictTileSize = id; 
+                setRestrictedXSize = id; 
+                setRestrictedYSize = id; 
+                setTilesAcross = id; 
+                setTilesDown = id; 
+            }; 
+            CLASS = MacOSaiXHexagonalTileShapesEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                editorView = NSView; 
+                restrictTileSizeCheckBox = NSButton; 
+                restrictedXSizePopUpButton = NSPopUpButton; 
+                restrictedYSizePopUpButton = NSPopUpButton; 
+                tileCountTextField = NSTextField; 
+                tileSizeTextField = NSTextField; 
+                tilesAcrossStepper = NSStepper; 
+                tilesAcrossTextField = NSTextField; 
+                tilesDownStepper = NSStepper; 
+                tilesDownTextField = NSTextField; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}
