@@ -1455,7 +1455,7 @@
 	}
 	else
 		[self performSelectorOnMainThread:@selector(setProgressPercentComplete:) 
-							   withObject:nil 
+							   withObject:percentComplete 
 							waitUntilDone:YES];
 }
 
