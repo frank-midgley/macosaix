@@ -106,7 +106,8 @@ typedef enum
 		// image cache
     NSLock						*cacheLock;
 	NSMutableDictionary			*imageCache;
-    NSMutableArray				*orderedCache;
+    NSMutableArray				*orderedCache,
+                                *orderedCacheID;
 }
 
 - (void)chooseOriginalImage;

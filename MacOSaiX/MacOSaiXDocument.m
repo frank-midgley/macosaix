@@ -11,7 +11,8 @@
 #define MAXIMAGEURLS 32
 	// The maximum width or height of the cached thumbnail images
 #define kThumbnailMax 64.0
-
+    // The number of cached images that will be held in memory at any one time.
+#define IMAGE_CACHE_SIZE 100
 
 @interface MacOSaiXDocument (PrivateMethods)
 - (void)cacheImage:(NSImage *)image withIdentifier:(id<NSCopying>)imageIdentifier fromSource:(ImageSource *)imageSource;
@@ -61,6 +62,9 @@
 		cacheLock = [[NSLock alloc] init];
 		imageCache = [[NSMutableDictionary dictionary] retain];
 		cachedImagesPath = @"/tmp/Cached Images";
+        
+        orderedCache = [[NSMutableArray array] retain];
+        orderedCacheID = [[NSMutableArray array] retain];
 	}
     return self;
 }
@@ -578,7 +582,7 @@
 		[[drawWindow contentView] unlockFocus];
 		
 		index++;
-		extractionPercentComplete = (int)(index / [tileOutlines count] * 100.0);
+		extractionPercentComplete = (int)(index * 100.0 / [tileOutlines count]);
 	}
 
 //    [[drawWindow contentView] unlockFocus];
@@ -975,7 +979,7 @@
 		calculateDisplayedImagesThreadAlive = YES;
 	[calculateDisplayedImagesThreadLock unlock];
 
-	NSLog(@"Calculating displayed images\n");
+//	NSLog(@"Calculating displayed images\n");
 
     BOOL	tilesAddedToRefreshSet = NO;
     
@@ -1276,10 +1280,12 @@
 			// Cache the image for efficient retrieval.
 		[imageCache setObject:image forKey:[NSNumber numberWithLong:imageID]];
 		[orderedCache insertObject:image atIndex:0];
-		if ([orderedCache count] > 100)
+		[orderedCacheID insertObject:[NSNumber numberWithLong:imageID] atIndex:0];
+		if ([orderedCache count] > IMAGE_CACHE_SIZE)
 		{
-			[imageCache removeObjectForKey:[imageSourceCache objectForKey:imageIdentifier]];
+			[imageCache removeObjectForKey:[orderedCacheID lastObject]];
 			[orderedCache removeLastObject];
+			[orderedCacheID removeLastObject];
 		}
 	[cacheLock unlock];
 }
@@ -1295,17 +1301,28 @@
 		
 		image = [imageCache objectForKey:imageKey];
 		if (image)
-			[orderedCache removeObjectIdenticalTo:image];
+        {
+			int index = [orderedCache indexOfObjectIdenticalTo:image];
+            if (index != NSNotFound)
+            {
+                [orderedCache removeObjectAtIndex:index];
+                [orderedCacheID removeObjectAtIndex:index];
+            }
+        }
 		else
 		{
 			image = [[[NSImage alloc] initWithContentsOfFile:[self filePathForCachedImageID:imageID]] autorelease];
+            if (!image)
+                NSLog(@"Huh?");
 			[imageCache setObject:image forKey:imageKey];
 		}
 		[orderedCache insertObject:image atIndex:0];
-		if ([orderedCache count] > 1000)
+		[orderedCacheID insertObject:[NSNumber numberWithLong:imageID] atIndex:0];
+		if ([orderedCache count] > IMAGE_CACHE_SIZE)
 		{
-			[imageCache removeObjectForKey:[orderedCache lastObject]];
+			[imageCache removeObjectForKey:[NSNumber numberWithLong:imageID]];
 			[orderedCache removeLastObject];
+			[orderedCacheID removeLastObject];
 		}
 	[cacheLock unlock];
 	
