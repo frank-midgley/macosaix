@@ -742,6 +742,7 @@
 			dependencies = (
 				92848A0806611CE6003B3514,
 				92848A0C06611CE6003B3514,
+				928654A6072AC64400EFC32A,
 			);
 			isa = PBXNativeTarget;
 			name = MacOSaiX.app;
@@ -765,8 +766,9 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				92848A1706611CE6003B3514,
 				92848A1A06611CE6003B3514,
+				92848A1706611CE6003B3514,
+				92865510072ADBD400EFC32A,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1580,7 +1582,6 @@
 				WRAPPER_EXTENSION = plugin;
 			};
 			dependencies = (
-				92848A1606611CE6003B3514,
 			);
 			isa = PBXNativeTarget;
 			name = "QuickTime Image Source Plug-In";
@@ -1594,6 +1595,7 @@
 			files = (
 				928489F706611CE6003B3514,
 				928489F806611CE6003B3514,
+				928654D7072AD54200EFC32A,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1730,18 +1732,6 @@
 			target = 928489A506611CE6003B3514;
 			targetProxy = 92848A1306611CE6003B3514;
 		};
-		92848A1506611CE6003B3514 = {
-			containerPortal = 29B97313FDCFA39411CA2CEA;
-			isa = PBXContainerItemProxy;
-			proxyType = 1;
-			remoteGlobalIDString = 928489A506611CE6003B3514;
-			remoteInfo = "MacOSaiX Plugins Framework (Upgraded)";
-		};
-		92848A1606611CE6003B3514 = {
-			isa = PBXTargetDependency;
-			target = 928489A506611CE6003B3514;
-			targetProxy = 92848A1506611CE6003B3514;
-		};
 		92848A1706611CE6003B3514 = {
 			fileRef = 928489C406611CE6003B3514;
 			isa = PBXBuildFile;
@@ -1774,6 +1764,30 @@
 		};
 		92848A2006611CE6003B3514 = {
 			fileRef = 928489B406611CE6003B3514;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		928654A5072AC64400EFC32A = {
+			containerPortal = 29B97313FDCFA39411CA2CEA;
+			isa = PBXContainerItemProxy;
+			proxyType = 1;
+			remoteGlobalIDString = 928489F406611CE6003B3514;
+			remoteInfo = "QuickTime Image Source Plug-In";
+		};
+		928654A6072AC64400EFC32A = {
+			isa = PBXTargetDependency;
+			target = 928489F406611CE6003B3514;
+			targetProxy = 928654A5072AC64400EFC32A;
+		};
+		928654D7072AD54200EFC32A = {
+			fileRef = 923384DB072180700010BE04;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		92865510072ADBD400EFC32A = {
+			fileRef = 92848A0406611CE6003B3514;
 			isa = PBXBuildFile;
 			settings = {
 			};
