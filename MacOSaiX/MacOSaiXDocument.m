@@ -287,6 +287,9 @@
     while (enumerateImageSourcesThreadAlive || calculateImageMatchesThreadAlive)
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
     
+#if 1
+	[self save];
+#else
     [storage setObject:@"1.0b1" forKey:@"Version"];
     [storage setObject:originalImageURL forKey:@"originalImageURL"];
     [storage setObject:imageSources forKey:@"imageSources"];
@@ -297,6 +300,7 @@
     [storage setObject:[NSNumber numberWithInt:viewMode] forKey:@"viewMode"];
     [storage setObject:[NSValue valueWithRect:[mainWindow frame]] forKey:@"window frame"];
     [storage setObject:[NSNumber numberWithInt:(paused ? 1 : 0)] forKey:@"paused"];
+#endif
     
     paused = wasPaused;
 
@@ -2332,7 +2336,9 @@
 - (void)save
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	NSFileHandle	*fileHandle = [NSFileHandle fileHandleForWritingAtPath:@"/tmp/Saved.mosaic"];
+	
+	[[NSFileManager defaultManager] createFileAtPath:@"/tmp/Saved.mosaic/Mosaic.xml" contents:nil attributes:nil];
+	NSFileHandle	*fileHandle = [NSFileHandle fileHandleForWritingAtPath:@"/tmp/Saved.mosaic/Mosaic.xml"];
 	
 		// Write out the XML header.
 	[fileHandle writeData:[@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" dataUsingEncoding:NSUTF8StringEncoding]];
@@ -2343,25 +2349,93 @@
 	int	index;
 	for (index = 0; index < [imageSources count]; index++)
 	{
-		ImageSource	*imageSource = [imageSource objectAtIndex:index];
-		NSString	*bundleID = [[NSBundle bundleForClass:[imageSource class]] bundleIdentifier];
+		ImageSource	*imageSource = [imageSources objectAtIndex:index];
+		NSString	*className = NSStringFromClass([imageSource class]);
 		
-		[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" BUNDLE_ID=\"%@\">\n", index, bundleID] 
-									dataUsingEncoding:NSUTF8StringEncoding]];
-		[fileHandle writeData:[[imageSource XMLRepresentation dataUsingEncoding:NSUTF8StringEncoding]];
+		[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\">\n", index] dataUsingEncoding:NSUTF8StringEncoding]];
+		[fileHandle writeData:[[NSString stringWithFormat:@"\t\t<SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
+//		[fileHandle writeData:[[imageSource XMLRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
+		[fileHandle writeData:[@"\t\t</SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 		[fileHandle writeData:[@"\t</IMAGE_SOURCE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 	}
 	[fileHandle writeData:[@"</IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 
 		// Write out the tiles setup
-	NSString	*bundleID = [[NSBundle bundleForClass:[imageSource class]] bundleIdentifier];
-	[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE BUNDLE_ID=\"%@\">\n", 
-										[[NSBundle bundleForClass:[tilesSetupController class]] bundleIdentifier]] 
-								dataUsingEncoding:NSUTF8StringEncoding]];
-	[fileHandle writeData:[[tilesSetupController XMLRepresentation dataUsingEncoding:NSUTF8StringEncoding]];
-	[fileHandle writeData:[@"\t</IMAGE_SOURCE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+    NSString	*className = NSStringFromClass([tilesSetupController class]);
+    [fileHandle writeData:[@"<TILES_SETUP>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+    [fileHandle writeData:[[NSString stringWithFormat:@"\t\t<SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
+//    [fileHandle writeData:[[tilesSetupController XMLRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
+    [fileHandle writeData:[@"\t</SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+    [fileHandle writeData:[@"</TILES_SETUP>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+    
+        // Write out the cached images
+	[fileHandle writeData:[@"<CACHED_IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+	for (index = 0; index < [imageSources count]; index++)
+	{
+		ImageSource		*imageSource = [imageSources objectAtIndex:index];
+		NSDictionary	*cacheDict = [self cacheDictionaryForImageSource:imageSource];
+		NSEnumerator	*imageIDEnumerator = [cacheDict keyEnumerator];
+		id<NSCopying>	imageID = nil;
+		while (imageID = [imageIDEnumerator nextObject])
+			[fileHandle writeData:[[NSString stringWithFormat:@"\t<CACHED_IMAGE SOURCE_ID=\"%d\" IMAGE_ID=\"%@\"/ FILE_ID=\"%@\">\n", 
+												index, imageID, [cacheDict objectForKey:imageID]] dataUsingEncoding:NSUTF8StringEncoding]];
+    }
+	[fileHandle writeData:[@"</CACHED_IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+    
+        // Write out the tiles
+	[fileHandle writeData:[@"<TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+    NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+    Tile			*tile = nil;
+    while (tile = [tileEnumerator nextObject])
+    {
+        [fileHandle writeData:[@"\t<TILE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+		
+			// First write out the tile's outline
+        [fileHandle writeData:[@"\t\t<OUTLINE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+        int index;
+        for (index = 0; index < [[tile outline] elementCount]; index++)
+        {
+            NSPoint points[3];
+            switch ([[tile outline] elementAtIndex:index associatedPoints:points])
+            {
+                case NSMoveToBezierPathElement:
+                    [fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<MOVE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
+                                                        points[0].x, points[0].y] dataUsingEncoding:NSUTF8StringEncoding]];
+                    break;
+                case NSLineToBezierPathElement:
+                    [fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<LINE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
+                                                        points[0].x, points[0].y] dataUsingEncoding:NSUTF8StringEncoding]];
+                    break;
+                case NSCurveToBezierPathElement:
+                    [fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<CURVE_TO X=\"%0.6f\" Y=\"%0.6f\" C1X=\"%0.6f\" C1Y=\"%0.6f\" C2X=\"%0.6f\" C2Y=\"%0.6f\">\n", 
+                                                        points[2].x, points[2].y, points[0].x, points[0].y, points[1].x, points[1].y] 
+                                                dataUsingEncoding:NSUTF8StringEncoding]];
+                    break;
+				case NSClosePathBezierPathElement:
+                    [fileHandle writeData:[@"\t\t\t<CLOSE_PATH>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+                    break;
+                default:
+                    ;
+            }
+        }
+        [fileHandle writeData:[@"\t\t</OUTLINE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+		
+			// Now write out the tile's matches.
+        [fileHandle writeData:[@"\t\t<MATCHES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+		NSEnumerator	*matchEnumerator = [[tile matches] objectEnumerator];
+		ImageMatch		*match = nil;
+		while (match = [matchEnumerator nextObject])
+			[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<MATCH SOURCE_ID=\"%d\" IMAGE_ID=\"%@\" VALUE=\"%0.6f\"%@>\n", 
+												[imageSources indexOfObjectIdenticalTo:[match imageSource]],
+												[match imageIdentifier], [match matchValue],
+												(match == [tile userChosenImageMatch] ? @"USER_CHOSEN" : @"")] 
+										dataUsingEncoding:NSUTF8StringEncoding]];
+        [fileHandle writeData:[@"\t\t</MATCHES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+        [fileHandle writeData:[@"\t</TILE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+    }
+	[fileHandle writeData:[@"</TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 	
-		[fileHandle writeData:[@"<>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+    [fileHandle closeFile];
 
 	[pool release];
 }
