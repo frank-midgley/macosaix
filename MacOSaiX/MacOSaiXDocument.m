@@ -322,7 +322,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	
 		// Display a sheet while the save is underway
 // TODO:	[[self mainWindowController] setCancelAction:@selector(cancelSave) andTarget:self];
-	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving..."];
+	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving the mosaic..."];
 	
 		// Pause the mosaic so that it is in a static state while saving.
 	[self pause];
@@ -698,6 +698,7 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 
 - (void)loadXMLFile:(NSString *)fileName
 {
+	NSString			*errorMessage = nil;
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	
 	loading = YES;
@@ -705,7 +706,7 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 	while ([[self windowControllers] count] == 0)
 		[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 	
-	[[self mainWindowController] displayProgressPanelWithMessage:@"Loading..."];
+	[[self mainWindowController] displayProgressPanelWithMessage:@"Loading the mosaic..."];
 	
 	NSData	*xmlData = [NSData dataWithContentsOfFile:[fileName stringByAppendingPathComponent:@"Mosaic.xml"]];
 	
@@ -731,20 +732,37 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 
 			// Invoke the parser.
 		if (!CFXMLParserParse(parser))
-			NSLog(@"Parsing failed at line %d: %@", CFXMLParserGetLineNumber(parser), (NSString *)CFXMLParserCopyErrorDescription(parser));
+		{
+				// An error occurred parsing the XML.
+			NSString	*parserError = (NSString *)CFXMLParserCopyErrorDescription(parser);
+			
+			errorMessage = [NSString stringWithFormat:@"Error at line %d: %@", CFXMLParserGetLineNumber(parser), parserError];
+			
+			[parserError release];
+		}
 	}
+	else
+		errorMessage = @"The file could not be read.";
 	
-	[[self mainWindowController] setProgressMessage:@"Extracting tile images from original..."];
-	[self extractTileImagesFromOriginalImage];
-	
-		// Let anyone who cares know that our tile shapes (and thus our tiles array) have changed.
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
-														object:self 
-													  userInfo:nil];
+	if (!errorMessage)
+	{
+		[[self mainWindowController] setProgressMessage:@"Extracting tile images from original..."];
+		[self extractTileImagesFromOriginalImage];
+		
+			// Let anyone who cares know that our tile shapes (and thus our tiles array) have changed.
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
+															object:self 
+														  userInfo:nil];
+	}
 	
 	[[self mainWindowController] closeProgressPanel];
 	
 	loading = NO;
+	
+	if (errorMessage)
+		[self performSelectorOnMainThread:@selector(presentFailedLoadSheet:) 
+							   withObject:errorMessage 
+						    waitUntilDone:NO];
 	
 	[pool release];
 }
@@ -987,6 +1005,19 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	}
 	
 	[pool release];
+}
+
+
+- (void)presentFailedLoadSheet:(id)errorMessage
+{
+	NSBeginAlertSheet(@"The mosaic could not be loaded.", @"Close", nil, nil, [mainWindowController window], 
+					  self, nil, @selector(failedLoadSheetDidDismiss:returnCode:contextInfo:), nil, errorMessage);
+}
+
+
+- (void)failedLoadSheetDidDismiss:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+	[self close];
 }
 
 
@@ -1462,7 +1493,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 				// If only the dummy entry is left then we need to rematch.
 			if ([betterMatches count] == 1 && ![(MacOSaiXImageMatch *)[betterMatches objectAtIndex:0] tile])
 			{
-				NSLog(@"Didn't cache enough matches...");
+//				NSLog(@"Didn't cache enough matches...");
 				betterMatches = nil;
 			}
 		}
@@ -1593,7 +1624,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 			}
 			else
 			{
-				NSLog(@"Didn't cache enough matches for uniqueness...");
+//				NSLog(@"Didn't cache enough matches for uniqueness...");
 				[betterMatchesCache removeObjectForKey:pixletKey];
 				NSDictionary	*newQueueEntry = [NSDictionary dictionaryWithObjectsAndKeys:
 													pixletImageSource, @"Image Source", 
@@ -1813,7 +1844,8 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	
 		// Let the helper threads know we are closing and resume so that they can clean up and exit.
 	documentIsClosing = YES;
-	[self resume];
+	[pauseLock unlock];
+//	[self resume];
 	
 		// wait for the threads to shut down
     while ([self isExtractingTileImagesFromOriginal] || [self isEnumeratingImageSources] || [self isCalculatingImageMatches])
