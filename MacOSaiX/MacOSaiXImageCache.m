@@ -29,7 +29,8 @@
 		{
 			cachedImagesPath = [[NSString stringWithCString:tempPath] retain];
 			cacheLock = [[NSLock alloc] init];
-			imageCache = [[NSMutableDictionary dictionary] retain];
+			diskCache = [[NSMutableDictionary dictionary] retain];
+			memoryCache = [[NSMutableDictionary dictionary] retain];
 			
 			orderedCache = [[NSMutableArray array] retain];
 			orderedCacheID = [[NSMutableArray array] retain];
@@ -51,22 +52,27 @@
 }
 
 
-- (NSMutableDictionary *)cacheDictionaryForImageSource:(id<MacOSaiXImageSource>)imageSource
+- (NSString *)keyWithImageSource:(id<MacOSaiXImageSource>)imageSource identifier:(NSString *)imageIdentifier
 {
-	if (!cachedImagesDictionary)
-		cachedImagesDictionary = [[NSMutableDictionary dictionary] retain];
+	return [NSString stringWithFormat:@"%p\t%@", imageSource, imageIdentifier];
+}
+
+
+- (id<MacOSaiXImageSource>)imageSourceFromKey:(NSString *)key
+{
+	void			*imageSourcePtr = 0;
 	
-		// locking?
-	NSNumber			*sourceKey = [NSNumber numberWithUnsignedLong:(unsigned long)imageSource];
-	NSMutableDictionary *sourceDict = [cachedImagesDictionary objectForKey:sourceKey];
+	sscanf([key UTF8String], "%p\t", &imageSourcePtr);
 	
-	if (!sourceDict)
-	{
-		sourceDict = [NSMutableDictionary dictionary];
-		[cachedImagesDictionary setObject:sourceDict forKey:sourceKey];
-	}
+	return (id<MacOSaiXImageSource>)imageSourcePtr;
+}
+
+
+- (NSString *)imageIdentifierFromKey:(NSString *)key
+{
+	unsigned int	tabPos = [key rangeOfString:@"\t"].location;
 	
-	return sourceDict;
+	return [key substringFromIndex:tabPos + 1];
 }
 
 
@@ -75,28 +81,29 @@
 			  fromSource:(id<MacOSaiXImageSource>)imageSource
 {
 	[cacheLock lock];
-		unsigned long	uniqueID = cachedImageCount++;
+		NSString		*imageKey = nil;
 		
 		if ([imageIdentifier length] == 0)
 		{
 				// This image source cannot refetch images.  Create a unique identifier 
 				// within the context of our document and store the image to disk.
+			unsigned long	uniqueID = cachedImageCount++;
+			
 			imageIdentifier = [NSString stringWithFormat:@"%u", uniqueID];
+			imageKey = [self keyWithImageSource:imageSource identifier:imageIdentifier];
 			[[image TIFFRepresentation] writeToFile:[self filePathForCachedImageID:uniqueID] atomically:NO];
+			[diskCache setObject:[NSNumber numberWithLong:uniqueID] forKey:imageKey];
 		}
+		else
+			imageKey = [self keyWithImageSource:imageSource identifier:imageIdentifier];
 		
-		NSMutableDictionary	*imageSourceCache = [self cacheDictionaryForImageSource:imageSource];
-		
-			// Associate the ID with the image source/image identifier combo
-		[imageSourceCache setObject:[NSNumber numberWithLong:uniqueID] forKey:imageIdentifier];
-		
-			// Cache the image for efficient retrieval.
-		[imageCache setObject:image forKey:[NSNumber numberWithLong:uniqueID]];
+			// Cache the image in memory for efficient retrieval.
+		[memoryCache setObject:image forKey:imageKey];
 		[orderedCache insertObject:image atIndex:0];
-		[orderedCacheID insertObject:[NSNumber numberWithLong:uniqueID] atIndex:0];
+		[orderedCacheID insertObject:imageKey atIndex:0];
 		if ([orderedCache count] > IMAGE_CACHE_MAX_COUNT)
 		{
-			[imageCache removeObjectForKey:[orderedCacheID lastObject]];
+			[memoryCache removeObjectForKey:[orderedCacheID lastObject]];
 			[orderedCache removeLastObject];
 			[orderedCacheID removeLastObject];
 		}
@@ -111,11 +118,10 @@
 	NSImage		*image = nil;
 	
 	[cacheLock lock];
-		long		imageID = [[[self cacheDictionaryForImageSource:imageSource] objectForKey:imageIdentifier] longValue];
-		NSNumber	*imageKey = [NSNumber numberWithLong:imageID];
+		NSString	*imageKey = [self keyWithImageSource:imageSource identifier:imageIdentifier];
 		
-			// First see if we have this image in memory already.
-		image = [imageCache objectForKey:imageKey];
+			// Check if the image is in the memory cache.
+		image = [memoryCache objectForKey:imageKey];
 		if (image)
         {
 				// Remove the image from its current position in the memory cache.
@@ -130,11 +136,13 @@
 		else
 		{
 				// See if we have the image in our disk cache.
-			image = [[[NSImage alloc] initWithContentsOfFile:[self filePathForCachedImageID:imageID]] autorelease];
-            if (!image) // TODO: && [imageSource canRefetchImages] ?
+			NSNumber	*imageID = [diskCache objectForKey:imageKey];
+			if (imageID)
+				image = [[[NSImage alloc] initWithContentsOfFile:[self filePathForCachedImageID:[imageID unsignedLongValue]]] autorelease];
+            else
 			{
-					// We don't have this image cached so re-request the image from the source.
-				NSLog(@"Re-requesting %@ from source", imageIdentifier);
+					// This image is not in the disk cache so get the image from its source.
+				NSLog(@"Requesting %@ from %@@%p", imageIdentifier, [imageSource class], imageSource);
 				image = [imageSource imageForIdentifier:imageIdentifier];
 			}
 			
@@ -144,7 +152,7 @@
 				[image setCacheMode:NSImageCacheNever];
 				
 					// Add the image to the in-memory cache.
-				[imageCache setObject:image forKey:imageKey];
+				[memoryCache setObject:image forKey:imageKey];
 			}
 		}
 		
@@ -152,12 +160,12 @@
 		{
 				// Add this image at the front of the in-memory cache.
 			[orderedCache insertObject:image atIndex:0];
-			[orderedCacheID insertObject:[NSNumber numberWithLong:imageID] atIndex:0];
+			[orderedCacheID insertObject:imageKey atIndex:0];
 			
 				// Prune the in-memory cache if it has gotten too large.
 			if ([orderedCache count] > IMAGE_CACHE_MAX_COUNT)
 			{
-				[imageCache removeObjectForKey:[orderedCacheID lastObject]];
+				[memoryCache removeObjectForKey:[orderedCacheID lastObject]];
 				[orderedCache removeLastObject];
 				[orderedCacheID removeLastObject];
 			}
@@ -168,24 +176,23 @@
 }
 
 
-- (NSString *)xmlData
+- (NSString *)xmlDataWithImageSources:(NSArray *)imageSources
 {
 		// Yuck...
 	NSMutableString	*xmlData = [NSMutableString stringWithString:@"<CACHED_IMAGES>\n"];
-	NSEnumerator	*sourceEnumerator = [cachedImagesDictionary keyEnumerator];
-	NSNumber		*imageSourceAddress = nil;
+	NSEnumerator	*keyEnumerator = [diskCache keyEnumerator];
+	NSString		*key = nil;
 	
-	while (imageSourceAddress = [sourceEnumerator nextObject])
+	while (key = [keyEnumerator nextObject])
 	{
-		id<MacOSaiXImageSource>	imageSource = (void *)[imageSourceAddress unsignedLongValue];
-		NSDictionary			*cacheDict = [self cacheDictionaryForImageSource:imageSource];
-		NSEnumerator			*imageIDEnumerator = [cacheDict keyEnumerator];
-		NSString				*imageID = nil;
-		while (imageID = [imageIDEnumerator nextObject])
-			[xmlData appendString:[NSString stringWithFormat:@"\t<CACHED_IMAGE SOURCE_ID=\"%d\" IMAGE_ID=\"%@\"/ FILE_ID=\"%@\">\n", 
-															 index, imageID, [cacheDict objectForKey:imageID]]];
+		id<MacOSaiXImageSource>	imageSource = [self imageSourceFromKey:key];
+		int						imageSourceIndex = [imageSources indexOfObjectIdenticalTo:imageSource];
+		[xmlData appendString:[NSString stringWithFormat:@"\t<CACHED_IMAGE SOURCE_ID=\"%d\" IMAGE_ID=\"%@\" FILE_ID=\"%@\">\n", 
+														 imageSourceIndex, 
+														 [self imageIdentifierFromKey:key], 
+														 [diskCache objectForKey:key]]];
 	}
-	[xmlData appendString:@"</CACHED_IMAGES>\n"];
+	[xmlData appendString:@"</CACHED_IMAGES>\n\n"];
 	
 	return xmlData;
 }
@@ -198,10 +205,10 @@
 {
 	[cachedImagesPath release];
 	[cacheLock release];
-	[imageCache release];
+	[diskCache release];
+	[memoryCache release];
 	[orderedCache release];
 	[orderedCacheID release];
-	[cachedImagesDictionary release];
     
     [super dealloc];
 }

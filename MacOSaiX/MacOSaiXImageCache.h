@@ -17,10 +17,10 @@
 
 @interface MacOSaiXImageCache : NSObject 
 {
-	NSMutableDictionary			*cachedImagesDictionary;
+	NSMutableDictionary			*diskCache,
+								*memoryCache;
 	NSString					*cachedImagesPath;
     NSLock						*cacheLock;
-	NSMutableDictionary			*imageCache;
     NSMutableArray				*orderedCache,
                                 *orderedCacheID;
 	unsigned long				cachedImageCount;
@@ -31,5 +31,7 @@
 			  fromSource:(id<MacOSaiXImageSource>)imageSource;
 
 - (NSImage *)imageForIdentifier:(NSString *)imageIdentifier fromSource:(id<MacOSaiXImageSource>)imageSource;
+
+- (NSString *)xmlDataWithImageSources:(NSArray *)imageSources;
 
 @end
