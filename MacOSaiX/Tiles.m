@@ -236,8 +236,8 @@
 				[imageMatches removeLastObject];
 				
                     // If the match just removed was our current best then recalculate	// or just signal the need to recalculate?
-                if ([imageMatches indexOfObjectIdenticalTo:bestImageMatch] == NSNotFound)
-                    [self calculateBestMatch];
+//                if ([imageMatches indexOfObjectIdenticalTo:bestImageMatch] == NSNotFound)
+//                    [self calculateBestMatch];
             }
         [imageMatchesLock unlock];
         
@@ -334,7 +334,7 @@
 		[bestMatchLock unlock];
 	}
 	
-	return YES;	//bestMatchChanged;
+	return bestMatchChanged;
 }
 
 
