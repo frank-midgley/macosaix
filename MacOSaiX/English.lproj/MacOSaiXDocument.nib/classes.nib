@@ -3,6 +3,7 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
+                addImageSource = id; 
                 allowUserToChooseImage = id; 
                 beginExportImage = id; 
                 setExportHeightFromWidth = id; 
@@ -12,6 +13,7 @@
                 setNeighborhoodSize = id; 
                 setShowOutlines = id; 
                 setTIFFExport = id; 
+                setTilesSetupPlugIn = id; 
                 setViewAloneMode = id; 
                 setViewCompareMode = id; 
                 setViewEditMode = id; 
