@@ -16,6 +16,8 @@
 static NSLock	*imageCacheLock = nil;
 static NSString	*imageCachePath = nil;
 
+static NSImage	*googleIcon = nil;
+
 
 NSString *escapedNSString(NSString *string)
 {
@@ -37,6 +39,9 @@ NSString *escapedNSString(NSString *string)
 		[[NSFileManager defaultManager] createDirectoryAtPath:imageCachePath attributes:nil];
 	
 	imageCacheLock = [[NSLock alloc] init];
+	
+	NSString	*iconPath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"GoogleImageSource"];
+	googleIcon = [[NSImage alloc] initWithContentsOfFile:iconPath];
 }
 
 
@@ -266,7 +271,7 @@ NSString *escapedNSString(NSString *string)
 
 - (NSImage *)image;
 {
-    return [NSImage imageNamed:@"GoogleImageSource"];
+    return googleIcon;
 }
 
 
