@@ -132,8 +132,8 @@
 		[tileShapesPopUpButton selectItemAtIndex:0];
 		[self setTileShapesPlugIn:self];
 		
-			// Restore the last neighborhood size that the user chose.
-		int				popUpIndex = [[NSUserDefaults standardUserDefaults] integerForKey:@"Neighborhood Size"] - 1;
+			// Set the neighborhood size pop-up.
+		int				popUpIndex = [[self document] neighborhoodSize] - 1;
 		if (popUpIndex >= 0 && popUpIndex < [neighborhoodSizePopUpButton numberOfItems])
 			[neighborhoodSizePopUpButton selectItemAtIndex:popUpIndex];
 	}
@@ -1349,9 +1349,12 @@
 {
 	if (pthread_main_np())
 	{
+		[progressPanelLabel setStringValue:(message ? message : @"Please wait...")];
 		[progressPanelIndicator setDoubleValue:0.0];
 		[progressPanelIndicator setIndeterminate:YES];
 		[progressPanelIndicator startAnimation:self];
+		[progressPanelCancelButton setEnabled:NO];
+		
 		[NSApp beginSheet:progressPanel
 		   modalForWindow:[self window]
 			modalDelegate:self
