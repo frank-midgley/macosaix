@@ -136,10 +136,12 @@ Ordered array:		images, fileIDs
 	Image cache
 Ã		Make in-memory cache size, rather than count, dependent
 ¥	Saving (+ plug-ins state)
+¥	Autosaving
+¥	Disable Save As... for now
 ¥	Loading (+ plug-ins state)
 Ã	Version check
 ¥	Implement or disable neighborhood size GUI
-¥	Limit better matches cache
+?	Limit better matches cache
 Ã	Switch to showing mosaic when mosaic starts
 Ã	Get zoom working again
 Ã	Make image cache class level
@@ -150,6 +152,8 @@ Ordered array:		images, fileIDs
 ¥	Rework puzzle shapes plug-in to conform with new API
 ¥	Make image count work with attributed descriptors
 ¥	Export panel progress not updating
+¥	Limit export sizes to 10,000 pixels (NSWindow limit)
+¥	Make saved documents bundles
 	Google source:
 Ã		Meaningful description in table
 ¥		Make sure cache doesn't fill disk
