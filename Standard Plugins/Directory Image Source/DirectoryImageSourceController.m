@@ -129,7 +129,7 @@
 			// Default to the user's home directory if the value from the defaults is not valid.
 		BOOL	isDirectory;
 		if (![lastChosenDirectory isKindOfClass:[NSString class]] || 
-			![[NSFileManager defaultManager] fileExistsAtPath:[currentImageSource path] isDirectory:&isDirectory] || 
+			![[NSFileManager defaultManager] fileExistsAtPath:lastChosenDirectory isDirectory:&isDirectory] || 
 			!isDirectory)
 			lastChosenDirectory = NSHomeDirectory();
 		
@@ -167,8 +167,11 @@
 			// Remember this path for the next time the user creates a new source.
 		NSMutableDictionary	*plugInDefaults = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Directory Image Source"] 
 														mutableCopy] autorelease];
+		if (!plugInDefaults)
+			plugInDefaults = [NSMutableDictionary dictionary];
 		[plugInDefaults setObject:newPath forKey:@"Last Chosen Directory"];
 		[[NSUserDefaults standardUserDefaults] setObject:plugInDefaults forKey:@"Directory Image Source"];
+		[[NSUserDefaults standardUserDefaults] synchronize];
 		
 			// Update the current image source instance.
 		[currentImageSource setPath:newPath];
