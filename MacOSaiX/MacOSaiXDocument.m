@@ -1166,6 +1166,8 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 		id<MacOSaiXImageSource>	pixletImageSource = [nextImageDict objectForKey:@"Image Source"];
 		NSString				*pixletImageIdentifier = [nextImageDict objectForKey:@"Image Identifier"];
 		
+//		NSLog(@"Matching %@ from %@", pixletImageIdentifier, pixletImageSource);
+		
 			// If the pixlet image is large then use a scaled down copy instead to speed matching.
 //		if ([pixletImage size].width > (TILE_BITMAP_SIZE * 2.0) && [pixletImage size].height > (TILE_BITMAP_SIZE * 2.0))
 //			pixletImage = [pixletImage copyWithLargestDimension:TILE_BITMAP_SIZE * 2.0];
@@ -1253,17 +1255,21 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 					// Add the tile's current image back to the queue so it can potentially get re-used by other tiles.
 				ImageMatch	*previousMatch = [tile imageMatch];
 				if (previousMatch && ([previousMatch imageSource] != pixletImageSource || 
-					![[previousMatch imageIdentifier] isEqualToString:pixletImageIdentifier]))
+					![[previousMatch imageIdentifier] isEqualToString:pixletImageIdentifier]) &&
+					[self imageUseCount] > 0)
 				{
 					if (!queueLocked)
 					{
 						[imageQueueLock lock];
 						queueLocked = YES;
 					}
-					[imageQueue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-												[previousMatch imageSource], @"Image Source", 
-												[previousMatch imageIdentifier], @"Image Identifier",
-												nil]];
+					
+					NSDictionary	*newQueueEntry = [NSDictionary dictionaryWithObjectsAndKeys:
+														[previousMatch imageSource], @"Image Source", 
+														[previousMatch imageIdentifier], @"Image Identifier",
+														nil];
+					if (![imageQueue containsObject:newQueueEntry])
+						[imageQueue addObject:newQueueEntry];
 				}
 				
 				[tile setImageMatch:betterMatch];
