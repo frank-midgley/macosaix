@@ -103,12 +103,12 @@ Ordered array:		images, fileIDs
 =======================================================================================
 
 2.0x To Do:
+¥	Allow setup to be changed after mosaic has been started
 ¥	Make sure pixels are being pulled from bitmaps correctly
 ¥	Make neighborhood calculation more efficient or threaded
 ¥	Rework MosaicView to not use a stored image but redraw the tiles as needed in -drawRect:.  Would allow for better zooming.
 ¥	Buffered exporting
 ¥	Editor
-¥	Test on Jaguar
 ¥	Rework prefs
 ¥	Enable image source removal (includes purging of its images...)
 ¥	Mosaic quality calculation should take into account each tile's percentage coverage of original image
@@ -118,6 +118,7 @@ Ordered array:		images, fileIDs
 ¥	Link to home page in About box or help menu
 ¥	Resurrect Glyph source
 ¥	Minimum sizing for image source editor sheet
+¥	Easy way to switch main image between original and mosaic
 ¥	Add preferences API for image source plug-ins
 ¥	Add preferences API for tile shapes plug-ins
 
