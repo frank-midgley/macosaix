@@ -170,9 +170,9 @@
 }
 
 
-- (NSImageRep *)imageRepAtSize:(NSSize)size 
-				 forIdentifier:(NSString *)imageIdentifier 
-					fromSource:(id<MacOSaiXImageSource>)imageSource
+- (NSBitmapImageRep *)imageRepAtSize:(NSSize)size 
+					   forIdentifier:(NSString *)imageIdentifier 
+						  fromSource:(id<MacOSaiXImageSource>)imageSource
 {
 	NSBitmapImageRep	*imageRep = nil,
 						*scalableRep = nil;
