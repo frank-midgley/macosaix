@@ -56,10 +56,10 @@
 	switch (viewMode)
 	{
 		case viewMosaic:
-		case viewTilesOutline:
 		case viewImageSources:
 		case viewImageRegions:
 			break;
+		case viewTilesOutline:
 		case viewHighlightedTile:
 			while (keepOn)
 			{
@@ -100,17 +100,49 @@
 			{
 				NSAffineTransform	*transform;
 				
-				transform = [NSAffineTransform transform];
-				[transform translateXBy:0.5 yBy:-0.5];
-				[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
-				[[NSColor colorWithCalibratedWhite:0.0 alpha: 0.5] set];	// darken
-				[[transform transformBezierPath:tilesOutline] stroke];
-			
-				transform = [NSAffineTransform transform];
-				[transform translateXBy:-0.5 yBy:0.5];
-				[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
-				[[NSColor colorWithCalibratedWhite:1.0 alpha: 0.5] set];	// lighten
-				[[transform transformBezierPath:tilesOutline] stroke];
+				if (highlightedTile)
+				{
+						// Draw the outlines of the neighboring tiles.
+					transform = [NSAffineTransform transform];
+					[transform translateXBy:0.5 yBy:-0.5];
+					[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
+					[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];	// darken
+					[[transform transformBezierPath:neighborhoodOutline] stroke];
+					transform = [NSAffineTransform transform];
+					[transform translateXBy:-0.5 yBy:0.5];
+					[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
+					[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
+					[[transform transformBezierPath:neighborhoodOutline] stroke];
+					
+						// Draw the tile's outline with a 4pt thick dashed line.
+					NSAffineTransform	*transform = [NSAffineTransform transform];
+					[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
+					NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile outline]];
+					[bezierPath setLineWidth:4];
+					
+					float				dashes[2] = {5.0, 5.0};
+					[bezierPath setLineDash:dashes count:2 phase:phase];
+					[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
+					[bezierPath stroke];
+				
+					[bezierPath setLineDash:dashes count:2 phase:(phase + 5) % 10];
+					[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
+					[bezierPath stroke];
+				}
+				else
+				{
+					transform = [NSAffineTransform transform];
+					[transform translateXBy:0.5 yBy:-0.5];
+					[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
+					[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];	// darken
+					[[transform transformBezierPath:tilesOutline] stroke];
+					
+					transform = [NSAffineTransform transform];
+					[transform translateXBy:-0.5 yBy:0.5];
+					[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
+					[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
+					[[transform transformBezierPath:tilesOutline] stroke];
+				}
 			}
 			break;
 			
@@ -127,7 +159,7 @@
 				
 				[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
 				bezierPath = [transform transformBezierPath:[highlightedTile outline]];
-				[bezierPath setLineWidth:2];
+				[bezierPath setLineWidth:4];
 				
 				[bezierPath setLineDash:dashes count:2 phase:phase];
 				[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
@@ -144,6 +176,7 @@
 
 #pragma mark Tile Setup methods
 
+
 - (void)setTileOutlines:(NSArray *)tileOutlines;
 {
 	int	index;
@@ -158,23 +191,45 @@
 
 #pragma mark Highlight Tile methods
 
+
 - (void)highlightTile:(Tile *)tile
 {
     if (highlightedTile != nil)
     {
-	// erase any previous highlight
-	NSAffineTransform	*transform = [NSAffineTransform transform];
-	NSBezierPath		*bezierPath;
-	
-	phase = ++phase % 10;
-	[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
-	bezierPath = [transform transformBezierPath:[highlightedTile outline]];
-	[self setNeedsDisplayInRect:NSMakeRect([bezierPath bounds].origin.x - 1,
-										   [bezierPath bounds].origin.y - 1,
-										   [bezierPath bounds].size.width + 2,
-										   [bezierPath bounds].size.height + 2)];
+			// Erase any previous highlight.
+		NSAffineTransform	*transform = [NSAffineTransform transform];
+		NSBezierPath		*bezierPath;
+		phase = ++phase % 10;
+		[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
+		bezierPath = [transform transformBezierPath:[highlightedTile outline]];
+		[self setNeedsDisplayInRect:NSMakeRect([bezierPath bounds].origin.x - 2,
+											   [bezierPath bounds].origin.y - 2,
+											   [bezierPath bounds].size.width + 4,
+											   [bezierPath bounds].size.height + 4)];
+		bezierPath = [transform transformBezierPath:neighborhoodOutline];
+		[self setNeedsDisplayInRect:NSMakeRect([bezierPath bounds].origin.x - 1,
+											   [bezierPath bounds].origin.y - 1,
+											   [bezierPath bounds].size.width + 2,
+											   [bezierPath bounds].size.height + 2)];
+		
+			// Create a combined path for all neighbors of the tile.
+		[neighborhoodOutline autorelease];
+		neighborhoodOutline = [[NSBezierPath bezierPath] retain];
+		NSEnumerator		*neighborEnumerator = [[tile neighbors] objectEnumerator];
+		Tile				*neighbor = nil;
+		while (neighbor = [neighborEnumerator nextObject])
+			[neighborhoodOutline appendBezierPath:[neighbor outline]];
+			
+			// Mark the new neighborhood outline's bounds as needing display.
+		bezierPath = [transform transformBezierPath:neighborhoodOutline];
+		[self setNeedsDisplayInRect:NSMakeRect([bezierPath bounds].origin.x - 1,
+											   [bezierPath bounds].origin.y - 1,
+											   [bezierPath bounds].size.width + 2,
+											   [bezierPath bounds].size.height + 2)];
     }
-    
+	else
+		[self setNeedsDisplay:YES];
+	
     highlightedTile = tile;
 }
 
@@ -187,10 +242,23 @@
     phase = ++phase % 10;
     [transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
     bezierPath = [transform transformBezierPath:[highlightedTile outline]];
-    [self setNeedsDisplayInRect:NSMakeRect([bezierPath bounds].origin.x - 1,
-					   [bezierPath bounds].origin.y - 1,
-					   [bezierPath bounds].size.width + 2,
-					   [bezierPath bounds].size.height + 2)];
+    [self setNeedsDisplayInRect:NSMakeRect([bezierPath bounds].origin.x - 2,
+					   [bezierPath bounds].origin.y - 2,
+					   [bezierPath bounds].size.width + 4,
+					   [bezierPath bounds].size.height + 4)];
+//	bezierPath = [transform transformBezierPath:neighborhoodOutline];
+//	[self setNeedsDisplayInRect:NSMakeRect([bezierPath bounds].origin.x - 1,
+//										   [bezierPath bounds].origin.y - 1,
+//										   [bezierPath bounds].size.width + 2,
+//										   [bezierPath bounds].size.height + 2)];
+}
+
+
+- (void)dealloc
+{
+	[neighborhoodOutline release];
+	
+	[super dealloc];
 }
 
 

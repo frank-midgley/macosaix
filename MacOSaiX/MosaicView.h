@@ -19,8 +19,9 @@ MosaicViewMode;
 	MosaicViewMode	viewMode;
 	
 		// ivar for viewTileSetup
-	NSBezierPath	*tilesOutline;
-	
+	NSBezierPath	*tilesOutline,
+					*neighborhoodOutline;
+					
 		// ivars for viewHighlightedTile
     Tile*			highlightedTile;
     int				phase;
