@@ -15,7 +15,7 @@
 
 + (NSString *)name
 {
-	return @"Rectangles";
+	return @"Rectangular";
 }
 
 
@@ -35,7 +35,7 @@
 {
 	if (self = [super init])
 	{
-		NSDictionary	*plugInDefaults = [[NSUserDefaults standardUserDefaults] objectForKey:@"Rectangular Tiles"];
+		NSDictionary	*plugInDefaults = [[NSUserDefaults standardUserDefaults] objectForKey:@"Rectangular Tile Shapes"];
 		
 		[self setTilesAcross:[[plugInDefaults objectForKey:@"Tiles Across"] intValue]];
 		[self setTilesDown:[[plugInDefaults objectForKey:@"Tiles Down"] intValue]];
@@ -86,8 +86,8 @@
 	NSRect			tileRect = NSMakeRect(0.0, 0.0, 1.0 / tilesAcross, 1.0 / tilesDown);
 	NSMutableArray	*tileOutlines = [NSMutableArray arrayWithCapacity:(tilesAcross * tilesDown)];
 		
-    for (y = tilesDown - 1; y >= 0; y--)
-		for (x = 0; x < tilesAcross; x++)
+	for (x = 0; x < tilesAcross; x++)
+		for (y = tilesDown - 1; y >= 0; y--)
 			{
 				tileRect.origin.x = x * tileRect.size.width;
 				tileRect.origin.y = y * tileRect.size.height;
