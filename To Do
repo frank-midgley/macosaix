@@ -67,6 +67,7 @@ Riemersma metric:
 Ã	Rename Tiles class to MacOSaiXTile
 ¥	Resizing when zoomed does not stay centered.
 ¥	Preference/option for what to display for non-unique tiles.
+¥	New mosaic from image on clipboard
 
 2.0a2 To Do:
 Ã	Uniqueness
