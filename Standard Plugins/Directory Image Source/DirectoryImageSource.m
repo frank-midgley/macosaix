@@ -147,7 +147,7 @@
 	NSImage		*image = nil;
 	
 	NS_DURING
-		image = [[NSImage alloc] initWithContentsOfFile:[directoryPath stringByAppendingPathComponent:identifier]];
+		image = [[[NSImage alloc] initWithContentsOfFile:[directoryPath stringByAppendingPathComponent:identifier]] autorelease];
 	NS_HANDLER
 		// should something be logged?
 		NSLog(@"%@ is not a valid image file.", [directoryPath stringByAppendingPathComponent:identifier]);
