@@ -33,13 +33,14 @@ typedef enum
     IBOutlet id						exportPanelAccessoryView;
 	IBOutlet NSTextField			*exportWidth, *exportHeight;
     
-		// Tiles setup tab
+		// Tiles tab
 	IBOutlet NSPopUpButton			*tilesSetupPopUpButton;
 	IBOutlet NSBox					*tilesSetupView;
-	IBOutlet NSTextField			*totalTilesField;
 	TilesSetupController			*tilesSetupController;
+	IBOutlet NSTextField			*totalTilesField;
+	IBOutlet NSPopUpButton			*neighborhoodSizePopUpButton;
 	
-		// Image sources tab
+		// Images tab
 	IBOutlet NSPopUpButton			*imageSourcesPopUpButton;
 	IBOutlet NSTabView				*imageSourcesTabView;
 	IBOutlet NSTableView			*imageSourcesTable;
@@ -49,7 +50,7 @@ typedef enum
     IBOutlet OriginalView			*originalView;
     IBOutlet id						showOutlinesSwitch;
 		
-		// Tile editor tab
+		// Editor tab
     IBOutlet NSTextField		*editorLabel;
 	IBOutlet NSButtonCell		*editorUseCustomImage,
 								*editorUseBestUniqueMatch;
@@ -114,68 +115,38 @@ typedef enum
                                 *orderedCacheID;
 }
 
-- (void)chooseOriginalImage;
-- (void)chooseOriginalImageOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
-    contextInfo:(void *)context;
-- (void)startMosaic;
-
-- (void)setTilesSetupPlugIn:(id)sender;
-- (void)spawnImageSourceThreads;
-- (void)synchronizeMenus;
-
-- (void)updateMosaicImage:(NSMutableArray *)updatedTiles;
-- (void)calculateImageMatches:(id)path;
-- (void)createTileCollectionWithOutlines:(id)object;
-
 	// View methods
-- (void)setViewCompareMode:(id)sender;
-- (void)setViewTileSetupMode:(id)sender;
-- (void)setViewRegionsMode:(id)sender;
-- (void)setViewAloneMode:(id)sender;
-- (void)setViewEditMode:(id)sender;
-- (void)setViewMode:(int)mode;
-- (void)setZoom:(id)sender;
-- (void)toggleStatusBar:(id)sender;
-- (void)setShowOutlines:(id)sender;
-- (void)toggleImageSourcesDrawer:(id)sender;
-- (void)togglePause:(id)sender;
+- (IBAction)setViewCompareMode:(id)sender;
+- (IBAction)setViewTileSetupMode:(id)sender;
+- (IBAction)setViewRegionsMode:(id)sender;
+- (IBAction)setViewAloneMode:(id)sender;
+- (IBAction)setViewEditMode:(id)sender;
+- (IBAction)setViewMode:(int)mode;
+- (IBAction)setZoom:(id)sender;
+- (IBAction)toggleStatusBar:(id)sender;
+- (IBAction)setShowOutlines:(id)sender;
+- (IBAction)toggleImageSourcesDrawer:(id)sender;
+- (IBAction)togglePause:(id)sender;
+
+- (IBAction)setNeighborhoodSize:(id)sender;
+- (IBAction)selectTileAtPoint:(NSPoint)thePoint;
 
 	// Editor methods
-- (void)selectTileAtPoint:(NSPoint)thePoint;
-- (void)updateEditor;
-- (BOOL)showTileMatchInEditor:(ImageMatch *)tileMatch selecting:(BOOL)selecting;
-- (NSImage *)createEditorImage:(int)rowIndex;
-- (void)useCustomImage:(id)sender;
-- (void)useBestUniqueMatch:(id)sender;
-- (void)allowUserToChooseImage:(id)sender;
-- (void)allowUserToChooseImageOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
-    contextInfo:(void *)context;
-- (void)useSelectedImage:(id)sender;
+- (IBAction)useCustomImage:(id)sender;
+- (IBAction)useBestUniqueMatch:(id)sender;
+- (IBAction)allowUserToChooseImage:(id)sender;
+- (IBAction)useSelectedImage:(id)sender;
 
-// Image sources methods
+	// Image sources methods
 - (void)addImageSource:(ImageSource *)imageSource;
 - (void)showCurrentImageSources;
 - (void)setImageSourcesPlugIn:(id)sender;
 
-// Export image methods
-- (void)beginExportImage:(id)sender;
-- (void)setJPEGExport:(id)sender;
-- (void)setTIFFExport:(id)sender;
-- (void)setExportWidthFromHeight:(id)sender;
-- (void)setExportHeightFromWidth:(id)sender;
-- (void)exportImageSavePanelDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)savePanel;
-- (void)exportImage:(id)exportFilename;
-
-// window delegate methods
-- (void)windowDidBecomeMain:(NSNotification *)aNotification;
-- (NSSize)windowWillResize:(NSWindow *)sender toSize:(NSSize)proposedFrameSize;
-- (void)windowDidResize:(NSNotification *)notification;
-
-// toolbar delegate methods
-- (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier
-    willBeInsertedIntoToolbar:(BOOL)flag;
-- (BOOL)validateToolbarItem:(NSToolbarItem *)theItem;
-- (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar;
-- (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar;
+	// Export image methods
+- (IBAction)beginExportImage:(id)sender;
+- (IBAction)setJPEGExport:(id)sender;
+- (IBAction)setTIFFExport:(id)sender;
+- (IBAction)setExportWidthFromHeight:(id)sender;
+- (IBAction)setExportHeightFromWidth:(id)sender;
 
 @end

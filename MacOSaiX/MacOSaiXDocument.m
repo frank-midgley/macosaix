@@ -15,9 +15,23 @@
 #define IMAGE_CACHE_SIZE 100
 
 @interface MacOSaiXDocument (PrivateMethods)
+- (void)chooseOriginalImage;
+- (void)setTilesSetupPlugIn:(id)sender;
+- (void)spawnImageSourceThreads;
+- (void)synchronizeMenus;
+- (void)startMosaic;
+- (void)updateMosaicImage:(NSMutableArray *)updatedTiles;
+- (void)calculateImageMatches:(id)path;
+- (void)createTileCollectionWithOutlines:(id)object;
 - (void)cacheImage:(NSImage *)image withIdentifier:(id<NSCopying>)imageIdentifier fromSource:(ImageSource *)imageSource;
 - (NSImage *)cachedImageForIdentifier:(id<NSCopying>)imageIdentifier fromSource:(ImageSource *)imageSource;
 - (NSMutableDictionary *)cacheDictionaryForImageSource:(ImageSource *)imageSource;
+- (void)updateEditor;
+- (BOOL)showTileMatchInEditor:(ImageMatch *)tileMatch selecting:(BOOL)selecting;
+- (NSImage *)createEditorImage:(int)rowIndex;
+- (void)allowUserToChooseImageOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
+    contextInfo:(void *)context;
+- (void)exportImage:(id)exportFilename;
 @end
 
 
@@ -1336,6 +1350,20 @@
 }
 
 
+- (IBAction)setNeighborhoodSize:(id)sender
+{
+	// TODO
+			{
+				[refreshTilesSetLock lock];
+					[refreshTilesSet addObjectsFromArray:tiles];
+				[refreshTilesSetLock unlock];
+
+				if (!calculateDisplayedImagesThreadAlive)
+					[NSApplication detachDrawingThread:@selector(calculateDisplayedImages:) toTarget:self withObject:nil];
+			}
+}
+
+
 #pragma mark -
 #pragma mark Image Sources methods
 
@@ -1459,15 +1487,21 @@
 			image = [[[NSImage alloc] initWithContentsOfFile:[self filePathForCachedImageID:imageID]] autorelease];
             if (!image)
                 NSLog(@"Huh?");
-			[imageCache setObject:image forKey:imageKey];
+			else
+				[imageCache setObject:image forKey:imageKey];
 		}
-		[orderedCache insertObject:image atIndex:0];
-		[orderedCacheID insertObject:[NSNumber numberWithLong:imageID] atIndex:0];
-		if ([orderedCache count] > IMAGE_CACHE_SIZE)
+		
+		if (image)
 		{
-			[imageCache removeObjectForKey:[NSNumber numberWithLong:imageID]];
-			[orderedCache removeLastObject];
-			[orderedCacheID removeLastObject];
+				// Move this image to the front of the in-memory cache so it persists longer.
+			[orderedCache insertObject:image atIndex:0];
+			[orderedCacheID insertObject:[NSNumber numberWithLong:imageID] atIndex:0];
+			if ([orderedCache count] > IMAGE_CACHE_SIZE)
+			{
+				[imageCache removeObjectForKey:[NSNumber numberWithLong:imageID]];
+				[orderedCache removeLastObject];
+				[orderedCacheID removeLastObject];
+			}
 		}
 	[cacheLock unlock];
 	
