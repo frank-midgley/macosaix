@@ -302,6 +302,20 @@
 			settings = {
 			};
 		};
+		01AC3A3B07B0997C0025F915 = {
+			isa = PBXFileReference;
+			lastKnownFileType = image.png;
+			name = Settings.png;
+			path = Images/Settings.png;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01AC3A3C07B0997C0025F915 = {
+			fileRef = 01AC3A3B07B0997C0025F915;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		01BBDECB0747081400F17A9F = {
 			fileEncoding = 4;
 			isa = PBXFileReference;
@@ -838,6 +852,7 @@
 				92951FF1068A7FE600366ACB,
 				92951FF9068A7FE900366ACB,
 				92BFFEC3079A2DD50052CC4C,
+				01AC3A3C07B0997C0025F915,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2400,6 +2415,7 @@
 				F5940957024722BA01000104,
 				F558F295027DBB8D01000103,
 				F558F297027DBF1B01000103,
+				01AC3A3B07B0997C0025F915,
 			);
 			isa = PBXGroup;
 			name = Images;
