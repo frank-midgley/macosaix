@@ -677,7 +677,7 @@
 	[tileShapesBeingEdited release];
 	tileShapesBeingEdited = nil;
 
-	[imageSourceEditorBox setContentView:nil];
+	[tileShapesBox setContentView:[[[NSView alloc] initWithFrame:NSZeroRect] autorelease]];
 }
 
 
@@ -806,7 +806,7 @@
 	[sheet orderOut:self];
 	
 		// Do this before adding the source so we don't run into thread safety issues with QuickTime.
-	[imageSourceEditorBox setContentView:[[[NSView alloc] initWithFrame:[[imageSourceEditorBox contentView] frame]] autorelease]];
+	[imageSourceEditorBox setContentView:[[[NSView alloc] initWithFrame:NSZeroRect] autorelease]];
 	
 	if (returnCode == NSOKButton)
 	{
