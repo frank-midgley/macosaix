@@ -8,8 +8,8 @@
             OUTLETS = {
                 adultContentFilteringPopUpButton = NSPopUpButton; 
                 colorSpacePopUpButton = NSPopUpButton; 
+                editorView = NSView; 
                 excludedTermsTextField = NSTextField; 
-                imageSourceView = NSView; 
                 optionalTermsTextField = NSTextField; 
                 requiredTermsTextField = NSTextField; 
                 siteTextField = NSTextField; 
