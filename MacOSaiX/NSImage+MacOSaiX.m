@@ -22,7 +22,8 @@
 		copySize = NSMakeSize(originalSize.width * largestDimension / originalSize.height, largestDimension);
 		
 	NSImage	*copy = [[NSImage alloc] initWithSize:copySize];
-	[copy setCacheMode:NSImageCacheNever];
+	[copy setCachedSeparately:YES];
+//	[copy setCacheMode:NSImageCacheNever];
 	BOOL	haveFocus = NO;
 	
 	while (!haveFocus)	// && ???
