@@ -111,7 +111,7 @@
 		29B97313FDCFA39411CA2CEA = {
 			buildSettings = {
 				MACOSX_DEPLOYMENT_TARGET = 10.2;
-				SDKROOT = /Developer/SDKs/MacOSX10.2.7.sdk;
+				SDKROOT = /Developer/SDKs/MacOSX10.2.8.sdk;
 			};
 			buildStyles = (
 				4A9504CCFFE6A4B311CA0CBA,
@@ -172,8 +172,7 @@
 			sourceTree = "<group>";
 		};
 		29B97324FDCFA39411CA2CEA = {
-			fallbackIsa = PBXFileReference;
-			isa = PBXFrameworkReference;
+			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
 			name = AppKit.framework;
 			path = /System/Library/Frameworks/AppKit.framework;
@@ -181,8 +180,7 @@
 			sourceTree = "<absolute>";
 		};
 		29B97325FDCFA39411CA2CEA = {
-			fallbackIsa = PBXFileReference;
-			isa = PBXFrameworkReference;
+			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
 			name = Foundation.framework;
 			path = /System/Library/Frameworks/Foundation.framework;
@@ -200,8 +198,6 @@
 //4A3
 //4A4
 		4A9504CCFFE6A4B311CA0CBA = {
-			buildRules = (
-			);
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				DEBUGGING_SYMBOLS = YES;
@@ -216,8 +212,6 @@
 			name = Development;
 		};
 		4A9504CDFFE6A4B311CA0CBA = {
-			buildRules = (
-			);
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
 				DEBUGGING_SYMBOLS = NO;
@@ -239,8 +233,7 @@
 //923
 //924
 		926CE4E903E7627700C7E70E = {
-			fallbackIsa = PBXFileReference;
-			isa = PBXFrameworkReference;
+			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
 			name = MacOSaiXPlugins.framework;
 			path = build/MacOSaiXPlugins.framework;
@@ -370,7 +363,6 @@
 				9284898306611CE5003B3514,
 				9284898406611CE5003B3514,
 				9284898506611CE5003B3514,
-				9284898606611CE5003B3514,
 				9284898706611CE5003B3514,
 				9284898806611CE5003B3514,
 				9284898906611CE5003B3514,
@@ -404,14 +396,6 @@
 		};
 		9284898506611CE5003B3514 = {
 			fileRef = 00EAAC6000853DFB7F000001;
-			isa = PBXBuildFile;
-			settings = {
-				ATTRIBUTES = (
-				);
-			};
-		};
-		9284898606611CE5003B3514 = {
-			fileRef = F54A32C3024E65680100010C;
 			isa = PBXBuildFile;
 			settings = {
 				ATTRIBUTES = (
@@ -525,7 +509,6 @@
 				9284899706611CE5003B3514,
 				9284899806611CE5003B3514,
 				9284899906611CE5003B3514,
-				9284899A06611CE5003B3514,
 				9284899B06611CE5003B3514,
 				9284899C06611CE5003B3514,
 				9284899D06611CE5003B3514,
@@ -561,12 +544,6 @@
 		};
 		9284899906611CE5003B3514 = {
 			fileRef = 00EAAC6100853DFB7F000001;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		9284899A06611CE5003B3514 = {
-			fileRef = F54A32C4024E65680100010C;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -1446,7 +1423,7 @@
 		928F724A0661214000873AE2 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
-			lastKnownFileType = text.plist.xml;
+			lastKnownFileType = text.xml;
 			name = Info.plist;
 			path = MacOSaiX/Info.plist;
 			refType = 4;
@@ -1528,7 +1505,7 @@
 		928F727B066121DE00873AE2 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
-			lastKnownFileType = text.plist.xml;
+			lastKnownFileType = text.xml;
 			name = Info.plist;
 			path = "MacOSaiX Plugins Framework/Info.plist";
 			refType = 4;
@@ -1703,7 +1680,7 @@
 		928F72D80661230700873AE2 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
-			lastKnownFileType = text.plist.xml;
+			lastKnownFileType = text.xml;
 			name = Info.plist;
 			path = "Standard Plugins/Directory Image Source/Info.plist";
 			refType = 4;
@@ -1718,7 +1695,7 @@
 		928F72DC0661231B00873AE2 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
-			lastKnownFileType = text.plist.xml;
+			lastKnownFileType = text.xml;
 			name = Info.plist;
 			path = "Standard Plugins/Glyph Image Source/Info.plist";
 			refType = 4;
@@ -1733,7 +1710,7 @@
 		928F72E00661234700873AE2 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
-			lastKnownFileType = text.plist.xml;
+			lastKnownFileType = text.xml;
 			name = Info.plist;
 			path = "Standard Plugins/Google Image Source/Info.plist";
 			refType = 4;
@@ -1748,7 +1725,7 @@
 		928F72E40661235B00873AE2 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
-			lastKnownFileType = text.plist.xml;
+			lastKnownFileType = text.xml;
 			name = Info.plist;
 			path = "Standard Plugins/QuickTime Image Source/Info.plist";
 			refType = 4;
@@ -1763,7 +1740,7 @@
 		928F72E80661237300873AE2 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
-			lastKnownFileType = text.plist.xml;
+			lastKnownFileType = text.xml;
 			name = Info.plist;
 			path = "Standard Plugins/Rectangular Tiles Setup/Info.plist";
 			refType = 4;
@@ -1928,8 +1905,7 @@
 			sourceTree = "<group>";
 		};
 		92F2B1EC048027FA0000011E = {
-			fallbackIsa = PBXFileReference;
-			isa = PBXFrameworkReference;
+			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
 			name = QuickTime.framework;
 			path = /System/Library/Frameworks/QuickTime.framework;
@@ -1947,8 +1923,7 @@
 //F53
 //F54
 		F514D53C0390266E01B25AF1 = {
-			fallbackIsa = PBXFileReference;
-			isa = PBXFrameworkReference;
+			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
 			name = Cocoa.framework;
 			path = /System/Library/Frameworks/Cocoa.framework;
@@ -2302,8 +2277,7 @@
 			sourceTree = "<group>";
 		};
 		F599E5560266AAD101000103 = {
-			fallbackIsa = PBXFileReference;
-			isa = PBXFrameworkReference;
+			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
 			name = Carbon.framework;
 			path = /System/Library/Frameworks/Carbon.framework;
@@ -2311,8 +2285,6 @@
 			sourceTree = "<absolute>";
 		};
 		F5B7584A024DAEFD0100010D = {
-			buildRules = (
-			);
 			buildSettings = {
 			};
 			isa = PBXBuildStyle;
