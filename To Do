@@ -24,7 +24,15 @@ Ideas for future versions:
 		iSight source
 		iTunes album art
 		iPhoto albums
-
+		flickr
+	Directory source
+		Option to only use images bigger or smaller than certain dimensions
+		Alias support during enumeration
+	Glyph source
+		Color palettes
+		Font selection
+		Text selection (e.g. decl. of ind.)
+	Don't use each tile more than x times
 
 Glyph crashes:
     CGS TrebuchetMS-Bold 12.00 pt.	Glyph 251
@@ -96,27 +104,33 @@ Ordered array:		images, fileIDs
 ¥	Make neighborhood calculation more efficient or threaded
 ¥	Split MacOSaiXWindowController out of MacOSaiXDocument
 ¥	Rework MosaicView to not use a stored image but redraw the tiles as needed in -drawRect:.  Would allow for better zooming.
-Ã	Uniqueness
-¥	Image sources GUI (whole utility drawer, actually)
 ¥	Pausing
 ¥	Buffered exporting
 ¥	Editor
-¥	Push regions to next major release
-¥	Change idle message
 ¥	Test on Jaguar
-¥	Recent originals in open panel
 ¥	Rework prefs
 ¥	Enable image source removal (includes purging of its images...)
 ¥	Mosaic quality calculation should take into account each tile's percentage coverage of original image
 ¥	Get rid of lines in exporting
+¥	Compare straight color match vs. Riemersma
+¥	Version check
+¥	Link to home page in About box or help menu
+¥	Glyph source
+¥	Minimum sizing for image source editor sheet
 
 2.0a2 To Do:
-¥	Get rid of framework? (+ rework plug-ins)
-¥	Glyph & Google sources
-¥	Make all image identifiers strings (still used as plist dictionary key?)
+Ã	Uniqueness
+Ã	Image sources GUI (whole utility drawer, actually)
+Ã	Recent originals in open panel
+Ã	Make all image identifiers strings (still used as plist dictionary key?)
+Ã	Change idle message
 ¥	Saving (plug-ins state)
 ¥	Image cache purging (on save)
-¥	Original image view (scaling/tinting)
+¥	Get rid of framework? (+ rework plug-ins)
+¥	Google source:
+¥		Make sure cache doesn't fill disk
+x	Original image view (scaling/tinting)
 	
 
+=======================================================================================
 
