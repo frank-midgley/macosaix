@@ -138,7 +138,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 	if (!paused)
 	{
 			// Wait for the one-shot startup thread to end.
-		while (createTilesThreadAlive)
+		while ([self isCreatingTiles])
 			[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 
 			// Tell the enumeration threads to stop sending in any new images.
@@ -147,7 +147,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 			// Wait for any queued images to get processed.
 			// TBD: can we condition lock here instead of poll?
 			// TBD: this could block the main thread
-		while (calculateImageMatchesThreadAlive)
+		while ([self isCalculatingImageMatches])	//|| [self isCalculatingDisplayedImages])
 			[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 		
 		paused = YES;
@@ -189,28 +189,10 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 #pragma mark Save and Open methods
 
 
-- (IBAction)saveDocument:(id)sender
+- (BOOL)prepareSavePanel:(NSSavePanel *)savePanel
 {
-	NSWindow	*window = [[[self windowControllers] objectAtIndex:0] window];
-	
-	NSBeginAlertSheet(@"MacOSaiX", @"Dang", nil, nil, window, nil, nil, nil, nil, @"Saving is not available in this version.");
-}
-
-- (IBAction)saveDocumentAs:(id)sender
-{
-	[self saveDocument:sender];
-}
-
-
-- (IBAction)saveDocumentTo:(id)sender
-{
-	[self saveDocument:sender];
-}
-
-
-- (IBAction)revertDocumentToSaved:(id)sender
-{
-	[self saveDocument:sender];
+	[savePanel setRequiredFileType:@"mosaic"];
+	return YES;
 }
 
 
@@ -220,168 +202,316 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
    didSaveSelector:(SEL)didSaveSelector 
 	   contextInfo:(void *)contextInfo;
 {
+	if (!fileName)
+		return;	// the user cancelled the save
+	
 	BOOL			wasPaused = paused;
-	NSFileManager	*fileManager = [NSFileManager defaultManager];
 	
 		// Pause the mosaic so that it is in a static state while saving.
 	[self pause];
 	
 	// TBD: set a "saving" flag?
 	
-		// Create the wrapper directory if it doesn't already exist.
-	if ([fileManager fileExistsAtPath:fileName] || [fileManager createDirectoryAtPath:fileName attributes:nil])
-	{
-//		if (![cachedImagesPath hasPrefix:fileName])
-//		{
-//				// This is the first time this mosaic has been saved so move 
-//				// the image cache directory from /tmp to the new location.
-//			NSString	*savedCachedImagesPath = [fileName stringByAppendingPathComponent:@"Cached Images"];
-//			[fileManager movePath:cachedImagesPath toPath:savedCachedImagesPath handler:nil];
-//			[cachedImagesPath autorelease];
-//			cachedImagesPath = [savedCachedImagesPath retain];
-//		}
-		
-			// Display a sheet while the save is underway
-//		[progressPanelLabel setStringValue:@"Saving..."];
-//		[progressPanelIndicator setDoubleValue:0.0];
-//		[progressPanelCancelButton setAction:@selector(cancelSave:)];
-//		[NSApp beginSheet:progressPanel 
-//		   modalForWindow:mainWindow 
-//			modalDelegate:self 
-//		   didEndSelector:@selector(saveSheetDidEnd:returnCode:contextInfo:) 
-//			  contextInfo:nil];
-		
-		[NSThread detachNewThreadSelector:@selector(threadedSaveWithParameters:) 
-								 toTarget:self 
-							   withObject:[NSArray arrayWithObjects:fileName, [NSNumber numberWithBool:wasPaused], nil]];
-	}
+		// Display a sheet while the save is underway
+	[[[self windowControllers] objectAtIndex:0] displayProgressPanelWithMessage:@"Saving..."];
+// TODO:	[[[self windowControllers] objectAtIndex:0] setCancelAction:@selector(cancelSave) andTarget:self];
+	
+	NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+											fileName, @"Save Path", 
+											[NSNumber numberWithInt:saveOperation], @"Save Operation", 
+											[NSNumber numberWithUnsignedLong:(unsigned long)contextInfo], @"Context Info", 
+											[NSNumber numberWithBool:wasPaused], @"Was Paused", 
+											nil];
+	if (delegate)
+		[parameters setObject:delegate forKey:@"Did Save Delegate"];
+	if (didSaveSelector)
+		[parameters setObject:NSStringFromSelector(didSaveSelector) forKey:@"Did Save Selector"];
+	
+	[NSThread detachNewThreadSelector:@selector(threadedSaveWithParameters:) 
+							 toTarget:self 
+						   withObject:parameters];
 }
 
 
-- (IBAction)cancelSave:(id)sender
+- (void)cancelSave
 {
+	// TODO
 }
 
 
-- (void)saveSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
-{
-	[sheet orderOut:self];
-}
-
-
-- (void)threadedSaveWithParameters:(NSArray *)parameters
+- (void)threadedSaveWithParameters:(NSDictionary *)parameters
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	NSString			*savePath = [parameters objectAtIndex:0];
-	BOOL				wasPaused = [[parameters objectAtIndex:1] boolValue];
+	BOOL				saveSucceeded = NO;
+	NSString			*savePath = [parameters objectForKey:@"Save Path"];
+	NSSaveOperationType	saveOperation = [[parameters objectForKey:@"Save Operation"] intValue];
+	id					didSaveDelegate = [parameters objectForKey:@"Did Save Delegate"];
+	SEL					didSaveSelector = NSSelectorFromString([parameters objectForKey:@"Did Save Selector"]);
+	void				*contextInfo = (void *)[[parameters objectForKey:@"Context Info"] unsignedLongValue];
+	BOOL				wasPaused = [[parameters objectForKey:@"Was Paused"] boolValue];
 	
-		// Don't usurp the main thread.
-	[NSThread setThreadPriority:0.1];
-	
-			// Create the master save file in XML format.
-	NSString	*xmlPath = [savePath stringByAppendingPathComponent:@"Mosaic new.xml"];
-	if (![[NSFileManager defaultManager] createFileAtPath:xmlPath contents:nil attributes:nil])
-	{
-	}
-	else
-	{
-		NSFileHandle	*fileHandle = [NSFileHandle fileHandleForWritingAtPath:xmlPath];
-		
-			// Write out the XML header.
-		[fileHandle writeData:[@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-		[fileHandle writeData:[@"<!DOCTYPE plist PUBLIC \"-//Frank M. Midgley//DTD MacOSaiX 1.0//EN\" \"http://homepage.mac.com/knarf/DTDs/MacOSaiX-1.0.dtd\">" dataUsingEncoding:NSUTF8StringEncoding]];
-		
-			// Write out the image sources.
-		[fileHandle writeData:[@"<IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-		int	index;
-		for (index = 0; index < [imageSources count]; index++)
-		{
-			id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:index];
-			NSString				*className = NSStringFromClass([imageSource class]);
-			
-			[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\">\n", index] dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[[NSString stringWithFormat:@"\t\t<SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
-	//		[fileHandle writeData:[[imageSource XMLRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[@"\t\t</SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[@"\t</IMAGE_SOURCE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-		}
-		[fileHandle writeData:[@"</IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+	NS_DURING
+		// TODO: take the save operation into account
 
-			// Write out the tiles setup
-			// TODO: needs rework once tile setup is freed from framework
-//		NSString	*className = NSStringFromClass([tilesSetupController class]);
-//		[fileHandle writeData:[@"<TILES_SETUP>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-//		[fileHandle writeData:[[NSString stringWithFormat:@"\t\t<SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
-//	//    [fileHandle writeData:[[tilesSetupController XMLRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
-//		[fileHandle writeData:[@"\t</SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-//		[fileHandle writeData:[@"</TILES_SETUP>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+			// Don't usurp the main thread.
+		[NSThread setThreadPriority:0.1];
 		
-			// Write out the cached images
-		[fileHandle writeData:[[imageCache xmlData] dataUsingEncoding:NSUTF8StringEncoding]];
-		
-			// Write out the tiles
-		[fileHandle writeData:[@"<TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-		Tile			*tile = nil;
-		while (tile = [tileEnumerator nextObject])
+			// Create the wrapper directory if it doesn't already exist.
+		NSFileManager	*fileManager = [NSFileManager defaultManager];
+		BOOL			isDir;
+		if (([fileManager fileExistsAtPath:savePath isDirectory:&isDir] && isDir) || 
+			[fileManager createDirectoryAtPath:savePath attributes:nil])
 		{
-			[fileHandle writeData:[@"\t<TILE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			
-				// First write out the tile's outline
-			[fileHandle writeData:[@"\t\t<OUTLINE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			int index;
-			for (index = 0; index < [[tile outline] elementCount]; index++)
+					// Create the master save file in XML format.
+			NSString	*xmlPath = [savePath stringByAppendingPathComponent:@"Mosaic.xml"];
+			if (![[NSFileManager defaultManager] createFileAtPath:xmlPath contents:nil attributes:nil])
 			{
-				NSPoint points[3];
-				switch ([[tile outline] elementAtIndex:index associatedPoints:points])
-				{
-					case NSMoveToBezierPathElement:
-						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<MOVE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
-															points[0].x, points[0].y] dataUsingEncoding:NSUTF8StringEncoding]];
-						break;
-					case NSLineToBezierPathElement:
-						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<LINE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
-															points[0].x, points[0].y] dataUsingEncoding:NSUTF8StringEncoding]];
-						break;
-					case NSCurveToBezierPathElement:
-						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<CURVE_TO X=\"%0.6f\" Y=\"%0.6f\" C1X=\"%0.6f\" C1Y=\"%0.6f\" C2X=\"%0.6f\" C2Y=\"%0.6f\">\n", 
-															points[2].x, points[2].y, points[0].x, points[0].y, points[1].x, points[1].y] 
-													dataUsingEncoding:NSUTF8StringEncoding]];
-						break;
-					case NSClosePathBezierPathElement:
-						[fileHandle writeData:[@"\t\t\t<CLOSE_PATH>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-						break;
-					default:
-						;
-				}
 			}
-			[fileHandle writeData:[@"\t\t</OUTLINE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			
-				// Now write out the tile's matches.
-			[fileHandle writeData:[@"\t\t<MATCHES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			NSEnumerator	*matchEnumerator = [[tile matches] objectEnumerator];
-			ImageMatch		*match = nil;
-			while (match = [matchEnumerator nextObject])
-				[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<MATCH SOURCE_ID=\"%d\" IMAGE_ID=\"%@\" VALUE=\"%0.6f\"%@>\n", 
-													[imageSources indexOfObjectIdenticalTo:[match imageSource]],
-													[match imageIdentifier], [match matchValue],
-													(match == [tile userChosenImageMatch] ? @"USER_CHOSEN" : @"")] 
-											dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[@"\t\t</MATCHES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[@"\t</TILE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+			else
+			{
+				NSFileHandle	*fileHandle = [NSFileHandle fileHandleForWritingAtPath:xmlPath];
+				
+					// Write out the XML header.
+				[fileHandle writeData:[@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[@"<!DOCTYPE plist PUBLIC \"-//Frank M. Midgley//DTD MacOSaiX 1.0//EN\" \"http://homepage.mac.com/knarf/DTDs/MacOSaiX-1.0.dtd\">\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				
+					// Write out the image sources.
+				[fileHandle writeData:[@"<IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				int	index;
+				for (index = 0; index < [imageSources count]; index++)
+				{
+					id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:index];
+					NSString				*className = NSStringFromClass([imageSource class]);
+					
+					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\">\n", index] dataUsingEncoding:NSUTF8StringEncoding]];
+					[fileHandle writeData:[[NSString stringWithFormat:@"\t\t<SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
+			//		[fileHandle writeData:[[imageSource XMLRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
+					[fileHandle writeData:[@"\t\t</SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					[fileHandle writeData:[@"\t</IMAGE_SOURCE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				}
+				[fileHandle writeData:[@"</IMAGE_SOURCES>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
+
+					// Write out the tiles setup
+					// TODO: needs rework once tile setup is freed from framework
+//				NSString	*className = NSStringFromClass([tilesSetupController class]);
+				[fileHandle writeData:[@"<TILES_SETUP>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+//				[fileHandle writeData:[[NSString stringWithFormat:@"\t\t<SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
+//				[fileHandle writeData:[[tilesSetupController XMLRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
+//				[fileHandle writeData:[@"\t</SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[[NSString stringWithFormat:@"\t\t<NEIGHBORHOOD SIZE=\"%d\">\n", neighborhoodSize] dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[@"</TILES_SETUP>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				
+					// Write out the cached images
+				[fileHandle writeData:[[imageCache xmlDataWithImageSources:imageSources] dataUsingEncoding:NSUTF8StringEncoding]];
+		//		if (![cachedImagesPath hasPrefix:fileName])
+		//		{
+		//				// This is the first time this mosaic has been saved so move 
+		//				// the image cache directory from /tmp to the new location.
+		//			NSString	*savedCachedImagesPath = [fileName stringByAppendingPathComponent:@"Cached Images"];
+		//			[fileManager movePath:cachedImagesPath toPath:savedCachedImagesPath handler:nil];
+		//			[cachedImagesPath autorelease];
+		//			cachedImagesPath = [savedCachedImagesPath retain];
+		//		}
+				
+					// Write out the tiles
+				[fileHandle writeData:[@"<TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+				Tile			*tile = nil;
+				while (tile = [tileEnumerator nextObject])
+				{
+					NSAutoreleasePool	*tilePool = [[NSAutoreleasePool alloc] init];
+					
+					[fileHandle writeData:[@"\t<TILE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					
+						// First write out the tile's outline
+					[fileHandle writeData:[@"\t\t<OUTLINE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					int index;
+					for (index = 0; index < [[tile outline] elementCount]; index++)
+					{
+						NSPoint points[3];
+						switch ([[tile outline] elementAtIndex:index associatedPoints:points])
+						{
+							case NSMoveToBezierPathElement:
+								[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<MOVE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
+																	points[0].x, points[0].y] dataUsingEncoding:NSUTF8StringEncoding]];
+								break;
+							case NSLineToBezierPathElement:
+								[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<LINE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
+																	points[0].x, points[0].y] dataUsingEncoding:NSUTF8StringEncoding]];
+								break;
+							case NSCurveToBezierPathElement:
+								[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<CURVE_TO X=\"%0.6f\" Y=\"%0.6f\" C1X=\"%0.6f\" C1Y=\"%0.6f\" C2X=\"%0.6f\" C2Y=\"%0.6f\">\n", 
+																	points[2].x, points[2].y, points[0].x, points[0].y, points[1].x, points[1].y] 
+															dataUsingEncoding:NSUTF8StringEncoding]];
+								break;
+							case NSClosePathBezierPathElement:
+								index = [[tile outline] elementCount];	// done, break out of the loop
+								break;
+							default:
+								;
+						}
+					}
+					[fileHandle writeData:[@"\t\t</OUTLINE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					
+						// Now write out the tile's matches.
+					[fileHandle writeData:[@"\t\t<MATCHES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					NSEnumerator	*matchEnumerator = [[tile matches] objectEnumerator];
+					ImageMatch		*match = nil;
+					while (match = [matchEnumerator nextObject])
+						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<MATCH SOURCE_ID=\"%d\" IMAGE_ID=\"%@\" VALUE=\"%0.6f\"%@>\n", 
+															[imageSources indexOfObjectIdenticalTo:[match imageSource]],
+															[match imageIdentifier], [match matchValue],
+															(match == [tile userChosenImageMatch] ? @"USER_CHOSEN" : @"")] 
+													dataUsingEncoding:NSUTF8StringEncoding]];
+					[fileHandle writeData:[@"\t\t</MATCHES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					[fileHandle writeData:[@"\t</TILE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					
+					[tilePool release];
+				}
+				[fileHandle writeData:[@"</TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				
+				[fileHandle closeFile];
+				
+				saveSucceeded = YES;
+			}
 		}
-		[fileHandle writeData:[@"</TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-		
-		[fileHandle closeFile];
-	}
+	NS_HANDLER
+		NSLog(@"Save failed %@", localException);
+	NS_ENDHANDLER
 	
-	if (wasPaused)
+		// Dismiss the "Saving..." sheet.
+	[[[self windowControllers] objectAtIndex:0] closeProgressPanel];
+	
+	if (wasPaused)	// TBD: and not quitting?
 		[self resume];
+	
+	if (didSaveDelegate && [didSaveDelegate respondsToSelector:didSaveSelector])
+	{
+			// Now that the save has completed (successfully or not) let the delegate know.
+			// The delegate's selector has the signature:
+			// - (void)document:(NSDocument *)doc didSave:(BOOL)didSave contextInfo:(void *)contextInfo
+		NSMethodSignature	*signature = [[didSaveDelegate class] instanceMethodSignatureForSelector:didSaveSelector];
+		NSInvocation		*saveCallback = [NSInvocation invocationWithMethodSignature:signature];
+		
+		[saveCallback setTarget:didSaveDelegate];
+		[saveCallback setSelector:didSaveSelector];
+		[saveCallback setArgument:&self atIndex:0];
+		[saveCallback setArgument:&saveSucceeded atIndex:1];
+		[saveCallback setArgument:&contextInfo atIndex:2];
+		[saveCallback invoke];
+	}
 	
 	[pool release];
 }
 
 
+#pragma mark -
+#pragma mark Loading
+
+
+/*
+- (void)load
+{
+	// First, set up the parser callbacks.
+	CFXMLParserCallBacks callbacks = {0, createStructure, addChild, endStructure, resolveEntity, handleError};
+
+	// Create the parser with the option to skip whitespace.
+	parser = CFXMLParserCreate(kCFAllocatorDefault, xmlData, urlOut, kCFXMLParserSkipWhitespace, kCFXMLNodeCurrentVersion, &callbacks);
+
+	// Invoke the parser.
+	if (!CFXMLParserParse(parser))
+		printf("parse failed\n");
+}
+
+void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
+{
+    CFStringRef myTypeStr;
+    CFStringRef myDataStr;
+    CFXMLDocumentInfo *docInfoPtr;
+
+		// Use the dataTypeID to determine what to print.
+    switch (CFXMLNodeGetTypeCode(node))
+	{
+        case kCFXMLNodeTypeDocument:
+            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeDocument\n");
+            docInfoPtr = CFXMLNodeGetInfoPtr(node);
+            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("Document URL: %@\n"), CFURLGetString(docInfoPtr->sourceURL));
+            break;
+
+        case kCFXMLNodeTypeElement:
+            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeElement\n");
+            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("Element: %@\n"), CFXMLNodeGetString(node));
+            break;
+
+        case kCFXMLNodeTypeProcessingInstruction:
+            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeProcessingInstruction\n");
+            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("PI: %@\n"), CFXMLNodeGetString(node));
+            break;
+
+        case kCFXMLNodeTypeComment:
+            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeComment\n");
+            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("Comment: %@\n"), CFXMLNodeGetString(node));
+            break;
+
+        case kCFXMLNodeTypeText:
+            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeText\n");
+            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("Text:%@\n"), CFXMLNodeGetString(node));
+            break;
+
+        case kCFXMLNodeTypeCDATASection:
+            myTypeStr = CFSTR("Data Type ID: kCFXMLDataTypeCDATASection\n");
+            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("CDATA: %@\n"), CFXMLNodeGetString(node));
+            break;
+
+        case kCFXMLNodeTypeEntityReference:
+            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeEntityReference\n");
+            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("Entity reference: %@\n"), CFXMLNodeGetString(node));
+            break;
+
+        case kCFXMLNodeTypeDocumentType:
+            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeDocumentType\n");
+            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("DTD: %@\n"), CFXMLNodeGetString(node));
+            break;
+
+        case kCFXMLNodeTypeWhitespace:
+            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeWhitespace\n");
+            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("Whitespace: %@\n"), CFXMLNodeGetString(node));
+            break;
+
+        default:
+            myTypeStr = CFSTR("Data Type ID: UNKNOWN\n");
+            myDataStr = CFSTR("Unknown type.\n");
+        }
+
+    // Print the contents.
+    printf("---Create Structure Called--- \n");
+    CFShow(myTypeStr);
+    CFShow(myDataStr);
+
+    // Return the data string for use by the addChild and 
+    // endStructure callbacks.
+    return myDataStr;
+}
+
+
+void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
+{
+    printf("---Add Child Called--- \n");
+    printf("Parent being added to: "); CFShow((CFStringRef)parent);
+    printf("Child being added: "); CFShow((CFStringRef)child);
+}
+
+
+void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
+{
+    // Leave evidence that we were called.
+    printf("---End Structure Called for \n"); CFShow((CFStringRef)xmlType);
+
+    // Now that the structure and all of its children have been parsed, 
+    // we can release the string.
+    CFRelease(xmlType);
+}
+*/
 
 #pragma mark -
 #pragma mark Tile management
@@ -1004,8 +1134,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
     if (!paused)
 		[self pause];
 	
-    while (createTilesThreadAlive || enumerationThreadCount > 0 || calculateImageMatchesThreadAlive || 
-		   calculateDisplayedImagesThreadAlive)
+    while ([self isCreatingTiles]  || [self isCalculatingImageMatches] || [self isCalculatingDisplayedImages])
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
     
     [super canCloseDocumentWithDelegate:delegate shouldCloseSelector:shouldCloseSelector 
