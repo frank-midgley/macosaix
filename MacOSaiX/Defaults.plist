@@ -14,6 +14,12 @@
 		<integer>40</integer>
 		<key>Tiles Down</key>
 		<integer>40</integer>
+		<key>Restrict Tile Size</key>
+		<false/>
+		<key>Restrict Tile X Size</key>
+		<string>6</string>
+		<key>Restrict Tile Y Size</key>
+		<string>4</string>
 	</dict>
 </dict>
 </plist>
