@@ -100,13 +100,14 @@
 	if (newImageRep)
 	{
 			// Draw the tile's new image in the mosaic
+		NSSize			newImageRepSize = [newImageRep size];
 		NSRect			drawRect;
 		
 			// scale the image to the tile's size, but preserve it's aspect ratio
-		if ([clipPath bounds].size.width / [newImageRep size].width <
-			[clipPath bounds].size.height / [newImageRep size].height)
+		if ([clipPath bounds].size.width / newImageRepSize.width <
+			[clipPath bounds].size.height / newImageRepSize.height)
 		{
-			drawRect.size = NSMakeSize([clipPath bounds].size.height * [newImageRep size].width / [newImageRep size].height,
+			drawRect.size = NSMakeSize([clipPath bounds].size.height * newImageRepSize.width / newImageRepSize.height,
 									   [clipPath bounds].size.height);
 			drawRect.origin = NSMakePoint([clipPath bounds].origin.x - (drawRect.size.width - [clipPath bounds].size.width) / 2.0,
 										  [clipPath bounds].origin.y);
@@ -114,7 +115,7 @@
 		else
 		{
 			drawRect.size = NSMakeSize([clipPath bounds].size.width,
-									   [clipPath bounds].size.width * [newImageRep size].height / [newImageRep size].width);
+									   [clipPath bounds].size.width * newImageRepSize.height / newImageRepSize.width);
 			drawRect.origin = NSMakePoint([clipPath bounds].origin.x,
 										  [clipPath bounds].origin.y - (drawRect.size.height - [clipPath bounds].size.height) /2.0);
 		}		
