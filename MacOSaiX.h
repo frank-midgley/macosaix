@@ -16,5 +16,6 @@
 
 - (BOOL)applicationShouldOpenUntitledFile:(NSApplication *)sender;
 - (void)newMacOSaiXDocument:(id)sender;
+- (void)openPreferences:(id)sender;
 
 @end

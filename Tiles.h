@@ -9,36 +9,44 @@
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
 #import "TileMatch.h"
+#import "TileImage.h"
 
 #define TILE_BITMAP_SIZE 16.0
-#define TILE_BITMAP_DISPLAY_SIZE 80.0
-#define MAX_MATCHES 128
 
-@interface Tile : NSObject
+@interface Tile : NSObject <NSCoding>
 {
     NSBezierPath	*_outline;		// The shape of this tile
     NSBitmapImageRep	*_bitmapRep;		// The portion of the original image that is in this tile
     NSMutableArray	*_matches;		// Array of TileMatches
+    NSLock		*_tileMatchesLock;	// thread safety
     TileMatch		*_displayMatch, *_userMatch;
     float		_bestMatchValue, _displayMatchValue;
+    int			_maxMatches;
 }
 
-- (id)init;
+- (void)setTileMatchesLock:(NSLock *)lock;
+- (void)setMaxMatches:(int)maxMatches;
+
 - (void)setOutline:(NSBezierPath *)outline;
 - (NSBezierPath *)outline;
+
 - (void)setBitmapRep:(NSBitmapImageRep *)data;
 - (NSBitmapImageRep *)bitmapRep;
-- (float)matchAgainst:(NSBitmapImageRep *)matchRep fromURL:(NSURL *)imageURL
-	   displayRep:(NSBitmapImageRep *)displayRep maxMatches:(int)maxMatches;
+
+- (float)matchAgainst:(NSBitmapImageRep *)matchRep tileImage:(TileImage *)tileImage
+	forDocument:(NSDocument *)document;
+
 - (TileMatch *)bestMatch;
 - (float)bestMatchValue;
+
 - (void)setDisplayMatch:(TileMatch *)displayMatch;
 - (TileMatch *)displayMatch;
+- (float)displayMatchValue;
+
 - (void)setUserMatch:(TileMatch *)userMatch;
 - (TileMatch *)userMatch;
-- (float)displayMatchValue;
+
 - (NSMutableArray *)matches;
 - (NSComparisonResult)compareBestMatchValue:(Tile *)otherTile;
-- (void)dealloc;
 
 @end

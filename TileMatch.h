@@ -8,20 +8,19 @@
 
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
+#import "TileImage.h"
 
 #define WORST_CASE_PIXEL_MATCH 520200.0
 
-@interface TileMatch : NSObject {
-    NSURL*		_imageURL;	// where the image is located
-    NSBitmapImageRep*	_bitmapRep;	// low res version of the image
-    double		_matchValue;	// how well this image matched the tile
+@interface TileMatch : NSObject <NSCoding> {
+    TileImage	*_tileImage;
+    float	_matchValue;	// how well this image matched the tile
 }
 
-- (void)setImageURL:(NSURL *)imageURL;
-- (NSURL *)imageURL;
-- (void)setBitmapRep:(NSBitmapImageRep *)bitmapRep;
-- (NSBitmapImageRep *)bitmapRep;
-- (void)setMatchValue:(double)matchValue;
-- (double)matchValue;
+- (id)initWithTileImage:(TileImage *)tileImage matchValue:(float)matchValue;
+- (void)setTileImage:(TileImage *)tileImage;
+- (TileImage *)tileImage;
+- (void)setMatchValue:(float)matchValue;
+- (float)matchValue;
 
 @end

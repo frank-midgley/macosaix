@@ -8,18 +8,22 @@
 
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
+#import "ImageSource.h"
 
-@interface TileImage : NSObject {
-    NSURL		*_imageURL;
-    int			_displayUseCount;
-    int			_possibleUseCount;
-    NSBitmapImageRep	*_imageRep;
+@interface TileImage : NSObject <NSCoding> {
+    ImageSource	*_imageSource;
+    id		_imageIdentifier;
+    NSImage	*_image;
 }
 
-- (id)initWithImageURL:(NSURL *)imageURL bitmapRep:(NSBitmapImageRep *)imageRep;
-- (void)imageInUse;
-- (void)imageNotInUse;
-- (void)imageMightBeUsed;
-- (void)imageWontBeUsed;
++ (void)initialize;
+- (id)initWithIdentifier:(id)identifier fromSource:(ImageSource *)imageSource;
+
+- (ImageSource *)imageSource;
+- (id)imageIdentifier;
+
+- (NSImage *)image;
+
+- (void)unloadImage;
 
 @end

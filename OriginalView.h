@@ -11,11 +11,13 @@
 
 @interface OriginalView : NSImageView
 {
-    NSRect	_focusRect;	// the portion of the original image displayed in the mosaic view
-    BOOL	_displayTileOutlines;
+    NSRect		_focusRect;	// the portion of the original image displayed in the mosaic view
+    NSBezierPath	*_tileOutlines;
+    BOOL		_displayTileOutlines;
 }
 
 - (id)init;
+- (void)setTileOutlines:(NSBezierPath *)tileOutlines;
 - (void)setDisplayTileOutlines:(BOOL)displayTileOutlines;
 - (void)setFocusRect:(NSRect)focusRect;
 - (void)drawRect:(NSRect)theRect;
