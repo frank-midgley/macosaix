@@ -4,6 +4,8 @@
 <dict>
 	<key>Autosave Frequency</key>
 	<integer>15</integer>
+	<key>Perform Update Check at Launch</key>
+	<true/>
 	<key>Image Use Count</key>
 	<integer>1</integer>
 	<key>Last Chosen Tile Shapes Class</key>
