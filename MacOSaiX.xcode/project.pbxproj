@@ -305,12 +305,12 @@
 		};
 		9284897106611CE5003B3514 = {
 			buildPhases = (
-				9284897606611CE5003B3514,
-				9284897B06611CE5003B3514,
 				9284898106611CE5003B3514,
 				9284898A06611CE5003B3514,
 				9284899406611CE5003B3514,
 				9284899E06611CE5003B3514,
+				9284897606611CE5003B3514,
+				9284897B06611CE5003B3514,
 			);
 			buildRules = (
 			);
@@ -347,11 +347,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				92848A1B06611CE6003B3514,
-				928F724B0661214000873AE2,
-				928F7261066121A700873AE2,
-				928F7262066121A700873AE2,
-				928F7263066121A700873AE2,
-				928F726E066121AE00873AE2,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -459,6 +454,11 @@
 				9284899106611CE5003B3514,
 				9284899206611CE5003B3514,
 				9284899306611CE5003B3514,
+				92951FE5068A7FD500366ACB,
+				92951FE8068A7FD900366ACB,
+				92951FEA068A7FDC00366ACB,
+				92951FF1068A7FE600366ACB,
+				92951FF9068A7FE900366ACB,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -593,19 +593,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				9284899F06611CE5003B3514,
-				928489A006611CE5003B3514,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		9284899F06611CE5003B3514 = {
 			fileRef = F514D53C0390266E01B25AF1;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		928489A006611CE5003B3514 = {
-			fileRef = 926CE4E903E7627700C7E70E;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -1459,12 +1452,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		928F724B0661214000873AE2 = {
-			fileRef = 928F724A0661214000873AE2;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		928F725B066121A700873AE2 = {
 			children = (
 				928F725C066121A700873AE2,
@@ -1519,24 +1506,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		928F7261066121A700873AE2 = {
-			fileRef = 928F725B066121A700873AE2;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		928F7262066121A700873AE2 = {
-			fileRef = 928F725D066121A700873AE2;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		928F7263066121A700873AE2 = {
-			fileRef = 928F725F066121A700873AE2;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		928F726C066121AE00873AE2 = {
 			children = (
 				928F726D066121AE00873AE2,
@@ -1555,12 +1524,6 @@
 			path = MacOSaiX/English.lproj/InfoPlist.strings;
 			refType = 4;
 			sourceTree = "<group>";
-		};
-		928F726E066121AE00873AE2 = {
-			fileRef = 928F726C066121AE00873AE2;
-			isa = PBXBuildFile;
-			settings = {
-			};
 		};
 		928F727B066121DE00873AE2 = {
 			fileEncoding = 30;
@@ -1847,6 +1810,36 @@
 			path = "Standard Plugins/RectangularTilesSetupController.m";
 			refType = 4;
 			sourceTree = "<group>";
+		};
+		92951FE5068A7FD500366ACB = {
+			fileRef = 928F725D066121A700873AE2;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		92951FE8068A7FD900366ACB = {
+			fileRef = 928F725B066121A700873AE2;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		92951FEA068A7FDC00366ACB = {
+			fileRef = 928F725F066121A700873AE2;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		92951FF1068A7FE600366ACB = {
+			fileRef = 928F724A0661214000873AE2;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		92951FF9068A7FE900366ACB = {
+			fileRef = 928F726C066121AE00873AE2;
+			isa = PBXBuildFile;
+			settings = {
+			};
 		};
 		92B45F70041A9DF1006867F5 = {
 			fileEncoding = 4;
