@@ -1,49 +1,49 @@
+#import <string.h>
 #import "Tiles.h"
-#import "TileMatch.h"
+//#import "TileMatch.h"
 
 @implementation Tile
 
 - (id)init
 {
     self = [super init];
+    
+    _tileMatchesLock = [[NSLock alloc] init];
+	NSAssert(_tileMatchesLock != nil, @"Could not alloc/init tile matches lock");
     _outline = nil;
     _bitmapRep = nil;
-    _matches = [[NSMutableArray arrayWithCapacity:0] retain];
-    _displayMatch = nil;
-    _displayMatchValue = WORST_CASE_PIXEL_MATCH;
-    _bestMatchValue = WORST_CASE_PIXEL_MATCH;
-    _userMatch = nil;
+    _matches = nil;
+    _matchCount = 0;
+    _bestUniqueMatchIndex = -1;
+    _userChosenImageMatch = nil;
+    
     return self;
 }
 
 
 - (id)initWithCoder:(NSCoder *)coder
 {
+    float	_userChosenMatchValue;
+    
     self = [self init];
     
     [self setOutline:[coder decodeObject]];
-    
     [self setBitmapRep:[coder decodeObject]];
-    
-    [_matches release];
-    _matches = [[coder decodeObject] retain];
-    
-    _displayMatch = [[coder decodeObject] retain];
-    if ([_displayMatch isKindOfClass:[NSNull class]])
+    _maxMatches = [[coder decodeObject] intValue];
+    _matches = malloc(_maxMatches * sizeof(TileMatch));
+	NSAssert(_matches != nil, @"Could not allocate matches array");
     {
-	[_displayMatch release];
-	_displayMatch = nil;
+		NSData	*matchesData = [coder decodeObject];
+		[matchesData getBytes:_matches];
     }
-    else
-	_displayMatchValue = [_displayMatch matchValue];
-	
-    if ([_matches count] > 0) _bestMatchValue = [[_matches objectAtIndex:0] matchValue];
+    _matchCount = [[coder decodeObject] intValue];
     
-    _userMatch = [[coder decodeObject] retain];
-    if ([_userMatch isKindOfClass:[NSNull class]])
+    _userChosenMatchValue = [[coder decodeObject] floatValue];
+    if (_userChosenMatchValue >= 0)
     {
-	[_userMatch release];
-	_userMatch = nil;
+		_userChosenImageMatch = (TileMatch *)malloc(sizeof(TileMatch));
+		_userChosenImageMatch->matchValue = _userChosenMatchValue;
+		_userChosenImageMatch->tileImageIndex = [[coder decodeObject] longValue];
     }
     
     return self;
@@ -54,20 +54,23 @@
 {
     [coder encodeObject:_outline];
     [coder encodeObject:_bitmapRep];
-    [coder encodeObject:_matches];
-    if (_displayMatch)
-	[coder encodeObject:_displayMatch];
+    [coder encodeObject:[NSNumber numberWithInt:_maxMatches]];
+    [coder encodeObject:[NSData dataWithBytes:_matches length:sizeof(TileMatch) * _maxMatches]];
+    [coder encodeObject:[NSNumber numberWithInt:_matchCount]];
+    if (_userChosenImageMatch == nil)
+		[coder encodeObject:[NSNumber numberWithInt:-1]];
     else
-	[coder encodeObject:[NSNull null]];
-    if (_userMatch)
-	[coder encodeObject:_userMatch];
-    else
-	[coder encodeObject:[NSNull null]];
+    {
+		[coder encodeObject:[NSNumber numberWithFloat:_userChosenImageMatch->matchValue]];
+		[coder encodeObject:[NSNumber numberWithLong:_userChosenImageMatch->tileImageIndex]];
+    }
 }
 
 
-- (void)setTileMatchesLock:(NSLock *)lock { _tileMatchesLock = lock; }
-- (void)setMaxMatches:(int)maxMatches { _maxMatches = maxMatches; }
+- (void)setMaxMatches:(int)maxMatches
+{
+    _maxMatches = maxMatches;
+}
 
 
 - (void)setOutline:(NSBezierPath *)outline
@@ -96,8 +99,14 @@
 }
 
 
+- (void)setDocument:(NSDocument *)document
+{
+    _document = document;
+}
+
+
 - (float)matchAgainst:(NSBitmapImageRep *)matchRep tileImage:(TileImage *)tileImage
-	  forDocument:(NSDocument *)document
+	  tileImageIndex:(int)tileImageIndex forDocument:(NSDocument *)document
 {
     int			bytesPerPixel1, bytesPerRow1, bytesPerPixel2, bytesPerRow2;
     int			pixelCount = 0, pixelsLeft;
@@ -105,13 +114,12 @@
     int			index = 0, left, right;
     unsigned char	*bitmap1, *bitmap2, *bitmap1_off, *bitmap2_off;
     float		prevWorst, matchValue = 0.0, redAverage;
-    TileMatch		*newMatch = nil;
     
     if (matchRep == nil) return WORST_CASE_PIXEL_MATCH;
     
-    // the size of _bitmapRep will be a maximum of TILE_BITMAP_SIZE pixels
-    // the size of the smaller dimension of imageRep will be TILE_BITMAP_SIZE pixels
-    // pixels in imageRep outside of _bitmapRep centered in imageRep will be ignored
+		// the size of _bitmapRep will be a maximum of TILE_BITMAP_SIZE pixels
+		// the size of the smaller dimension of imageRep will be TILE_BITMAP_SIZE pixels
+		// pixels in imageRep outside of _bitmapRep centered in imageRep will be ignored
     
     bitmap1 = [_bitmapRep bitmapData];	NSAssert(bitmap1 != nil, @"bitmap1 is nil");
     bitmap2 = [matchRep bitmapData];	NSAssert(bitmap2 != nil, @"bitmap2 is nil");
@@ -120,79 +128,77 @@
     bytesPerPixel2 = [matchRep hasAlpha] ? 4 : 3;
     bytesPerRow2 = [matchRep bytesPerRow];
     
-    prevWorst = ([_matches count] < _maxMatches) ? WORST_CASE_PIXEL_MATCH :
-					 	   [[_matches lastObject] matchValue];
+    prevWorst = (_matchCount < _maxMatches) ? WORST_CASE_PIXEL_MATCH : _matches[_matchCount - 1].matchValue;
 
-    // one of the offsets should be 0
+		// one of the offsets should be 0
     x_off = ([matchRep size].width - [_bitmapRep size].width) / 2.0;
     y_off = ([matchRep size].height - [_bitmapRep size].height) / 2.0;
 
-    // sum the difference of all the pixels in the two bitmaps using the Riemersma metric
-    // (courtesy of Dr. Dobbs 11/2001 pg. 58)
+		// sum the difference of all the pixels in the two bitmaps using the Riemersma metric
+		// (courtesy of Dr. Dobbs 11/2001 pg. 58)
     x_size = [_bitmapRep size].width; y_size = [_bitmapRep size].height;
     pixelsLeft = x_size * y_size;
     for (x = 0; x < x_size; x++)
     {
-	for (y = 0; y < y_size; y++)
-	{
-	    bitmap1_off = bitmap1 + x * bytesPerPixel1 + y * bytesPerRow1;
-	    r1 = *bitmap1_off++; g1 = *bitmap1_off++; b1 = *bitmap1_off++;
-	    bitmap2_off = bitmap2 + (x + x_off) * bytesPerPixel2 + (y + y_off) * bytesPerRow2;
-	    r2 = *bitmap2_off++; g2 = *bitmap2_off++; b2 = *bitmap2_off++;
-	    if (*bitmap1_off > 0)
-	    {
-		pixelCount++;
-		redAverage = (r1 + r2) / 2.0;
-		matchValue += (2+redAverage/256.0)*(r1-r2)*(r1-r2) + 4*(g1-g2)*(g1-g2) + 
-			      (2+(255.0-redAverage)/256.0)*(b1-b2)*(b1-b2);
-	    }
-	}
-	pixelsLeft -= y_size;
-	
-	// the lower the matchValue the better, so if it's already greater than the previous worst,
-	// it's no use going any further
-	if (matchValue / (float)(pixelCount + pixelsLeft) > prevWorst) return WORST_CASE_PIXEL_MATCH;
+		for (y = 0; y < y_size; y++)
+		{
+			bitmap1_off = bitmap1 + x * bytesPerPixel1 + y * bytesPerRow1;
+			r1 = *bitmap1_off++; g1 = *bitmap1_off++; b1 = *bitmap1_off++;
+			bitmap2_off = bitmap2 + (x + x_off) * bytesPerPixel2 + (y + y_off) * bytesPerRow2;
+			r2 = *bitmap2_off++; g2 = *bitmap2_off++; b2 = *bitmap2_off++;
+			if (bytesPerPixel1 == 3 || *bitmap1_off > 0)
+			{
+				pixelCount++;
+				redAverage = (r1 + r2) / 2.0;
+				matchValue += (2+redAverage/256.0)*(r1-r2)*(r1-r2) + 4*(g1-g2)*(g1-g2) + 
+						(2+(255.0-redAverage)/256.0)*(b1-b2)*(b1-b2);
+				if (bytesPerPixel1 == 4) bytesPerPixel1++;
+				if (bytesPerPixel2 == 4) bytesPerPixel2++;
+			}
+		}
+		pixelsLeft -= y_size;
+		
+		// the lower the matchValue the better, so if it's already greater than the previous worst
+		// then it's no use going any further
+		if (matchValue / (float)(pixelCount + pixelsLeft) > prevWorst) return WORST_CASE_PIXEL_MATCH;
     }
 
-    // now average it per pixel
+		// now average it per pixel
+    if (pixelCount == 0)
+		NSLog(@"");
     matchValue /= pixelCount;
     if (matchValue > prevWorst) return WORST_CASE_PIXEL_MATCH;
     
-    newMatch = [[TileMatch alloc] initWithTileImage:tileImage matchValue:matchValue];
-    if (newMatch == nil)
-    {
-	NSLog(@"Could not allocate new TileMatch");
-	return WORST_CASE_PIXEL_MATCH;
-    }
-    else
-	[newMatch autorelease];
-    
-    // Determine where in the list it belongs (the best match should always be at index 0)
-    left = 0; right = [_matches count]; index = 0;
+		// Determine where in the list it belongs (the best match should always be at index 0)
+    left = 0; right = _matchCount; index = 0;
     while (right > left)
     {
-	index = (int)((left + right) / 2);
-	if (matchValue > [[_matches objectAtIndex:index] matchValue])
-	    left = index + 1;
-	else
-	    right = index;
+		index = (int)((left + right) / 2);
+		if (matchValue > _matches[index].matchValue)
+			left = index + 1;
+		else
+			right = index;
     }
 
     [_tileMatchesLock lock];
-	// Add it to the list of matches
-	[_matches insertObject:newMatch atIndex:index];
-	    
-	// Only keep the best _maxMatches matches
-	if ([_matches count] == _maxMatches + 1)
-	{
-	    if (_displayMatch == [_matches lastObject]) [self setDisplayMatch:nil];
-	    [_matches removeLastObject];
-	}
+		if (_matches == nil)
+			_matches = (TileMatch *)malloc(sizeof(TileMatch) * _maxMatches);
+	
+		if (_matchCount == _maxMatches)
+			[_document tileImageIndexNotInUse:_matches[_matchCount - 1].tileImageIndex];
+			// Add it to the list of matches
+		if (_bestUniqueMatchIndex >= index && _bestUniqueMatchIndex < _matchCount-1)
+			_bestUniqueMatchIndex++;
+		bcopy(&_matches[index], &_matches[index + 1], sizeof(TileMatch) * (_maxMatches - index - 1));
+		_matches[index].matchValue = matchValue;
+		_matches[index].tileImageIndex = tileImageIndex;
+		
+		[_document tileImageIndexInUse:tileImageIndex];
+		
+		if (_matchCount < _maxMatches) _matchCount++;
     [_tileMatchesLock unlock];
     
-    _bestMatchValue = [[_matches objectAtIndex:0] matchValue];
-    
-    // mark the document as needing saving
+		// mark the document as needing saving
     [document updateChangeCount:NSChangeDone];
     
     return matchValue;
@@ -201,72 +207,111 @@
 
 - (TileMatch *)bestMatch
 {
-    return ([_matches count] == 0) ? nil : [_matches objectAtIndex:0];
+    return (_matchCount == 0) ? nil : &_matches[0];
 }
 
 
 - (float)bestMatchValue
 {
-    return _bestMatchValue;
+    return (_matchCount == 0) ? WORST_CASE_PIXEL_MATCH : _matches[0].matchValue;
 }
 
 
-- (void)setDisplayMatch:(TileMatch *)displayMatch
+- (TileMatch *)bestUniqueMatch
 {
-    _displayMatch = displayMatch;
-    _displayMatchValue = (_displayMatch == nil ? WORST_CASE_PIXEL_MATCH : [displayMatch matchValue]);
+    return (_bestUniqueMatchIndex == -1) ? nil : &_matches[_bestUniqueMatchIndex];
 }
 
 
-- (TileMatch *)displayMatch
+- (float)bestUniqueMatchValue
 {
-    return _displayMatch;
+    return (_bestUniqueMatchIndex == -1) ? WORST_CASE_PIXEL_MATCH : _matches[_bestUniqueMatchIndex].matchValue;
 }
 
 
-- (void)setUserMatch:(TileMatch *)userMatch
+- (void)setBestUniqueMatchIndex:(int)matchIndex
 {
-    _userMatch = userMatch;
+    _bestUniqueMatchIndex = matchIndex;
 }
 
 
-- (TileMatch *)userMatch
+- (void)setUserChosenImageIndex:(long)index
 {
-    return _userMatch;
+    if (_userChosenImageMatch != nil && _userChosenImageMatch->tileImageIndex == index) return;
+    
+    if (index == -1)
+    {
+		if (_userChosenImageMatch != nil)
+		{
+			[_document tileImageIndexNotInUse:_userChosenImageMatch->tileImageIndex];
+			free(_userChosenImageMatch);
+			_userChosenImageMatch = nil;
+		}
+    }
+    else
+    {
+		if (_userChosenImageMatch == nil)
+			_userChosenImageMatch = (TileMatch *)malloc(sizeof(TileMatch));
+		else
+			[_document tileImageIndexNotInUse:_userChosenImageMatch->tileImageIndex];
+		_userChosenImageMatch->matchValue = 0;
+		_userChosenImageMatch->tileImageIndex = index;
+		[_document tileImageIndexInUse:_userChosenImageMatch->tileImageIndex];
+    }
 }
 
 
-- (float)displayMatchValue
+- (long)userChosenImageIndex
 {
-    return _displayMatchValue;
+    return (_userChosenImageMatch == nil) ? -1 : _userChosenImageMatch->tileImageIndex;
 }
 
 
-- (NSMutableArray *)matches
+- (TileMatch *)matches
 {
     return _matches;
 }
 
 
+- (int)matchCount
+{
+    return _matchCount;
+}
+
+
+- (void)lockMatches
+{
+    [_tileMatchesLock lock];
+}
+
+
+- (void)unlockMatches
+{
+    [_tileMatchesLock unlock];
+}
+
+
 - (NSComparisonResult)compareBestMatchValue:(Tile *)otherTile
 {
-    float	otherBest = [otherTile bestMatchValue];
+    float	bestMatchValue = [self bestMatchValue], otherBestMatchValue = [otherTile bestMatchValue];
     
-    if (_userMatch != nil) return NSOrderedAscending;
+    if (_userChosenImageMatch != nil) return NSOrderedAscending;
     
-    if (_bestMatchValue < otherBest)
-	return NSOrderedAscending;
-    else if (_bestMatchValue > otherBest)
-	return NSOrderedDescending;
+    if (bestMatchValue < otherBestMatchValue)
+		return NSOrderedAscending;
+    else if (bestMatchValue > otherBestMatchValue)
+		return NSOrderedDescending;
     return NSOrderedSame;
 }
 
 
 - (void)dealloc
 {
-    if (_outline != nil) [_outline release];
-    if (_bitmapRep != nil) [_bitmapRep release];
-    if (_matches != nil) [_matches release];
+    if (_userChosenImageMatch != nil) free(_userChosenImageMatch);
+    [_tileMatchesLock release];
+    [_outline release];
+    [_bitmapRep release];
+    free(_matches);
     [super dealloc];
 }
 

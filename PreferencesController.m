@@ -58,8 +58,8 @@
 {
     if (returnCode != NSOKButton) return;
 
-    [_imageSources addObject:[[DirectoryImageSource alloc]
-			      initWithObject:[[sheet filenames] objectAtIndex:0]]];
+    [_imageSources addObject:[[[DirectoryImageSource alloc]
+			      initWithObject:[[sheet filenames] objectAtIndex:0]] autorelease]];
     [imageSourcesView reloadData];
 }
 
@@ -83,7 +83,7 @@
 
 - (void)okAddGoogleImageSource:(id)sender;
 {
-    [_imageSources addObject:[[GoogleImageSource alloc] initWithObject:[googleTermField stringValue]]];
+    [_imageSources addObject:[[[GoogleImageSource alloc] initWithObject:[googleTermField stringValue]] autorelease]];
     [NSApp endSheet:googleTermPanel];
     [googleTermPanel orderOut:nil];
     [imageSourcesView reloadData];
@@ -92,7 +92,7 @@
 
 - (void)addGlyphImageSource:(id)sender
 {
-    [_imageSources addObject:[[GlyphImageSource alloc] initWithObject:nil]];
+    [_imageSources addObject:[[[GlyphImageSource alloc] initWithObject:nil] autorelease]];
     [imageSourcesView reloadData];
 }
 
@@ -119,7 +119,7 @@
 
 - (int)numberOfRowsInTableView:(NSTableView *)aTableView
 {
-    return [_imageSources count];
+    return (_imageSources == nil) ? 0 : [_imageSources count] - 1;
 }
 
 
@@ -127,9 +127,9 @@
 	    row:(int)rowIndex
 {
     if ([[aTableColumn identifier] isEqualToString:@"type"])
-	return [[_imageSources objectAtIndex:rowIndex] typeImage];
+	return [[_imageSources objectAtIndex:rowIndex + 1] typeImage];
     else
-	return [[_imageSources objectAtIndex:rowIndex] descriptor];
+	return [[_imageSources objectAtIndex:rowIndex + 1] descriptor];
 }
 
 
@@ -139,7 +139,7 @@
     
     for (i = [_imageSources count] - 1; i >= 0; i--)
 	if ([imageSourcesView isRowSelected:i])
-	    [_imageSources removeObjectAtIndex:i];
+	    [_imageSources removeObjectAtIndex:i + 1];
     [imageSourcesView reloadData];
 }
 

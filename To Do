@@ -1,26 +1,46 @@
-Must haves:
-    More intelligent image caching
-    Get save/open project working
-    iPhoto integration
-    Problem when 'undoing' user selected match
-    Make window stay on screen when zooming
-    Home page
-    Document icon
-    Running multiple mosaics at the same time
-    Preferences window (default image sources, etc.)
-    Handle spaces, etc. in Google terms
-    Shutdown helper threads when window closes
-    Add "Other Image..." button to editor
-    Enable scroll bar for new dialog image sources
+This version:
+    Test on G3 & Jaguar
+?   Memory mgmt. issues
+
+
+Future version(s):
+    Show tile extraction count in status bar
+    Calculate match of user chosen images
+    Statistics drawer/window
+    Width of status text problem
+    Better versioning in documents
+    Should pause also pause uniqueness thread?
+    Does save reset autosave clock?
+    Indicate best unique match in editor table
+    Set view mode (and icon in toolbar) on open
+    Disable 'center on selected tile' menu choice when not in editor
+    Trim solid borders for alternate image
+    More export image panel options (resolution, SVG format, ...)
     Add code to support crop limit
-    Proper quitting
-    Horizontal scaling of tile outline in editor with hexes is off
+    Autosave on/off switch
+    Plug-in architecture for image sources and tile outlines
+    Mosaic quality should take into account tile active pixel count
     Toggle outline switch in editor?
-
-
-Bonuses:
-    Way of pausing spawned thread
+    iPhoto integration
     "Must include" images
-    Printing
+    Printing (greeting card format?)
     Grayscale option
     Velocity engine
+
+What are MemRegions in top?
+
+Glyph crashes:
+    CGS TrebuchetMS-Bold 12.00 pt.	Glyph 251
+    22 916
+    Beijing (58)	8340
+    
+
+Making a disk image:
+    create with hdiutil
+    make file system
+    mount with hdid
+    copy in content
+    compress with hdiutil
+
+Riemersma metric:
+    http://ourworld.compuserve.com/homepages/compuphase/cmetric.htm
