@@ -23,13 +23,13 @@
 	NSMutableDictionary			*imageCache;
     NSMutableArray				*orderedCache,
                                 *orderedCacheID;
-	long						cachedImageCount;
+	unsigned long				cachedImageCount;
 }
 
-- (void)cacheImage:(NSImage *)image 
-	withIdentifier:(NSString *)imageIdentifier 
-		fromSource:(id<MacOSaiXImageSource>)imageSource;
+- (NSString *)cacheImage:(NSImage *)image 
+		  withIdentifier:(NSString *)imageIdentifier 
+			  fromSource:(id<MacOSaiXImageSource>)imageSource;
 
-- (NSImage *)cachedImageForIdentifier:(NSString *)imageIdentifier fromSource:(id<MacOSaiXImageSource>)imageSource;
+- (NSImage *)imageForIdentifier:(NSString *)imageIdentifier fromSource:(id<MacOSaiXImageSource>)imageSource;
 
 @end

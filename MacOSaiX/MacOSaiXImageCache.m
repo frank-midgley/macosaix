@@ -12,7 +12,7 @@
 
 
     // The number of cached images that will be held in memory at any one time.
-#define IMAGE_CACHE_SIZE 100
+#define IMAGE_CACHE_MAX_COUNT 100
 
 
 @implementation MacOSaiXImageCache
@@ -70,46 +70,43 @@
 }
 
 
-- (void)cacheImage:(NSImage *)image 
-	withIdentifier:(NSString *)imageIdentifier 
-		fromSource:(id<MacOSaiXImageSource>)imageSource
+- (NSString *)cacheImage:(NSImage *)image 
+		  withIdentifier:(NSString *)imageIdentifier 
+			  fromSource:(id<MacOSaiXImageSource>)imageSource
 {
 	[cacheLock lock];
-		long		imageID = cachedImageCount++;
+		unsigned long	uniqueID = cachedImageCount++;
 		
-			// Permanently store the image.  Squeeze it down to fit within one allocation block on disk (4KB).
-		NSBitmapImageRep	*bitmapRep = [NSBitmapImageRep imageRepWithData:[image TIFFRepresentation]];
-		NSData				*imageData = nil;
-		float				compressionFactor = 1.0;
-		do
+		if ([imageIdentifier length] == 0)
 		{
-			imageData = [bitmapRep representationUsingType:NSJPEGFileType 
-												properties:[NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:compressionFactor]
-																					   forKey:NSImageCompressionFactor]];
-			compressionFactor -= 0.05;
-		} while ([imageData length] > 4096);
-		[imageData writeToFile:[self filePathForCachedImageID:imageID] atomically:NO];
+				// This image source cannot refetch images.  Create a unique identifier 
+				// within the context of our document and store the image to disk.
+			imageIdentifier = [NSString stringWithFormat:@"%u", uniqueID];
+			[[image TIFFRepresentation] writeToFile:[self filePathForCachedImageID:uniqueID] atomically:NO];
+		}
 		
 		NSMutableDictionary	*imageSourceCache = [self cacheDictionaryForImageSource:imageSource];
 		
 			// Associate the ID with the image source/image identifier combo
-		[imageSourceCache setObject:[NSNumber numberWithLong:imageID] forKey:imageIdentifier];
+		[imageSourceCache setObject:[NSNumber numberWithLong:uniqueID] forKey:imageIdentifier];
 		
 			// Cache the image for efficient retrieval.
-		[imageCache setObject:image forKey:[NSNumber numberWithLong:imageID]];
+		[imageCache setObject:image forKey:[NSNumber numberWithLong:uniqueID]];
 		[orderedCache insertObject:image atIndex:0];
-		[orderedCacheID insertObject:[NSNumber numberWithLong:imageID] atIndex:0];
-		if ([orderedCache count] > IMAGE_CACHE_SIZE)
+		[orderedCacheID insertObject:[NSNumber numberWithLong:uniqueID] atIndex:0];
+		if ([orderedCache count] > IMAGE_CACHE_MAX_COUNT)
 		{
 			[imageCache removeObjectForKey:[orderedCacheID lastObject]];
 			[orderedCache removeLastObject];
 			[orderedCacheID removeLastObject];
 		}
 	[cacheLock unlock];
+	
+	return imageIdentifier;
 }
 
 
-- (NSImage *)cachedImageForIdentifier:(NSString *)imageIdentifier fromSource:(id<MacOSaiXImageSource>)imageSource
+- (NSImage *)imageForIdentifier:(NSString *)imageIdentifier fromSource:(id<MacOSaiXImageSource>)imageSource
 {
 	NSImage		*image = nil;
 	
@@ -117,9 +114,12 @@
 		long		imageID = [[[self cacheDictionaryForImageSource:imageSource] objectForKey:imageIdentifier] longValue];
 		NSNumber	*imageKey = [NSNumber numberWithLong:imageID];
 		
+			// First see if we have this image in memory already.
 		image = [imageCache objectForKey:imageKey];
 		if (image)
         {
+				// Remove the image from its current position in the memory cache.
+				// It will be added at the head of the queue below.
 			int index = [orderedCache indexOfObjectIdenticalTo:image];
             if (index != NSNotFound)
             {
@@ -129,23 +129,35 @@
         }
 		else
 		{
+				// See if we have the image in our disk cache.
 			image = [[[NSImage alloc] initWithContentsOfFile:[self filePathForCachedImageID:imageID]] autorelease];
-			[image setCacheMode:NSImageCacheNever];
-			[image setScalesWhenResized:NO];
-            if (!image)
-                NSLog(@"Huh?");
-			else
+            if (!image) // TODO: && [imageSource canRefetchImages] ?
+			{
+					// We don't have this image cached so re-request the image from the source.
+				NSLog(@"Re-requesting %@ from source", imageIdentifier);
+				image = [imageSource imageForIdentifier:imageIdentifier];
+			}
+			
+            if (image)
+			{
+					// Disable caching to avoid deadlocks.  Hopefully this won't be necessary in a future OS...
+				[image setCacheMode:NSImageCacheNever];
+				
+					// Add the image to the in-memory cache.
 				[imageCache setObject:image forKey:imageKey];
+			}
 		}
 		
 		if (image)
 		{
-				// Move this image to the front of the in-memory cache so it persists longer.
+				// Add this image at the front of the in-memory cache.
 			[orderedCache insertObject:image atIndex:0];
 			[orderedCacheID insertObject:[NSNumber numberWithLong:imageID] atIndex:0];
-			if ([orderedCache count] > IMAGE_CACHE_SIZE)
+			
+				// Prune the in-memory cache if it has gotten too large.
+			if ([orderedCache count] > IMAGE_CACHE_MAX_COUNT)
 			{
-				[imageCache removeObjectForKey:[NSNumber numberWithLong:imageID]];
+				[imageCache removeObjectForKey:[orderedCacheID lastObject]];
 				[orderedCache removeLastObject];
 				[orderedCacheID removeLastObject];
 			}
@@ -184,8 +196,12 @@
 
 - (void)dealloc
 {
+	[cachedImagesPath release];
+	[cacheLock release];
+	[imageCache release];
+	[orderedCache release];
+	[orderedCacheID release];
 	[cachedImagesDictionary release];
-	[[NSFileManager defaultManager] removeFileAtPath:cachedImagesPath handler:nil];	// TODO: only if still in /tmp...
     
     [super dealloc];
 }
