@@ -51,6 +51,21 @@
 //012
 //013
 //014
+		0127354207CD6EBB0053037A = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text.xml;
+			name = Defaults.plist;
+			path = MacOSaiX/Defaults.plist;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		0127354307CD6EBB0053037A = {
+			fileRef = 0127354207CD6EBB0053037A;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		0128323A071B7297004ACF95 = {
 			fileRef = F514D53C0390266E01B25AF1;
 			isa = PBXBuildFile;
@@ -460,6 +475,7 @@
 				923384DB072180700010BE04,
 				92F00CE207C1B1D0004F6D06,
 				92F00CE307C1B1D0004F6D06,
+				0127354207CD6EBB0053037A,
 				928F724A0661214000873AE2,
 				928F726C066121AE00873AE2,
 				92BFFEC1079A2DD50052CC4C,
@@ -859,6 +875,7 @@
 				92BFFEC3079A2DD50052CC4C,
 				01AC3A3C07B0997C0025F915,
 				92F00D0807C1B52B004F6D06,
+				0127354307CD6EBB0053037A,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
