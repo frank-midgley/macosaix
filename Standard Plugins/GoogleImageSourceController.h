@@ -10,7 +10,8 @@
 #import <MacOSaiXPlugIns/ImageSourceController.h>
 #import "GoogleImageSource.h"
 
-@interface GoogleImageSourceController : ImageSourceController {
+@interface GoogleImageSourceController : ImageSourceController
+{
 }
 
 @end
