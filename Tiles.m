@@ -69,29 +69,42 @@
 
 - (void)matchAgainst:(NSBitmapImageRep *)imageRep fromFile:(NSString *)filePath
 {
-    int			x, y, r1, r2, g1, g2, b1, b2, index = 0;
-    unsigned char	*bitmap1, *bitmap2;
+    int			bytesPerPixel1, bytesPerRow1, bytesPerPixel2, bytesPerRow2;
+    int			x, y, x_off, y_off, r1, r2, g1, g2, b1, b2, index = 0;
+    unsigned char	*bitmap1, *bitmap2, *bitmap1_off, *bitmap2_off;
     float		prevWorst, matchValue = 0.0, redAverage;
     TileMatch*		newMatch;
     
     if (imageRep == nil) return;
     
+    // the size of _bitmapRep will be a maximum of TILE_BITMAP_SIZE pixels
+    // the size of the smaller dimension of imageRep will be TILE_BITMAP_SIZE pixels
+    // pixels in imageRep outside of _bitmapRep centered in imageRep will be ignored
+    
     bitmap1 = [_bitmapRep bitmapData];	NSAssert(bitmap1 != nil, @"bitmap1 is nil");
     bitmap2 = [imageRep bitmapData];	NSAssert(bitmap2 != nil, @"bitmap2 is nil");
+    bytesPerPixel1 = [_bitmapRep hasAlpha] ? 4 : 3;
+    bytesPerRow1 = [_bitmapRep bytesPerRow];
+    bytesPerPixel2 = [imageRep hasAlpha] ? 4 : 3;
+    bytesPerRow2 = [imageRep bytesPerRow];
     
-    prevWorst = ([_matches count] < MAX_MATCHES) ? 520200.0 : [[_matches lastObject] matchValue];
+    prevWorst = ([_matches count] < MAX_MATCHES) ? WORST_CASE_PIXEL_MATCH : [[_matches lastObject] matchValue];
     prevWorst *= [_bitmapRep size].width * [_bitmapRep size].height;
-    
+
+    // one of the offsets should be 0
+    x_off = ([imageRep size].width - [_bitmapRep size].width) / 2.0;
+    y_off = ([imageRep size].height - [_bitmapRep size].height) / 2.0;
+
     // sum the difference of all the pixels in the two bitmaps using the Riemersma metric (courtesy of Dr. Dobbs 11/2001 pg. 58)
     for (x = 0; x < [_bitmapRep size].width; x++)
 	for (y = 0; y < [_bitmapRep size].height; y++)
 	{
-	    r1 = *bitmap1++; g1 = *bitmap1++; b1 = *bitmap1++;
-	    r2 = *bitmap2++; g2 = *bitmap2++; b2 = *bitmap2++;
+	    bitmap1_off = bitmap1 + x * bytesPerPixel1 + y * bytesPerRow1;
+	    r1 = *bitmap1_off++; g1 = *bitmap1_off++; b1 = *bitmap1_off++;
+	    bitmap2_off = bitmap2 + (x + x_off) * bytesPerPixel2 + (y + y_off) * bytesPerRow2;
+	    r2 = *bitmap2_off++; g2 = *bitmap2_off++; b2 = *bitmap2_off++;
 	    redAverage = (r1 + r2) / 2.0;
 	    matchValue += (2+redAverage/256.0)*(r1-r2)*(r1-r2) + 4*(g1-g2)*(g1-g2) + (2+(255.0-redAverage)/256.0)*(b1-b2)*(b1-b2);
-	    if ([_bitmapRep hasAlpha]) bitmap1++;
-	    if ([imageRep hasAlpha]) bitmap2++;
 	    
 	    if (matchValue > prevWorst) return;	// the lower the matchValue the better, so if it's already
 						//  greater than the previous worst, it's no use going any further

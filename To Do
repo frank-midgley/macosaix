@@ -1,10 +1,12 @@
 "New Mosaic..." dialog
-Crop images instead of scaling
-Prohibit repeating images
+Crop images instead of scaling (rounding error?)
+Pro/inhibit repeating images
 Zoom in on individual tile
-Google interface
+Google Images interface
 Printing
-Reuse NSBitmapImageRep in matching code - re-use for same sized tiles
 "Must include" images
 Way of pausing spawned thread
 Restrict window resizing to preserver image's aspect ratio
+Mosiac image size != original image bounds
+Grayscale option
+Velocity engine

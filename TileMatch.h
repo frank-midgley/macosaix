@@ -25,3 +25,5 @@
 - (void)dealloc;
 
 @end
+
+#define WORST_CASE_PIXEL_MATCH 520200.0

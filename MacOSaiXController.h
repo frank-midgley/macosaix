@@ -22,6 +22,8 @@
 - (void)startMosaic:(id)sender;
 - (void)updateDisplay:(id)timer;
 - (void)enumerateAndMatchFiles:(id)foo;
+- (NSMutableArray *)createTileOutlinesForImage:(NSImage *)image;
+- (void)createTileCollectionWithOutlines:(NSMutableArray *)outlines fromImage:(NSImage *)image;
 - (void)selectTileAtPoint:(NSPoint)thePoint;
 - (void)saveMosaicImage:(id)sender;
 

@@ -29,3 +29,5 @@
 - (void)dealloc;
 
 @end
+
+#define TILE_BITMAP_SIZE 32

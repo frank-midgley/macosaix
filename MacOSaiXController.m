@@ -9,12 +9,14 @@
 {
 }
 
+
 -(void)awakeFromNib
 {
     pixPath = [[NSHomeDirectory() stringByAppendingString:@"/Pictures"] retain];
     mosaicLock = [[NSLock alloc] init];
     _updatedTilesLock = [[NSLock alloc] init];
 }
+
 
 // Called by the 'Go' button
 - (void)startMosaic:(id)sender
@@ -48,7 +50,12 @@
     _updatedTiles = [[NSMutableArray arrayWithCapacity:0] retain];
     [_updatedTiles addObject:_updatedTilesLock];
     
-    [NSThread detachNewThreadSelector:@selector(enumerateAndMatchFiles:) toTarget:self withObject:nil];
+    // create data structure for each tile including outlines, bitmaps, etc.
+    [self createTileCollectionWithOutlines:[self createTileOutlinesForImage:originalImage]
+	  fromImage:originalImage];
+
+    [NSApplication detachDrawingThread:@selector(enumerateAndMatchFiles:) toTarget:self withObject:nil];
+//    [NSThread detachNewThreadSelector:@selector(enumerateAndMatchFiles:) toTarget:self withObject:nil];
 		     
     updateWindowTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
 				 target:(id)self
@@ -60,9 +67,11 @@
 
 - (void)updateDisplay:(id)timer
 {
-    int		index;
-    float	overallMatch;
-    Tile*	tile;
+    int			index;
+    float		overallMatch;
+    Tile*		tile;
+    NSRect		drawRect;
+    NSBitmapImageRep*	matchRep;
     
     if (_selectedTile == nil)
 	[selectedTileFilePath setStringValue:@"none"];
@@ -87,154 +96,204 @@
     {
 	tile = [_updatedTiles objectAtIndex:1];
 	[NSGraphicsContext saveGraphicsState];
-	NSAssert([tile outline] != nil, @"Tile outline has been freed");
 	[[tile outline] addClip];
-	[[[tile bestMatch] bitmapRep] drawInRect:[[tile outline] bounds]];
+	matchRep = [[tile bestMatch] bitmapRep];
+	if ([matchRep size].width > [[tile bitmapRep] size].width)
+	{
+	    drawRect.size = NSMakeSize([[tile outline] bounds].size.height * [matchRep size].width / [matchRep size].height,
+				       [[tile outline] bounds].size.height);
+	    drawRect.origin = NSMakePoint([[tile outline] bounds].origin.x - 
+					    (drawRect.size.width - [[tile outline] bounds].size.width) / 2.0,
+					  [[tile outline] bounds].origin.y);
+	}
+	else
+	{
+	    drawRect.size = NSMakeSize([[tile outline] bounds].size.width,
+				       [[tile outline] bounds].size.width * [matchRep size].height / [matchRep size].width);
+	    drawRect.origin = NSMakePoint([[tile outline] bounds].origin.x,
+					  [[tile outline] bounds].origin.y - 
+					    (drawRect.size.height - [[tile outline] bounds].size.height) / 2.0);
+	}
+	[matchRep drawInRect:drawRect];
 	[NSGraphicsContext restoreGraphicsState];
 	[_updatedTiles removeObjectAtIndex:1];
     }
     [mosaicImage unlockFocus];
     [[_updatedTiles objectAtIndex:0] unlock];
 
-    [mosaicView setImage:nil];	// annoying hack to get the NSImageView to redisplay and updated NSImage
+    [mosaicView setImage:nil];	// annoying hack to get the NSImageView to redisplay an updated NSImage
     [mosaicView setImage:mosaicImage];
 }
 
 
 - (void)enumerateAndMatchFiles:(id)foo
 {
-    NSAutoreleasePool		*pool, *pool2;
+    NSAutoreleasePool		*pool = [[NSAutoreleasePool alloc] init];	// this is the first method called in the spawned thread
     NSString			*file, *filePath;
-    int				tilesWide, tilesHigh, x, y, index = 0;
-    NSSize			pixletSize;
+    int				index = 0;
     NSImage			*pixletImage;
-    NSRect			subRect;
-    NSPoint			thePoint;
-    NSAffineTransform		*translate;
-    NSBitmapImageRep		*pixletRep = nil;
-    NSBezierPath		*clipPath;
-    Tile			*tile;
+    //NSGraphicsContext		*myContext = [NSGraphicsContext graphicsContextWithWindow:window];
     
-    pool = [[NSAutoreleasePool alloc] init];	// this is the first method called in the spawned thread
-    if (pool == nil)
-    {
-	NSLog(@"Could not allocate autorelease pool");
-	return;
-    }
-    
-    translate = [NSAffineTransform transform];
+    NSAssert(pool != nil, @"Could not allocate autorelease pool");
 
+    //[NSGraphicsContext setCurrentContext:myContext];
+    
     // hack to start after a certain file
     //while (file = [enumerator nextObject]))
 	//if (file != nil && [file isEqualToString:@"ftp.sunet.se/tv.film/Star_Wars/swshuttle.gif"]) break;
-    
-    // Create tiles from the original image to match against
-    tilesWide = 40; tilesHigh = 40;
-//    tilesWide = 45; tilesHigh = 53;
-    _tiles = [[NSMutableArray arrayWithCapacity:0] retain];
-    pixletSize.width = [originalImage size].width / tilesWide;
-    pixletSize.height = [originalImage size].height / tilesHigh;
-    subRect.size = pixletSize;
-    pixletImage = [[NSImage alloc] initWithSize:NSMakeSize(0, 0)];
-    for (x = 0; x < tilesWide; x++)
-	for (y = 0; y < tilesHigh; y++)
-	{
-	    tile = [[Tile alloc] init];
-	    NSAssert(tile != nil, @"Could not allocate tile");
-	    
-	    // define the tile's outline, currently a rectangle
-	    // this could eventually be other shapes (rects, puzzle pieces, etc.)
-	    // and broken out into plug-in bundles to allow third party development
-	    subRect.origin.x = x * pixletSize.width;
-	    subRect.origin.y = y * pixletSize.height;
-	    [tile setOutline:[NSBezierPath bezierPathWithRect:subRect]];
-	    
-	    // grab the bitmap from the original image that lies within the tile's outline
-	    //pixletImage = [[NSImage alloc] initWithSize:[[tile outline] bounds].size];
-	    //NSAssert(pixletImage != nil, @"Could not allocate pixlet image");
-	    [pixletImage setSize:[[tile outline] bounds].size];
-	    [pixletImage lockFocus];
-	    [NSGraphicsContext saveGraphicsState];	// so we undo the clipping path we add
-	    thePoint = [[tile outline] bounds].origin;
-	    [translate translateXBy:thePoint.x * -1 yBy:thePoint.y * -1];
-	    clipPath = [translate transformBezierPath:[tile outline]];
-	    [translate translateXBy:thePoint.x yBy:thePoint.y];
-	    [clipPath addClip];
-	    NSAssert(originalImage != nil, @"Original image has been freed");
-	    NSAssert([tile outline] != nil, @"Tile outline has been freed");
-	    [originalImage compositeToPoint:NSMakePoint(0, 0) fromRect:[[tile outline] bounds] operation:NSCompositeCopy];
-	    [NSGraphicsContext restoreGraphicsState];
-	    subRect.origin = NSMakePoint(0, 0);
-	    subRect.size = [pixletImage size];
-	    [tile setBitmapRep:[[NSBitmapImageRep alloc] initWithFocusedViewRect:subRect]];
-	    [pixletImage unlockFocus];
-	    //[pixletImage release];
-	    
-	    [tile setDisplayUpdateQueue:_updatedTiles];
-	    
-	    // add it to the list of tiles
-	    [_tiles addObject:tile];
-	}
-    [pixletImage release];
-    pixletImage = nil;
+
+    // create data structure for each tile including outlines, bitmaps, etc.
+    //[self createTileCollectionWithOutlines:[self createTileOutlinesForImage:originalImage]
+	  //fromImage:originalImage];
 
     // Traverse through all of the files and match them against each tile
     while (file = [enumerator nextObject])
     {
+	// allocate a second auto-release pool just for objects created for matching against this image
+	// (otherwise, auto-released objects won't get released until ALL pictures have been enumerated)
+	NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];	NSAssert(pool2 != nil, @"Could not allocate pool2");
+
 	if (file != nil && [[NSImage imageFileTypes] containsObject:[file pathExtension]])	// if it's an image
 	{
-	    // allocate a second auto-release pool just for objects created for matching against this image
-	    // (otherwise, auto-released objects won't get released until ALL pictures have been enumerated)
-	    pool2 = [[NSAutoreleasePool alloc] init];
-	    NSAssert(pool2 != nil, @"Could not allocate pool2");
-	    
 	    filePath = [pixPath stringByAppendingPathComponent:file];
 	
 	    // load the image from the file
-	    pixletImage = [[NSImage alloc] initWithContentsOfFile:filePath];
+	    pixletImage = [[[NSImage alloc] initWithContentsOfFile:filePath] autorelease];
+	    NS_DURING
 	    if (pixletImage != nil && [pixletImage isValid])
 	    {
-		NSLog(@"Matching %@\n", file);
-	    
-		//create an NSBitmapImageRep from the image for direct pixel access
-		[pixletImage setScalesWhenResized:YES];
+		NSMutableArray	*cachedReps = [NSMutableArray arrayWithCapacity:0];
 		
-		// loop through the tiles of the main image and compute the pixlet's match
+		NSAssert(cachedReps != nil, @"cachedReps == nil");
+		
+		NSLog(@"Matching %@\n", file);
+		
+		[pixletImage setScalesWhenResized:YES];
+		[pixletImage setDataRetained:YES];
+		
+		// loop through the tiles and compute the pixlet's match
 		for (index = 0; index < [_tiles count]; index++)
 		{
-		    tile = [_tiles objectAtIndex:index];
-		    NSAssert(tile != nil, @"tile is nil");
-		    NSAssert([tile bitmapRep] != nil, @"tile bitmapRep is nil");
+		    Tile	*tile = [_tiles objectAtIndex:index];
+		    float	scale;
+		    NSRect	subRect;
+		    int		cachedRepIndex;
 		    
-		    // Scale the pixlet to the same size as the tile (if it isn't already)
-		    if ([pixletImage size].width != [[tile bitmapRep] size].width || 
-			[pixletImage size].height != [[tile bitmapRep] size].height)
-			[pixletImage setSize:[[tile bitmapRep] size]];
-		    subRect.origin.x = subRect.origin.y = 0.0;
-		    subRect.size = [pixletImage size];
-		    [pixletImage lockFocus];
-		    pixletRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:subRect];
-		    [pixletImage unlockFocus];
-		    NSAssert(pixletRep != nil, @"pixletRep not allocated");
+		    // scale the smaller of the pixlet's image's dimensions to the size used for pixel matching and extract the rep
+		    scale = MAX([[tile bitmapRep] size].width / [pixletImage size].width, 
+				[[tile bitmapRep] size].height / [pixletImage size].height);
+		    subRect = NSMakeRect(0, 0, (int)([pixletImage size].width * scale + 0.5),
+					 (int)([pixletImage size].height * scale + 0.5));
 		    
+		    // check if we already have a rep of this size
+		    for (cachedRepIndex = 0; cachedRepIndex < [cachedReps count]; cachedRepIndex++)
+			if (NSEqualSizes([[cachedReps objectAtIndex:cachedRepIndex] size], subRect.size)) break;
+		    if (cachedRepIndex == [cachedReps count])
+		    {	// no bitmap at the correct size was found, create a new one
+			[pixletImage setSize:subRect.size];
+			[pixletImage lockFocus];
+			[cachedReps addObject:[[[NSBitmapImageRep alloc] initWithFocusedViewRect:subRect] autorelease]];
+			[pixletImage unlockFocus];
+		    }
+
 		    // Calculate how well they match, and if it's better than the previous best, add it to the mosaic
-		    [tile matchAgainst:pixletRep fromFile:filePath];
-		    
-		    // Clean up
-		    if (pixletRep != nil) [pixletRep release];
-		    pixletRep = nil;
+		    [tile matchAgainst:[cachedReps objectAtIndex:cachedRepIndex] fromFile:filePath];
+
 		}
 	    }
-	    
-	    // More clean up
-	    if (pixletImage != nil) [pixletImage release];
-	    pixletImage = nil;
-	    
-	    [pool2 release];
+	    NS_HANDLER
+	    NS_ENDHANDLER
 	}
+	[pool2 release];
     }
     [pool release];
     pool = nil;
+}
+
+
+- (NSArray *)createTileOutlinesForImage:(NSImage *)image
+{
+    int			tilesWide = 40, tilesHigh = 40, x, y;
+    NSRect		tileRect = NSMakeRect(0, 0, [image size].width / tilesWide, [image size].height / tilesHigh);
+    NSMutableArray	*outlines = [NSMutableArray arrayWithCapacity:0];
+    
+    for (x = 0; x < tilesWide; x++)
+	for (y = 0; y < tilesHigh; y++)
+	{
+	    tileRect.origin.x = x * tileRect.size.width;
+	    tileRect.origin.y = y * tileRect.size.height;
+	    [outlines addObject:[NSBezierPath bezierPathWithRect:tileRect]];
+	}
+    
+    return outlines;
+}
+
+
+- (void)createTileCollectionWithOutlines:(NSMutableArray *)outlines fromImage:(NSImage *)image
+{
+    int			index;
+    Tile		*tile;
+    NSImage		*tileImage;
+    NSPoint		thePoint;
+    NSBezierPath	*clipPath;
+    NSAffineTransform	*translate = [NSAffineTransform transform];
+    
+    NSAssert(outlines != nil, @"outlines == nil"); NSAssert(image != nil, @"image == nil");
+    
+    _tiles = [[NSMutableArray arrayWithCapacity:0] retain];
+    for (index = 0; index < [outlines count]; index++)
+    {
+	// create the tile object and add it to the collection
+	tile = [[Tile alloc] init];	NSAssert(tile != nil, @"Could not allocate tile");
+	[_tiles addObject:tile];
+	
+	[tile setOutline:[outlines objectAtIndex:index]];
+	
+	// let the tile know how to talk to the display update queue (shouldn't be done this way, but it's working)
+	[tile setDisplayUpdateQueue:_updatedTiles];
+
+	tileImage = [[NSImage alloc] initWithSize:[[tile outline] bounds].size];
+	[tileImage setScalesWhenResized:YES];
+
+	// start with an image the same size as the tile's outline's bounding box
+	NSAssert(tileImage != nil, @"tileImage has been released");
+	//[tileImage setSize:[[tile outline] bounds].size];
+	    
+	// copy out the portion of the original image contained by the tile's outline (using a clipping path)
+	NSAssert(tileImage != nil, @"tileImage has been released");
+	[tileImage lockFocus];	// BAD_ACCESS
+	[NSGraphicsContext saveGraphicsState];	// so we can undo the clipping path we add
+	thePoint = [[tile outline] bounds].origin;
+	[translate translateXBy:thePoint.x * -1 yBy:thePoint.y * -1];
+	clipPath = [translate transformBezierPath:[tile outline]];
+	[translate translateXBy:thePoint.x yBy:thePoint.y];
+	[clipPath addClip];
+	[image compositeToPoint:NSMakePoint(0, 0) fromRect:[[tile outline] bounds] operation:NSCompositeCopy];
+	[NSGraphicsContext restoreGraphicsState];
+	NSAssert(tileImage != nil, @"tileImage has been released");
+	[tileImage unlockFocus];
+	
+	// scale the tile's image to the size used for pixel matching (maximum of TILE_BITMAP_SIZE in either width or height)
+	NSAssert([tile outline] != nil, @"tile outline has been released");
+	NSAssert(tileImage != nil, @"tileImage has been released");
+	if ([[tile outline] bounds].size.width > [[tile outline] bounds].size.height)
+	    [tileImage setSize:NSMakeSize(TILE_BITMAP_SIZE, 
+					  TILE_BITMAP_SIZE * [[tile outline] bounds].size.height / [[tile outline] bounds].size.width)];
+	else
+	    [tileImage setSize:NSMakeSize(TILE_BITMAP_SIZE * [[tile outline] bounds].size.width / [[tile outline] bounds].size.height, 
+					  TILE_BITMAP_SIZE)];
+	
+	// grab the image's bitmap rep and store it in the tile
+	NSAssert(tileImage != nil, @"tileImage has been released");
+	[tileImage lockFocus];
+	[tile setBitmapRep:[[NSBitmapImageRep alloc]
+			    initWithFocusedViewRect:NSMakeRect(0, 0, [tileImage size].width, [tileImage size].height)]];
+	NSAssert(tileImage != nil, @"tileImage has been released");
+	[tileImage unlockFocus];	// BAD_ACCESS
+
+	NSAssert(_tiles != nil, @"_tiles has been released");
+	[tileImage release];	tileImage = nil;	//BAD_ACCESS
+    }
 }
 
 
@@ -265,14 +324,14 @@
     NSData		*bitmapData;
     
     // ask the user where to save the image
-    result = [savePanel runModalForDirectory:[NSHomeDirectory() stringByAppendingPathComponent:@"Pictures"] file:@"Mosiac.jpg"];
+    result = [savePanel runModalForDirectory:[NSHomeDirectory() stringByAppendingPathComponent:@"Desktop"] file:@"Mosiac.tiff"];
     if (result != NSOKButton) return;
     
     [mosaicImage lockFocus];
     mosaicRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0, 0, [mosaicImage size].width, [mosaicImage size].height)];
     [mosaicImage unlockFocus];
     NSAssert(mosaicRep != nil, @"pixletRep not allocated");
-    bitmapData = [mosaicRep representationUsingType:NSJPEGFileType properties:[NSDictionary dictionary]];
+    bitmapData = [mosaicRep representationUsingType:NSTIFFFileType properties:[NSDictionary dictionary]];
     [bitmapData writeToFile:[savePanel filename] atomically:YES];
 }
 

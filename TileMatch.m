@@ -6,6 +6,7 @@
 {
     [super init];
     _filePath = nil;
+    _matchValue = WORST_CASE_PIXEL_MATCH;
     return self;
 }
 
