@@ -21,6 +21,7 @@
 	MacOSaiXWindowController	*mainWindowController;
     NSString					*originalImagePath;
     NSImage						*originalImage;
+	float						originalImageAspectRatio;
     NSMutableArray				*imageSources,
 								*tiles;
 	id<MacOSaiXTileShapes>		tileShapes;
