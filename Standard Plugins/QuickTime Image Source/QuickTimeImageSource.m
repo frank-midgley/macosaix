@@ -1,6 +1,14 @@
-#import <AppKit/AppKit.h>
-#import <QuickTime/QuickTime.h>
+/*
+	QuickTimeImageSource.h
+	MacOSaiX
+
+	Created by Frank Midgley on Wed Mar 13 2002.
+	Copyright (c) 2004 Frank M. Midgley. All rights reserved.
+*/
+
 #import "QuickTimeImageSource.h"
+#import "QuickTimeImageSourceController.h"
+
 #import <pthread.h>
 
 
@@ -13,6 +21,18 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 
 
 @implementation QuickTimeImageSource
+
+
++ (NSString *)name
+{
+	return "QuickTime";
+}
+
+
++ (Class)editorClass
+{
+	return [QuickTimeImageSourceController class];
+}
 
 
 - (void)lockQuickTime
@@ -72,9 +92,8 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 						GetMovieBox(movie, &movieBounds);
 						OffsetRect(&movieBounds, -movieBounds.left, -movieBounds.top);
 						SetMovieBox(movie, &movieBounds);
-						NSLog(@"Movie size:%d, %d", movieBounds.right, movieBounds.bottom);
 						
-                        minIncrement = GetMovieTimeScale(movie) / 10;   // equals 10 fps
+                        minIncrement = GetMovieTimeScale(movie) / 5;   // equals 5 fps
 						duration = GetMovieDuration(movie);
 						
 						[self setCurrentImage:[self imageForIdentifier:[NSNumber numberWithLong:GetMoviePosterTime(movie)]]];
@@ -137,19 +156,21 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 }
 
 
-- (id)nextImageIdentifier
+- (NSImage *)nextImageAndIdentifier:(NSString **)identifier;
 {
 	NSMutableArray	*parameters = [NSMutableArray array];
 	
-	[self performSelectorOnMainThread:@selector(nextImageIdentifierOnMainThread:) 
-						   withObject:parameters
-						waitUntilDone:YES];
+	[self nextImageAndIdentifierOnMainThread:parameters];
+	
+//	[self performSelectorOnMainThread:@selector(nextImageIdentifierOnMainThread:) 
+//						   withObject:parameters
+//						waitUntilDone:YES];
 	
 	return ([parameters count] > 0 ? [parameters objectAtIndex:0] : nil);
 }
 
 
-- (void)nextImageIdentifierOnMainThread:(NSMutableArray *)parameters
+- (void)nextImageAndIdentifierOnMainThread:(NSMutableArray *)parameters
 {
     TimeValue   nextInterestingTime = 0;
     
@@ -164,25 +185,21 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 			currentTimeValue += minIncrement;
 		else
 			currentTimeValue = nextInterestingTime;
-		_imageCount++;
 	}
-    
-//    NSLog(@"Next interesting time=%@", [NSNumber numberWithLong:currentTimeValue]);
 	
-	[parameters addObject:[NSNumber numberWithLong:currentTimeValue]];
+	[parameters addObject:[NSString stringWithFormat:@"%ld", currentTimeValue]];
+	[parameters addObject:[self imageForIdentifier:[parameters objectAtIndex:0]]];
 }
 
 
-- (NSImage *)imageForIdentifier:(id)identifier
+- (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 	NSImage		*imageAtTimeValue = [[[NSImage alloc] initWithSize:NSMakeSize(64, 64)] autorelease];
 	
-	[self performSelectorOnMainThread:@selector(imageForIdentifierOnMainThread:) 
-						   withObject:[NSArray arrayWithObjects:identifier, imageAtTimeValue, nil]
-						waitUntilDone:YES];
-	
-	if ([identifier longValue] == currentTimeValue)
-		[self setCurrentImage:imageAtTimeValue];
+	[self imageForIdentifierOnMainThread:[NSArray arrayWithObjects:identifier, imageAtTimeValue, nil]];
+//	[self performSelectorOnMainThread:@selector(imageForIdentifierOnMainThread:) 
+//						   withObject:[NSArray arrayWithObjects:identifier, imageAtTimeValue, nil]
+//						waitUntilDone:YES];
 	
 	return imageAtTimeValue;
 }
@@ -190,7 +207,7 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 
 - (void)imageForIdentifierOnMainThread:(NSArray *)parameters
 {
-	TimeValue	requestedTime = [[parameters objectAtIndex:0] longValue];
+	TimeValue	requestedTime = [[parameters objectAtIndex:0] intValue];
 	
 	if (requestedTime <= duration)
 	{
@@ -204,7 +221,7 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 																						length:GetHandleSize((Handle)picHandle)]];
 			NSImage			*imageAtTimeValue = [parameters objectAtIndex:1];
 			
-			[imageAtTimeValue setScalesWhenResized:YES];
+//			[imageAtTimeValue setScalesWhenResized:YES];
 			[imageAtTimeValue setSize:[imageRep size]];
 			
 			NS_DURING
@@ -216,6 +233,9 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 			NS_ENDHANDLER
 			
 			KillPicture(picHandle);
+			
+			if (requestedTime == currentTimeValue)
+				[self setCurrentImage:imageAtTimeValue];
 		}
 	}
 }

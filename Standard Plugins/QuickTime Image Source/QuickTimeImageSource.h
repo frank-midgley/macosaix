@@ -1,17 +1,18 @@
-//
-//  QuickTimeImageSource.h
-//  MacOSaiX
-//
-//  Created by Frank Midgley on Wed Mar 13 2002.
-//  Copyright (c) 2001 __MyCompanyName__. All rights reserved.
-//
+/*
+	QuickTimeImageSource.h
+	MacOSaiX
 
-#import <Foundation/Foundation.h>
+	Created by Frank Midgley on Wed Mar 13 2002.
+	Copyright (c) 2004 Frank M. Midgley. All rights reserved.
+*/
+
+#import <Cocoa/Cocoa.h>
 #import <QuickTime/QuickTime.h>
 
-#import <MacOSaiXPlugins/ImageSource.h>
+#import <MacOSaiXmageSource.h>
 
-@interface QuickTimeImageSource : ImageSource
+
+@interface QuickTimeImageSource <MacOSaiXImageSource>
 {
     NSString	*moviePath;
 	Movie		movie;
