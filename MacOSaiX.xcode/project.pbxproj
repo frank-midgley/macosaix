@@ -51,6 +51,172 @@
 //012
 //013
 //014
+		014DB625071A2C8D00DF68C0 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text.xml;
+			name = Info.plist;
+			path = "Standard Plugins/Hexaganol Tiles Setup/Info.plist";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		014DB626071A2C8D00DF68C0 = {
+			fileRef = 014DB625071A2C8D00DF68C0;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		014DB62D071A2D5000DF68C0 = {
+			containerPortal = 29B97313FDCFA39411CA2CEA;
+			isa = PBXContainerItemProxy;
+			proxyType = 1;
+			remoteGlobalIDString = 928489A506611CE6003B3514;
+			remoteInfo = "MacOSaiX Plugins Framework";
+		};
+		014DB62E071A2D5000DF68C0 = {
+			isa = PBXTargetDependency;
+			target = 928489A506611CE6003B3514;
+			targetProxy = 014DB62D071A2D5000DF68C0;
+		};
+		014DB63C071A2D8B00DF68C0 = {
+			fileRef = 01CB07E6071A1F2B00710BCF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		01A1978E071A200E00B11558 = {
+			fileRef = F514D53C0390266E01B25AF1;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		01A19794071A201400B11558 = {
+			fileRef = 926CE4E903E7627700C7E70E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		01A1979F071A201A00B11558 = {
+			fileRef = 928F72950661226000873AE2;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		01A197A3071A201E00B11558 = {
+			fileRef = 01CB07DA071A1F1000710BCF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		01A197A4071A202500B11558 = {
+			buildActionMask = 2147483647;
+			files = (
+				01A197AE071A202E00B11558,
+			);
+			isa = PBXHeadersBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01A197AE071A202E00B11558 = {
+			fileRef = 01CB07D9071A1F1000710BCF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		01A197AF071A203800B11558 = {
+			containerPortal = 29B97313FDCFA39411CA2CEA;
+			isa = PBXContainerItemProxy;
+			proxyType = 1;
+			remoteGlobalIDString = 01CB07E5071A1F2B00710BCF;
+			remoteInfo = "Hexagonal Tiles Plug-in";
+		};
+		01A197B0071A203800B11558 = {
+			isa = PBXTargetDependency;
+			target = 01CB07E5071A1F2B00710BCF;
+			targetProxy = 01A197AF071A203800B11558;
+		};
+		01CB07D9071A1F1000710BCF = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HexagonalTilesSetupController.h;
+			path = "Standard Plugins/Hexaganol Tiles Setup/HexagonalTilesSetupController.h";
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		01CB07DA071A1F1000710BCF = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HexagonalTilesSetupController.m;
+			path = "Standard Plugins/Hexaganol Tiles Setup/HexagonalTilesSetupController.m";
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		01CB07E2071A1F2B00710BCF = {
+			buildActionMask = 2147483647;
+			files = (
+				01A1979F071A201A00B11558,
+				014DB626071A2C8D00DF68C0,
+			);
+			isa = PBXResourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01CB07E3071A1F2B00710BCF = {
+			buildActionMask = 2147483647;
+			files = (
+				01A197A3071A201E00B11558,
+			);
+			isa = PBXSourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01CB07E4071A1F2B00710BCF = {
+			buildActionMask = 2147483647;
+			files = (
+				01A19794071A201400B11558,
+				01A1978E071A200E00B11558,
+			);
+			isa = PBXFrameworksBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		01CB07E5071A1F2B00710BCF = {
+			buildPhases = (
+				01A197A4071A202500B11558,
+				01CB07E2071A1F2B00710BCF,
+				01CB07E3071A1F2B00710BCF,
+				01CB07E4071A1F2B00710BCF,
+			);
+			buildRules = (
+			);
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = /Users/frank/Development/MacOSaiX/build;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "";
+				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Bundles";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "-framework Foundation -framework AppKit";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "Hexagonal Tiles Plug-in";
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
+				WRAPPER_EXTENSION = plugin;
+			};
+			dependencies = (
+				014DB62E071A2D5000DF68C0,
+			);
+			isa = PBXNativeTarget;
+			name = "Hexagonal Tiles Plug-in";
+			productName = "Hexagonal Tiles Plug-in";
+			productReference = 01CB07E6071A1F2B00710BCF;
+			productType = "com.apple.product-type.bundle";
+		};
+		01CB07E6071A1F2B00710BCF = {
+			explicitFileType = wrapper.cfbundle;
+			includeInIndex = 0;
+			isa = PBXFileReference;
+			path = "Hexagonal Tiles Plug-in.plugin";
+			refType = 3;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		01DF6CEB070133DF00512549 = {
 			fileRef = 926CE4E903E7627700C7E70E;
 			isa = PBXBuildFile;
@@ -119,6 +285,7 @@
 				928489E506611CE6003B3514,
 				928489F306611CE6003B3514,
 				92848A0406611CE6003B3514,
+				01CB07E6071A1F2B00710BCF,
 			);
 			isa = PBXGroup;
 			name = Products;
@@ -157,6 +324,7 @@
 				928489C506611CE6003B3514,
 				928489F406611CE6003B3514,
 				928489E606611CE6003B3514,
+				01CB07E5071A1F2B00710BCF,
 			);
 		};
 		29B97314FDCFA39411CA2CEA = {
@@ -350,6 +518,7 @@
 				92848A0806611CE6003B3514,
 				92848A0A06611CE6003B3514,
 				92848A0C06611CE6003B3514,
+				01A197B0071A203800B11558,
 			);
 			isa = PBXNativeTarget;
 			name = MacOSaiX.app;
@@ -373,8 +542,9 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				92848A1706611CE6003B3514,
 				92848A1A06611CE6003B3514,
+				014DB63C071A2D8B00DF68C0,
+				92848A1706611CE6003B3514,
 				01DF729B070A5C6000512549,
 			);
 			isa = PBXCopyFilesBuildPhase;
@@ -1664,7 +1834,10 @@
 		};
 		928F72C4066122B000873AE2 = {
 			children = (
+				01CB07D9071A1F1000710BCF,
+				01CB07DA071A1F1000710BCF,
 				928F72950661226000873AE2,
+				014DB625071A2C8D00DF68C0,
 			);
 			isa = PBXGroup;
 			name = "Hexagonal Tiles Setup";
