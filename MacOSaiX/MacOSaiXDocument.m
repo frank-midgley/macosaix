@@ -6,7 +6,6 @@
 #import "TileImage.h"
 #import "MosaicView.h"
 #import "OriginalView.h"
-#import "ImageRepCell.h"
 
 	// The maximum size of the image URL queue
 #define MAX_IMAGE_URLS 32
@@ -464,17 +463,15 @@
 
 - (void)createTileCollectionWithOutlines:(id)object
 {
-    int			index;
-    NSAutoreleasePool	*pool;
-    NSWindow		*drawWindow;
-    NSBezierPath	*combinedOutline = [NSBezierPath bezierPath];
-    
-    if (_tileOutlines == nil || _originalImage == nil) return;
+    if (_tileOutlines == nil || _originalImage == nil)
+		return;
+    else
+		_createTilesThreadAlive = YES;
 
-    _createTilesThreadAlive = YES;
-    
-    pool = [[NSAutoreleasePool alloc] init];
-	NSAssert(pool, @"pool");
+    int					index;
+    NSAutoreleasePool   *pool = [[NSAutoreleasePool alloc] init];
+    NSWindow			*drawWindow;
+    NSBezierPath		*combinedOutline = [NSBezierPath bezierPath];
 
 		// create an offscreen window to draw into (it will have a single, empty view the size of the window)
     drawWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(-10000, -10000,
@@ -482,107 +479,119 @@
 								  [_originalImage size].height)
 					     styleMask:NSBorderlessWindowMask
 					       backing:NSBackingStoreBuffered defer:NO];
-    while (![[drawWindow contentView] lockFocusIfCanDraw])
-		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
     
     _tiles = [[NSMutableArray arrayWithCapacity:[_tileOutlines count]] retain];
 	NSRect	*tileBounds = (NSRect *)malloc(sizeof(NSRect) * [_tileOutlines count]); 
-    for (index = 0; index < [_tileOutlines count] && !_documentIsClosing; index++)
+    
+	/* Loop through each tile outline and:
+		1.  Create a Tile instance.
+		2.  Copy out the rect of the original image that this tile covers.
+		3.  Calculate an image mask that indicates which part of the copied rect is contained within the tile's outline.
+	*/
+	NSEnumerator	*tileOutlineEnumerator = [_tileOutlines objectEnumerator];
+	NSBezierPath	*tileOutline = nil;
+    while (!_documentIsClosing && (tileOutline = [tileOutlineEnumerator nextObject]))
 	{
-		Tile				*tile;
-		NSBezierPath		*clipPath;
-		NSAffineTransform	*transform;
-		NSRect				origRect, destRect;
-		NSBitmapImageRep	*tileRep;
-		
-			// create the tile object and add it to the collection
-		tile = [[[Tile alloc] init] autorelease];	NSAssert(tile != nil, @"Could not allocate tile");
+			// Create the tile and add it to the collection.
+		Tile				*tile = [[[Tile alloc] initWithOutline:tileOutline fromDocument:self] autorelease];
 		[_tiles addObject:tile];
 		
-		[tile setDocument:self];
+			// Add this outline to the master path used to draw all of the tile outlines over the full image.
+		[combinedOutline appendBezierPath:tileOutline];
 		
-			// let the tile know its own outline for clipping, etc.
-		[tile setOutline:[_tileOutlines objectAtIndex:index]];
+			// Lock focus on our 'scratch' window.
+		while (![[drawWindow contentView] lockFocusIfCanDraw])
+			[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
 		
-		[combinedOutline appendBezierPath:[_tileOutlines objectAtIndex:index]];
+			// Determine the bounds of the tile in the original image and in the scratch window.
+		NSRect  origRect = NSMakeRect([tileOutline bounds].origin.x * [_originalImage size].width,
+									  [tileOutline bounds].origin.y * [_originalImage size].height,
+									  [tileOutline bounds].size.width * [_originalImage size].width,
+									  [tileOutline bounds].size.height * [_originalImage size].height),
+				destRect = (origRect.size.width > origRect.size.height) ?
+							NSMakeRect(0, 0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE * origRect.size.height / origRect.size.width) : 
+							NSMakeRect(0, 0, TILE_BITMAP_SIZE * origRect.size.width / origRect.size.height, TILE_BITMAP_SIZE);
 		
-			// copy out the portion of the original image contained by the tile's outline (using a clipping path)
-		origRect = NSMakeRect([[tile outline] bounds].origin.x * [_originalImage size].width,
-							  [[tile outline] bounds].origin.y * [_originalImage size].height,
-							  [[tile outline] bounds].size.width * [_originalImage size].width,
-							  [[tile outline] bounds].size.height * [_originalImage size].height);
-		if (origRect.size.width > origRect.size.height)
-			destRect = NSMakeRect(0, 0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE * origRect.size.height / origRect.size.width);
-		else
-			destRect = NSMakeRect(0, 0, TILE_BITMAP_SIZE * origRect.size.width / origRect.size.height, TILE_BITMAP_SIZE);
-/*
-		if ([[tile outline] bounds].size.width > [[tile outline] bounds].size.height)
-			destRect = NSMakeRect(0, 0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE * 
-								  [[tile outline] bounds].size.height / [[tile outline] bounds].size.width);
-		else
-			destRect = NSMakeRect(0, 0, TILE_BITMAP_SIZE * [[tile outline] bounds].size.width /  
-								  [[tile outline] bounds].size.height, TILE_BITMAP_SIZE);
-*/
-	
-			// start with pure alpha so pixels outside the tile outline can be ignored
-		[[NSColor clearColor] set];
+			// Start with a black image to overwrite any previous scratch contents.
+		[[NSColor blackColor] set];
 		[[NSBezierPath bezierPathWithRect:destRect] fill];
-		transform = [NSAffineTransform transform];
-		[transform scaleXBy:destRect.size.width / [[tile outline] bounds].size.width
-						yBy:destRect.size.height / [[tile outline] bounds].size.height];
-		[transform translateXBy:[[tile outline] bounds].origin.x * -1
-							yBy:[[tile outline] bounds].origin.y * -1];
-		clipPath = [transform transformBezierPath:[tile outline]];
-		[clipPath setClip];
+		
+			// Copy out the portion of the original image contained by the tile's outline.
 		[_originalImage drawInRect:destRect fromRect:origRect operation:NSCompositeCopy fraction:1.0];
-		tileRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect] autorelease];
+		NSBitmapImageRep	*tileRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect] autorelease];
 		if (tileRep == nil) NSLog(@"Could not create tile bitmap");
-        
         #if 0
-            NSString	*filename = [NSString stringWithFormat:@"/tmp/MacOSaiX%4d.tiff", index];
-            NSData		*bitmapData = [tileRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0];
-            [bitmapData writeToFile:filename atomically:NO];
+            [[tileRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0] 
+                writeToFile:[NSString stringWithFormat:@"/tmp/MacOSaiX/%4d.tiff", index] atomically:NO];
         #endif
-        
-		[tile setBitmapRep:tileRep];
+	
+			// Calculate a mask image using the tile's outline that is the same size as the image
+			// extracted from the original.  The mask will be white for pixels that are inside the 
+			// tile and black outside.
+            // (This would work better if we could just replace the previous rep's alpha channel
+            //  but I haven't figured out an easy way to do that yet.)
+        [[NSGraphicsContext currentContext] saveGraphicsState];	// so we can undo the clip
+				// Start with a black background.
+            [[NSColor blackColor] set];
+            [[NSBezierPath bezierPathWithRect:destRect] fill];
+			
+				// Fill the tile's outline with white.
+			NSAffineTransform  *transform = [NSAffineTransform transform];
+			[transform scaleXBy:destRect.size.width / [tileOutline bounds].size.width
+                            yBy:destRect.size.height / [tileOutline bounds].size.height];
+            [transform translateXBy:[tileOutline bounds].origin.x * -1
+                                yBy:[tileOutline bounds].origin.y * -1];
+            [[NSColor whiteColor] set];
+            [[transform transformBezierPath:tileOutline] fill];
+			
+				// Copy out the mask image and store it in the tile.
+				// TO DO: RGB is wasting space, should be grayscale.
+            NSBitmapImageRep	*maskRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect] autorelease];
+			[tile setBitmapRep:tileRep withMask:maskRep];
+			#if 0
+				[[maskRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0] 
+					writeToFile:[NSString stringWithFormat:@"/tmp/MacOSaiX/%4dMask.tiff", index++] atomically:NO];
+			#endif
+        [[NSGraphicsContext currentContext] restoreGraphicsState];
 		
-			// release our lock on the GUI periodically so the main thread can work
-		if (index % 20 == 10 && index != [_tileOutlines count] - 1)
-		{
-			[[drawWindow contentView] unlockFocus];
-			while (![[drawWindow contentView] lockFocusIfCanDraw])
-				[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
-		}
+			// Release our lock on the GUI in case the main thread needs it.
+		[[drawWindow contentView] unlockFocus];
 		
-		tileBounds[index] = [[_tileOutlines objectAtIndex:index] bounds];
+		tileBounds[index] = [tileOutline bounds];
 	}
 
     [[drawWindow contentView] unlockFocus];
     [drawWindow close];
 
-#if 1
-		// calculate neighbors based on number of tiles away repeats are allowed
-	for (index = 0; index < [_tiles count]; index++)
+#if 0
+		// Calculate the neighboring tiles of each tile based on number of tiles away repeats are allowed.
+		// For example if tiles are allowed to repeat past 1 neighbor than the direct neighbors of a tile
+		// would be in its neighbor set.  If 2 then the direct neighbors and all of their direct neighbors
+		// would be in the set.
+		// TO DO: This currently only calculates the direct neighbors.
+	NSEnumerator	*tileEnumerator = [_tileOutlines objectEnumerator];
+	Tile			*tile = nil;
+    while (!_documentIsClosing && (tile = [tileEnumerator nextObject]))
 	{
-		Tile	*tile = [_tiles objectAtIndex:index];
-		NSRect	zoomedTileBounds;
+		NSRect	zoomedTileBounds = NSZeroRect;
 		
 			// scale the rect up slightly so it overlaps with it's neighbors
-		zoomedTileBounds.size = NSMakeSize(tileBounds[index].size.width * 1.01, tileBounds[index].size.height * 1.01);
-		zoomedTileBounds.origin.x += NSMidX(tileBounds[index]) - NSMidX(zoomedTileBounds);
-		zoomedTileBounds.origin.y += NSMidY(tileBounds[index]) - NSMidY(zoomedTileBounds);
+		zoomedTileBounds.size = NSMakeSize([[tile outline] bounds].size.width * 1.01, [[tile outline] bounds].size.height * 1.01);
+		zoomedTileBounds.origin.x += NSMidX([[tile outline] bounds]) - NSMidX(zoomedTileBounds);
+		zoomedTileBounds.origin.y += NSMidY([[tile outline] bounds]) - NSMidY(zoomedTileBounds);
 		
-			// now loop through the other tiles and add as neighbors any that intersect
-		int	index2;
-		for (index2 = 0; index2 < [_tiles count]; index2++)
-			if (index2 != index && NSIntersectsRect(zoomedTileBounds, tileBounds[index2]))
-				[tile addNeighbor:[_tiles objectAtIndex:index2]];
+			// Loop through the other tiles and add as neighbors any that intersect.
+			// TO DO: This currently just checks if the bounding boxes of the tiles intersect.
+			//        For non-rectangular tiles this will not be accurate enough.
+		NSEnumerator	*tileEnumerator2 = [_tileOutlines objectEnumerator];
+		Tile			*tile2 = nil;
+		while (!_documentIsClosing && (tile2 = [tileEnumerator2 nextObject]))
+			if (tile2 != tile && NSIntersectsRect(zoomedTileBounds, [[tile2 outline] bounds]))
+				[tile addNeighbor:tile2];
 				
 //		NSLog(@"Tile at index %d has %d neighbors.", index, [[tile neighbors] count]);
 	}
 #endif
-
-    free(tileBounds);
 	
     [(OriginalView *)_originalView setTileOutlines:combinedOutline];
     
@@ -727,7 +736,6 @@
 	
 		// don't do anything if the source is dry
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	
 	sourceHasMoreImages = [imageSource hasMoreImages];
 	[pool release];
 	
@@ -768,11 +776,11 @@
 		// is empty the method will end and the thread is terminated.
     NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 
-        // Make sure only one copy of this thread runs at any time
+        // Make sure only one copy of this thread runs at any time.
 	[_calculateImageMatchesThreadLock lock];
 		if (_calculateImageMatchesThreadAlive)
 		{
-                // Another copy is running, just exit
+                // Another copy is running, just exit.
 			[pool release];
 			return;
 		}
@@ -919,6 +927,7 @@
     
 		// set up a transform so we can scale the tiles to the mosaic's size (tiles are defined on a unit square)
 	NSAffineTransform	*transform = [NSAffineTransform transform];
+    [transform translateXBy:0.5 yBy:0.5];	// line up with pixel boundaries
 	[transform scaleXBy:[_mosaicImage size].width yBy:[_mosaicImage size].height];
 
         // Make a local copy of the set of tiles to refresh and then clear 
@@ -1228,6 +1237,10 @@
             [_editorUseCustomImage setState:NSOffState];
             [_editorUseBestUniqueMatch setState:NSOnState];
             [_editorUserChosenImage setImage:nil];
+            
+            NSImage	*image = [[[NSImage alloc] initWithSize:[[_selectedTile bitmapRep] size]] autorelease];
+            [image addRepresentation:[_selectedTile bitmapRep]];
+            [_editorUserChosenImage setImage:image];
         }
     
         [_editorChooseImage setEnabled:YES];
@@ -2055,10 +2068,10 @@
 
 - (int)numberOfRowsInTableView:(NSTableView *)aTableView
 {
-    if ([aTableView isEqual:_imageSourcesTable])
+    if (aTableView == _imageSourcesTable)
 		return [_imageSources count];
 		
-    if ([aTableView isEqual:_editorTable])
+    if (aTableView == _editorTable)
 		return (_selectedTile == nil ? 0 : [_selectedTile matchCount]);
 	
 	return 0;
@@ -2068,7 +2081,7 @@
 - (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn
 	    row:(int)rowIndex
 {
-    if ([aTableView isEqual:_imageSourcesTable])
+    if (aTableView == _imageSourcesTable)
     {
 		return ([[aTableColumn identifier] isEqualToString:@"Image Source Type"]) ?
 				(id)[[_imageSources objectAtIndex:rowIndex] image] : 
@@ -2090,6 +2103,21 @@
 		}
 		
 		return image;
+    }
+}
+
+
+- (void)tableViewSelectionDidChange:(NSNotification *)notification
+{
+    if ([notification object] == _editorTable)
+    {
+        int	selectedRow = [_editorTable selectedRow];
+        
+        if (selectedRow >= 0)
+            [_matchValueTextField setStringValue:[NSString stringWithFormat:@"%f", 
+                                                    [_selectedTile matches][selectedRow].matchValue]];
+        else
+            [_matchValueTextField setStringValue:@""];
     }
 }
 
