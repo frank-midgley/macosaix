@@ -740,9 +740,10 @@
 				WRAPPER_EXTENSION = app;
 			};
 			dependencies = (
-				92848A0806611CE6003B3514,
 				92848A0C06611CE6003B3514,
+				92848A0806611CE6003B3514,
 				928654A6072AC64400EFC32A,
+				928656FF0734508200EFC32A,
 			);
 			isa = PBXNativeTarget;
 			name = MacOSaiX.app;
@@ -768,6 +769,7 @@
 			files = (
 				92848A1A06611CE6003B3514,
 				92848A1706611CE6003B3514,
+				928656FD0734507600EFC32A,
 				92865510072ADBD400EFC32A,
 			);
 			isa = PBXCopyFilesBuildPhase;
@@ -1268,7 +1270,6 @@
 				WRAPPER_EXTENSION = plugin;
 			};
 			dependencies = (
-				92848A1006611CE6003B3514,
 			);
 			isa = PBXNativeTarget;
 			name = "Google Image Source Plug-In";
@@ -1282,6 +1283,7 @@
 			files = (
 				928489C806611CE6003B3514,
 				928489C906611CE6003B3514,
+				9286575A0734584600EFC32A,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1374,7 +1376,6 @@
 				WRAPPER_EXTENSION = plugin;
 			};
 			dependencies = (
-				92848A1206611CE6003B3514,
 			);
 			isa = PBXNativeTarget;
 			name = "Glyph Image Source Plug-In";
@@ -1696,30 +1697,6 @@
 			target = 928489E606611CE6003B3514;
 			targetProxy = 92848A0B06611CE6003B3514;
 		};
-		92848A0F06611CE6003B3514 = {
-			containerPortal = 29B97313FDCFA39411CA2CEA;
-			isa = PBXContainerItemProxy;
-			proxyType = 1;
-			remoteGlobalIDString = 928489A506611CE6003B3514;
-			remoteInfo = "MacOSaiX Plugins Framework (Upgraded)";
-		};
-		92848A1006611CE6003B3514 = {
-			isa = PBXTargetDependency;
-			target = 928489A506611CE6003B3514;
-			targetProxy = 92848A0F06611CE6003B3514;
-		};
-		92848A1106611CE6003B3514 = {
-			containerPortal = 29B97313FDCFA39411CA2CEA;
-			isa = PBXContainerItemProxy;
-			proxyType = 1;
-			remoteGlobalIDString = 928489A506611CE6003B3514;
-			remoteInfo = "MacOSaiX Plugins Framework (Upgraded)";
-		};
-		92848A1206611CE6003B3514 = {
-			isa = PBXTargetDependency;
-			target = 928489A506611CE6003B3514;
-			targetProxy = 92848A1106611CE6003B3514;
-		};
 		92848A1306611CE6003B3514 = {
 			containerPortal = 29B97313FDCFA39411CA2CEA;
 			isa = PBXContainerItemProxy;
@@ -1788,6 +1765,30 @@
 		};
 		92865510072ADBD400EFC32A = {
 			fileRef = 92848A0406611CE6003B3514;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		928656FD0734507600EFC32A = {
+			fileRef = 928489D406611CE6003B3514;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		928656FE0734508200EFC32A = {
+			containerPortal = 29B97313FDCFA39411CA2CEA;
+			isa = PBXContainerItemProxy;
+			proxyType = 1;
+			remoteGlobalIDString = 928489C506611CE6003B3514;
+			remoteInfo = "Google Image Source Plug-In";
+		};
+		928656FF0734508200EFC32A = {
+			isa = PBXTargetDependency;
+			target = 928489C506611CE6003B3514;
+			targetProxy = 928656FE0734508200EFC32A;
+		};
+		9286575A0734584600EFC32A = {
+			fileRef = 923384DB072180700010BE04;
 			isa = PBXBuildFile;
 			settings = {
 			};
