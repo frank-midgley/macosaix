@@ -138,6 +138,7 @@
 										  [clipPath bounds].origin.y - (drawRect.size.height - [clipPath bounds].size.height) /2.0);
 		}
 		
+#if 0
 		[mosaicImageLock lock];
 			NS_DURING
 				[mosaicImage lockFocus];
@@ -148,8 +149,10 @@
 				NSLog(@"Could not lock focus on mosaic image");
 			NS_ENDHANDLER
 		[mosaicImageLock unlock];
-//		NSArray	*paramaters = [NSArray arrayWithObjects:clipPath, newImageRep, [NSValue valueWithRect:drawRect], nil];
-//		[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:paramaters waitUntilDone:YES];
+#else
+		NSArray	*paramaters = [NSArray arrayWithObjects:clipPath, newImageRep, [NSValue valueWithRect:drawRect], nil];
+		[self performSelectorOnMainThread:@selector(drawTileImage:) withObject:paramaters waitUntilDone:YES];
+#endif
 		
 		[tilesNeedingDisplayLock lock];
 			[tilesNeedingDisplay addObject:tileToRefresh];
@@ -161,23 +164,23 @@
 }
 
 
-//- (void)drawTileImage:(NSArray *)paramaters
-//{
-//	NSBezierPath	*clipPath = [paramaters objectAtIndex:0];
-//	NSImageRep		*newImageRep = [paramaters objectAtIndex:1];
-//	NSRect			drawRect = [[paramaters objectAtIndex:2] rectValue];
-//	
-//	[mosaicImageLock lock];
-//		NS_DURING
-//			[mosaicImage lockFocus];
-//				[clipPath setClip];
-//				[newImageRep drawInRect:drawRect];
-//			[mosaicImage unlockFocus];
-//		NS_HANDLER
-//			NSLog(@"Could not lock focus on mosaic image");
-//		NS_ENDHANDLER
-//	[mosaicImageLock unlock];
-//}
+- (void)drawTileImage:(NSArray *)paramaters
+{
+	NSBezierPath	*clipPath = [paramaters objectAtIndex:0];
+	NSImageRep		*newImageRep = [paramaters objectAtIndex:1];
+	NSRect			drawRect = [[paramaters objectAtIndex:2] rectValue];
+	
+	[mosaicImageLock lock];
+		NS_DURING
+			[mosaicImage lockFocus];
+				[clipPath setClip];
+				[newImageRep drawInRect:drawRect];
+			[mosaicImage unlockFocus];
+		NS_HANDLER
+			NSLog(@"Could not lock focus on mosaic image");
+		NS_ENDHANDLER
+	[mosaicImageLock unlock];
+}
 
 
 - (void)setTileNeedsDisplay:(id)dummy
@@ -186,8 +189,8 @@
 	
 	[tilesNeedingDisplayLock lock];
 		NSAffineTransform	*transform = [NSAffineTransform transform];
-		[transform translateXBy:-0.5 yBy:-0.5];	// line up with pixel boundaries
-		[transform scaleXBy:([self frame].size.width + 1.0) yBy:([self frame].size.height + 1.0)];
+		[transform translateXBy:-1.0 yBy:-1.0];
+		[transform scaleXBy:([self frame].size.width + 2.0) yBy:([self frame].size.height + 2.0)];
 		
 		NSEnumerator	*tileEnumerator = [tilesNeedingDisplay objectEnumerator];
 		MacOSaiXTile	*tileNeedingDisplay = nil;
