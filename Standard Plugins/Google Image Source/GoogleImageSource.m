@@ -271,7 +271,7 @@ NSString *escapedNSString(NSString *string)
 					// If the URL has the expected prefix then add it to the queue.
 				NSString	*imageURL = [tag substringWithRange:src];
 				if ([imageURL hasPrefix:@"/images?q="])
-					[imageURLQueue addObject:imageURL];
+					[imageURLQueue addObject:[imageURL substringToIndex:([[imageURL substringFromIndex:1] rangeOfString:@"/"].location + 1)]];
 			}
 			
 				// Check if there are any more pages of search results.
