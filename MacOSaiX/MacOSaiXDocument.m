@@ -656,7 +656,7 @@
     }
     
     // update the image sources table
-//    [imageSourcesTable reloadData];
+    [imageSourcesTable reloadData];
     
     // autosave if it's time
     if ([lastSaved timeIntervalSinceNow] < autosaveFrequency * -60)
@@ -720,7 +720,7 @@
 	ImageSource		*imageSource;
 	
 	while (imageSource = [imageSourceEnumerator nextObject])
-		[NSThread detachNewThreadSelector:@selector(enumerateImageSourceInNewThread:) toTarget:self withObject:imageSource];
+		[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) toTarget:self withObject:imageSource];
 }
 
 
@@ -973,7 +973,7 @@
 
     NSImage				*scratchImage = [[[NSImage alloc] initWithSize:NSMakeSize(1024, 1024)] autorelease];
 	
-	NSLog(@"Calculating image matches\n");
+//	NSLog(@"Calculating image matches\n");
 
 	[imageQueueLock lock];
     while (!documentIsClosing && [imageQueue count] > 0)
