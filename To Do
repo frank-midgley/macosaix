@@ -1,23 +1,9 @@
-This version:
-    Test on G3 & Jaguar
-?   Memory mgmt. issues
-
-Need to be able to:
-¥ Create new image source (from NewDocument, Document or Prefs windows)
-	(need callback when source created)
-¥ Edit existing image source (if mosaic has not begun)	
-¥ Get next image identifier
-¥ Get image for identifier
-¥ Determine if there are any more images
-
 Ideas for future versions:
     Service
-Ã	Allow user to specify number of image matches kept for each tile.
-Ã	Show tile extraction count in status bar
-	Calculate match of user chosen images
+	Calculate match value of user chosen images
 	Statistics drawer/window (matches per second, etc.)
 	Width of status text problem (works when shown/hidden)
-	Better versioning in documents (XML may have done this since DTD can be versioned)
+	Better versioning in documents (XML may satisfy this since DTD can be versioned)
 	Should pause also pause uniqueness thread?
 	Does save reset autosave clock?
 	Indicate best unique match in editor table
@@ -26,8 +12,6 @@ Ideas for future versions:
 	More export image panel options (resolution, SVG format, ...)
 	Add code to support crop limit
 	Autosave on/off switch
-Ã	Plug-in architecture for image sources and tile outlines
-	Mosaic quality calculation should take into account tile active pixel count
 	Toggle outline switch in editor?
 	"Must include" images
 	Printing (greeting card format?)
@@ -107,55 +91,32 @@ Ordered array:		images, fileIDs
 
 =======================================================================================
 
-Rework TODO:
+2.0x To Do:
 ¥	Make sure pixels are being pulled from bitmaps correctly
-¥	Make all image identifiers strings (still used as plist dictionary key?)
 ¥	Make neighborhood calculation more efficient or threaded
 ¥	Split MacOSaiXWindowController out of MacOSaiXDocument
 ¥	Rework MosaicView to not use a stored image but redraw the tiles as needed in -drawRect:.  Would allow for better zooming.
 Ã	Uniqueness
-¥	Saving (plug-ins state)
 ¥	Image sources GUI (whole utility drawer, actually)
-¥	Get rid of framework?
-¥	Hexagonal & puzzle tile shapes
-¥	Glyph & Google sources
-¥	Original image view (scaling/tinting)
 ¥	Pausing
 ¥	Buffered exporting
 ¥	Editor
-¥	Disable editor until after mosaic has started
 ¥	Push regions to next major release
-¥	Image cache purging (on save)
 ¥	Change idle message
 ¥	Test on Jaguar
 ¥	Recent originals in open panel
+¥	Rework prefs
+¥	Enable image source removal (includes purging of its images...)
+¥	Mosaic quality calculation should take into account each tile's percentage coverage of original image
+¥	Get rid of lines in exporting
 
-
-2.0a1 To Do:
-Ã	Disable saving
-Ã	Activate newly added image sources
-Ã	Enable remove source button or disable it
-Ã	Purge image cache directory on document dealloc
-Ã	Disable tiles setup after mosaic starts
-Ã	Turn down priority of worker threads
-
-
-Working:
-	Rectangular tiles
-	Tile neighborhood/uniqueness control
-	Directory source
-	QuickTime source
-	Exporting
-	Pause/Resume
-
-Not Working:
-	Saving
-	Preferences
-	Google Source
-	Glyph Source
-	Removing Sources
-	Editor
-	Quality
+2.0a2 To Do:
+¥	Get rid of framework? (+ rework plug-ins)
+¥	Glyph & Google sources
+¥	Make all image identifiers strings (still used as plist dictionary key?)
+¥	Saving (plug-ins state)
+¥	Image cache purging (on save)
+¥	Original image view (scaling/tinting)
 	
 
 
