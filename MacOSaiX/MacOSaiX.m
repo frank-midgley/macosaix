@@ -102,6 +102,12 @@
 }
 
 
+- (BOOL)applicationShouldOpenUntitledFile:(NSApplication *)sender
+{
+	return YES;
+}
+
+
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
 		// To provide a service:
@@ -116,9 +122,9 @@
 
 - (void)openPreferences:(id)sender
 {
-    PreferencesController	*windowController;
+    MacOSaiXPreferencesController	*windowController;
     
-    windowController = [[PreferencesController alloc] initWithWindowNibName:@"Preferences"];
+    windowController = [[MacOSaiXPreferencesController alloc] initWithWindowNibName:@"Preferences"];
     [windowController showWindow:self];
     [[windowController window] makeKeyAndOrderFront:self];
 
