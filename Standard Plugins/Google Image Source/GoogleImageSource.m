@@ -98,7 +98,7 @@ NSString *escapedNSString(NSString *string)
 	[settingsXML appendFormat:@"<TERMS REQUIRED=\"%@\"\n       OPTIONAL=\"%@\"\n       EXCLUDED=\"%@\"/>\n", 
 							  [self escapeXMLEntites:[self requiredTerms]],
 							  [self escapeXMLEntites:[self optionalTerms]],
-							  [self escapeXMLEntites:[self requiredTerms]]];
+							  [self escapeXMLEntites:[self excludedTerms]]];
 	
 	switch ([self colorSpace])
 	{
