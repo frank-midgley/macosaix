@@ -8,6 +8,7 @@
 
 #import "GlyphImageSource.h"
 #import "GlyphImageSourceController.h"
+#import "NSString+MacOSaiX.h"
 #import <fcntl.h>
 #import <sys/types.h>
 #import <sys/uio.h>
@@ -74,11 +75,8 @@ static NSImage	*glyphSourceImage = nil;
 							 backing:NSBackingStoreBuffered defer:NO];
 		focusWindowLock = [[NSLock alloc] init];
 		
-		fontNames = [[[NSFontManager sharedFontManager] availableFonts] mutableCopy];
-		colorLists = [[NSMutableDictionary dictionaryWithObject:[NSMutableArray arrayWithObject:@"All Colors"]
-														 forKey:@"Built-in"] retain];
-		
-		[self calculateBoundingRectForGlyphs];
+		fontNames = [[NSMutableArray array] retain];
+		colorLists = [[NSMutableDictionary dictionary] retain];
 	}
 	
 	return self;
@@ -87,42 +85,95 @@ static NSImage	*glyphSourceImage = nil;
 
 - (NSString *)settingsAsXMLElement
 {
-	return nil;
-//	[NSString stringWithFormat:@"<ALBUM NAME=\"%@\" LAST_IMAGE_NAME=\"%@\"/>", 
-//									  [NSString stringByEscapingXMLEntites:[self albumName]], 
-//									  [NSString stringByEscapingXMLEntites:lastEnumeratedImageName]];
+	NSMutableString	*settings = [NSMutableString string];
+	
+	[settings appendString:@"<FONTS>\n"];
+	NSEnumerator	*fontNameEnumerator = [fontNames objectEnumerator];
+	NSString		*fontName = nil;
+	while (fontName = [fontNameEnumerator nextObject])
+		[settings appendFormat:@"\t<FONT NAME=\"%@\"/>\n", [NSString stringByEscapingXMLEntites:fontName]];
+	[settings appendString:@"</FONTS>\n"];
+	
+	[settings appendString:@"<COLORS>\n"];
+	NSEnumerator	*colorListClassEnumerator = [colorLists keyEnumerator];
+	NSString		*colorListClass = nil;
+	while (colorListClass = [colorListClassEnumerator nextObject])
+	{
+		NSEnumerator	*colorListNameEnumerator = [[colorLists objectForKey:colorListClass] objectEnumerator];
+		NSString		*colorListName = nil;
+		while (colorListName = [colorListNameEnumerator nextObject])
+			[settings appendFormat:@"\t<COLOR_LIST CLASS=\"%@\" NAME=\"%@\"/>\n", 
+								   [NSString stringByEscapingXMLEntites:colorListClass],
+								   [NSString stringByEscapingXMLEntites:colorListName]];
+	}
+	[settings appendString:@"</COLORS>\n"];
+	
+	if ([letterPool length] > 0)
+		[settings appendFormat:@"<LETTERS>%@</LETTERS>\n", [NSString stringByEscapingXMLEntites:letterPool]];
+	
+	[settings appendFormat:@"<COUNT CURRENT=\"%d\" LIMIT=\"%d\"/>\n", imageCount, imageCountLimit];
+	
+	return settings;
 }
 
 
 - (void)useSavedSetting:(NSDictionary *)settingDict
 {
-//	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
-//	
-//	if ([settingType isEqualToString:@"NAME"])
-//		[self setAlbumName:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"NAME"] description]]];
-//	else if ([settingType isEqualToString:@"LAST_IMAGE_NAME"])
-//	{
-//		lastEnumeratedImageName = [[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"LAST_IMAGE_NAME"] description]] retain];
-//		imagesHaveBeenEnumerated = NO;
-//	}
+	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
+	
+	if ([settingType isEqualToString:@"COUNT"])
+	{
+		imageCount = [[[settingDict objectForKey:@"CURRENT"] description] intValue];
+		imageCountLimit = [[[settingDict objectForKey:@"LIMIT"] description] intValue];
+	}
 }
 
 
 - (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict
 {
-	// not needed
+	NSString	*settingType = [childSettingDict objectForKey:kMacOSaiXImageSourceSettingType];
+	
+	if ([settingType isEqualToString:@"FONT"])
+		[self addFontWithName:[NSString stringByUnescapingXMLEntites:[[childSettingDict objectForKey:@"NAME"] description]]];
+	else if ([settingType isEqualToString:@"COLOR_LIST"])
+		[self addColorList:[NSString stringByUnescapingXMLEntites:[[childSettingDict objectForKey:@"NAME"] description]] 
+				   ofClass:[NSString stringByUnescapingXMLEntites:[[childSettingDict objectForKey:@"CLASS"] description]]];
 }
 
 
 - (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict
 {
-	// not needed
+	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
+	
+	if ([settingType isEqualToString:@"LETTERS"])
+		[self setLetterPool:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:kMacOSaiXImageSourceSettingText] description]]];
 }
 
 
 - (id)copyWithZone:(NSZone *)zone
 {
-	return [[MacOSaiXGlyphImageSource allocWithZone:zone] init];
+	MacOSaiXGlyphImageSource	*copy = [[MacOSaiXGlyphImageSource allocWithZone:zone] init];
+	
+	NSEnumerator	*fontNameEnumerator = [fontNames objectEnumerator];
+	NSString		*fontName = nil;
+	while (fontName = [fontNameEnumerator nextObject])
+		[copy addFontWithName:fontName];
+	
+	NSEnumerator	*colorListClassEnumerator = [colorLists keyEnumerator];
+	NSString		*colorListClass = nil;
+	while (colorListClass = [colorListClassEnumerator nextObject])
+	{
+		NSEnumerator	*colorListNameEnumerator = [[colorLists objectForKey:colorListClass] objectEnumerator];
+		NSString		*colorListName = nil;
+		while (colorListName = [colorListNameEnumerator nextObject])
+			[copy addColorList:colorListName ofClass:colorListClass];
+	}
+	
+	[copy setLetterPool:letterPool];
+	
+	[copy setImageCountLimit:imageCountLimit];
+	
+	return copy; 
 }
 
 
@@ -196,77 +247,73 @@ static NSImage	*glyphSourceImage = nil;
 {
 	NSImage	*image = nil;
 	
-	NS_DURING
-		if ([fontNames count] > 0)
+	if ([fontNames count] > 0)
+	{
+		unsigned int	fontNum = random() % [fontNames count];
+		NSFont			*font = [NSFont fontWithName:[fontNames objectAtIndex:fontNum] size:12.0];
+		
+		if (font)
 		{
-			unsigned int	fontNum = random() % [fontNames count];
-			NSFont			*font = [NSFont fontWithName:[fontNames objectAtIndex:fontNum] size:12.0];
-			
-			if (font)
+			NSGlyph			glyphNum;
+			if ([self letterPool])
 			{
-				NSGlyph			glyphNum;
-				if ([self letterPool])
-				{
-					NSLayoutManager	*layoutManager = [[[NSLayoutManager alloc] init] autorelease];
-					NSDictionary	*attributes = [NSDictionary dictionaryWithObject:font
-																			  forKey:NSFontAttributeName];
-					NSTextStorage	*textStorage = [[NSTextStorage alloc] initWithString:[self letterPool]
-																			  attributes:attributes];
-					[textStorage addLayoutManager:layoutManager];
-					unsigned	glyphCount = [layoutManager numberOfGlyphs];
-					glyphNum = [layoutManager glyphAtIndex:random() % glyphCount];
-				}
-				else
-					glyphNum = random() % ([font numberOfGlyphs] - 1) + 1;
-				
-				NSBezierPath	*glyphPath = [NSBezierPath bezierPath];
-				NSRect			glyphRect;
-				
-				[focusWindowLock lock];
-					while (![[focusWindow contentView] lockFocusIfCanDraw])
-						[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
-					[glyphPath moveToPoint:NSZeroPoint];
-					[glyphPath appendBezierPathWithGlyph:glyphNum inFont:font];
-					glyphRect = [glyphPath bounds];
-					[[focusWindow contentView] unlockFocus];
-				[focusWindowLock unlock];
+				NSLayoutManager	*layoutManager = [[[NSLayoutManager alloc] init] autorelease];
+				NSDictionary	*attributes = [NSDictionary dictionaryWithObject:font
+																		  forKey:NSFontAttributeName];
+				NSTextStorage	*textStorage = [[NSTextStorage alloc] initWithString:[self letterPool]
+																		  attributes:attributes];
+				[textStorage addLayoutManager:layoutManager];
+				unsigned	glyphCount = [layoutManager numberOfGlyphs];
+				glyphNum = [layoutManager glyphAtIndex:random() % glyphCount];
+			}
+			else
+				glyphNum = random() % ([font numberOfGlyphs] - 1) + 1;
+			
+			NSBezierPath	*glyphPath = [NSBezierPath bezierPath];
+			NSRect			glyphRect;
+			
+			[focusWindowLock lock];
+				while (![[focusWindow contentView] lockFocusIfCanDraw])
+					[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
+				[glyphPath moveToPoint:NSZeroPoint];
+				[glyphPath appendBezierPathWithGlyph:glyphNum inFont:font];
+				glyphRect = [glyphPath bounds];
+				[[focusWindow contentView] unlockFocus];
+			[focusWindowLock unlock];
 
-				if (glyphRect.size.width > 0.0 && glyphRect.size.height > 0.0)
+			if (glyphRect.size.width > 0.0 && glyphRect.size.height > 0.0)
+			{
+				NSColor		*foregroundColor = [self randomColor],
+							*backgroundColor = [self randomColor];
+				
+					// Make sure the colors are a little different.
+				while (fabsf([foregroundColor redComponent] - [backgroundColor redComponent]) < 0.1 && 
+					   fabsf([foregroundColor greenComponent] - [backgroundColor greenComponent]) < 0.1 && 
+					   fabsf([foregroundColor blueComponent] - [backgroundColor blueComponent]) < 0.1)
 				{
-					NSColor		*foregroundColor = [self randomColor],
-								*backgroundColor = [self randomColor];
-					
-						// Make sure the colors are a little different.
-					while (fabsf([foregroundColor redComponent] - [backgroundColor redComponent]) < 0.1 && 
-						   fabsf([foregroundColor greenComponent] - [backgroundColor greenComponent]) < 0.1 && 
-						   fabsf([foregroundColor blueComponent] - [backgroundColor blueComponent]) < 0.1)
-					{
-						foregroundColor = [self randomColor];
-						backgroundColor = [self randomColor];
-					}
-					
-					NSString	*tempIdentifier = [NSString stringWithFormat:
-														@"%@\t%d %d %d %d %d %d %d", 
-														[fontNames objectAtIndex:fontNum], glyphNum,
-														(int)(256.0 * [foregroundColor redComponent]), 
-														(int)(256.0 * [foregroundColor greenComponent]), 
-														(int)(256.0 * [foregroundColor blueComponent]), 
-														(int)(256.0 * [backgroundColor redComponent]), 
-														(int)(256.0 * [backgroundColor greenComponent]), 
-														(int)(256.0 * [backgroundColor blueComponent])];
-					
-					image = [self imageForIdentifier:tempIdentifier];
-					if (image && identifier)
-					{
-						*identifier = tempIdentifier;
-						imageCount++;
-					}
+					foregroundColor = [self randomColor];
+					backgroundColor = [self randomColor];
+				}
+				
+				NSString	*tempIdentifier = [NSString stringWithFormat:
+													@"%@\t%d %d %d %d %d %d %d", 
+													[fontNames objectAtIndex:fontNum], glyphNum,
+													(int)(256.0 * [foregroundColor redComponent]), 
+													(int)(256.0 * [foregroundColor greenComponent]), 
+													(int)(256.0 * [foregroundColor blueComponent]), 
+													(int)(256.0 * [backgroundColor redComponent]), 
+													(int)(256.0 * [backgroundColor greenComponent]), 
+													(int)(256.0 * [backgroundColor blueComponent])];
+				
+				image = [self imageForIdentifier:tempIdentifier];
+				if (image && identifier)
+				{
+					*identifier = tempIdentifier;
+					imageCount++;
 				}
 			}
 		}
-	NS_HANDLER
-		NSLog(@"Failed to create glyph image: %@", [localException reason]);
-	NS_ENDHANDLER
+	}
 	
 	return image;
 }
