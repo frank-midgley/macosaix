@@ -37,6 +37,21 @@
 
 - (void)highlightTile:(Tile *)tile
 {
+    if (_highlightedTile != nil)
+    {
+	// erase any previous highlight
+	NSAffineTransform	*transform = [NSAffineTransform transform];
+	NSBezierPath		*bezierPath;
+	
+	_phase = ++_phase % 10;
+	[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
+	bezierPath = [transform transformBezierPath:[_highlightedTile outline]];
+	[self setNeedsDisplayInRect:NSMakeRect([bezierPath bounds].origin.x - 1,
+					    [bezierPath bounds].origin.y - 1,
+					    [bezierPath bounds].size.width + 2,
+					    [bezierPath bounds].size.height + 2)];
+    }
+    
     _highlightedTile = tile;
 }
 

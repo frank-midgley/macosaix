@@ -95,8 +95,8 @@
     [[[editorTable documentView] tableColumnWithIdentifier:@"image"] setDataCell:[[NSImageCell alloc] init]];
 
     // the editor should not be visible initially
-    [[editorLabel retain] removeFromSuperview];
-    [[editorTable retain] removeFromSuperview];
+//    [[editorLabel retain] removeFromSuperview];
+//    [[editorTable retain] removeFromSuperview];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
 					     selector:@selector(mosaicViewDidScroll:)
@@ -862,16 +862,72 @@
 	    
 	    [(MosaicView *)[mosaicView documentView] highlightTile:_selectedTile];
 	    
-	    if (_selectedTileImages != nil) [_selectedTileImages release];
-	    _selectedTileImages = [[NSMutableArray arrayWithArray:[_selectedTile matches]] retain];
-	    [[editorTable documentView] scrollRowToVisible:0];
-	    [[editorTable documentView] reloadData];
-	    [editorLabel setStringValue:@"Image to use:"];
-	    [mosaicView setNeedsDisplay:YES];
+	    [self updateEditor];
+	    
 	    return;
 	}
 }
 
+- (void)updateEditor
+{
+    if (_selectedTileImages != nil) [_selectedTileImages release];
+    
+    if (_selectedTile == nil)
+    {
+	[editorImageInUse setImage:nil];
+	[editorChooseImage setEnabled:NO];
+	[editorLabel setStringValue:@"Best matches:"];
+	_selectedTileImages = [[NSMutableArray arrayWithCapacity:0] retain];
+    }
+    else
+    {
+	if ([_selectedTile userMatch] != nil)
+	    [editorImageInUse setImage:[[[_selectedTile userMatch] tileImage] image]];
+	else if ([_selectedTile displayMatch] != nil)
+	    [editorImageInUse setImage:[[[_selectedTile displayMatch] tileImage] image]];
+	else
+	    [editorImageInUse setImage:nil];
+
+	[editorChooseImage setEnabled:YES];
+    
+	[editorLabel setStringValue:[NSString stringWithFormat:@"%d best matches:",
+					[[_selectedTile matches] count]]];
+    
+	_selectedTileImages = [[NSMutableArray arrayWithArray:[_selectedTile matches]] retain];
+    }
+    
+    [[editorTable documentView] reloadData];
+}
+
+
+- (void)showUserChoiceInEditor:(id)sender
+{
+    [self showTileMatchInEditor:[_selectedTile userMatch] selecting:NO];
+}
+
+
+- (void)showMacOSaiXChoiceInEditor:(id)sender
+{
+    [self showTileMatchInEditor:[_selectedTile displayMatch] selecting:NO];
+}
+
+
+- (BOOL)showTileMatchInEditor:(TileMatch *)tileMatch selecting:(BOOL)selecting
+{
+    int	i;
+    
+    if (_selectedTile == nil) return NO;
+    
+    for (i = 0; i < [[_selectedTile matches] count]; i++)
+	if ([[_selectedTile matches] objectAtIndex:i] == tileMatch)
+	{
+	    if (selecting)
+		[[editorTable documentView] selectRow:i byExtendingSelection:NO];
+	    [[editorTable documentView] scrollRowToVisible:i];
+	    return YES;
+	}
+    return NO;
+}
 
 #pragma mark -
 #pragma mark View methods
@@ -913,16 +969,7 @@
     {
 	[(MosaicView *)[mosaicView documentView] highlightTile:nil];
 	[viewCompareButton setImage:[NSImage imageNamed:@"ViewCompareOn"]];
-	[[mosaicView superview] addSubview:originalView];
-	[originalView release];
-	[[mosaicView superview] addSubview:showOutlinesSwitch];
-	[showOutlinesSwitch release];
 	newFrame.size.width = [mosaicView frame].size.width * 2 - 20;
-	if (_viewMode == viewMosaicEditor)
-	{
-	    [[editorLabel retain] removeFromSuperview];
-	    [[editorTable retain] removeFromSuperview];
-	}
 	_viewMode = viewMosaicAndOriginal;
 	[self calculateFramesFromSize:NSMakeSize(newFrame.size.width,
 						[[_mainWindow contentView] bounds].size.height )];
@@ -939,40 +986,22 @@
 						[[_mainWindow contentView] bounds].size.height )];
 	[_mainWindow setFrame:newFrame display:YES animate:YES];
 	newFrame.size.width = [mosaicView frame].size.width;
-	if (_viewMode == viewMosaicAndOriginal)
-	{
-	    [[originalView retain] removeFromSuperview];
-	    [[showOutlinesSwitch retain] removeFromSuperview];
-	}
-	if (_viewMode == viewMosaicEditor)
-	{
-	    [[editorLabel retain] removeFromSuperview];
-	    [[editorTable retain] removeFromSuperview];
-	}
 	_viewMode = viewMosaicAlone;
     }
     
     if (mode == viewMosaicEditor)
     {
 	[(MosaicView *)[mosaicView documentView] highlightTile:_selectedTile];
+	[self updateEditor];
 	[[editorTable documentView] scrollRowToVisible:0];
 	[[editorTable documentView] reloadData];
 	[viewEditorButton setImage:[NSImage imageNamed:@"ViewEditorOn"]];
-	[[mosaicView superview] addSubview:editorLabel];
-	[editorLabel release];
-	[[mosaicView superview] addSubview:editorTable];
-	[editorTable release];
-	newFrame.size.width = [mosaicView frame].size.width + 124;
-	if (_viewMode == viewMosaicAndOriginal)
-	{
-	    [[originalView retain] removeFromSuperview];
-	    [[showOutlinesSwitch retain] removeFromSuperview];
-	}
+	newFrame.size.width = [mosaicView frame].size.width + 266;
 	_viewMode = viewMosaicEditor;
 	[self calculateFramesFromSize:NSMakeSize(newFrame.size.width,
 						[[_mainWindow contentView] bounds].size.height )];
 	[_mainWindow setFrame:newFrame display:YES animate:YES];
-	newFrame.size.width = [mosaicView frame].size.width + 128;
+	newFrame.size.width = [mosaicView frame].size.width + 270;
     }
 
     _viewIsChanging = NO;
@@ -1023,6 +1052,7 @@
 			    frame.size.height - bounds.size.height);
 	[[mosaicView documentView] setFrame:frame];
 	[[mosaicView contentView] setBounds:bounds];
+//	[[mosaicView documentView] scaleUnitSquareToSize:NSMakeSize(1, 1)];
 	[mosaicView setNeedsDisplay:YES];
     }
     [originalView setNeedsDisplay:YES];
@@ -1091,6 +1121,8 @@
 	// calculate the mosaic view's new frame
 	newFrame = NSMakeRect(0, 0, frameSize.width, frameSize.height);
 	[mosaicView setFrame:newFrame];
+	
+	[tabView selectTabViewItemAtIndex:0];
     }
 
     if (_viewMode == viewMosaicAndOriginal)
@@ -1103,29 +1135,38 @@
 	}
 
 	// calculate the original view's new frame
-	newFrame = NSMakeRect([mosaicView frame].size.width, 16,
-			      frameSize.width - [mosaicView frame].size.width,
-			      [mosaicView frame].size.height - 16);
-	[originalView setFrame:newFrame];
+	newFrame = NSMakeRect([mosaicView frame].size.width, 0,
+			      frameSize.width - [mosaicView frame].size.width, frameSize.height);
+//	newFrame = NSMakeRect([mosaicView frame].size.width, 16,
+//			      frameSize.width - [mosaicView frame].size.width,
+//			      [mosaicView frame].size.height - 16);
+//	[originalView setFrame:newFrame];
+	[tabView selectTabViewItemAtIndex:1];
 	
 	// calculate the original switch's new origin
-	[showOutlinesSwitch setFrameOrigin:NSMakePoint([mosaicView frame].size.width + 5, -1)];
+//	[showOutlinesSwitch setFrameOrigin:NSMakePoint([mosaicView frame].size.width + 5, -1)];
     }
 
     if (_viewMode == viewMosaicEditor)
     {
 	// calculate the mosaic view's new frame
 	if (!_viewIsChanging)
-	    [mosaicView setFrame:NSMakeRect(0, 0, frameSize.width - 128, frameSize.height)];
+	    [mosaicView setFrame:NSMakeRect(0, 0, frameSize.width - 270, frameSize.height)];
 
-	// calculate the editor table's new frame
+	[tabView selectTabViewItemAtIndex:2];
+
+/*	// calculate the editor table's new frame
 	[editorTable setFrame:NSMakeRect([mosaicView frame].size.width + 16, 16,
 					 96, [mosaicView frame].size.height - 40)];
 	
 	//calculate the editor label's new origin
 	[editorLabel setFrameOrigin:NSMakePoint([mosaicView frame].size.width + 16,
-						[mosaicView frame].size.height - 19)];
+						[mosaicView frame].size.height - 19)];*/
     }
+    
+    [tabView setFrame:NSMakeRect([mosaicView frame].size.width, 0,
+				 frameSize.width - [mosaicView frame].size.width, frameSize.height)];
+
 }
 
 
@@ -1420,7 +1461,7 @@
     else if (_viewMode == viewMosaicAlone)
 	proposedFrameSize.height = (proposedFrameSize.width - 16) / aspectRatio;
     else if (_viewMode == viewMosaicEditor)
-	proposedFrameSize.height = (proposedFrameSize.width - 144) / aspectRatio;
+	proposedFrameSize.height = (proposedFrameSize.width - 270) / aspectRatio;
     
     proposedFrameSize.height += 16 + (_statusBarShowing ? [statusBarView frame].size.height : 0);
     
