@@ -957,10 +957,7 @@
 		NSString	*imageIdentifier = nil;
 		NSImage		*image = [imageSource nextImageAndIdentifier:&imageIdentifier];
 		
-		if (![image isValid])
-			image = nil;
-		
-		if (image)
+		if (image && [image isValid] && [image size].width > 16 && [image size].height > 16)
 		{
 			[imageQueueLock lock];	// this will be locked if the queue is full
 				while ([imageQueue count] > MAXIMAGEURLS)
@@ -1062,6 +1059,7 @@
 					[thumbnailImage lockFocus];
 					haveFocus = YES;
 				NS_HANDLER
+					NSLog(@"Couldn't lock focus on thumbnail: %@", localException);
 				NS_ENDHANDLER
 			}
 			
