@@ -2,12 +2,20 @@ This version:
     Test on G3 & Jaguar
 ?   Memory mgmt. issues
 
+Need to be able to:
+¥ Create new image source (from NewDocument, Document or Prefs windows)
+	(need callback when source created)
+¥ Edit existing image source (if mosaic has not begun)	
+¥ Get next image identifier
+¥ Get image for identifier
+¥ Determine if there are any more images
 
 Future version(s):
+	Allow user to specify number of image matches kept for each tile.
     Show tile extraction count in status bar
     Calculate match of user chosen images
     Statistics drawer/window
-    Width of status text problem
+    Width of status text problem (works when shown/hidden)
     Better versioning in documents
     Should pause also pause uniqueness thread?
     Does save reset autosave clock?
@@ -19,9 +27,9 @@ Future version(s):
     Add code to support crop limit
     Autosave on/off switch
     Plug-in architecture for image sources and tile outlines
-    Mosaic quality should take into account tile active pixel count
+    Mosaic quality calculation should take into account tile active pixel count
     Toggle outline switch in editor?
-    iPhoto integration
+    iPhoto integration (plug-in)
     "Must include" images
     Printing (greeting card format?)
     Grayscale option
