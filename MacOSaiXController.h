@@ -15,20 +15,24 @@
     NSMutableArray		*_tiles;
     float			*bestMatch;
     NSDirectoryEnumerator	*enumerator;
-    int				imageCount, maxImages;
+    int				imageCount, maxImages, matcherThreadCount;
     BOOL			inProgress, somethingChanged;
 //    id <MatcherMethods>		matcher;	// proxy to the matcher object in the detached thread
     NSString			*pixPath;
-    NSLock			*mosaicLock;
+    NSLock			*mosaicLock, *threadCountLock;
 }
 
 - (void)startMosaic:(id)sender;
 - (void)updateDisplay:(id)timer;
-- (void)processAFile:(id)timer;
-- (void)calculateMatchesWithFile:(id)filePath;
-- (float)computeMatch:(Tile *)tile with:(NSBitmapImageRep *)imageRep;
+- (void)feedMatcher:(id)timer;
+- (void)calculateMatchesWithNextFile:(id)foo;
+- (float)computeMatch:(Tile *)tile with:(NSBitmapImageRep *)imageRep previousBest:(float)prevBest;
 
 // application delegate methods
 - (void)applicationDidFinishLaunching:(NSNotification *)note;
+
+// window delegate methods
+- (NSSize)windowWillResize:(NSWindow *)sender toSize:(NSSize)proposedFrameSize;
+- (void)windowDidResize:(NSNotification *)notification;
 
 @end
