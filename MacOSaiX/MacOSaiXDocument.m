@@ -22,6 +22,7 @@
 NSString	*MacOSaiXDocumentDidChangeStateNotification = @"MacOSaiXDocumentDidChangeStateNotification";
 NSString	*MacOSaiXDocumentDidSaveNotification = @"MacOSaiXDocumentDidSaveNotification";
 NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDidChangeNotification";
+NSString	*MacOSaiXTileImageDidChangeNotification = @"MacOSaiXTileImageDidChangeNotification";
 NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDidChangeStateNotification";
 
 
@@ -47,6 +48,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		[self setHasUndoManager:FALSE];	// don't track undo-able changes
 		
 		paused = YES;
+		[self setTileShapes:[[[NSClassFromString(@"MacOSaiXRectangularTileShapes") alloc] init] autorelease]];
 		imageSources = [[NSMutableArray arrayWithCapacity:0] retain];
 		lastSaved = [[NSDate date] retain];
 		autosaveFrequency = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Autosave Frequency"] intValue];
@@ -357,7 +359,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	Tile				*tile = nil;
 	while (tile = [tileEnumerator nextObject])
 	{
-		NSEnumerator	*matchEnumerator = [[tile matches] objectEnumerator];
+		NSEnumerator	*matchEnumerator = [[NSArray arrayWithObjects:[tile imageMatch], [tile userChosenImageMatch], nil] 
+												objectEnumerator];
 		ImageMatch		*match = nil;
 		while (match = [matchEnumerator nextObject])
 		{
@@ -528,19 +531,19 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					[fileHandle writeData:[@"\t\t</OUTLINE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 					
 						// Now write out the tile's matches.
-					[fileHandle writeData:[@"\t\t<MATCH_DATA>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-					NSEnumerator	*matchEnumerator = [[tile matches] objectEnumerator];
-					ImageMatch		*match = nil;
-					while (match = [matchEnumerator nextObject])
-					{
-						NSString			*imageSourceID = [self indexAsAlpha:[imageSources indexOfObjectIdenticalTo:[match imageSource]]];
-						NSMutableDictionary	*imageSourceImageDict = [imagesInUse objectForKey:imageSourceID];
-						NSNumber			*imageID = [imageSourceImageDict objectForKey:[match imageIdentifier]];
-						
-						[fileHandle writeData:[[NSString stringWithFormat:@"%@%@\t%d\n", imageSourceID, imageID, [match matchValue] * 100.0]
-													dataUsingEncoding:NSUTF8StringEncoding]];
-					}
-					[fileHandle writeData:[@"\t\t</MATCHDATA>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+//					[fileHandle writeData:[@"\t\t<MATCH_DATA>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+//					NSEnumerator	*matchEnumerator = [[tile matches] objectEnumerator];
+//					ImageMatch		*match = nil;
+//					while (match = [matchEnumerator nextObject])
+//					{
+//						NSString			*imageSourceID = [self indexAsAlpha:[imageSources indexOfObjectIdenticalTo:[match imageSource]]];
+//						NSMutableDictionary	*imageSourceImageDict = [imagesInUse objectForKey:imageSourceID];
+//						NSNumber			*imageID = [imageSourceImageDict objectForKey:[match imageIdentifier]];
+//						
+//						[fileHandle writeData:[[NSString stringWithFormat:@"%@%@\t%d\n", imageSourceID, imageID, [match matchValue] * 100.0]
+//													dataUsingEncoding:NSUTF8StringEncoding]];
+//					}
+//					[fileHandle writeData:[@"\t\t</MATCHDATA>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 					
 					// TODO: (match == [tile userChosenImageMatch] ? @"USER_CHOSEN" : @"")] 
 					
@@ -717,29 +720,29 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 - (void)calculateTileNeighborhoods
 {
 		// At a minimum each tile neighbors its direct neighbors.
-	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-	Tile			*tile = nil;
-	while (tile = [tileEnumerator nextObject])
-		[tile setNeighbors:[directNeighbors objectForKey:[NSString stringWithFormat:@"%p", tile]]];
-	
-	int	degreeOfSeparation;
-	for (degreeOfSeparation = 1; degreeOfSeparation < neighborhoodSize; degreeOfSeparation++)
-	{
-			// Add the direct neighbors of every tile's neighbor to the tile's neighborhood.
-		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-		Tile			*tile = nil;
-		while (tile = [tileEnumerator nextObject])
-		{ 
-			NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
-			NSEnumerator		*neighborEnumerator = [[tile neighbors] objectEnumerator];
-			Tile				*neighbor = nil;
-			
-			while (![self isClosing] && (neighbor = [neighborEnumerator nextObject]))
-				[tile addNeighbors:[directNeighbors objectForKey:[NSString stringWithFormat:@"%p", neighbor]]];
-			
-			[pool2 release];
-		}
-	}
+//	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+//	Tile			*tile = nil;
+//	while (tile = [tileEnumerator nextObject])
+//		[tile setNeighboringTiles:[directNeighbors objectForKey:[NSString stringWithFormat:@"%p", tile]]];
+//	
+//	int	degreeOfSeparation;
+//	for (degreeOfSeparation = 1; degreeOfSeparation < neighborhoodSize; degreeOfSeparation++)
+//	{
+//			// Add the direct neighbors of every tile's neighbor to the tile's neighborhood.
+//		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+//		Tile			*tile = nil;
+//		while (tile = [tileEnumerator nextObject])
+//		{ 
+//			NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
+//			NSEnumerator		*neighborEnumerator = [[tile neighboringTiles] objectEnumerator];
+//			Tile				*neighbor = nil;
+//			
+//			while (![self isClosing] && (neighbor = [neighborEnumerator nextObject]))
+//				[tile addNeighbors:[directNeighbors objectForKey:[NSString stringWithFormat:@"%p", neighbor]]];
+//			
+//			[pool2 release];
+//		}
+//	}
 }
 
 
@@ -776,36 +779,36 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 	
 		// Calculate the directly neighboring tiles of each tile.  This is used to calculate
 		// each tile's neighborhood when combined with the neighborhood size setting.
-	if (!directNeighbors)
-		directNeighbors = [[NSMutableDictionary dictionary] retain];
-	else
-		[directNeighbors removeAllObjects];
-	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-	Tile			*tile = nil;
-    while (tile = [tileEnumerator nextObject])
-	{
-		NSRect	tileBounds = [[tile outline] bounds],
-				zoomedTileBounds = NSZeroRect;
-		
-			// scale the rect up slightly so it overlaps with it's neighbors
-		zoomedTileBounds.size = NSMakeSize(tileBounds.size.width * 1.01, tileBounds.size.height * 1.01);
-		zoomedTileBounds.origin.x += NSMidX(tileBounds) - NSMidX(zoomedTileBounds);
-		zoomedTileBounds.origin.y += NSMidY(tileBounds) - NSMidY(zoomedTileBounds);
-		
-			// Loop through the other tiles and add as neighbors any that intersect.
-			// TO DO: This currently just checks if the bounding boxes of the tiles intersect.
-			//        For non-rectangular tiles this will not be accurate enough.
-		NSMutableArray	*directNeighborArray = [NSMutableArray array];
-		NSEnumerator	*tileEnumerator2 = [tiles objectEnumerator];
-		Tile			*tile2 = nil;
-		while (tile2 = [tileEnumerator2 nextObject])
-			if (tile2 != tile && NSIntersectsRect(zoomedTileBounds, [[tile2 outline] bounds]))
-				[directNeighborArray addObject:tile2];
-		
-		[directNeighbors setObject:directNeighborArray forKey:[NSString stringWithFormat:@"%p", tile]];
-	}
-	
-	[self calculateTileNeighborhoods];
+//	if (!directNeighbors)
+//		directNeighbors = [[NSMutableDictionary dictionary] retain];
+//	else
+//		[directNeighbors removeAllObjects];
+//	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+//	Tile			*tile = nil;
+//    while (tile = [tileEnumerator nextObject])
+//	{
+//		NSRect	tileBounds = [[tile outline] bounds],
+//				zoomedTileBounds = NSZeroRect;
+//		
+//			// scale the rect up slightly so it overlaps with it's neighbors
+//		zoomedTileBounds.size = NSMakeSize(tileBounds.size.width * 1.01, tileBounds.size.height * 1.01);
+//		zoomedTileBounds.origin.x += NSMidX(tileBounds) - NSMidX(zoomedTileBounds);
+//		zoomedTileBounds.origin.y += NSMidY(tileBounds) - NSMidY(zoomedTileBounds);
+//		
+//			// Loop through the other tiles and add as neighbors any that intersect.
+//			// TO DO: This currently just checks if the bounding boxes of the tiles intersect.
+//			//        For non-rectangular tiles this will not be accurate enough.
+//		NSMutableArray	*directNeighborArray = [NSMutableArray array];
+//		NSEnumerator	*tileEnumerator2 = [tiles objectEnumerator];
+//		Tile			*tile2 = nil;
+//		while (tile2 = [tileEnumerator2 nextObject])
+//			if (tile2 != tile && NSIntersectsRect(zoomedTileBounds, [[tile2 outline] bounds]))
+//				[directNeighborArray addObject:tile2];
+//		
+//		[directNeighbors setObject:directNeighborArray forKey:[NSString stringWithFormat:@"%p", tile]];
+//	}
+//	
+//	[self calculateTileNeighborhoods];
 		
 	if ([imageSources count] > 0)
 		[self resume];
@@ -1128,10 +1131,6 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
 	
-    NSImage				*scratchImage = [[[NSImage alloc] initWithSize:NSMakeSize(1024, 1024)] autorelease];
-	[scratchImage setCachedSeparately:YES];
-	[scratchImage setCacheMode:NSImageCacheNever];
-	
 //	NSLog(@"Calculating image matches\n");
 	
 		// Don't usurp the main thread.
@@ -1165,34 +1164,77 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 		
 			// Add this image to the cache.  If the identifier is nil or zero-length then 
 			// a new identifier will be returned.
-		pixletImageIdentifier = [imageCache cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
+		if (pixletImage)
+			pixletImageIdentifier = [imageCache cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
 		
-			// loop through the tiles and compute the pixlet's match
+			// Find the tiles that match this image better than their current image.
+		NSMutableArray	*betterMatches = [NSMutableArray array];
 		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
 		Tile			*tile = nil;
 		while ((tile = [tileEnumerator nextObject]) && !documentIsClosing)
 		{
-				// Get an rep for the image scaled to the tile's bitmap size.
-			NSImageRep		*imageRep = [[self imageCache] imageRepAtSize:[[tile bitmapRep] size] 
-															forIdentifier:pixletImageIdentifier 
-															   fromSource:pixletImageSource];
+				// Get a rep for the image scaled to the tile's bitmap size.
+			NSBitmapImageRep	*imageRep = [[self imageCache] imageRepAtSize:[[tile bitmapRep] size] 
+																forIdentifier:pixletImageIdentifier 
+																   fromSource:pixletImageSource];
 	
-				// If the tile reports that the image matches better than its previous worst match
-				// then add the tile to the set of tiles potentially needing redraw.
-			if (imageRep && [tile matchAgainstImageRep:(NSBitmapImageRep *)imageRep
-										withIdentifier:pixletImageIdentifier
-									   fromImageSource:pixletImageSource])
+				// If the rep is valid and it matches the tile better than the tile's current image 
+				// then add this tile to the list of tiles that could be updated.
+			if (imageRep)
 			{
-				[self updateChangeCount:NSChangeDone];
+				float	matchValue = [tile matchValueForImageRep:imageRep
+												  withIdentifier:pixletImageIdentifier
+											     fromImageSource:pixletImageSource];
 				
-				[refreshTilesSetLock lock];
-					[refreshTilesSet addObject:tile];
-				[refreshTilesSetLock unlock];
-
-				if (!calculateDisplayedImagesThreadAlive)
-					[NSApplication detachDrawingThread:@selector(calculateDisplayedImages:) toTarget:self withObject:nil];
+				if (![tile imageMatch] || matchValue <= [[tile imageMatch] matchValue])
+					[betterMatches addObject:[[[ImageMatch alloc] initWithMatchValue:matchValue 
+															      forImageIdentifier:pixletImageIdentifier 
+																     fromImageSource:pixletImageSource
+																		     forTile:tile] autorelease]];
 			}
 		}
+		
+			// Figure out which tiles should be set to use the image based on the user's settings.
+		[betterMatches sortUsingSelector:@selector(compare:)];
+#if 1
+			// Just allow one use of each image for now.
+		if ([betterMatches count] > 0)
+		{
+			ImageMatch	*betterMatch = [betterMatches objectAtIndex:0];
+			Tile		*tile = [betterMatch tile];
+			ImageMatch	*previousMatch = [tile imageMatch];
+			
+				// Add the tile's current image back to the queue so it can potentially get re-used by other tiles.
+				// TBD: when will images in the disk cache get purged?
+			if (previousMatch)
+			{
+				if (!queueLocked)
+				{
+					[imageQueueLock lock];
+					queueLocked = YES;
+				}
+				[imageQueue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+											[previousMatch imageSource], @"Image Source", 
+											[previousMatch imageIdentifier], @"Image Identifier",
+											nil]];
+			}
+			
+			[tile setImageMatch:betterMatch];
+			[self updateChangeCount:NSChangeDone];
+		}
+#else
+		NSEnumerator	*matchEnumerator = [betterMatches objectEnumerator];
+		ImageMatch		*betterMatch = nil;
+		while ((betterMatch = [matchEnumerator nextObject]) && !documentIsClosing)
+		{
+			Tile	*tile = [betterMatch tile];
+//			if ( ??? )
+			{
+				[tile setImageMatch:betterMatch];
+				[self updateChangeCount:NSChangeDone];
+			}
+		}
+#endif
 
 		imagesMatched++;
 		
@@ -1221,71 +1263,6 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 
 #pragma mark -
 #pragma mark Uniqueness
-
-
-- (void)calculateDisplayedImages:(id)dummy
-{
-		// This method is called in a new thread whenever a non-empty image queue is discovered.
-		// It pulls images from the queue and matches them against each tile.  Once the queue
-		// is empty the method will end and the thread is terminated.
-
-    NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-
-        // make sure we only ever have a single instance of this thread running
-	[calculateDisplayedImagesThreadLock lock];
-		if (calculateDisplayedImagesThreadAlive)
-		{
-                // another copy is already running, just return
-			[calculateDisplayedImagesThreadLock unlock];
-			[pool release];
-			return;
-		}
-		calculateDisplayedImagesThreadAlive = YES;
-	[calculateDisplayedImagesThreadLock unlock];
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
-	
-//	NSLog(@"Calculating displayed images\n");
-	
-		// Don't usurp the main thread.
-	[NSThread setThreadPriority:0.1];
-
-    BOOL	tilesAddedToRefreshSet = NO;
-
-        // Make a local copy of the set of tiles to refresh and then clear 
-        // the main set so new tiles can be added while we work.
-	[refreshTilesSetLock lock];
-        NSArray	*tilesToRefresh = [refreshTilesSet allObjects];
-        [refreshTilesSet removeAllObjects];
-    [refreshTilesSetLock unlock];
-    
-        // Now loop through each tile in the set and re-calculate which image it should use
-    NSEnumerator	*tileEnumerator = [tilesToRefresh objectEnumerator];
-    Tile			*tileToRefresh = nil;
-    while (!documentIsClosing && (tileToRefresh = [tileEnumerator nextObject]))
-        if ([tileToRefresh calculateBestMatch])
-        {
-				// The image to display for this tile changed so add the tile's neighbors to the 
-				// set of tiles to refresh in case they can use the image we just stopped using.
-			tilesAddedToRefreshSet = YES;
-            [refreshTilesSetLock lock];
-                [refreshTilesSet addObjectsFromArray:[tileToRefresh neighbors]];
-            [refreshTilesSetLock unlock];
-        }
-
-	[calculateDisplayedImagesThreadLock lock];
-	    calculateDisplayedImagesThreadAlive = NO;
-	[calculateDisplayedImagesThreadLock unlock];
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
-	
-        // Launch another copy of ourself if any other tiles need refreshing
-    if (tilesAddedToRefreshSet)
-        [NSApplication detachDrawingThread:@selector(calculateDisplayedImages:) toTarget:self withObject:nil];
-
-		// clean up and shutdown this thread.
-    [pool release];
-}
 
 
 - (BOOL)isCalculatingDisplayedImages
