@@ -1,0 +1,13 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {startMosaic = id; }; 
+            CLASS = MacOSaiXController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {goButton = id; imagesMatched = id; mosaicView = id; originalView = id; }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}
