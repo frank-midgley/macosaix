@@ -3,12 +3,14 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
-                addImageSource = id; 
+                addNewImageSource = id; 
                 allowUserToChooseImage = id; 
                 beginExportImage = id; 
+                cancelImageSource = id; 
+                removeImageSource = id; 
+                saveImageSource = id; 
                 setExportHeightFromWidth = id; 
                 setExportWidthFromHeight = id; 
-                setImageSourcesPlugIn = id; 
                 setJPEGExport = id; 
                 setNeighborhoodSize = id; 
                 setShowOutlines = id; 
@@ -40,10 +42,12 @@
                 exportHeight = NSTextField; 
                 exportPanelAccessoryView = id; 
                 exportWidth = NSTextField; 
+                imageSourceEditorBox = NSBox; 
+                imageSourceEditorOKButton = NSButton; 
+                imageSourceEditorPanel = NSPanel; 
                 imageSourcesPopUpButton = NSPopUpButton; 
                 imageSourcesRemoveButton = NSButton; 
-                imageSourcesTabView = NSTabView; 
-                imageSourcesTable = NSTableView; 
+                imageSourcesTableView = NSTableView; 
                 matchValueTextField = NSTextField; 
                 mosaicScrollView = NSScrollView; 
                 mosaicView = MosaicView; 
