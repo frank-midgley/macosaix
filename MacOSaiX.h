@@ -7,12 +7,14 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <AppKit/AppKit.h>
 
 
 @interface MacOSaiX : NSObject {
-
+    
 }
 
+- (BOOL)applicationShouldOpenUntitledFile:(NSApplication *)sender;
 - (void)newMacOSaiXDocument:(id)sender;
 
 @end

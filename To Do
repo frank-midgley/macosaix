@@ -1,12 +1,13 @@
-"New Mosaic..." dialog
-Crop images instead of scaling (rounding error?)
+Must haves:
 Pro/inhibit repeating images
-Zoom in on individual tile
+Zoom in on individual tile (three views)
 Google Images interface
-Printing
-"Must include" images
+Restrict window resizing to preserve image's aspect ratio
+
+
+Bonuses:
 Way of pausing spawned thread
-Restrict window resizing to preserver image's aspect ratio
-Mosiac image size != original image bounds
+"Must include" images
+Printing
 Grayscale option
 Velocity engine

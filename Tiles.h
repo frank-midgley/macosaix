@@ -10,6 +10,9 @@
 #import <Cocoa/Cocoa.h>
 #import "TileMatch.h"
 
+#define TILE_BITMAP_SIZE 32
+#define TILE_BITMAP_DISPLAY_SIZE 80
+
 @interface Tile : NSObject
 {
     NSBezierPath	*_outline;		// The shape of this tile
@@ -29,5 +32,3 @@
 - (void)dealloc;
 
 @end
-
-#define TILE_BITMAP_SIZE 32
