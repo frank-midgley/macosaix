@@ -102,9 +102,7 @@ Ordered array:		images, fileIDs
 2.0x To Do:
 ¥	Make sure pixels are being pulled from bitmaps correctly
 ¥	Make neighborhood calculation more efficient or threaded
-¥	Split MacOSaiXWindowController out of MacOSaiXDocument
 ¥	Rework MosaicView to not use a stored image but redraw the tiles as needed in -drawRect:.  Would allow for better zooming.
-¥	Pausing
 ¥	Buffered exporting
 ¥	Editor
 ¥	Test on Jaguar
@@ -115,8 +113,10 @@ Ordered array:		images, fileIDs
 ¥	Compare straight color match vs. Riemersma
 ¥	Version check
 ¥	Link to home page in About box or help menu
-¥	Glyph source
+¥	Resurrect Glyph source
 ¥	Minimum sizing for image source editor sheet
+¥	Add preferences API for image source plug-ins
+¥	Add preferences API for tile shapes plug-ins
 
 2.0a2 To Do:
 Ã	Uniqueness
@@ -124,11 +124,24 @@ Ordered array:		images, fileIDs
 Ã	Recent originals in open panel
 Ã	Make all image identifiers strings (still used as plist dictionary key?)
 Ã	Change idle message
-¥	Saving (plug-ins state)
+Ã	Pausing
+Ã	Split MacOSaiXWindowController out of MacOSaiXDocument
+¥	Saving (+ plug-ins state)
 ¥	Image cache purging (on save)
-¥	Get rid of framework? (+ rework plug-ins)
+¥	Rework tile shapes plug-in API to get rid of framework
+¥	Rework rectangular shapes plug-in to conform with new API
+¥	Rework hexagonal shapes plug-in to conform with new API
+¥	Rework puzzle shapes plug-in to conform with new API
 ¥	Google source:
 ¥		Make sure cache doesn't fill disk
+¥	Show average aspect ratio in setup
+¥	QuickTime source:
+¥		Show aspect ratio
+¥		Scale movie when sheet presented
+¥		Recent movies
+¥	Directory source:
+¥		Recent movies
+¥		Show more folder levels
 x	Original image view (scaling/tinting)
 	
 
