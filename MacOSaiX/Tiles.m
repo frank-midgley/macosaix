@@ -9,7 +9,7 @@
 - (id)initWithMatchValue:(float)inMatchValue 
 	  forImageIdentifier:(NSString *)inImageIdentifier 
 		 fromImageSource:(id<MacOSaiXImageSource>)inImageSource
-				 forTile:(Tile *)inTile
+				 forTile:(MacOSaiXTile *)inTile
 {
 	if (self = [super init])
 	{
@@ -41,7 +41,7 @@
 }
 
 
-- (Tile *)tile
+- (MacOSaiXTile *)tile
 {
 	return tile;
 }
@@ -75,7 +75,7 @@
 #pragma mark -
 
 
-@implementation Tile
+@implementation MacOSaiXTile
 
 
 - (id)initWithOutline:(NSBezierPath *)inOutline fromDocument:(MacOSaiXDocument *)inDocument
@@ -143,9 +143,6 @@
 
 	// Match this tile's bitmap against matchRep and return whether the new match is better
 	// than this tile's previous worst.
-//- (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep
-//			  withIdentifier:(NSString *)imageIdentifier
-//		     fromImageSource:(id<MacOSaiXImageSource>)imageSource
 - (float)matchValueForImageRep:(NSBitmapImageRep *)matchRep
 			    withIdentifier:(NSString *)imageIdentifier
 			   fromImageSource:(id<MacOSaiXImageSource>)imageSource
@@ -233,7 +230,6 @@
 		if (!userChosenImageMatch && NO)	// TODO: check showBestNonUniqueMatch pref
 			[self sendImageChangedNotification];
 	}
-	
 	
 	return matchValue;
 }

@@ -351,7 +351,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 {
 	NSMutableDictionary	*imagesInUse = [NSMutableDictionary dictionary];
 	NSEnumerator		*tileEnumerator = [tiles objectEnumerator];
-	Tile				*tile = nil;
+	MacOSaiXTile		*tile = nil;
 	while (tile = [tileEnumerator nextObject])
 	{
 		NSEnumerator	*matchEnumerator = [[NSArray arrayWithObjects:[tile imageMatch], [tile userChosenImageMatch], nil] 
@@ -488,7 +488,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					// Write out the tiles
 				[fileHandle writeData:[@"<TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-				Tile			*tile = nil;
+				MacOSaiXTile	*tile = nil;
 				while (tile = [tileEnumerator nextObject])
 				{
 					NSAutoreleasePool	*tilePool = [[NSAutoreleasePool alloc] init];
@@ -716,7 +716,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 {
 		// At a minimum each tile neighbors its direct neighbors.
 //	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-//	Tile			*tile = nil;
+//	MacOSaiXTile	*tile = nil;
 //	while (tile = [tileEnumerator nextObject])
 //		[tile setNeighboringTiles:[directNeighbors objectForKey:[NSString stringWithFormat:@"%p", tile]]];
 //	
@@ -725,12 +725,12 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 //	{
 //			// Add the direct neighbors of every tile's neighbor to the tile's neighborhood.
 //		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-//		Tile			*tile = nil;
+//		MacOSaiXTile	*tile = nil;
 //		while (tile = [tileEnumerator nextObject])
 //		{ 
 //			NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
 //			NSEnumerator		*neighborEnumerator = [[tile neighboringTiles] objectEnumerator];
-//			Tile				*neighbor = nil;
+//			MacOSaiXTile		*neighbor = nil;
 //			
 //			while (![self isClosing] && (neighbor = [neighborEnumerator nextObject]))
 //				[tile addNeighbors:[directNeighbors objectForKey:[NSString stringWithFormat:@"%p", neighbor]]];
@@ -761,7 +761,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 					*combinedOutline = [NSBezierPath bezierPath];
     while (tileOutline = [tileOutlineEnumerator nextObject])
 	{
-		[tiles addObject:[[[Tile alloc] initWithOutline:tileOutline fromDocument:self] autorelease]];
+		[tiles addObject:[[[MacOSaiXTile alloc] initWithOutline:tileOutline fromDocument:self] autorelease]];
 		
 			// Add this outline to the master path used to draw all of the tile outlines over the full image.
 		[combinedOutline appendBezierPath:tileOutline];
@@ -779,7 +779,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 //	else
 //		[directNeighbors removeAllObjects];
 //	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-//	Tile			*tile = nil;
+//	MacOSaiXTile	*tile = nil;
 //    while (tile = [tileEnumerator nextObject])
 //	{
 //		NSRect	tileBounds = [[tile outline] bounds],
@@ -795,7 +795,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 //			//        For non-rectangular tiles this will not be accurate enough.
 //		NSMutableArray	*directNeighborArray = [NSMutableArray array];
 //		NSEnumerator	*tileEnumerator2 = [tiles objectEnumerator];
-//		Tile			*tile2 = nil;
+//		MacOSaiXTile	*tile2 = nil;
 //		while (tile2 = [tileEnumerator2 nextObject])
 //			if (tile2 != tile && NSIntersectsRect(zoomedTileBounds, [[tile2 outline] bounds]))
 //				[directNeighborArray addObject:tile2];
@@ -876,7 +876,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 		3. ?
 	*/
 	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-	Tile			*tile = nil;
+	MacOSaiXTile	*tile = nil;
     while (!documentIsClosing && (tile = [tileEnumerator nextObject]))
 	{
 		index++;
@@ -1168,14 +1168,12 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 		
 //		NSLog(@"Matching %@ from %@", pixletImageIdentifier, pixletImageSource);
 		
-			// If the pixlet image is large then use a scaled down copy instead to speed matching.
-//		if ([pixletImage size].width > (TILE_BITMAP_SIZE * 2.0) && [pixletImage size].height > (TILE_BITMAP_SIZE * 2.0))
-//			pixletImage = [pixletImage copyWithLargestDimension:TILE_BITMAP_SIZE * 2.0];
-		
-			// Add this image to the cache.  If the identifier is nil or zero-length then 
-			// a new identifier will be returned.
 		if (pixletImage)
+		{
+				// Add this image to the cache.  If the identifier is nil or zero-length then 
+				// a new identifier will be returned.
 			pixletImageIdentifier = [imageCache cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
+		}
 		
 			// Find the tiles that match this image better than their current image.
 		NSString		*pixletKey = [NSString stringWithFormat:@"%p %@", pixletImageSource, pixletImageIdentifier];
@@ -1194,7 +1192,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 				// Loop through all of the tiles and calculate how well this image matches.
 			betterMatches = [NSMutableArray array];
 			NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-			Tile			*tile = nil;
+			MacOSaiXTile	*tile = nil;
 			while ((tile = [tileEnumerator nextObject]) && !documentIsClosing)
 			{
 				NSAutoreleasePool	*pool3 = [[NSAutoreleasePool alloc] init];
@@ -1249,8 +1247,8 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 				useCount = [betterMatches count];
 			for (i = 0; i < useCount; i++)
 			{
-				ImageMatch	*betterMatch = [betterMatches objectAtIndex:i];
-				Tile		*tile = [betterMatch tile];
+				ImageMatch		*betterMatch = [betterMatches objectAtIndex:i];
+				MacOSaiXTile	*tile = [betterMatch tile];
 				
 					// Add the tile's current image back to the queue so it can potentially get re-used by other tiles.
 				ImageMatch	*previousMatch = [tile imageMatch];
@@ -1280,7 +1278,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 			ImageMatch		*betterMatch = nil;
 			while ((betterMatch = [matchEnumerator nextObject]) && !documentIsClosing)
 			{
-				Tile	*tile = [betterMatch tile];
+				MacOSaiXTile	*tile = [betterMatch tile];
 	//			if ( ??? )
 				{
 					[tile setImageMatch:betterMatch];

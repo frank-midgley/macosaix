@@ -9,7 +9,7 @@
 #define TILE_BITMAP_SIZE 16.0
 
 
-@class Tile;
+@class MacOSaiXTile;
 @class MacOSaiXDocument;
 
 @interface ImageMatch : NSObject
@@ -17,17 +17,17 @@
     float					matchValue;
     id<MacOSaiXImageSource>	imageSource;
 	NSString				*imageIdentifier;
-	Tile					*tile;
+	MacOSaiXTile			*tile;
 }
 
 - (id)initWithMatchValue:(float)inMatchValue 
 	  forImageIdentifier:(NSString *)inImageIdentifier 
 		 fromImageSource:(id<MacOSaiXImageSource>)inImageSource
-				 forTile:(Tile *)inTile;
+				 forTile:(MacOSaiXTile *)inTile;
 - (float)matchValue;
 - (id<MacOSaiXImageSource>)imageSource;
 - (NSString *)imageIdentifier;
-- (Tile *)tile;
+- (MacOSaiXTile *)tile;
 - (NSComparisonResult)compare:(ImageMatch *)otherMatch;
 
 @end
@@ -36,7 +36,7 @@
 #define WORST_CASE_PIXEL_MATCH 520200.0
 
 
-@interface Tile : NSObject
+@interface MacOSaiXTile : NSObject
 {
 	NSBezierPath		*outline;				// The shape of this tile
 	NSMutableSet		*neighborSet;			// A set containing tiles that are considered neighbors of this tile
