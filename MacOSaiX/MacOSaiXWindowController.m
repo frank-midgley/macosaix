@@ -416,7 +416,7 @@
 	{
 		[[self document] resume];
 		
-		if ([[self document] wasStarted])
+		//if ([[self document] wasStarted])
 		{
 				// Make sure the tiles can't be tweaked now that the mosaic was started.
 			[originalImagePopUpButton setEnabled:NO];
@@ -478,7 +478,7 @@
 //																	 [[self document] imagesMatched], 
 //																	 overallMatch, 
 //																	 statusMessage]];
-		[statusMessageView setStringValue:[NSString stringWithFormat:@"Images: %d     Quality: (not working)     Status: %@",
+		[statusMessageView setStringValue:[NSString stringWithFormat:@"Images: %d     Status: %@",
 																	 [[self document] imagesMatched], 
 																	 statusMessage]];
 		
