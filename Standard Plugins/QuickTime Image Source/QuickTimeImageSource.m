@@ -151,7 +151,8 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 - (void)setCurrentImage:(NSImage *)image
 {
 	NSImage	*newImage = [[NSImage alloc] initWithSize:NSMakeSize(64.0, 64.0)];
-	[newImage setCacheMode:NSImageCacheNever];
+	[newImage setCachedSeparately:YES];
+//	[newImage setCacheMode:NSImageCacheNever];
 	
 	NS_DURING
 		[newImage lockFocus];
@@ -296,7 +297,8 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 			NSPICTImageRep	*imageRep = [NSPICTImageRep imageRepWithData:[NSData dataWithBytes:*picHandle 
 																						length:GetHandleSize((Handle)picHandle)]];
 			NSImage			*imageAtTimeValue = [parameters objectAtIndex:1];
-			[imageAtTimeValue setCacheMode:NSImageCacheNever];
+			[imageAtTimeValue setCachedSeparately:YES];
+//			[imageAtTimeValue setCacheMode:NSImageCacheNever];
 			
 //			[imageAtTimeValue setScalesWhenResized:YES];
 			[imageAtTimeValue setSize:[imageRep size]];
