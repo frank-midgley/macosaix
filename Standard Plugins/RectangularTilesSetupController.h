@@ -17,8 +17,8 @@
 	unsigned int			_tilesWide, _tilesHigh;
 }
 
-- (void)setTilesAcross:(id)sender;
-- (void)setTilesDown:(id)sender;
+- (IBAction)setTilesAcross:(id)sender;
+- (IBAction)setTilesDown:(id)sender;
 - (void)createTileOutlines;
 
 @end
