@@ -1,6 +1,8 @@
 #import "MosaicView.h"
 #import "MacOSaiXDocument.h"
 #import "MacOSaiXWindowController.h"
+#import "Tiles.h"
+
 
 @implementation MosaicView
 
@@ -29,7 +31,7 @@
 												   object:document];
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(tileImageDidChange:) 
-													 name:@"Tile Image Changed" 
+													 name:MacOSaiXTileImageDidChangeNotification 
 												   object:document];
 	}
 }
@@ -333,7 +335,7 @@
 			// Create a combined path for all neighbors of the tile.
 		[neighborhoodOutline autorelease];
 		neighborhoodOutline = [[NSBezierPath bezierPath] retain];
-		NSEnumerator		*neighborEnumerator = [[tile neighbors] objectEnumerator];
+		NSEnumerator		*neighborEnumerator = [[tile neighboringTiles] objectEnumerator];
 		Tile				*neighbor = nil;
 		while (neighbor = [neighborEnumerator nextObject])
 			[neighborhoodOutline appendBezierPath:[neighbor outline]];
