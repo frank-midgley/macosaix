@@ -13,12 +13,9 @@
 
 + (void)initialize
 {
-    NSUserDefaults		*defaults = [NSUserDefaults standardUserDefaults];
-    NSMutableDictionary	*appDefaults = [NSMutableDictionary dictionary];
-    
-    [appDefaults setObject:@"15" forKey:@"Autosave Frequency"];
-    [defaults registerDefaults:appDefaults];
-    [defaults setBool:YES forKey:@"AppleDockIconEnabled"];
+	NSDictionary	*appDefaults = [NSDictionary dictionaryWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"Defaults" ofType:@"plist"]];
+	
+    [[NSUserDefaults standardUserDefaults] registerDefaults:appDefaults];
 }
 
 
