@@ -55,7 +55,10 @@
     if (![identifier isKindOfClass:[NSURL class]]) return nil;
     
     NS_DURING
-		imageData = [identifier resourceDataUsingCache:NO];
+		if ([identifier isFileURL])
+			imageData = [NSData dataWithContentsOfFile:[identifier path]];
+		else
+			imageData = [identifier resourceDataUsingCache:NO];
     NS_HANDLER
 		if (imageData != nil) imageData = nil;
     NS_ENDHANDLER
