@@ -11,9 +11,18 @@
 
 @interface TilesSetupController : NSWindowController
 {
-	IBOutlet NSView	*_setupView;
+	@private
+		void			*_MacOSaiX_reserved1,	// reserve some space for future needs
+						*_MacOSaiX_reserved2,
+						*_MacOSaiX_reserved3,
+						*_MacOSaiX_reserved4;
+	@public
+		IBOutlet NSView	*_setupView;
 }
 
++ (NSString *)name;
 - (NSView *)setupView;
+- (void)setTileOutlines:(NSArray *)outlines;
+
 
 @end

@@ -9,19 +9,22 @@
 #import <Cocoa/Cocoa.h>
 #import "ImageSource.h"
 
-@interface ImageSourceController : NSObject {
+@interface ImageSourceController : NSWindowController {
 	@private
-		void		*_reserved1,	// reserve some space for future needs
-					*_reserved2,
-					*_reserved3,
-					*_reserved4;
+		void		*_MacOSaiX_reserved1,	// reserve some space for future needs
+					*_MacOSaiX_reserved2,
+					*_MacOSaiX_reserved3,
+					*_MacOSaiX_reserved4;
 	@public
-		NSDocument	*_document;
-		NSWindow	*_window;
+		IBOutlet NSView	*_imageSourceView;
 }
 
-- (void)createNewImageSource;
++ (NSString *)name;
+- (NSView *)imageSourceView;
+- (void)addImageSource:(id)sender;
+- (void)cancelAddImageSource:(id)sender;
 - (BOOL)canHaveMultipleImageSources;
 - (void)editImageSource:(ImageSource *)imageSource;
+- (void)showCurrentImageSources;
 
 @end

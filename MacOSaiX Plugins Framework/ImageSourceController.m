@@ -6,20 +6,26 @@
 @implementation ImageSourceController
 
 
-- (void)setDocument:(NSDocument *)document
++ (NSString *)name
 {
-	_document = document;
+	return @"";
 }
 
 
-- (void)createNewImageSourceForWindow:(NSWindow *)window
+- (NSView *)imageSourceView
+{
+	return nil;
+}
+
+
+- (void)addImageSource:(id)sender
 {
 }
 
 
-- (void)addImageSource:(ImageSource *)imageSource
+- (void)cancelAddImageSource:(id)sender
 {
-	[(MacOSaiXDocument *)_document addImageSource:imageSource];
+	[self showCurrentImageSources];
 }
 
 
@@ -36,6 +42,12 @@
 
 - (void)editImageSource:(ImageSource *)imageSource
 {
+}
+
+
+- (void)showCurrentImageSources
+{
+	[[self document] showCurrentImageSources];
 }
 
 

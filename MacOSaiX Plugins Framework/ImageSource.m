@@ -3,28 +3,37 @@
 
 @implementation ImageSource
 
-- (id)initWithObject:(id)theObject
+- (id)init
 {
-    [super init];
-    _imageCount = 0;
+    self = [super init];
+	if (self)
+	{
+		_imageCount = 0;
+		_pauseLock = [[[NSLock alloc] init] retain];
+	}
     return self;
 }
 
 
-- (id)initWithCoder:(NSCoder *)coder
+- (BOOL)hasMoreImages {return NO;}
+
+- (void)pause
 {
-    _imageCount = [[coder decodeObject] intValue];
-    return self;
+	[_pauseLock lock];
 }
 
-
-- (void)encodeWithCoder:(NSCoder *)coder
+- (void)resume
 {
-    [coder encodeObject:[NSNumber numberWithInt:_imageCount]];
+	[_pauseLock unlock];
 }
 
+- (void)waitWhilePaused
+{
+	[_pauseLock lock];
+	[_pauseLock unlock];
+}
 
-- (NSImage *)typeImage {return nil;}
+- (NSImage *)image {return nil;}
 - (NSString *)descriptor {return nil;}
 
 - (id)nextImageIdentifier {return nil;}

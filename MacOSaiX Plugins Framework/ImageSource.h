@@ -8,31 +8,35 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface ImageSource : NSObject <NSCoding> {
+@interface ImageSource : NSObject
+{
 	@private
 		void	*_reserved1,	// reserve some space for future needs
 				*_reserved2,
 				*_reserved3,
 				*_reserved4;
+		NSLock	*_pauseLock;
 	@public
-		BOOL	_hasMoreImages;
 		int		_imageCount;
 }
 
-// set up the image source based on data in theObject (usually a NSString)
-- (id)initWithObject:(id)theObject;
-
-// methods for filling an Image Sources NSTableView
-- (NSImage *)typeImage;
+	// methods for filling an Image Sources NSTableView
+- (NSImage *)image;
 - (NSString *)descriptor;
 
-// image enumerator
+- (BOOL)hasMoreImages;
+
+- (void)pause;
+- (void)resume;
+- (void)waitWhilePaused;
+
+	// image enumerator
 - (id)nextImageIdentifier;
 
-// return the number of images enumerated
+	// return the number of images enumerated
 - (int)imageCount;
 
-// return the image for the given identifier (ususally a NSURL)
+	// return the image for the given identifier
 - (NSImage *)imageForIdentifier:(id)identifier;
 
 @end

@@ -12,9 +12,21 @@
 @implementation TilesSetupController
 
 
++ (NSString *)name
+{
+	return @"";
+}
+
+
 - (NSView *)setupView
 {
 	return nil;
+}
+
+
+- (void)setTileOutlines:(NSArray *)outlines
+{
+	[[self document] setTileOutlines:outlines];
 }
 
 
