@@ -130,6 +130,8 @@
 		else
 		{
 			image = [[[NSImage alloc] initWithContentsOfFile:[self filePathForCachedImageID:imageID]] autorelease];
+			[image setCacheMode:NSImageCacheNever];
+			[image setScalesWhenResized:NO];
             if (!image)
                 NSLog(@"Huh?");
 			else

@@ -290,6 +290,7 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 			NSPICTImageRep	*imageRep = [NSPICTImageRep imageRepWithData:[NSData dataWithBytes:*picHandle 
 																						length:GetHandleSize((Handle)picHandle)]];
 			NSImage			*imageAtTimeValue = [parameters objectAtIndex:1];
+			[imageAtTimeValue setCacheMode:NSImageCacheNever];
 			
 //			[imageAtTimeValue setScalesWhenResized:YES];
 			[imageAtTimeValue setSize:[imageRep size]];
