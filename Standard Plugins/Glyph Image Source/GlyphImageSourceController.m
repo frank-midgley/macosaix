@@ -29,17 +29,26 @@
 
 - (NSResponder *)editorViewFirstResponder
 {
-	return fontsTableView;
+	return fontsOutlineView;
 }
 
 
 - (void)awakeFromNib
 {
-	NSButtonCell	*checkboxCell = [[[NSButtonCell alloc] initTextCell:@""] autorelease];
-	[checkboxCell setButtonType:NSSwitchButton];
-	[checkboxCell setTarget:self];
-	[[[fontsTableView tableColumns] objectAtIndex:0] setDataCell:checkboxCell];
-	[[[colorsTableView tableColumns] objectAtIndex:0] setDataCell:checkboxCell];
+	NSButtonCell	*fontCheckboxCell = [[[NSButtonCell alloc] initTextCell:@""] autorelease];
+	[fontCheckboxCell setButtonType:NSSwitchButton];
+	[fontCheckboxCell setAllowsMixedState:YES];
+	[fontCheckboxCell setTarget:self];
+	[fontCheckboxCell setAction:@selector(toggleFont:)];
+	[[[fontsOutlineView tableColumns] objectAtIndex:0] setDataCell:fontCheckboxCell];
+
+	NSButtonCell	*colorCheckboxCell = [[[NSButtonCell alloc] initTextCell:@""] autorelease];
+	[colorCheckboxCell setButtonType:NSSwitchButton];
+	[colorCheckboxCell setTarget:self];
+	[colorCheckboxCell setAction:@selector(toggleColor:)];
+	[[[colorsTableView tableColumns] objectAtIndex:0] setDataCell:colorCheckboxCell];
+	
+	availableFontMembers = [[NSMutableDictionary dictionary] retain];
 }
 
 
@@ -51,16 +60,60 @@
 
 - (void)editImageSource:(id<MacOSaiXImageSource>)imageSource
 {
-	availableFontNames = [[[[NSFontManager sharedFontManager] availableFonts] 
-								sortedArrayUsingSelector:@selector(compare:)] retain];
-	
-	sampleTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 
-												   target:self 
-												 selector:@selector(updateSample:) 
-												 userInfo:nil 
-												  repeats:YES];
-	
-	currentImageSource = (MacOSaiXGlyphImageSource *)imageSource;
+	if (imageSource)
+	{
+		sampleTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 
+													   target:self 
+													 selector:@selector(updateSample:) 
+													 userInfo:nil 
+													  repeats:YES];
+		
+		[fontFamilyNames autorelease];
+		fontFamilyNames = [[[[NSFontManager sharedFontManager] availableFontFamilies] 
+									sortedArrayUsingSelector:@selector(compare:)] retain];
+		[fontsOutlineView reloadData];
+		
+		currentImageSource = (MacOSaiXGlyphImageSource *)imageSource;
+		
+		NSEnumerator	*fontNameEnumerator = [[currentImageSource fontNames] objectEnumerator];
+		NSString		*fontName = nil;
+		chosenFonts = [[NSMutableArray arrayWithCapacity:[[currentImageSource fontNames] count]] retain];
+		while (fontName = [fontNameEnumerator nextObject])
+		{
+			NSFont	*font = [NSFont fontWithName:fontName size:12.0];
+			
+			if (font)
+				[chosenFonts addObject:font];
+		}
+		
+			// Populate the GUI with this source's settings.
+		if ([[currentImageSource letterPool] length] == 0)
+		{
+			[textMatrix selectCellAtRow:0 column:1];
+			[textView setString:@""];
+		}
+		else
+		{
+			[textMatrix selectCellAtRow:1 column:1];
+			[textView setString:[currentImageSource letterPool]];
+		}
+		
+		if ([currentImageSource imageCountLimit] == 0)
+		{
+			[countMatrix selectCellAtRow:0 column:1];
+			[countTextField setStringValue:@""];
+		}
+		else
+		{
+			[countMatrix selectCellAtRow:1 column:1];
+			[countTextField setIntValue:[currentImageSource imageCountLimit]];
+		}
+	}
+	else
+	{
+		[sampleTimer invalidate];
+		sampleTimer = nil;
+	}
 }
 
 
@@ -71,16 +124,66 @@
 }
 
 
+- (NSArray *)fontsInFamily:(NSString *)familyName
+{
+	NSArray	*fontMembers = [availableFontMembers objectForKey:familyName];
+	
+	if (!fontMembers)
+	{
+		fontMembers = [NSMutableArray array];
+		[availableFontMembers setObject:fontMembers forKey:familyName];
+		
+		NSEnumerator	*memberEnumerator = [[[NSFontManager sharedFontManager] availableMembersOfFontFamily:familyName]
+												objectEnumerator];
+		NSArray			*member = nil;
+		while (member = [memberEnumerator nextObject])
+			[(NSMutableArray *)fontMembers addObject:[NSFont fontWithName:[member objectAtIndex:0] size:12.0]];
+	}
+	
+	return fontMembers;
+}
+
+
 - (IBAction)toggleFont:(id)sender
 {
-	NSString	*fontName = [availableFontNames	objectAtIndex:[fontsTableView selectedRow]];
+	id			selectedItem = [fontsOutlineView itemAtRow:[fontsOutlineView selectedRow]];
 	
-	if ([[currentImageSource fontNames] containsObject:fontName])
-		[currentImageSource removeFontWithName:fontName];
-	else
-		[currentImageSource addFontWithName:fontName];
+	if ([selectedItem isKindOfClass:[NSString class]])
+	{
+			// Add or remove all members of the font family.
+		NSArray			*members = [self fontsInFamily:selectedItem];
+		BOOL			removing = ([members firstObjectCommonWithArray:chosenFonts] != nil);
+		NSEnumerator	*memberEnumerator = [members objectEnumerator];
+		NSFont			*member = nil;
+		while (member = [memberEnumerator nextObject])
+			if (removing)
+			{
+				[chosenFonts removeObject:member];
+				[currentImageSource removeFontWithName:[member fontName]];
+			}
+			else if (![chosenFonts containsObject:member])
+			{
+				[chosenFonts addObject:member];
+				[currentImageSource addFontWithName:[member fontName]];
+			}
+	}
+	else if ([selectedItem isKindOfClass:[NSFont class]])
+	{
+			// Add or remove just the one font
+		NSString	*fontName = [(NSFont *)selectedItem fontName];
+		if ([[currentImageSource fontNames] containsObject:fontName])
+		{
+			[chosenFonts removeObject:selectedItem];
+			[currentImageSource removeFontWithName:fontName];
+		}
+		else
+		{
+			[chosenFonts addObject:selectedItem];
+			[currentImageSource addFontWithName:fontName];
+		}
+	}
 	
-	[fontsTableView reloadData];
+	[fontsOutlineView reloadData];
 }
 
 
@@ -103,24 +206,109 @@
 #pragma mark Table view data source methods
 
 
+- (void)textDidChange:(NSNotification *)notification
+{
+	if ([notification object] == textView)
+	{
+		if ([[textView string] length] > 0)
+		{
+			[textMatrix selectCellAtRow:1 column:1];
+			[currentImageSource setLetterPool:[textView string]];
+		}
+		else
+		{
+			[textMatrix selectCellAtRow:0 column:1];
+			[currentImageSource setLetterPool:nil];
+		}
+	}
+}
+
+
+#pragma mark -
+#pragma mark Outline view data source methods
+
+
+- (id)outlineView:(NSOutlineView *)outlineView child:(int)index ofItem:(id)item
+{
+	if (!item)
+		return [fontFamilyNames objectAtIndex:index];
+	else
+		return [[self fontsInFamily:item] objectAtIndex:index];
+}
+
+
+- (BOOL)outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item
+{
+	return [item isKindOfClass:[NSString class]];
+}
+
+
+- (int)outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item
+{
+	if (!item)
+		return [fontFamilyNames count];
+	else
+		return [[self fontsInFamily:item] count];
+}
+
+
+- (id)outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
+{
+	return nil;
+}
+
+
+- (void)outlineView:(NSOutlineView *)outlineView willDisplayCell:(id)cell 
+												  forTableColumn:(NSTableColumn *)tableColumn 
+															item:(id)item
+{
+	if ([item isKindOfClass:[NSString class]])
+	{
+		NSArray			*fonts = [self fontsInFamily:item];
+		NSEnumerator	*fontEnumerator = [fonts objectEnumerator];
+		NSFont			*font = nil;
+		int				count = 0;
+		while (font = [fontEnumerator nextObject])
+			if ([chosenFonts containsObject:font])
+				count++;
+		
+		if (count == 0)
+			[cell setState:NSOffState];
+		else if (count == [fonts count])
+			[cell setState:NSOnState];
+		else
+			[cell setState:NSMixedState];
+		
+		[cell setTitle:item];
+	}
+	else
+	{
+		[cell setState:([[currentImageSource fontNames] containsObject:[(NSFont *)item fontName]] ? NSOnState : NSOffState)];
+
+		NSString	*title = [(NSFont *)item displayName],
+					*familyName = [(NSFont *)item familyName];
+		
+		if ([title hasPrefix:familyName])
+			title = [title substringFromIndex:[familyName length] + 1];
+		
+		[cell setTitle:title];
+	}
+}
+
+
+#pragma mark -
+#pragma mark Table view data source methods
+
+
 - (int)numberOfRowsInTableView:(NSTableView *)tableView
 {
-	if (tableView == fontsTableView)
-		return [availableFontNames count];
-	else
-		return 0;
+	return 0;
 }
 
 
 - (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 {
-	if (tableView == fontsTableView)
-	{
-		NSString	*fontName = [availableFontNames objectAtIndex:row];
-		return [NSNumber numberWithBool:[[currentImageSource fontNames] containsObject:fontName]];
-	}
-	else
-		return nil;
+	return nil;
 }
 
 
@@ -128,18 +316,19 @@
 											forTableColumn:(NSTableColumn *)tableColumn 
 													   row:(int)row
 {
-	if (tableView == fontsTableView)
-	{
-		[cell setTitle:[availableFontNames objectAtIndex:row]];
-		[cell setAction:@selector(toggleFont:)];
-	}
+//	[cell setTitle:[fontFamilyNames objectAtIndex:row]];
+//	[cell setAction:@selector(toggleFont:)];
 }
+
+
+#pragma mark -
 
 
 - (void)dealloc
 {
 	[sampleTimer invalidate];	// which will also release it
-	[availableFontNames release];
+	[fontFamilyNames release];
+	[availableFontMembers release];
 	
 	[super dealloc];
 }

@@ -15,8 +15,8 @@
 {
 	IBOutlet NSView				*editorView;
 	
-	IBOutlet NSTableView		*fontsTableView,
-								*colorsTableView;
+	IBOutlet NSOutlineView		*fontsOutlineView;
+	IBOutlet NSTableView		*colorsTableView;
 	IBOutlet NSMatrix			*textMatrix,
 								*countMatrix;
 	IBOutlet NSTextView			*textView;
@@ -27,7 +27,9 @@
 	
 	MacOSaiXGlyphImageSource	*currentImageSource;
 	NSTimer						*sampleTimer;
-	NSArray						*availableFontNames;
+	NSArray						*fontFamilyNames;
+	NSMutableArray				*chosenFonts;
+	NSMutableDictionary			*availableFontMembers;
 }
 
 - (IBAction)toggleFont:(id)sender;

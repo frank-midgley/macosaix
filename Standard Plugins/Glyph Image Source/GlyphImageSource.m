@@ -124,11 +124,25 @@
 		if (bytesRead >= sizeof(unsigned int) * 8 && [fontNames count] > 0)
 		{
 			unsigned int	fontNum = randomNumbers[0] % [fontNames count];
-			NSFont			*font = [NSFont fontWithName:[fontNames objectAtIndex:fontNum] size:0.0];
+			NSFont			*font = [NSFont fontWithName:[fontNames objectAtIndex:fontNum] size:12.0];
 			
 			if (font)
 			{
-				NSGlyph			glyphNum = randomNumbers[1] % ([font numberOfGlyphs] - 1) + 1;
+				NSGlyph			glyphNum;
+				if ([self letterPool])
+				{
+					NSLayoutManager	*layoutManager = [[[NSLayoutManager alloc] init] autorelease];
+					NSDictionary	*attributes = [NSDictionary dictionaryWithObject:font
+																			  forKey:NSFontAttributeName];
+					NSTextStorage	*textStorage = [[NSTextStorage alloc] initWithString:[self letterPool]
+																			  attributes:attributes];
+					[textStorage addLayoutManager:layoutManager];
+					unsigned	glyphCount = [layoutManager numberOfGlyphs];
+					glyphNum = [layoutManager glyphAtIndex:randomNumbers[1] % glyphCount];
+				}
+				else
+					glyphNum = randomNumbers[1] % ([font numberOfGlyphs] - 1) + 1;
+				
 				NSBezierPath	*glyphPath = [NSBezierPath bezierPath];
 				NSRect			glyphRect;
 				
@@ -169,7 +183,7 @@
 {
 	NSImage	*image = nil;
 	NSArray	*fontNameAndNumbers = [identifier componentsSeparatedByString:@"\t"];
-	NSFont	*font = [NSFont fontWithName:[fontNameAndNumbers objectAtIndex:0] size:0.0];
+	NSFont	*font = [NSFont fontWithName:[fontNameAndNumbers objectAtIndex:0] size:12.0];
 	
 	if (font)
 	{
@@ -186,7 +200,9 @@
 							destRect = NSZeroRect;
 		NSAffineTransform	*transform = [NSAffineTransform transform];
 		NSBitmapImageRep	*imageRep = nil;
-		 
+		
+		image = [[[NSImage alloc] initWithSize:glyphsBounds.size] autorelease];
+		
 			// Get the bounds of the glyph.
 		[focusWindowLock lock];
 			while (![[focusWindow contentView] lockFocusIfCanDraw])
@@ -200,50 +216,52 @@
 			// Make sure it's non-empty.
 		if (glyphRect.size.width > 0 && glyphRect.size.height > 0)
 		{
+			if (glyphNum == 180)
+				NSLog(@"");
+			
 				// Scale up the glyph so that it's largest dimension is 128 pixels.
-			if (glyphRect.size.width > glyphRect.size.height)
+			if (glyphsBounds.size.width / glyphRect.size.width < glyphsBounds.size.height / glyphRect.size.height)
 			{
-				destRect.size.width = 128.0;
-				destRect.size.height = 128.0 / glyphRect.size.width * glyphRect.size.height;
+				destRect.size.width = glyphsBounds.size.width;
+				destRect.size.height = glyphsBounds.size.width / glyphRect.size.width * glyphRect.size.height;
+				[transform translateXBy:0.0
+									yBy:(glyphsBounds.size.height - destRect.size.height) / 2.0];
 			}
 			else
 			{
-				destRect.size.width = 128.0 / glyphRect.size.height * glyphRect.size.width;
-				destRect.size.height = 128.0;
+				destRect.size.width = glyphsBounds.size.height / glyphRect.size.height * glyphRect.size.width;
+				destRect.size.height = glyphsBounds.size.height;
+				[transform translateXBy:(glyphsBounds.size.width - destRect.size.width) / 2.0
+									yBy:0.0];
 			}
 			[transform scaleBy:destRect.size.width / glyphRect.size.width];
-			[transform translateXBy:glyphRect.origin.x * -1 yBy:glyphRect.origin.y * -1];
+			[transform translateXBy:-glyphRect.origin.x yBy:-glyphRect.origin.y];
 			[glyphPath transformUsingAffineTransform:transform];
 			
-				// Create the image now that we know what size it will be.
-			image = [[[NSImage alloc] initWithSize:destRect.size] autorelease];
-			if (image != nil)
-			{
-				[focusWindowLock lock];
-					while (![[focusWindow contentView] lockFocusIfCanDraw])
-						[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
-					
-						// draw the background color
-					[[NSColor colorWithCalibratedRed:backRed/256.0 green:backGreen/256.0 blue:backBlue/256.0
-								alpha:1.0] set];
-					[[NSBezierPath bezierPathWithRect:destRect] fill];
-					
-						// draw the glyph in the foreground color
-					[[NSColor colorWithCalibratedRed:foreRed/256.0 green:foreGreen/256.0 blue:foreBlue/256.0
-								alpha:1.0] set];
-					[glyphPath fill];
-					
-						// grab the image
-					imageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect] autorelease];
-					
-					[[focusWindow contentView] unlockFocus];
-				[focusWindowLock unlock];
+			[focusWindowLock lock];
+				while (![[focusWindow contentView] lockFocusIfCanDraw])
+					[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
+				
+					// draw the background color
+				[[NSColor colorWithCalibratedRed:backRed/256.0 green:backGreen/256.0 blue:backBlue/256.0
+							alpha:1.0] set];
+				[NSBezierPath fillRect:glyphsBounds];
+				
+					// draw the glyph in the foreground color
+				[[NSColor colorWithCalibratedRed:foreRed/256.0 green:foreGreen/256.0 blue:foreBlue/256.0
+							alpha:1.0] set];
+				[glyphPath fill];
+				
+					// grab the image
+				imageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:glyphsBounds] autorelease];
+				
+				[[focusWindow contentView] unlockFocus];
+			[focusWindowLock unlock];
 
-				if (imageRep)
-					[image addRepresentation:imageRep];
-				else
-					image = nil;
-			}
+			if (imageRep)
+				[image addRepresentation:imageRep];
+			else
+				image = nil;
 		}
 	}
 	
@@ -251,21 +269,85 @@
 }
 
 
+- (void)calculateBoundingRectForGlyphs
+{
+	NSEnumerator	*fontNameEnumerator = [fontNames objectEnumerator];
+	NSString		*fontName = nil;
+	
+	glyphsBounds = NSZeroRect;
+	
+	while (fontName = [fontNameEnumerator nextObject])
+	{
+		NSFont			*font = [NSFont fontWithName:fontName size:12.0];
+		
+		if (font)
+		{
+			if ([self letterPool])
+			{
+				NSLayoutManager	*layoutManager = [[[NSLayoutManager alloc] init] autorelease];
+				NSDictionary	*attributes = [NSDictionary dictionaryWithObject:font
+																		  forKey:NSFontAttributeName];
+				NSTextStorage	*textStorage = [[NSTextStorage alloc] initWithString:[self letterPool]
+																		  attributes:attributes];
+				[textStorage addLayoutManager:layoutManager];
+				unsigned	i, glyphCount = [layoutManager numberOfGlyphs];
+				for (i = 0; i < glyphCount; i++)
+					glyphsBounds = NSUnionRect(glyphsBounds, [font boundingRectForGlyph:[layoutManager glyphAtIndex:i]]);
+			}
+			else
+				glyphsBounds = NSUnionRect(glyphsBounds, [font boundingRectForFont]);
+		}
+	}
+	
+	if (glyphsBounds.size.width != 0 && glyphsBounds.size.height != 0)
+	{
+		if (glyphsBounds.size.width > glyphsBounds.size.height)
+		{
+			glyphsBounds.size.height = 64.0 / glyphsBounds.size.width * glyphsBounds.size.height;
+			glyphsBounds.size.width = 64.0;
+		}
+		else
+		{
+			glyphsBounds.size.width = 64.0 / glyphsBounds.size.height * glyphsBounds.size.width;
+			glyphsBounds.size.height = 64.0;
+		}
+	}
+	
+	glyphsBounds = NSOffsetRect(glyphsBounds, -glyphsBounds.origin.x, -glyphsBounds.origin.y);
+}
+
+
 - (void)addFontWithName:(NSString *)fontName
 {
 	[fontNames addObject:fontName];
+	[self calculateBoundingRectForGlyphs];
 }
 
 
 - (void)removeFontWithName:(NSString *)fontName
 {
 	[fontNames removeObject:fontName];
+	[self calculateBoundingRectForGlyphs];
 }
 
 
 - (NSArray *)fontNames
 {
 	return [NSArray arrayWithArray:fontNames];
+}
+
+
+- (void)setLetterPool:(NSString *)pool
+{
+	[letterPool autorelease];
+	letterPool = [pool copy];
+	[self calculateBoundingRectForGlyphs];
+}
+
+
+- (NSString *)letterPool
+{
+	return (letterPool ? [NSString stringWithString:letterPool] : nil);
 }
 
 
@@ -290,6 +372,7 @@
 - (void)dealloc
 {
     [fontNames release];
+	[letterPool release];
     [focusWindow close];
     [focusWindowLock release];
     [super dealloc];

@@ -10,7 +10,7 @@
                 countMatrix = NSMatrix; 
                 countTextField = NSTextField; 
                 editorView = NSView; 
-                fontsTableView = NSTableView; 
+                fontsOutlineView = NSOutlineView; 
                 okButton = NSButton; 
                 sampleImageView = NSImageView; 
                 textMatrix = NSMatrix; 

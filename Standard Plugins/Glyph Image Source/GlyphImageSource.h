@@ -13,16 +13,22 @@
 {
     NSMutableArray	*fontNames,
 					*colorNames;
-    NSWindow		*focusWindow;	// for offscreen drawing
-    NSLock			*focusWindowLock;
-	
+	NSString		*letterPool;
 	unsigned long	imageCountLimit,
 					imageCount;
+
+	NSRect			glyphsBounds;
+	
+    NSWindow		*focusWindow;	// for offscreen drawing
+    NSLock			*focusWindowLock;
 }
 
 - (void)addFontWithName:(NSString *)fontName;
 - (void)removeFontWithName:(NSString *)fontName;
 - (NSArray *)fontNames;
+
+- (void)setLetterPool:(NSString *)pool;
+- (NSString *)letterPool;
 
 - (void)setImageCountLimit:(unsigned long)limit;
 - (unsigned long)imageCountLimit;
