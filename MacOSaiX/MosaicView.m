@@ -91,21 +91,22 @@
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	Tile				*tile = [[notification userInfo] objectForKey:@"Tile"];
+	NSBezierPath		*clipPath = [mosaicImageTransform transformBezierPath:[tile outline]];
 	ImageMatch			*imageMatch = [tile displayedImageMatch];
-	NSImage				*newImage = [[document imageCache] imageForIdentifier:[imageMatch imageIdentifier] 
-																   fromSource:[imageMatch imageSource]];
+	NSImageRep			*newImageRep = [[document imageCache] imageRepAtSize:[clipPath bounds].size
+															   forIdentifier:[imageMatch imageIdentifier] 
+																  fromSource:[imageMatch imageSource]];
 	
-	if (newImage)
+	if (newImageRep)
 	{
 			// Draw the tile's new image in the mosaic
-		NSBezierPath	*clipPath = [mosaicImageTransform transformBezierPath:[tile outline]];
 		NSRect			drawRect;
 		
 			// scale the image to the tile's size, but preserve it's aspect ratio
-		if ([clipPath bounds].size.width / [newImage size].width <
-			[clipPath bounds].size.height / [newImage size].height)
+		if ([clipPath bounds].size.width / [newImageRep size].width <
+			[clipPath bounds].size.height / [newImageRep size].height)
 		{
-			drawRect.size = NSMakeSize([clipPath bounds].size.height * [newImage size].width / [newImage size].height,
+			drawRect.size = NSMakeSize([clipPath bounds].size.height * [newImageRep size].width / [newImageRep size].height,
 									   [clipPath bounds].size.height);
 			drawRect.origin = NSMakePoint([clipPath bounds].origin.x - (drawRect.size.width - [clipPath bounds].size.width) / 2.0,
 										  [clipPath bounds].origin.y);
@@ -113,7 +114,7 @@
 		else
 		{
 			drawRect.size = NSMakeSize([clipPath bounds].size.width,
-									   [clipPath bounds].size.width * [newImage size].height / [newImage size].width);
+									   [clipPath bounds].size.width * [newImageRep size].height / [newImageRep size].width);
 			drawRect.origin = NSMakePoint([clipPath bounds].origin.x,
 										  [clipPath bounds].origin.y - (drawRect.size.height - [clipPath bounds].size.height) /2.0);
 		}		
@@ -122,7 +123,7 @@
 			NS_DURING
 				[mosaicImage lockFocus];
 					[clipPath setClip];
-					[newImage drawInRect:drawRect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
+					[newImageRep drawInRect:drawRect];
 				[mosaicImage unlockFocus];
 			NS_HANDLER
 				NSLog(@"Could not lock focus on mosaic image");

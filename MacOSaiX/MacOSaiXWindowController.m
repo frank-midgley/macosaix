@@ -1278,16 +1278,17 @@
 		
 			// Get the image in use by this tile.
 		ImageMatch	*match = [tile displayedImageMatch];
-		NSImage		*pixletImage = [[[self document] imageCache] imageForIdentifier:[match imageIdentifier] 
-																	     fromSource:[match imageSource]];
+		NSImageRep	*pixletImageRep = [[[self document] imageCache] imageRepAtSize:[clipPath bounds].size 
+																	 forIdentifier:[match imageIdentifier] 
+																	    fromSource:[match imageSource]];
 		
 			// Translate the tile's outline (in unit space) to the size of the exported image.
 		NSRect		drawRect;
-        if ([clipPath bounds].size.width / [pixletImage size].width <
-            [clipPath bounds].size.height / [pixletImage size].height)
+        if ([clipPath bounds].size.width / [pixletImageRep size].width <
+            [clipPath bounds].size.height / [pixletImageRep size].height)
         {
-            drawRect.size = NSMakeSize([clipPath bounds].size.height * [pixletImage size].width /
-                        [pixletImage size].height,
+            drawRect.size = NSMakeSize([clipPath bounds].size.height * [pixletImageRep size].width /
+                        [pixletImageRep size].height,
                         [clipPath bounds].size.height);
             drawRect.origin = NSMakePoint([clipPath bounds].origin.x - 
                             (drawRect.size.width - [clipPath bounds].size.width) / 2.0,
@@ -1296,15 +1297,15 @@
         else
         {
             drawRect.size = NSMakeSize([clipPath bounds].size.width,
-                        [clipPath bounds].size.width * [pixletImage size].height /
-                        [pixletImage size].width);
+                        [clipPath bounds].size.width * [pixletImageRep size].height /
+                        [pixletImageRep size].width);
             drawRect.origin = NSMakePoint([clipPath bounds].origin.x,
                         [clipPath bounds].origin.y - 
                             (drawRect.size.height - [clipPath bounds].size.height) / 2.0);
         }
 		
 			// Finally, draw the tile's image.
-        [pixletImage drawInRect:drawRect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
+        [pixletImageRep drawInRect:drawRect];
 		
 			// Clean up
         [NSGraphicsContext restoreGraphicsState];
@@ -1393,7 +1394,7 @@
 	else
 		[self performSelectorOnMainThread:@selector(closeProgressPanel) 
 							   withObject:nil 
-							waitUntilDone:YES];
+							waitUntilDone:NO];
 }
 
 
@@ -1664,6 +1665,8 @@
 
 - (void)dealloc
 {
+	NSLog(@"Dealloc'ing window controller");
+	
 	[selectedTile release];
     [selectedTileImages release];
     [toolbarItems release];
