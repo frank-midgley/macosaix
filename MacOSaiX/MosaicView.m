@@ -70,7 +70,6 @@
 			// set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined on a unit square)
 		[mosaicImageTransform release];
 		mosaicImageTransform = [[NSAffineTransform transform] retain];
-//		[mosaicImageTransform translateXBy:0.5 yBy:0.5];	// line up with pixel boundaries
 		[mosaicImageTransform scaleXBy:[mosaicImage size].width yBy:[mosaicImage size].height];
 	[mosaicImageLock unlock];
 	
@@ -142,34 +141,35 @@
 			NS_ENDHANDLER
 		[mosaicImageLock unlock];
 		
-		[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:tile waitUntilDone:NO];
+		[tilesNeedingDisplay addObject:tile];
+		
+		if ([lastUpdate timeIntervalSinceNow] < -0.1)
+		{
+			[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:nil waitUntilDone:YES];
+			
+			[tilesNeedingDisplay removeAllObjects];
+			
+			[lastUpdate release];
+			lastUpdate = [[NSDate date] retain];
+		}
 	}
 
 	[pool release];
 }
 
 
-- (void)setTileNeedsDisplay:(MacOSaiXTile *)tile
+- (void)setTileNeedsDisplay:(id)dummy
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	
-	[tilesNeedingDisplay addObject:tile];
+	NSAffineTransform	*transform = [NSAffineTransform transform];
+	[transform translateXBy:-0.5 yBy:-0.5];	// line up with pixel boundaries
+	[transform scaleXBy:([self frame].size.width + 1.0) yBy:([self frame].size.height + 1.0)];
 	
-	if ([lastUpdate timeIntervalSinceNow] < -0.1)	//|| [tilesNeedingDisplay count] > 32)
-	{
-		NSAffineTransform	*transform = [NSAffineTransform transform];
-		[transform scaleXBy:[self frame].size.width yBy:[self frame].size.height];
-		
-		NSEnumerator	*tileEnumerator = [tilesNeedingDisplay objectEnumerator];
-		MacOSaiXTile	*tileNeedingDisplay = nil;
-		while (tileNeedingDisplay = [tileEnumerator nextObject])
-			[self setNeedsDisplayInRect:[[transform transformBezierPath:[tileNeedingDisplay outline]] bounds]];
-		
-		[tilesNeedingDisplay removeAllObjects];
-		
-		[lastUpdate release];
-		lastUpdate = [[NSDate date] retain];
-	}
+	NSEnumerator	*tileEnumerator = [tilesNeedingDisplay objectEnumerator];
+	MacOSaiXTile	*tileNeedingDisplay = nil;
+	while (tileNeedingDisplay = [tileEnumerator nextObject])
+		[self setNeedsDisplayInRect:[[transform transformBezierPath:[tileNeedingDisplay outline]] bounds]];
 	
 	[pool release];
 }
