@@ -72,6 +72,14 @@
 }
 
 
+- (void)setNeighbors:(NSArray *)neighboringTiles
+{
+	[neighborSet autorelease];
+	neighborSet = [[NSMutableSet setWithArray:neighboringTiles] retain];
+	[neighborSet removeObject:self];
+}
+
+
 - (void)addNeighbor:(Tile *)neighboringTile
 {
 	if (!neighborSet)

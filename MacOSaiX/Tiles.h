@@ -45,6 +45,7 @@
 	// designated initializer
 - (id)initWithOutline:(NSBezierPath *)outline fromDocument:(NSDocument *)document;
 
+- (void)setNeighbors:(NSArray *)neighboringTiles;
 - (void)addNeighbor:(Tile *)neighboringTile;
 - (void)addNeighbors:(NSArray *)neighboringTiles;
 - (void)removeNeighbor:(Tile *)nonNeighboringTile;
