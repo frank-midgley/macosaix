@@ -1,0 +1,13 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {askAgainLater = id; download = id; skipVersion = id; }; 
+            CLASS = MacOSaiXUpdateAvailableController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {newVersionTextField = NSTextField; releaseNotesTextView = NSTextView; }; 
+            SUPERCLASS = NSWindowController; 
+        }
+    ); 
+    IBVersion = 1; 
+}
