@@ -1386,9 +1386,7 @@
         [NSGraphicsContext restoreGraphicsState];
         [pool2 release];
 		
-		[self performSelectorOnMainThread:@selector(setProgressPercentComplete:) 
-							   withObject:[NSNumber numberWithDouble:(tilesExported / tileCount * 100.0)] 
-							waitUntilDone:YES];
+		[self setProgressPercentComplete:[NSNumber numberWithDouble:(tilesExported / tileCount * 100.0)] ];
     }
 	
 		// Now convert the image into the desired output format.
