@@ -137,11 +137,14 @@ Ordered array:		images, fileIDs
 ¥	Saving (+ plug-ins state)
 ¥	Loading (+ plug-ins state)
 ¥	Get zoom working again
+¥	Make image cache class level
 Ã	Add ability to toggle between displaying original or mosaic.
 ¥	Resume toolbar icon should read Start before mosaic has begun
+¥	"Show Tile Outlines" menu item should switch to "Hide Tile Outlines"
 ¥	Preference/option for what to display for non-unique tiles.
 ¥	Rework hexagonal shapes plug-in to conform with new API
 ¥	Rework puzzle shapes plug-in to conform with new API
+¥	Make image count work with attributed descriptors
 	Google source:
 ¥		Meaningful description in table
 ¥		Make sure cache doesn't fill disk
