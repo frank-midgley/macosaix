@@ -6,12 +6,14 @@
 #import "MacOSaiXDocument.h"
 #import "DirectoryImageSource.h"
 #import "GoogleImageSource.h"
+#import "GlyphImageSource.h"
 
 @implementation NewMacOSaiXDocument
 
 - (void)windowDidLoad
 {
     NSBezierPath	*rectPath;
+    NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
     
     // start with a flat black image
     _originalImage = [[NSImage alloc] initWithSize:NSMakeSize(200, 200)];
@@ -22,17 +24,20 @@
     [_originalImage unlockFocus];
     
     // create the default tiles
+    _tileShapes = [[defaults objectForKey:@"Tile Shapes"] retain];
+    [tileShapesPopup selectItemWithTitle:_tileShapes];
+    [tilesAcrossStepper setStringValue:[defaults objectForKey:@"Tiles Wide"]];
     _tilesWide = [tilesAcrossStepper intValue];
+    [tilesAcrossView setIntValue:_tilesWide];
+    [tilesDownStepper setStringValue:[defaults objectForKey:@"Tiles High"]];
     _tilesHigh = [tilesDownStepper intValue];
+    [tilesDownView setIntValue:_tilesHigh];
     [self createTileOutlines];
 
     _previewImage = [[NSImage alloc] initWithSize:[previewView bounds].size];
     [self updatePreview];
 
-    _imageSources = [[NSMutableArray arrayWithCapacity:0] retain];
-    [_imageSources addObject:[[DirectoryImageSource alloc]
-			      initWithObject:[NSHomeDirectory() stringByAppendingString:@"/Pictures"]]];
-    
+    _imageSources = [[NSUnarchiver unarchiveObjectWithData:[defaults objectForKey:@"Image Sources"]] retain];
     [imageSourcesView setDataSource:self];
     [[imageSourcesView tableColumnWithIdentifier:@"type"] setDataCell:[[NSImageCell alloc] init]];
 }
@@ -58,9 +63,15 @@
 - (void)chooseOriginalImageOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
     contextInfo:(void *)context
 {
+    NSData		*imageData;
+
     if (returnCode != NSOKButton) return;
 
-    _originalImage = [[NSImage alloc] initWithContentsOfFile: [[sheet filenames] objectAtIndex:0]];
+    _originalImageURL = [[NSURL fileURLWithPath:[[sheet filenames] objectAtIndex:0]] retain];
+    
+    imageData = [_originalImageURL resourceDataUsingCache:NO];
+    _originalImage = [[NSImage alloc] initWithData:imageData];
+    
     NSAssert([_originalImage isValid], @"Original image invalid");
     [_originalImage setDataRetained:YES];
     [_originalImage setScalesWhenResized:YES];
@@ -94,6 +105,7 @@
 
     [_imageSources addObject:[[DirectoryImageSource alloc]
 			      initWithObject:[[sheet filenames] objectAtIndex:0]]];
+    [imageSourcesView reloadData];
 }
 
 
@@ -119,11 +131,20 @@
     [_imageSources addObject:[[GoogleImageSource alloc] initWithObject:[googleTermField stringValue]]];
     [NSApp endSheet:googleTermPanel];
     [googleTermPanel orderOut:nil];
+    [imageSourcesView reloadData];
+}
+
+
+- (void)addGlyphImageSource:(id)sender
+{
+    [_imageSources addObject:[[GlyphImageSource alloc] initWithObject:nil]];
+    [imageSourcesView reloadData];
 }
 
 
 - (void)setTileShapes:(id)sender
 {
+    _tileShapes = [tileShapesPopup titleOfSelectedItem];
     [self createTileOutlines];
     [self updatePreview];
 }
@@ -132,7 +153,7 @@
 - (void)setTilesAcross:(id)sender
 {
     _tilesWide = [tilesAcrossStepper intValue];
-    [tilesAcrossView setStringValue:[NSString stringWithFormat:@"%d", _tilesWide]];
+    [tilesAcrossView setIntValue:_tilesWide];
     [self createTileOutlines];
     [self updatePreview];
 }
@@ -141,7 +162,7 @@
 - (void)setTilesDown:(id)sender
 {
     _tilesHigh = [tilesDownStepper intValue];
-    [tilesDownView setStringValue:[NSString stringWithFormat:@"%d", _tilesHigh]];
+    [tilesDownView setIntValue:_tilesHigh];
     [self createTileOutlines];
     [self updatePreview];
 }
@@ -149,19 +170,12 @@
 
 - (void)createTileOutlines
 {
-    NSString	*title = [tileShapesPopup titleOfSelectedItem];
-    int		i;
-    
-    if ([title isEqualToString:@"Rectangles"])
+    if ([_tileShapes isEqualToString:@"Rectangles"])
         [self createRectangleTiles];
-    else if ([title isEqualToString:@"Hexagons"])
+    else if ([_tileShapes isEqualToString:@"Hexagons"])
         [self createHexagonalTiles];
-    else if ([title isEqualToString:@"Puzzle Pieces"])
+    else if ([_tileShapes isEqualToString:@"Puzzle Pieces"])
         [self createPuzzleTiles];
-    if (_mergedOutlines != nil) [_mergedOutlines release];
-    _mergedOutlines = [[NSBezierPath bezierPath] retain];
-    for (i = 0; i < [_tileOutlines count]; i++)
-	[_mergedOutlines appendBezierPath:[_tileOutlines objectAtIndex:i]];
     [tilesTotal setStringValue:[NSString stringWithFormat:@"%d", [_tileOutlines count]]];
 }
 
@@ -179,7 +193,7 @@
 	{
 	    tileRect.origin.x = x * tileRect.size.width;
 	    tileRect.origin.y = y * tileRect.size.height;
-	    [_tileOutlines addObject:[[NSBezierPath bezierPathWithRect:tileRect] retain]];
+	    [_tileOutlines addObject:[NSBezierPath bezierPathWithRect:tileRect]];
 	}
 }
 
@@ -410,6 +424,7 @@
 - (void)updatePreview
 {
     NSAffineTransform	*transform;
+    int			i;
     
     if ([_originalImage size].width > [_originalImage size].height)
 	[_previewImage setSize:NSMakeSize([previewView bounds].size.width,
@@ -429,12 +444,19 @@
     
     // now add the outlines of the tiles
     [NSGraphicsContext saveGraphicsState];
-    [NSBezierPath setDefaultLineWidth:1.0];
-    transform = [NSAffineTransform transform];
-    [transform translateXBy:0.5 yBy:0.5];
-    [transform scaleXBy:[_previewImage size].width yBy:[_previewImage size].height];
-    [[NSColor colorWithCalibratedWhite:1.0 alpha: 0.5] set];
-    [[transform transformBezierPath:_mergedOutlines] stroke];
+	transform = [NSAffineTransform transform];
+	[transform translateXBy:0.5 yBy:-0.5];
+	[transform scaleXBy:[_previewImage size].width yBy:[_previewImage size].height];
+	[[NSColor colorWithCalibratedWhite:0.0 alpha: 0.5] set];
+	for (i = 0; i < [_tileOutlines count]; i++)
+	    [[transform transformBezierPath:[_tileOutlines objectAtIndex:i]] stroke];
+
+	transform = [NSAffineTransform transform];
+	[transform translateXBy:-0.5 yBy:0.5];
+	[transform scaleXBy:[_previewImage size].width yBy:[_previewImage size].height];
+	[[NSColor colorWithCalibratedWhite:1.0 alpha: 0.5] set];
+	for (i = 0; i < [_tileOutlines count]; i++)
+	    [[transform transformBezierPath:[_tileOutlines objectAtIndex:i]] stroke];
     [NSGraphicsContext restoreGraphicsState];
 
     [_previewImage unlockFocus];
@@ -455,22 +477,25 @@
 {
     MacOSaiXDocument	*newDoc;
     
-    newDoc = [[NSDocumentController sharedDocumentController] openUntitledDocumentOfType:@"MacOSaiXProject"
-										 display:YES];
-    [newDoc setOriginalImage:_originalImage];
+    newDoc = [[NSDocumentController sharedDocumentController] makeUntitledDocumentOfType:@"MacOSaiX Project"];
+    [newDoc setOriginalImage:_originalImage fromURL:_originalImageURL];
     [newDoc setTileOutlines:_tileOutlines];
     [newDoc setImageSources:_imageSources];
-    [newDoc startMosaic:self];
+    [newDoc makeWindowControllers];
+    [[NSDocumentController sharedDocumentController] addDocument:newDoc];
+    [newDoc showWindows];
     [self close];
 }
 
 
 - (void)dealloc
 {
-    if (_originalImage != nil) [_originalImage release];
-    if (_previewImage != nil) [_previewImage release];
-    if (_tileOutlines != nil) [_tileOutlines release];
-    if (_imageSources != nil) [_imageSources release];
+    [_originalImageURL release];
+    [_originalImage release];
+    [_previewImage release];
+    [_tileOutlines release];
+    [_tileShapes release];
+    [_imageSources release];
     [super dealloc];
 }
 

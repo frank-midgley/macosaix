@@ -1,12 +1,28 @@
 #import "MacOSaiX.h"
 #import "NewMacOSaiXDocument.h"
+#import "DirectoryImageSource.h"
+#import "PreferencesController.h"
 
 @implementation MacOSaiX
 
++ (void)initialize
+{
+    NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
+    NSMutableDictionary	*appDefaults = [NSMutableDictionary dictionary];
+    
+    [appDefaults setObject:@"5" forKey:@"Autosave Frequency"];
+    [appDefaults setObject:@"Rectangles" forKey:@"Tile Shapes"];
+    [appDefaults setObject:@"20" forKey:@"Tiles Wide"];
+    [appDefaults setObject:@"20" forKey:@"Tiles High"];
+    [appDefaults setObject:[NSArchiver archivedDataWithRootObject:
+				[NSMutableArray arrayWithObject:[[DirectoryImageSource alloc]
+				    initWithObject:[NSHomeDirectory() stringByAppendingString:@"/Pictures"]]]] 			    forKey:@"Image Sources"];
+    [defaults registerDefaults:appDefaults];
+}
+
+
 - (void)applicationDidFinishLaunching
 {
-    // allocate locks?
-    
     // To provide a service:
     //EncryptoClass *encryptor;
     //encryptor = [[EncryptoClass alloc] init];
@@ -33,6 +49,18 @@
     [[windowController window] makeKeyAndOrderFront:self];
 
     // The windowController object will now take input and, if the user OK's, create a new MacOSaiCDocument
+}
+
+
+- (void)openPreferences:(id)sender
+{
+    PreferencesController	*windowController;
+    
+    windowController = [[PreferencesController alloc] initWithWindowNibName:@"Preferences"];
+    [windowController showWindow:self];
+    [[windowController window] makeKeyAndOrderFront:self];
+
+    // The windowController object will now take input and, if the user OK's, save the preferences
 }
 
 @end

@@ -1,20 +1,23 @@
 #import "GoogleImageSource.h"
+#import <CoreFoundation/CFURL.h>
 
 @implementation GoogleImageSource
 
 - (id)initWithObject:(id)theObject
 {
-    [super init];
+    [super initWithObject:theObject];
 
     if ([theObject isKindOfClass:[NSString class]])
     {
+	NSString *encodedQuery;
+	
 	_query = [theObject copy];
+	encodedQuery = (NSString *)CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)_query, 
+									    NULL, NULL, kCFStringEncodingUTF8);
 	_imageURLQueue = [[NSMutableArray arrayWithCapacity:0] retain];
 
-	// prime the pump
-//	_nextGooglePage = [[NSURL URLWithString:@"http://images.google.com/images?q=bear&name=ie&name=oe&hl=en"]
-//			   retain];
-	_nextGooglePage = [[NSURL URLWithString:[@"http://images.google.com/images?name=ie&name=oe&hl=en&q=" stringByAppendingString:_query]] retain];
+	_nextGooglePage = [[NSURL URLWithString:[@"http://images.google.com/images?name=ie&name=oe&hl=en&q=" 
+						 stringByAppendingString:encodedQuery]] retain];
     }
     else
     {
@@ -22,6 +25,25 @@
 	return nil;
     }
     return self;
+}
+
+
+- (id)initWithCoder:(NSCoder *)coder
+{
+    self = [super initWithCoder:coder];
+    _query = [[coder decodeObject] retain];
+    _nextGooglePage= [[coder decodeObject] retain];
+    _imageURLQueue = [[coder decodeObject] retain];
+    return self;
+}
+
+
+- (void)encodeWithCoder:(NSCoder *)coder
+{
+    [super encodeWithCoder:coder];
+    [coder encodeObject:_query];
+    [coder encodeObject:_nextGooglePage];
+    [coder encodeObject:_imageURLQueue];
 }
 
 
@@ -37,9 +59,9 @@
 }
 
 
-- (NSURL *)nextImageURL
+- (id)nextImageIdentifier
 {
-    NSURL	*imageURL, *possibleNextGooglePage = nil;
+    NSURL	*possibleNextGooglePage = nil;
     
     // if queue is empty, get next page from Google and parse out the image URL's
     // and the link to the next page
@@ -78,10 +100,12 @@
 		src = [tag rangeOfString:@" "];
 		src.length = src.location;
 		src.location = 0;
-		if ([[tag substringWithRange:src] hasPrefix:@"/images?"])
-		    [_imageURLQueue addObject:[[NSURL URLWithString:[@"http://images.google.com"
-						    stringByAppendingString:[tag substringWithRange:src]]
-						 ] retain]];
+		if ([[tag substringWithRange:src] hasPrefix:@"/images?q="])
+		{
+		    src.location = 10;	// only use what comes after "/images?q=" to save memory 
+		    src.length -= 10;
+		    [_imageURLQueue addObject:[tag substringWithRange:src]];
+		}
 		if ([tag hasPrefix:@"/nav_next"])
 		{
 		    _nextGooglePage = [possibleNextGooglePage retain];
@@ -103,13 +127,21 @@
     
     if ([_imageURLQueue count] > 0)
     {
-	imageURL = [_imageURLQueue objectAtIndex:0];
+	NSString	*imageURLString = [[_imageURLQueue objectAtIndex:0] retain];
+	
 	[_imageURLQueue removeObjectAtIndex:0];
 	_imageCount++;
-	return imageURL;
+	return imageURLString;
     }
     else
 	return nil;	// no more images
+}
+
+
+- (NSImage *)imageForIdentifier:(id)identifier
+{
+    return [super imageForIdentifier:
+	[NSURL URLWithString:[NSString stringWithFormat:@"http://images.google.com/images?q=%@", identifier]]];
 }
 
 @end

@@ -5,52 +5,57 @@
 - (id)init
 {
     [super init];
-    _imageURL = nil;
+    _tileImage = nil;
     _matchValue = WORST_CASE_PIXEL_MATCH;
     return self;
 }
 
-- (void)setImageURL:(NSURL *)imageURL
+
+- (id)initWithTileImage:(TileImage *)tileImage matchValue:(float)matchValue
 {
-    NSAssert(imageURL != nil, @"imageURL has been released");
-    [_imageURL autorelease];
-    _imageURL = [imageURL copy];
+    [super init];
+    _tileImage = [tileImage retain];
+    _matchValue = matchValue;
+    return self;
 }
 
 
-- (NSURL *)imageURL
+- (id)initWithCoder:(NSCoder *)coder
 {
-    return _imageURL;
+    [super init];
+    _tileImage = [[coder decodeObject] retain];
+    _matchValue = [[coder decodeObject] floatValue];
+    return self;
 }
 
 
-- (void)setBitmapRep:(NSBitmapImageRep *)bitmapRep
+- (void)encodeWithCoder:(NSCoder *)coder
 {
-    NSBitmapImageRep	*oldBitmapRep;
-    
-    if (bitmapRep != _bitmapRep)
-    {
-	oldBitmapRep = _bitmapRep;
-	_bitmapRep = [bitmapRep retain];
-	[oldBitmapRep release];
-	oldBitmapRep = nil;
-    }
+    [coder encodeObject:_tileImage];
+    [coder encodeObject:[NSNumber numberWithFloat:_matchValue]];
 }
 
 
-- (NSBitmapImageRep *)bitmapRep
+- (void)setTileImage:(TileImage *)tileImage
 {
-    return _bitmapRep;
+    [_tileImage autorelease];
+    _tileImage = [tileImage retain];
 }
 
 
-- (void)setMatchValue:(double)matchValue
+- (TileImage *)tileImage
+{
+    return _tileImage;
+}
+
+
+- (void)setMatchValue:(float)matchValue
 {
     _matchValue = matchValue;
 }
 
 
-- (double)matchValue
+- (float)matchValue
 {
     return _matchValue;
 }
@@ -58,8 +63,7 @@
 
 - (void)dealloc
 {
-    if (_imageURL != nil) [_imageURL release];
-    if (_bitmapRep != nil) [_bitmapRep release];
+    [_tileImage release];
     [super dealloc];
 }
 

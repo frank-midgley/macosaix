@@ -5,8 +5,10 @@
 
 - (id)initWithObject:(id)theObject
 {
-    [super init];
+    [super initWithObject:theObject];
 
+    _nextFile = _directoryPath = _enumerator = nil;
+    
     if ([theObject isKindOfClass:[NSString class]])
     {
 	_directoryPath = [theObject copy];
@@ -18,6 +20,31 @@
 	return nil;
     }
     return self;
+}
+
+
+- (id)initWithCoder:(NSCoder *)coder
+{
+    NSString	*nextFile;
+    
+    self = [super initWithCoder:coder];
+    _directoryPath = [[coder decodeObject] retain];
+    _nextFile = [[coder decodeObject] retain];
+    
+    _enumerator = [[[NSFileManager defaultManager] enumeratorAtPath:_directoryPath] retain];
+    do
+	nextFile = [_enumerator nextObject];
+    while (![_nextFile isEqualToString:nextFile] && nextFile != nil);
+    
+    return self;
+}
+
+
+- (void)encodeWithCoder:(NSCoder *)coder
+{
+    [super encodeWithCoder:coder];
+    [coder encodeObject:_directoryPath];
+    [coder encodeObject:_nextFile];
 }
 
 
@@ -33,14 +60,10 @@
 }
 
 
-- (NSURL *)nextImageURL
+- (id)nextImageIdentifier
 {
     NSString	*nextFile, *fullPath;
     
-    // hack to start after a certain file
-    //while (nextFile = [enumerator nextObject]))
-	//if (nextFile != nil && [nextFile isEqualToString:@"..."]) break;
-
     // lookup the path of the next image
     do
     {
@@ -59,13 +82,23 @@
 	     ([fullPath rangeOfString:@"iPhoto Library"].location != NSNotFound &&
 	      [fullPath rangeOfString:@"Originals"].location != NSNotFound)));
     
+    [_nextFile autorelease];
+    _nextFile = [nextFile retain];	// remember at which file we were for archiving
+    
     if (nextFile != nil)
     {
 	_imageCount++;
-	return [[NSURL fileURLWithPath:[_directoryPath stringByAppendingPathComponent:nextFile]] retain];
+	return nextFile;
     }
     else
 	return nil;	// no more images
+}
+
+
+- (NSImage *)imageForIdentifier:(id)identifier
+{
+    return [super imageForIdentifier:
+			[NSURL fileURLWithPath:[_directoryPath stringByAppendingPathComponent:identifier]]];
 }
 
 @end
