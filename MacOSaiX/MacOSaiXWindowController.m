@@ -175,16 +175,10 @@
 //		[[self window] setFrame:windowFrame display:YES animate:YES];
 //    }
 //	[pauseToolbarItem setLabel:@"Start Mosaic"];
-}
-
-
-- (void)windowDidLoad
-{
-	[super windowDidLoad];
 	
 		// Default to the most recently used original or prompt to choose one
 		// if no previous original was found.
-	[self chooseOriginalImage:self];
+	[self performSelector:@selector(chooseOriginalImage:) withObject:self afterDelay:0.0];
 }
 
 
@@ -262,11 +256,6 @@
 					atIndex:0];
 	[[NSUserDefaults standardUserDefaults] setObject:originals forKey:@"Recent Originals"];
 	[[NSUserDefaults standardUserDefaults] synchronize];
-	NSMenuItem	*originalItem = [[[NSMenuItem alloc] init] autorelease];
-	[originalItem setTitle:[[path lastPathComponent] stringByDeletingPathExtension]];
-	[originalItem setRepresentedObject:path];
-	if (thumbnailImage)
-		[originalItem setImage:thumbnailImage];
 	
 		// Update the original image pop-up menu.
 	NSEnumerator	*itemEnumerator = [[[originalImagePopUpButton menu] itemArray] objectEnumerator];
@@ -277,8 +266,13 @@
 			[[originalImagePopUpButton menu] removeItem:item];
 			break;
 		}
-	[originalImagePopUpButton selectItemAtIndex:0];
+	NSMenuItem	*originalItem = [[[NSMenuItem alloc] init] autorelease];
+	[originalItem setTitle:[[path lastPathComponent] stringByDeletingPathExtension]];
+	[originalItem setRepresentedObject:path];
+	if (thumbnailImage)
+		[originalItem setImage:thumbnailImage];
 	[[originalImagePopUpButton menu] insertItem:originalItem atIndex:0];
+	[originalImagePopUpButton selectItemAtIndex:0];
 	
 		// Create an NSImage to hold the mosaic image (somewhat arbitrary size)
     [mosaicImage autorelease];
