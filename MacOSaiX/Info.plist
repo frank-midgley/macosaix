@@ -28,7 +28,7 @@
 	<key>CFBundleIconFile</key>
 	<string>Application Icon</string>
 	<key>CFBundleIdentifier</key>
-	<string>MacOSaiX</string>
+	<string>com.mac.homepage.knarf.MacOSaiX</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
