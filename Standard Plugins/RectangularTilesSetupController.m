@@ -41,16 +41,30 @@
 }
 
 
-- (void)setTilesAcross:(id)sender
+- (IBAction)setTilesAcross:(id)sender
 {
+	if (([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0)
+	{
+		if ([_tilesAcrossStepper intValue] > _tilesWide)
+			[_tilesAcrossStepper setIntValue:MIN(_tilesWide + 10, [_tilesAcrossStepper maxValue])];
+		else
+			[_tilesAcrossStepper setIntValue:MAX(_tilesWide - 10, [_tilesAcrossStepper minValue])];
+	}
     _tilesWide = [_tilesAcrossStepper intValue];
     [_tilesAcrossView setIntValue:_tilesWide];
 	[self createTileOutlines];
 }
 
 
-- (void)setTilesDown:(id)sender
+- (IBAction)setTilesDown:(id)sender
 {
+	if (([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0)
+	{
+		if ([_tilesDownStepper intValue] > _tilesHigh)
+			[_tilesDownStepper setIntValue:MIN(_tilesHigh + 10, [_tilesDownStepper maxValue])];
+		else
+			[_tilesDownStepper setIntValue:MAX(_tilesHigh - 10, [_tilesDownStepper minValue])];
+	}
     _tilesHigh = [_tilesDownStepper intValue];
     [_tilesDownView setIntValue:_tilesHigh];
 	[self createTileOutlines];
@@ -67,10 +81,15 @@
 		
     for (y = _tilesHigh - 1; y >= 0; y--)
 		for (x = 0; x < _tilesWide; x++)
-//			for (y = 0; y < _tilesHigh; y++)
 			{
 				tileRect.origin.x = x * tileRect.size.width;
 				tileRect.origin.y = y * tileRect.size.height;
+//                NSBezierPath	*path = [NSBezierPath bezierPath];
+//                [path moveToPoint:NSMakePoint(tileRect.origin.x, tileRect.origin.y)];
+//                [path relativeLineToPoint:NSMakePoint(tileRect.size.width, 0.0)];
+//                [path relativeLineToPoint:NSMakePoint(0.0, tileRect.size.height)];
+//                [path lineToPoint:NSMakePoint(tileRect.origin.x, tileRect.origin.y)];
+//				  [tileOutlines addObject:path];
 				[tileOutlines addObject:[NSBezierPath bezierPathWithRect:tileRect]];
 			}
 		
