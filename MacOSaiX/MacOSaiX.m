@@ -61,6 +61,8 @@
 		else
 			[macPAD performCheckWithURL:[NSURL URLWithString:@"http://homepage.mac.com/knarf/MacOSaiX/Version.plist"]];
 	}
+	
+	[self discoverPlugIns];
 }
 
 
