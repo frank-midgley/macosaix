@@ -560,38 +560,37 @@
 		tileBounds[index] = [tileOutline bounds];
 	}
 
-    [[drawWindow contentView] unlockFocus];
+//    [[drawWindow contentView] unlockFocus];
     [drawWindow close];
 
-#if 0
 		// Calculate the neighboring tiles of each tile based on number of tiles away repeats are allowed.
 		// For example if tiles are allowed to repeat past 1 neighbor than the direct neighbors of a tile
 		// would be in its neighbor set.  If 2 then the direct neighbors and all of their direct neighbors
 		// would be in the set.
 		// TO DO: This currently only calculates the direct neighbors.
-	NSEnumerator	*tileEnumerator = [_tileOutlines objectEnumerator];
+	NSEnumerator	*tileEnumerator = [_tiles objectEnumerator];
 	Tile			*tile = nil;
     while (!_documentIsClosing && (tile = [tileEnumerator nextObject]))
 	{
-		NSRect	zoomedTileBounds = NSZeroRect;
+		NSRect	tileBounds = [[tile outline] bounds],
+				zoomedTileBounds = NSZeroRect;
 		
 			// scale the rect up slightly so it overlaps with it's neighbors
-		zoomedTileBounds.size = NSMakeSize([[tile outline] bounds].size.width * 1.01, [[tile outline] bounds].size.height * 1.01);
-		zoomedTileBounds.origin.x += NSMidX([[tile outline] bounds]) - NSMidX(zoomedTileBounds);
-		zoomedTileBounds.origin.y += NSMidY([[tile outline] bounds]) - NSMidY(zoomedTileBounds);
+		zoomedTileBounds.size = NSMakeSize(tileBounds.size.width * 1.01, tileBounds.size.height * 1.01);
+		zoomedTileBounds.origin.x += NSMidX(tileBounds) - NSMidX(zoomedTileBounds);
+		zoomedTileBounds.origin.y += NSMidY(tileBounds) - NSMidY(zoomedTileBounds);
 		
 			// Loop through the other tiles and add as neighbors any that intersect.
 			// TO DO: This currently just checks if the bounding boxes of the tiles intersect.
 			//        For non-rectangular tiles this will not be accurate enough.
-		NSEnumerator	*tileEnumerator2 = [_tileOutlines objectEnumerator];
+		NSEnumerator	*tileEnumerator2 = [_tiles objectEnumerator];
 		Tile			*tile2 = nil;
 		while (!_documentIsClosing && (tile2 = [tileEnumerator2 nextObject]))
 			if (tile2 != tile && NSIntersectsRect(zoomedTileBounds, [[tile2 outline] bounds]))
 				[tile addNeighbor:tile2];
 				
-//		NSLog(@"Tile at index %d has %d neighbors.", index, [[tile neighbors] count]);
+//		NSLog(@"Tile at %p has %d neighbors.", tile, [[tile neighbors] count]);
 	}
-#endif
 	
     [(OriginalView *)_originalView setTileOutlines:combinedOutline];
     
@@ -781,6 +780,7 @@
 		if (_calculateImageMatchesThreadAlive)
 		{
                 // Another copy is running, just exit.
+			[_calculateImageMatchesThreadLock unlock];
 			[pool release];
 			return;
 		}
