@@ -98,4 +98,5 @@
 extern NSString	*MacOSaiXDocumentDidChangeStateNotification;
 extern NSString *MacOSaiXDocumentDidSaveNotification;
 extern NSString	*MacOSaiXOriginalImageDidChangeNotification;
+extern NSString *MacOSaiXTileImageDidChangeNotification;
 extern NSString *MacOSaiXTileShapesDidChangeStateNotification;
