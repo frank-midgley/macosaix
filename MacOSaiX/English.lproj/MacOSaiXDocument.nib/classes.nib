@@ -9,9 +9,9 @@
                 setExportWidthFromHeight = id; 
                 setImageSourcesPlugIn = id; 
                 setJPEGExport = id; 
+                setNeighborhoodSize = id; 
                 setShowOutlines = id; 
                 setTIFFExport = id; 
-                setTilesSetupPlugIn = id; 
                 setViewAloneMode = id; 
                 setViewCompareMode = id; 
                 setViewEditMode = id; 
@@ -45,6 +45,7 @@
                 matchValueTextField = NSTextField; 
                 mosaicScrollView = NSScrollView; 
                 mosaicView = MosaicView; 
+                neighborhoodSizePopUpButton = NSPopUpButton; 
                 originalView = OriginalView; 
                 progressPanel = NSPanel; 
                 progressPanelCancelButton = NSButton; 
