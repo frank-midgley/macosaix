@@ -957,6 +957,9 @@
 		NSString	*imageIdentifier = nil;
 		NSImage		*image = [imageSource nextImageAndIdentifier:&imageIdentifier];
 		
+		if (![image isValid])
+			image = nil;
+		
 		if (image)
 		{
 			[imageQueueLock lock];	// this will be locked if the queue is full
@@ -1006,6 +1009,7 @@
 	[calculateImageMatchesThreadLock unlock];
 
     NSImage				*scratchImage = [[[NSImage alloc] initWithSize:NSMakeSize(1024, 1024)] autorelease];
+	[scratchImage setCachedSeparately:YES];
 	
 //	NSLog(@"Calculating image matches\n");
 	
@@ -1018,8 +1022,6 @@
 			// As long as the image source threads are feeding images into the queue this loop
 			// will continue running so create a pool just for this pass through the loop.
 		NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
-		NSMutableArray		*cachedReps = nil;
-		int					index;
 		BOOL				queueLocked = NO;
 		
 			// pull the next image from the queue
@@ -1035,8 +1037,13 @@
 		NSImage					*pixletImage = [nextImageDict objectForKey:@"Image"];
 		id<MacOSaiXImageSource>	pixletImageSource = [nextImageDict objectForKey:@"Image Source"];
 		NSString				*pixletImageIdentifier = [nextImageDict objectForKey:@"Image Identifier"];
-
-			// Cache this image or a thumbnail of it to disk.
+		
+			// Set the caching behavior of the image.  We'll be adding bitmap representations of various
+			// sizes to the image so it doesn't need to do any of its own caching.
+		[pixletImage setCacheMode:NSImageCacheNever];
+		[pixletImage setScalesWhenResized:NO];
+		
+			// Add this image to the cache.
 		if (pixletImageIdentifier)
 		{
 				// Just cache a thumbnail, no need to waste the disk since we can refetch.
@@ -1061,39 +1068,32 @@
 		else
 		{
 				// Cache the full sized image since we can't refetch it from the image source.
-				// 
-			pixletImageIdentifier = [NSString stringWithFormat:@"!@#$%ld", unfetchableCount++];
+				// Create an identifier with a fixed prefix we can check for later to know that 
+				// the image can't be refetched.
+			pixletImageIdentifier = [NSString stringWithFormat:@"Unfetchable %ld", unfetchableCount++];
 			[self cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
 		}
 
-		cachedReps = [NSMutableArray arrayWithCapacity:0];
+		NSMutableDictionary	*cachedReps = [NSMutableDictionary dictionaryWithCapacity:16];
 		
 			// loop through the tiles and compute the pixlet's match
-		for (index = 0; index < [tiles count] && !documentIsClosing; index++)
+		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+		Tile			*tile = nil;
+		while ((tile = [tileEnumerator nextObject]) && !documentIsClosing)
 		{
-			Tile	*tile = nil;
-			float	scale;
-			NSRect	subRect;
-			int	cachedRepIndex;
-	
-			tile = [tiles objectAtIndex:index];
-			
 				// scale the smaller of the pixlet's image's dimensions to the size used
 				// for pixel matching and extract the rep
-			scale = MAX([[tile bitmapRep] size].width / [pixletImage size].width, 
-					[[tile bitmapRep] size].height / [pixletImage size].height);
-			subRect = NSMakeRect(0, 0, (int)([pixletImage size].width * scale + 0.5),
-						(int)([pixletImage size].height * scale + 0.5));
+			float	scale = MAX([[tile bitmapRep] size].width / [pixletImage size].width, 
+								[[tile bitmapRep] size].height / [pixletImage size].height);
+			NSRect	subRect = NSMakeRect(0, 0, (int)([pixletImage size].width * scale + 0.5),
+										 (int)([pixletImage size].height * scale + 0.5));
 			
-				// check if we already have a rep of this size
-			for (cachedRepIndex = 0; cachedRepIndex < [cachedReps count]; cachedRepIndex++)
-				if (NSEqualSizes([[cachedReps objectAtIndex:cachedRepIndex] size], subRect.size))
-					break;
-			if (cachedRepIndex == [cachedReps count])
+				// Check if we already have a rep of this size.
+			NSImageRep		*imageRep = [cachedReps objectForKey:NSStringFromSize(subRect.size)];
+			if (!imageRep)
 			{
-					// no bitmap at the correct size was found, try to create a new one
-				NSBitmapImageRep	*rep = nil;
-				BOOL				lockedFocus = NO;
+					// No bitmap at the correct size was found, try to create a new one
+				BOOL	lockedFocus = NO;
 				
 				while (!lockedFocus)
 				{
@@ -1108,15 +1108,12 @@
 				
 				NS_DURING
 					[pixletImage drawInRect:subRect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
-					rep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:subRect];
-					if (rep)
-						[cachedReps addObject:[rep autorelease]];
-					else
-						cachedRepIndex = -1;
+					imageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:subRect] autorelease];
+					if (imageRep)
+						[cachedReps setObject:imageRep forKey:NSStringFromSize(subRect.size)];
 				NS_HANDLER
 					// TBD: how to handle this?
-					cachedRepIndex = -1;
-					NSLog(@"Could not create cached bitmap (%@).", [localException name]);
+					NSLog(@"Could not create cached bitmap (%@).", localException);
 				NS_ENDHANDLER
 				
 				[scratchImage unlockFocus];
@@ -1124,9 +1121,9 @@
 	
 				// If the tile reports that the image matches better than its previous worst match
 				// then add the tile and its neighbors to the set of tiles potentially needing redraw.
-			if (cachedRepIndex != -1 && [tile matchAgainstImageRep:[cachedReps objectAtIndex:cachedRepIndex]
-													withIdentifier:pixletImageIdentifier
-												   fromImageSource:pixletImageSource])
+			if (imageRep && [tile matchAgainstImageRep:(NSBitmapImageRep *)imageRep
+										withIdentifier:pixletImageIdentifier
+									   fromImageSource:pixletImageSource])
 			{
 				[refreshTilesSetLock lock];
 					[refreshTilesSet addObject:tile];
@@ -1140,7 +1137,8 @@
 
 		imagesMatched++;
 		
-		if (!queueLocked) [imageQueueLock lock];
+		if (!queueLocked)
+			[imageQueueLock lock];
 
 		[pool2 release];
 	}
@@ -2282,7 +2280,7 @@
 			// Else use the version in the cache.
 		NSImage		*pixletImage = nil;
 		ImageMatch	*match = [tile displayedImageMatch];
-		if (![[match imageIdentifier] hasPrefix:@"!@#$"])
+		if (![[match imageIdentifier] hasPrefix:@"Unfetchable "])
 			pixletImage = [[match imageSource] imageForIdentifier:[match imageIdentifier]];
 		if (!pixletImage)
 			pixletImage = [self cachedImageForIdentifier:[match imageIdentifier] fromSource:[match imageSource]];
@@ -2534,8 +2532,7 @@
 }
 
 
-- (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn
-	    row:(int)rowIndex
+- (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex
 {
     if (aTableView == imageSourcesTableView)
     {
@@ -2556,23 +2553,28 @@
 				// TODO: append attributed string
 				return descriptor;
 			}
+			else
+				return nil;
 		}
     }
-    else // it's the editor table
+    else if (aTableView == editorTable)
     {
-		NSImage	*image;
+		NSImage	*image = nil;
 		
-		if (selectedTile == nil) return nil;
-		
-		image = [selectedTileImages objectAtIndex:rowIndex];
-		if ([image isKindOfClass:[NSNull class]] && rowIndex != -1)
+		if (selectedTile)
 		{
-			image = [self createEditorImage:rowIndex];
-			[selectedTileImages replaceObjectAtIndex:rowIndex withObject:image];
+			image = [selectedTileImages objectAtIndex:rowIndex];
+			if ([image isKindOfClass:[NSNull class]] && rowIndex != -1)
+			{
+				image = [self createEditorImage:rowIndex];
+				[selectedTileImages replaceObjectAtIndex:rowIndex withObject:image];
+			}
 		}
 		
 		return image;
     }
+	else
+		return nil;
 }
 
 
