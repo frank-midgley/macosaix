@@ -17,10 +17,20 @@
 									*tilesDownTextField;
     IBOutlet NSStepper				*tilesAcrossStepper, 
 									*tilesDownStepper;
+	IBOutlet NSTextField			*tileCountTextField, 
+									*tileSizeTextField;
+	IBOutlet NSButton				*restrictTileSizeCheckBox;
+	IBOutlet NSPopUpButton			*restrictedXSizePopUpButton,
+									*restrictedYSizePopUpButton;
+	
+	NSSize							originalImageSize;
 	MacOSaiXRectangularTileShapes	*currentTileShapes;
 }
 
 - (IBAction)setTilesAcross:(id)sender;
 - (IBAction)setTilesDown:(id)sender;
+- (IBAction)restrictTileSize:(id)sender;
+- (IBAction)setRestrictedXSize:(id)sender;
+- (IBAction)setRestrictedYSize:(id)sender;
 
 @end

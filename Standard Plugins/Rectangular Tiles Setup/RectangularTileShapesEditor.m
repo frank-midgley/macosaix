@@ -10,6 +10,12 @@
 #import "RectangularTileShapesEditor.h"
 
 
+@interface MacOSaiXRectangularTileShapesEditor (PrivateMethods)
+- (void)setTilesAcrossBasedOnTilesDown;
+- (void)setTilesDownBasedOnTilesAcross;
+@end
+
+
 @implementation MacOSaiXRectangularTileShapesEditor
 
 
@@ -30,13 +36,58 @@
 
 - (NSSize)editorViewMinimumSize
 {
-	return NSMakeSize(205.0, 110.0);
+	return NSMakeSize(340.0, 175.0);
 }
 
 
 - (NSResponder *)editorViewFirstResponder
 {
 	return tilesAcrossTextField;
+}
+
+
+- (void)updateTileCountAndSizeFields
+{
+	[tileCountTextField setIntValue:[tilesAcrossStepper intValue] * [tilesDownStepper intValue]];
+	
+	int			xInt,
+				yInt;
+	float		tileAspectRatio = (originalImageSize.width / [tilesAcrossStepper intValue]) / 
+								  (originalImageSize.height / [tilesDownStepper intValue]),
+				minDiff = INFINITY;
+	NSString	*ratioString = @"";
+	
+	for (xInt = 1; xInt < 10; xInt++)
+	{
+		yInt = (xInt / tileAspectRatio);
+		if (fabsf(tileAspectRatio - (float)xInt / (float)yInt) > 
+			fabsf(tileAspectRatio - (float)xInt / (float)(yInt + 1)))
+			yInt++;
+		
+		float	curDiff = fabsf(tileAspectRatio - (float)xInt / (float)yInt);
+		
+		if (curDiff < minDiff)
+		{
+			minDiff = curDiff;
+			ratioString = [NSString stringWithFormat:@"%dx%d", xInt, yInt];
+		}
+	}
+	
+	[tileSizeTextField setStringValue:ratioString];
+}
+
+
+- (void)updatePlugInDefaults
+{
+	[[NSUserDefaults standardUserDefaults] setObject:[NSDictionary dictionaryWithObjectsAndKeys:
+														[NSNumber numberWithInt:[currentTileShapes tilesAcross]], @"Tiles Across", 
+														[NSNumber numberWithInt:[currentTileShapes tilesDown]], @"Tiles Down", 
+														[NSNumber numberWithBool:([restrictTileSizeCheckBox state] == NSOnState)], 
+															@"Restrict Tile Size", 
+														[restrictedXSizePopUpButton titleOfSelectedItem], @"Restrict Tile X Size", 
+														[restrictedYSizePopUpButton titleOfSelectedItem], @"Restrict Tile Y Size", 
+														nil]
+											  forKey:@"Rectangular Tile Shapes"];
 }
 
 
@@ -62,16 +113,72 @@
 	[currentTileShapes setTilesDown:tilesDown];
 	[tilesDownStepper setIntValue:tilesDown];
 	[tilesDownTextField setIntValue:tilesDown];
+	
+	originalImageSize = [originalImage size];
+	
+	NSDictionary	*lastUsedSettings = [[NSUserDefaults standardUserDefaults] objectForKey:@"Rectangular Tile Shapes"];
+	[restrictTileSizeCheckBox setState:[[lastUsedSettings objectForKey:@"Restrict Tile Size"] boolValue]];
+	[restrictedXSizePopUpButton selectItemWithTitle:[lastUsedSettings objectForKey:@"Restrict Tile X Size"]];
+	[restrictedYSizePopUpButton selectItemWithTitle:[lastUsedSettings objectForKey:@"Restrict Tile Y Size"]];
+	
+	if ([restrictTileSizeCheckBox state] == NSOnState)
+		[self setTilesDownBasedOnTilesAcross];
+	
+	[self updateTileCountAndSizeFields];
 }
 
 
-- (void)updatePlugInDefaults
+- (void)setTilesAcrossBasedOnTilesDown
 {
-	[[NSUserDefaults standardUserDefaults] setObject:[NSDictionary dictionaryWithObjectsAndKeys:
-														[NSNumber numberWithInt:[currentTileShapes tilesAcross]], @"Tiles Across", 
-														[NSNumber numberWithInt:[currentTileShapes tilesDown]], @"Tiles Down", 
-														nil]
-											  forKey:@"Rectangular Tile Shapes"];
+	int		tilesAcross = [tilesAcrossStepper intValue], 
+			tilesDown = [tilesDownStepper intValue];
+	float	targetAspectRatio = (float)[[restrictedXSizePopUpButton titleOfSelectedItem] intValue] / 
+								(float)[[restrictedYSizePopUpButton titleOfSelectedItem] intValue];
+	
+	tilesAcross = originalImageSize.width * (float)tilesDown / originalImageSize.height / targetAspectRatio;
+	
+	if (fabsf((originalImageSize.width / tilesAcross) / (originalImageSize.height / tilesDown) - targetAspectRatio) > 
+		fabsf((originalImageSize.width / (tilesAcross + 1)) / (originalImageSize.height / tilesDown) - targetAspectRatio))
+		tilesAcross++;
+	
+	if (tilesAcross >= [tilesAcrossStepper minValue] && tilesAcross <= [tilesAcrossStepper maxValue])
+	{
+		[currentTileShapes setTilesAcross:[tilesAcrossStepper intValue]];
+		[tilesAcrossStepper setIntValue:tilesAcross];
+		[tilesAcrossTextField setIntValue:tilesAcross];
+		[self updatePlugInDefaults];
+	}
+	else
+		NSBeep();
+	
+	[self updateTileCountAndSizeFields];
+}
+
+
+- (void)setTilesDownBasedOnTilesAcross
+{
+	int		tilesAcross = [tilesAcrossStepper intValue], 
+			tilesDown = [tilesDownStepper intValue];
+	float	targetAspectRatio = (float)[[restrictedXSizePopUpButton titleOfSelectedItem] intValue] / 
+								(float)[[restrictedYSizePopUpButton titleOfSelectedItem] intValue];
+	
+	tilesDown = originalImageSize.height * tilesAcross * targetAspectRatio / originalImageSize.width;
+	
+	if (fabsf((originalImageSize.width / tilesAcross) / (originalImageSize.height / tilesDown) - targetAspectRatio) > 
+		fabsf((originalImageSize.width / tilesAcross) / (originalImageSize.height / (tilesDown + 1)) - targetAspectRatio))
+		tilesDown++;
+	
+	if (tilesDown >= [tilesDownStepper minValue] && tilesDown <= [tilesDownStepper maxValue])
+	{
+		[currentTileShapes setTilesDown:[tilesDownStepper intValue]];
+		[tilesDownStepper setIntValue:tilesDown];
+		[tilesDownTextField setIntValue:tilesDown];
+		[self updatePlugInDefaults];
+	}
+	else
+		NSBeep();
+	
+	[self updateTileCountAndSizeFields];
 }
 
 
@@ -87,6 +194,11 @@
 	}
     [currentTileShapes setTilesAcross:[tilesAcrossStepper intValue]];
     [tilesAcrossTextField setIntValue:[tilesAcrossStepper intValue]];
+	
+	if ([restrictTileSizeCheckBox state] == NSOnState)
+		[self setTilesDownBasedOnTilesAcross];
+	else
+		[self updateTileCountAndSizeFields];
 	
 	[self updatePlugInDefaults];
 }
@@ -104,6 +216,38 @@
 	}
     [currentTileShapes setTilesDown:[tilesDownStepper intValue]];
     [tilesDownTextField setIntValue:[tilesDownStepper intValue]];
+	
+	if ([restrictTileSizeCheckBox state] == NSOnState)
+		[self setTilesAcrossBasedOnTilesDown];
+	else
+		[self updateTileCountAndSizeFields];
+	
+	[self updatePlugInDefaults];
+}
+
+
+- (IBAction)restrictTileSize:(id)sender
+{
+	if ([restrictTileSizeCheckBox state] == NSOnState)
+		[self setTilesDownBasedOnTilesAcross];
+	
+	[self updatePlugInDefaults];
+}
+
+
+- (IBAction)setRestrictedXSize:(id)sender
+{
+	if ([restrictTileSizeCheckBox state] == NSOnState)
+		[self setTilesDownBasedOnTilesAcross];
+	
+	[self updatePlugInDefaults];
+}
+
+
+- (IBAction)setRestrictedYSize:(id)sender
+{
+	if ([restrictTileSizeCheckBox state] == NSOnState)
+		[self setTilesDownBasedOnTilesAcross];
 	
 	[self updatePlugInDefaults];
 }

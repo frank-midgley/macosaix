@@ -2,11 +2,22 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            ACTIONS = {setTilesAcross = id; setTilesDown = id; }; 
-            CLASS = MacOSaiXRectangularTilesSetupEditor; 
+            ACTIONS = {
+                restrictTileSize = id; 
+                setRestrictedXSize = id; 
+                setRestrictedYSize = id; 
+                setTilesAcross = id; 
+                setTilesDown = id; 
+            }; 
+            CLASS = MacOSaiXRectangularTileShapesEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 editorView = NSView; 
+                restrictTileSizeCheckBox = NSButton; 
+                restrictedXSizePopUpButton = NSPopUpButton; 
+                restrictedYSizePopUpButton = NSPopUpButton; 
+                tileCountTextField = NSTextField; 
+                tileSizeTextField = NSTextField; 
                 tilesAcrossStepper = NSStepper; 
                 tilesAcrossTextField = NSTextField; 
                 tilesDownStepper = NSStepper; 
