@@ -34,7 +34,6 @@ Ideas for future versions:
 		Font selection
 		Text selection (e.g. decl. of ind.)
 		Limit on images generated (so it doesn't overpower other sources)
-Ã	Don't use each tile more than x times
 	"option to replace ALL instances of one tile with another picture"
 	Button/menu item to not use selected image anywhere.  (probably in editor)
 	AppleScript support
@@ -46,69 +45,15 @@ Riemersma metric:
 
 =======================================================================================
 
-Saved.mosaic wrapper directory
-1)	Original.jpg
-
-2)	Mosaic.xml
-		<?xml version="1.0" encoding="UTF-8"?>
-		<!DOCTYPE plist PUBLIC "-//Frank Midgley//DTD MacOSaiX 1.0//EN" "http://homepage.mac.com/knarf/DTDs/MacOSaiX-1.0.dtd">
-		<IMAGE_SOURCES>
-			<IMAGE_SOURCE ID="">
-				<SETTINGS CLASS="">
-					... content supplied by plug-in of class...
-				</SETTINGS>
-                ???
-			</IMAGE_SOURCE>
-		</IMAGE_SOURCES>
-		<TILES_SETUP>
-            <SETTINGS CLASS="">
-                ... content supplied by plug-in of class...
-            </SETTINGS>
-            <IMAGE_SPACING KIND="TILES" DISTANCE="1"/>
-		</TILES_SETUP>
-		<CACHED_IMAGES>
-			<CACHED_IMAGE FILE_ID="" SOURCE_ID="" IMAGE_ID=""/>
-		</CACHED_IMAGES>
-		<TILES>
-			<TILE>
-				<OUTLINE>
-					<MOVE_TO X="" Y=""/>
-					<LINE_TO X="" Y=""/>
-					<CURVE_TO X="" Y="" C1X="" C1Y="" C2X="" C2Y=""/>
-				</OUTLINE>
-				<MATCH SOURCE_ID="" IMAGE_ID="" VALUE="" (BEST_UNIQUE) (USER_CHOSEN)/>
-			</TILE>
-		</TILES>
-
-3)	Image Cache folder
-		<Cached image 1>.jpg
-			...
-		<Cached image n>.jpg
-
-
-Per-source dict:	imageID -> fileID
-Image cache dict:	fileID -> image
-Ordered array:		images, fileIDs
-
-		[orderedCache insertObject:[NSDictionary dictionaryWithObjectsAndKeys:
-										image, @"Image",
-										imageSource, @"Image Source",
-										imageIdentifier, @"Image Identifier",
-										[NSNumber numberWithLong:imageID], @"File ID", 
-										nil]
-						   atIndex:0];
-
-=======================================================================================
-
 2.0x To Do:
 ¥	Allow setup to be changed after mosaic has been started
 ¥	Make sure pixels are being pulled from bitmaps correctly
-¥	Make neighborhood calculation more efficient or threaded
+Ã	Make neighborhood calculation more efficient or threaded
 ¥	Rework MosaicView to not use a stored image but redraw the tiles as needed in -drawRect:.  Would allow for better zooming.
 ¥	Buffered exporting (allow larger sizes)
 ¥	Editor
-¥	Rework prefs
-¥	Enable image source removal (includes purging of its images...)
+Ã	Rework prefs
+Ã	Enable image source removal (includes purging of its images...)
 ¥	Mosaic quality calculation should take into account each tile's percentage coverage of original image
 ¥	Get rid of lines in exporting
 ¥	Compare straight color match vs. Riemersma
@@ -141,7 +86,6 @@ Ordered array:		images, fileIDs
 Ã	Loading (+ plug-ins state)
 Ã	Version check
 Ã	Disable neighborhood size GUI
-?	Adjust image re-use spacing based on number of repeats allowed
 Ã	Limit better matches cache
 Ã	Switch to showing mosaic when mosaic starts
 Ã	Get zoom working again
@@ -153,9 +97,9 @@ Ordered array:		images, fileIDs
 ¥	Rework puzzle shapes plug-in to conform with new API
 Ã	Make image count work with attributed descriptors
 Ã	Export panel progress not updating
-¥	Limit export sizes to 10,000 pixels (NSWindow limit)
+Ã	Limit export sizes to 10,000 pixels (NSWindow limit)
 ?	Make saved documents bundles
-¥	Handle failure to parse XML
+Ã	Handle failure to parse XML
 Ã	Show average aspect ratio in setup
 	Google source:
 Ã		Meaningful description in table
