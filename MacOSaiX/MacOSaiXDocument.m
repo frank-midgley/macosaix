@@ -5,7 +5,7 @@
 #import "Tiles.h"
 #import "MosaicView.h"
 #import "OriginalView.h"
-
+#import <unistd.h>
 
 	// The maximum size of the image URL queue
 #define MAXIMAGEURLS 32
@@ -17,6 +17,7 @@
 @interface MacOSaiXDocument (PrivateMethods)
 - (void)cacheImage:(NSImage *)image withIdentifier:(id<NSCopying>)imageIdentifier fromSource:(ImageSource *)imageSource;
 - (NSImage *)cachedImageForIdentifier:(id<NSCopying>)imageIdentifier fromSource:(ImageSource *)imageSource;
+- (NSMutableDictionary *)cacheDictionaryForImageSource:(ImageSource *)imageSource;
 @end
 
 
@@ -26,46 +27,59 @@
 {
     if (self = [super init])
     {
-		[self setHasUndoManager:FALSE];	// don't track undo-able changes
+		NSString	*tempPathTemplate = [NSTemporaryDirectory() stringByAppendingPathComponent:@"MacOSaiX Cached Images XXXXXX"];
+		char		*tempPath = mkdtemp((char *)[tempPathTemplate fileSystemRepresentation]);
 		
-		mosaicStarted = NO;
-		paused = YES;
-		viewMode = viewMosaicAndOriginal;
-		statusBarShowing = YES;
-		imagesMatched = 0;
-		imageSources = [[NSMutableArray arrayWithCapacity:0] retain];
-		zoom = 0.0;
-		lastSaved = [[NSDate date] retain];
-		autosaveFrequency = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Autosave Frequency"] intValue];
-		finishLoading = windowFinishedLoading = NO;
-		exportProgressTileCount = 0;
-		exportFormat = NSJPEGFileType;
-		documentIsClosing = NO;
+		if (tempPath)
+		{
+			cachedImagesPath = [[NSString stringWithCString:tempPath] retain];
+			[self setHasUndoManager:FALSE];	// don't track undo-able changes
 			
-		// create the image URL queue and its lock
-		imageQueue = [[NSMutableArray arrayWithCapacity:0] retain];
-		imageQueueLock = [[NSLock alloc] init];
+			mosaicStarted = NO;
+			paused = YES;
+			viewMode = viewMosaicAndOriginal;
+			statusBarShowing = YES;
+			imagesMatched = 0;
+			imageSources = [[NSMutableArray arrayWithCapacity:0] retain];
+			zoom = 0.0;
+			lastSaved = [[NSDate date] retain];
+			autosaveFrequency = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Autosave Frequency"] intValue];
+			finishLoading = windowFinishedLoading = NO;
+			exportProgressTileCount = 0;
+			exportFormat = NSJPEGFileType;
+			documentIsClosing = NO;
+				
+			// create the image URL queue and its lock
+			imageQueue = [[NSMutableArray arrayWithCapacity:0] retain];
+			imageQueueLock = [[NSLock alloc] init];
 
-		createTilesThreadAlive = enumerateImageSourcesThreadAlive = calculateImageMatchesThreadAlive = 
-			exportImageThreadAlive = NO;
-		calculateImageMatchesThreadLock = [[NSLock alloc] init];
-		
-			// set up ivars for "calculateDisplayedImages" thread
-		calculateDisplayedImagesThreadAlive = NO;
-		calculateDisplayedImagesThreadLock = [[NSLock alloc] init];
-		refreshTilesSet = [[NSMutableSet setWithCapacity:256] retain];
-		refreshTilesSetLock = [[NSLock alloc] init];
+			createTilesThreadAlive = enumerateImageSourcesThreadAlive = calculateImageMatchesThreadAlive = 
+				exportImageThreadAlive = NO;
+			calculateImageMatchesThreadLock = [[NSLock alloc] init];
+			
+				// set up ivars for "calculateDisplayedImages" thread
+			calculateDisplayedImagesThreadAlive = NO;
+			calculateDisplayedImagesThreadLock = [[NSLock alloc] init];
+			refreshTilesSet = [[NSMutableSet setWithCapacity:256] retain];
+			refreshTilesSetLock = [[NSLock alloc] init];
 
-		tileImages = [[NSMutableArray arrayWithCapacity:0] retain];
-		tileImagesLock = [[NSLock alloc] init];
-		
-		cacheLock = [[NSLock alloc] init];
-		imageCache = [[NSMutableDictionary dictionary] retain];
-		cachedImagesPath = @"/tmp/Cached Images";
-        
-        orderedCache = [[NSMutableArray array] retain];
-        orderedCacheID = [[NSMutableArray array] retain];
+			tileImages = [[NSMutableArray arrayWithCapacity:0] retain];
+			tileImagesLock = [[NSLock alloc] init];
+			
+			cacheLock = [[NSLock alloc] init];
+			imageCache = [[NSMutableDictionary dictionary] retain];
+			
+			orderedCache = [[NSMutableArray array] retain];
+			orderedCacheID = [[NSMutableArray array] retain];
+		}
+		else
+		{
+			NSRunAlertPanel(@"A new mosaic could not be started.", @"Failed to create an image cache directory.\n\nError %d", @"OK", nil, nil, errno);
+			[self autorelease];
+			self = nil;
+		}
 	}
+	
     return self;
 }
 
@@ -271,40 +285,252 @@
 	else
 		[self spawnImageSourceThreads];
     
-		// TODO: I can't remember what this is for?
+		// TODO: I can't remember what this is for...
     windowFinishedLoading = YES;
+}
+
+
+- (void)pause
+{
+	if (!paused)
+	{
+			// Update the toolbar.
+		[pauseToolbarItem setLabel:@"Resume"];
+		[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
+		
+			// Update the menu bar.
+		[[fileMenu itemWithTitle:@"Pause Matching"] setTitle:@"Resume Matching"];
+		
+			// Wait for the one-shot startup threads to end.
+		while (createTilesThreadAlive || enumerateImageSourcesThreadAlive)
+			[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+
+			// Tell the image sources to stop sending in any new images.
+		NSEnumerator	*imageSourceEnumerator = [imageSources objectEnumerator];
+		ImageSource		*imageSource;
+		while (imageSource = [imageSourceEnumerator nextObject])
+			[imageSource pause];
+		
+			// Wait for any queued images to get processed.
+			// TBD: can we condition lock here instead of poll?
+			// TBD: this could block the main thread
+		while (calculateImageMatchesThreadAlive)
+			[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+		
+		paused = YES;
+	}
+}
+
+
+- (void)resume
+{
+	if (paused)
+	{
+		if (!mosaicStarted)
+			[self startMosaic];	// spawn the image source threads
+		
+			// Update the toolbar
+		[pauseToolbarItem setLabel:@"Pause"];
+		[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
+		
+			// Update the menu bar
+		[[fileMenu itemWithTitle:@"Resume Matching"] setTitle:@"Pause Matching"];
+		
+			// Restart the image sources
+		NSEnumerator	*imageSourceEnumerator = [imageSources objectEnumerator];
+		ImageSource		*imageSource;
+		while (imageSource = [imageSourceEnumerator nextObject])
+			[imageSource resume];
+		
+		paused = NO;
+	}
+}
+
+
+#pragma mark
+#pragma mark Save and Open methods
+
+
+- (BOOL)writeToFile:(NSString *)fileName ofType:(NSString *)type;
+{
+	BOOL			success = NO,
+					wasPaused = paused;
+	NSFileManager	*fileManager = [NSFileManager defaultManager];
+	
+		// Pause the mosaic so that it is in a static state while saving.
+	[self pause];
+	
+	// TBD: set a "saving" flag?
+	
+		// Create the wrapper directory if it doesn't already exist.
+	if ([fileManager fileExistsAtPath:fileName] || [fileManager createDirectoryAtPath:fileName attributes:nil])
+	{
+		if (![cachedImagesPath hasPrefix:fileName])
+		{
+				// This is the first time this mosaic has been saved so move 
+				// the image cache directory from /tmp to the new location.
+			NSString	*savedCachedImagesPath = [fileName stringByAppendingPathComponent:@"Cached Images"];
+			[fileManager movePath:cachedImagesPath toPath:savedCachedImagesPath handler:nil];
+			[cachedImagesPath autorelease];
+			cachedImagesPath = [savedCachedImagesPath retain];
+		}
+		
+			// Display a sheet while the save is underway
+		[progressPanelLabel setStringValue:@"Saving..."];
+		[progressPanelIndicator setDoubleValue:0.0];
+		[progressPanelCancelButton setAction:@selector(cancelSave:)];
+		[NSApp beginSheet:progressPanel 
+		   modalForWindow:mainWindow 
+			modalDelegate:self 
+		   didEndSelector:@selector(saveSheetDidEnd:returnCode:contextInfo:) 
+			  contextInfo:nil];
+		
+		[NSThread detachNewThreadSelector:@selector(threadedSaveToPath:) 
+								 toTarget:self 
+							   withObject:[NSArray arrayWithObjects:fileName, [NSNumber numberWithBool:wasPaused], nil]];
+		
+		success = YES;
+	}
+	
+	return success;
+}
+
+
+- (IBAction)cancelSave:(id)sender
+{
+}
+
+
+- (void)saveSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+	[sheet orderOut:self];
+}
+
+
+- (void)threadedSaveToPath:(NSArray *)parameters
+{
+	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	NSString			*savePath = [parameters objectAtIndex:0];
+	BOOL				wasPaused = [[parameters objectAtIndex:1] boolValue];
+	
+			// Create the master save file in XML format.
+	NSString	*xmlPath = [savePath stringByAppendingPathComponent:@"Mosaic new.xml"];
+	if (![[NSFileManager defaultManager] createFileAtPath:xmlPath contents:nil attributes:nil])
+	{
+	}
+	else
+	{
+		NSFileHandle	*fileHandle = [NSFileHandle fileHandleForWritingAtPath:xmlPath];
+		
+			// Write out the XML header.
+		[fileHandle writeData:[@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+		[fileHandle writeData:[@"<!DOCTYPE plist PUBLIC \"-//Frank M. Midgley//DTD MacOSaiX 1.0//EN\" \"http://homepage.mac.com/knarf/DTDs/MacOSaiX-1.0.dtd\">" dataUsingEncoding:NSUTF8StringEncoding]];
+		
+			// Write out the image sources.
+		[fileHandle writeData:[@"<IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+		int	index;
+		for (index = 0; index < [imageSources count]; index++)
+		{
+			ImageSource	*imageSource = [imageSources objectAtIndex:index];
+			NSString	*className = NSStringFromClass([imageSource class]);
+			
+			[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\">\n", index] dataUsingEncoding:NSUTF8StringEncoding]];
+			[fileHandle writeData:[[NSString stringWithFormat:@"\t\t<SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
+	//		[fileHandle writeData:[[imageSource XMLRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
+			[fileHandle writeData:[@"\t\t</SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+			[fileHandle writeData:[@"\t</IMAGE_SOURCE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+		}
+		[fileHandle writeData:[@"</IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+
+			// Write out the tiles setup
+		NSString	*className = NSStringFromClass([tilesSetupController class]);
+		[fileHandle writeData:[@"<TILES_SETUP>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+		[fileHandle writeData:[[NSString stringWithFormat:@"\t\t<SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
+	//    [fileHandle writeData:[[tilesSetupController XMLRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
+		[fileHandle writeData:[@"\t</SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+		[fileHandle writeData:[@"</TILES_SETUP>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+		
+			// Write out the cached images
+		[fileHandle writeData:[@"<CACHED_IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+		for (index = 0; index < [imageSources count]; index++)
+		{
+			ImageSource		*imageSource = [imageSources objectAtIndex:index];
+			NSDictionary	*cacheDict = [self cacheDictionaryForImageSource:imageSource];
+			NSEnumerator	*imageIDEnumerator = [cacheDict keyEnumerator];
+			id<NSCopying>	imageID = nil;
+			while (imageID = [imageIDEnumerator nextObject])
+				[fileHandle writeData:[[NSString stringWithFormat:@"\t<CACHED_IMAGE SOURCE_ID=\"%d\" IMAGE_ID=\"%@\"/ FILE_ID=\"%@\">\n", 
+													index, imageID, [cacheDict objectForKey:imageID]] dataUsingEncoding:NSUTF8StringEncoding]];
+		}
+		[fileHandle writeData:[@"</CACHED_IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+		
+			// Write out the tiles
+		[fileHandle writeData:[@"<TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+		Tile			*tile = nil;
+		while (tile = [tileEnumerator nextObject])
+		{
+			[fileHandle writeData:[@"\t<TILE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+			
+				// First write out the tile's outline
+			[fileHandle writeData:[@"\t\t<OUTLINE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+			int index;
+			for (index = 0; index < [[tile outline] elementCount]; index++)
+			{
+				NSPoint points[3];
+				switch ([[tile outline] elementAtIndex:index associatedPoints:points])
+				{
+					case NSMoveToBezierPathElement:
+						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<MOVE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
+															points[0].x, points[0].y] dataUsingEncoding:NSUTF8StringEncoding]];
+						break;
+					case NSLineToBezierPathElement:
+						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<LINE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
+															points[0].x, points[0].y] dataUsingEncoding:NSUTF8StringEncoding]];
+						break;
+					case NSCurveToBezierPathElement:
+						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<CURVE_TO X=\"%0.6f\" Y=\"%0.6f\" C1X=\"%0.6f\" C1Y=\"%0.6f\" C2X=\"%0.6f\" C2Y=\"%0.6f\">\n", 
+															points[2].x, points[2].y, points[0].x, points[0].y, points[1].x, points[1].y] 
+													dataUsingEncoding:NSUTF8StringEncoding]];
+						break;
+					case NSClosePathBezierPathElement:
+						[fileHandle writeData:[@"\t\t\t<CLOSE_PATH>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+						break;
+					default:
+						;
+				}
+			}
+			[fileHandle writeData:[@"\t\t</OUTLINE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+			
+				// Now write out the tile's matches.
+			[fileHandle writeData:[@"\t\t<MATCHES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+			NSEnumerator	*matchEnumerator = [[tile matches] objectEnumerator];
+			ImageMatch		*match = nil;
+			while (match = [matchEnumerator nextObject])
+				[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<MATCH SOURCE_ID=\"%d\" IMAGE_ID=\"%@\" VALUE=\"%0.6f\"%@>\n", 
+													[imageSources indexOfObjectIdenticalTo:[match imageSource]],
+													[match imageIdentifier], [match matchValue],
+													(match == [tile userChosenImageMatch] ? @"USER_CHOSEN" : @"")] 
+											dataUsingEncoding:NSUTF8StringEncoding]];
+			[fileHandle writeData:[@"\t\t</MATCHES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+			[fileHandle writeData:[@"\t</TILE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+		}
+		[fileHandle writeData:[@"</TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+		
+		[fileHandle closeFile];
+	}
+	
+	if (wasPaused)
+		[self resume];
+	
+	[pool release];
 }
 
 
 - (NSData *)dataRepresentationOfType:(NSString *)aType
 {
-    BOOL		wasPaused = paused;
-    NSMutableDictionary	*storage = [NSMutableDictionary dictionary];
-
-    paused = YES;
-
-    // wait for threads to pause
-//    while (enumerateImageSourcesThreadAlive || calculateImageMatchesThreadAlive)
-//		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
-    
-#if 1
-	[self save];
-#else
-    [storage setObject:@"1.0b1" forKey:@"Version"];
-    [storage setObject:originalImageURL forKey:@"originalImageURL"];
-    [storage setObject:imageSources forKey:@"imageSources"];
-    [storage setObject:[NSArchiver archivedDataWithRootObject:tileImages] forKey:@"tileImages"];
-    [storage setObject:[NSArchiver archivedDataWithRootObject:tiles] forKey:@"tiles"];
-    [storage setObject:[NSNumber numberWithLong:imagesMatched] forKey:@"imagesMatched"];
-    [storage setObject:imageQueue forKey:@"imageQueue"];
-    [storage setObject:[NSNumber numberWithInt:viewMode] forKey:@"viewMode"];
-    [storage setObject:[NSValue valueWithRect:[mainWindow frame]] forKey:@"window frame"];
-    [storage setObject:[NSNumber numberWithInt:(paused ? 1 : 0)] forKey:@"paused"];
-#endif
-    
-    paused = wasPaused;
-
-    return [NSArchiver archivedDataWithRootObject:storage];
+		// Saving is totally overriden in -writeToFile:ofType:.
+	return nil;
 }
 
 
@@ -428,12 +654,12 @@
     
     // 
     if (exportImageThreadAlive)
-		[exportProgressIndicator setDoubleValue:exportProgressTileCount];
+		[progressPanelIndicator setDoubleValue:exportProgressTileCount];
     else if (!exportImageThreadAlive && exportProgressTileCount > 0)
     {
 		// the export is finished, close the panel
-		[NSApp endSheet:exportProgressPanel];
-		[exportProgressPanel orderOut:nil];
+		[NSApp endSheet:progressPanel];
+		[progressPanel orderOut:nil];
 		exportProgressTileCount = 0;
     }
 }
@@ -1842,15 +2068,7 @@
 	ImageSource		*imageSource;
 
 	if (paused)
-	{
-		if (!mosaicStarted) [self startMosaic];	// spawn the image source threads
-		[pauseToolbarItem setLabel:@"Pause"];
-		[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
-		[[fileMenu itemWithTitle:@"Resume Matching"] setTitle:@"Pause Matching"];
-		while (imageSource = [imageSourceEnumerator nextObject])
-			[imageSource resume];
-		paused = NO;
-	}
+		[self resume];
 	else
 	{
 		[pauseToolbarItem setLabel:@"Resume"];
@@ -1868,19 +2086,12 @@
 
 - (void)beginExportImage:(id)sender
 {
-    savePanel = [[NSSavePanel savePanel] retain];
-
-/*
-    if ([[tiles lastObject] matchCount] < [tiles count])
-    {
-	NSBeginAlertSheet(@"Export Image", nil, nil, nil, mainWindow, self, nil, nil, nil,
-	    @"Not enough images have been found.");
-	return;
-    }
-*/
-	
-    if (!paused) [self togglePause:self];
+		// First pause the mosaic so we don't have a moving target.
+	BOOL		wasPaused = paused;
+    [self pause];
     
+		// Set up the save panel for exporting.
+    NSSavePanel	*savePanel = [NSSavePanel savePanel];
     if ([exportWidth intValue] == 0)
     {
         [exportWidth setIntValue:[originalImage size].width * 4];
@@ -1888,27 +2099,27 @@
     }
     [savePanel setAccessoryView:exportPanelAccessoryView];
     
-    // ask the user where to save the image
+		// Ask the user where to export the image.
     [savePanel beginSheetForDirectory:NSHomeDirectory()
 				 file:@"Mosaic.jpg"
 		       modalForWindow:mainWindow
 			modalDelegate:self
 		       didEndSelector:@selector(exportImageSavePanelDidEnd:returnCode:contextInfo:)
-			  contextInfo:savePanel];
+			  contextInfo:[NSNumber numberWithBool:wasPaused]];
 }
 
 
 - (IBAction)setJPEGExport:(id)sender
 {
     exportFormat = NSJPEGFileType;
-    [savePanel setRequiredFileType:@"jpg"];
+    [(NSSavePanel *)[sender window] setRequiredFileType:@"jpg"];
 }
 
 
 - (IBAction)setTIFFExport:(id)sender;
 {
     exportFormat = NSTIFFFileType;
-    [savePanel setRequiredFileType:@"tiff"];
+    [(NSSavePanel *)[sender window] setRequiredFileType:@"tiff"];
 }
 
 
@@ -1930,81 +2141,62 @@
 	
     if (returnCode == NSOKButton)
     {
-		[exportProgressLabel setStringValue:@"Waiting to find all unique tiles..."];
-		[exportProgressIndicator setIndeterminate:YES];
-		[exportProgressIndicator startAnimation:self];
-		
-		[NSApp beginSheet:exportProgressPanel
+			// Display a progress panel while the export is underway.
+		[progressPanelLabel setStringValue:@"Exporting mosaic image..."];
+		[progressPanelIndicator startAnimation:self];
+		[progressPanelIndicator setMaxValue:[tiles count]];
+		[NSApp beginSheet:progressPanel
 		   modalForWindow:mainWindow
 			modalDelegate:self
 		   didEndSelector:nil
-			  contextInfo:nil];
+			  contextInfo:contextInfo];
 		
+			// Spawn a thread to do the export so the GUI doesn't get tied up.
 		[NSApplication detachDrawingThread:@selector(exportImage:)
 								  toTarget:self 
-								withObject:[(NSSavePanel *)savePanel filename]];
+								withObject:[(NSSavePanel *)sheet filename]];
 	}
-	
-	[savePanel release];
-    savePanel = nil;
 }
 
 
-- (void)exportImage:(id)exportFilename
+- (void)exportImage:(NSString *)exportFilename
 {
-    int			i;
-    NSAffineTransform	*transform;
-    NSRect		drawRect;
-    NSImage		*exportImage;
-    NSBitmapImageRep	*exportRep,
-                    *pixletImage;
-    NSData		*bitmapData;
-    NSAutoreleasePool	*pool;
-    BOOL		wasPaused = paused;
-    
-    exportImageThreadAlive = YES;
-    
-    pool = [[NSAutoreleasePool alloc] init];
+    NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	NSAssert(pool, @"Could not allocate pool");
 
-//    while (calculateDisplayedImagesThreadAlive)
-//		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
-    [exportProgressLabel setStringValue:@"Exporting mosaic image..."];
-    [exportProgressIndicator stopAnimation:self];
-    [exportProgressIndicator setMaxValue:[tiles count]];
-    [exportProgressIndicator setIndeterminate:NO];
-    [exportProgressPanel displayIfNeeded];
+    exportImageThreadAlive = YES;
     
-    exportImage = [[NSImage alloc] initWithSize:NSMakeSize([exportWidth intValue], [exportHeight intValue])];
-//    exportImage = [[NSImage alloc] initWithSize:NSMakeSize(2400, 2400 * [originalImage size].height / 
-//								 [originalImage size].width)];
+    NSImage		*exportImage = [[NSImage alloc] initWithSize:NSMakeSize([exportWidth intValue], [exportHeight intValue])];
 	NS_DURING
 		[exportImage lockFocus];
 	NS_HANDLER
 		NSLog(@"Could not lock focus on export image");
 	NS_ENDHANDLER
-    transform = [NSAffineTransform transform];
+    NSAffineTransform	*transform = [NSAffineTransform transform];
     [transform scaleXBy:[exportImage size].width yBy:[exportImage size].height];
+    int	i;
     for (i = 0; i < [tiles count]; i++)
     {
         NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
         Tile				*tile = [tiles objectAtIndex:i];
-//        CachedImage			*cachedImage = [tileImages objectAtIndex:([tile userChosenImageIndex] == -1) ?
-//                                        [tile bestUniqueMatch]->tileImageIndex :
-//                                        [tile userChosenImageIndex]];
         NSBezierPath		*clipPath = [transform transformBezierPath:[tile outline]];
-//        int					imageFetchCount = 0;
         
         exportProgressTileCount = i;
         [NSGraphicsContext saveGraphicsState];
         [clipPath addClip];
-        
-//        do
-//            pixletImage = [[cachedImage imageSource] imageForIdentifier:[cachedImage imageIdentifier]];
-//        while (pixletImage == nil && imageFetchCount++ < 4);
-        
-        pixletImage = [tile bitmapRep];
-        
+		
+			// Get the image in use by this tile.
+			// First try to get the high-res version from the image source, if it supports it.
+			// Else use the version in the cache.
+		NSImage		*pixletImage = nil;
+		ImageMatch	*match = [tile displayedImageMatch];
+		if ([[match imageSource] canRefetchImages])
+			pixletImage = [[match imageSource] imageForIdentifier:[match imageIdentifier]];
+		if (!pixletImage)
+			pixletImage = [self cachedImageForIdentifier:[match imageIdentifier] fromSource:[match imageSource]];
+		
+			// Translate the tile's outline (in unit space) to the size of the exported image.
+		NSRect		drawRect;
         if ([clipPath bounds].size.width / [pixletImage size].width <
             [clipPath bounds].size.height / [pixletImage size].height)
         {
@@ -2024,32 +2216,38 @@
                         [clipPath bounds].origin.y - 
                             (drawRect.size.height - [clipPath bounds].size.height) / 2.0);
         }
-//        [pixletImage drawInRect:drawRect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
-        [pixletImage drawInRect:drawRect];
+		
+			// Finally, draw the tile's image.
+        [pixletImage drawInRect:drawRect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
+		
+			// Clean up
         [NSGraphicsContext restoreGraphicsState];
         [pool2 release];
     }
-    exportRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0, 0, [exportImage size].width, 
+	
+		// Now convert the image into the desired output format.
+    NSBitmapImageRep	*exportRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0, 0, [exportImage size].width, 
 									     [exportImage size].height)];
     [exportImage unlockFocus];
 
-    if (exportFormat == NSJPEGFileType)
-        bitmapData = [exportRep representationUsingType:NSJPEGFileType properties:nil];
-    else
-        bitmapData = [exportRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0];
+	NSData		*bitmapData = (exportFormat == NSJPEGFileType) ? 
+									[exportRep representationUsingType:NSJPEGFileType properties:nil] :
+									[exportRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0];
     [bitmapData writeToFile:exportFilename atomically:YES];
     
-    [NSApp endSheet:exportProgressPanel];
-    [exportProgressPanel orderOut:nil];
-
     [pool release];
     [exportRep release];
     [exportImage release];
+	
+	[self performSelectorOnMainThread:@selector(closeProgressPanel) withObject:nil waitUntilDone:YES];
 
-    paused = wasPaused;
     exportImageThreadAlive = NO;
-    
-    [NSThread exit];
+}
+
+
+- (void)closeProgressPanel
+{
+	[NSApp endSheet:progressPanel];
 }
 
 
@@ -2327,117 +2525,6 @@
 	imageSources = nil;
 	
     [super close];
-}
-
-
-#pragma mark
-
-
-- (void)save
-{
-	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	
-	[[NSFileManager defaultManager] createFileAtPath:@"/tmp/Saved.mosaic/Mosaic.xml" contents:nil attributes:nil];
-	NSFileHandle	*fileHandle = [NSFileHandle fileHandleForWritingAtPath:@"/tmp/Saved.mosaic/Mosaic.xml"];
-	
-		// Write out the XML header.
-	[fileHandle writeData:[@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-	[fileHandle writeData:[@"<!DOCTYPE plist PUBLIC \"-//Frank M. Midgley//DTD MacOSaiX 1.0//EN\" \"http://homepage.mac.com/knarf/DTDs/MacOSaiX-1.0.dtd\">" dataUsingEncoding:NSUTF8StringEncoding]];
-	
-		// Write out the image sources.
-	[fileHandle writeData:[@"<IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-	int	index;
-	for (index = 0; index < [imageSources count]; index++)
-	{
-		ImageSource	*imageSource = [imageSources objectAtIndex:index];
-		NSString	*className = NSStringFromClass([imageSource class]);
-		
-		[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\">\n", index] dataUsingEncoding:NSUTF8StringEncoding]];
-		[fileHandle writeData:[[NSString stringWithFormat:@"\t\t<SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
-//		[fileHandle writeData:[[imageSource XMLRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
-		[fileHandle writeData:[@"\t\t</SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-		[fileHandle writeData:[@"\t</IMAGE_SOURCE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-	}
-	[fileHandle writeData:[@"</IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-
-		// Write out the tiles setup
-    NSString	*className = NSStringFromClass([tilesSetupController class]);
-    [fileHandle writeData:[@"<TILES_SETUP>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-    [fileHandle writeData:[[NSString stringWithFormat:@"\t\t<SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
-//    [fileHandle writeData:[[tilesSetupController XMLRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
-    [fileHandle writeData:[@"\t</SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-    [fileHandle writeData:[@"</TILES_SETUP>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-    
-        // Write out the cached images
-	[fileHandle writeData:[@"<CACHED_IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-	for (index = 0; index < [imageSources count]; index++)
-	{
-		ImageSource		*imageSource = [imageSources objectAtIndex:index];
-		NSDictionary	*cacheDict = [self cacheDictionaryForImageSource:imageSource];
-		NSEnumerator	*imageIDEnumerator = [cacheDict keyEnumerator];
-		id<NSCopying>	imageID = nil;
-		while (imageID = [imageIDEnumerator nextObject])
-			[fileHandle writeData:[[NSString stringWithFormat:@"\t<CACHED_IMAGE SOURCE_ID=\"%d\" IMAGE_ID=\"%@\"/ FILE_ID=\"%@\">\n", 
-												index, imageID, [cacheDict objectForKey:imageID]] dataUsingEncoding:NSUTF8StringEncoding]];
-    }
-	[fileHandle writeData:[@"</CACHED_IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-    
-        // Write out the tiles
-	[fileHandle writeData:[@"<TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-    NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-    Tile			*tile = nil;
-    while (tile = [tileEnumerator nextObject])
-    {
-        [fileHandle writeData:[@"\t<TILE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-		
-			// First write out the tile's outline
-        [fileHandle writeData:[@"\t\t<OUTLINE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-        int index;
-        for (index = 0; index < [[tile outline] elementCount]; index++)
-        {
-            NSPoint points[3];
-            switch ([[tile outline] elementAtIndex:index associatedPoints:points])
-            {
-                case NSMoveToBezierPathElement:
-                    [fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<MOVE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
-                                                        points[0].x, points[0].y] dataUsingEncoding:NSUTF8StringEncoding]];
-                    break;
-                case NSLineToBezierPathElement:
-                    [fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<LINE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
-                                                        points[0].x, points[0].y] dataUsingEncoding:NSUTF8StringEncoding]];
-                    break;
-                case NSCurveToBezierPathElement:
-                    [fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<CURVE_TO X=\"%0.6f\" Y=\"%0.6f\" C1X=\"%0.6f\" C1Y=\"%0.6f\" C2X=\"%0.6f\" C2Y=\"%0.6f\">\n", 
-                                                        points[2].x, points[2].y, points[0].x, points[0].y, points[1].x, points[1].y] 
-                                                dataUsingEncoding:NSUTF8StringEncoding]];
-                    break;
-				case NSClosePathBezierPathElement:
-                    [fileHandle writeData:[@"\t\t\t<CLOSE_PATH>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-                    break;
-                default:
-                    ;
-            }
-        }
-        [fileHandle writeData:[@"\t\t</OUTLINE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-		
-			// Now write out the tile's matches.
-        [fileHandle writeData:[@"\t\t<MATCHES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-		NSEnumerator	*matchEnumerator = [[tile matches] objectEnumerator];
-		ImageMatch		*match = nil;
-		while (match = [matchEnumerator nextObject])
-			[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<MATCH SOURCE_ID=\"%d\" IMAGE_ID=\"%@\" VALUE=\"%0.6f\"%@>\n", 
-												[imageSources indexOfObjectIdenticalTo:[match imageSource]],
-												[match imageIdentifier], [match matchValue],
-												(match == [tile userChosenImageMatch] ? @"USER_CHOSEN" : @"")] 
-										dataUsingEncoding:NSUTF8StringEncoding]];
-        [fileHandle writeData:[@"\t\t</MATCHES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-        [fileHandle writeData:[@"\t</TILE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-    }
-	[fileHandle writeData:[@"</TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-	
-    [fileHandle closeFile];
-
-	[pool release];
 }
 
 
