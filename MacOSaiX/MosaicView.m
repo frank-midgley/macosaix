@@ -1,6 +1,7 @@
 #import "MosaicView.h"
 #import "MacOSaiXDocument.h"
 #import "MacOSaiXWindowController.h"
+#import "MacOSaiXImageCache.h"
 #import "Tiles.h"
 
 
@@ -69,7 +70,7 @@
 			// set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined on a unit square)
 		[mosaicImageTransform release];
 		mosaicImageTransform = [[NSAffineTransform transform] retain];
-		[mosaicImageTransform translateXBy:0.5 yBy:0.5];	// line up with pixel boundaries
+//		[mosaicImageTransform translateXBy:0.5 yBy:0.5];	// line up with pixel boundaries
 		[mosaicImageTransform scaleXBy:[mosaicImage size].width yBy:[mosaicImage size].height];
 	[mosaicImageLock unlock];
 	
@@ -102,10 +103,10 @@
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	MacOSaiXTile		*tile = [[notification userInfo] objectForKey:@"Tile"];
 	NSBezierPath		*clipPath = [mosaicImageTransform transformBezierPath:[tile outline]];
-	ImageMatch			*imageMatch = [tile displayedImageMatch];
-	NSImageRep			*newImageRep = [[document imageCache] imageRepAtSize:[clipPath bounds].size
-															   forIdentifier:[imageMatch imageIdentifier] 
-																  fromSource:[imageMatch imageSource]];
+	MacOSaiXImageMatch	*imageMatch = [tile displayedImageMatch];
+	NSImageRep			*newImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[clipPath bounds].size
+																			   forIdentifier:[imageMatch imageIdentifier] 
+																				  fromSource:[imageMatch imageSource]];
 	
 	if (newImageRep)
 	{
@@ -154,7 +155,7 @@
 	
 	[tilesNeedingDisplay addObject:tile];
 	
-	if ([tilesNeedingDisplay count] > 32 || [lastUpdate timeIntervalSinceNow] < -0.25)
+	if ([lastUpdate timeIntervalSinceNow] < -0.1)	//|| [tilesNeedingDisplay count] > 32)
 	{
 		NSAffineTransform	*transform = [[NSAffineTransform transform] retain];
 		[transform translateXBy:0.5 yBy:0.5];	// line up with pixel boundaries
@@ -219,14 +220,16 @@
 	if (viewOriginal)
 	{
 		NSImage	*originalImage = [document originalImage];
-		[originalImage drawInRect:[self bounds] fromRect:NSMakeRect(0, 0, [originalImage size].width,
-																	 [originalImage size].height)
-						 operation:NSCompositeCopy fraction:1.0];
+		[originalImage drawInRect:[self bounds] fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
 	}
 	else
-		[mosaicImage drawInRect:[self bounds] fromRect:NSMakeRect(0, 0, [mosaicImage size].width,
-																   [mosaicImage size].height)
-					   operation:NSCompositeCopy fraction:1.0];
+	{
+		[mosaicImageLock lock];
+			[mosaicImage drawInRect:[self bounds] fromRect:NSMakeRect(0, 0, [mosaicImage size].width,
+																	   [mosaicImage size].height)
+						   operation:NSCompositeCopy fraction:1.0];
+		[mosaicImageLock unlock];
+	}
 	
 	if (tilesOutline && viewTileOutlines)
 	{
