@@ -338,6 +338,36 @@
 			settings = {
 			};
 		};
+		01BBDECB0747081400F17A9F = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = "NSImage+MacOSaiX.h";
+			path = "MacOSaiX/NSImage+MacOSaiX.h";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01BBDECC0747081400F17A9F = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = "NSImage+MacOSaiX.m";
+			path = "MacOSaiX/NSImage+MacOSaiX.m";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01BBDECD0747081400F17A9F = {
+			fileRef = 01BBDECB0747081400F17A9F;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		01BBDECE0747081400F17A9F = {
+			fileRef = 01BBDECC0747081400F17A9F;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		01CB07D9071A1F1000710BCF = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -450,6 +480,8 @@
 				9289DDA6073D713100C88091,
 				F5517EEE020CD88F01000106,
 				F5517EEF020CD88F01000106,
+				01BBDECB0747081400F17A9F,
+				01BBDECC0747081400F17A9F,
 				F53FEE25024A568201000108,
 				F53FEE26024A568201000108,
 				F54167CC024C0FB80100010B,
@@ -787,11 +819,11 @@
 				9284898406611CE5003B3514,
 				9284898506611CE5003B3514,
 				9284898706611CE5003B3514,
-				9284898806611CE5003B3514,
 				9284898906611CE5003B3514,
 				923384DD072180700010BE04,
 				9289DDA7073D713100C88091,
 				9289DDA9073D713100C88091,
+				01BBDECD0747081400F17A9F,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -830,14 +862,6 @@
 		};
 		9284898706611CE5003B3514 = {
 			fileRef = F5517EEE020CD88F01000106;
-			isa = PBXBuildFile;
-			settings = {
-				ATTRIBUTES = (
-				);
-			};
-		};
-		9284898806611CE5003B3514 = {
-			fileRef = F54167CC024C0FB80100010B;
 			isa = PBXBuildFile;
 			settings = {
 				ATTRIBUTES = (
@@ -936,10 +960,10 @@
 				9284899806611CE5003B3514,
 				9284899906611CE5003B3514,
 				9284899B06611CE5003B3514,
-				9284899C06611CE5003B3514,
 				9284899D06611CE5003B3514,
 				9289DDA8073D713100C88091,
 				9289DDAA073D713100C88091,
+				01BBDECE0747081400F17A9F,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -978,12 +1002,6 @@
 		};
 		9284899B06611CE5003B3514 = {
 			fileRef = F5517EEF020CD88F01000106;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		9284899C06611CE5003B3514 = {
-			fileRef = F54167CD024C0FB80100010B;
 			isa = PBXBuildFile;
 			settings = {
 			};
