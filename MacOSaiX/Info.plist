@@ -38,7 +38,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>MacOSaiX</string>
 	<key>CFBundleVersion</key>
-	<string>2.0b1</string>
+	<string>2.0a1</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
