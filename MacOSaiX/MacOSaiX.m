@@ -2,6 +2,8 @@
 #import "PreferencesController.h"
 #import "MacOSaiXTileShapes.h"
 #import "MacOSaiXImageSource.h"
+#import "MacOSaiXDocument.h"
+#import <pthread.h>
 
 
 @implementation MacOSaiX
@@ -27,6 +29,11 @@
 		tileShapesClasses = [[NSMutableArray arrayWithCapacity:1] retain];
 		imageSourceClasses = [[NSMutableArray arrayWithCapacity:4] retain];
 		loadedPlugInPaths = [[NSMutableArray arrayWithCapacity:5] retain];
+		
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(documentDidFinishSaving:)
+													 name:MacOSaiXDocumentDidSaveNotification
+												   object:nil];
 	}
 	return self;
 }
@@ -117,6 +124,58 @@
 - (NSArray *)imageSourceClasses
 {
 	return imageSourceClasses;
+}
+
+
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
+{
+	NSApplicationTerminateReply	reply = NSTerminateNow;
+	
+	quitting = YES;
+	
+		// If any documents are still saving then we need to wait for them to finish.
+	NSEnumerator				*documentEnumerator = [[[NSDocumentController sharedDocumentController] documents] objectEnumerator];
+	MacOSaiXDocument			*document = nil;
+	while (document = [documentEnumerator nextObject])
+		if ([document isSaving])
+			reply = NSTerminateLater;
+
+	return reply;
+}
+
+
+- (BOOL)isQuitting
+{
+	return quitting;
+}
+
+
+- (void)documentDidFinishSaving:(NSNotification *)notification
+{
+		// Only react on the main thread.
+	if (pthread_main_np())
+	{
+		BOOL	wasCancelled = [[[notification userInfo] objectForKey:@"User Cancelled"] boolValue];
+		
+		if (wasCancelled)
+		{
+			quitting = NO;
+			[NSApp replyToApplicationShouldTerminate:NO];
+		}
+		else
+		{
+				// If any other documents are still saving then we need to wait.
+			NSEnumerator				*documentEnumerator = [[[NSDocumentController sharedDocumentController] documents] objectEnumerator];
+			MacOSaiXDocument			*document = nil;
+			while (document = [documentEnumerator nextObject])
+				if ([document isSaving])
+					return;
+			
+			[NSApp replyToApplicationShouldTerminate:YES];
+		}
+	}
+	else
+		[self performSelectorOnMainThread:@selector(documentDidFinishSaving:) withObject:notification waitUntilDone:YES];
 }
 
 

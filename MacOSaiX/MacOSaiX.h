@@ -15,11 +15,14 @@
 	NSMutableArray 	*tileShapesClasses,
 					*imageSourceClasses,
 					*loadedPlugInPaths;
+	BOOL			quitting;
 }
 
 - (void)openPreferences:(id)sender;
 - (void)discoverPlugIns;
 - (NSArray *)tileShapesClasses;
 - (NSArray *)imageSourceClasses;
+
+- (BOOL)isQuitting;
 
 @end

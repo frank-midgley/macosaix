@@ -12,42 +12,47 @@
 
     NSString					*originalImagePath;
     NSImage						*originalImage;
-    NSLock						*refindUniqueTilesLock, *imageQueueLock;
-    NSMutableArray				*imageSources, *tiles, *imageQueue;
+    NSMutableArray				*imageSources,
+								*tiles;
 	id<MacOSaiXTileShapes>		tileShapes;
-	NSBezierPath				*combinedOutlines;
+	MacOSaiXImageCache			*imageCache;
+	
+		// Document state
     BOOL						documentIsClosing,	// flag set to true when document is closing
 								mosaicStarted, 
-								paused, 
-								updateTilesFlag, 
-								windowFinishedLoading,	// flag to indicate nib was loaded
-								finishLoading;	// flag to indicate doc was not new,
-												// so perform second phase of initializing
-    long						imagesMatched;
+								paused;
 	NSLock						*pauseLock;
+    float						overallMatch, lastDisplayMatch;
+	
+		// Tile creation
 	int							tileCreationPercentComplete;
-    BOOL						createTilesThreadAlive,
-								calculateImageMatchesThreadAlive;
-								
+    BOOL						createTilesThreadAlive;
+    NSMutableArray				*tileImages;
+    NSLock						*tileImagesLock;
+
+		// Image source enumeration
+    NSLock						*enumerationThreadCountLock;
 	int							enumerationThreadCount;
 	NSMutableDictionary			*enumerationCounts;
 	NSLock						*enumerationCountsLock;
+    NSMutableArray				*imageQueue;
+    NSLock						*imageQueueLock;
 	
-    float						overallMatch, lastDisplayMatch;
-    NSDate						*lastSaved;
-    int							autosaveFrequency;
-    NSMutableArray				*tileImages;
-    NSLock						*tileImagesLock,
-								*calculateImageMatchesThreadLock,
-								*enumerationThreadCountLock;
+		// Image matching
+    NSLock						*calculateImageMatchesThreadLock;
+	BOOL						calculateImageMatchesThreadAlive;
+    long						imagesMatched;
 	
-		// ivars for the calculate displayed images thread
+		// Calculate displayed images
 	NSMutableSet				*refreshTilesSet;
 	NSLock						*refreshTilesSetLock,
 								*calculateDisplayedImagesThreadLock;
 	BOOL						calculateDisplayedImagesThreadAlive;
-
-	MacOSaiXImageCache			*imageCache;
+		
+		// Saving
+    NSDate						*lastSaved;
+    int							autosaveFrequency;
+	BOOL						saving;
 }
 
 - (void)setOriginalImagePath:(NSString *)path;
@@ -57,6 +62,7 @@
 - (void)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes;
 - (id<MacOSaiXTileShapes>)tileShapes;
 
+- (int)neighborhoodSize;
 - (void)setNeighborhoodSize:(int)size;
 
 - (BOOL)wasStarted;
@@ -64,6 +70,7 @@
 - (void)pause;
 - (void)resume;
 
+- (BOOL)isSaving;
 - (BOOL)isClosing;
 
 - (BOOL)isExtractingTileImagesFromOriginal;
@@ -89,5 +96,6 @@
 
 	// Notifications
 extern NSString	*MacOSaiXDocumentDidChangeStateNotification;
+extern NSString *MacOSaiXDocumentDidSaveNotification;
 extern NSString	*MacOSaiXOriginalImageDidChangeNotification;
 extern NSString *MacOSaiXTileShapesDidChangeStateNotification;

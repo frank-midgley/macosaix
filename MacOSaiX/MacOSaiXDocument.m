@@ -7,13 +7,12 @@
 */
 
 
-//#import <HIToolbox/MacWindows.h>
 #import "MacOSaiX.h"
 #import "MacOSaiXDocument.h"
 #import "MacOSaiXWindowController.h"
 #import "Tiles.h"
 #import "NSImage+MacOSaiX.h"
-//#import <unistd.h>
+
 
 	// The maximum size of the image URL queue
 #define MAXIMAGEURLS 10
@@ -21,6 +20,7 @@
 
 	// Notifications
 NSString	*MacOSaiXDocumentDidChangeStateNotification = @"MacOSaiXDocumentDidChangeStateNotification";
+NSString	*MacOSaiXDocumentDidSaveNotification = @"MacOSaiXDocumentDidSaveNotification";
 NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDidChangeNotification";
 NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDidChangeStateNotification";
 
@@ -74,6 +74,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		enumerationCounts = [[NSMutableDictionary dictionary] retain];
 		
 		imageCache = [[MacOSaiXImageCache alloc] init];
+		
+		[self setNeighborhoodSize:5];
 	}
 	
     return self;
@@ -86,6 +88,16 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	
 	[self addWindowController:controller];
 	[controller showWindow:self];
+}
+
+
+- (void)setWindowControllersDirty:(BOOL)dirty
+{
+	NSEnumerator		*controllerEnumerator = [[self windowControllers] objectEnumerator];
+	NSWindowController	*controller = nil;
+	
+	while (controller = [controllerEnumerator nextObject])
+		[controller setDocumentEdited:dirty];
 }
 
 
@@ -197,6 +209,18 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 #pragma mark Save and Open methods
 
 
+- (BOOL)isSaving
+{
+	return saving;
+}
+
+
+- (void)setIsSaving:(BOOL)isSaving
+{
+	saving = isSaving;
+}
+
+
 - (BOOL)prepareSavePanel:(NSSavePanel *)savePanel
 {
 	[savePanel setRequiredFileType:@"mosaic"];
@@ -213,6 +237,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	if (!fileName)
 		return;	// the user cancelled the save
 	
+	[self setIsSaving:YES];
+	
 	BOOL			wasPaused = paused;
 	
 		// Pause the mosaic so that it is in a static state while saving.
@@ -227,17 +253,44 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
 											fileName, @"Save Path", 
 											[NSNumber numberWithInt:saveOperation], @"Save Operation", 
-											[NSNumber numberWithUnsignedLong:(unsigned long)contextInfo], @"Context Info", 
 											[NSNumber numberWithBool:wasPaused], @"Was Paused", 
 											nil];
 	if (delegate)
 		[parameters setObject:delegate forKey:@"Did Save Delegate"];
 	if (didSaveSelector)
 		[parameters setObject:NSStringFromSelector(didSaveSelector) forKey:@"Did Save Selector"];
+	if (contextInfo)
+		[parameters setObject:[NSNumber numberWithUnsignedLong:(unsigned long)contextInfo] forKey:@"Context Info"];
 	
 	[NSThread detachNewThreadSelector:@selector(threadedSaveWithParameters:) 
 							 toTarget:self 
 						   withObject:parameters];
+}
+
+- (BOOL)writeToFile:(NSString *)fullDocumentPath 
+			 ofType:(NSString *)docType 
+	   originalFile:(NSString *)fullOriginalDocumentPath 
+	  saveOperation:(NSSaveOperationType)saveOperationType
+{
+	[self setIsSaving:YES];
+	
+	BOOL			wasPaused = paused;
+	
+		// Pause the mosaic so that it is in a static state while saving.
+	[self pause];
+	
+	[[[self windowControllers] objectAtIndex:0] displayProgressPanelWithMessage:@"Saving..."];
+
+	NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+											fullDocumentPath, @"Save Path", 
+											[NSNumber numberWithInt:saveOperationType], @"Save Operation", 
+											[NSNumber numberWithBool:wasPaused], @"Was Paused", 
+											nil];
+	[NSThread detachNewThreadSelector:@selector(threadedSaveWithParameters:) 
+							 toTarget:self 
+						   withObject:parameters];
+
+	return YES;
 }
 
 
@@ -274,19 +327,19 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		ImageMatch		*match = nil;
 		while (match = [matchEnumerator nextObject])
 		{
-			NSString		*imageSourceID = [self indexAsAlpha:[imageSources indexOfObjectIdenticalTo:[match imageSource]]];
-			NSMutableArray	*imageSourceArray = [imagesInUse objectForKey:imageSourceID];
-			if (!imageSourceArray)
+			NSString			*imageSourceID = [self indexAsAlpha:[imageSources indexOfObjectIdenticalTo:[match imageSource]]];
+			NSMutableDictionary	*imageSourceImageDict = [imagesInUse objectForKey:imageSourceID];
+			if (!imageSourceImageDict)
 			{
-				imageSourceArray = [NSMutableArray array];
-				[imagesInUse setObject:imageSourceArray forKey:imageSourceID];
+				imageSourceImageDict = [NSMutableDictionary dictionary];
+				[imagesInUse setObject:imageSourceImageDict forKey:imageSourceID];
 			}
 			NSString	*identifier = [match imageIdentifier];
-			int			index = [imageSourceArray indexOfObjectIdenticalTo:identifier];
-			if (index == NSNotFound)
+			NSNumber	*imageID= [imageSourceImageDict objectForKey:identifier];
+			if (!imageID)
 			{
-				index = [imageSourceArray count];
-				[imageSourceArray addObject:identifier];
+				imageID = [NSNumber numberWithLong:[imageSourceImageDict count]];
+				[imageSourceImageDict setObject:imageID forKey:identifier];
 			}
 		}
 	}
@@ -385,12 +438,12 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					
 						// Output an element for each image ID
 					[fileHandle writeData:[@"\t\t<IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-					NSEnumerator	*identifierEnumerator = [[imagesInUse objectForKey:imageSourceID] objectEnumerator];
+					NSDictionary	*imageSourceImageDict = [imagesInUse objectForKey:imageSourceID];
+					NSEnumerator	*identifierEnumerator = [imageSourceImageDict keyEnumerator];
 					NSString		*identifier = nil;
-					int				index = 0;
 					while (identifier = [identifierEnumerator nextObject])
-						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<IMAGE ID=\"%d\" IDENTIFIER=\"%@\">\n", 
-																		 index++, identifier]
+						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<IMAGE ID=\"%@\" IDENTIFIER=\"%@\">\n", 
+																		 [imageSourceImageDict objectForKey:identifier], identifier]
 													dataUsingEncoding:NSUTF8StringEncoding]];
 					[fileHandle writeData:[@"\t\t</IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 					
@@ -444,12 +497,11 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					ImageMatch		*match = nil;
 					while (match = [matchEnumerator nextObject])
 					{
-						NSString		*imageSourceID = [self indexAsAlpha:[imageSources indexOfObjectIdenticalTo:[match imageSource]]];
-						NSMutableArray	*imageSourceImageArray = [imagesInUse objectForKey:imageSourceID];
-						int				index = [imageSourceImageArray indexOfObjectIdenticalTo:[match imageIdentifier]];
+						NSString			*imageSourceID = [self indexAsAlpha:[imageSources indexOfObjectIdenticalTo:[match imageSource]]];
+						NSMutableDictionary	*imageSourceImageDict = [imagesInUse objectForKey:imageSourceID];
+						NSNumber			*imageID = [imageSourceImageDict objectForKey:[match imageIdentifier]];
 						
-						[fileHandle writeData:[[NSString stringWithFormat:@"%@%d\t%d\n", imageSourceID, index, 
-																		  [match matchValue] * 100.0]
+						[fileHandle writeData:[[NSString stringWithFormat:@"%@%@\t%d\n", imageSourceID, imageID, [match matchValue] * 100.0]
 													dataUsingEncoding:NSUTF8StringEncoding]];
 					}
 					[fileHandle writeData:[@"\t\t</MATCHDATA>\n" dataUsingEncoding:NSUTF8StringEncoding]];
@@ -474,8 +526,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		// Dismiss the "Saving..." sheet.
 	[[[self windowControllers] objectAtIndex:0] closeProgressPanel];
 	
-	if (wasPaused)	// TBD: and not quitting?
-		[self resume];
+	[self setFileName:savePath];
+	[self setFileType:@"MacOSaiX Project"];
+	[self updateChangeCount:NSChangeCleared];
 	
 	if (didSaveDelegate && [didSaveDelegate respondsToSelector:didSaveSelector])
 	{
@@ -493,6 +546,16 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		[saveCallback invoke];
 	}
 	
+	[self setIsSaving:NO];
+	
+		// TODO: include @"User Cancelled" key
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidSaveNotification 
+														object:self 
+													  userInfo:nil];
+	
+	if (!wasPaused && ![(MacOSaiX *)[NSApp delegate] isQuitting])
+		[self resume];
+
 	[pool release];
 }
 
@@ -709,6 +772,12 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 - (id<MacOSaiXTileShapes>)tileShapes
 {
 	return tileShapes;
+}
+
+
+- (int)neighborhoodSize
+{
+	return neighborhoodSize;
 }
 
 
@@ -1096,6 +1165,8 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 										withIdentifier:pixletImageIdentifier
 									   fromImageSource:pixletImageSource])
 			{
+				[self updateChangeCount:NSChangeDone];
+				
 				[refreshTilesSetLock lock];
 					[refreshTilesSet addObject:tile];
 //???					[refreshTilesSet addObjectsFromArray:[tile neighbors]];
@@ -1246,7 +1317,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
     if (!paused)
 		[self pause];
 	
-    while ([self isExtractingTileImagesFromOriginal] || [self isCalculatingImageMatches] || [self isCalculatingDisplayedImages])
+    while ([self isExtractingTileImagesFromOriginal] || [self isCalculatingImageMatches])	//|| [self isCalculatingDisplayedImages])
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
     
     [super canCloseDocumentWithDelegate:delegate shouldCloseSelector:shouldCloseSelector 
@@ -1269,7 +1340,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 	documentIsClosing = YES;
 	
 		// wait for the threads to shut down
-    while ([self isExtractingTileImagesFromOriginal] || [self isCalculatingImageMatches] || [self isCalculatingDisplayedImages])
+    while ([self isExtractingTileImagesFromOriginal] || [self isCalculatingImageMatches])	//|| [self isCalculatingDisplayedImages])
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
 		
 		// Give the image sources a chance to clean up before we close shop
