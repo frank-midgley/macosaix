@@ -1053,15 +1053,11 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 			// Create a new tile collection from the outlines.
 		NSEnumerator	*tileOutlineEnumerator = [tileOutlines objectEnumerator];
 		NSBezierPath	*tileOutline = nil;
-		averageUnitTileSize = NSZeroSize;
 		while (tileOutline = [tileOutlineEnumerator nextObject])
-		{
-			averageUnitTileSize.width += NSWidth([tileOutline bounds]);
-			averageUnitTileSize.height += NSHeight([tileOutline bounds]);
 			[self addTile:[[[MacOSaiXTile alloc] initWithOutline:tileOutline fromDocument:self] autorelease]];
-		}
-		averageUnitTileSize.width /= [tileOutlines count];
-		averageUnitTileSize.height /= [tileOutlines count];
+		
+			// Indicate that the average tile size needs to be recalculated.
+		averageUnitTileSize = NSZeroSize;
 	}
 	
 		// Let anyone who cares know that our tile shapes (and thus our tiles array) have changed.
@@ -1082,6 +1078,20 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (NSSize)averageUnitTileSize
 {
+	if (NSEqualSizes(averageUnitTileSize, NSZeroSize) && !loading)
+	{
+			// Calculate the average size of the tiles.
+		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+		MacOSaiXTile	*tile = nil;
+		while (tile = [tileEnumerator nextObject])
+		{
+			averageUnitTileSize.width += NSWidth([[tile outline] bounds]);
+			averageUnitTileSize.height += NSHeight([[tile outline] bounds]);
+		}
+		averageUnitTileSize.width /= [tiles count];
+		averageUnitTileSize.height /= [tiles count];
+	}
+	
 	return averageUnitTileSize;
 }
 
