@@ -151,6 +151,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 			// Ignore whatever DPI was set for the image.  We just care about the bitmap.
 		NSImageRep	*originalRep = [[originalImage representations] objectAtIndex:0];
+		[originalRep setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
 		[originalImage setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
 		
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXOriginalImageDidChangeNotification object:self];
@@ -1023,6 +1024,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 		{
 				// Ignore whatever DPI was set for the image.  We just care about the bitmap.
 			NSImageRep	*originalRep = [[image representations] objectAtIndex:0];
+			[originalRep setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
 			[image setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
 			
 			if ([image size].width > 16 && [image size].height > 16)

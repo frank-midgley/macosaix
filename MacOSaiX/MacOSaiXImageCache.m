@@ -151,7 +151,7 @@
 			NS_DURING
 				[image lockFocus];
 					NSImageRep	*originalRep = [[image representations] objectAtIndex:0];
-					NSRect		imageRect = NSMakeRect(0.0, 0.0, [originalRep size].width, [originalRep size].height);
+					NSRect		imageRect = NSMakeRect(0.0, 0.0, [originalRep pixelsWide], [originalRep pixelsHigh]);
 					fullSizeRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:imageRect] autorelease];
 				[image unlockFocus];
 			NS_HANDLER
@@ -263,7 +263,7 @@
             else
 			{
 					// This image is not in the disk cache so get the image from its source.
-				NSLog(@"Requesting %@ from %@@%p", imageIdentifier, [imageSource class], imageSource);
+//				NSLog(@"Requesting %@ from %@@%p", imageIdentifier, [imageSource class], imageSource);
 				image = [imageSource imageForIdentifier:imageIdentifier];
 			}
 			
@@ -273,6 +273,7 @@
 				
 					// Ignore whatever DPI was set for the image.  We just care about the bitmap.
 				NSImageRep	*originalRep = [[image representations] objectAtIndex:0];
+				[originalRep setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
 				[image setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
 				
 				[self cacheImage:image withIdentifier:imageIdentifier fromSource:imageSource];
