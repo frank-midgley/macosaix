@@ -56,8 +56,8 @@
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	Tile				*tile = [[notification userInfo] objectForKey:@"Tile"];
 	ImageMatch			*imageMatch = [tile displayedImageMatch];
-	NSImage				*newImage = [[document imageCache] cachedImageForIdentifier:[imageMatch imageIdentifier] 
-																		 fromSource:[imageMatch imageSource]];
+	NSImage				*newImage = [[document imageCache] imageForIdentifier:[imageMatch imageIdentifier] 
+																   fromSource:[imageMatch imageSource]];
 	
 	if (newImage)
 	{

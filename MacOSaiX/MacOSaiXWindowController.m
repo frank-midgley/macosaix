@@ -714,8 +714,8 @@
     NSBezierPath		*bezierPath = [NSBezierPath bezierPath];
     
 	ImageMatch	*imageMatch = [[selectedTile matches] objectAtIndex:rowIndex];
-	image = [[[self document] imageCache] cachedImageForIdentifier:[imageMatch imageIdentifier] 
-														fromSource:[imageMatch imageSource]];
+	image = [[[self document] imageCache] imageForIdentifier:[imageMatch imageIdentifier] 
+												  fromSource:[imageMatch imageSource]];
     if (image == nil)
         return [NSImage imageNamed:@"Blank"];
 	
@@ -1234,15 +1234,9 @@
         [clipPath addClip];
 		
 			// Get the image in use by this tile.
-			// First try to get the high-res version from the image source, if it supports it.
-			// Else use the version in the cache.
-		NSImage		*pixletImage = nil;
 		ImageMatch	*match = [tile displayedImageMatch];
-		if (![[match imageIdentifier] hasPrefix:@"Unfetchable "])
-			pixletImage = [[match imageSource] imageForIdentifier:[match imageIdentifier]];
-		if (!pixletImage)
-			pixletImage = [[[self document] imageCache] cachedImageForIdentifier:[match imageIdentifier] 
-																	  fromSource:[match imageSource]];
+		NSImage		*pixletImage = [[[self document] imageCache] imageForIdentifier:[match imageIdentifier] 
+																	     fromSource:[match imageSource]];
 		
 			// Translate the tile's outline (in unit space) to the size of the exported image.
 		NSRect		drawRect;
