@@ -11,8 +11,6 @@
 #import <unistd.h>
 
 
-	// The maximum width or height of the cached thumbnail images
-#define kThumbnailMax 64.0
     // The number of cached images that will be held in memory at any one time.
 #define IMAGE_CACHE_SIZE 100
 

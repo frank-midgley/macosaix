@@ -11,6 +11,10 @@
 #import "MacOSaiXImageSource.h"
 
 
+	// The maximum width or height of the cached thumbnail images
+#define kImageCacheThumbnailSize 64.0
+
+
 @interface MacOSaiXImageCache : NSObject 
 {
 	NSMutableDictionary			*cachedImagesDictionary;
