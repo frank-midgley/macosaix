@@ -37,19 +37,87 @@ Future version(s):
     Velocity engine
     XGrid
     Image regions
+	Icon source
+
 
 Glyph crashes:
     CGS TrebuchetMS-Bold 12.00 pt.	Glyph 251
     22 916
     Beijing (58)	8340
-    
 
-Making a disk image:
-    create with hdiutil
-    make file system
-    mount with hdid
-    copy in content
-    compress with hdiutil
 
 Riemersma metric:
     http://ourworld.compuserve.com/homepages/compuphase/cmetric.htm
+
+=======================================================================================
+
+Saved.mosaic
+	Original.jpg/png/whatever
+	Image Sources.plist
+		Image sources dictionary
+			ID (key)
+			Properties dictionary (includes class name)
+	Cached images folder
+		Cached Images.plist
+			Version
+			Cached images dictionary
+				ID (key)
+				Image source ID & image identifier
+		<Cached image 1>.jpg
+			...
+		<Cached image n>.jpg
+	Tiles.plist
+		Tiles setup properties dictionary (includes class name)
+		Tiles array										2500
+			Array of outline elements					 100
+				Points									   3
+			Array of matches							  24
+				Image source ID
+				Image identifier
+				Match value
+
+=======================================================================================
+
+@interface MacOSaiXDocument : NSDocument
+{
+}
+-cacheImage:(NSImage *)image withIdentifier:(id)imageIdentifier fromSource:(ImageSource *)imageSource];
+-cachedImageForIdentifier:(id)imageIdentifier fromSource:(ImageSource *)imageSource];
+
+
+// Populate cache while matching
+[document cacheImage:([imageSource canRefetchImages] ? thumbnailImage : fullImage) 
+	  withIdentifier:identifier 
+		  fromSource:imageSource];
+
+
+// While updating the onscreen mosaic image go for the lo-res images.  The image should be in the cache
+// unless the user messed with the saved file wrapper.
+NSImage *image = [document cachedImageForIdentifier:imageIdentifier fromSource:imageSource];
+if (!image && [imageSource canRefetchImages])
+	image = [imageSource imageForIdentifier:imageIdentifier];
+
+
+// While exporting go for the hi-res images first
+NSImage *image = nil;
+if ([imageSource canRefetchImages])
+	image = [imageSource imageForIdentifier:imageIdentifier];
+if (!image)
+	image = [document cachedImageForIdentifier:imageIdentifier fromSource:imageSource];
+
+=======================================================================================
+
+Rework TODO:
+¥	Create MacOSaiXWindowController
+¥	Uniqueness
+¥	Saving
+¥	Image sources GUI (whole utility drawer, actually)
+¥	Get rid of framework?
+¥	Hexagonal & puzzle tile shapes
+¥	Glyph & google sources
+¥	Original image view (scaling/tinting)
+¥	Pausing
+¥	Exporting
+¥	Editor
+¥	Push regions to next major release
+¥	Image cache purging
