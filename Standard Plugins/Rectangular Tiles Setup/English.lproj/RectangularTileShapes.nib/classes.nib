@@ -1,0 +1,19 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {setTilesAcross = id; setTilesDown = id; }; 
+            CLASS = MacOSaiXRectangularTilesSetupEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                editorView = NSView; 
+                tilesAcrossStepper = NSStepper; 
+                tilesAcrossTextField = NSTextField; 
+                tilesDownStepper = NSStepper; 
+                tilesDownTextField = NSTextField; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}
