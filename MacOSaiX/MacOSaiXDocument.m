@@ -247,6 +247,54 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 }
 
 
+- (NSString *)indexAsAlpha:(int)index
+{
+	char	buffer[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+	char	*p = &buffer[6];
+	
+	do
+	{
+		*p-- = (index % 26) + 65;
+		index /= 26;
+	}
+	while (index != 0);
+	
+	return [NSString stringWithCString:++p];
+}
+
+
+- (NSDictionary *)imagesInUse
+{
+	NSMutableDictionary	*imagesInUse = [NSMutableDictionary dictionary];
+	NSEnumerator		*tileEnumerator = [tiles objectEnumerator];
+	Tile				*tile = nil;
+	while (tile = [tileEnumerator nextObject])
+	{
+		NSEnumerator	*matchEnumerator = [[tile matches] objectEnumerator];
+		ImageMatch		*match = nil;
+		while (match = [matchEnumerator nextObject])
+		{
+			NSString		*imageSourceID = [self indexAsAlpha:[imageSources indexOfObjectIdenticalTo:[match imageSource]]];
+			NSMutableArray	*imageSourceArray = [imagesInUse objectForKey:imageSourceID];
+			if (!imageSourceArray)
+			{
+				imageSourceArray = [NSMutableArray array];
+				[imagesInUse setObject:imageSourceArray forKey:imageSourceID];
+			}
+			NSString	*identifier = [match imageIdentifier];
+			int			index = [imageSourceArray indexOfObjectIdenticalTo:identifier];
+			if (index == NSNotFound)
+			{
+				index = [imageSourceArray count];
+				[imageSourceArray addObject:identifier];
+			}
+		}
+	}
+	
+	return [NSDictionary dictionaryWithDictionary:imagesInUse];
+}
+
+
 - (void)threadedSaveWithParameters:(NSDictionary *)parameters
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
@@ -297,25 +345,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				
 				[fileHandle writeData:[[NSString stringWithFormat:@"<TILE_NEIGHBORHOOD SIZE=\"%d\">\n\n", neighborhoodSize] dataUsingEncoding:NSUTF8StringEncoding]];
 				
-					// Write out the image sources.
-				[fileHandle writeData:[@"<IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-				int	index;
-				for (index = 0; index < [imageSources count]; index++)
-				{
-					id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:index];
-					NSString				*className = NSStringFromClass([imageSource class]);
-					NSMutableString			*imageSourceXML = [NSMutableString stringWithString:
-																[[imageSource settingsAsXMLElement] stringByTrimmingCharactersInSet:
-																	[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
-					
-					[imageSourceXML replaceOccurrencesOfString:@"\n" withString:@"\n\t\t" options:0 range:NSMakeRange(0, [imageSourceXML length])];
-					[imageSourceXML insertString:@"\t\t" atIndex:0];
-					[imageSourceXML appendString:@"\n"];
-					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\">\n", index, className] dataUsingEncoding:NSUTF8StringEncoding]];
-					[fileHandle writeData:[imageSourceXML dataUsingEncoding:NSUTF8StringEncoding]];
-					[fileHandle writeData:[@"\t</IMAGE_SOURCE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-				}
-				[fileHandle writeData:[@"</IMAGE_SOURCES>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				NSDictionary	*imagesInUse = [self imagesInUse];
 				
 					// Write out the cached images
 				[fileHandle writeData:[[imageCache xmlDataWithImageSources:imageSources] dataUsingEncoding:NSUTF8StringEncoding]];
@@ -328,6 +358,45 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		//			[cachedImagesPath autorelease];
 		//			cachedImagesPath = [savedCachedImagesPath retain];
 		//		}
+				
+					// Write out the image sources.
+				[fileHandle writeData:[@"<IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				int	index;
+				for (index = 0; index < [imageSources count]; index++)
+				{
+					id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:index];
+					NSString				*imageSourceID = [self indexAsAlpha:index];
+					NSString				*className = NSStringFromClass([imageSource class]);
+					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%@\" CLASS=\"%@\">\n", 
+																	  imageSourceID, className] 
+												dataUsingEncoding:NSUTF8StringEncoding]];
+					
+						// Output the settings for this image source.
+						// TODO: need to tag this element with the source's namespace
+					NSMutableString			*imageSourceXML = [NSMutableString stringWithString:
+																[[imageSource settingsAsXMLElement] stringByTrimmingCharactersInSet:
+																	[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
+					[imageSourceXML replaceOccurrencesOfString:@"\n" withString:@"\n\t\t\t" options:0 range:NSMakeRange(0, [imageSourceXML length])];
+					[imageSourceXML insertString:@"\t\t\t" atIndex:0];
+					[imageSourceXML appendString:@"\n"];
+					[fileHandle writeData:[@"\t\t<SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					[fileHandle writeData:[imageSourceXML dataUsingEncoding:NSUTF8StringEncoding]];
+					[fileHandle writeData:[@"\t\t</SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					
+						// Output an element for each image ID
+					[fileHandle writeData:[@"\t\t<IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					NSEnumerator	*identifierEnumerator = [[imagesInUse objectForKey:imageSourceID] objectEnumerator];
+					NSString		*identifier = nil;
+					int				index = 0;
+					while (identifier = [identifierEnumerator nextObject])
+						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<IMAGE ID=\"%d\" IDENTIFIER=\"%@\">\n", 
+																		 index++, identifier]
+													dataUsingEncoding:NSUTF8StringEncoding]];
+					[fileHandle writeData:[@"\t\t</IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					
+					[fileHandle writeData:[@"\t</IMAGE_SOURCE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				}
+				[fileHandle writeData:[@"</IMAGE_SOURCES>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				
 					// Write out the tiles
 				[fileHandle writeData:[@"<TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
@@ -370,16 +439,23 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					[fileHandle writeData:[@"\t\t</OUTLINE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 					
 						// Now write out the tile's matches.
-					[fileHandle writeData:[@"\t\t<MATCHES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					[fileHandle writeData:[@"\t\t<MATCH_DATA>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 					NSEnumerator	*matchEnumerator = [[tile matches] objectEnumerator];
 					ImageMatch		*match = nil;
 					while (match = [matchEnumerator nextObject])
-						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<MATCH SOURCE_ID=\"%d\" IMAGE_ID=\"%@\" VALUE=\"%0.2f\"%@>\n", 
-															[imageSources indexOfObjectIdenticalTo:[match imageSource]],
-															[match imageIdentifier], [match matchValue],
-															(match == [tile userChosenImageMatch] ? @"USER_CHOSEN" : @"")] 
+					{
+						NSString		*imageSourceID = [self indexAsAlpha:[imageSources indexOfObjectIdenticalTo:[match imageSource]]];
+						NSMutableArray	*imageSourceImageArray = [imagesInUse objectForKey:imageSourceID];
+						int				index = [imageSourceImageArray indexOfObjectIdenticalTo:[match imageIdentifier]];
+						
+						[fileHandle writeData:[[NSString stringWithFormat:@"%@%d\t%d\n", imageSourceID, index, 
+																		  [match matchValue] * 100.0]
 													dataUsingEncoding:NSUTF8StringEncoding]];
-					[fileHandle writeData:[@"\t\t</MATCHES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					}
+					[fileHandle writeData:[@"\t\t</MATCHDATA>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					
+					// TODO: (match == [tile userChosenImageMatch] ? @"USER_CHOSEN" : @"")] 
+					
 					[fileHandle writeData:[@"\t</TILE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 					
 					[tilePool release];
