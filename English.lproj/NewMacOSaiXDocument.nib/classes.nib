@@ -1,0 +1,54 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {saveMosaicImage = id; startMosaic = id; }; 
+            CLASS = MacOSaiXDocument; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                mosaicView = id; 
+                originalView = id; 
+                progressIndicator = id; 
+                selectedTileFilePath = id; 
+                window = id; 
+            }; 
+            SUPERCLASS = NSDocument; 
+        }, 
+        {
+            ACTIONS = {
+                addDirectoryImageSource = id; 
+                addGlyphImageSource = id; 
+                addGoogleImageSource = id; 
+                beginMacOSaiX = id; 
+                cancelAddGoogleImageSource = id; 
+                chooseOriginalImage = id; 
+                okAddGoogleImageSource = id; 
+                removeImageSource = id; 
+                setCropLimit = id; 
+                setTileShapes = id; 
+                setTilesAcross = id; 
+                setTilesDown = id; 
+                userCancelled = id; 
+            }; 
+            CLASS = NewMacOSaiXDocument; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                cropLimit = id; 
+                goButton = id; 
+                googleTermField = id; 
+                googleTermPanel = id; 
+                imageSourcesView = id; 
+                previewView = id; 
+                removeImageSourceButton = id; 
+                tileShapesPopup = id; 
+                tilesAcrossStepper = id; 
+                tilesAcrossView = id; 
+                tilesDownStepper = id; 
+                tilesDownView = id; 
+                tilesTotal = id; 
+            }; 
+            SUPERCLASS = NSWindowController; 
+        }
+    ); 
+    IBVersion = 1; 
+}

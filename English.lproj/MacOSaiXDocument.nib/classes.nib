@@ -1,0 +1,73 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {
+                addDirectoryImageSource = id; 
+                addGlyphImageSource = id; 
+                addGoogleImageSource = id; 
+                allowUserToChooseImage = id; 
+                beginExportImage = id; 
+                cancelAddGoogleImageSource = id; 
+                okAddGoogleImageSource = id; 
+                setExportHeightFromWidth = id; 
+                setExportWidthFromHeight = id; 
+                setJPEGExport = id; 
+                setShowOutlines = id; 
+                setTIFFExport = id; 
+                setViewAloneMode = id; 
+                setViewCompareMode = id; 
+                setViewEditMode = id; 
+                setZoom = id; 
+                toggleImageSourcesDrawer = id; 
+                togglePause = id; 
+                toggleStatusBar = id; 
+                useBestUniqueMatch = id; 
+                useCustomImage = id; 
+                useSelectedImage = id; 
+            }; 
+            CLASS = MacOSaiXDocument; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                "_editorLabel" = id; 
+                "_exportHeight" = id; 
+                "_exportPanelAccessoryView" = id; 
+                "_exportWidth" = id; 
+                editorChooseImage = id; 
+                editorTable = id; 
+                editorUseBestUniqueMatch = id; 
+                editorUseCustomImage = id; 
+                editorUseSelectedImage = id; 
+                editorUserChosenImage = id; 
+                exportProgressIndicator = id; 
+                exportProgressLabel = id; 
+                exportProgressPanel = id; 
+                googleTermField = id; 
+                googleTermPanel = id; 
+                imageSourcesDrawer = id; 
+                imageSourcesTable = id; 
+                mosaicView = id; 
+                originalView = OriginalView; 
+                showOutlinesSwitch = id; 
+                statusBarView = id; 
+                statusMessageView = id; 
+                tabView = id; 
+                viewAloneButton = id; 
+                viewCompareButton = id; 
+                viewEditorButton = id; 
+                viewToolbarMenu = id; 
+                viewToolbarSubmenu = NSMenu; 
+                viewToolbarView = id; 
+                window = id; 
+                zoomSlider = id; 
+                zoomToolbarSubmenu = NSMenu; 
+                zoomToolbarView = id; 
+            }; 
+            SUPERCLASS = NSDocument; 
+        }, 
+        {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSImageView; }, 
+        {CLASS = NotifyingScrollView; LANGUAGE = ObjC; SUPERCLASS = NSScrollView; }, 
+        {CLASS = OriginalView; LANGUAGE = ObjC; SUPERCLASS = NSImageView; }
+    ); 
+    IBVersion = 1; 
+}
