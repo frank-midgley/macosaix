@@ -36,9 +36,11 @@
 	if (self = [super init])
 	{
 		NSDictionary	*plugInDefaults = [[NSUserDefaults standardUserDefaults] objectForKey:@"Rectangular Tile Shapes"];
+		int				tilesAcrossPref = [[plugInDefaults objectForKey:@"Tiles Across"] intValue],
+						tilesDownPref = [[plugInDefaults objectForKey:@"Tiles Down"] intValue];
 		
-		[self setTilesAcross:[[plugInDefaults objectForKey:@"Tiles Across"] intValue]];
-		[self setTilesDown:[[plugInDefaults objectForKey:@"Tiles Down"] intValue]];
+		[self setTilesAcross:(tilesAcrossPref > 0 ? tilesAcrossPref : 40)];
+		[self setTilesDown:(tilesDownPref > 0 ? tilesDownPref : 40)];
 	}
 	
 	return self;
