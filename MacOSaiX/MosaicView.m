@@ -9,6 +9,7 @@
 {
 	mosaicImageLock = [[NSLock alloc] init];
 	tilesNeedingDisplay = [[NSMutableArray array] retain];
+	tilesOutline = [[NSBezierPath bezierPath] retain];
 }
 
 
@@ -19,12 +20,16 @@
 		document = inDocument;
 		
 		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(tileImageDidChange:) 
-													 name:@"Tile Image Changed" 
-												   object:document];
-		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(originalImageDidChange:) 
 													 name:MacOSaiXOriginalImageDidChangeNotification
+												   object:document];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(tileShapesDidChange:) 
+													 name:MacOSaiXTileShapesDidChangeStateNotification 
+												   object:document];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(tileImageDidChange:) 
+													 name:@"Tile Image Changed" 
 												   object:document];
 	}
 }
@@ -42,12 +47,26 @@
 		mosaicImage = [[NSImage alloc] initWithSize:NSMakeSize(1600, 1600 * [originalImage size].height / 
 																			[originalImage size].width)];
 
-			// set up a transform so we can scale tiles to the mosaic image's size (tiles are defined on a unit square)
+			// set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined on a unit square)
 		[mosaicImageTransform release];
 		mosaicImageTransform = [[NSAffineTransform transform] retain];
 		[mosaicImageTransform translateXBy:0.5 yBy:0.5];	// line up with pixel boundaries
 		[mosaicImageTransform scaleXBy:[mosaicImage size].width yBy:[mosaicImage size].height];
 	[mosaicImageLock unlock];
+}
+
+
+- (void)tileShapesDidChange:(NSNotification *)notification
+{
+	[tilesOutline removeAllPoints];
+	
+	NSEnumerator	*tileEnumerator = [[document tiles] objectEnumerator];
+	Tile			*tile = nil;
+	while (tile = [tileEnumerator nextObject])
+	    [tilesOutline appendBezierPath:[tile outline]];
+	
+		// TODO: main thread?
+	[self setNeedsDisplay:YES];
 }
 
 
@@ -64,7 +83,7 @@
 			// Draw the tile's new image in the mosaic
 		NSBezierPath	*clipPath = [mosaicImageTransform transformBezierPath:[tile outline]];
 		NSRect			drawRect;
-
+		
 			// scale the image to the tile's size, but preserve it's aspect ratio
 		if ([clipPath bounds].size.width / [newImage size].width <
 			[clipPath bounds].size.height / [newImage size].height)
@@ -80,7 +99,7 @@
 									   [clipPath bounds].size.width * [newImage size].height / [newImage size].width);
 			drawRect.origin = NSMakePoint([clipPath bounds].origin.x,
 										  [clipPath bounds].origin.y - (drawRect.size.height - [clipPath bounds].size.height) /2.0);
-		}
+		}		
 			// ...
 		[mosaicImageLock lock];
 			NS_DURING
@@ -106,7 +125,7 @@
 	
 	[tilesNeedingDisplay addObject:tile];
 	
-	if ([tilesNeedingDisplay count] > 64)
+	if ([tilesNeedingDisplay count] > 32)
 	{
 		NSAffineTransform	*transform = [[NSAffineTransform transform] retain];
 		[transform translateXBy:0.5 yBy:0.5];	// line up with pixel boundaries
@@ -266,21 +285,6 @@
 }
 
 
-#pragma mark Tile Setup methods
-
-
-- (void)setTileOutlines:(NSArray *)tileOutlines;
-{
-	int	index;
-	
-	[tilesOutline release];
-	tilesOutline = [[NSBezierPath bezierPath] retain];
-	for (index = 0; index < [tileOutlines count]; index++)
-	    [tilesOutline appendBezierPath:[tileOutlines objectAtIndex:index]];
-	[self setNeedsDisplay:YES];
-}
-
-
 #pragma mark Highlight Tile methods
 
 
@@ -355,6 +359,7 @@
 	[mosaicImageTransform release];
 	[neighborhoodOutline release];
 	[tilesNeedingDisplay release];
+	[tilesOutline release];
 		
 	[super dealloc];
 }

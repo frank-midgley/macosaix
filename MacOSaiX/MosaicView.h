@@ -38,9 +38,6 @@ MosaicViewMode;
 - (void)setViewMode:(MosaicViewMode)mode;
 - (MosaicViewMode)viewMode;
 
-	// viewTileSetup methods
-- (void)setTileOutlines:(NSArray *)tileOutlines;
-
 	// viewHighlightedTile methods
 - (void)highlightTile:(Tile *)tile;
 - (void)animateHighlight;
