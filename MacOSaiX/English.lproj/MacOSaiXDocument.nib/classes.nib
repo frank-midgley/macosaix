@@ -14,9 +14,9 @@
                 saveImageSource = id; 
                 setExportHeightFromWidth = id; 
                 setExportWidthFromHeight = id; 
+                setImageReuseDistance = id; 
                 setImageUseCount = id; 
                 setJPEGExport = id; 
-                setNeighborhoodSize = id; 
                 setTIFFExport = id; 
                 setTileShapes = id; 
                 setTileShapesPlugIn = id; 
@@ -47,6 +47,7 @@
                 exportHeight = NSTextField; 
                 exportPanelAccessoryView = NSView; 
                 exportWidth = NSTextField; 
+                imageReuseDistancePopUpButton = NSPopUpButton; 
                 imageSourceEditorBox = NSBox; 
                 imageSourceEditorCancelButton = NSButton; 
                 imageSourceEditorController = id; 

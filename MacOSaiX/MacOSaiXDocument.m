@@ -60,7 +60,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		paused = YES;
 		imageSources = [[NSMutableArray arrayWithCapacity:0] retain];
 		lastSaved = [[NSDate date] retain];
-//		autosaveFrequency = [[defaults objectForKey:@"Autosave Frequency"] intValue];
 
 		pauseLock = [[NSLock alloc] init];
 		[pauseLock lock];
@@ -80,7 +79,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		enumerationCounts = [[NSMutableDictionary dictionary] retain];
 		
 		[self setImageUseCount:[[defaults objectForKey:@"Image Use Count"] intValue]];
-		[self setImageReuseDistance:10];
+		[self setImageReuseDistance:[[defaults objectForKey:@"Image Reuse Distance"] intValue]];
 	}
 	
     return self;
@@ -1082,6 +1081,8 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 - (void)setImageReuseDistance:(int)distance
 {
 	imageReuseDistance = distance;
+	[[NSUserDefaults standardUserDefaults] setInteger:imageReuseDistance forKey:@"Image Reuse Distance"];
+	[[self mainWindowController] synchronizeGUIWithDocument];
 }
 
 

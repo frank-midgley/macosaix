@@ -15,9 +15,9 @@
 		<key>200</key>
 		<string>374 403 72 66 0 0 1152 746 </string>
 		<key>306</key>
-		<string>408 591 364 154 0 0 1280 1002 </string>
+		<string>410 420 365 154 0 0 1152 746 </string>
 		<key>353</key>
-		<string>479 479 364 377 0 0 1280 1002 </string>
+		<string>410 283 370 402 0 0 1152 746 </string>
 		<key>663</key>
 		<string>386 277 414 440 0 0 1152 746 </string>
 		<key>67</key>
@@ -29,7 +29,7 @@
 	<array/>
 	<key>IBOpenObjects</key>
 	<array>
-		<integer>306</integer>
+		<integer>353</integer>
 	</array>
 	<key>IBSystem Version</key>
 	<string>7U16</string>

@@ -10,6 +10,7 @@
 #import "MacOSaiX.h"
 #import "MacOSaiXImageCache.h"
 #import "NSImage+MacOSaiX.h"
+#import "NSString+MacOSaiX.h"
 #import <unistd.h>
 #import <pthread.h>
 
@@ -196,12 +197,11 @@
 
 - (void)synchronizeGUIWithDocument
 {
-		// Set the image use count and neighborhood size pop-ups.
+		// Set the image use count and reuse distance pop-ups.
 	int				popUpIndex = [imageUseCountPopUpButton indexOfItemWithTag:[[self document] imageUseCount]];
 	[imageUseCountPopUpButton selectItemAtIndex:popUpIndex];
-//	popUpIndex = [[self document] neighborhoodSize] - 1;
-//	if (popUpIndex >= 0 && popUpIndex < [neighborhoodSizePopUpButton numberOfItems])
-//		[neighborhoodSizePopUpButton selectItemAtIndex:popUpIndex];
+	popUpIndex = [imageReuseDistancePopUpButton indexOfItemWithTag:[[self document] imageReuseDistance]];
+	[imageReuseDistancePopUpButton selectItemAtIndex:popUpIndex];
 	
 	[self updateTileSizeFields];
 }
@@ -421,7 +421,7 @@
 			[originalImagePopUpButton setEnabled:NO];
 			[changeTileShapesButton setEnabled:NO];
 			[imageUseCountPopUpButton setEnabled:NO];
-//			[neighborhoodSizePopUpButton setEnabled:NO];
+			[imageReuseDistancePopUpButton setEnabled:NO];
 		}
 		
 			// Update the toolbar
@@ -712,12 +712,9 @@
 }
 
 
-- (IBAction)setNeighborhoodSize:(id)sender
+- (IBAction)setImageReuseDistance:(id)sender
 {
-//	[[self document] setNeighborhoodSize:[neighborhoodSizePopUpButton indexOfSelectedItem] + 1];
-//	
-//	if (selectedTile)
-//		[mosaicView highlightTile:selectedTile];
+	[[self document] setImageReuseDistance:[[imageReuseDistancePopUpButton selectedItem] tag]];
 }
 
 
@@ -1390,20 +1387,6 @@
 }
 
 
-- (IBAction)setExportWidthFromHeight:(id)sender
-{
-    [exportWidth setIntValue:[exportHeight intValue] / [[[self document] originalImage] size].height * 
-							 [[[self document] originalImage] size].width + 0.5];
-}
-
-
-- (IBAction)setExportHeightFromWidth:(id)sender
-{
-    [exportHeight setIntValue:[exportWidth intValue] / [[[self document] originalImage] size].width * 
-							  [[[self document] originalImage] size].height + 0.5];
-}
-
-
 - (void)exportImageSavePanelDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
 	[sheet orderOut:self];
@@ -1865,7 +1848,12 @@
 
 - (void)controlTextDidChange:(NSNotification *)notification
 {
-	id foo = [notification object];
+	NSSize	originalImageSize = [[[self document] originalImage] size];
+	
+	if ([notification object] == exportWidth)
+		[exportHeight setIntValue:[exportWidth intValue] / originalImageSize.width * originalImageSize.height + 0.5];
+	else if ([notification object] == exportHeight)
+		[exportWidth setIntValue:[exportHeight intValue] / originalImageSize.height * originalImageSize.width + 0.5];
 }
 
 
