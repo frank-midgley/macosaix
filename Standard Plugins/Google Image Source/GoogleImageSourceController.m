@@ -12,12 +12,24 @@
 @implementation GoogleImageSourceController
 
 
-- (NSView *)imageSourceView
+- (NSView *)editorView
 {
-	if (!imageSourceView)
+	if (!editorView)
 		[NSBundle loadNibNamed:@"Google Image Source" owner:self];
 	
-	return imageSourceView;
+	return editorView;
+}
+
+
+- (NSSize)editorViewMinimumSize
+{
+	return NSMakeSize(523.0 ,232.0);
+}
+
+
+- (NSResponder *)editorViewFirstResponder
+{
+	return requiredTermsTextField;
 }
 
 

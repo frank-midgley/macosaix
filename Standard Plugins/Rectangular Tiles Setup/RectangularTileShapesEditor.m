@@ -28,6 +28,18 @@
 }
 
 
+- (NSSize)editorViewMinimumSize
+{
+	return NSMakeSize(205.0, 110.0);
+}
+
+
+- (NSResponder *)editorViewFirstResponder
+{
+	return tilesAcrossTextField;
+}
+
+
 - (void)setCurrentTileShapes:(id<MacOSaiXTileShapes>)tileShapes
 {
 	[currentTileShapes autorelease];

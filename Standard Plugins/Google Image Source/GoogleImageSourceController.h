@@ -11,7 +11,7 @@
 
 @interface GoogleImageSourceController : NSObject <MacOSaiXImageSourceController>
 {
-	IBOutlet NSView			*imageSourceView;
+	IBOutlet NSView			*editorView;
 	IBOutlet NSTextField	*requiredTermsTextField,
 							*optionalTermsTextField,
 							*excludedTermsTextField,
