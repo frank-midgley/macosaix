@@ -28,6 +28,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 
 @interface MacOSaiXDocument (PrivateMethods)
+- (void)addTile:(MacOSaiXTile *)tile;
 - (void)spawnImageSourceThreads;
 - (BOOL)started;
 - (void)lockWhilePaused;
@@ -217,7 +218,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		{
 				// Automatically start the mosaic.
 				// Show the mosaic image and start extracting the tile images.
-			[[[self windowControllers] objectAtIndex:0] setViewMosaic:self];
+			if ([[self windowControllers] count] > 0)
+				[[[self windowControllers] objectAtIndex:0] setViewMosaic:self];
 			[NSApplication detachDrawingThread:@selector(extractTileImagesFromOriginalImage)
 									  toTarget:self
 									withObject:nil];
@@ -418,6 +420,11 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				[fileHandle writeData:[@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				[fileHandle writeData:[@"<!DOCTYPE plist PUBLIC \"-//Frank M. Midgley//DTD MacOSaiX 1.0//EN\" \"http://homepage.mac.com/knarf/DTDs/MacOSaiX-1.0.dtd\">\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 
+				[fileHandle writeData:[@"<MOSAIC>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
+
+					// Write out the path to the original image
+				[fileHandle writeData:[[NSString stringWithFormat:@"<ORIGINAL_IMAGE PATH=\"%@\"/>\n\n", [self originalImagePath]] dataUsingEncoding:NSUTF8StringEncoding]];
+				
 					// Write out the tile shapes settings
 				NSString		*className = NSStringFromClass([tileShapes class]);
 				NSMutableString	*tileShapesXML = [NSMutableString stringWithString:
@@ -431,7 +438,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				[fileHandle writeData:[@"</TILE_SHAPES_SETTINGS>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				
 				[fileHandle writeData:[@"<IMAGE_USAGE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-				[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\">\n", [self imageUseCount], [self neighborhoodSize]] dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\"/>\n", [self imageUseCount], [self neighborhoodSize]] dataUsingEncoding:NSUTF8StringEncoding]];
 				[fileHandle writeData:[@"</IMAGE_USAGE>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				
 //				NSDictionary	*imagesInUse = [self imagesInUse];
@@ -454,10 +461,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				for (index = 0; index < [imageSources count]; index++)
 				{
 					id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:index];
-					NSString				*imageSourceID = [self indexAsAlpha:index];
 					NSString				*className = NSStringFromClass([imageSource class]);
-					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%@\" CLASS=\"%@\">\n", 
-																	  imageSourceID, className] 
+					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\">\n", 
+																	  index, className] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
 					
 						// Output the settings for this image source.
@@ -465,12 +471,10 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					NSMutableString			*imageSourceXML = [NSMutableString stringWithString:
 																[[imageSource settingsAsXMLElement] stringByTrimmingCharactersInSet:
 																	[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
-					[imageSourceXML replaceOccurrencesOfString:@"\n" withString:@"\n\t\t\t" options:0 range:NSMakeRange(0, [imageSourceXML length])];
-					[imageSourceXML insertString:@"\t\t\t" atIndex:0];
+					[imageSourceXML replaceOccurrencesOfString:@"\n" withString:@"\n\t\t" options:0 range:NSMakeRange(0, [imageSourceXML length])];
+					[imageSourceXML insertString:@"\t\t" atIndex:0];
 					[imageSourceXML appendString:@"\n"];
-					[fileHandle writeData:[@"\t\t<SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 					[fileHandle writeData:[imageSourceXML dataUsingEncoding:NSUTF8StringEncoding]];
-					[fileHandle writeData:[@"\t\t</SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 					
 						// Output an element for each image ID
 //					[fileHandle writeData:[@"\t\t<IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
@@ -507,21 +511,21 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 						switch ([[tile outline] elementAtIndex:index associatedPoints:points])
 						{
 							case NSMoveToBezierPathElement:
-								[buffer appendString:[NSString stringWithFormat:@"\t\t\t<MOVE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
+								[buffer appendString:[NSString stringWithFormat:@"\t\t\t<MOVE_TO X=\"%0.6f\" Y=\"%0.6f\"/>\n", 
 																				points[0].x, points[0].y]];
 								break;
 							case NSLineToBezierPathElement:
-								[buffer appendString:[NSString stringWithFormat:@"\t\t\t<LINE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
+								[buffer appendString:[NSString stringWithFormat:@"\t\t\t<LINE_TO X=\"%0.6f\" Y=\"%0.6f\"/>\n", 
 																				points[0].x, points[0].y]];
 								break;
 							case NSCurveToBezierPathElement:
-								[buffer appendString:[NSString stringWithFormat:@"\t\t\t<CURVE_TO X=\"%0.6f\" Y=\"%0.6f\" C1X=\"%0.6f\" C1Y=\"%0.6f\" C2X=\"%0.6f\" C2Y=\"%0.6f\">\n", 
+								[buffer appendString:[NSString stringWithFormat:@"\t\t\t<CURVE_TO X=\"%0.6f\" Y=\"%0.6f\" C1X=\"%0.6f\" C1Y=\"%0.6f\" C2X=\"%0.6f\" C2Y=\"%0.6f\"/>\n", 
 																				points[2].x, points[2].y, 
 																				points[0].x, points[0].y, 
 																				points[1].x, points[1].y]];
 								break;
 							case NSClosePathBezierPathElement:
-								[buffer appendString:@"\t\t\t<CLOSE_PATH>\n"];
+								[buffer appendString:@"\t\t\t<CLOSE_PATH/>\n"];
 								break;
 						}
 					}
@@ -574,6 +578,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				}
 				[fileHandle writeData:[buffer dataUsingEncoding:NSUTF8StringEncoding]];
 				[fileHandle writeData:[@"</TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				
+				[fileHandle writeData:[@"</MOSAIC>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				
 				[fileHandle closeFile];
 				
@@ -650,9 +656,10 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 	
 	if (xmlData)
 	{
-			// Set up the parser callbacks.
+			// Set up the parser callbacks and context.
 		CFXMLParserCallBacks	callbacks = {0, createStructure, addChild, endStructure, NULL, NULL};	//resolveExternalEntity, handleError};
-
+		CFXMLParserContext		context = {0, self, NULL, NULL, NULL};
+		
 			// Create the parser with the option to skip whitespace.
 		CFXMLParserRef			parser = CFXMLParserCreate(kCFAllocatorDefault, 
 														   (CFDataRef)xmlData, 
@@ -660,13 +667,13 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 														   kCFXMLParserSkipWhitespace, 
 														   kCFXMLNodeCurrentVersion, 
 														   &callbacks,
-														   NULL);
+														   &context);
 
 			// Invoke the parser.
-		if (!CFXMLParserParse(parser))
-			printf("parse failed\n");
+		success = CFXMLParserParse(parser);
 		
-		success = YES;
+		if (!success)
+			NSLog(@"Parsing failed: %@", (NSString *)CFXMLParserCopyErrorDescription(parser));
 	}
 	
 	return success;
@@ -676,31 +683,48 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 {
 	id					newObject = nil;
-
+	MacOSaiXDocument	*document = (MacOSaiXDocument *)info;
+	
     switch (CFXMLNodeGetTypeCode(node))
 	{
         case kCFXMLNodeTypeElement:
 		{
-			NSString	*elementType = (NSString *)CFXMLNodeGetString(node);
-			if ([elementType isEqualToString:@"IMAGE_SOURCES"])
+			NSString			*elementType = (NSString *)CFXMLNodeGetString(node);
+			CFXMLElementInfo	*nodeInfo = (CFXMLElementInfo *)CFXMLNodeGetInfoPtr(node);
+			
+			if ([elementType isEqualToString:@"MOSAIC"])
 			{
-				newObject = self;
+				newObject = document;
+			}
+			else if ([elementType isEqualToString:@"ORIGINAL_IMAGE"])
+			{
+				newObject = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"PATH"];
+			}
+			else if ([elementType isEqualToString:@"TILE_SHAPES_SETTINGS"])
+			{
+				NSString	*className = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"CLASS"];
+				
+				newObject = [[NSClassFromString(className) alloc] init];
+			}
+			else if ([elementType isEqualToString:@"IMAGE_SOURCES"])
+			{
+				newObject = document;
 			}
 			else if ([elementType isEqualToString:@"IMAGE_SOURCE"])
 			{
+				NSString	*className = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"CLASS"];
 				
+				newObject = [[NSClassFromString(className) alloc] init];
 			}
 			else if ([elementType isEqualToString:@"TILES"])
 			{
-				newObject = self;
+				// could get the count of tiles from an attribute...
+				
+				newObject = document;
 			}
 			else if ([elementType isEqualToString:@"TILE"])
 			{
-				newObject = [[MacOSaiXTile alloc] initWithOutline:nil fromDocument:self];
-			}
-			else if ([elementType isEqualToString:@"OUTLINE"])
-			{
-				newObject = [[NSBezierPath bezierPath] retain];
+				newObject = [[MacOSaiXTile alloc] initWithOutline:nil fromDocument:document];
 			}
 			else if ([elementType isEqualToString:@"OUTLINE"])
 			{
@@ -711,9 +735,25 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					 [elementType isEqualToString:@"CURVE_TO"] || 
 					 [elementType isEqualToString:@"CLOSE_PATH"])
 			{
-				CFXMLElementInfo	*nodeInfo = (CFXMLElementInfo *)CFXMLNodeGetInfoPtr(node);
-				newObject = [NSMutableDictionary dictionaryWithDictionary:(NSDictionary *)nodeInfo->attributes]
-				[newObject setObject:elementType forKey:@"Element Type"];
+				newObject = [[NSMutableDictionary dictionaryWithDictionary:(NSDictionary *)nodeInfo->attributes] retain];
+				[(NSMutableDictionary *)newObject setObject:elementType forKey:@"Element Type"];
+			}
+			else if ([elementType isEqualToString:@"UNIQUE_MATCH"])
+			{
+				int					sourceIndex = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"SOURCE"] intValue];
+				NSString			*imageIdentifier = [(NSDictionary *)nodeInfo->attributes objectForKey:@"ID"];
+				float				matchValue = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"VALUE"] floatValue];
+				
+				newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
+														forImageIdentifier:imageIdentifier 
+														   fromImageSource:[[document imageSources] objectAtIndex:sourceIndex] 
+																   forTile:nil];
+			}
+			else
+			{
+				// TODO: hand off unknown elements to image source or tile shapes objects
+				newObject = [[NSMutableDictionary dictionaryWithDictionary:(NSDictionary *)nodeInfo->attributes] retain];
+				[(NSMutableDictionary *)newObject setObject:elementType forKey:@"Element Type"];
 			}
             break;
 		}
@@ -729,13 +769,20 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 
 void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 {
-	if (parent == self && [(id)child conformsToProtocol:@protocol(MacOSaiXTileShapes)])
-		[self setTileShapes:(id<MacOSaiXTileShapes>)child];
-	else if (parent == self && [(id)child conformsToProtocol:@protocol(MacOSaiXImageSource)])
-		[self addImageSource:(id<MacOSaiXImageSource>)child];
-	else if (parent == self && [(id)child isKindOfClass:[MacOSaiXTile class]])
-		[tiles addObject:(MacOSaiXTile *)child];
-	else if ([(id)parent isKindOfClass:[MacOSaiXTile class] && [(id)child isKindOfClass:[NSBezierPath class]])
+	MacOSaiXDocument	*document = (MacOSaiXDocument *)info;
+
+//	if (parent == nil)
+//		parent = document;
+
+	if (parent == document && [(id)child isKindOfClass:[NSString class]])
+		[document setOriginalImagePath:(NSString *)child];
+	else if (parent == document && [(id)child conformsToProtocol:@protocol(MacOSaiXTileShapes)])
+		[document setTileShapes:(id<MacOSaiXTileShapes>)child];
+	else if (parent == document && [(id)child conformsToProtocol:@protocol(MacOSaiXImageSource)])
+		[document addImageSource:(id<MacOSaiXImageSource>)child];
+	else if (parent == document && [(id)child isKindOfClass:[MacOSaiXTile class]])
+		[document addTile:(MacOSaiXTile *)child];
+	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[NSBezierPath class]])
 		[(MacOSaiXTile *)parent setOutline:(NSBezierPath *)child];
 	else if ([(id)parent isKindOfClass:[NSBezierPath class]] && [(id)child isKindOfClass:[NSDictionary class]])
 	{
@@ -754,17 +801,24 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 		else if ([elementType isEqualToString:@"CLOSE_PATH"])
 			[tileOutline closePath];
 	}
+	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[MacOSaiXImageMatch class]])
+	{
+		[(MacOSaiXTile *)parent setImageMatch:(MacOSaiXImageMatch *)child];
+		[(MacOSaiXImageMatch *)child setTile:(MacOSaiXTile *)parent];
+	}
 }
 
 
-void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
+void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 {
-    // Leave evidence that we were called.
-    printf("---End Structure Called for \n"); CFShow((CFStringRef)xmlType);
-
-    // Now that the structure and all of its children have been parsed, 
-    // we can release the string.
-    CFRelease(xmlType);
+		// Release any objects we created in createStructure() now that they are retained by their parent.
+	if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXImageSource)] || 
+		[(id)newObject conformsToProtocol:@protocol(MacOSaiXTileShapes)] || 
+		[(id)newObject isKindOfClass:[MacOSaiXTile class]] || 
+		[(id)newObject isKindOfClass:[NSBezierPath class]] || 
+		[(id)newObject isKindOfClass:[NSDictionary class]] || 
+		[(id)newObject isKindOfClass:[MacOSaiXImageMatch class]])
+		[(id)newObject release];
 }
 
 
@@ -801,6 +855,12 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 }
 
 
+- (void)addTile:(MacOSaiXTile *)tile
+{
+	[tiles addObject:tile];
+}
+
+
 - (void)setTileShapes:(id<MacOSaiXTileShapes>)inTileShapes
 {
 	[inTileShapes retain];
@@ -817,15 +877,9 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 
 		// Create a new tile collection from the outlines.
 	NSEnumerator	*tileOutlineEnumerator = [tileOutlines objectEnumerator];
-	NSBezierPath	*tileOutline = nil,
-					*combinedOutline = [NSBezierPath bezierPath];
+	NSBezierPath	*tileOutline = nil;
     while (tileOutline = [tileOutlineEnumerator nextObject])
-	{
-		[tiles addObject:[[[MacOSaiXTile alloc] initWithOutline:tileOutline fromDocument:self] autorelease]];
-		
-			// Add this outline to the master path used to draw all of the tile outlines over the full image.
-		[combinedOutline appendBezierPath:tileOutline];
-	}
+		[self addTile:[[[MacOSaiXTile alloc] initWithOutline:tileOutline fromDocument:self] autorelease]];
 	
 		// Let anyone who cares know that our tile shapes (and thus our tiles array) have changed.
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
@@ -1393,9 +1447,6 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 	[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) 
 							  toTarget:self 
 							withObject:imageSource];
-	
-	if ([self tileShapes])
-		[self resume];
 }
 
 
