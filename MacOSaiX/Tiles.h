@@ -1,34 +1,45 @@
 //  Created by fmidgley on Mon Apr 11 2001.
-//  Copyright (c) 2001 __CompanyName__. All rights reserved.
+//  Copyright (c) 2001 _CompanyName__. All rights reserved.
 
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
-#import "TileImage.h"
+
+#import "ImageSource.h"
 
 #define TILE_BITMAP_SIZE 32.0
 
-typedef struct _TileMatch
+
+@interface ImageMatch : NSObject
 {
-    float		matchValue;
-    TileImage	*tileImage;
-} TileMatch;
+    float			matchValue;
+    ImageSource		*imageSource;
+	id<NSCopying>   imageIdentifier;
+}
+- (id)initWithMatchValue:(float)inMatchValue 
+	  forImageIdentifier:(id<NSCopying>)inImageIdentifier 
+		 fromImageSource:(ImageSource *)inImageSource;
+- (float)matchValue;
+- (ImageSource *)imageSource;
+- (id<NSCopying>)imageIdentifier;
+@end
+
 
 #define WORST_CASE_PIXEL_MATCH 520200.0
 
+
 @interface Tile : NSObject
 {
-    NSBezierPath		*_outline;		// The shape of this tile
-	NSMutableSet		*_neighborSet;	// A set containing tiles that are considered neighbors of this tile
-    NSBitmapImageRep	*_bitmapRep,		// The portion of the original image that is in this tile
-                        *_maskRep;
-    TileMatch			*_matches;		// Array of TileMatches
-    int					_matchCount;
-    NSLock				*_tileMatchesLock,	// thread safety
-                        *_bestMatchLock;
-    TileImage			*_bestMatchTileImage;	// The index in _matches of the best unique match
-    TileMatch			*_userChosenImageMatch;	// will be nil if user has not choosen an image
-    int					_maxMatches;
-    NSDocument			*_document;		// The document this tile is a part of
+    NSBezierPath		*outline;				// The shape of this tile
+	NSMutableSet		*neighborSet;			// A set containing tiles that are considered neighbors of this tile
+    NSBitmapImageRep	*bitmapRep,				// The portion of the original image that is in this tile
+                        *maskRep;
+    NSMutableArray		*imageMatches;			// Array of ImageMatches
+    NSLock				*imageMatchesLock,		// thread safety
+                        *bestMatchLock;
+    ImageMatch			*bestImageMatch,
+						*userChosenImageMatch;	// will be nil if user has not choosen an image
+    int					maxMatches;
+    NSDocument			*document;				// The document this tile is a part of
 }
 
 	// designated initializer
@@ -44,22 +55,23 @@ typedef struct _TileMatch
 - (void)setBitmapRep:(NSBitmapImageRep *)bitmapRep withMask:(NSBitmapImageRep *)maskRep;
 - (NSBitmapImageRep *)bitmapRep;
 
-- (void)setDocument:(NSDocument *)document;
+- (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep
+			  withIdentifier:(id<NSCopying>)imageIdentifier
+		     fromImageSource:(ImageSource *)imageSource;
+//- (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep fromCachedImage:(CachedImage *)cachedImage
+//				  forDocument:(NSDocument *)document;
 
-- (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep fromTileImage:(TileImage *)tileImage
-				  forDocument:(NSDocument *)document;
+- (ImageMatch *)displayedImageMatch;
+- (BOOL)calculateBestMatch;
 
-- (TileImage *)displayedTileImage;
-- (void)calculateBestMatch;
+- (void)setUserChosenImageIdentifer:(id<NSCopying>)imageIdentifier fromImageSource:(ImageSource *)imageSource;
+- (ImageMatch *)userChosenImageMatch;
 
-- (void)setUserChosenImageIndex:(TileImage *)userChosenTileImage;
-- (TileImage *)userChosenTileImage;
-
-- (TileMatch *)matches;
+- (NSArray *)matches;
 - (int)matchCount;
 - (void)lockMatches;
 - (void)unlockMatches;
 
-- (float)matchValueForTileImage:(TileImage *)tileImage;
+- (float)matchValueForImageIdentifer:(id<NSCopying>)imageIdentifier fromImageSource:(ImageSource *)imageSource;
 
 @end

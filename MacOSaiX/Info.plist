@@ -27,6 +27,8 @@
 	<string>2.0b1</string>
 	<key>CFBundleIconFile</key>
 	<string>Application Icon</string>
+	<key>CFBundleIdentifier</key>
+	<string>MacOSaiX</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

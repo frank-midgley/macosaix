@@ -12,10 +12,11 @@
 
 @interface TileImage : NSObject <NSCoding>
 {
-	ImageSource	*_imageSource;
-	int			_useCount;
-    id			_imageIdentifier;
-    NSImage		*_image;
+	ImageSource	*imageSource;
+    id			imageIdentifier;
+	int			useCount;
+    NSImage		*image,
+				*thumbnail;
 }
 
 + (void)initialize;
@@ -25,8 +26,7 @@
 - (id)imageIdentifier;
 
 - (NSImage *)image;
-
-- (void)removeImageFromCache;
+- (NSImage *)thumbnail;
 
 - (void)imageIsInUse;
 - (BOOL)imageIsNotInUse;

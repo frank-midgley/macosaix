@@ -3,27 +3,27 @@
 //  MacOSaiX
 //
 //  Created by Frank Midgley on Sat Feb 02 2002.
-//  Copyright (c) 2001 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2001 MyCompanyName. All rights reserved.
 //
 
 #import <AppKit/AppKit.h>
 #import "Tiles.h"
 
 typedef enum
-{ _viewMosaic, _viewTilesOutline, _viewImageSources, _viewImageRegions, _viewHighlightedTile }
+{ viewMosaic, viewTilesOutline, viewImageSources, viewImageRegions, viewHighlightedTile }
 MosaicViewMode;
 
 @interface MosaicView : NSView
 {
-	NSImage			*_originalImage, *_mosaicImage;
-	MosaicViewMode	_viewMode;
+	NSImage			*originalImage, *mosaicImage;
+	MosaicViewMode	viewMode;
 	
-		// ivar for _viewTileSetup
-	NSBezierPath	*_tilesOutline;
+		// ivar for viewTileSetup
+	NSBezierPath	*tilesOutline;
 	
 		// ivars for viewHighlightedTile
-    Tile*			_highlightedTile;
-    int				_phase;
+    Tile*			highlightedTile;
+    int				phase;
 }
 
 - (id)init;

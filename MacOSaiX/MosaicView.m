@@ -7,44 +7,44 @@
 
 - (id)init
 {
-    [super init];
-    _highlightedTile = nil;
-    _phase = 0;
+    if (self = [super init])
+	{
+		highlightedTile = nil;
+		phase = 0;
+	}
     return self;
 }
 
 
-- (void)setOriginalImage:(NSImage *)originalImage
+- (void)setOriginalImage:(NSImage *)inOriginalImage
 {
-	if (_originalImage != originalImage && _viewMode == _viewTilesOutline)
+	if (originalImage != inOriginalImage && viewMode == viewTilesOutline)
 		[self setNeedsDisplay:YES];
-	[originalImage retain];
-	[_originalImage release];
-	_originalImage = originalImage;
+	[originalImage autorelease];
+	originalImage = [inOriginalImage retain];
 }
 
 
-- (void)setMosaicImage:(NSImage *)mosaicImage
+- (void)setMosaicImage:(NSImage *)inMosaicImage
 {
-	if (_mosaicImage != mosaicImage && _viewMode != _viewTilesOutline)
+	if (mosaicImage != inMosaicImage && viewMode != viewTilesOutline)
 		[self setNeedsDisplay:YES];
-	[mosaicImage retain];
-	[_mosaicImage release];
-	_mosaicImage = mosaicImage;
+	[mosaicImage autorelease];
+	mosaicImage = [inMosaicImage retain];
 }
 
 
 - (void)setViewMode:(MosaicViewMode)mode
 {
-	if (_viewMode != mode)
+	if (viewMode != mode)
 		[self setNeedsDisplay:YES];
-	_viewMode = mode;
+	viewMode = mode;
 }
 
 
 - (MosaicViewMode)viewMode
 {
-    return _viewMode;
+    return viewMode;
 }
 
 
@@ -53,14 +53,14 @@
     BOOL keepOn = YES;
     NSPoint mouseLoc;
 
-	switch (_viewMode)
+	switch (viewMode)
 	{
-		case _viewMosaic:
-		case _viewTilesOutline:
-		case _viewImageSources:
-		case _viewImageRegions:
+		case viewMosaic:
+		case viewTilesOutline:
+		case viewImageSources:
+		case viewImageRegions:
 			break;
-		case _viewHighlightedTile:
+		case viewHighlightedTile:
 			while (keepOn)
 			{
 				theEvent = [[self window] nextEventMatchingMask: NSLeftMouseUpMask];
@@ -81,22 +81,22 @@
 
 - (void)drawRect:(NSRect)theRect
 {
-	if (_viewMode == _viewTilesOutline || _viewMode == _viewImageRegions)
-		[_originalImage drawInRect:[self bounds] fromRect:NSMakeRect(0, 0, [_originalImage size].width,
-																	 [_originalImage size].height)
+	if (viewMode == viewTilesOutline || viewMode == viewImageRegions)
+		[originalImage drawInRect:[self bounds] fromRect:NSMakeRect(0, 0, [originalImage size].width,
+																	 [originalImage size].height)
 						 operation:NSCompositeCopy fraction:1.0];
 	else
-		[_mosaicImage drawInRect:[self bounds] fromRect:NSMakeRect(0, 0, [_mosaicImage size].width,
-																   [_mosaicImage size].height)
+		[mosaicImage drawInRect:[self bounds] fromRect:NSMakeRect(0, 0, [mosaicImage size].width,
+																   [mosaicImage size].height)
 					   operation:NSCompositeCopy fraction:1.0];
 	
-	switch (_viewMode)
+	switch (viewMode)
 	{
-		case _viewMosaic:
+		case viewMosaic:
 			break;
 
-		case _viewTilesOutline:
-			if (_tilesOutline)
+		case viewTilesOutline:
+			if (tilesOutline)
 			{
 				NSAffineTransform	*transform;
 				
@@ -104,36 +104,36 @@
 				[transform translateXBy:0.5 yBy:-0.5];
 				[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
 				[[NSColor colorWithCalibratedWhite:0.0 alpha: 0.5] set];	// darken
-				[[transform transformBezierPath:_tilesOutline] stroke];
+				[[transform transformBezierPath:tilesOutline] stroke];
 			
 				transform = [NSAffineTransform transform];
 				[transform translateXBy:-0.5 yBy:0.5];
 				[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
 				[[NSColor colorWithCalibratedWhite:1.0 alpha: 0.5] set];	// lighten
-				[[transform transformBezierPath:_tilesOutline] stroke];
+				[[transform transformBezierPath:tilesOutline] stroke];
 			}
 			break;
 			
-		case _viewImageSources:
-		case _viewImageRegions:
+		case viewImageSources:
+		case viewImageRegions:
 			break;
 
-		case _viewHighlightedTile:
-			if (_highlightedTile != nil)
+		case viewHighlightedTile:
+			if (highlightedTile != nil)
 			{
 				NSAffineTransform	*transform = [NSAffineTransform transform];
 				NSBezierPath		*bezierPath;
 				float				dashes[2] = {5.0, 5.0};
 				
 				[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
-				bezierPath = [transform transformBezierPath:[_highlightedTile outline]];
+				bezierPath = [transform transformBezierPath:[highlightedTile outline]];
 				[bezierPath setLineWidth:2];
 				
-				[bezierPath setLineDash:dashes count:2 phase:_phase];
+				[bezierPath setLineDash:dashes count:2 phase:phase];
 				[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
 				[bezierPath stroke];
 			
-				[bezierPath setLineDash:dashes count:2 phase:(_phase + 5) % 10];
+				[bezierPath setLineDash:dashes count:2 phase:(phase + 5) % 10];
 				[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
 				[bezierPath stroke];
 			}
@@ -148,10 +148,10 @@
 {
 	int	index;
 	
-	[_tilesOutline release];
-	_tilesOutline = [[NSBezierPath bezierPath] retain];
+	[tilesOutline release];
+	tilesOutline = [[NSBezierPath bezierPath] retain];
 	for (index = 0; index < [tileOutlines count]; index++)
-	    [_tilesOutline appendBezierPath:[tileOutlines objectAtIndex:index]];
+	    [tilesOutline appendBezierPath:[tileOutlines objectAtIndex:index]];
 	[self setNeedsDisplay:YES];
 }
 
@@ -160,22 +160,22 @@
 
 - (void)highlightTile:(Tile *)tile
 {
-    if (_highlightedTile != nil)
+    if (highlightedTile != nil)
     {
 	// erase any previous highlight
 	NSAffineTransform	*transform = [NSAffineTransform transform];
 	NSBezierPath		*bezierPath;
 	
-	_phase = ++_phase % 10;
+	phase = ++phase % 10;
 	[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
-	bezierPath = [transform transformBezierPath:[_highlightedTile outline]];
+	bezierPath = [transform transformBezierPath:[highlightedTile outline]];
 	[self setNeedsDisplayInRect:NSMakeRect([bezierPath bounds].origin.x - 1,
 										   [bezierPath bounds].origin.y - 1,
 										   [bezierPath bounds].size.width + 2,
 										   [bezierPath bounds].size.height + 2)];
     }
     
-    _highlightedTile = tile;
+    highlightedTile = tile;
 }
 
 
@@ -184,9 +184,9 @@
     NSAffineTransform	*transform = [NSAffineTransform transform];
     NSBezierPath	*bezierPath;
     
-    _phase = ++_phase % 10;
+    phase = ++phase % 10;
     [transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
-    bezierPath = [transform transformBezierPath:[_highlightedTile outline]];
+    bezierPath = [transform transformBezierPath:[highlightedTile outline]];
     [self setNeedsDisplayInRect:NSMakeRect([bezierPath bounds].origin.x - 1,
 					   [bezierPath bounds].origin.y - 1,
 					   [bezierPath bounds].size.width + 2,

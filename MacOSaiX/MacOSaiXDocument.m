@@ -3,53 +3,65 @@
 #import "MacOSaiX.h"
 #import "MacOSaiXDocument.h"
 #import "Tiles.h"
-#import "TileImage.h"
 #import "MosaicView.h"
 #import "OriginalView.h"
 
+
 	// The maximum size of the image URL queue
-#define MAX_IMAGE_URLS 32
+#define MAXIMAGEURLS 32
+	// The maximum width or height of the cached thumbnail images
+#define kThumbnailMax 64.0
+
+
+@interface MacOSaiXDocument (PrivateMethods)
+- (void)cacheImage:(NSImage *)image withIdentifier:(id<NSCopying>)imageIdentifier fromSource:(ImageSource *)imageSource;
+- (NSImage *)cachedImageForIdentifier:(id<NSCopying>)imageIdentifier fromSource:(ImageSource *)imageSource;
+@end
+
 
 @implementation MacOSaiXDocument
 
 - (id)init
 {
-    self = [super init];
-    
-    [self setHasUndoManager:FALSE];	// don't track undo-able changes
-    
-	_mosaicStarted = NO;
-    _paused = YES;
-    _viewMode = viewMosaicAndOriginal;
-    _statusBarShowing = YES;
-    _imagesMatched = 0;
-    _imageSources = [[NSMutableArray arrayWithCapacity:0] retain];
-    _zoom = 0.0;
-    _lastSaved = [[NSDate date] retain];
-    _autosaveFrequency = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Autosave Frequency"] intValue];
-    _finishLoading = _windowFinishedLoading = NO;
-    _exportProgressTileCount = 0;
-    _exportFormat = NSJPEGFileType;
-    _documentIsClosing = NO;
-        
-    // create the image URL queue and its lock
-    _imageQueue = [[NSMutableArray arrayWithCapacity:0] retain];
-    _imageQueueLock = [[NSLock alloc] init];
+    if (self = [super init])
+    {
+		[self setHasUndoManager:FALSE];	// don't track undo-able changes
+		
+		mosaicStarted = NO;
+		paused = YES;
+		viewMode = viewMosaicAndOriginal;
+		statusBarShowing = YES;
+		imagesMatched = 0;
+		imageSources = [[NSMutableArray arrayWithCapacity:0] retain];
+		zoom = 0.0;
+		lastSaved = [[NSDate date] retain];
+		autosaveFrequency = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Autosave Frequency"] intValue];
+		finishLoading = windowFinishedLoading = NO;
+		exportProgressTileCount = 0;
+		exportFormat = NSJPEGFileType;
+		documentIsClosing = NO;
+			
+		// create the image URL queue and its lock
+		imageQueue = [[NSMutableArray arrayWithCapacity:0] retain];
+		imageQueueLock = [[NSLock alloc] init];
 
-    _createTilesThreadAlive = _enumerateImageSourcesThreadAlive = _calculateImageMatchesThreadAlive = 
-		_exportImageThreadAlive = NO;
-	_calculateImageMatchesThreadLock = [[NSLock alloc] init];
-	
-		// set up ivars for "calculateDisplayedImages" thread
-	_calculateDisplayedImagesThreadAlive = NO;
-	_calculateDisplayedImagesThreadLock = [[NSLock alloc] init];
-	_refreshTilesSet = [[NSMutableSet setWithCapacity:256] retain];
-	_refreshTilesSetLock = [[NSLock alloc] init];
+		createTilesThreadAlive = enumerateImageSourcesThreadAlive = calculateImageMatchesThreadAlive = 
+			exportImageThreadAlive = NO;
+		calculateImageMatchesThreadLock = [[NSLock alloc] init];
+		
+			// set up ivars for "calculateDisplayedImages" thread
+		calculateDisplayedImagesThreadAlive = NO;
+		calculateDisplayedImagesThreadLock = [[NSLock alloc] init];
+		refreshTilesSet = [[NSMutableSet setWithCapacity:256] retain];
+		refreshTilesSetLock = [[NSLock alloc] init];
 
-    _tileImages = [[NSMutableArray arrayWithCapacity:0] retain];
-    _tileImagesLock = [[NSLock alloc] init];
-    _unusedTileImage = [[TileImage alloc] initWithIdentifier:@"" fromImageSource:_manualImageSource];
-    
+		tileImages = [[NSMutableArray arrayWithCapacity:0] retain];
+		tileImagesLock = [[NSLock alloc] init];
+		
+		cacheLock = [[NSLock alloc] init];
+		imageCache = [[NSMutableDictionary dictionary] retain];
+		cachedImagesPath = @"/tmp/Cached Images";
+	}
     return self;
 }
 
@@ -65,184 +77,186 @@
     [super windowControllerDidLoadNib:aController];
     
 		// Set some shortcut ivars now that we are instantiated
-    _mainWindow = [[[self windowControllers] objectAtIndex:0] window];
-    _viewMenu = [[[NSApp mainMenu] itemWithTitle:@"View"] submenu];
-    _fileMenu = [[[NSApp mainMenu] itemWithTitle:@"File"] submenu];
+    mainWindow = [[[self windowControllers] objectAtIndex:0] window];
+    viewMenu = [[[NSApp mainMenu] itemWithTitle:@"View"] submenu];
+    fileMenu = [[[NSApp mainMenu] itemWithTitle:@"File"] submenu];
     [self performSelector:@selector(chooseOriginalImage) withObject:nil afterDelay:0];
 }
 
 - (void)chooseOriginalImage
 {
-    NSOpenPanel	*oPanel = [NSOpenPanel openPanel];
-    
-		// prompt the user for the image to make a mosaic from
-    [oPanel setCanChooseFiles:YES];
-    [oPanel setCanChooseDirectories:NO];
-    [oPanel beginSheetForDirectory:nil
-							  file:nil
-							 types:[NSImage imageFileTypes]
-					modalForWindow:_mainWindow
-					 modalDelegate:self
-					didEndSelector:@selector(chooseOriginalImageOpenPanelDidEnd:returnCode:contextInfo:)
-					   contextInfo:nil];
+	[self chooseOriginalImageOpenPanelDidEnd:nil returnCode:NSOKButton contextInfo:nil];
+
+//    NSOpenPanel	*oPanel = [NSOpenPanel openPanel];
+//    
+//		// prompt the user for the image to make a mosaic from
+//    [oPanel setCanChooseFiles:YES];
+//    [oPanel setCanChooseDirectories:NO];
+//    [oPanel beginSheetForDirectory:nil
+//							  file:nil
+//							 types:[NSImage imageFileTypes]
+//					modalForWindow:mainWindow
+//					 modalDelegate:self
+//					didEndSelector:@selector(chooseOriginalImageOpenPanelDidEnd:returnCode:contextInfo:)
+//					   contextInfo:nil];
 }
 
 
-- (void)chooseOriginalImageOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
-    contextInfo:(void *)context
+- (void)chooseOriginalImageOpenPanelDidEnd:(NSOpenPanel *)sheet 
+								returnCode:(int)returnCode
+							   contextInfo:(void *)context
 {
-    NSToolbar	*toolbar;
-    NSRect		windowFrame;
-
     if (returnCode == NSCancelButton)
 	{
-		[_mainWindow performSelector:@selector(performClose:) withObject:self afterDelay:0];
+		[mainWindow performSelector:@selector(performClose:) withObject:self afterDelay:0];
 		return;
 	}
 
 		// remember and load the image the user chose
-	_originalImageURL = [[[sheet URLs] objectAtIndex:0] retain];
-	_originalImage = [[NSImage alloc] initWithContentsOfURL:_originalImageURL];
+	originalImageURL = [[NSURL fileURLWithPath:@"/Users/fmidgley/Documents/test/kim_sean.jpg"] retain];//[[[sheet URLs] objectAtIndex:0] retain];
+	originalImage = [[NSImage alloc] initWithContentsOfURL:originalImageURL];
 	
 		// Create an NSImage to hold the mosaic image (somewhat arbitrary size)
-    [_mosaicImage autorelease];
-    _mosaicImage = [[NSImage alloc] initWithSize:NSMakeSize(1600, 1600 * 
-						[_originalImage size].height / [_originalImage size].width)];
+    [mosaicImage autorelease];
+    mosaicImage = [[NSImage alloc] initWithSize:NSMakeSize(1600, 1600 * 
+						[originalImage size].height / [originalImage size].width)];
     
-	[_mosaicView setOriginalImage:_originalImage];
-	[_mosaicView setMosaicImage:_mosaicImage];
-	[_mosaicView setViewMode:_viewTilesOutline];
+	[mosaicView setOriginalImage:originalImage];
+	[mosaicView setMosaicImage:mosaicImage];
+	[mosaicView setViewMode:viewTilesOutline];
 	
-    _selectedTile = nil;
-    _mosaicImageUpdated = NO;
+    selectedTile = nil;
+    mosaicImageUpdated = NO;
 
-    _mosaicImageLock = [[NSLock alloc] init];
-    _refindUniqueTilesLock = [[NSLock alloc] init];
-//    _refindUniqueTiles = YES;
+    mosaicImageLock = [[NSLock alloc] init];
+    refindUniqueTilesLock = [[NSLock alloc] init];
+//    refindUniqueTiles = YES;
     
 		// create timers to update the window and animate any selected tile
-    _updateDisplayTimer = [[NSTimer scheduledTimerWithTimeInterval:1.0
+    updateDisplayTimer = [[NSTimer scheduledTimerWithTimeInterval:1.0
 							   target:(id)self
 							 selector:@selector(updateDisplay:)
 							 userInfo:nil
 							  repeats:YES] retain];
-    _animateTileTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1
+    animateTileTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1
 							 target:(id)self
 						       selector:@selector(animateSelectedTile:)
 						       userInfo:nil
 							repeats:YES] retain];
 
-    if (_combinedOutlines) [_originalView setTileOutlines:_combinedOutlines];
-    [_originalView setImage:_originalImage];
+    if (combinedOutlines) [originalView setTileOutlines:combinedOutlines];
+    [originalView setImage:originalImage];
 
     [[NSNotificationCenter defaultCenter] addObserver:self
 					     selector:@selector(mosaicViewDidScroll:)
 						 name:@"View Did Scroll" object:nil];
 
-    _removedSubviews = nil;
+    removedSubviews = nil;
 
 		// set up the toolbar
-    _pauseToolbarItem = nil;
-    _zoomToolbarMenuItem = [[NSMenuItem alloc] initWithTitle:@"Zoom" action:nil keyEquivalent:@""];
-    [_zoomToolbarMenuItem setSubmenu:_zoomToolbarSubmenu];
-    _toolbarItems = [[NSMutableDictionary dictionary] retain];
-    toolbar = [[[NSToolbar alloc] initWithIdentifier:@"MacOSaiXDocument"] autorelease];
+    pauseToolbarItem = nil;
+    zoomToolbarMenuItem = [[NSMenuItem alloc] initWithTitle:@"Zoom" action:nil keyEquivalent:@""];
+    [zoomToolbarMenuItem setSubmenu:zoomToolbarSubmenu];
+    toolbarItems = [[NSMutableDictionary dictionary] retain];
+    NSToolbar   *toolbar = [[[NSToolbar alloc] initWithIdentifier:@"MacOSaiXDocument"] autorelease];
     [toolbar setDelegate:self];
     [toolbar setAllowsUserCustomization:YES];
-    [_mainWindow setToolbar:toolbar];
+    [mainWindow setToolbar:toolbar];
     
 		// Make sure we have the latest and greatest list of plug-ins
 	[[NSApp delegate] discoverPlugIns];
 
-	{	// Set up the "Tiles Setup" tab
-		[_tilesSetupView setTitlePosition:NSNoTitle];
+	{
+			// Set up the "Tiles Setup" tab
+		[tilesSetupView setTitlePosition:NSNoTitle];
 		
 			// Load the names of the tile setup plug-ins
 		NSEnumerator	*enumerator = [[[NSApp delegate] tilesSetupControllerClasses] objectEnumerator];
 		Class			tilesSetupControllerClass;
-		[_tilesSetupPopUpButton removeAllItems];
+		[tilesSetupPopUpButton removeAllItems];
 		while (tilesSetupControllerClass = [enumerator nextObject])
-			[_tilesSetupPopUpButton addItemWithTitle:[tilesSetupControllerClass name]];
+			[tilesSetupPopUpButton addItemWithTitle:[tilesSetupControllerClass name]];
 		[self setTilesSetupPlugIn:self];
 	}
 	
 	{	// Set up the "Image Sources" tab
-		[_imageSourcesTabView setTabViewType:NSNoTabsNoBorder];
+		[imageSourcesTabView setTabViewType:NSNoTabsNoBorder];
 
-		_imageSources = [[NSMutableArray arrayWithCapacity:4] retain];
-		[[_imageSourcesTable tableColumnWithIdentifier:@"Image Source Type"]
+		imageSources = [[NSMutableArray arrayWithCapacity:4] retain];
+		[[imageSourcesTable tableColumnWithIdentifier:@"Image Source Type"]
 			setDataCell:[[[NSImageCell alloc] init] autorelease]];
 	
 			// Load the image source plug-ins and create an instance of each controller
 		NSEnumerator	*enumerator = [[[NSApp delegate] imageSourceControllerClasses] objectEnumerator];
 		Class			imageSourceControllerClass;
-		[_imageSourcesPopUpButton removeAllItems];
-		[_imageSourcesPopUpButton addItemWithTitle:@"Current Image Sources"];
+		[imageSourcesPopUpButton removeAllItems];
+		[imageSourcesPopUpButton addItemWithTitle:@"Current Image Sources"];
 		while (imageSourceControllerClass = [enumerator nextObject])
 		{
 				// add the name of the image source to the pop-up menu
-			[_imageSourcesPopUpButton addItemWithTitle:[NSString stringWithFormat:@"Add %@ Source...", 
+			[imageSourcesPopUpButton addItemWithTitle:[NSString stringWithFormat:@"Add %@ Source...", 
 																				  [imageSourceControllerClass name]]];
 				// create an instance of the class for this document
 			ImageSourceController *imageSourceController = [[[imageSourceControllerClass alloc] init] autorelease];
 				// let the plug-in know how to message back to us
 			[imageSourceController setDocument:self];
-			[imageSourceController setWindow:_mainWindow];
+			[imageSourceController setWindow:mainWindow];
 				// attach it to the menu item (it will be dealloced when the menu item releases it)
-			[[_imageSourcesPopUpButton lastItem] setRepresentedObject:imageSourceController];
+			[[imageSourcesPopUpButton lastItem] setRepresentedObject:imageSourceController];
 				// add a tab to the view for this plug-in
 			NSTabViewItem	*tabViewItem = [[[NSTabViewItem alloc] initWithIdentifier:nil] autorelease];
 			[tabViewItem setView:[imageSourceController imageSourceView]];	// this could be done lazily...
-			[_imageSourcesTabView addTabViewItem:tabViewItem];
+			[imageSourcesTabView addTabViewItem:tabViewItem];
 		}
 		[self setImageSourcesPlugIn:self];
 	}
 	
 	{	// Set up the "Editor" tab
-		[[_editorTable tableColumnWithIdentifier:@"image"] setDataCell:[[[NSImageCell alloc] init] autorelease]];
+		[[editorTable tableColumnWithIdentifier:@"image"] setDataCell:[[[NSImageCell alloc] init] autorelease]];
 	}
 	
 	[self setViewMode:viewMosaicAndTilesSetup];
-	[_utilitiesDrawer setContentSize:NSMakeSize(400, [_utilitiesDrawer contentSize].height)];
+	[utilitiesDrawer setContentSize:NSMakeSize(400, [utilitiesDrawer contentSize].height)];
     
-    _documentIsClosing = NO;	// gets set to true when threads for this document should shut down
+    documentIsClosing = NO;	// gets set to true when threads for this document should shut down
 
     [self setZoom:self];
     
-    if (_finishLoading)
+    NSRect		windowFrame;
+    if (finishLoading)
     {
-		//	[self setViewMode:_viewMode];
+		//	[self setViewMode:viewMode];
 		
 			// this doc was opened from a file
-		if (_paused)
+		if (paused)
 		{
-			[_pauseToolbarItem setLabel:@"Resume"];
-			[_pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
-			[[_fileMenu itemWithTitle:@"Pause Matching"] setTitle:@"Resume Matching"];
+			[pauseToolbarItem setLabel:@"Resume"];
+			[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
+			[[fileMenu itemWithTitle:@"Pause Matching"] setTitle:@"Resume Matching"];
 		}
 	
 			//	broken & disabled until next version
-		//	[self windowWillResize:_mainWindow toSize:_storedWindowFrame.size];
-		//	[_mainWindow setFrame:_storedWindowFrame display:YES];
-		windowFrame = [_mainWindow frame];
-		windowFrame.size = [self windowWillResize:_mainWindow toSize:windowFrame.size];
-		[_mainWindow setFrame:windowFrame display:YES animate:YES];
+		//	[self windowWillResize:mainWindow toSize:storedWindowFrame.size];
+		//	[mainWindow setFrame:storedWindowFrame display:YES];
+		windowFrame = [mainWindow frame];
+		windowFrame.size = [self windowWillResize:mainWindow toSize:windowFrame.size];
+		[mainWindow setFrame:windowFrame display:YES animate:YES];
     }
     else
     {
 			// this doc is new
-		windowFrame = [_mainWindow frame];
-		windowFrame.size = [self windowWillResize:_mainWindow toSize:windowFrame.size];
-		[_mainWindow setFrame:windowFrame display:YES animate:YES];
+		windowFrame = [mainWindow frame];
+		windowFrame.size = [self windowWillResize:mainWindow toSize:windowFrame.size];
+		[mainWindow setFrame:windowFrame display:YES animate:YES];
     }
-	[_pauseToolbarItem setLabel:@"Start Mosaic"];
+	[pauseToolbarItem setLabel:@"Start Mosaic"];
 }
 
 
 - (void)startMosaic
 {    
-	_mosaicStarted = YES;
-    if (_tiles == nil)
+	mosaicStarted = YES;
+    if (tiles == nil)
 			// spawn a thread to create a data structure for each tile including outlines, bitmaps, etc.
 		[NSApplication detachDrawingThread:@selector(createTileCollectionWithOutlines:)
 					toTarget:self withObject:nil];
@@ -250,33 +264,33 @@
 		[self spawnImageSourceThreads];
     
 		// TODO: I can't remember what this is for?
-    _windowFinishedLoading = YES;
+    windowFinishedLoading = YES;
 }
 
 
 - (NSData *)dataRepresentationOfType:(NSString *)aType
 {
-    BOOL		wasPaused = _paused;
+    BOOL		wasPaused = paused;
     NSMutableDictionary	*storage = [NSMutableDictionary dictionary];
 
-    _paused = YES;
+    paused = YES;
 
     // wait for threads to pause
-    while (_enumerateImageSourcesThreadAlive || _calculateImageMatchesThreadAlive)
+    while (enumerateImageSourcesThreadAlive || calculateImageMatchesThreadAlive)
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
     
     [storage setObject:@"1.0b1" forKey:@"Version"];
-    [storage setObject:_originalImageURL forKey:@"_originalImageURL"];
-    [storage setObject:_imageSources forKey:@"_imageSources"];
-    [storage setObject:[NSArchiver archivedDataWithRootObject:_tileImages] forKey:@"_tileImages"];
-    [storage setObject:[NSArchiver archivedDataWithRootObject:_tiles] forKey:@"_tiles"];
-    [storage setObject:[NSNumber numberWithLong:_imagesMatched] forKey:@"_imagesMatched"];
-    [storage setObject:_imageQueue forKey:@"_imageQueue"];
-    [storage setObject:[NSNumber numberWithInt:_viewMode] forKey:@"_viewMode"];
-    [storage setObject:[NSValue valueWithRect:[_mainWindow frame]] forKey:@"window frame"];
-    [storage setObject:[NSNumber numberWithInt:(_paused ? 1 : 0)] forKey:@"_paused"];
+    [storage setObject:originalImageURL forKey:@"originalImageURL"];
+    [storage setObject:imageSources forKey:@"imageSources"];
+    [storage setObject:[NSArchiver archivedDataWithRootObject:tileImages] forKey:@"tileImages"];
+    [storage setObject:[NSArchiver archivedDataWithRootObject:tiles] forKey:@"tiles"];
+    [storage setObject:[NSNumber numberWithLong:imagesMatched] forKey:@"imagesMatched"];
+    [storage setObject:imageQueue forKey:@"imageQueue"];
+    [storage setObject:[NSNumber numberWithInt:viewMode] forKey:@"viewMode"];
+    [storage setObject:[NSValue valueWithRect:[mainWindow frame]] forKey:@"window frame"];
+    [storage setObject:[NSNumber numberWithInt:(paused ? 1 : 0)] forKey:@"paused"];
     
-    _paused = wasPaused;
+    paused = wasPaused;
 
     return [NSArchiver archivedDataWithRootObject:storage];
 }
@@ -293,46 +307,46 @@
     
     if ([version isEqualToString:@"1.0b1"])
     {
-	imageData = [[storage objectForKey:@"_originalImageURL"] resourceDataUsingCache:NO];
+	imageData = [[storage objectForKey:@"originalImageURL"] resourceDataUsingCache:NO];
 	image = [[[NSImage alloc] initWithData:imageData] autorelease];
 	[image setDataRetained:YES];
 	[image setScalesWhenResized:YES];
-//	[self setOriginalImage:image fromURL:[storage objectForKey:@"_originalImageURL"]];
+//	[self setOriginalImage:image fromURL:[storage objectForKey:@"originalImageURL"]];
 	
-//	[self setImageSources:[storage objectForKey:@"_imageSources"]];
+//	[self setImageSources:[storage objectForKey:@"imageSources"]];
 	
 	pool = [[NSAutoreleasePool alloc] init];
-	    [_tileImages release];
-	    _tileImages = [[NSUnarchiver unarchiveObjectWithData:[storage objectForKey:@"_tileImages"]] retain];
+	    [tileImages release];
+	    tileImages = [[NSUnarchiver unarchiveObjectWithData:[storage objectForKey:@"tileImages"]] retain];
 	[pool release];
 	
 	pool = [[NSAutoreleasePool alloc] init];
-	    _tiles = [[NSUnarchiver unarchiveObjectWithData:[storage objectForKey:@"_tiles"]] retain];
+	    tiles = [[NSUnarchiver unarchiveObjectWithData:[storage objectForKey:@"tiles"]] retain];
 	[pool release];
 	
-	// finish loading _tiles
-	_tileOutlines = nil;
-	_combinedOutlines = [[NSBezierPath bezierPath] retain];
-	for (index = 0; index < [_tiles count]; index++)
+	// finish loading tiles
+	tileOutlines = nil;
+	combinedOutlines = [[NSBezierPath bezierPath] retain];
+	for (index = 0; index < [tiles count]; index++)
 	{
-	    [_combinedOutlines appendBezierPath:[[_tiles objectAtIndex:index] outline]];
-	    [[_tiles objectAtIndex:index] setDocument:self];
+	    [combinedOutlines appendBezierPath:[[tiles objectAtIndex:index] outline]];
+	    [[tiles objectAtIndex:index] setDocument:self];
 	}
 	
-	_imagesMatched = [[storage objectForKey:@"_imagesMatched"] longValue];
+	imagesMatched = [[storage objectForKey:@"imagesMatched"] longValue];
 	
-	[_imageQueue addObjectsFromArray:[storage objectForKey:@"_imageQueue"]];
+	[imageQueue addObjectsFromArray:[storage objectForKey:@"imageQueue"]];
 	
-//	_viewMode = [[storage objectForKey:@"_viewMode"] intValue];
+//	viewMode = [[storage objectForKey:@"viewMode"] intValue];
 	
-	_storedWindowFrame = [[storage objectForKey:@"window frame"] rectValue];
+	storedWindowFrame = [[storage objectForKey:@"window frame"] rectValue];
     
-	_paused = ([[storage objectForKey:@"_paused"] intValue] == 1 ? YES : NO);
+	paused = ([[storage objectForKey:@"paused"] intValue] == 1 ? YES : NO);
 	
-	_finishLoading = YES;
+	finishLoading = YES;
 	
-	[_lastSaved autorelease];
-	_lastSaved = [[NSDate date] retain];
+	[lastSaved autorelease];
+	lastSaved = [[NSDate date] retain];
 
 	return YES;	// document was loaded successfully
     }
@@ -345,111 +359,112 @@
 {
     NSString	*statusMessage, *fullMessage;
     
-    if (_documentIsClosing) return;
+    if (documentIsClosing) return;
     
     // update the status bar
-    if (_createTilesThreadAlive)
+    if (createTilesThreadAlive)
 		statusMessage = [NSString stringWithString:@"Extracting tile images..."];
-    else if (_calculateImageMatchesThreadAlive && _calculateDisplayedImagesThreadAlive)
+    else if (calculateImageMatchesThreadAlive && calculateDisplayedImagesThreadAlive)
 		statusMessage = [NSString stringWithString:@"Matching and finding unique tiles..."];
-    else if (_calculateImageMatchesThreadAlive)
+    else if (calculateImageMatchesThreadAlive)
 		statusMessage = [NSString stringWithString:@"Matching images..."];
-    else if (_calculateDisplayedImagesThreadAlive)
+    else if (calculateDisplayedImagesThreadAlive)
 		statusMessage = [NSString stringWithString:@"Finding unique tiles..."];
-    else if (_enumerateImageSourcesThreadAlive)
+    else if (enumerateImageSourcesThreadAlive)
 		statusMessage = [NSString stringWithString:@"Looking for new images..."];
-    else if (_paused)
+    else if (paused)
 		statusMessage = [NSString stringWithString:@"Paused"];
     else
 		statusMessage = [NSString stringWithString:@"Idle"];
 	
     fullMessage = [NSString stringWithFormat:@"Images Matched/Kept: %d/%d     Mosaic Quality: %2.1f%%     Status: %@",
-											 _imagesMatched, [_tileImages count], _overallMatch, statusMessage];
-	if ([fullMessage sizeWithAttributes:[[_statusMessageView attributedStringValue] attributesAtIndex:0 effectiveRange:nil]].width 
-		> [_statusMessageView frame].size.width)
+											 imagesMatched, [tileImages count], overallMatch, statusMessage];
+	if ([fullMessage sizeWithAttributes:[[statusMessageView attributedStringValue] attributesAtIndex:0 effectiveRange:nil]].width 
+		> [statusMessageView frame].size.width)
 		fullMessage = [NSString stringWithFormat:@"%d/%d     %2.1f%%     %@",
-												 _imagesMatched, [_tileImages count], _overallMatch, statusMessage];
-    [_statusMessageView setStringValue:fullMessage];
+												 imagesMatched, [tileImages count], overallMatch, statusMessage];
+    [statusMessageView setStringValue:fullMessage];
     
     // update the mosaic image
-    if (_mosaicImageUpdated && [_mosaicImageLock tryLock])
+    if (mosaicImageUpdated && [mosaicImageLock tryLock])
     {
 	//	OSStatus	result;
 		
-		[_mosaicView setMosaicImage:nil];
-		[_mosaicView setMosaicImage:_mosaicImage];
-		_mosaicImageUpdated = NO;
-	//	if (IsWindowCollapsed([_mainWindow windowRef]))
-		if ([_mainWindow isMiniaturized])
+		[mosaicView setMosaicImage:nil];
+		[mosaicView setMosaicImage:mosaicImage];
+		mosaicImageUpdated = NO;
+	//	if (IsWindowCollapsed([mainWindow windowRef]))
+		if ([mainWindow isMiniaturized])
 		{
-	//	    [_mainWindow setViewsNeedDisplay:YES];
-			[_mainWindow setMiniwindowImage:_mosaicImage];
-	//	    result = UpdateCollapsedWindowDockTile([_mainWindow windowRef]);
+	//	    [mainWindow setViewsNeedDisplay:YES];
+			[mainWindow setMiniwindowImage:mosaicImage];
+	//	    result = UpdateCollapsedWindowDockTile([mainWindow windowRef]);
 		}
-		[_mosaicImageLock unlock];
+		[mosaicImageLock unlock];
     }
     
     // update the image sources table
-    [_imageSourcesTable reloadData];
+//    [imageSourcesTable reloadData];
     
     // autosave if it's time
-    if ([_lastSaved timeIntervalSinceNow] < _autosaveFrequency * -60)
+    if ([lastSaved timeIntervalSinceNow] < autosaveFrequency * -60)
     {
 		[self saveDocument:self];
-		[_lastSaved autorelease];
-		_lastSaved = [[NSDate date] retain];
+		[lastSaved autorelease];
+		lastSaved = [[NSDate date] retain];
     }
     
     // 
-    if (_exportImageThreadAlive)
-		[_exportProgressIndicator setDoubleValue:_exportProgressTileCount];
-    else if (!_exportImageThreadAlive && _exportProgressTileCount > 0)
+    if (exportImageThreadAlive)
+		[exportProgressIndicator setDoubleValue:exportProgressTileCount];
+    else if (!exportImageThreadAlive && exportProgressTileCount > 0)
     {
 		// the export is finished, close the panel
-		[NSApp endSheet:_exportProgressPanel];
-		[_exportProgressPanel orderOut:nil];
-		_exportProgressTileCount = 0;
+		[NSApp endSheet:exportProgressPanel];
+		[exportProgressPanel orderOut:nil];
+		exportProgressTileCount = 0;
     }
 }
 
 
 - (void)synchronizeMenus
 {
-    [[_fileMenu itemWithTag:1] setTitle:(_paused ? @"Resume Matching" : @"Pause Matching")];
+    [[fileMenu itemWithTag:1] setTitle:(paused ? @"Resume Matching" : @"Pause Matching")];
     
-    [[_viewMenu itemWithTitle:@"View Mosaic and Original"]
-	setState:(_viewMode == viewMosaicAndOriginal ? NSOnState : NSOffState)];
-    [[_viewMenu itemWithTitle:@"View Mosaic Alone"]
-	setState:(_viewMode == viewMosaicAlone ? NSOnState : NSOffState)];
-    [[_viewMenu itemWithTitle:@"View Mosaic Editor"]
-	setState:(_viewMode == viewMosaicEditor ? NSOnState : NSOffState)];
+    [[viewMenu itemWithTitle:@"View Mosaic and Original"]
+	setState:(viewMode == viewMosaicAndOriginal ? NSOnState : NSOffState)];
+    [[viewMenu itemWithTitle:@"View Mosaic Alone"]
+	setState:(viewMode == viewMosaicAlone ? NSOnState : NSOffState)];
+    [[viewMenu itemWithTitle:@"View Mosaic Editor"]
+	setState:(viewMode == viewMosaicEditor ? NSOnState : NSOffState)];
 
-    [[_viewMenu itemWithTitle:@"Show Status Bar"]
-	setTitle:(_statusBarShowing ? @"Hide Status Bar" : @"Show Status Bar")];
+    [[viewMenu itemWithTitle:@"Show Status Bar"]
+	setTitle:(statusBarShowing ? @"Hide Status Bar" : @"Show Status Bar")];
 }
 
 
-/*    [_mosaicImageDrawWindow autorelease];
-    _mosaicImageDrawWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0,
-								  [_mosaicImage size].width,
-								  [_mosaicImage size].height)
+/*    [mosaicImageDrawWindow autorelease];
+    mosaicImageDrawWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0,
+								  [mosaicImage size].width,
+								  [mosaicImage size].height)
 							 styleMask:NSBorderlessWindowMask
 							   backing:NSBackingStoreBuffered defer:NO];*/
-- (void)setTileOutlines:(NSArray *)tileOutlines
+- (void)setTileOutlines:(NSArray *)inTileOutlines
 {
-	[tileOutlines retain];
-	[_tileOutlines release];
-	_tileOutlines = tileOutlines;
-	[_mosaicView setTileOutlines:tileOutlines];
-	[_totalTilesField setIntValue:[tileOutlines count]];
+	[inTileOutlines retain];
+	[tileOutlines autorelease];
+	tileOutlines = inTileOutlines;
 	
-	_mosaicStarted = NO;
+	[mosaicView setTileOutlines:tileOutlines];
+	[totalTilesField setIntValue:[tileOutlines count]];
+	
+	mosaicStarted = NO;
 }
 
 
 - (void)spawnImageSourceThreads
 {
-	NSEnumerator	*imageSourceEnumerator = [_imageSources objectEnumerator];
+	NSEnumerator	*imageSourceEnumerator = [imageSources objectEnumerator];
 	ImageSource		*imageSource;
 	
 	while (imageSource = [imageSourceEnumerator nextObject])
@@ -463,10 +478,10 @@
 
 - (void)createTileCollectionWithOutlines:(id)object
 {
-    if (_tileOutlines == nil || _originalImage == nil)
+    if (tileOutlines == nil || originalImage == nil)
 		return;
     else
-		_createTilesThreadAlive = YES;
+		createTilesThreadAlive = YES;
 
     int					index = 0;
     NSAutoreleasePool   *pool = [[NSAutoreleasePool alloc] init];
@@ -475,25 +490,27 @@
 
 		// create an offscreen window to draw into (it will have a single, empty view the size of the window)
     drawWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(-10000, -10000,
-								  [_originalImage size].width, 
-								  [_originalImage size].height)
+								  [originalImage size].width, 
+								  [originalImage size].height)
 					     styleMask:NSBorderlessWindowMask
 					       backing:NSBackingStoreBuffered defer:NO];
     
-    _tiles = [[NSMutableArray arrayWithCapacity:[_tileOutlines count]] retain];
+    tiles = [[NSMutableArray arrayWithCapacity:[tileOutlines count]] retain];
     
 	/* Loop through each tile outline and:
 		1.  Create a Tile instance.
 		2.  Copy out the rect of the original image that this tile covers.
 		3.  Calculate an image mask that indicates which part of the copied rect is contained within the tile's outline.
 	*/
-	NSEnumerator	*tileOutlineEnumerator = [_tileOutlines objectEnumerator];
+	NSEnumerator	*tileOutlineEnumerator = [tileOutlines objectEnumerator];
 	NSBezierPath	*tileOutline = nil;
-    while (!_documentIsClosing && (tileOutline = [tileOutlineEnumerator nextObject]))
+    while (!documentIsClosing && (tileOutline = [tileOutlineEnumerator nextObject]))
 	{
 			// Create the tile and add it to the collection.
 		Tile				*tile = [[[Tile alloc] initWithOutline:tileOutline fromDocument:self] autorelease];
-		[_tiles addObject:tile];
+		[tiles addObject:tile];
+		
+		index++;
 		
 			// Add this outline to the master path used to draw all of the tile outlines over the full image.
 		[combinedOutline appendBezierPath:tileOutline];
@@ -503,10 +520,10 @@
 			[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
 		
 			// Determine the bounds of the tile in the original image and in the scratch window.
-		NSRect  origRect = NSMakeRect([tileOutline bounds].origin.x * [_originalImage size].width,
-									  [tileOutline bounds].origin.y * [_originalImage size].height,
-									  [tileOutline bounds].size.width * [_originalImage size].width,
-									  [tileOutline bounds].size.height * [_originalImage size].height),
+		NSRect  origRect = NSMakeRect([tileOutline bounds].origin.x * [originalImage size].width,
+									  [tileOutline bounds].origin.y * [originalImage size].height,
+									  [tileOutline bounds].size.width * [originalImage size].width,
+									  [tileOutline bounds].size.height * [originalImage size].height),
 				destRect = (origRect.size.width > origRect.size.height) ?
 							NSMakeRect(0, 0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE * origRect.size.height / origRect.size.width) : 
 							NSMakeRect(0, 0, TILE_BITMAP_SIZE * origRect.size.width / origRect.size.height, TILE_BITMAP_SIZE);
@@ -516,7 +533,7 @@
 		[[NSBezierPath bezierPathWithRect:destRect] fill];
 		
 			// Copy out the portion of the original image contained by the tile's outline.
-		[_originalImage drawInRect:destRect fromRect:origRect operation:NSCompositeCopy fraction:1.0];
+		[originalImage drawInRect:destRect fromRect:origRect operation:NSCompositeCopy fraction:1.0];
 		NSBitmapImageRep	*tileRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect] autorelease];
 		if (tileRep == nil) NSLog(@"Could not create tile bitmap");
         #if 0
@@ -565,9 +582,9 @@
 		// would be in its neighbor set.  If 2 then the direct neighbors and all of their direct neighbors
 		// would be in the set.
 		// TO DO: This currently only calculates the direct neighbors.
-	NSEnumerator	*tileEnumerator = [_tiles objectEnumerator];
+	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
 	Tile			*tile = nil;
-    while (!_documentIsClosing && (tile = [tileEnumerator nextObject]))
+    while (!documentIsClosing && (tile = [tileEnumerator nextObject]))
 	{
 		NSRect	tileBounds = [[tile outline] bounds],
 				zoomedTileBounds = NSZeroRect;
@@ -580,23 +597,23 @@
 			// Loop through the other tiles and add as neighbors any that intersect.
 			// TO DO: This currently just checks if the bounding boxes of the tiles intersect.
 			//        For non-rectangular tiles this will not be accurate enough.
-		NSEnumerator	*tileEnumerator2 = [_tiles objectEnumerator];
+		NSEnumerator	*tileEnumerator2 = [tiles objectEnumerator];
 		Tile			*tile2 = nil;
-		while (!_documentIsClosing && (tile2 = [tileEnumerator2 nextObject]))
+		while (!documentIsClosing && (tile2 = [tileEnumerator2 nextObject]))
 			if (tile2 != tile && NSIntersectsRect(zoomedTileBounds, [[tile2 outline] bounds]))
 				[tile addNeighbor:tile2];
 				
 //		NSLog(@"Tile at %p has %d neighbors.", tile, [[tile neighbors] count]);
 	}
 	
-    [(OriginalView *)_originalView setTileOutlines:combinedOutline];
+    [(OriginalView *)originalView setTileOutlines:combinedOutline];
     
 		// ...
 	[self spawnImageSourceThreads];
 
     [pool release];
     
-    _createTilesThreadAlive = NO;
+    createTilesThreadAlive = NO;
 }
 
 
@@ -609,12 +626,12 @@
     pool = [[NSAutoreleasePool alloc] init];
 	NSAssert(pool, @"pool");
     
-    _mosaicImageDrawWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0,
-									      [_mosaicImage size].width,
-									      [_mosaicImage size].height)
+    mosaicImageDrawWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0,
+									      [mosaicImage size].width,
+									      [mosaicImage size].height)
 							 styleMask:NSBorderlessWindowMask
 							   backing:NSBackingStoreBuffered defer:NO];
-    while (!_documentIsClosing)
+    while (!documentIsClosing)
 	{
 		// allocate a second auto-release pool
 		pool2 = [[NSAutoreleasePool alloc] init];
@@ -624,40 +641,40 @@
 			pool2 = [[NSAutoreleasePool alloc] init];
 		}
 		
-		_integrateMatchesThreadAlive = YES;
+		integrateMatchesThreadAlive = YES;
 		
 		// wait until all tiles have at least one match before finding uniqueness
-		// (otherwise, the orderedTiles order is the same as _tiles and the
+		// (otherwise, the orderedTiles order is the same as tiles and the
 		//  screen gets updated too orderly.)
-		while ([[_tiles lastObject] matchCount] == 0 && !_documentIsClosing)
+		while ([[tiles lastObject] matchCount] == 0 && !documentIsClosing)
 			[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
 	
-		[_refindUniqueTilesLock lock];
-		if (!_refindUniqueTiles)
+		[refindUniqueTilesLock lock];
+		if (!refindUniqueTiles)
 		{
 			// there hasn't been a better match since we last recalculated, wait a second and check again
-			[_refindUniqueTilesLock unlock];
-			_integrateMatchesThreadAlive = YES;
+			[refindUniqueTilesLock unlock];
+			integrateMatchesThreadAlive = YES;
 			[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
 		}
 		else
 		{
 			NSArray		*orderedTiles;
 			NSMutableArray	*updatedTiles = [NSMutableArray arrayWithCapacity:10],
-					*imagesInUse = [NSMutableArray arrayWithCapacity:[_tiles count]];
+					*imagesInUse = [NSMutableArray arrayWithCapacity:[tiles count]];
 			int			index;
 			
-			_integrateMatchesThreadAlive = YES;
-			_refindUniqueTiles = NO;
-			[_refindUniqueTilesLock unlock];
+			integrateMatchesThreadAlive = YES;
+			refindUniqueTiles = NO;
+			[refindUniqueTilesLock unlock];
 			
 			overallMatch = 0.0;
 			
-			orderedTiles = [_tiles sortedArrayUsingSelector:@selector(compareBestMatchValue:)];
-			for (index = 0; index < [orderedTiles count] && !_documentIsClosing; index++)
+			orderedTiles = [tiles sortedArrayUsingSelector:@selector(compareBestMatchValue:)];
+			for (index = 0; index < [orderedTiles count] && !documentIsClosing; index++)
 			{
 			Tile		*tile = [orderedTiles objectAtIndex:index];
-			TileMatch	*matches = [tile matches];
+			ImageMatch	*matches = [tile matches];
 			int		matchCount = [tile matchCount];
 			
 			[tile lockMatches];
@@ -665,17 +682,17 @@
 				{
 	//			overallMatch += (721 - sqrt( ??? ) / 721;
 				[updatedTiles addObject:tile];
-				[imagesInUse addObject:[_tileImages objectAtIndex:[tile userChosenImageIndex]]];
+				[imagesInUse addObject:[tileImages objectAtIndex:[tile userChosenImageIndex]]];
 				}
 				else
 				{
 				int	i;
 				BOOL	foundMatch = NO;
 				
-				for (i = 0; i < matchCount && !_documentIsClosing; i++)
+				for (i = 0; i < matchCount && !documentIsClosing; i++)
 				{
 					if (![imagesInUse containsObject:
-						[_tileImages objectAtIndex:matches[i].tileImageIndex]])
+						[tileImages objectAtIndex:matches[i].tileImageIndex]])
 					{
 					foundMatch = YES;
 					if ([tile bestUniqueMatch] != &matches[i])
@@ -683,13 +700,13 @@
 						[updatedTiles addObject:tile];
 						[tile setBestUniqueMatchIndex:i];
 					}
-					[imagesInUse addObject:[_tileImages objectAtIndex:matches[i].tileImageIndex]];
+					[imagesInUse addObject:[tileImages objectAtIndex:matches[i].tileImageIndex]];
 					
 					break;
 					}
 				}
 				
-				if (foundMatch == NO && [tile bestUniqueMatch] != nil && !_documentIsClosing)
+				if (foundMatch == NO && [tile bestUniqueMatch] != nil && !documentIsClosing)
 				{	// this tile had a match but has no matching image now
 					[tile setBestUniqueMatchIndex:-1];
 					[updatedTiles addObject:tile];
@@ -699,27 +716,27 @@
 					overallMatch += (721 - sqrt([tile bestUniqueMatchValue])) / 721;
 				}
 				
-				if ([updatedTiles count] >= 10 && !_documentIsClosing) // && !_paused)
+				if ([updatedTiles count] >= 10 && !documentIsClosing) // && !paused)
 				[self updateMosaicImage:updatedTiles];
 			[tile unlockMatches];
 			
-			[_refindUniqueTilesLock lock];
-				//if (_refindUniqueTiles) index = [orderedTiles count];
-			[_refindUniqueTilesLock unlock];
+			[refindUniqueTilesLock lock];
+				//if (refindUniqueTiles) index = [orderedTiles count];
+			[refindUniqueTilesLock unlock];
 			}
-			if ([updatedTiles count] > 0 && !_documentIsClosing)	// && !_paused)
+			if ([updatedTiles count] > 0 && !documentIsClosing)	// && !paused)
 			[self updateMosaicImage:updatedTiles];
-			_overallMatch = overallMatch * 100.0 / [_tiles count];
+			overallMatch = overallMatch * 100.0 / [tiles count];
 		}
 		
 		[pool2 release];
-	}	// end of while (!_documentIsClosing)
+	}	// end of while (!documentIsClosing)
     
-    [_mosaicImageDrawWindow close];
+    [mosaicImageDrawWindow close];
 
     [pool release];
 
-    _integrateMatchesThreadAlive = NO;
+    integrateMatchesThreadAlive = NO;
 */
 }
 
@@ -735,28 +752,35 @@
 	sourceHasMoreImages = [imageSource hasMoreImages];
 	[pool release];
 	
-	while (!_documentIsClosing && sourceHasMoreImages)
+	while (!documentIsClosing && sourceHasMoreImages)
 	{
 		NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 		
-		[imageSource waitWhilePaused];	// pause if the user says so
+		[imageSource waitWhilePaused];	// pause if the user says so	(why message the image source???)
 		
-		id imageIdentifier = [imageSource nextImageIdentifier];
-		if (imageIdentifier)
+			// Get the next image from the source (and identifier if there is one)
+		id<NSCopying>   imageIdentifier = nil;
+		NSImage			*image = nil;
+		if ([imageSource canRefetchImages])
+			imageIdentifier = [imageSource nextImageIdentifier];
+		image = [imageSource imageForIdentifier:imageIdentifier];
+		
+		if (image)
 		{
-			TileImage	*tileImage = [[[TileImage alloc] initWithIdentifier:imageIdentifier fromImageSource:imageSource] 
-														autorelease];
-
-			[_imageQueueLock lock];	// this will be locked if the queue is full
-				while ([_imageQueue count] > MAX_IMAGE_URLS)
+			[imageQueueLock lock];	// this will be locked if the queue is full
+				while ([imageQueue count] > MAXIMAGEURLS)
 				{
-					[_imageQueueLock unlock];
-					[_imageQueueLock lock];
+					[imageQueueLock unlock];
+					[imageQueueLock lock];
 				}
-				[_imageQueue addObject:tileImage];
-			[_imageQueueLock unlock];
+				[imageQueue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+											image, @"Image",
+											imageSource, @"Image Source", 
+											imageIdentifier, @"Image Identifier", 
+											nil]];
+			[imageQueueLock unlock];
 
-			if (!_calculateImageMatchesThreadAlive)
+			if (!calculateImageMatchesThreadAlive)
 				[NSApplication detachDrawingThread:@selector(calculateImageMatches:) toTarget:self withObject:nil];
 		}
 		sourceHasMoreImages = [imageSource hasMoreImages];
@@ -773,125 +797,151 @@
     NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 
         // Make sure only one copy of this thread runs at any time.
-	[_calculateImageMatchesThreadLock lock];
-		if (_calculateImageMatchesThreadAlive)
+	[calculateImageMatchesThreadLock lock];
+		if (calculateImageMatchesThreadAlive)
 		{
                 // Another copy is running, just exit.
-			[_calculateImageMatchesThreadLock unlock];
+			[calculateImageMatchesThreadLock unlock];
 			[pool release];
 			return;
 		}
-		_calculateImageMatchesThreadAlive = YES;
-	[_calculateImageMatchesThreadLock unlock];
+		calculateImageMatchesThreadAlive = YES;
+	[calculateImageMatchesThreadLock unlock];
 
     NSImage				*scratchImage = [[[NSImage alloc] initWithSize:NSMakeSize(1024, 1024)] autorelease];
 	
 	NSLog(@"Calculating image matches\n");
 
-	[_imageQueueLock lock];
-    while (!_documentIsClosing && [_imageQueue count] > 0)
+	[imageQueueLock lock];
+    while (!documentIsClosing && [imageQueue count] > 0)
 	{
 			// As long as the image source threads are feeding images into the queue this loop
 			// will continue running so create a pool just for this pass through the loop.
 		NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
-		TileImage			*tileImage = nil;
-		NSImage				*pixletImage = nil;
 		NSMutableArray		*cachedReps = nil;
 		int					index;
 		BOOL				queueLocked = NO;
 		
 			// pull the next image from the queue
-		tileImage = [[[_imageQueue objectAtIndex:0] retain] autorelease];
-		[_imageQueue removeObjectAtIndex:0];
+		NSDictionary		*nextImageDict = [[[imageQueue objectAtIndex:0] retain] autorelease];
+		[imageQueue removeObjectAtIndex:0];
 		
 			// let the image source threads add more images if the queue is not full
-		if ([_imageQueue count] < MAX_IMAGE_URLS)
-			[_imageQueueLock unlock];
+		if ([imageQueue count] < MAXIMAGEURLS)
+			[imageQueueLock unlock];
 		else
 			queueLocked = YES;
 		
-			// if the image loaded and it's not miniscule, match it against the tiles
-		if ((pixletImage = [tileImage image]))// &&
-//			[pixletImage size].width >= TILE_BITMAP_SIZE &&
-//			[pixletImage size].height >= TILE_BITMAP_SIZE)
+		NSImage			*pixletImage = [nextImageDict objectForKey:@"Image"];
+		ImageSource		*pixletImageSource = [nextImageDict objectForKey:@"Image Source"];
+		id<NSCopying>   pixletImageIdentifier = [nextImageDict objectForKey:@"Image Identifier"];
+
+			// Cache this image to disk.
+			// TODO: how does the image ever get purged?
+		if ([pixletImageSource canRefetchImages])
 		{
-			cachedReps = [NSMutableArray arrayWithCapacity:0];
-//			tileImageIndex = [self addTileImage:tileImage];
-			[tileImage imageIsInUse];
-			
-//			NSLog(@"matching against %@\n", [tileImage imageIdentifier]);
-
-				// loop through the tiles and compute the pixlet's match
-			for (index = 0; index < [_tiles count] && !_documentIsClosing; index++)
-			{
-				Tile	*tile = nil;
-				float	scale;
-				NSRect	subRect;
-				int	cachedRepIndex;
-		
-				tile = [_tiles objectAtIndex:index];
-				
-					// scale the smaller of the pixlet's image's dimensions to the size used
-					// for pixel matching and extract the rep
-				scale = MAX([[tile bitmapRep] size].width / [pixletImage size].width, 
-						[[tile bitmapRep] size].height / [pixletImage size].height);
-				subRect = NSMakeRect(0, 0, (int)([pixletImage size].width * scale + 0.5),
-							(int)([pixletImage size].height * scale + 0.5));
-				
-					// check if we already have a rep of this size
-				for (cachedRepIndex = 0; cachedRepIndex < [cachedReps count]; cachedRepIndex++)
-					if (NSEqualSizes([[cachedReps objectAtIndex:cachedRepIndex] size], subRect.size))
-						break;
-				if (cachedRepIndex == [cachedReps count])
-				{
-						// no bitmap at the correct size was found, try to create a new one
-					NSBitmapImageRep	*rep = nil;
-					
-					NS_DURING
-						[scratchImage lockFocus];
-							[pixletImage drawInRect:subRect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
-							rep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:subRect];
-							if (rep)
-								[cachedReps addObject:[rep autorelease]];
-							else
-								cachedRepIndex = -1;
-						[scratchImage unlockFocus];
-					NS_HANDLER
-						// TBD: how to handle this?
-						NSLog(@"Could not lock focus on scratch image, what should I do?");
-					NS_ENDHANDLER
-				}
-		
-					// If the tile reports that the image matches better than its previous worst match
-					// then add the tile and its neighbors to the set of tiles potentially needing redraw.
-				if (cachedRepIndex != -1 && [tile matchAgainstImageRep:[cachedReps objectAtIndex:cachedRepIndex]
-													 fromTileImage:tileImage forDocument:self])
-				{
-					[_refreshTilesSetLock lock];
-						[_refreshTilesSet addObject:tile];
-						[_refreshTilesSet addObjectsFromArray:[tile neighbors]];
-					[_refreshTilesSetLock unlock];
-
-					if (!_calculateDisplayedImagesThreadAlive)
-						[NSApplication detachDrawingThread:@selector(calculateDisplayedImages:) toTarget:self withObject:nil];
-				}
-			}
-				// release the tileImage if no tile ended up using it
-			[tileImage imageIsNotInUse];
-			_imagesMatched++;
+				// Just cache a thumbnail, no need to waste the disk since we can refetch.
+			NSSize				thumbnailSize, pixletImageSize = [pixletImage size];
+			if (pixletImageSize.width > pixletImageSize.height)
+				thumbnailSize = NSMakeSize(kThumbnailMax, pixletImageSize.height * kThumbnailMax / pixletImageSize.width);
+			else
+				thumbnailSize = NSMakeSize(pixletImageSize.width * kThumbnailMax / pixletImageSize.height, kThumbnailMax);
+			NSImage				*thumbnailImage = [[[NSImage alloc] initWithSize:thumbnailSize] autorelease];
+//			NSBitmapImageRep	*thumbnailRep = [[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nil 
+//																						 pixelsWide:thumbnailSize.width 
+//																						 pixelsHigh:thumbnailSize.height 
+//																					  bitsPerSample:8 
+//																					samplesPerPixel:3 
+//																						   hasAlpha:NO 
+//																						   isPlanar:NO 
+//																					 colorSpaceName:NSDeviceRGBColorSpace 
+//																						bytesPerRow:0 
+//																					   bitsPerPixel:0] autorelease];
+//			[thumbnailImage addRepresentation:thumbnailRep];
+			[thumbnailImage lockFocus];	//OnRepresentation:thumbnailRep];
+				[pixletImage drawInRect:NSMakeRect(0.0, 0.0, thumbnailSize.width, thumbnailSize.height) 
+							   fromRect:NSMakeRect(0.0, 0.0, pixletImageSize.width, pixletImageSize.height) 
+							  operation:NSCompositeCopy 
+							   fraction:1.0];
+			[thumbnailImage unlockFocus];
+			[self cacheImage:thumbnailImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
 		}
 		else
-			NSLog(@"Could not load tile image with identifier %@", [tileImage imageIdentifier]);
+		{
+				// Cache the full sized image since we can't refetch it from the image source.
+			[self cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
+		}
+
+		cachedReps = [NSMutableArray arrayWithCapacity:0];
 		
-		if (!queueLocked) [_imageQueueLock lock];
+			// loop through the tiles and compute the pixlet's match
+		for (index = 0; index < [tiles count] && !documentIsClosing; index++)
+		{
+			Tile	*tile = nil;
+			float	scale;
+			NSRect	subRect;
+			int	cachedRepIndex;
+	
+			tile = [tiles objectAtIndex:index];
+			
+				// scale the smaller of the pixlet's image's dimensions to the size used
+				// for pixel matching and extract the rep
+			scale = MAX([[tile bitmapRep] size].width / [pixletImage size].width, 
+					[[tile bitmapRep] size].height / [pixletImage size].height);
+			subRect = NSMakeRect(0, 0, (int)([pixletImage size].width * scale + 0.5),
+						(int)([pixletImage size].height * scale + 0.5));
+			
+				// check if we already have a rep of this size
+			for (cachedRepIndex = 0; cachedRepIndex < [cachedReps count]; cachedRepIndex++)
+				if (NSEqualSizes([[cachedReps objectAtIndex:cachedRepIndex] size], subRect.size))
+					break;
+			if (cachedRepIndex == [cachedReps count])
+			{
+					// no bitmap at the correct size was found, try to create a new one
+				NSBitmapImageRep	*rep = nil;
+				
+				NS_DURING
+					[scratchImage lockFocus];
+						[pixletImage drawInRect:subRect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
+						rep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:subRect];
+						if (rep)
+							[cachedReps addObject:[rep autorelease]];
+						else
+							cachedRepIndex = -1;
+					[scratchImage unlockFocus];
+				NS_HANDLER
+					// TBD: how to handle this?
+					NSLog(@"Could not lock focus on scratch image, what should I do?");
+				NS_ENDHANDLER
+			}
+	
+				// If the tile reports that the image matches better than its previous worst match
+				// then add the tile and its neighbors to the set of tiles potentially needing redraw.
+			if (cachedRepIndex != -1 && [tile matchAgainstImageRep:[cachedReps objectAtIndex:cachedRepIndex]
+													withIdentifier:pixletImageIdentifier
+												   fromImageSource:pixletImageSource])
+			{
+				[refreshTilesSetLock lock];
+					[refreshTilesSet addObject:tile];
+					[refreshTilesSet addObjectsFromArray:[tile neighbors]];
+				[refreshTilesSetLock unlock];
+
+				if (!calculateDisplayedImagesThreadAlive)
+					[NSApplication detachDrawingThread:@selector(calculateDisplayedImages:) toTarget:self withObject:nil];
+			}
+		}
+
+		imagesMatched++;
+		
+		if (!queueLocked) [imageQueueLock lock];
 
 		[pool2 release];
 	}
-	[_imageQueueLock unlock];
+	[imageQueueLock unlock];
 
-	[_calculateImageMatchesThreadLock lock];
-		_calculateImageMatchesThreadAlive = NO;
-	[_calculateImageMatchesThreadLock unlock];
+	[calculateImageMatchesThreadLock lock];
+		calculateImageMatchesThreadAlive = NO;
+	[calculateImageMatchesThreadLock unlock];
 
 		// clean up and shutdown this thread
     [pool release];
@@ -907,57 +957,53 @@
     NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 
         // make sure we only ever have a single instance of this thread running
-	[_calculateDisplayedImagesThreadLock lock];
-		if (_calculateDisplayedImagesThreadAlive)
+	[calculateDisplayedImagesThreadLock lock];
+		if (calculateDisplayedImagesThreadAlive)
 		{
                 // another copy is already running, just return
-			[_calculateDisplayedImagesThreadLock unlock];
+			[calculateDisplayedImagesThreadLock unlock];
 			[pool release];
 			return;
 		}
-		_calculateDisplayedImagesThreadAlive = YES;
-	[_calculateDisplayedImagesThreadLock unlock];
+		calculateDisplayedImagesThreadAlive = YES;
+	[calculateDisplayedImagesThreadLock unlock];
 
-//	NSLog(@"Calculating displayed images\n");
+	NSLog(@"Calculating displayed images\n");
 
     BOOL	tilesAddedToRefreshSet = NO;
     
 		// set up a transform so we can scale the tiles to the mosaic's size (tiles are defined on a unit square)
 	NSAffineTransform	*transform = [NSAffineTransform transform];
     [transform translateXBy:0.5 yBy:0.5];	// line up with pixel boundaries
-	[transform scaleXBy:[_mosaicImage size].width yBy:[_mosaicImage size].height];
+	[transform scaleXBy:[mosaicImage size].width yBy:[mosaicImage size].height];
 
         // Make a local copy of the set of tiles to refresh and then clear 
         // the main set so new tiles can be added while we work.
-	[_refreshTilesSetLock lock];
-        NSArray	*tilesToRefresh = [_refreshTilesSet allObjects];
-        [_refreshTilesSet removeAllObjects];
-    [_refreshTilesSetLock unlock];
+	[refreshTilesSetLock lock];
+        NSArray	*tilesToRefresh = [refreshTilesSet allObjects];
+        [refreshTilesSet removeAllObjects];
+    [refreshTilesSetLock unlock];
     
         // Now loop through each tile in the set and re-calculate which image it should use
     NSEnumerator	*tileEnumerator = [tilesToRefresh objectEnumerator];
     Tile			*tileToRefresh = nil;
-    while (!_documentIsClosing && (tileToRefresh = [tileEnumerator nextObject]))
-	{
-        TileImage	*previousDiplayedImage = [tileToRefresh displayedTileImage];
-        
-        [tileToRefresh calculateBestMatch];
-        
-        if ([tileToRefresh displayedTileImage] != previousDiplayedImage)
+    while (!documentIsClosing && (tileToRefresh = [tileEnumerator nextObject]))
+        if ([tileToRefresh calculateBestMatch])
         {
-                // The image to display for this tile changed so update the mosaic image
-                // and add the tile's neighbors to the set of tiles to refresh in case 
-                // they can use the image we just stopped using.
+			// The image to display for this tile changed so update the mosaic image and add the tile's neighbors 
+			// to the set of tiles to refresh in case they can use the image we just stopped using.
             
             tilesAddedToRefreshSet = YES;
             
-            [_refreshTilesSetLock lock];
-                [_refreshTilesSet addObjectsFromArray:[tileToRefresh neighbors]];
-            [_refreshTilesSetLock unlock];
+            [refreshTilesSetLock lock];
+                [refreshTilesSet addObjectsFromArray:[tileToRefresh neighbors]];
+            [refreshTilesSetLock unlock];
             
-            NSImage	*matchImage = [[tileToRefresh displayedTileImage] image];
+			ImageMatch		*imageMatch = [tileToRefresh displayedImageMatch];
+            NSImage			*matchImage = [self cachedImageForIdentifier:[imageMatch imageIdentifier] 
+															  fromSource:[imageMatch imageSource]];
             if (!matchImage)
-                NSLog(@"Could not load image\t%@", [[tileToRefresh displayedTileImage] imageIdentifier]);
+                NSLog(@"Could not load image\t%@", [imageMatch imageIdentifier]);
             else
             {
                     // Draw the tile's new image in the mosaic
@@ -985,24 +1031,23 @@
                                     (drawRect.size.height - [clipPath bounds].size.height) /2.0);
                 }
                     // ...
-                [_mosaicImageLock lock];
+                [mosaicImageLock lock];
                     NS_DURING
-                        [_mosaicImage lockFocus];
+                        [mosaicImage lockFocus];
                             [clipPath setClip];
                             [matchImage drawInRect:drawRect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
-                        [_mosaicImage unlockFocus];
+                        [mosaicImage unlockFocus];
                     NS_HANDLER
                         NSLog(@"Could not lock focus on mosaic image");
                     NS_ENDHANDLER
-                    _mosaicImageUpdated = YES;
-                [_mosaicImageLock unlock];
+                    mosaicImageUpdated = YES;
+                [mosaicImageLock unlock];
             }
         }
-	}
 
-	[_calculateDisplayedImagesThreadLock lock];
-	    _calculateDisplayedImagesThreadAlive = NO;
-	[_calculateDisplayedImagesThreadLock unlock];
+	[calculateDisplayedImagesThreadLock lock];
+	    calculateDisplayedImagesThreadAlive = NO;
+	[calculateDisplayedImagesThreadLock unlock];
 
         // Launch another copy of ourself if any other tiles need refreshing
     if (tilesAddedToRefreshSet)
@@ -1023,17 +1068,17 @@
     NSAffineTransform	*transform;
     NSBitmapImageRep	*newRep;
     
-    if (![[_mosaicImageDrawWindow contentView] lockFocusIfCanDraw])
+    if (![[mosaicImageDrawWindow contentView] lockFocusIfCanDraw])
 	NSLog(@"Could not lock focus for mosaic image update.");
     else
     {
 	[[NSColor whiteColor] set];
-	[[NSBezierPath bezierPathWithRect:[[_mosaicImageDrawWindow contentView] bounds]] fill];
+	[[NSBezierPath bezierPathWithRect:[[mosaicImageDrawWindow contentView] bounds]] fill];
 	// start with the current image
-	[_mosaicImage compositeToPoint:NSZeroPoint operation:NSCompositeCopy];
+	[mosaicImage compositeToPoint:NSZeroPoint operation:NSCompositeCopy];
 	transform = [NSAffineTransform transform];
-	[transform scaleXBy:[_mosaicImage size].width yBy:[_mosaicImage size].height];
-	while (!_documentIsClosing && [updatedTiles count] > 0)
+	[transform scaleXBy:[mosaicImage size].width yBy:[mosaicImage size].height];
+	while (!documentIsClosing && [updatedTiles count] > 0)
 	{
 	    Tile		*tile = [updatedTiles objectAtIndex:0];
 	    NSBezierPath	*clipPath = [transform transformBezierPath:[tile outline]];
@@ -1042,19 +1087,19 @@
 	    
 	    if ([tile userChosenImageIndex] != -1)
 	    {
-		matchImage = [[_tileImages objectAtIndex:[tile userChosenImageIndex]] image];
+		matchImage = [[tileImages objectAtIndex:[tile userChosenImageIndex]] image];
 		if (matchImage == nil)
 		    NSLog(@"Could not load image\t%@",
-				[[_tileImages objectAtIndex:[tile userChosenImageIndex]] imageIdentifier]);
+				[[tileImages objectAtIndex:[tile userChosenImageIndex]] imageIdentifier]);
 	    }
 	    else
 	    {
 		if ([tile bestUniqueMatch] != nil)
 		{
-		    matchImage = [[_tileImages objectAtIndex:[tile bestUniqueMatch]->tileImageIndex] image];
+		    matchImage = [[tileImages objectAtIndex:[tile bestUniqueMatch]->tileImageIndex] image];
 		    if (matchImage == nil)
 			NSLog(@"Could not load image\t%@",
-			   [[_tileImages objectAtIndex:[tile bestUniqueMatch]->tileImageIndex] imageIdentifier]);
+			   [[tileImages objectAtIndex:[tile bestUniqueMatch]->tileImageIndex] imageIdentifier]);
 		}
 		else
 		    matchImage = [NSImage imageNamed:@"White"];	// this image has no match
@@ -1085,16 +1130,16 @@
 	}
 	
 	// now copy the new image into the mosaic image
-	[_mosaicImageLock lock];
+	[mosaicImageLock lock];
 	    newRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:
-						    [[_mosaicImageDrawWindow contentView] bounds]];
-	    [_mosaicImage autorelease];
-	    _mosaicImage = [[NSImage alloc] initWithSize:[_mosaicImage size]];
-	    [_mosaicImage addRepresentation:newRep];
+						    [[mosaicImageDrawWindow contentView] bounds]];
+	    [mosaicImage autorelease];
+	    mosaicImage = [[NSImage alloc] initWithSize:[mosaicImage size]];
+	    [mosaicImage addRepresentation:newRep];
 	    [newRep release];
-	    _mosaicImageUpdated = YES;
-	[_mosaicImageLock unlock];
-	[[_mosaicImageDrawWindow contentView] unlockFocus];
+	    mosaicImageUpdated = YES;
+	[mosaicImageLock unlock];
+	[[mosaicImageDrawWindow contentView] unlockFocus];
     }
     
     [pool release];
@@ -1107,28 +1152,28 @@
 
 - (void)setTilesSetupPlugIn:(id)sender
 {
-	NSString		*selectedPlugIn = [_tilesSetupPopUpButton titleOfSelectedItem];
+	NSString		*selectedPlugIn = [tilesSetupPopUpButton titleOfSelectedItem];
 	NSEnumerator	*enumerator = [[[NSApp delegate] tilesSetupControllerClasses] objectEnumerator];
 	Class			tilesSetupControllerClass;
 	
 	while (tilesSetupControllerClass = [enumerator nextObject])
 		if ([selectedPlugIn isEqualToString:[tilesSetupControllerClass name]])
 		{
-			if (_tilesSetupController)
+			if (tilesSetupController)
 			{
 					// remove the tile setup that was have been set before
-				[_tilesSetupView setContentView:nil];
-				[_tilesSetupController release];
+				[tilesSetupView setContentView:nil];
+				[tilesSetupController release];
 			}
 			
 				// create an instance of the class for this document
-			_tilesSetupController = [[tilesSetupControllerClass alloc] init];
+			tilesSetupController = [[tilesSetupControllerClass alloc] init];
 			
 				// let the plug-in know how to message back to us
-			[_tilesSetupController setDocument:self];
+			[tilesSetupController setDocument:self];
 			
 				// Display the plug-in's view
-			[_tilesSetupView setContentView:[_tilesSetupController setupView]];
+			[tilesSetupView setContentView:[tilesSetupController setupView]];
 			
 			return;
 		}
@@ -1141,17 +1186,17 @@
 - (void)setImageSourcesPlugIn:(id)sender
 {
 		// Display the view chosen in the menu
-	[_imageSourcesTabView selectTabViewItemAtIndex:[_imageSourcesPopUpButton indexOfSelectedItem]];
+	[imageSourcesTabView selectTabViewItemAtIndex:[imageSourcesPopUpButton indexOfSelectedItem]];
 	
 		// If the user just chose to add an image source then tell the appropriate image controller
-	if ([_imageSourcesPopUpButton indexOfSelectedItem] > 0)
-		[[[_imageSourcesPopUpButton selectedItem] representedObject] editImageSource:nil];
+	if ([imageSourcesPopUpButton indexOfSelectedItem] > 0)
+		[[[imageSourcesPopUpButton selectedItem] representedObject] editImageSource:nil];
 }
 
 
 - (void)showCurrentImageSources
 {
-	[_imageSourcesPopUpButton selectItemAtIndex:0];
+	[imageSourcesPopUpButton selectItemAtIndex:0];
 	[self setImageSourcesPlugIn:self];
 }
 
@@ -1159,39 +1204,130 @@
 - (void)addImageSource:(ImageSource *)imageSource
 {
 		// if it's a new image source then add it to the array (paused if we haven't started yet)
-	if ([_imageSources indexOfObjectIdenticalTo:imageSource] == NSNotFound)
+	if ([imageSources indexOfObjectIdenticalTo:imageSource] == NSNotFound)
 	{
-		if (!_mosaicStarted)
+		if (!mosaicStarted)
 			[imageSource pause];
-		[_imageSources addObject:imageSource];
+		[imageSources addObject:imageSource];
 	}
-	[_imageSourcesTable reloadData];
+	[imageSourcesTable reloadData];
+}
+
+
+#pragma mark -
+#pragma mark Image cache methods
+
+
+- (NSString *)filePathForCachedImageID:(long)imageID
+{
+	return [cachedImagesPath stringByAppendingPathComponent:[NSString stringWithFormat:@"Image %u.jpg", imageID]];
+}
+
+
+- (NSMutableDictionary *)cacheDictionaryForImageSource:(ImageSource *)imageSource
+{
+	if (!cachedImagesDictionary)
+		cachedImagesDictionary = [[NSMutableDictionary dictionary] retain];
+	
+		// locking?
+	NSNumber			*sourceKey = [NSNumber numberWithUnsignedLong:(unsigned long)imageSource];
+	NSMutableDictionary *sourceDict = [cachedImagesDictionary objectForKey:sourceKey];
+	
+	if (!sourceDict)
+	{
+		sourceDict = [NSMutableDictionary dictionary];
+		[cachedImagesDictionary setObject:sourceDict forKey:sourceKey];
+	}
+	
+	return sourceDict;
+}
+
+
+- (void)cacheImage:(NSImage *)image withIdentifier:(id<NSCopying>)imageIdentifier fromSource:(ImageSource *)imageSource
+{
+	[cacheLock lock];
+		long		imageID = cachedImageCount++;
+		
+			// Permanently store the image.  Squeeze it down to fit within one allocation block on disk (4KB).
+		NSBitmapImageRep	*bitmapRep = [NSBitmapImageRep imageRepWithData:[image TIFFRepresentation]];
+		NSData				*imageData = nil;
+		float				compressionFactor = 1.0;
+		do
+		{
+			imageData = [bitmapRep representationUsingType:NSJPEGFileType 
+												properties:[NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:compressionFactor]
+																					   forKey:NSImageCompressionFactor]];
+			compressionFactor -= 0.05;
+		} while ([imageData length] > 4096);
+		[imageData writeToFile:[self filePathForCachedImageID:imageID] atomically:NO];
+		
+			// Associate the ID with the image source/image identifier combo
+		[[self cacheDictionaryForImageSource:imageSource] setObject:[NSNumber numberWithLong:imageID] forKey:imageIdentifier];
+		
+			// Cache the image for efficient retrieval.
+		[imageCache setObject:image forKey:[NSNumber numberWithLong:imageID]];
+		[orderedCache insertObject:image atIndex:0];
+		if ([orderedCache count] > 1000)
+		{
+			[imageCache removeObjectForKey:[orderedCache lastObject]];
+			[orderedCache removeLastObject];
+		}
+	[cacheLock unlock];
+}
+
+
+- (NSImage *)cachedImageForIdentifier:(id<NSCopying>)imageIdentifier fromSource:(ImageSource *)imageSource
+{
+	NSImage		*image = nil;
+	
+	[cacheLock lock];
+		long		imageID = [[[self cacheDictionaryForImageSource:imageSource] objectForKey:imageIdentifier] longValue];
+		NSNumber	*imageKey = [NSNumber numberWithLong:imageID];
+		
+		image = [imageCache objectForKey:imageKey];
+		if (image)
+			[orderedCache removeObjectIdenticalTo:image];
+		else
+		{
+			image = [[[NSImage alloc] initWithContentsOfFile:[self filePathForCachedImageID:imageID]] autorelease];
+			[imageCache setObject:image forKey:imageKey];
+		}
+		[orderedCache insertObject:image atIndex:0];
+		if ([orderedCache count] > 1000)
+		{
+			[imageCache removeObjectForKey:[orderedCache lastObject]];
+			[orderedCache removeLastObject];
+		}
+	[cacheLock unlock];
+	
+	return image;
 }
 
 
 #pragma mark -
 #pragma mark Editor methods
 
+
 - (void)selectTileAtPoint:(NSPoint)thePoint
 {
     int	i;
     
-    if ([_mosaicView viewMode] != _viewHighlightedTile) return;
+    if ([mosaicView viewMode] != viewHighlightedTile) return;
     
-    thePoint.x = thePoint.x / [_mosaicView frame].size.width;
-    thePoint.y = thePoint.y / [_mosaicView frame].size.height;
+    thePoint.x = thePoint.x / [mosaicView frame].size.width;
+    thePoint.y = thePoint.y / [mosaicView frame].size.height;
     
         // TBD: this isn't terribly efficient...
-    for (i = 0; i < [_tiles count]; i++)
-        if ([[[_tiles objectAtIndex:i] outline] containsPoint:thePoint])
+    for (i = 0; i < [tiles count]; i++)
+        if ([[[tiles objectAtIndex:i] outline] containsPoint:thePoint])
         {
-            [_editorLabel setStringValue:@"Image to use for selected tile:"];
-            [_editorUseCustomImage setEnabled:YES];
-            [_editorUseBestUniqueMatch setEnabled:YES];
-            _selectedTile = [_tiles objectAtIndex:i];
+            [editorLabel setStringValue:@"Image to use for selected tile:"];
+            [editorUseCustomImage setEnabled:YES];
+            [editorUseBestUniqueMatch setEnabled:YES];
+            selectedTile = [tiles objectAtIndex:i];
             
-            [_mosaicView highlightTile:_selectedTile];
-            [_editorTable scrollRowToVisible:0];
+            [mosaicView highlightTile:selectedTile];
+            [editorTable scrollRowToVisible:0];
             [self updateEditor];
             
             return;
@@ -1201,71 +1337,69 @@
 
 - (void)animateSelectedTile:(id)timer
 {
-    if (_selectedTile != nil && !_documentIsClosing)
-        [_mosaicView animateHighlight];
+    if (selectedTile != nil && !documentIsClosing)
+        [mosaicView animateHighlight];
 }
 
 
 - (void)updateEditor
 {
-    [_selectedTileImages release];
+    [selectedTileImages release];
     
-    if (_selectedTile == nil)
+    if (selectedTile == nil)
     {
-        [_editorUseCustomImage setState:NSOffState];
-        [_editorUseBestUniqueMatch setState:NSOffState];
-        [_editorUserChosenImage setImage:nil];
-        [_editorChooseImage setEnabled:NO];
-        [_editorUseSelectedImage setEnabled:NO];
-        _selectedTileImages = [[NSMutableArray arrayWithCapacity:0] retain];
+        [editorUseCustomImage setState:NSOffState];
+        [editorUseBestUniqueMatch setState:NSOffState];
+        [editorUserChosenImage setImage:nil];
+        [editorChooseImage setEnabled:NO];
+        [editorUseSelectedImage setEnabled:NO];
+        selectedTileImages = [[NSMutableArray arrayWithCapacity:0] retain];
     }
     else
     {
-        int	i;
-        
-        if ([_selectedTile userChosenTileImage])
+        if ([selectedTile userChosenImageMatch])
         {
-            [_editorUseCustomImage setState:NSOnState];
-            [_editorUseBestUniqueMatch setState:NSOffState];
-            [_editorUserChosenImage setImage:[[_selectedTile userChosenTileImage] image]];
+            [editorUseCustomImage setState:NSOnState];
+            [editorUseBestUniqueMatch setState:NSOffState];
+// TODO:            [editorUserChosenImage setImage:[[selectedTile userChosenImageMatch] image]];
         }
         else
         {
-            [_editorUseCustomImage setState:NSOffState];
-            [_editorUseBestUniqueMatch setState:NSOnState];
-            [_editorUserChosenImage setImage:nil];
+            [editorUseCustomImage setState:NSOffState];
+            [editorUseBestUniqueMatch setState:NSOnState];
+            [editorUserChosenImage setImage:nil];
             
-            NSImage	*image = [[[NSImage alloc] initWithSize:[[_selectedTile bitmapRep] size]] autorelease];
-            [image addRepresentation:[_selectedTile bitmapRep]];
-            [_editorUserChosenImage setImage:image];
+            NSImage	*image = [[[NSImage alloc] initWithSize:[[selectedTile bitmapRep] size]] autorelease];
+            [image addRepresentation:[selectedTile bitmapRep]];
+            [editorUserChosenImage setImage:image];
         }
     
-        [_editorChooseImage setEnabled:YES];
-        [_editorUseSelectedImage setEnabled:YES];
+        [editorChooseImage setEnabled:YES];
+        [editorUseSelectedImage setEnabled:YES];
         
-        _selectedTileImages = [[NSMutableArray arrayWithCapacity:[_selectedTile matchCount]] retain];
-        for (i = 0; i < [_selectedTile matchCount]; i++)
-            [_selectedTileImages addObject:[NSNull null]];
+        selectedTileImages = [[NSMutableArray arrayWithCapacity:[selectedTile matchCount]] retain];
+        int	i;
+        for (i = 0; i < [selectedTile matchCount]; i++)
+            [selectedTileImages addObject:[NSNull null]];
     }
     
-    [_editorTable reloadData];
+    [editorTable reloadData];
 }
 
 
-- (BOOL)showTileMatchInEditor:(TileMatch *)tileMatch selecting:(BOOL)selecting
+- (BOOL)showTileMatchInEditor:(ImageMatch *)tileMatch selecting:(BOOL)selecting
 {
-    int	i;
-    
-    if (_selectedTile == nil) return NO;
-    
-    for (i = 0; i < [_selectedTile matchCount]; i++)
-        if (&([_selectedTile matches][i]) == tileMatch)
-        {
-            if (selecting)
-                [_editorTable selectRow:i byExtendingSelection:NO];
-            [_editorTable scrollRowToVisible:i];
-            return YES;
-        }
+//    if (selectedTile == nil) return NO;
+//    
+//    int	i;
+//    for (i = 0; i < [selectedTile matchCount]; i++)
+//        if (&([selectedTile matches][i]) == tileMatch)
+//        {
+//            if (selecting)
+//                [editorTable selectRow:i byExtendingSelection:NO];
+//            [editorTable scrollRowToVisible:i];
+//            return YES;
+//        }
     
     return NO;
 }
@@ -1273,16 +1407,17 @@
 
 - (NSImage *)createEditorImage:(int)rowIndex
 {
-    NSImage		*image;
+    NSImage				*image = nil;
     NSAffineTransform	*transform = [NSAffineTransform transform];
-    NSSize		tileSize = [[_selectedTile outline] bounds].size;
-    float		scale;
-    NSPoint		origin;
-    NSBezierPath	*bezierPath = [NSBezierPath bezierPath];
+    NSSize				tileSize = [[selectedTile outline] bounds].size;
+    float				scale;
+    NSPoint				origin;
+    NSBezierPath		*bezierPath = [NSBezierPath bezierPath];
     
-    [_selectedTile lockMatches];
-        image = [[_selectedTile matches][rowIndex].tileImage image];
-    [_selectedTile unlockMatches];
+    [selectedTile lockMatches];
+		ImageMatch	*imageMatch = [[selectedTile matches] objectAtIndex:rowIndex];
+        image = [self cachedImageForIdentifier:[imageMatch imageIdentifier] fromSource:[imageMatch imageSource]];
+    [selectedTile unlockMatches];
     if (image == nil)
         return [NSImage imageNamed:@"Blank"];
 	
@@ -1294,23 +1429,23 @@
     else
         [image setSize:NSMakeSize(80 / [image size].height * [image size].width, 80)];
 
-    tileSize.width *= [_mosaicImage size].width;
-    tileSize.height *= [_mosaicImage size].height;
+    tileSize.width *= [mosaicImage size].width;
+    tileSize.height *= [mosaicImage size].height;
     if (([image size].width / tileSize.width) < ([image size].height / tileSize.height))
     {
-	scale = [image size].width / tileSize.width;
-	origin = NSMakePoint(0.0, ([image size].height - tileSize.height * scale) / 2.0);
+		scale = [image size].width / tileSize.width;
+		origin = NSMakePoint(0.0, ([image size].height - tileSize.height * scale) / 2.0);
     }
     else
     {
-	scale = [image size].height / tileSize.height;
-	origin = NSMakePoint(([image size].width - tileSize.width * scale) / 2.0, 0.0);
+		scale = [image size].height / tileSize.height;
+		origin = NSMakePoint(([image size].width - tileSize.width * scale) / 2.0, 0.0);
     }
     [transform translateXBy:origin.x yBy:origin.y];
     [transform scaleXBy:scale yBy:scale];
-    [transform scaleXBy:[_mosaicImage size].width yBy:[_mosaicImage size].height];
-    [transform translateXBy:[[_selectedTile outline] bounds].origin.x * -1
-			yBy:[[_selectedTile outline] bounds].origin.y * -1];
+    [transform scaleXBy:[mosaicImage size].width yBy:[mosaicImage size].height];
+    [transform translateXBy:[[selectedTile outline] bounds].origin.x * -1
+			yBy:[[selectedTile outline] bounds].origin.y * -1];
     
 	NS_DURING
 		[image lockFocus];
@@ -1324,13 +1459,13 @@
 	[bezierPath lineToPoint:NSMakePoint([image size].width, [image size].height)];
 	[bezierPath lineToPoint:NSMakePoint([image size].width, 0)];
 	[bezierPath closePath];
-	[bezierPath appendBezierPath:[transform transformBezierPath:[_selectedTile outline]]];
+	[bezierPath appendBezierPath:[transform transformBezierPath:[selectedTile outline]]];
 	[bezierPath fill];
 	[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set]; //darken
 	[bezierPath stroke];
 	
-	// check if it's the user chosen image
-//	if ([[_selectedTile matches] objectAtIndex:rowIndex] == [_selectedTile displayMatch])
+	// add a badge if it's the user chosen image
+//	if ([[selectedTile matches] objectAtIndex:rowIndex] == [selectedTile displayMatch])
 //	{
 //	    NSBezierPath	*badgePath = [NSBezierPath bezierPathWithOvalInRect:
 //						NSMakeRect([image size].width - 12, 2, 10, 10)];
@@ -1341,7 +1476,7 @@
 //	    [badgePath stroke];
 //	}
     [image unlockFocus];
-    [_selectedTileImages replaceObjectAtIndex:rowIndex withObject:image];
+    [selectedTileImages replaceObjectAtIndex:rowIndex withObject:image];
     return image;
 }
 
@@ -1349,15 +1484,15 @@
 - (void)useCustomImage:(id)sender
 {
 /* TBD
-    if ([_selectedTile bestUniqueMatch] != nil)
-	[_selectedTile setUserChosenImageIndex:[_selectedTile bestUniqueMatch]->tileImageIndex];
+    if ([selectedTile bestUniqueMatch] != nil)
+	[selectedTile setUserChosenImageIndex:[selectedTile bestUniqueMatch]->tileImageIndex];
     else
-	[_selectedTile setUserChosenImageIndex:[_selectedTile bestMatch]->tileImageIndex];
-    [_selectedTile setBestUniqueMatchIndex:-1];
+	[selectedTile setUserChosenImageIndex:[selectedTile bestMatch]->tileImageIndex];
+    [selectedTile setBestUniqueMatchIndex:-1];
 	
-    [_refindUniqueTilesLock lock];
-	_refindUniqueTiles = YES;
-    [_refindUniqueTilesLock unlock];
+    [refindUniqueTilesLock lock];
+	refindUniqueTiles = YES;
+    [refindUniqueTilesLock unlock];
 
     [self updateEditor];
 */
@@ -1366,6 +1501,7 @@
 
 - (void)allowUserToChooseImage:(id)sender
 {
+/*
     NSOpenPanel		*oPanel = [NSOpenPanel openPanel];
     
     [oPanel setCanChooseFiles:YES];
@@ -1373,42 +1509,45 @@
     [oPanel beginSheetForDirectory:NSHomeDirectory()
 			      file:nil
 			     types:[NSImage imageFileTypes]
-		    modalForWindow:_mainWindow
+		    modalForWindow:mainWindow
 		     modalDelegate:self
 		    didEndSelector:@selector(allowUserToChooseImageOpenPanelDidEnd:returnCode:contextInfo:)
 		       contextInfo:nil];
-}
+*/}
 
 
-- (void)allowUserToChooseImageOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
-    contextInfo:(void *)context
+- (void)allowUserToChooseImageOpenPanelDidEnd:(NSOpenPanel *)sheet 
+								   returnCode:(int)returnCode
+								  contextInfo:(void *)context
 {
-    TileImage	*tileImage;
+/*
+    CachedImage	*cachedImage;
     
     if (returnCode != NSOKButton) return;
 
-    tileImage = [[[TileImage alloc] initWithIdentifier:[[sheet URLs] objectAtIndex:0] fromImageSource:_manualImageSource] autorelease];
-//TBD    [_selectedTile setUserChosenImageIndex:[self addTileImage:tileImage]];
-//TBD    [_selectedTile setBestUniqueMatchIndex:-1];
+    cachedImage = [[[CachedImage alloc] initWithIdentifier:[[sheet URLs] objectAtIndex:0] fromImageSource:manualImageSource] autorelease];
+//TBD    [selectedTile setUserChosenImageIndex:[self addTileImage:cachedImage]];
+//TBD    [selectedTile setBestUniqueMatchIndex:-1];
     
-    [_refindUniqueTilesLock lock];
-//TBD	_refindUniqueTiles = YES;
-    [_refindUniqueTilesLock unlock];
+    [refindUniqueTilesLock lock];
+//TBD	refindUniqueTiles = YES;
+    [refindUniqueTilesLock unlock];
 
     [self updateEditor];
 
     [self updateChangeCount:NSChangeDone];
+*/
 }
 
 
 - (void)useBestUniqueMatch:(id)sender
 {
 /*	TBD
-    [_selectedTile setUserChosenImageIndex:-1];
+    [selectedTile setUserChosenImageIndex:-1];
     
-    [_refindUniqueTilesLock lock];
-	_refindUniqueTiles = YES;
-    [_refindUniqueTilesLock unlock];
+    [refindUniqueTilesLock lock];
+	refindUniqueTiles = YES;
+    [refindUniqueTilesLock unlock];
 
     [self updateEditor];
     
@@ -1420,14 +1559,14 @@
 - (void)useSelectedImage:(id)sender
 {
 /* TBD
-    long	index = [_selectedTile matches][[_editorTable selectedRow]].tileImageIndex;
+    long	index = [selectedTile matches][[editorTable selectedRow]].tileImageIndex;
     
-    [_selectedTile setUserChosenImageIndex:index];
-    [_selectedTile setBestUniqueMatchIndex:-1];
+    [selectedTile setUserChosenImageIndex:index];
+    [selectedTile setBestUniqueMatchIndex:-1];
 
-    [_refindUniqueTilesLock lock];
-	_refindUniqueTiles = YES;
-    [_refindUniqueTilesLock unlock];
+    [refindUniqueTilesLock lock];
+	refindUniqueTiles = YES;
+    [refindUniqueTilesLock unlock];
 
     [self updateEditor];
 
@@ -1471,39 +1610,39 @@
 
 - (void)setViewMode:(int)mode
 {
-    if (mode == _viewMode) return;
+    if (mode == viewMode) return;
     
-    _viewMode = mode;
-	[_mosaicView highlightTile:nil];
+    viewMode = mode;
+	[mosaicView highlightTile:nil];
 	switch (mode)
 	{
 		case viewMosaicAndOriginal:
-			[_mosaicView setViewMode:_viewMosaic];
-			[_utilitiesTabView selectTabViewItemWithIdentifier:@"Original Image"];
-			[_utilitiesDrawer open];
+			[mosaicView setViewMode:viewMosaic];
+			[utilitiesTabView selectTabViewItemWithIdentifier:@"Original Image"];
+			[utilitiesDrawer open];
 			break;
 		case viewMosaicAndTilesSetup:
-			[_mosaicView setViewMode:_viewTilesOutline];
-			[_utilitiesTabView selectTabViewItemWithIdentifier:@"Tiles Setup"];
-			[_utilitiesDrawer open];
+			[mosaicView setViewMode:viewTilesOutline];
+			[utilitiesTabView selectTabViewItemWithIdentifier:@"Tiles Setup"];
+			[utilitiesDrawer open];
 			break;
 		case viewMosaicAndRegions:
-			[_mosaicView setViewMode:_viewImageRegions];
-			[_utilitiesTabView selectTabViewItemWithIdentifier:@"Image Regions"];
-			[_utilitiesDrawer open];
+			[mosaicView setViewMode:viewImageRegions];
+			[utilitiesTabView selectTabViewItemWithIdentifier:@"Image Regions"];
+			[utilitiesDrawer open];
 			break;
 		case viewMosaicEditor:
-			[_mosaicView setViewMode:_viewHighlightedTile];
-			[_mosaicView highlightTile:_selectedTile];
+			[mosaicView setViewMode:viewHighlightedTile];
+			[mosaicView highlightTile:selectedTile];
 			[self updateEditor];
-			[_editorTable scrollRowToVisible:0];
-			[_editorTable reloadData];
-			[_utilitiesTabView selectTabViewItemWithIdentifier:@"Tile Editor"];
-			[_utilitiesDrawer open];
+			[editorTable scrollRowToVisible:0];
+			[editorTable reloadData];
+			[utilitiesTabView selectTabViewItemWithIdentifier:@"Tile Editor"];
+			[utilitiesDrawer open];
 			break;
 		case viewMosaicAlone:
-			[_mosaicView setViewMode:_viewMosaic];
-			[_utilitiesDrawer close];
+			[mosaicView setViewMode:viewMosaic];
+			[utilitiesDrawer close];
 			break;
     }
     [self synchronizeMenus];
@@ -1512,53 +1651,51 @@
 
 - (void)setZoom:(id)sender
 {
-    float	zoom = 0.0;
-    
     if ([sender isKindOfClass:[NSMenuItem class]])
     {
 		if ([[sender title] isEqualToString:@"Minimum"]) zoom = 0.0;
 		if ([[sender title] isEqualToString:@"Medium"]) zoom = 0.5;
 		if ([[sender title] isEqualToString:@"Maximum"]) zoom = 1.0;
     }
-    else zoom = [_zoomSlider floatValue];
+    else zoom = [zoomSlider floatValue];
     
     // set the zoom...
-    _zoom = zoom;
-    [_zoomSlider setFloatValue:zoom];
+    zoom = zoom;
+    [zoomSlider setFloatValue:zoom];
     
-    if (_mosaicImage != nil)
+    if (mosaicImage != nil)
     {
 		NSRect	bounds, frame;
 		
 		frame = NSMakeRect(0, 0,
-				[[_mosaicScrollView contentView] frame].size.width + ([_mosaicImage size].width - 
-				[[_mosaicScrollView contentView] frame].size.width) * zoom,
-				[[_mosaicScrollView contentView] frame].size.height + ([_mosaicImage size].height - 
-				[[_mosaicScrollView contentView] frame].size.height) * zoom);
-		bounds = NSMakeRect(NSMidX([[_mosaicScrollView contentView] bounds]) * frame.size.width / 
-						[_mosaicView frame].size.width,
-					NSMidY([[_mosaicScrollView contentView] bounds]) * frame.size.height / 
-						[_mosaicView frame].size.height,
+				[[mosaicScrollView contentView] frame].size.width + ([mosaicImage size].width - 
+				[[mosaicScrollView contentView] frame].size.width) * zoom,
+				[[mosaicScrollView contentView] frame].size.height + ([mosaicImage size].height - 
+				[[mosaicScrollView contentView] frame].size.height) * zoom);
+		bounds = NSMakeRect(NSMidX([[mosaicScrollView contentView] bounds]) * frame.size.width / 
+						[mosaicView frame].size.width,
+					NSMidY([[mosaicScrollView contentView] bounds]) * frame.size.height / 
+						[mosaicView frame].size.height,
 					frame.size.width -
-						(frame.size.width - [[_mosaicScrollView contentView] frame].size.width) * zoom,
+						(frame.size.width - [[mosaicScrollView contentView] frame].size.width) * zoom,
 					frame.size.height -
-						(frame.size.height - [[_mosaicScrollView contentView] frame].size.height) * zoom);
+						(frame.size.height - [[mosaicScrollView contentView] frame].size.height) * zoom);
 		bounds.origin.x = MIN(MAX(0, bounds.origin.x - bounds.size.width / 2.0),
 							  frame.size.width - bounds.size.width);
 		bounds.origin.y = MIN(MAX(0, bounds.origin.y - bounds.size.height / 2.0),
 							  frame.size.height - bounds.size.height);
-		[_mosaicView setFrame:frame];
-		[[_mosaicScrollView contentView] setBounds:bounds];
-		[_mosaicScrollView setNeedsDisplay:YES];
+		[mosaicView setFrame:frame];
+		[[mosaicScrollView contentView] setBounds:bounds];
+		[mosaicScrollView setNeedsDisplay:YES];
     }
-    [_originalView setNeedsDisplay:YES];
+    [originalView setNeedsDisplay:YES];
 }
 
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
     if ([[menuItem title] isEqualToString:@"Center on Selected Tile"])
-	return (_viewMode == viewMosaicEditor && _selectedTile != nil && _zoom != 0.0);
+	return (viewMode == viewMosaicEditor && selectedTile != nil && zoom != 0.0);
     else
 	return [super validateMenuItem:menuItem];
 }
@@ -1566,27 +1703,27 @@
 
 - (void)centerViewOnSelectedTile:(id)sender
 {
-    NSPoint	contentOrigin = NSMakePoint(NSMidX([[_selectedTile outline] bounds]),
-					     NSMidY([[_selectedTile outline] bounds]));
+    NSPoint	contentOrigin = NSMakePoint(NSMidX([[selectedTile outline] bounds]),
+					     NSMidY([[selectedTile outline] bounds]));
     
-    contentOrigin.x *= [_mosaicView frame].size.width;
-    contentOrigin.x -= [[_mosaicScrollView contentView] bounds].size.width / 2;
+    contentOrigin.x *= [mosaicView frame].size.width;
+    contentOrigin.x -= [[mosaicScrollView contentView] bounds].size.width / 2;
     if (contentOrigin.x < 0) contentOrigin.x = 0;
-    if (contentOrigin.x + [[_mosaicScrollView contentView] bounds].size.width >
-		[_mosaicView frame].size.width)
-		contentOrigin.x = [_mosaicView frame].size.width - 
-				[[_mosaicScrollView contentView] bounds].size.width;
+    if (contentOrigin.x + [[mosaicScrollView contentView] bounds].size.width >
+		[mosaicView frame].size.width)
+		contentOrigin.x = [mosaicView frame].size.width - 
+				[[mosaicScrollView contentView] bounds].size.width;
 
-    contentOrigin.y *= [_mosaicView frame].size.height;
-    contentOrigin.y -= [[_mosaicScrollView contentView] bounds].size.height / 2;
+    contentOrigin.y *= [mosaicView frame].size.height;
+    contentOrigin.y -= [[mosaicScrollView contentView] bounds].size.height / 2;
     if (contentOrigin.y < 0) contentOrigin.y = 0;
-    if (contentOrigin.y + [[_mosaicScrollView contentView] bounds].size.height >
-		[_mosaicView frame].size.height)
-	contentOrigin.y = [_mosaicView frame].size.height - 
-			  [[_mosaicScrollView contentView] bounds].size.height;
+    if (contentOrigin.y + [[mosaicScrollView contentView] bounds].size.height >
+		[mosaicView frame].size.height)
+	contentOrigin.y = [mosaicView frame].size.height - 
+			  [[mosaicScrollView contentView] bounds].size.height;
 
-    [[_mosaicScrollView contentView] scrollToPoint:contentOrigin];
-    [_mosaicScrollView reflectScrolledClipView:[_mosaicScrollView contentView]];
+    [[mosaicScrollView contentView] scrollToPoint:contentOrigin];
+    [mosaicScrollView reflectScrolledClipView:[mosaicScrollView contentView]];
 }
 
 
@@ -1594,64 +1731,64 @@
 {
     NSRect	orig, content,doc;
     
-    if ([notification object] != _mosaicScrollView) return;
+    if ([notification object] != mosaicScrollView) return;
     
-    orig = [_originalView bounds];
-    content = [[_mosaicScrollView contentView] bounds];
-    doc = [_mosaicView frame];
-    [_originalView setFocusRect:NSMakeRect(content.origin.x * orig.size.width / doc.size.width,
+    orig = [originalView bounds];
+    content = [[mosaicScrollView contentView] bounds];
+    doc = [mosaicView frame];
+    [originalView setFocusRect:NSMakeRect(content.origin.x * orig.size.width / doc.size.width,
 					  content.origin.y * orig.size.height / doc.size.height,
 					  content.size.width * orig.size.width / doc.size.width,
 					  content.size.height * orig.size.height / doc.size.height)];
-    [_originalView setNeedsDisplay:YES];
+    [originalView setNeedsDisplay:YES];
 }
 
 
 - (void)toggleStatusBar:(id)sender
 {
-    NSRect	newFrame = [_mainWindow frame];
+    NSRect	newFrame = [mainWindow frame];
     int		i;
     
-    if (_statusBarShowing)
+    if (statusBarShowing)
     {
-		_statusBarShowing = NO;
-		_removedSubviews = [[_statusBarView subviews] copy];
-		for (i = 0; i < [_removedSubviews count]; i++)
-			[[_removedSubviews objectAtIndex:i] removeFromSuperview];
-		[_statusBarView retain];
-		[_statusBarView removeFromSuperview];
-		newFrame.origin.y += [_statusBarView frame].size.height;
-		newFrame.size.height -= [_statusBarView frame].size.height;
-		newFrame.size = [self windowWillResize:_mainWindow toSize:newFrame.size];
-		[_mainWindow setFrame:newFrame display:YES animate:YES];
-		[[_viewMenu itemWithTitle:@"Hide Status Bar"] setTitle:@"Show Status Bar"];
+		statusBarShowing = NO;
+		removedSubviews = [[statusBarView subviews] copy];
+		for (i = 0; i < [removedSubviews count]; i++)
+			[[removedSubviews objectAtIndex:i] removeFromSuperview];
+		[statusBarView retain];
+		[statusBarView removeFromSuperview];
+		newFrame.origin.y += [statusBarView frame].size.height;
+		newFrame.size.height -= [statusBarView frame].size.height;
+		newFrame.size = [self windowWillResize:mainWindow toSize:newFrame.size];
+		[mainWindow setFrame:newFrame display:YES animate:YES];
+		[[viewMenu itemWithTitle:@"Hide Status Bar"] setTitle:@"Show Status Bar"];
     }
     else
     {
-		_statusBarShowing = YES;
-		newFrame.origin.y -= [_statusBarView frame].size.height;
-		newFrame.size.height += [_statusBarView frame].size.height;
-		newFrame.size = [self windowWillResize:_mainWindow toSize:newFrame.size];
-		[_mainWindow setFrame:newFrame display:YES animate:YES];
+		statusBarShowing = YES;
+		newFrame.origin.y -= [statusBarView frame].size.height;
+		newFrame.size.height += [statusBarView frame].size.height;
+		newFrame.size = [self windowWillResize:mainWindow toSize:newFrame.size];
+		[mainWindow setFrame:newFrame display:YES animate:YES];
 	
-		[_statusBarView setFrame:NSMakeRect(0, [[_mosaicScrollView superview] frame].size.height - [_statusBarView frame].size.height, [[_mosaicScrollView superview] frame].size.width, [_statusBarView frame].size.height)];
-		[[_mosaicScrollView superview] addSubview:_statusBarView];
-		[_statusBarView release];
-		for (i = 0; i < [_removedSubviews count]; i++)
+		[statusBarView setFrame:NSMakeRect(0, [[mosaicScrollView superview] frame].size.height - [statusBarView frame].size.height, [[mosaicScrollView superview] frame].size.width, [statusBarView frame].size.height)];
+		[[mosaicScrollView superview] addSubview:statusBarView];
+		[statusBarView release];
+		for (i = 0; i < [removedSubviews count]; i++)
 		{
-			[[_removedSubviews objectAtIndex:i] setFrameSize:NSMakeSize([_statusBarView frame].size.width,[[_removedSubviews objectAtIndex:i] frame].size.height)];
-			[_statusBarView addSubview:[_removedSubviews objectAtIndex:i]];
+			[[removedSubviews objectAtIndex:i] setFrameSize:NSMakeSize([statusBarView frame].size.width,[[removedSubviews objectAtIndex:i] frame].size.height)];
+			[statusBarView addSubview:[removedSubviews objectAtIndex:i]];
 		}
-		[_removedSubviews release]; _removedSubviews = nil;
+		[removedSubviews release]; removedSubviews = nil;
 	
-		[[_viewMenu itemWithTitle:@"Show Status Bar"] setTitle:@"Hide Status Bar"];
+		[[viewMenu itemWithTitle:@"Show Status Bar"] setTitle:@"Hide Status Bar"];
     }
 }
 
 
 - (void)setShowOutlines:(id)sender
 {
-    [_originalView setDisplayTileOutlines:([_showOutlinesSwitch state] == NSOnState)];
+    [originalView setDisplayTileOutlines:([showOutlinesSwitch state] == NSOnState)];
 }
 
 
@@ -1661,37 +1798,37 @@
 
 - (void)toggleImageSourcesDrawer:(id)sender
 {
-    [_utilitiesDrawer toggle:(id)sender];
-    if ([_utilitiesDrawer state] == NSDrawerClosedState)
-		[[_viewMenu itemWithTitle:@"Show Image Sources"] setTitle:@"Hide Image Sources"];
+    [utilitiesDrawer toggle:(id)sender];
+    if ([utilitiesDrawer state] == NSDrawerClosedState)
+		[[viewMenu itemWithTitle:@"Show Image Sources"] setTitle:@"Hide Image Sources"];
     else
-		[[_viewMenu itemWithTitle:@"Hide Image Sources"] setTitle:@"Show Image Sources"];
+		[[viewMenu itemWithTitle:@"Hide Image Sources"] setTitle:@"Show Image Sources"];
 }
 
 
 - (void)togglePause:(id)sender
 {
-	NSEnumerator	*imageSourceEnumerator = [_imageSources objectEnumerator];
+	NSEnumerator	*imageSourceEnumerator = [imageSources objectEnumerator];
 	ImageSource		*imageSource;
 
-	if (_paused)
+	if (paused)
 	{
-		if (!_mosaicStarted) [self startMosaic];	// spawn the image source threads
-		[_pauseToolbarItem setLabel:@"Pause"];
-		[_pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
-		[[_fileMenu itemWithTitle:@"Resume Matching"] setTitle:@"Pause Matching"];
+		if (!mosaicStarted) [self startMosaic];	// spawn the image source threads
+		[pauseToolbarItem setLabel:@"Pause"];
+		[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
+		[[fileMenu itemWithTitle:@"Resume Matching"] setTitle:@"Pause Matching"];
 		while (imageSource = [imageSourceEnumerator nextObject])
 			[imageSource resume];
-		_paused = NO;
+		paused = NO;
 	}
 	else
 	{
-		[_pauseToolbarItem setLabel:@"Resume"];
-		[_pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
-		[[_fileMenu itemWithTitle:@"Pause Matching"] setTitle:@"Resume Matching"];
+		[pauseToolbarItem setLabel:@"Resume"];
+		[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
+		[[fileMenu itemWithTitle:@"Pause Matching"] setTitle:@"Resume Matching"];
 		while (imageSource = [imageSourceEnumerator nextObject])
 			[imageSource pause];
-		_paused = YES;
+		paused = YES;
 	}
 }
 
@@ -1701,84 +1838,85 @@
 
 - (void)beginExportImage:(id)sender
 {
-    _savePanel = [NSSavePanel savePanel];
+    savePanel = [[NSSavePanel savePanel] retain];
 
 /*
-    if ([[_tiles lastObject] matchCount] < [_tiles count])
+    if ([[tiles lastObject] matchCount] < [tiles count])
     {
-	NSBeginAlertSheet(@"Export Image", nil, nil, nil, _mainWindow, self, nil, nil, nil,
+	NSBeginAlertSheet(@"Export Image", nil, nil, nil, mainWindow, self, nil, nil, nil,
 	    @"Not enough images have been found.");
 	return;
     }
 */
 	
-    if (!_paused) [self togglePause:self];
+    if (!paused) [self togglePause:self];
     
-    if ([_exportWidth intValue] == 0)
+    if ([exportWidth intValue] == 0)
     {
-        [_exportWidth setIntValue:[_originalImage size].width * 4];
-        [_exportHeight setIntValue:[_originalImage size].height * 4];
+        [exportWidth setIntValue:[originalImage size].width * 4];
+        [exportHeight setIntValue:[originalImage size].height * 4];
     }
-    [_savePanel setAccessoryView:_exportPanelAccessoryView];
+    [savePanel setAccessoryView:exportPanelAccessoryView];
     
     // ask the user where to save the image
-    [_savePanel beginSheetForDirectory:NSHomeDirectory()
+    [savePanel beginSheetForDirectory:NSHomeDirectory()
 				 file:@"Mosaic.jpg"
-		       modalForWindow:_mainWindow
+		       modalForWindow:mainWindow
 			modalDelegate:self
 		       didEndSelector:@selector(exportImageSavePanelDidEnd:returnCode:contextInfo:)
-			  contextInfo:_savePanel];
+			  contextInfo:savePanel];
 }
 
 
 - (void)setJPEGExport:(id)sender
 {
-    _exportFormat = NSJPEGFileType;
-    [_savePanel setRequiredFileType:@"jpg"];
+    exportFormat = NSJPEGFileType;
+    [savePanel setRequiredFileType:@"jpg"];
 }
 
 
 - (void)setTIFFExport:(id)sender;
 {
-    _exportFormat = NSTIFFFileType;
-    [_savePanel setRequiredFileType:@"tiff"];
+    exportFormat = NSTIFFFileType;
+    [savePanel setRequiredFileType:@"tiff"];
 }
 
 
 - (void)setExportWidthFromHeight:(id)sender
 {
-    [_exportWidth setIntValue:[_exportHeight intValue] / [_originalImage size].height * 
-			      [_originalImage size].width + 0.5];
+    [exportWidth setIntValue:[exportHeight intValue] / [originalImage size].height * [originalImage size].width + 0.5];
 }
 
 
 - (void)setExportHeightFromWidth:(id)sender
 {
-    [_exportHeight setIntValue:[_exportWidth intValue] / [_originalImage size].width * 
-			       [_originalImage size].height + 0.5];
+    [exportHeight setIntValue:[exportWidth intValue] / [originalImage size].width * [originalImage size].height + 0.5];
 }
 
 
-- (void)exportImageSavePanelDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)savePanel
+- (void)exportImageSavePanelDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
-    _savePanel = nil;
-    
-    if (returnCode != NSOKButton) return;
-    
-    [sheet orderOut:nil];
-    
-    [_exportProgressLabel setStringValue:@"Waiting to find all unique tiles..."];
-    [_exportProgressIndicator setIndeterminate:YES];
-    [_exportProgressIndicator startAnimation:self];
-    
-    [NSApp beginSheet:_exportProgressPanel
-       modalForWindow:_mainWindow
-	modalDelegate:self
-       didEndSelector:nil
-	  contextInfo:nil];
-    
-    [NSApplication detachDrawingThread:@selector(exportImage:) toTarget:self 
-	withObject:[(NSSavePanel *)savePanel filename]];
+	[sheet orderOut:self];
+	
+    if (returnCode == NSOKButton)
+    {
+		[exportProgressLabel setStringValue:@"Waiting to find all unique tiles..."];
+		[exportProgressIndicator setIndeterminate:YES];
+		[exportProgressIndicator startAnimation:self];
+		
+		[NSApp beginSheet:exportProgressPanel
+		   modalForWindow:mainWindow
+			modalDelegate:self
+		   didEndSelector:nil
+			  contextInfo:nil];
+		
+		[NSApplication detachDrawingThread:@selector(exportImage:)
+								  toTarget:self 
+								withObject:[(NSSavePanel *)savePanel filename]];
+	}
+	
+	[savePanel release];
+    savePanel = nil;
 }
 
 
@@ -1792,24 +1930,24 @@
                     *pixletImage;
     NSData		*bitmapData;
     NSAutoreleasePool	*pool;
-    BOOL		wasPaused = _paused;
+    BOOL		wasPaused = paused;
     
-    _exportImageThreadAlive = YES;
+    exportImageThreadAlive = YES;
     
     pool = [[NSAutoreleasePool alloc] init];
 	NSAssert(pool, @"Could not allocate pool");
 
-//    while (_calculateDisplayedImagesThreadAlive)
+//    while (calculateDisplayedImagesThreadAlive)
 //		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
-    [_exportProgressLabel setStringValue:@"Exporting mosaic image..."];
-    [_exportProgressIndicator stopAnimation:self];
-    [_exportProgressIndicator setMaxValue:[_tiles count]];
-    [_exportProgressIndicator setIndeterminate:NO];
-    [_exportProgressPanel displayIfNeeded];
+    [exportProgressLabel setStringValue:@"Exporting mosaic image..."];
+    [exportProgressIndicator stopAnimation:self];
+    [exportProgressIndicator setMaxValue:[tiles count]];
+    [exportProgressIndicator setIndeterminate:NO];
+    [exportProgressPanel displayIfNeeded];
     
-    exportImage = [[NSImage alloc] initWithSize:NSMakeSize([_exportWidth intValue], [_exportHeight intValue])];
-//    exportImage = [[NSImage alloc] initWithSize:NSMakeSize(2400, 2400 * [_originalImage size].height / 
-//								 [_originalImage size].width)];
+    exportImage = [[NSImage alloc] initWithSize:NSMakeSize([exportWidth intValue], [exportHeight intValue])];
+//    exportImage = [[NSImage alloc] initWithSize:NSMakeSize(2400, 2400 * [originalImage size].height / 
+//								 [originalImage size].width)];
 	NS_DURING
 		[exportImage lockFocus];
 	NS_HANDLER
@@ -1817,22 +1955,22 @@
 	NS_ENDHANDLER
     transform = [NSAffineTransform transform];
     [transform scaleXBy:[exportImage size].width yBy:[exportImage size].height];
-    for (i = 0; i < [_tiles count]; i++)
+    for (i = 0; i < [tiles count]; i++)
     {
         NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
-        Tile				*tile = [_tiles objectAtIndex:i];
-//        TileImage			*tileImage = [_tileImages objectAtIndex:([tile userChosenImageIndex] == -1) ?
+        Tile				*tile = [tiles objectAtIndex:i];
+//        CachedImage			*cachedImage = [tileImages objectAtIndex:([tile userChosenImageIndex] == -1) ?
 //                                        [tile bestUniqueMatch]->tileImageIndex :
 //                                        [tile userChosenImageIndex]];
         NSBezierPath		*clipPath = [transform transformBezierPath:[tile outline]];
-        int					imageFetchCount = 0;
+//        int					imageFetchCount = 0;
         
-        _exportProgressTileCount = i;
+        exportProgressTileCount = i;
         [NSGraphicsContext saveGraphicsState];
         [clipPath addClip];
         
 //        do
-//            pixletImage = [[tileImage imageSource] imageForIdentifier:[tileImage imageIdentifier]];
+//            pixletImage = [[cachedImage imageSource] imageForIdentifier:[cachedImage imageIdentifier]];
 //        while (pixletImage == nil && imageFetchCount++ < 4);
         
         pixletImage = [tile bitmapRep];
@@ -1865,21 +2003,21 @@
 									     [exportImage size].height)];
     [exportImage unlockFocus];
 
-    if (_exportFormat == NSJPEGFileType)
+    if (exportFormat == NSJPEGFileType)
         bitmapData = [exportRep representationUsingType:NSJPEGFileType properties:nil];
     else
         bitmapData = [exportRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0];
     [bitmapData writeToFile:exportFilename atomically:YES];
     
-    [NSApp endSheet:_exportProgressPanel];
-    [_exportProgressPanel orderOut:nil];
+    [NSApp endSheet:exportProgressPanel];
+    [exportProgressPanel orderOut:nil];
 
     [pool release];
     [exportRep release];
     [exportImage release];
 
-    _paused = wasPaused;
-    _exportImageThreadAlive = NO;
+    paused = wasPaused;
+    exportImageThreadAlive = NO;
     
     [NSThread exit];
 }
@@ -1898,7 +2036,7 @@
 
 - (NSSize)windowWillResize:(NSWindow *)sender toSize:(NSSize)proposedFrameSize
 {
-    float	aspectRatio = [_mosaicImage size].width / [_mosaicImage size].height,
+    float	aspectRatio = [mosaicImage size].width / [mosaicImage size].height,
 			windowTop = [sender frame].origin.y + [sender frame].size.height,
 			minHeight = 155;
     NSSize	diff;
@@ -1909,7 +2047,7 @@
     diff.width = [sender frame].size.width - [[sender contentView] frame].size.width;
     diff.height = [sender frame].size.height - [[sender contentView] frame].size.height;
     proposedFrameSize.width -= diff.width;
-    windowTop -= diff.height + 16 + (_statusBarShowing ? [_statusBarView frame].size.height : 0);
+    windowTop -= diff.height + 16 + (statusBarShowing ? [statusBarView frame].size.height : 0);
     
     // Calculate the height of the window based on the proposed width
     //   and preserve the aspect ratio of the mosaic image.
@@ -1922,7 +2060,7 @@
 	}
     
     // add height of scroll bar and status bar (if showing)
-    proposedFrameSize.height += 16 + (_statusBarShowing ? [_statusBarView frame].size.height : 0);
+    proposedFrameSize.height += 16 + (statusBarShowing ? [statusBarView frame].size.height : 0);
     
     [self setZoom:self];
     
@@ -1937,7 +2075,7 @@
 {
     defaultFrame.size = [self windowWillResize:sender toSize:defaultFrame.size];
 
-    [_mosaicScrollView setNeedsDisplay:YES];
+    [mosaicScrollView setNeedsDisplay:YES];
     
     return defaultFrame;
 }
@@ -1947,7 +2085,7 @@
 {
 		// this method is called during animated window resizing, not windowWillResize
     [self setZoom:self];
-    [_utilitiesTabView setNeedsDisplay:YES];
+    [utilitiesTabView setNeedsDisplay:YES];
 }
 
 
@@ -1960,9 +2098,10 @@
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier
     willBeInsertedIntoToolbar:(BOOL)flag;
 {
-    NSToolbarItem	*toolbarItem = [_toolbarItems objectForKey:itemIdentifier];
+    NSToolbarItem	*toolbarItem = [toolbarItems objectForKey:itemIdentifier];
 
-    if (toolbarItem) return toolbarItem;
+    if (toolbarItem)
+		return toolbarItem;
     
     toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier] autorelease];
     
@@ -1972,8 +2111,8 @@
 		[toolbarItem setMaxSize:NSMakeSize(64, 14)];
 		[toolbarItem setLabel:@"Zoom"];
 		[toolbarItem setPaletteLabel:@"Zoom"];
-		[toolbarItem setView:_zoomToolbarView];
-		[toolbarItem setMenuFormRepresentation:_zoomToolbarMenuItem];
+		[toolbarItem setView:zoomToolbarView];
+		[toolbarItem setMenuFormRepresentation:zoomToolbarMenuItem];
     }
 
     if ([itemIdentifier isEqualToString:@"ExportImage"])
@@ -1991,7 +2130,7 @@
 		[toolbarItem setImage:[NSImage imageNamed:@"UtilityDrawer"]];
 		[toolbarItem setLabel:@"Utility Drawer"];
 		[toolbarItem setPaletteLabel:@"Utility Drawer"];
-		[toolbarItem setTarget:_utilitiesDrawer];
+		[toolbarItem setTarget:utilitiesDrawer];
 		[toolbarItem setAction:@selector(toggle:)];
 		[toolbarItem setToolTip:@"Show/hide utility drawer"];
     }
@@ -1999,14 +2138,14 @@
     if ([itemIdentifier isEqualToString:@"Pause"])
     {
 		[toolbarItem setImage:[NSImage imageNamed:@"Pause"]];
-		[toolbarItem setLabel:_paused ? @"Resume" : @"Pause"];
-		[toolbarItem setPaletteLabel:_paused ? @"Resume" : @"Pause"];
+		[toolbarItem setLabel:paused ? @"Resume" : @"Pause"];
+		[toolbarItem setPaletteLabel:paused ? @"Resume" : @"Pause"];
 		[toolbarItem setTarget:self];
 		[toolbarItem setAction:@selector(togglePause:)];
-		_pauseToolbarItem = toolbarItem;
+		pauseToolbarItem = toolbarItem;
     }
     
-    [_toolbarItems setObject:toolbarItem forKey:itemIdentifier];
+    [toolbarItems setObject:toolbarItem forKey:itemIdentifier];
     
     return toolbarItem;
 }
@@ -2015,7 +2154,7 @@
 - (BOOL)validateToolbarItem:(NSToolbarItem *)theItem
 {
     if ([[theItem itemIdentifier] isEqualToString:@"Pause"])
-		return ([_tileOutlines count] > 0 && [_imageSources count] > 0);
+		return ([tileOutlines count] > 0 && [imageSources count] > 0);
     else
 		return YES;
 }
@@ -2042,20 +2181,20 @@
 
 - (void)tabView:(NSTabView *)tabView didSelectTabViewItem:(NSTabViewItem *)tabViewItem
 {
-	if (tabView == _utilitiesTabView)
+	if (tabView == utilitiesTabView)
 	{
 		int selectedIndex =  [tabView indexOfTabViewItem:tabViewItem];
 		
-		if (selectedIndex == [_utilitiesTabView indexOfTabViewItemWithIdentifier:@"Tiles Setup"])
-			[_mosaicView setViewMode:_viewTilesOutline];
-		if (selectedIndex == [_utilitiesTabView indexOfTabViewItemWithIdentifier:@"Image Sources"])
-			[_mosaicView setViewMode:_viewImageSources];
-		if (selectedIndex == [_utilitiesTabView indexOfTabViewItemWithIdentifier:@"Original Image"])
-			[_mosaicView setViewMode:_viewMosaic];
-		if (selectedIndex == [_utilitiesTabView indexOfTabViewItemWithIdentifier:@"Image Regions"])
-			[_mosaicView setViewMode:_viewImageRegions];
-		if (selectedIndex == [_utilitiesTabView indexOfTabViewItemWithIdentifier:@"Tile Editor"])
-			[_mosaicView setViewMode:_viewHighlightedTile];
+		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Tiles Setup"])
+			[mosaicView setViewMode:viewTilesOutline];
+		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Image Sources"])
+			[mosaicView setViewMode:viewImageSources];
+		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Original Image"])
+			[mosaicView setViewMode:viewMosaic];
+		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Image Regions"])
+			[mosaicView setViewMode:viewImageRegions];
+		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Tile Editor"])
+			[mosaicView setViewMode:viewHighlightedTile];
 	}
 }
 
@@ -2065,11 +2204,11 @@
 
 - (int)numberOfRowsInTableView:(NSTableView *)aTableView
 {
-    if (aTableView == _imageSourcesTable)
-		return [_imageSources count];
+    if (aTableView == imageSourcesTable)
+		return [imageSources count];
 		
-    if (aTableView == _editorTable)
-		return (_selectedTile == nil ? 0 : [_selectedTile matchCount]);
+    if (aTableView == editorTable)
+		return (selectedTile == nil ? 0 : [selectedTile matchCount]);
 	
 	return 0;
 }
@@ -2078,25 +2217,25 @@
 - (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn
 	    row:(int)rowIndex
 {
-    if (aTableView == _imageSourcesTable)
+    if (aTableView == imageSourcesTable)
     {
 		return ([[aTableColumn identifier] isEqualToString:@"Image Source Type"]) ?
-				(id)[[_imageSources objectAtIndex:rowIndex] image] : 
+				(id)[[imageSources objectAtIndex:rowIndex] image] : 
 				(id)[NSString stringWithFormat:@"%@\n(%d images found)",
-												[[_imageSources objectAtIndex:rowIndex] descriptor],
-												[[_imageSources objectAtIndex:rowIndex] imageCount]];
+												[[imageSources objectAtIndex:rowIndex] descriptor],
+												[[imageSources objectAtIndex:rowIndex] imageCount]];
     }
     else // it's the editor table
     {
 		NSImage	*image;
 		
-		if (_selectedTile == nil) return nil;
+		if (selectedTile == nil) return nil;
 		
-		image = [_selectedTileImages objectAtIndex:rowIndex];
+		image = [selectedTileImages objectAtIndex:rowIndex];
 		if ([image isKindOfClass:[NSNull class]] && rowIndex != -1)
 		{
 			image = [self createEditorImage:rowIndex];
-			[_selectedTileImages replaceObjectAtIndex:rowIndex withObject:image];
+			[selectedTileImages replaceObjectAtIndex:rowIndex withObject:image];
 		}
 		
 		return image;
@@ -2106,15 +2245,15 @@
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
-    if ([notification object] == _editorTable)
+    if ([notification object] == editorTable)
     {
-        int	selectedRow = [_editorTable selectedRow];
-        
-        if (selectedRow >= 0)
-            [_matchValueTextField setStringValue:[NSString stringWithFormat:@"%f", 
-                                                    [_selectedTile matches][selectedRow].matchValue]];
-        else
-            [_matchValueTextField setStringValue:@""];
+//        int	selectedRow = [editorTable selectedRow];
+//        
+//        if (selectedRow >= 0)
+//            [matchValueTextField setStringValue:[NSString stringWithFormat:@"%f", 
+//                                                    [selectedTile matches][selectedRow].matchValue]];
+//        else
+//            [matchValueTextField setStringValue:@""];
     }
 }
 
@@ -2125,8 +2264,8 @@
 			 contextInfo:(void *)contextInfo
 {
 		// pause threads so document dirty state doesn't change
-    if (!_paused) [self togglePause:nil];
-    while (_createTilesThreadAlive || _enumerateImageSourcesThreadAlive || _calculateImageMatchesThreadAlive || _calculateDisplayedImagesThreadAlive)
+    if (!paused) [self togglePause:nil];
+    while (createTilesThreadAlive || enumerateImageSourcesThreadAlive || calculateImageMatchesThreadAlive || calculateDisplayedImagesThreadAlive)
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
     
     [super canCloseDocumentWithDelegate:delegate shouldCloseSelector:shouldCloseSelector 
@@ -2136,26 +2275,26 @@
 
 - (void)close
 {
-	if (_documentIsClosing)
+	if (documentIsClosing)
 		return;	// make sure to do the steps below only once (not sure why this method sometimes gets called twice...)
 
 		// stop the timers
-	if ([_updateDisplayTimer isValid]) [_updateDisplayTimer invalidate];
-	[_updateDisplayTimer release];
-	if ([_animateTileTimer isValid]) [_animateTileTimer invalidate];
-	[_animateTileTimer release];
+	if ([updateDisplayTimer isValid]) [updateDisplayTimer invalidate];
+	[updateDisplayTimer release];
+	if ([animateTileTimer isValid]) [animateTileTimer invalidate];
+	[animateTileTimer release];
 	
 		// let other threads know we are closing
-	_documentIsClosing = YES;
+	documentIsClosing = YES;
 	
 		// wait for the threads to shut down
-	while (_createTilesThreadAlive || _enumerateImageSourcesThreadAlive || 
-		   _calculateImageMatchesThreadAlive || _calculateDisplayedImagesThreadAlive)
+	while (createTilesThreadAlive || enumerateImageSourcesThreadAlive || 
+		   calculateImageMatchesThreadAlive || calculateDisplayedImagesThreadAlive)
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
 		
 		// Give the image sources a chance to clean up before we close shop
-	[_imageSources release];
-	_imageSources = nil;
+	[imageSources release];
+	imageSources = nil;
 	
     [super close];
 }
@@ -2164,25 +2303,25 @@
 
 - (void)dealloc
 {
-    [_originalImageURL release];
-    [_originalImage release];
-    [_mosaicImage release];
-    [_mosaicImageLock release];
-    [_refindUniqueTilesLock release];
-    [_imageQueueLock release];
-    [_tiles release];
-    [_tileOutlines release];
-    [_imageQueue release];
-    [_selectedTileImages release];
-    [_toolbarItems release];
-    [_removedSubviews release];
-    [_combinedOutlines release];
-    [_zoomToolbarMenuItem release];
-    [_viewToolbarMenuItem release];
-    [_lastSaved release];
-    [_tileImages release];
-    [_tileImagesLock release];
-    [_unusedTileImage release];
+	[cachedImagesDictionary release];
+    [originalImageURL release];
+    [originalImage release];
+    [mosaicImage release];
+    [mosaicImageLock release];
+    [refindUniqueTilesLock release];
+    [imageQueueLock release];
+    [tiles release];
+    [tileOutlines release];
+    [imageQueue release];
+    [selectedTileImages release];
+    [toolbarItems release];
+    [removedSubviews release];
+    [combinedOutlines release];
+    [zoomToolbarMenuItem release];
+    [viewToolbarMenuItem release];
+    [lastSaved release];
+    [tileImages release];
+    [tileImagesLock release];
     
     [super dealloc];
 }

@@ -81,8 +81,9 @@
 
 - (void)dealloc
 {
-    [super dealloc];
     [_tileOutlines release];
+
+    [super dealloc];
 }
 
 @end
