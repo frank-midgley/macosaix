@@ -1,4 +1,4 @@
-#import <Foundation/Foundation.h>
+
 #import <HIToolbox/MacWindows.h>
 #import "MacOSaiX.h"
 #import "MacOSaiXDocument.h"
@@ -19,12 +19,15 @@
 - (void)spawnImageSourceThreads;
 - (void)synchronizeMenus;
 - (BOOL)started;
+- (void)lockWhilePaused;
 - (void)updateMosaicImage:(NSMutableArray *)updatedTiles;
 - (void)calculateImageMatches:(id)path;
 - (void)createTileCollectionWithOutlines:(id)object;
-- (void)cacheImage:(NSImage *)image withIdentifier:(id<NSCopying>)imageIdentifier fromSource:(ImageSource *)imageSource;
-- (NSImage *)cachedImageForIdentifier:(id<NSCopying>)imageIdentifier fromSource:(ImageSource *)imageSource;
-- (NSMutableDictionary *)cacheDictionaryForImageSource:(ImageSource *)imageSource;
+- (void)cacheImage:(NSImage *)image 
+	withIdentifier:(NSString *)imageIdentifier 
+		fromSource:(id<MacOSaiXImageSource>)imageSource;
+- (NSImage *)cachedImageForIdentifier:(NSString *)imageIdentifier fromSource:(id<MacOSaiXImageSource>)imageSource;
+- (NSMutableDictionary *)cacheDictionaryForImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (void)updateEditor;
 - (BOOL)showTileMatchInEditor:(ImageMatch *)tileMatch selecting:(BOOL)selecting;
 - (NSImage *)createEditorImage:(int)rowIndex;
@@ -61,13 +64,15 @@
 			exportProgressTileCount = 0;
 			exportFormat = NSJPEGFileType;
 			documentIsClosing = NO;
+
+			pauseLock = [[NSLock alloc] init];
+			[pauseLock lock];
 				
 			// create the image URL queue and its lock
 			imageQueue = [[NSMutableArray arrayWithCapacity:0] retain];
 			imageQueueLock = [[NSLock alloc] init];
 
-			createTilesThreadAlive = enumerateImageSourcesThreadAlive = calculateImageMatchesThreadAlive = 
-				exportImageThreadAlive = NO;
+			createTilesThreadAlive = calculateImageMatchesThreadAlive = exportImageThreadAlive = NO;
 			calculateImageMatchesThreadLock = [[NSLock alloc] init];
 			
 				// set up ivars for "calculateDisplayedImages" thread
@@ -78,6 +83,8 @@
 
 			tileImages = [[NSMutableArray arrayWithCapacity:0] retain];
 			tileImagesLock = [[NSLock alloc] init];
+			
+			enumerationThreadCountLock = [[NSLock alloc] init];
 			
 			cacheLock = [[NSLock alloc] init];
 			imageCache = [[NSMutableDictionary dictionary] retain];
@@ -224,36 +231,25 @@
 	
 	{
 			// Set up the "Image Sources" tab
-		[imageSourcesTabView setTabViewType:NSNoTabsNoBorder];
+		[imageSourcesTableView setDoubleAction:@selector(editImageSource:)];
 
 		imageSources = [[NSMutableArray arrayWithCapacity:4] retain];
-		[[imageSourcesTable tableColumnWithIdentifier:@"Image Source Type"]
+		[[imageSourcesTableView tableColumnWithIdentifier:@"Image Source Type"]
 			setDataCell:[[[NSImageCell alloc] init] autorelease]];
 		[imageSourcesRemoveButton setEnabled:NO];	// temporarily disabled for 2.0a1
 	
 			// Load the image source plug-ins and create an instance of each controller
-		NSEnumerator	*enumerator = [[[NSApp delegate] imageSourceControllerClasses] objectEnumerator];
-		Class			imageSourceControllerClass;
+		NSEnumerator	*enumerator = [[[NSApp delegate] imageSourceClasses] objectEnumerator];
+		Class			imageSourceClass;
 		[imageSourcesPopUpButton removeAllItems];
 		[imageSourcesPopUpButton addItemWithTitle:@"Current Image Sources"];
-		while (imageSourceControllerClass = [enumerator nextObject])
+		while (imageSourceClass = [enumerator nextObject])
 		{
 				// add the name of the image source to the pop-up menu
-			[imageSourcesPopUpButton addItemWithTitle:[NSString stringWithFormat:@"Add %@ Source...", 
-																				  [imageSourceControllerClass name]]];
-				// create an instance of the class for this document
-			ImageSourceController *imageSourceController = [[[imageSourceControllerClass alloc] init] autorelease];
-				// let the plug-in know how to message back to us
-			[imageSourceController setDocument:self];
-			[imageSourceController setWindow:mainWindow];
+			[imageSourcesPopUpButton addItemWithTitle:[imageSourceClass name]];
 				// attach it to the menu item (it will be dealloced when the menu item releases it)
-			[[imageSourcesPopUpButton lastItem] setRepresentedObject:imageSourceController];
-				// add a tab to the view for this plug-in
-			NSTabViewItem	*tabViewItem = [[[NSTabViewItem alloc] initWithIdentifier:nil] autorelease];
-			[tabViewItem setView:[imageSourceController imageSourceView]];	// this could be done lazily...
-			[imageSourcesTabView addTabViewItem:tabViewItem];
+			[[imageSourcesPopUpButton lastItem] setRepresentedObject:imageSourceClass];
 		}
-		[self setImageSourcesPlugIn:self];
 	}
 	
 	{	// Set up the "Editor" tab
@@ -321,11 +317,8 @@
 		while (createTilesThreadAlive)
 			[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 
-			// Tell the image sources to stop sending in any new images.
-		NSEnumerator	*imageSourceEnumerator = [imageSources objectEnumerator];
-		ImageSource		*imageSource;
-		while (imageSource = [imageSourceEnumerator nextObject])
-			[imageSource pause];
+			// Tell the enumeration threads to stop sending in any new images.
+		[pauseLock lock];
 		
 			// Wait for any queued images to get processed.
 			// TBD: can we condition lock here instead of poll?
@@ -335,6 +328,13 @@
 		
 		paused = YES;
 	}
+}
+
+
+- (void)lockWhilePaused
+{
+	[pauseLock lock];
+	[pauseLock unlock];
 }
 
 
@@ -373,10 +373,7 @@
 			[[fileMenu itemWithTitle:@"Resume Matching"] setTitle:@"Pause Matching"];
 			
 				// Start or restart the image sources
-			NSEnumerator	*imageSourceEnumerator = [imageSources objectEnumerator];
-			ImageSource		*imageSource;
-			while (imageSource = [imageSourceEnumerator nextObject])
-				[imageSource resume];
+			[pauseLock unlock];
 			
 			paused = NO;
 		}
@@ -494,8 +491,8 @@
 		int	index;
 		for (index = 0; index < [imageSources count]; index++)
 		{
-			ImageSource	*imageSource = [imageSources objectAtIndex:index];
-			NSString	*className = NSStringFromClass([imageSource class]);
+			id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:index];
+			NSString				*className = NSStringFromClass([imageSource class]);
 			
 			[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\">\n", index] dataUsingEncoding:NSUTF8StringEncoding]];
 			[fileHandle writeData:[[NSString stringWithFormat:@"\t\t<SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
@@ -517,10 +514,10 @@
 		[fileHandle writeData:[@"<CACHED_IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 		for (index = 0; index < [imageSources count]; index++)
 		{
-			ImageSource		*imageSource = [imageSources objectAtIndex:index];
-			NSDictionary	*cacheDict = [self cacheDictionaryForImageSource:imageSource];
-			NSEnumerator	*imageIDEnumerator = [cacheDict keyEnumerator];
-			id<NSCopying>	imageID = nil;
+			id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:index];
+			NSDictionary			*cacheDict = [self cacheDictionaryForImageSource:imageSource];
+			NSEnumerator			*imageIDEnumerator = [cacheDict keyEnumerator];
+			NSString				*imageID = nil;
 			while (imageID = [imageIDEnumerator nextObject])
 				[fileHandle writeData:[[NSString stringWithFormat:@"\t<CACHED_IMAGE SOURCE_ID=\"%d\" IMAGE_ID=\"%@\"/ FILE_ID=\"%@\">\n", 
 													index, imageID, [cacheDict objectForKey:imageID]] dataUsingEncoding:NSUTF8StringEncoding]];
@@ -671,7 +668,7 @@
 		statusMessage = [NSString stringWithString:@"Matching images..."];
     else if (calculateDisplayedImagesThreadAlive)
 		statusMessage = [NSString stringWithString:@"Finding unique tiles..."];
-    else if (enumerateImageSourcesThreadAlive)
+    else if (enumerationThreadCount > 0)
 		statusMessage = [NSString stringWithString:@"Looking for new images..."];
     else if (paused)
 		statusMessage = [NSString stringWithString:@"Paused"];
@@ -705,7 +702,7 @@
     }
     
     // update the image sources table
-    [imageSourcesTable reloadData];
+    [imageSourcesTableView reloadData];
     
     // autosave if it's time
 //    if ([lastSaved timeIntervalSinceNow] < autosaveFrequency * -60)
@@ -815,8 +812,8 @@
 
 - (void)spawnImageSourceThreads
 {
-	NSEnumerator	*imageSourceEnumerator = [imageSources objectEnumerator];
-	ImageSource		*imageSource;
+	NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
+	id<MacOSaiXImageSource>	imageSource;
 	
 	while (imageSource = [imageSourceEnumerator nextObject])
 		[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) toTarget:self withObject:imageSource];
@@ -936,32 +933,29 @@
 }
 
 
-- (void)enumerateImageSourceInNewThread:(ImageSource *)imageSource
+- (void)enumerateImageSourceInNewThread:(id<MacOSaiXImageSource>)imageSource
 {
-	BOOL	sourceHasMoreImages = YES;
-
-//	NSLog(@"Enumerating image source %@\n", imageSource);
+	[enumerationThreadCountLock lock];
+			enumerationThreadCount++;
+	[enumerationThreadCountLock unlock];
 	
 		// Don't usurp the main thread.
 	[NSThread setThreadPriority:0.1];
 	
-		// don't do anything if the source is dry
+		// Check if the source has any images left.
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	sourceHasMoreImages = [imageSource hasMoreImages];
+	BOOL				sourceHasMoreImages = [imageSource hasMoreImages];
 	[pool release];
 	
 	while (!documentIsClosing && sourceHasMoreImages)
 	{
 		NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 		
-		[imageSource waitWhilePaused];	// pause if the user says so	(why message the image source???)
+		[self lockWhilePaused];
 		
 			// Get the next image from the source (and identifier if there is one)
-		id<NSCopying>   imageIdentifier = nil;
-		NSImage			*image = nil;
-		if ([imageSource canRefetchImages])
-			imageIdentifier = [imageSource nextImageIdentifier];
-		image = [imageSource imageForIdentifier:imageIdentifier];
+		NSString	*imageIdentifier = nil;
+		NSImage		*image = [imageSource nextImageAndIdentifier:&imageIdentifier];
 		
 		if (image)
 		{
@@ -974,7 +968,7 @@
 				[imageQueue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 											image, @"Image",
 											imageSource, @"Image Source", 
-											imageIdentifier, @"Image Identifier", 
+											imageIdentifier, @"Image Identifier", // last since it could be nil
 											nil]];
 			[imageQueueLock unlock];
 
@@ -982,8 +976,13 @@
 				[NSApplication detachDrawingThread:@selector(calculateImageMatches:) toTarget:self withObject:nil];
 		}
 		sourceHasMoreImages = [imageSource hasMoreImages];
+		
 		[pool release];
 	}
+	
+	[enumerationThreadCountLock lock];
+			enumerationThreadCount--;
+	[enumerationThreadCountLock unlock];
 }
 
 
@@ -1033,13 +1032,12 @@
 		else
 			queueLocked = YES;
 		
-		NSImage			*pixletImage = [nextImageDict objectForKey:@"Image"];
-		ImageSource		*pixletImageSource = [nextImageDict objectForKey:@"Image Source"];
-		id<NSCopying>   pixletImageIdentifier = [nextImageDict objectForKey:@"Image Identifier"];
+		NSImage					*pixletImage = [nextImageDict objectForKey:@"Image"];
+		id<MacOSaiXImageSource>	pixletImageSource = [nextImageDict objectForKey:@"Image Source"];
+		NSString				*pixletImageIdentifier = [nextImageDict objectForKey:@"Image Identifier"];
 
-			// Cache this image to disk.
-			// TODO: how does the image ever get purged?
-		if ([pixletImageSource canRefetchImages])
+			// Cache this image or a thumbnail of it to disk.
+		if (pixletImageIdentifier)
 		{
 				// Just cache a thumbnail, no need to waste the disk since we can refetch.
 			NSSize				thumbnailSize, pixletImageSize = [pixletImage size];
@@ -1048,19 +1046,8 @@
 			else
 				thumbnailSize = NSMakeSize(pixletImageSize.width * kThumbnailMax / pixletImageSize.height, kThumbnailMax);
 			NSImage				*thumbnailImage = [[NSImage alloc] initWithSize:thumbnailSize];
-//			NSBitmapImageRep	*thumbnailRep = [[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nil 
-//																						 pixelsWide:thumbnailSize.width 
-//																						 pixelsHigh:thumbnailSize.height 
-//																					  bitsPerSample:8 
-//																					samplesPerPixel:3 
-//																						   hasAlpha:NO 
-//																						   isPlanar:NO 
-//																					 colorSpaceName:NSDeviceRGBColorSpace 
-//																						bytesPerRow:0 
-//																					   bitsPerPixel:0] autorelease];
-//			[thumbnailImage addRepresentation:thumbnailRep];
 			NS_DURING
-				[thumbnailImage lockFocus];	//OnRepresentation:thumbnailRep];
+				[thumbnailImage lockFocus];
 					[pixletImage drawInRect:NSMakeRect(0.0, 0.0, thumbnailSize.width, thumbnailSize.height) 
 								   fromRect:NSMakeRect(0.0, 0.0, pixletImageSize.width, pixletImageSize.height) 
 								  operation:NSCompositeCopy 
@@ -1074,6 +1061,8 @@
 		else
 		{
 				// Cache the full sized image since we can't refetch it from the image source.
+				// 
+			pixletImageIdentifier = [NSString stringWithFormat:@"!@#$%ld", unfetchableCount++];
 			[self cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
 		}
 
@@ -1446,39 +1435,99 @@
 
 
 #pragma mark -
-#pragma mark Image Sources methods
+#pragma mark Images tab methods
 
-- (void)setImageSourcesPlugIn:(id)sender
+
+- (void)addNewImageSource:(id)sender
 {
-		// Display the view chosen in the menu
-	[imageSourcesTabView selectTabViewItemAtIndex:[imageSourcesPopUpButton indexOfSelectedItem]];
-	
-		// If the user just chose to add an image source then tell the appropriate image controller
 	if ([imageSourcesPopUpButton indexOfSelectedItem] > 0)
-		[[[imageSourcesPopUpButton selectedItem] representedObject] editImageSource:nil];
-}
-
-
-- (void)showCurrentImageSources
-{
-	[imageSourcesPopUpButton selectItemAtIndex:0];
-	[self setImageSourcesPlugIn:self];
-}
-
-
-- (void)addImageSource:(ImageSource *)imageSource
-{
-		// if it's a new image source then add it to the array (paused if we haven't started yet)
-	if ([imageSources indexOfObjectIdenticalTo:imageSource] == NSNotFound)
 	{
-		if (![self started])
-			[imageSource pause];
+		Class								imageSourceClass = [[imageSourcesPopUpButton selectedItem] representedObject];
+		id<MacOSaiXImageSource>				newSource = [[[imageSourceClass alloc] init] autorelease];
+		id<MacOSaiXImageSourceController>	controller = [[[[imageSourceClass editorClass] alloc] init] autorelease];
 		
-		[imageSources addObject:imageSource];
-		[imageSourcesTable reloadData];
+		[imageSourceEditorBox setContentView:[controller imageSourceView]];
+		[controller setOKButton:imageSourceEditorOKButton];
+		[controller editImageSource:newSource];
 		
-		[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) toTarget:self withObject:imageSource];
+		[NSApp beginSheet:imageSourceEditorPanel 
+		   modalForWindow:mainWindow
+		    modalDelegate:self 
+		   didEndSelector:@selector(imageSourceEditorDidEnd:returnCode:contextInfo:) 
+			  contextInfo:[[NSArray arrayWithObjects:newSource, controller, nil] retain]];
 	}
+}
+
+
+- (IBAction)editImageSource:(id)sender
+{
+	// TBD: check if sheet already displayed?
+	
+	if (sender == imageSourcesTableView)
+	{
+		id<MacOSaiXImageSource>				originalSource = [imageSources objectAtIndex:[imageSourcesTableView selectedRow]],
+											newSource = [[originalSource copyWithZone:[self zone]] autorelease];
+		id<MacOSaiXImageSourceController>	controller = [[[[[newSource class] editorClass] alloc] init] autorelease];
+		
+		[imageSourceEditorBox setContentView:[controller imageSourceView]];
+		[controller editImageSource:newSource];
+		
+		[NSApp beginSheet:imageSourceEditorPanel 
+		   modalForWindow:mainWindow
+		    modalDelegate:self 
+		   didEndSelector:@selector(imageSourceEditorDidEnd:returnCode:contextInfo:) 
+			  contextInfo:[[NSArray arrayWithObjects:newSource, controller, originalSource, nil] retain]];
+	}
+}
+
+
+- (void)imageSourceEditorDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+	NSArray								*parameters = (NSArray *)contextInfo;
+	id<MacOSaiXImageSource>				editedImageSource = [parameters objectAtIndex:0],
+										originalImageSource = ([parameters count] == 3 ? [parameters lastObject] : nil);
+//	id<MacOSaiXImageSourceController>	controller = [parameters objectAtIndex:1];
+	
+	[sheet orderOut:self];
+	
+	if (returnCode == NSOKButton)
+	{
+		if (originalImageSource)
+			[imageSources removeObjectIdenticalTo:originalImageSource];
+		
+		[imageSources addObject:editedImageSource];
+		[imageSourcesTableView reloadData];
+		
+		[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) 
+								  toTarget:self 
+								withObject:editedImageSource];
+	}
+	
+	[imageSourceEditorBox setContentView:nil];
+	[(id)contextInfo release];
+}
+
+
+- (IBAction)removeImageSource:(id)sender
+{
+	
+}
+
+
+#pragma mark -
+#pragma mark Images tab methods
+
+
+	// Image source editor methods
+- (IBAction)saveImageSource:(id)sender;
+{
+	[NSApp endSheet:imageSourceEditorPanel returnCode:NSOKButton];
+}
+
+
+- (IBAction)cancelImageSource:(id)sender
+{
+	[NSApp endSheet:imageSourceEditorPanel returnCode:NSCancelButton];
 }
 
 
@@ -1492,7 +1541,7 @@
 }
 
 
-- (NSMutableDictionary *)cacheDictionaryForImageSource:(ImageSource *)imageSource
+- (NSMutableDictionary *)cacheDictionaryForImageSource:(id<MacOSaiXImageSource>)imageSource
 {
 	if (!cachedImagesDictionary)
 		cachedImagesDictionary = [[NSMutableDictionary dictionary] retain];
@@ -1511,7 +1560,9 @@
 }
 
 
-- (void)cacheImage:(NSImage *)image withIdentifier:(id<NSCopying>)imageIdentifier fromSource:(ImageSource *)imageSource
+- (void)cacheImage:(NSImage *)image 
+	withIdentifier:(NSString *)imageIdentifier 
+		fromSource:(id<MacOSaiXImageSource>)imageSource
 {
 	[cacheLock lock];
 		long		imageID = cachedImageCount++;
@@ -1548,7 +1599,7 @@
 }
 
 
-- (NSImage *)cachedImageForIdentifier:(id<NSCopying>)imageIdentifier fromSource:(ImageSource *)imageSource
+- (NSImage *)cachedImageForIdentifier:(NSString *)imageIdentifier fromSource:(id<MacOSaiXImageSource>)imageSource
 {
 	NSImage		*image = nil;
 	
@@ -2102,19 +2153,20 @@
 
 - (void)togglePause:(id)sender
 {
-	NSEnumerator	*imageSourceEnumerator = [imageSources objectEnumerator];
-	ImageSource		*imageSource;
+//	NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
+//	id<MacOSaiXImageSource>	imageSource;
 
 	if (paused)
 		[self resume];
 	else
 	{
-		[pauseToolbarItem setLabel:@"Resume"];
-		[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
-		[[fileMenu itemWithTitle:@"Pause Matching"] setTitle:@"Resume Matching"];
-		while (imageSource = [imageSourceEnumerator nextObject])
-			[imageSource pause];
-		paused = YES;
+		[self pause];
+//		[pauseToolbarItem setLabel:@"Resume"];
+//		[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
+//		[[fileMenu itemWithTitle:@"Pause Matching"] setTitle:@"Resume Matching"];
+//		while (imageSource = [imageSourceEnumerator nextObject])
+//			[imageSource pause];
+//		paused = YES;
 	}
 }
 
@@ -2230,7 +2282,7 @@
 			// Else use the version in the cache.
 		NSImage		*pixletImage = nil;
 		ImageMatch	*match = [tile displayedImageMatch];
-		if ([[match imageSource] canRefetchImages])
+		if (![[match imageIdentifier] hasPrefix:@"!@#$"])
 			pixletImage = [[match imageSource] imageForIdentifier:[match imageIdentifier]];
 		if (!pixletImage)
 			pixletImage = [self cachedImageForIdentifier:[match imageIdentifier] fromSource:[match imageSource]];
@@ -2472,7 +2524,7 @@
 
 - (int)numberOfRowsInTableView:(NSTableView *)aTableView
 {
-    if (aTableView == imageSourcesTable)
+    if (aTableView == imageSourcesTableView)
 		return [imageSources count];
 		
     if (aTableView == editorTable)
@@ -2485,13 +2537,26 @@
 - (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn
 	    row:(int)rowIndex
 {
-    if (aTableView == imageSourcesTable)
+    if (aTableView == imageSourcesTableView)
     {
-		return ([[aTableColumn identifier] isEqualToString:@"Image Source Type"]) ?
-				(id)[[imageSources objectAtIndex:rowIndex] image] : 
-				(id)[NSString stringWithFormat:@"%@\n(%d images found)",
-												[[imageSources objectAtIndex:rowIndex] descriptor],
-												[[imageSources objectAtIndex:rowIndex] imageCount]];
+		id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:rowIndex];
+		
+		if ([[aTableColumn identifier] isEqualToString:@"Image Source Type"])
+			return [imageSource image];
+		else
+		{
+				// TBD: this won't work once entries get removed from the dictionary...
+			long	imageCount = [[self cacheDictionaryForImageSource:imageSource] count];
+			id		descriptor = [imageSource descriptor];
+			
+			if ([descriptor isKindOfClass:[NSString class]])
+				return [NSString stringWithFormat:@"%@\n(%ld images found)", descriptor, imageCount];
+			else if ([descriptor isKindOfClass:[NSAttributedString class]])
+			{
+				// TODO: append attributed string
+				return descriptor;
+			}
+		}
     }
     else // it's the editor table
     {
@@ -2535,7 +2600,8 @@
     if (!paused)
 		[self pause];
 	
-    while (createTilesThreadAlive || enumerateImageSourcesThreadAlive || calculateImageMatchesThreadAlive || calculateDisplayedImagesThreadAlive)
+    while (createTilesThreadAlive || enumerationThreadCount > 0 || calculateImageMatchesThreadAlive || 
+		   calculateDisplayedImagesThreadAlive)
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
     
     [super canCloseDocumentWithDelegate:delegate shouldCloseSelector:shouldCloseSelector 
@@ -2558,8 +2624,8 @@
 	documentIsClosing = YES;
 	
 		// wait for the threads to shut down
-	while (createTilesThreadAlive || enumerateImageSourcesThreadAlive || 
-		   calculateImageMatchesThreadAlive || calculateDisplayedImagesThreadAlive)
+	while (createTilesThreadAlive || enumerationThreadCount > 0 || calculateImageMatchesThreadAlive || 
+		   calculateDisplayedImagesThreadAlive)
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
 		
 		// Give the image sources a chance to clean up before we close shop
@@ -2582,7 +2648,9 @@
     [mosaicImage release];
     [mosaicImageLock release];
     [refindUniqueTilesLock release];
+	[pauseLock release];
     [imageQueueLock release];
+	[enumerationThreadCountLock release];
     [tiles release];
 	[selectedTile release];
     [tileOutlines release];

@@ -4,7 +4,8 @@
 #import "OriginalView.h"
 #import "Tiles.h"
 #import <MacOSaiXPlugins/TilesSetupController.h>
-#import <MacOSaiXPlugins/ImageSourceController.h>
+#import "MacOSaiXImageSource.h"
+
 
 typedef enum
 {
@@ -44,9 +45,13 @@ typedef enum
 	
 		// Images tab
 	IBOutlet NSPopUpButton			*imageSourcesPopUpButton;
-	IBOutlet NSTabView				*imageSourcesTabView;
-	IBOutlet NSTableView			*imageSourcesTable;
+	IBOutlet NSTableView			*imageSourcesTableView;
 	IBOutlet NSButton				*imageSourcesRemoveButton;
+	
+		// Image source editor
+	IBOutlet NSPanel				*imageSourceEditorPanel;
+	IBOutlet NSBox					*imageSourceEditorBox;
+	IBOutlet NSButton				*imageSourceEditorOKButton;
 	
 		// Original tab
     IBOutlet OriginalView			*originalView;
@@ -77,18 +82,16 @@ typedef enum
 								finishLoading;	// flag to indicate doc was not new,
 												// so perform second phase of initializing
     long						imagesMatched,
-								cachedImageCount;
+								unfetchableCount;
+	NSLock						*pauseLock;
 	int							extractionPercentComplete;
-	NSMutableDictionary			*cachedImagesDictionary;
-	NSString					*cachedImagesPath;
-	
     NSArray						*removedSubviews;
     NSMenu						*viewMenu, *fileMenu;
     MacOSaiXDocumentViewMode	viewMode;
     BOOL						createTilesThreadAlive,
-								enumerateImageSourcesThreadAlive, 
 								calculateImageMatchesThreadAlive,
 								exportImageThreadAlive;
+	int							enumerationThreadCount;
     float						overallMatch, lastDisplayMatch, zoom;
     Tile						*selectedTile;
 	NSPoint						tileSelectionPoint;
@@ -101,9 +104,10 @@ typedef enum
     NSRect						storedWindowFrame;
     NSMutableArray				*tileImages;
     NSLock						*tileImagesLock,
-								*calculateImageMatchesThreadLock;
+								*calculateImageMatchesThreadLock,
+								*enumerationThreadCountLock;
     NSBitmapImageFileType		exportFormat;
-	ImageSource					*manualImageSource;
+	id<MacOSaiXImageSource>		*manualImageSource;
 	
 		// ivars for the calculate displayed images thread
 	NSMutableSet				*refreshTilesSet;
@@ -112,10 +116,13 @@ typedef enum
 	BOOL						calculateDisplayedImagesThreadAlive;
 	
 		// image cache
+	NSMutableDictionary			*cachedImagesDictionary;
+	NSString					*cachedImagesPath;
     NSLock						*cacheLock;
 	NSMutableDictionary			*imageCache;
     NSMutableArray				*orderedCache,
                                 *orderedCacheID;
+	long						cachedImageCount;
 }
 
 	// View methods
@@ -138,9 +145,12 @@ typedef enum
 - (IBAction)setNeighborhoodSize:(id)sender;
 
 	// Images tab methods
-- (IBAction)addImageSource:(ImageSource *)imageSource;
-- (IBAction)showCurrentImageSources;
-- (IBAction)setImageSourcesPlugIn:(id)sender;
+- (IBAction)addNewImageSource:(id)sender;
+- (IBAction)removeImageSource:(id)sender;
+
+	// Image source editor methods
+- (IBAction)saveImageSource:(id)sender;
+- (IBAction)cancelImageSource:(id)sender;
 
 	// Editor tab methods
 - (IBAction)useCustomImage:(id)sender;

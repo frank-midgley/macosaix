@@ -1,19 +1,26 @@
-//
-//  DirectoryImageSource.h
-//  MacOSaiX
-//
-//  Created by Frank Midgley on Wed Mar 13 2002.
-//  Copyright (c) 2001 __MyCompanyName__. All rights reserved.
-//
+/*
+	DirectoryImageSource.h
+	MacOSaiX
 
-#import <Foundation/Foundation.h>
-#import <MacOSaiXPlugins/ImageSource.h>
+	Created by Frank Midgley on Wed Mar 13 2002.
+	Copyright (c) 2002-2004 Frank M. Midgley. All rights reserved.
+*/
 
-@interface DirectoryImageSource : ImageSource
+#import <Cocoa/Cocoa.h>
+
+#import "MacOSaiXImageSource.h"
+
+
+@interface DirectoryImageSource : NSObject <MacOSaiXImageSource>
 {
-    NSDirectoryEnumerator	*_enumerator;
-    NSString				*_directoryPath, *_nextFile;
-	BOOL					_haveMoreImages;
+    NSString				*directoryPath;
+	NSImage					*directoryImage;
+	NSAttributedString		*directoryDescriptor;
+    NSDirectoryEnumerator	*directoryEnumerator;
+	BOOL					haveMoreImages;
 }
+
+- (NSString *)path;
+- (void)setPath:(NSString *)path;
 
 @end

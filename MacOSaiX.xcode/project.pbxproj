@@ -51,12 +51,6 @@
 //012
 //013
 //014
-		01283223071B7244004ACF95 = {
-			fileRef = 01453D4A071B6F2D00BCEC7C;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		0128323A071B7297004ACF95 = {
 			fileRef = F514D53C0390266E01B25AF1;
 			isa = PBXBuildFile;
@@ -76,18 +70,6 @@
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
-		};
-		012833BB071B79C3004ACF95 = {
-			containerPortal = 29B97313FDCFA39411CA2CEA;
-			isa = PBXContainerItemProxy;
-			proxyType = 1;
-			remoteGlobalIDString = 01453D49071B6F2D00BCEC7C;
-			remoteInfo = "Puzzle Tiles Setup";
-		};
-		012833BC071B79C3004ACF95 = {
-			isa = PBXTargetDependency;
-			target = 01453D49071B6F2D00BCEC7C;
-			targetProxy = 012833BB071B79C3004ACF95;
 		};
 		01453C99071B6EE300BCEC7C = {
 			children = (
@@ -318,12 +300,6 @@
 			target = 928489A506611CE6003B3514;
 			targetProxy = 014DB62D071A2D5000DF68C0;
 		};
-		014DB63C071A2D8B00DF68C0 = {
-			fileRef = 01CB07E6071A1F2B00710BCF;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		01A1978E071A200E00B11558 = {
 			fileRef = F514D53C0390266E01B25AF1;
 			isa = PBXBuildFile;
@@ -361,18 +337,6 @@
 			isa = PBXBuildFile;
 			settings = {
 			};
-		};
-		01A197AF071A203800B11558 = {
-			containerPortal = 29B97313FDCFA39411CA2CEA;
-			isa = PBXContainerItemProxy;
-			proxyType = 1;
-			remoteGlobalIDString = 01CB07E5071A1F2B00710BCF;
-			remoteInfo = "Hexagonal Tiles Plug-in";
-		};
-		01A197B0071A203800B11558 = {
-			isa = PBXTargetDependency;
-			target = 01CB07E5071A1F2B00710BCF;
-			targetProxy = 01A197AF071A203800B11558;
 		};
 		01CB07D9071A1F1000710BCF = {
 			fileEncoding = 30;
@@ -463,12 +427,6 @@
 			settings = {
 			};
 		};
-		01DF729B070A5C6000512549 = {
-			fileRef = 92848A0406611CE6003B3514;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 //010
 //011
 //012
@@ -496,6 +454,7 @@
 				F566B486028052CF01000108,
 				00EAAC6000853DFB7F000001,
 				00EAAC6100853DFB7F000001,
+				923384DB072180700010BE04,
 				928F724A0661214000873AE2,
 				928F726C066121AE00873AE2,
 				928F72460661211600873AE2,
@@ -666,6 +625,27 @@
 //922
 //923
 //924
+		923384DB072180700010BE04 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = MacOSaiXImageSource.h;
+			path = MacOSaiX/MacOSaiXImageSource.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		923384DC072180700010BE04 = {
+			fileRef = 923384DB072180700010BE04;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		923384DD072180700010BE04 = {
+			fileRef = 923384DB072180700010BE04;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		926CE4E903E7627700C7E70E = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -760,12 +740,8 @@
 				WRAPPER_EXTENSION = app;
 			};
 			dependencies = (
-				92848A0606611CE6003B3514,
 				92848A0806611CE6003B3514,
-				92848A0A06611CE6003B3514,
 				92848A0C06611CE6003B3514,
-				01A197B0071A203800B11558,
-				012833BC071B79C3004ACF95,
 			);
 			isa = PBXNativeTarget;
 			name = MacOSaiX.app;
@@ -790,10 +766,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				92848A1706611CE6003B3514,
-				01DF729B070A5C6000512549,
 				92848A1A06611CE6003B3514,
-				014DB63C071A2D8B00DF68C0,
-				01283223071B7244004ACF95,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -808,6 +781,7 @@
 				9284898706611CE5003B3514,
 				9284898806611CE5003B3514,
 				9284898906611CE5003B3514,
+				923384DD072180700010BE04,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1189,7 +1163,6 @@
 				WRAPPER_EXTENSION = plugin;
 			};
 			dependencies = (
-				92848A0E06611CE6003B3514,
 			);
 			isa = PBXNativeTarget;
 			name = "Directory Image Source Plug-In";
@@ -1203,6 +1176,7 @@
 			files = (
 				928489B806611CE6003B3514,
 				928489B906611CE6003B3514,
+				923384DC072180700010BE04,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1253,7 +1227,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				928489C006611CE6003B3514,
-				92848A1D06611CE6003B3514,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1697,18 +1670,6 @@
 			refType = 3;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		92848A0506611CE6003B3514 = {
-			containerPortal = 29B97313FDCFA39411CA2CEA;
-			isa = PBXContainerItemProxy;
-			proxyType = 1;
-			remoteGlobalIDString = 928489A506611CE6003B3514;
-			remoteInfo = "MacOSaiX Plugins Framework (Upgraded)";
-		};
-		92848A0606611CE6003B3514 = {
-			isa = PBXTargetDependency;
-			target = 928489A506611CE6003B3514;
-			targetProxy = 92848A0506611CE6003B3514;
-		};
 		92848A0706611CE6003B3514 = {
 			containerPortal = 29B97313FDCFA39411CA2CEA;
 			isa = PBXContainerItemProxy;
@@ -1721,18 +1682,6 @@
 			target = 928489B506611CE6003B3514;
 			targetProxy = 92848A0706611CE6003B3514;
 		};
-		92848A0906611CE6003B3514 = {
-			containerPortal = 29B97313FDCFA39411CA2CEA;
-			isa = PBXContainerItemProxy;
-			proxyType = 1;
-			remoteGlobalIDString = 928489F406611CE6003B3514;
-			remoteInfo = "QuickTime Image Source Plug-In (Upgraded)";
-		};
-		92848A0A06611CE6003B3514 = {
-			isa = PBXTargetDependency;
-			target = 928489F406611CE6003B3514;
-			targetProxy = 92848A0906611CE6003B3514;
-		};
 		92848A0B06611CE6003B3514 = {
 			containerPortal = 29B97313FDCFA39411CA2CEA;
 			isa = PBXContainerItemProxy;
@@ -1744,18 +1693,6 @@
 			isa = PBXTargetDependency;
 			target = 928489E606611CE6003B3514;
 			targetProxy = 92848A0B06611CE6003B3514;
-		};
-		92848A0D06611CE6003B3514 = {
-			containerPortal = 29B97313FDCFA39411CA2CEA;
-			isa = PBXContainerItemProxy;
-			proxyType = 1;
-			remoteGlobalIDString = 928489A506611CE6003B3514;
-			remoteInfo = "MacOSaiX Plugins Framework (Upgraded)";
-		};
-		92848A0E06611CE6003B3514 = {
-			isa = PBXTargetDependency;
-			target = 928489A506611CE6003B3514;
-			targetProxy = 92848A0D06611CE6003B3514;
 		};
 		92848A0F06611CE6003B3514 = {
 			containerPortal = 29B97313FDCFA39411CA2CEA;
@@ -1818,12 +1755,6 @@
 			};
 		};
 		92848A1B06611CE6003B3514 = {
-			fileRef = 928489B406611CE6003B3514;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		92848A1D06611CE6003B3514 = {
 			fileRef = 928489B406611CE6003B3514;
 			isa = PBXBuildFile;
 			settings = {

@@ -6,8 +6,8 @@
 
 
 - (id)initWithMatchValue:(float)inMatchValue 
-	  forImageIdentifier:(id<NSCopying>)inImageIdentifier 
-		 fromImageSource:(ImageSource *)inImageSource
+	  forImageIdentifier:(NSString *)inImageIdentifier 
+		 fromImageSource:(id<MacOSaiXImageSource>)inImageSource
 {
 	if (self = [super init])
 	{
@@ -26,13 +26,13 @@
 }
 
 
-- (ImageSource *)imageSource
+- (id<MacOSaiXImageSource>)imageSource
 {
 	return imageSource;
 }
 
 
-- (id<NSCopying>)imageIdentifier
+- (NSString *)imageIdentifier
 {
 	return imageIdentifier;
 }
@@ -143,8 +143,8 @@
 	// Match this tile's bitmap against matchRep and return whether the new match is better
 	// than this tile's previous worst.
 - (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep
-			  withIdentifier:(id<NSCopying>)imageIdentifier
-		     fromImageSource:(ImageSource *)imageSource
+			  withIdentifier:(NSString *)imageIdentifier
+		     fromImageSource:(id<MacOSaiXImageSource>)imageSource
 {
     int				bytesPerPixel1, bytesPerRow1, bytesPerPixel2, bytesPerRow2, maskBytesPerPixel, maskBytesPerRow;
     int				pixelCount = 0, pixelsLeft;
@@ -372,7 +372,7 @@
 }
 
 
-- (void)setUserChosenImageIdentifer:(id<NSCopying>)imageIdentifier fromImageSource:(ImageSource *)imageSource
+- (void)setUserChosenImageIdentifer:(NSString *)imageIdentifier fromImageSource:(id<MacOSaiXImageSource>)imageSource
 {
 /*
         // Don't do anything if the chosen image was already chosen
@@ -431,7 +431,7 @@
 }
 
 
-- (float)matchValueForImageIdentifer:(id<NSCopying>)imageIdentifier fromImageSource:(ImageSource *)imageSource
+- (float)matchValueForImageIdentifer:(NSString *)imageIdentifier fromImageSource:(id<MacOSaiXImageSource>)imageSource
 {
 	float	matchValue = WORST_CASE_PIXEL_MATCH;
 	
@@ -440,7 +440,7 @@
 		ImageMatch		*imageMatch = nil;
 		
 		while (imageMatch = [matchEnumerator nextObject])
-			if ([[imageMatch imageIdentifier] isEqualTo:imageIdentifier] && [[imageMatch imageSource] isEqualTo:imageSource])
+			if ([[imageMatch imageIdentifier] isEqualToString:imageIdentifier] && [imageMatch imageSource] == imageSource)
 			{
 				matchValue = [imageMatch matchValue];
 				break;

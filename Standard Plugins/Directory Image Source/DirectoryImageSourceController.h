@@ -7,16 +7,30 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <MacOSaiXPlugIns/ImageSourceController.h>
+
+#import "MacOSaiXImageSource.h"
+#import "DirectoryImageSource.h"
 
 
-@interface DirectoryImageSourceController : ImageSourceController
+@interface DirectoryImageSourceController : NSObject <MacOSaiXImageSourceController>
 {
-	IBOutlet NSTextField	*_pathField;
-	IBOutlet NSButton		*_okButton;
+	IBOutlet NSView			*imageSourceView;
+
+	IBOutlet NSImageView	*pathComponent1ImageView,
+							*pathComponent2ImageView,
+							*pathComponent3ImageView,
+							*pathComponent4ImageView,
+							*pathComponent5ImageView;
+	IBOutlet NSTextField	*pathComponent1TextField,
+							*pathComponent2TextField,
+							*pathComponent3TextField,
+							*pathComponent4TextField,
+							*pathComponent5TextField;
+	
+		// The image source instance currently being edited.
+	DirectoryImageSource	*currentImageSource;
 }
 
-- (void)chooseDirectory:(id)sender;
-- (void)chooseDirectoryDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode contextInfo:(void *)context;
+- (IBAction)chooseDirectory:(id)sender;
 
 @end

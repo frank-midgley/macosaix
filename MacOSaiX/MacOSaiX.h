@@ -13,13 +13,13 @@
 @interface MacOSaiX : NSObject
 {
 	NSMutableArray 	*_tilesSetupControllerClasses,
-					*_imageSourceControllerClasses,
+					*imageSourceClasses,
 					*_loadedPlugInPaths;
 }
 
 - (void)openPreferences2:(id)sender;
 - (void)discoverPlugIns;
 - (NSArray *)tilesSetupControllerClasses;
-- (NSArray *)imageSourceControllerClasses;
+- (NSArray *)imageSourceClasses;
 
 @end

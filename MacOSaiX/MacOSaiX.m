@@ -1,9 +1,11 @@
 #import "MacOSaiX.h"
 #import "PreferencesController.h"
 #import <MacOSaiXPlugins/TilesSetupController.h>
-#import <MacOSaiXPlugins/ImageSourceController.h>
+#import "MacOSaiXImageSource.h"
+
 
 @implementation MacOSaiX
+
 
 + (void)initialize
 {
@@ -34,7 +36,7 @@
 	if (self = [super init])
 	{
 		_tilesSetupControllerClasses = [[NSMutableArray arrayWithCapacity:1] retain];
-		_imageSourceControllerClasses = [[NSMutableArray arrayWithCapacity:4] retain];
+		imageSourceClasses = [[NSMutableArray arrayWithCapacity:4] retain];
 		_loadedPlugInPaths = [[NSMutableArray arrayWithCapacity:5] retain];
 	}
 	return self;
@@ -96,9 +98,9 @@
 					[_loadedPlugInPaths addObject:plugInsPath];
 				}
 
-				if (plugInPrincipalClass && [plugInPrincipalClass isSubclassOfClass:[ImageSourceController class]])
+				if (plugInPrincipalClass && [plugInPrincipalClass conformsToProtocol:@protocol(MacOSaiXImageSource)])
 				{
-					[_imageSourceControllerClasses addObject:plugInPrincipalClass];
+					[imageSourceClasses addObject:plugInPrincipalClass];
 					[_loadedPlugInPaths addObject:plugInsPath];
 				}
 
@@ -116,9 +118,9 @@
 }
 
 
-- (NSArray *)imageSourceControllerClasses
+- (NSArray *)imageSourceClasses
 {
-	return _imageSourceControllerClasses;
+	return imageSourceClasses;
 }
 
 

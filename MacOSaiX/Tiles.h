@@ -4,23 +4,23 @@
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
 
-#import "ImageSource.h"
+#import "MacOSaiXImageSource.h"
 
 #define TILE_BITMAP_SIZE 32.0
 
 
 @interface ImageMatch : NSObject
 {
-    float			matchValue;
-    ImageSource		*imageSource;
-	id<NSCopying>   imageIdentifier;
+    float					matchValue;
+    id<MacOSaiXImageSource>	imageSource;
+	NSString				*imageIdentifier;
 }
 - (id)initWithMatchValue:(float)inMatchValue 
-	  forImageIdentifier:(id<NSCopying>)inImageIdentifier 
-		 fromImageSource:(ImageSource *)inImageSource;
+	  forImageIdentifier:(NSString *)inImageIdentifier 
+		 fromImageSource:(id<MacOSaiXImageSource>)inImageSource;
 - (float)matchValue;
-- (ImageSource *)imageSource;
-- (id<NSCopying>)imageIdentifier;
+- (id<MacOSaiXImageSource>)imageSource;
+- (NSString *)imageIdentifier;
 @end
 
 
@@ -58,20 +58,20 @@
 - (NSBitmapImageRep *)bitmapRep;
 
 - (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep
-			  withIdentifier:(id<NSCopying>)imageIdentifier
-		     fromImageSource:(ImageSource *)imageSource;
+			  withIdentifier:(NSString *)imageIdentifier
+		     fromImageSource:(id<MacOSaiXImageSource>)imageSource;
 //- (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep fromCachedImage:(CachedImage *)cachedImage
 //				  forDocument:(NSDocument *)document;
 
 - (ImageMatch *)displayedImageMatch;
 - (BOOL)calculateBestMatch;
 
-- (void)setUserChosenImageIdentifer:(id<NSCopying>)imageIdentifier fromImageSource:(ImageSource *)imageSource;
+- (void)setUserChosenImageIdentifer:(NSString *)imageIdentifier fromImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (ImageMatch *)userChosenImageMatch;
 
 - (NSArray *)matches;
 - (int)matchCount;
 
-- (float)matchValueForImageIdentifer:(id<NSCopying>)imageIdentifier fromImageSource:(ImageSource *)imageSource;
+- (float)matchValueForImageIdentifer:(NSString *)imageIdentifier fromImageSource:(id<MacOSaiXImageSource>)imageSource;
 
 @end
