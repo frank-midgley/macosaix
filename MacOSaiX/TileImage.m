@@ -15,12 +15,12 @@ static NSRecursiveLock	*_loadImageLock, *_removeImageFromCacheLock;
 }
 
 
-- (id)initWithIdentifier:(id)identifier fromImageSourceIndex:(int)sourceIndex
+- (id)initWithIdentifier:(id)identifier fromImageSource:(ImageSource *)imageSource
 {
     if (identifier == nil) NSLog(@"Illegal TileImage initialization");
     self = [super init];
     _imageIdentifier = [identifier retain];
-    _imageSourceIndex = sourceIndex;
+    _imageSource = [imageSource retain];
     _useCount = 0;
     return self;
 }
@@ -30,7 +30,7 @@ static NSRecursiveLock	*_loadImageLock, *_removeImageFromCacheLock;
 {
     self = [super init];
 //    _imageSource = [[coder decodeObject] retain];
-    _imageSourceIndex = [[coder decodeObject] intValue];
+    _imageSource = [[coder decodeObject] retain];
     _useCount = [[coder decodeObject] intValue];
     _imageIdentifier = [[coder decodeObject] retain];
     return self;
@@ -40,15 +40,15 @@ static NSRecursiveLock	*_loadImageLock, *_removeImageFromCacheLock;
 - (void)encodeWithCoder:(NSCoder *)coder
 {
 //    [coder encodeObject:_imageSource];
-    [coder encodeObject:[NSNumber numberWithInt:_imageSourceIndex]];
+    [coder encodeObject:_imageSource];
     [coder encodeObject:[NSNumber numberWithInt:_useCount]];
     [coder encodeObject:_imageIdentifier];
 }
 
 
-- (int)imageSourceIndex
+- (ImageSource *)imageSource
 {
-    return _imageSourceIndex;
+    return _imageSource;
 }
 
 
@@ -58,7 +58,7 @@ static NSRecursiveLock	*_loadImageLock, *_removeImageFromCacheLock;
 }
 
 
-- (NSImage *)imageFromSources:(NSArray *)imageSources;
+- (NSImage *)image;
 {
     NSImage	*imageRef;
     
@@ -80,7 +80,7 @@ static NSRecursiveLock	*_loadImageLock, *_removeImageFromCacheLock;
     }
 
 		// we weren't cached, reload our image from the image source
-    imageRef = [[imageSources objectAtIndex:_imageSourceIndex] imageForIdentifier:_imageIdentifier];
+    imageRef = [_imageSource imageForIdentifier:_imageIdentifier];
 
     if (imageRef != nil)
     {
@@ -132,12 +132,14 @@ static NSRecursiveLock	*_loadImageLock, *_removeImageFromCacheLock;
 
 - (void)imageIsInUse
 {
+	[self retain];
     _useCount++;
 }
 
 
 - (BOOL)imageIsNotInUse
 {
+	[self autorelease];
     return (--_useCount == 0);
 }
 
