@@ -2,7 +2,6 @@
 #import "Tiles.h"
 #import "MacOSaiXTileShapes.h"
 #import "MacOSaiXImageSource.h"
-#import "MacOSaiXImageCache.h"
 
 
 @interface MacOSaiXDocument : NSDocument 
@@ -12,7 +11,6 @@
     NSMutableArray				*imageSources,
 								*tiles;
 	id<MacOSaiXTileShapes>		tileShapes;
-	MacOSaiXImageCache			*imageCache;
 	
 	int							imageUseCount;
 	int							neighborhoodSize;
@@ -84,8 +82,6 @@
 - (NSArray *)imageSources;
 - (void)addImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource;
-
-- (MacOSaiXImageCache *)imageCache;
 
 @end
 

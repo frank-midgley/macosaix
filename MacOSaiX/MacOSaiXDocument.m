@@ -10,12 +10,13 @@
 #import "MacOSaiX.h"
 #import "MacOSaiXDocument.h"
 #import "MacOSaiXWindowController.h"
+#import "MacOSaiXImageCache.h"
 #import "Tiles.h"
 #import "NSImage+MacOSaiX.h"
 
 
 	// The maximum size of the image URL queue
-#define MAXIMAGEURLS 10
+#define MAXIMAGEURLS 4
 
 
 	// Notifications
@@ -34,7 +35,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 - (void)calculateImageMatches:(id)path;
 - (void)extractTileImagesFromOriginalImage:(id)object;
 - (void)updateEditor;
-- (BOOL)showTileMatchInEditor:(ImageMatch *)tileMatch selecting:(BOOL)selecting;
+- (BOOL)showTileMatchInEditor:(MacOSaiXImageMatch *)tileMatch selecting:(BOOL)selecting;
 - (NSImage *)createEditorImage:(int)rowIndex;
 @end
 
@@ -69,8 +70,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		enumerationThreadCountLock = [[NSLock alloc] init];
 		enumerationCountsLock = [[NSLock alloc] init];
 		enumerationCounts = [[NSMutableDictionary dictionary] retain];
-		
-		imageCache = [[MacOSaiXImageCache alloc] init];
 		
 		[self setNeighborhoodSize:5];
 	}
@@ -129,12 +128,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 //}
 
 
-- (MacOSaiXImageCache *)imageCache
-{
-	return imageCache;
-}
-
-
 - (void)setOriginalImagePath:(NSString *)path
 {
 	if (![path isEqualToString:originalImagePath])
@@ -144,7 +137,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		
 		originalImagePath = [[NSString stringWithString:path] retain];
 		originalImage = [[NSImage alloc] initWithContentsOfFile:path];
-		[originalImage setCacheMode:NSImageCacheNever];
+		[originalImage setCachedSeparately:YES];
+//		[originalImage setCacheMode:NSImageCacheNever];
 
 			// Ignore whatever DPI was set for the image.  We just care about the bitmap.
 		NSImageRep	*originalRep = [[originalImage representations] objectAtIndex:0];
@@ -220,9 +214,14 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	if (paused)
 	{
 		if ([[tiles objectAtIndex:0] bitmapRep] == nil)
+		{
+				// Automatically start the mosaic.
+				// Show the mosaic image and start extracting the tile images.
+			[[[self windowControllers] objectAtIndex:0] setViewMosaic:self];
 			[NSApplication detachDrawingThread:@selector(extractTileImagesFromOriginalImage)
 									  toTarget:self
 									withObject:nil];
+		}
 		else
 		{
 				// Start or restart the image sources
@@ -354,9 +353,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	MacOSaiXTile		*tile = nil;
 	while (tile = [tileEnumerator nextObject])
 	{
-		NSEnumerator	*matchEnumerator = [[NSArray arrayWithObjects:[tile imageMatch], [tile userChosenImageMatch], nil] 
-												objectEnumerator];
-		ImageMatch		*match = nil;
+		NSEnumerator		*matchEnumerator = [[NSArray arrayWithObjects:[tile imageMatch], [tile userChosenImageMatch], nil] 
+																objectEnumerator];
+		MacOSaiXImageMatch	*match = nil;
 		while (match = [matchEnumerator nextObject])
 		{
 			NSString			*imageSourceID = [self indexAsAlpha:[imageSources indexOfObjectIdenticalTo:[match imageSource]]];
@@ -409,6 +408,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			NSString	*xmlPath = [savePath stringByAppendingPathComponent:@"Mosaic.xml"];
 			if (![[NSFileManager defaultManager] createFileAtPath:xmlPath contents:nil attributes:nil])
 			{
+				// TODO
 			}
 			else
 			{
@@ -430,21 +430,23 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				[fileHandle writeData:[tileShapesXML dataUsingEncoding:NSUTF8StringEncoding]];
 				[fileHandle writeData:[@"</TILE_SHAPES_SETTINGS>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				
-				[fileHandle writeData:[[NSString stringWithFormat:@"<TILE_NEIGHBORHOOD SIZE=\"%d\">\n\n", neighborhoodSize] dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[@"<IMAGE_USAGE>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\">\n", [self useCount], [self neighborhoodSize]] dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[@"</IMAGE_USAGE>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				
-				NSDictionary	*imagesInUse = [self imagesInUse];
+//				NSDictionary	*imagesInUse = [self imagesInUse];
 				
 					// Write out the cached images
-				[fileHandle writeData:[[imageCache xmlDataWithImageSources:imageSources] dataUsingEncoding:NSUTF8StringEncoding]];
-		//		if (![cachedImagesPath hasPrefix:fileName])
-		//		{
-		//				// This is the first time this mosaic has been saved so move 
-		//				// the image cache directory from /tmp to the new location.
-		//			NSString	*savedCachedImagesPath = [fileName stringByAppendingPathComponent:@"Cached Images"];
-		//			[fileManager movePath:cachedImagesPath toPath:savedCachedImagesPath handler:nil];
-		//			[cachedImagesPath autorelease];
-		//			cachedImagesPath = [savedCachedImagesPath retain];
-		//		}
+//				[fileHandle writeData:[[imageCache xmlDataWithImageSources:imageSources] dataUsingEncoding:NSUTF8StringEncoding]];
+//				if (![cachedImagesPath hasPrefix:fileName])
+//				{
+//						// This is the first time this mosaic has been saved so move 
+//						// the image cache directory from /tmp to the new location.
+//					NSString	*savedCachedImagesPath = [fileName stringByAppendingPathComponent:@"Cached Images"];
+//					[fileManager movePath:cachedImagesPath toPath:savedCachedImagesPath handler:nil];
+//					[cachedImagesPath autorelease];
+//					cachedImagesPath = [savedCachedImagesPath retain];
+//				}
 				
 					// Write out the image sources.
 				[fileHandle writeData:[@"<IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
@@ -471,15 +473,15 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					[fileHandle writeData:[@"\t\t</SETTINGS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 					
 						// Output an element for each image ID
-					[fileHandle writeData:[@"\t\t<IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-					NSDictionary	*imageSourceImageDict = [imagesInUse objectForKey:imageSourceID];
-					NSEnumerator	*identifierEnumerator = [imageSourceImageDict keyEnumerator];
-					NSString		*identifier = nil;
-					while (identifier = [identifierEnumerator nextObject])
-						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<IMAGE ID=\"%@\" IDENTIFIER=\"%@\">\n", 
-																		 [imageSourceImageDict objectForKey:identifier], identifier]
-													dataUsingEncoding:NSUTF8StringEncoding]];
-					[fileHandle writeData:[@"\t\t</IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+//					[fileHandle writeData:[@"\t\t<IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+//					NSDictionary	*imageSourceImageDict = [imagesInUse objectForKey:imageSourceID];
+//					NSEnumerator	*identifierEnumerator = [imageSourceImageDict keyEnumerator];
+//					NSString		*identifier = nil;
+//					while (identifier = [identifierEnumerator nextObject])
+//						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<IMAGE ID=\"%@\" IDENTIFIER=\"%@\">\n", 
+//																		 [imageSourceImageDict objectForKey:identifier], identifier]
+//													dataUsingEncoding:NSUTF8StringEncoding]];
+//					[fileHandle writeData:[@"\t\t</IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 					
 					[fileHandle writeData:[@"\t</IMAGE_SOURCE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				}
@@ -487,16 +489,17 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				
 					// Write out the tiles
 				[fileHandle writeData:[@"<TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				NSMutableString	*buffer = [NSMutableString string];
 				NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
 				MacOSaiXTile	*tile = nil;
 				while (tile = [tileEnumerator nextObject])
 				{
 					NSAutoreleasePool	*tilePool = [[NSAutoreleasePool alloc] init];
 					
-					[fileHandle writeData:[@"\t<TILE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					[buffer appendString:@"\t<TILE>\n"];
 					
 						// First write out the tile's outline
-					[fileHandle writeData:[@"\t\t<OUTLINE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					[buffer appendString:@"\t\t<OUTLINE>\n"];
 					int index;
 					for (index = 0; index < [[tile outline] elementCount]; index++)
 					{
@@ -504,17 +507,18 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 						switch ([[tile outline] elementAtIndex:index associatedPoints:points])
 						{
 							case NSMoveToBezierPathElement:
-								[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<MOVE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
-																	points[0].x, points[0].y] dataUsingEncoding:NSUTF8StringEncoding]];
+								[buffer appendString:[NSString stringWithFormat:@"\t\t\t<MOVE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
+																				points[0].x, points[0].y]];
 								break;
 							case NSLineToBezierPathElement:
-								[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<LINE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
-																	points[0].x, points[0].y] dataUsingEncoding:NSUTF8StringEncoding]];
+								[buffer appendString:[NSString stringWithFormat:@"\t\t\t<LINE_TO X=\"%0.6f\" Y=\"%0.6f\">\n", 
+																				points[0].x, points[0].y]];
 								break;
 							case NSCurveToBezierPathElement:
-								[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<CURVE_TO X=\"%0.6f\" Y=\"%0.6f\" C1X=\"%0.6f\" C1Y=\"%0.6f\" C2X=\"%0.6f\" C2Y=\"%0.6f\">\n", 
-																	points[2].x, points[2].y, points[0].x, points[0].y, points[1].x, points[1].y] 
-															dataUsingEncoding:NSUTF8StringEncoding]];
+								[buffer appendString:[NSString stringWithFormat:@"\t\t\t<CURVE_TO X=\"%0.6f\" Y=\"%0.6f\" C1X=\"%0.6f\" C1Y=\"%0.6f\" C2X=\"%0.6f\" C2Y=\"%0.6f\">\n", 
+																				points[2].x, points[2].y, 
+																				points[0].x, points[0].y, 
+																				points[1].x, points[1].y]];
 								break;
 							case NSClosePathBezierPathElement:
 								index = [[tile outline] elementCount];	// done, break out of the loop
@@ -523,12 +527,30 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 								;
 						}
 					}
-					[fileHandle writeData:[@"\t\t</OUTLINE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					[buffer appendString:@"\t\t</OUTLINE>\n"];
 					
 						// Now write out the tile's matches.
+					MacOSaiXImageMatch	*uniqueMatch = [tile imageMatch];
+					if (uniqueMatch)
+					{
+						NSString	*sourceID = [self indexAsAlpha:[imageSources indexOfObjectIdenticalTo:[uniqueMatch imageSource]]];
+						[buffer appendString:[NSString stringWithFormat:@"\t\t<UNIQUE_MATCH SOURCE=\"%@\" ID=\"%@\" VALUE=\"%f\"/>\n", 
+																		  sourceID,
+																		  [uniqueMatch imageIdentifier],
+																		  [uniqueMatch matchValue]]];
+					}
+					MacOSaiXImageMatch	*userChosenMatch = [tile userChosenImageMatch];
+					if (userChosenMatch)
+					{
+						NSString	*sourceID = [self indexAsAlpha:[imageSources indexOfObjectIdenticalTo:[userChosenMatch imageSource]]];
+						[buffer appendString:[NSString stringWithFormat:@"\t\t<USER_CHOSEN_MATCH SOURCE=\"%@\" ID=\"%@\" VALUE=\"%f\"/>\n", 
+																		  sourceID,
+																		  [userChosenMatch imageIdentifier],
+																		  [userChosenMatch matchValue]]];
+					}
 //					[fileHandle writeData:[@"\t\t<MATCH_DATA>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 //					NSEnumerator	*matchEnumerator = [[tile matches] objectEnumerator];
-//					ImageMatch		*match = nil;
+//					MacOSaiXImageMatch		*match = nil;
 //					while (match = [matchEnumerator nextObject])
 //					{
 //						NSString			*imageSourceID = [self indexAsAlpha:[imageSources indexOfObjectIdenticalTo:[match imageSource]]];
@@ -542,10 +564,17 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					
 					// TODO: (match == [tile userChosenImageMatch] ? @"USER_CHOSEN" : @"")] 
 					
-					[fileHandle writeData:[@"\t</TILE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					[buffer appendString:@"\t</TILE>\n"];
+					
+					if ([buffer length] > 1<<20)
+					{
+						[fileHandle writeData:[buffer dataUsingEncoding:NSUTF8StringEncoding]];
+						[buffer setString:@""];
+					}
 					
 					[tilePool release];
 				}
+				[fileHandle writeData:[buffer dataUsingEncoding:NSUTF8StringEncoding]];
 				[fileHandle writeData:[@"</TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				
 				[fileHandle closeFile];
@@ -1020,7 +1049,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 		
 			// Set the caching behavior of the image.  We'll be adding bitmap representations of various
 			// sizes to the image so it doesn't need to do any of its own caching.
-		[image setCacheMode:NSImageCacheNever];
+//		[image setCacheMode:NSImageCacheNever];
 		[image setCachedSeparately:YES];
 		
 		BOOL	imageIsValid = NO;
@@ -1050,7 +1079,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 					// TODO: are we losing an image if documentIsClosing?
 					
 					[image setCachedSeparately:YES];
-					[image setCacheMode:NSImageCacheNever];
+//					[image setCacheMode:NSImageCacheNever];
 					
 					[imageQueue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 												image, @"Image",
@@ -1175,7 +1204,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 		{
 				// Add this image to the cache.  If the identifier is nil or zero-length then 
 				// a new identifier will be returned.
-			pixletImageIdentifier = [imageCache cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
+			pixletImageIdentifier = [[MacOSaiXImageCache sharedImageCache] cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
 		}
 		
 			// Find the tiles that match this image better than their current image.
@@ -1184,11 +1213,14 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 		if (betterMatches)
 		{
 				// Remove any tiles from the list that have gotten a better match since the list was cached.
-			NSEnumerator	*betterMatchEnumerator = [[NSArray arrayWithArray:betterMatches] objectEnumerator];
-			ImageMatch		*betterMatch = nil;
+			NSEnumerator		*betterMatchEnumerator = [[NSArray arrayWithArray:betterMatches] objectEnumerator];
+			MacOSaiXImageMatch	*betterMatch = nil;
 			while ((betterMatch = [betterMatchEnumerator nextObject]) && !documentIsClosing)
-				if ([[[betterMatch tile] imageMatch] matchValue] < [betterMatch matchValue])
+			{
+				MacOSaiXImageMatch	*currentMatch = [[betterMatch tile] imageMatch];
+				if (currentMatch && [currentMatch matchValue] < [betterMatch matchValue])
 					[betterMatches removeObjectIdenticalTo:betterMatch];
+			}
 		}
 		else
 		{
@@ -1201,9 +1233,9 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 				NSAutoreleasePool	*pool3 = [[NSAutoreleasePool alloc] init];
 				
 					// Get a rep for the image scaled to the tile's bitmap size.
-				NSBitmapImageRep	*imageRep = [[self imageCache] imageRepAtSize:[[tile bitmapRep] size] 
-																	forIdentifier:pixletImageIdentifier 
-																	   fromSource:pixletImageSource];
+				NSBitmapImageRep	*imageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[[tile bitmapRep] size] 
+																					    forIdentifier:pixletImageIdentifier 
+																						   fromSource:pixletImageSource];
 		
 				if (imageRep)
 				{
@@ -1220,10 +1252,10 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 						matchValue < [[tile imageMatch] matchValue] ||
 						([[tile imageMatch] imageSource] == pixletImageSource && 
 						 [[[tile imageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier]))
-						[betterMatches addObject:[[[ImageMatch alloc] initWithMatchValue:matchValue 
-																	  forImageIdentifier:pixletImageIdentifier 
-																		 fromImageSource:pixletImageSource
-																				 forTile:tile] autorelease]];
+						[betterMatches addObject:[[[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
+																			  forImageIdentifier:pixletImageIdentifier 
+																				 fromImageSource:pixletImageSource
+																						 forTile:tile] autorelease]];
 				}
 				
 				[pool3 release];
@@ -1242,19 +1274,18 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 		}
 		else
 		{
-			// Figure out which tiles should be set to use the image based on the user's settings.
-#if 1
+				// Figure out which tiles should be set to use the image based on the user's settings.
 				// Just allow a fixed number of uses of each image for now.  No neighborhood size yet.
 			int	i, useCount = [self imageUseCount];
 			if (useCount == 0 || [betterMatches count] < useCount)
 				useCount = [betterMatches count];
 			for (i = 0; i < useCount; i++)
 			{
-				ImageMatch		*betterMatch = [betterMatches objectAtIndex:i];
-				MacOSaiXTile	*tile = [betterMatch tile];
+				MacOSaiXImageMatch	*betterMatch = [betterMatches objectAtIndex:i];
+				MacOSaiXTile		*tile = [betterMatch tile];
 				
 					// Add the tile's current image back to the queue so it can potentially get re-used by other tiles.
-				ImageMatch	*previousMatch = [tile imageMatch];
+				MacOSaiXImageMatch	*previousMatch = [tile imageMatch];
 				if (previousMatch && ([previousMatch imageSource] != pixletImageSource || 
 					![[previousMatch imageIdentifier] isEqualToString:pixletImageIdentifier]) &&
 					[self imageUseCount] > 0)
@@ -1276,19 +1307,6 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 				[tile setImageMatch:betterMatch];
 			}
 			[self updateChangeCount:NSChangeDone];
-#else
-			NSEnumerator	*matchEnumerator = [betterMatches objectEnumerator];
-			ImageMatch		*betterMatch = nil;
-			while ((betterMatch = [matchEnumerator nextObject]) && !documentIsClosing)
-			{
-				MacOSaiXTile	*tile = [betterMatch tile];
-	//			if ( ??? )
-				{
-					[tile setImageMatch:betterMatch];
-					[self updateChangeCount:NSChangeDone];
-				}
-			}
-#endif
 		}
 		
 		if (pixletImage)
@@ -1520,7 +1538,6 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
     [tileImages release];
     [tileImagesLock release];
 	[directNeighbors release];
-    [imageCache release];
 	
     [super dealloc];
 }
