@@ -153,6 +153,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		originalImagePath = [[NSString stringWithString:path] retain];
 		originalImage = [[NSImage alloc] initWithContentsOfFile:path];
 		[originalImage setCachedSeparately:YES];
+		originalImageAspectRatio = [originalImage size].width / [originalImage size].height;
 
 			// Ignore whatever DPI was set for the image.  We just care about the bitmap.
 		NSImageRep	*originalRep = [[originalImage representations] objectAtIndex:0];
@@ -1426,11 +1427,16 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 		NSMutableArray	*betterMatches = [betterMatchesCache objectForKey:pixletKey];
 		if (betterMatches)
 		{
+				// The cache contains the list of tiles which could be improved by using this image.
 				// Remove any tiles from the list that have gotten a better match since the list was cached.
 				// Also remove any tiles that have the exact same match value but for a different image.  This 
-				// avoids infinite loop conditions if you have multiple image files containing the exact same image.
-			NSEnumerator		*betterMatchEnumerator = [[NSArray arrayWithArray:betterMatches] objectEnumerator];
+				// avoids infinite loop conditions if you have multiple image that have the exact same match 
+				// value (typically when there are multiple files containing the exact same image).
+			NSEnumerator		*betterMatchEnumerator = [betterMatches objectEnumerator];
 			MacOSaiXImageMatch	*betterMatch = nil;
+			unsigned			currentIndex = 0,
+								indicesToRemove[[betterMatches count]],
+								countOfIndicesToRemove = 0;
 			while ((betterMatch = [betterMatchEnumerator nextObject]) && !documentIsClosing)
 			{
 				MacOSaiXImageMatch	*currentMatch = [[betterMatch tile] imageMatch];
@@ -1438,8 +1444,10 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 									 ([currentMatch matchValue] == [betterMatch matchValue] && 
 										([currentMatch imageSource] != [betterMatch imageSource] || 
 										 [currentMatch imageIdentifier] != [betterMatch imageIdentifier]))))
-					[betterMatches removeObjectIdenticalTo:betterMatch];
+					indicesToRemove[countOfIndicesToRemove++] = currentIndex;
+				currentIndex++;
 			}
+			[betterMatches removeObjectsFromIndices:indicesToRemove numIndices:countOfIndicesToRemove];
 		}
 		else
 		{
@@ -1493,18 +1501,46 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 		}
 		else
 		{
-				// Figure out which tiles should be set to use the image based on the user's settings.
-				// Just allow a fixed number of uses of each image for now.  No neighborhood size yet.
-			int	i, useCount = [self imageUseCount];
-			if (useCount == 0 || [betterMatches count] < useCount)
+			// Figure out which tiles should be set to use the image based on the user's settings.
+			
+				// A use count of zero means no limit on the number of times this image can be used.
+			int					useCount = [self imageUseCount];
+			if (useCount == 0)
 				useCount = [betterMatches count];
-			for (i = 0; i < useCount; i++)
+			
+				// Loop through the list of better matches and pick the first items (up to the use count) 
+				// that aren't too close together.
+			NSMutableArray		*matchesToUpdate = [NSMutableArray array];
+			NSEnumerator		*betterMatchEnumerator = [betterMatches objectEnumerator];
+			MacOSaiXImageMatch	*betterMatch = nil;
+			while ((betterMatch = [betterMatchEnumerator nextObject]) && [matchesToUpdate count] < useCount)
 			{
-				MacOSaiXImageMatch	*betterMatch = [betterMatches objectAtIndex:i];
-				MacOSaiXTile		*tile = [betterMatch tile];
+				MacOSaiXTile		*betterMatchTile = [betterMatch tile];
+				NSEnumerator		*matchesToUpdateEnumerator = [matchesToUpdate objectEnumerator];
+				MacOSaiXImageMatch	*matchToUpdate = nil;
+				float				closestDistance = INFINITY;
+				while (matchToUpdate = [matchesToUpdateEnumerator nextObject])
+				{
+					float	widthDiff = NSMidX([[betterMatchTile outline] bounds]) - 
+										NSMidX([[[matchToUpdate tile] outline] bounds]), 
+							heightDiff = (NSMidY([[betterMatchTile outline] bounds]) - 
+										  NSMidY([[[matchToUpdate tile] outline] bounds])) / originalImageAspectRatio, 
+							distanceSquared = widthDiff * widthDiff + heightDiff * heightDiff;
+					
+					closestDistance = MIN(closestDistance, distanceSquared);
+				}
 				
+				if ([matchesToUpdate count] == 0 ||
+					closestDistance > (1 / originalImageAspectRatio) * (1 / originalImageAspectRatio) / 4.0)
+					[matchesToUpdate addObject:betterMatch];
+			}
+			
+			NSEnumerator		*matchesToUpdateEnumerator = [matchesToUpdate objectEnumerator];
+			MacOSaiXImageMatch	*matchToUpdate = nil;
+			while (matchToUpdate = [matchesToUpdateEnumerator nextObject])
+			{
 					// Add the tile's current image back to the queue so it can potentially get re-used by other tiles.
-				MacOSaiXImageMatch	*previousMatch = [tile imageMatch];
+				MacOSaiXImageMatch	*previousMatch = [[matchToUpdate tile] imageMatch];
 				if (previousMatch && ([previousMatch imageSource] != pixletImageSource || 
 					![[previousMatch imageIdentifier] isEqualToString:pixletImageIdentifier]) &&
 					[self imageUseCount] > 0)
@@ -1526,8 +1562,9 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 					}
 				}
 				
-				[tile setImageMatch:betterMatch];
+				[[matchToUpdate tile] setImageMatch:matchToUpdate];
 			}
+			
 			[self updateChangeCount:NSChangeDone];
 		}
 		
@@ -1651,7 +1688,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 			SEL		shouldCloseSelector = NSSelectorFromString([(NSDictionary *)metaContextInfo objectForKey:@"Should Close Selector"]);
 			void	*contextInfo = nil;
 			if ([(NSDictionary *)metaContextInfo objectForKey:@"Context Info"])
-				sscanf([[(NSDictionary *)metaContextInfo objectForKey:@"Context Info"] UTF8String], "%p", &contextInfo);
+				contextInfo = [(NSValue *)[(NSDictionary *)metaContextInfo objectForKey:@"Context Info"] pointerValue];
 			
 			if (shouldCloseDelegate && [shouldCloseDelegate respondsToSelector:shouldCloseSelector])
 			{
@@ -1683,7 +1720,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	SEL		shouldCloseSelector = NSSelectorFromString([(NSDictionary *)metaContextInfo objectForKey:@"Should Close Selector"]);
 	void	*contextInfo = nil;
 	if ([(NSDictionary *)metaContextInfo objectForKey:@"Context Info"])
-		sscanf([[(NSDictionary *)metaContextInfo objectForKey:@"Context Info"] UTF8String], "%p", &contextInfo);
+		contextInfo = [(NSValue *)[(NSDictionary *)metaContextInfo objectForKey:@"Context Info"] pointerValue];
 	
 	if (shouldCloseDelegate && [shouldCloseDelegate respondsToSelector:shouldCloseSelector])
 	{
