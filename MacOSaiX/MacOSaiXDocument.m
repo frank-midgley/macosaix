@@ -2329,10 +2329,42 @@
 #pragma mark
 
 
-//- (void)save
-//{
-//	
-//}
+- (void)save
+{
+	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	NSFileHandle	*fileHandle = [NSFileHandle fileHandleForWritingAtPath:@"/tmp/Saved.mosaic"];
+	
+		// Write out the XML header.
+	[fileHandle writeData:[@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+	[fileHandle writeData:[@"<!DOCTYPE plist PUBLIC \"-//Frank M. Midgley//DTD MacOSaiX 1.0//EN\" \"http://homepage.mac.com/knarf/DTDs/MacOSaiX-1.0.dtd\">" dataUsingEncoding:NSUTF8StringEncoding]];
+	
+		// Write out the image sources.
+	[fileHandle writeData:[@"<IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+	int	index;
+	for (index = 0; index < [imageSources count]; index++)
+	{
+		ImageSource	*imageSource = [imageSource objectAtIndex:index];
+		NSString	*bundleID = [[NSBundle bundleForClass:[imageSource class]] bundleIdentifier];
+		
+		[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" BUNDLE_ID=\"%@\">\n", index, bundleID] 
+									dataUsingEncoding:NSUTF8StringEncoding]];
+		[fileHandle writeData:[[imageSource XMLRepresentation dataUsingEncoding:NSUTF8StringEncoding]];
+		[fileHandle writeData:[@"\t</IMAGE_SOURCE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+	}
+	[fileHandle writeData:[@"</IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+
+		// Write out the tiles setup
+	NSString	*bundleID = [[NSBundle bundleForClass:[imageSource class]] bundleIdentifier];
+	[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE BUNDLE_ID=\"%@\">\n", 
+										[[NSBundle bundleForClass:[tilesSetupController class]] bundleIdentifier]] 
+								dataUsingEncoding:NSUTF8StringEncoding]];
+	[fileHandle writeData:[[tilesSetupController XMLRepresentation dataUsingEncoding:NSUTF8StringEncoding]];
+	[fileHandle writeData:[@"\t</IMAGE_SOURCE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+	
+		[fileHandle writeData:[@"<>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+
+	[pool release];
+}
 
 
 #pragma mark
