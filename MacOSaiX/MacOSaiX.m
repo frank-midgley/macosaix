@@ -116,9 +116,6 @@
 
 - (void)openPreferences:(id)sender
 {
-#if 1
-	NSRunAlertPanel(@"Preferences" , @"Preferences are not available in this version.", @"Drat", nil, nil);
-#else
     PreferencesController	*windowController;
     
     windowController = [[PreferencesController alloc] initWithWindowNibName:@"Preferences"];
@@ -126,7 +123,6 @@
     [[windowController window] makeKeyAndOrderFront:self];
 
     // The windowController object will now take input and, if the user OK's, save the preferences
-#endif
 }
 
 
