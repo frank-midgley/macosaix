@@ -3,55 +3,23 @@
 
 @implementation DirectoryImageSource
 
-- (id)initWithObject:(id)theObject
+- (id)initWithPath:(NSString *)path
 {
-    [super initWithObject:theObject];
-
-    _nextFile = nil;
-    _directoryPath = nil;
-    _enumerator = nil;
-    
-    if ([theObject isKindOfClass:[NSString class]])
-    {
-		_directoryPath = [theObject copy];
+	self = [super init];
+	if (self)
+	{
+		_nextFile = nil;
+		_directoryPath = nil;
+		_enumerator = nil;
+		_directoryPath = [path copy];
 		_enumerator = [[[NSFileManager defaultManager] enumeratorAtPath:_directoryPath] retain];
-    }
-    else
-    {
-		[self autorelease];
-		return nil;
-    }
+		_haveMoreImages = YES;
+	}
     return self;
 }
 
 
-- (id)initWithCoder:(NSCoder *)coder
-{
-    NSString	*nextFile;
-    
-    self = [super initWithCoder:coder];
-    _directoryPath = [[coder decodeObject] retain];
-    _nextFile = [[coder decodeObject] retain];
-    
-    _enumerator = [[[NSFileManager defaultManager] enumeratorAtPath:_directoryPath] retain];
-    if (_nextFile != nil)
-		do
-			nextFile = [_enumerator nextObject];
-		while (![_nextFile isEqualToString:nextFile] && nextFile != nil);
-    
-    return self;
-}
-
-
-- (void)encodeWithCoder:(NSCoder *)coder
-{
-    [super encodeWithCoder:coder];
-    [coder encodeObject:_directoryPath];
-    [coder encodeObject:_nextFile];
-}
-
-
-- (NSImage *)typeImage;
+- (NSImage *)image;
 {
     return [[NSWorkspace sharedWorkspace] iconForFile:_directoryPath];
 }
@@ -60,6 +28,12 @@
 - (NSString *)descriptor
 {
     return _directoryPath;
+}
+
+
+- (BOOL)hasMoreImages
+{
+	return _haveMoreImages;
 }
 
 
@@ -87,15 +61,18 @@
 	      [fullPath rangeOfString:@"Originals"].location != NSNotFound)));
     
     [_nextFile autorelease];
-    _nextFile = [nextFile retain];	// remember at which file we were for archiving
     
     if (nextFile != nil)
     {
+		_nextFile = [nextFile retain];	// remember at which file we were for archiving
 		_imageCount++;
 		return nextFile;
     }
     else
+	{
+		_haveMoreImages = NO;
 		return nil;	// no more images
+	}
 }
 
 
