@@ -54,7 +54,7 @@
     [oPanel setCanChooseDirectories:NO];
     [oPanel beginSheetForDirectory:nil
 							  file:nil
-							 types:[NSMovie movieUnfilteredFileTypes]
+							 types:nil	//[NSMovie movieUnfilteredFileTypes]
 					modalForWindow:[imageSourceView window]
 					 modalDelegate:self
 					didEndSelector:@selector(chooseMovieDidEnd:returnCode:contextInfo:)
