@@ -17,6 +17,8 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 
 @interface QuickTimeImageSource (PrivateMethods)
 - (void)setCurrentImage:(NSImage *)image;
+- (void)nextImageAndIdentifierOnMainThread:(NSMutableDictionary *)parameters;
+- (void)imageForIdentifierOnMainThread:(NSArray *)parameters;
 @end
 
 
