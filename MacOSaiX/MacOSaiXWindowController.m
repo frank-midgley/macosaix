@@ -721,6 +721,10 @@
 	{
 		[[self document] removeImageSource:originalImageSource];
 		[[self document] addImageSource:editedImageSource];
+	
+			// TODO: we don't always want to resume automatically...
+		if ([[self document] tileShapes])
+			[[self document] resume];
 		
 		[imageSourcesTableView reloadData];
 	}
