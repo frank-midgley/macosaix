@@ -11,8 +11,6 @@
 
 + (void)initialize
 {
-	isalpha('a');	// get rid of weak linking warning
-
     NSUserDefaults		*defaults = [NSUserDefaults standardUserDefaults];
     NSMutableDictionary	*appDefaults = [NSMutableDictionary dictionary];
     
@@ -30,12 +28,17 @@
 		imageSourceClasses = [[NSMutableArray arrayWithCapacity:4] retain];
 		loadedPlugInPaths = [[NSMutableArray arrayWithCapacity:5] retain];
 		
-		[[NSNotificationCenter defaultCenter] addObserver:self
-												 selector:@selector(documentDidFinishSaving:)
-													 name:MacOSaiXDocumentDidSaveNotification
-												   object:nil];
+//		[[NSNotificationCenter defaultCenter] addObserver:self
+//												 selector:@selector(documentDidFinishSaving:)
+//													 name:MacOSaiXDocumentDidSaveNotification
+//												   object:nil];
 	}
 	return self;
+}
+
+
+- (void)applicationWillFinishLaunching:(NSNotification *)notification
+{
 }
 
 
@@ -127,21 +130,25 @@
 }
 
 
-- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
-{
-	NSApplicationTerminateReply	reply = NSTerminateNow;
-	
-	quitting = YES;
-	
-		// If any documents are still saving then we need to wait for them to finish.
-	NSEnumerator				*documentEnumerator = [[[NSDocumentController sharedDocumentController] documents] objectEnumerator];
-	MacOSaiXDocument			*document = nil;
-	while (document = [documentEnumerator nextObject])
-		if ([document isSaving])
-			reply = NSTerminateLater;
-
-	return reply;
-}
+//- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
+//{
+//	NSApplicationTerminateReply	reply = NSTerminateNow;
+//	
+//	quitting = YES;
+//	
+//		// If any documents are still saving then we need to wait for them to finish.
+//	NSEnumerator				*documentEnumerator = [[[NSDocumentController sharedDocumentController] 
+//															documents] objectEnumerator];
+//	MacOSaiXDocument			*document = nil;
+//	while (document = [documentEnumerator nextObject])
+//		if ([document isSaving])
+//		{
+//			NSLog(@"Termination delayed");
+//			reply = NSTerminateLater;
+//		}
+//
+//	return reply;
+//}
 
 
 - (BOOL)isQuitting
@@ -150,33 +157,37 @@
 }
 
 
-- (void)documentDidFinishSaving:(NSNotification *)notification
-{
-		// Only react on the main thread.
-	if (pthread_main_np())
-	{
-		BOOL	wasCancelled = [[[notification userInfo] objectForKey:@"User Cancelled"] boolValue];
-		
-		if (wasCancelled)
-		{
-			quitting = NO;
-			[NSApp replyToApplicationShouldTerminate:NO];
-		}
-		else
-		{
-				// If any other documents are still saving then we need to wait.
-			NSEnumerator				*documentEnumerator = [[[NSDocumentController sharedDocumentController] documents] objectEnumerator];
-			MacOSaiXDocument			*document = nil;
-			while (document = [documentEnumerator nextObject])
-				if ([document isSaving])
-					return;
-			
-			[NSApp replyToApplicationShouldTerminate:YES];
-		}
-	}
-	else
-		[self performSelectorOnMainThread:@selector(documentDidFinishSaving:) withObject:notification waitUntilDone:YES];
-}
+//- (void)documentDidFinishSaving:(NSNotification *)notification
+//{
+//	if (!quitting)
+//		return;
+//	
+//		// Only react on the main thread.
+//	if (pthread_main_np())
+//	{
+//		BOOL	wasCancelled = [[[notification userInfo] objectForKey:@"User Cancelled"] boolValue];
+//		
+//		if (wasCancelled)
+//		{
+//			quitting = NO;
+//			[NSApp replyToApplicationShouldTerminate:NO];
+//		}
+//		else
+//		{
+//				// If any other documents are still saving then we need to wait.
+//			NSEnumerator				*documentEnumerator = [[[NSDocumentController sharedDocumentController] 
+//																	documents] objectEnumerator];
+//			MacOSaiXDocument			*document = nil;
+//			while (document = [documentEnumerator nextObject])
+//				if ([document isSaving])
+//					return;
+//			
+//			[NSApp replyToApplicationShouldTerminate:YES];
+//		}
+//	}
+//	else
+//		[self performSelectorOnMainThread:@selector(documentDidFinishSaving:) withObject:notification waitUntilDone:NO];
+//}
 
 
 @end
