@@ -9,67 +9,34 @@
     self = [super init];
     
     _tileMatchesLock = [[NSLock alloc] init];
+    _bestMatchLock = [[NSLock alloc] init];
 	NSAssert(_tileMatchesLock != nil, @"Could not alloc/init tile matches lock");
     _outline = nil;
     _bitmapRep = nil;
     _matches = nil;
     _matchCount = 0;
-    _bestUniqueMatchIndex = -1;
     _userChosenImageMatch = nil;
     
     return self;
 }
 
 
-- (id)initWithCoder:(NSCoder *)coder
+- (void)addNeighbor:(Tile *)neighboringTile
 {
-    float	_userChosenMatchValue;
-    
-    self = [self init];
-    
-    [self setOutline:[coder decodeObject]];
-    [self setBitmapRep:[coder decodeObject]];
-    _maxMatches = [[coder decodeObject] intValue];
-    _matches = malloc(_maxMatches * sizeof(TileMatch));
-	NSAssert(_matches != nil, @"Could not allocate matches array");
-    {
-		NSData	*matchesData = [coder decodeObject];
-		[matchesData getBytes:_matches];
-    }
-    _matchCount = [[coder decodeObject] intValue];
-    
-    _userChosenMatchValue = [[coder decodeObject] floatValue];
-    if (_userChosenMatchValue >= 0)
-    {
-		_userChosenImageMatch = (TileMatch *)malloc(sizeof(TileMatch));
-		_userChosenImageMatch->matchValue = _userChosenMatchValue;
-		_userChosenImageMatch->tileImageIndex = [[coder decodeObject] longValue];
-    }
-    
-    return self;
+	if (!_neighborSet) _neighborSet = [[NSMutableSet setWithCapacity:10] retain];
+	[_neighborSet addObject:neighboringTile];
 }
 
 
-- (void)encodeWithCoder:(NSCoder *)coder
+- (void)removeNeighbor:(Tile *)nonNeighboringTile
 {
-    [coder encodeObject:_outline];
-    [coder encodeObject:_bitmapRep];
-    [coder encodeObject:[NSNumber numberWithInt:_maxMatches]];
-    [coder encodeObject:[NSData dataWithBytes:_matches length:sizeof(TileMatch) * _maxMatches]];
-    [coder encodeObject:[NSNumber numberWithInt:_matchCount]];
-    if (_userChosenImageMatch == nil)
-		[coder encodeObject:[NSNumber numberWithInt:-1]];
-    else
-    {
-		[coder encodeObject:[NSNumber numberWithFloat:_userChosenImageMatch->matchValue]];
-		[coder encodeObject:[NSNumber numberWithLong:_userChosenImageMatch->tileImageIndex]];
-    }
+	[_neighborSet removeObject:nonNeighboringTile];
 }
 
 
-- (void)setMaxMatches:(int)maxMatches
+- (NSArray *)neighbors
 {
-    _maxMatches = maxMatches;
+	return (_neighborSet ? [_neighborSet allObjects] : nil);
 }
 
 
@@ -105,18 +72,25 @@
 }
 
 
-- (float)matchAgainst:(NSBitmapImageRep *)matchRep tileImage:(TileImage *)tileImage
-	  tileImageIndex:(int)tileImageIndex forDocument:(NSDocument *)document
+	// Match this tile's bitmap against matchRep and return whether the new match is better
+	// than this tile's previous worst.
+- (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep fromTileImage:(TileImage *)tileImage
+				  forDocument:(NSDocument *)document
 {
-    int			bytesPerPixel1, bytesPerRow1, bytesPerPixel2, bytesPerRow2;
-    int			pixelCount = 0, pixelsLeft;
-    int			x, y, x_off, y_off, r1, r2, g1, g2, b1, b2, x_size, y_size;
-    int			index = 0, left, right;
-    unsigned char	*bitmap1, *bitmap2, *bitmap1_off, *bitmap2_off;
-    float		prevWorst, matchValue = 0.0, redAverage;
+    int				bytesPerPixel1, bytesPerRow1, bytesPerPixel2, bytesPerRow2;
+    int				pixelCount = 0, pixelsLeft;
+    int				x, y, x_off, y_off, x_size, y_size;
+    int				index = 0, left, right;
+    unsigned char	*bitmap1, *bitmap2;
+    float			prevWorst, matchValue = 0.0;
     
-    if (matchRep == nil) return WORST_CASE_PIXEL_MATCH;
+    if (matchRep == nil) return NO;
     
+    [_tileMatchesLock lock];
+		if (_matches == nil)
+			_matches = (TileMatch *)malloc(sizeof(TileMatch) * ([_neighborSet count] + 1));
+    [_tileMatchesLock unlock];
+
 		// the size of _bitmapRep will be a maximum of TILE_BITMAP_SIZE pixels
 		// the size of the smaller dimension of imageRep will be TILE_BITMAP_SIZE pixels
 		// pixels in imageRep outside of _bitmapRep centered in imageRep will be ignored
@@ -128,7 +102,7 @@
     bytesPerPixel2 = [matchRep hasAlpha] ? 4 : 3;
     bytesPerRow2 = [matchRep bytesPerRow];
     
-    prevWorst = (_matchCount < _maxMatches) ? WORST_CASE_PIXEL_MATCH : _matches[_matchCount - 1].matchValue;
+    prevWorst = (_matchCount < ([_neighborSet count] + 1)) ? WORST_CASE_PIXEL_MATCH : _matches[_matchCount - 1].matchValue;
 
 		// one of the offsets should be 0
     x_off = ([matchRep size].width - [_bitmapRep size].width) / 2.0;
@@ -142,34 +116,43 @@
     {
 		for (y = 0; y < y_size; y++)
 		{
-			bitmap1_off = bitmap1 + x * bytesPerPixel1 + y * bytesPerRow1;
-			r1 = *bitmap1_off++; g1 = *bitmap1_off++; b1 = *bitmap1_off++;
-			bitmap2_off = bitmap2 + (x + x_off) * bytesPerPixel2 + (y + y_off) * bytesPerRow2;
-			r2 = *bitmap2_off++; g2 = *bitmap2_off++; b2 = *bitmap2_off++;
+            unsigned char	*bitmap1_off = bitmap1 + x * bytesPerPixel1 + y * bytesPerRow1,
+                            *bitmap2_off = bitmap2 + (x + x_off) * bytesPerPixel2 + (y + y_off) * bytesPerRow2;
+                
+                // If there's no alpha channel or the alpha channel bit is not 0 then consider this pixel
 			if (bytesPerPixel1 == 3 || *bitmap1_off > 0)
 			{
+                int		redDiff = *bitmap1_off - *bitmap2_off, 
+                        greenDiff = *(bitmap1_off + 1) - *(bitmap2_off + 1), 
+                        blueDiff = *(bitmap1_off + 2) - *(bitmap2_off + 2);
+				float	redAverage = (*bitmap1_off + *bitmap2_off) / 2.0;
+                
+				matchValue += (2.0 + redAverage / 256.0) * redDiff * redDiff + 
+                              4 * greenDiff * greenDiff + 
+                              (2 + (255.0 - redAverage) / 256.0) * blueDiff * blueDiff;
+//                matchValue += redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff;
 				pixelCount++;
-				redAverage = (r1 + r2) / 2.0;
-				matchValue += (2+redAverage/256.0)*(r1-r2)*(r1-r2) + 4*(g1-g2)*(g1-g2) + 
-						(2+(255.0-redAverage)/256.0)*(b1-b2)*(b1-b2);
-				if (bytesPerPixel1 == 4) bytesPerPixel1++;
-				if (bytesPerPixel2 == 4) bytesPerPixel2++;
 			}
 		}
 		pixelsLeft -= y_size;
 		
-		// the lower the matchValue the better, so if it's already greater than the previous worst
-		// then it's no use going any further
-		if (matchValue / (float)(pixelCount + pixelsLeft) > prevWorst) return WORST_CASE_PIXEL_MATCH;
+		// The lower the matchValue the better, so if it's already greater than the previous worst
+		// then it's no use going any further.
+//		if (matchValue / (float)(pixelCount + pixelsLeft) > prevWorst) return NO;
     }
 
 		// now average it per pixel
     if (pixelCount == 0)
-		NSLog(@"");
+		NSLog(@"Transparent image matched?");
     matchValue /= pixelCount;
-    if (matchValue > prevWorst) return WORST_CASE_PIXEL_MATCH;
+//    NSLog(@"Match value = %f", matchValue);
+    if (matchValue > prevWorst) return NO;
     
 		// Determine where in the list it belongs (the best match should always be at index 0)
+    for (index = 0; index < _matchCount - 1; index++)
+        if (matchValue < _matches[index].matchValue)
+            break;
+/*
     left = 0; right = _matchCount; index = 0;
     while (right > left)
     {
@@ -179,64 +162,113 @@
 		else
 			right = index;
     }
+*/	
+//	NSLog(@"      Adding matching image (%f) to tile %p at index %d", matchValue, self, index);
 
     [_tileMatchesLock lock];
-		if (_matches == nil)
-			_matches = (TileMatch *)malloc(sizeof(TileMatch) * _maxMatches);
-	
-		if (_matchCount == _maxMatches)
-			[_document tileImageIndexNotInUse:_matches[_matchCount - 1].tileImageIndex];
-			// Add it to the list of matches
-		if (_bestUniqueMatchIndex >= index && _bestUniqueMatchIndex < _matchCount-1)
-			_bestUniqueMatchIndex++;
-		bcopy(&_matches[index], &_matches[index + 1], sizeof(TileMatch) * (_maxMatches - index - 1));
+            // If we already have the max number of matches we need then let go of our worst match
+		if (_matchCount == [_neighborSet count] + 1)
+        {
+                // If our worst match was our current best then signal the need to recalculate
+            if (_bestMatchTileImage == _matches[_matchCount - 1].tileImage)
+                [self calculateBestMatch];
+                //_bestMatchTileImage = nil;
+			[_matches[_matchCount - 1].tileImage imageIsNotInUse];
+        }
+        
+			// Add the new match to the list of matches at the correct position
+		bcopy(&_matches[index], &_matches[index + 1], sizeof(TileMatch) * ([_neighborSet count] - index));
 		_matches[index].matchValue = matchValue;
-		_matches[index].tileImageIndex = tileImageIndex;
+		_matches[index].tileImage = tileImage;
 		
-		[_document tileImageIndexInUse:tileImageIndex];
+		[tileImage imageIsInUse];
 		
-		if (_matchCount < _maxMatches) _matchCount++;
+		if (_matchCount <= [_neighborSet count]) _matchCount++;
     [_tileMatchesLock unlock];
     
 		// mark the document as needing saving
     [document updateChangeCount:NSChangeDone];
     
-    return matchValue;
+    return YES;
 }
 
 
-- (TileMatch *)bestMatch
+- (TileImage *)displayedTileImage
 {
-    return (_matchCount == 0) ? nil : &_matches[0];
+	if (_userChosenImageMatch)
+		return _userChosenImageMatch->tileImage;
+	
+    if (_matchCount == 0)
+        return nil;
+    
+//    if (!_bestMatchTileImage)
+//        [self calculateBestMatch];
+        
+    return _bestMatchTileImage;
 }
 
 
-- (float)bestMatchValue
+    // Pick the match with the highest value that isn't already used by one of our neighbors.
+    // If all matches are already in use then pick the match with the highest value.
+- (void)calculateBestMatch
 {
-    return (_matchCount == 0) ? WORST_CASE_PIXEL_MATCH : _matches[0].matchValue;
+        // If the user has picked a specific image to use then no calculation is necessary
+	if (_matchCount == 0 || _userChosenImageMatch)
+		return;
+	
+    [_bestMatchLock lock];
+#if 1
+        _bestMatchTileImage = nil;
+        
+        int	i;
+        for (i = 0; i < _matchCount && !_bestMatchTileImage; i++)
+        {
+            NSEnumerator	*neighborEnumerator = [_neighborSet objectEnumerator];
+            Tile			*neighbor;
+            BOOL			betterThanNeighbors = YES;
+            
+            while (betterThanNeighbors && (neighbor = [neighborEnumerator nextObject]))
+                if (_matches[i].matchValue > [neighbor matchValueForTileImage:_matches[i].tileImage])
+                    betterThanNeighbors = NO;
+            
+            if (betterThanNeighbors)
+                _bestMatchTileImage = _matches[i].tileImage;
+        }
+        
+        if (!_bestMatchTileImage)
+            _bestMatchTileImage = _matches[0].tileImage;
+#else
+            // Start by going for our best match.
+        _bestMatchTileImage = _matches[0].tileImage;
+
+            // Get the set of tile images used by our neighbors
+        NSMutableSet	*tileImagesInUseByNeighbors = [NSMutableSet set];
+        NSEnumerator	*neighborEnumerator = [_neighborSet objectEnumerator];
+        Tile			*neighbor;
+        while (neighbor = [neighborEnumerator nextObject])
+        {
+            TileImage	*neighborsTileImage = [neighbor displayedTileImage];
+            
+            if (neighborsTileImage) [tileImagesInUseByNeighbors addObject:neighborsTileImage];
+        }
+            
+            // Loop through our matches and pick the first one not in use by any of our neighbors
+        int	i;
+        for (i = 1; i < _matchCount; i++)
+            if (![tileImagesInUseByNeighbors containsObject:_matches[i].tileImage])
+            {
+                _bestMatchTileImage = _matches[i].tileImage;
+                break;
+            }
+#endif
+    [_bestMatchLock unlock];
 }
 
 
-- (TileMatch *)bestUniqueMatch
+- (void)setUserChosenImageIndex:(TileImage *)userChosenTileImage
 {
-    return (_bestUniqueMatchIndex == -1) ? nil : &_matches[_bestUniqueMatchIndex];
-}
-
-
-- (float)bestUniqueMatchValue
-{
-    return (_bestUniqueMatchIndex == -1) ? WORST_CASE_PIXEL_MATCH : _matches[_bestUniqueMatchIndex].matchValue;
-}
-
-
-- (void)setBestUniqueMatchIndex:(int)matchIndex
-{
-    _bestUniqueMatchIndex = matchIndex;
-}
-
-
-- (void)setUserChosenImageIndex:(long)index
-{
+/*
+        // Don't do anything if the chosen image was already chosen
     if (_userChosenImageMatch != nil && _userChosenImageMatch->tileImageIndex == index) return;
     
     if (index == -1)
@@ -258,12 +290,13 @@
 		_userChosenImageMatch->tileImageIndex = index;
 		[_document tileImageIndexInUse:_userChosenImageMatch->tileImageIndex];
     }
+*/
 }
 
 
-- (long)userChosenImageIndex
+- (TileImage *)userChosenTileImage
 {
-    return (_userChosenImageMatch == nil) ? -1 : _userChosenImageMatch->tileImageIndex;
+    return (_userChosenImageMatch == nil) ? nil : _userChosenImageMatch->tileImage;
 }
 
 
@@ -291,17 +324,20 @@
 }
 
 
-- (NSComparisonResult)compareBestMatchValue:(Tile *)otherTile
+- (float)matchValueForTileImage:(TileImage *)tileImage
 {
-    float	bestMatchValue = [self bestMatchValue], otherBestMatchValue = [otherTile bestMatchValue];
-    
-    if (_userChosenImageMatch != nil) return NSOrderedAscending;
-    
-    if (bestMatchValue < otherBestMatchValue)
-		return NSOrderedAscending;
-    else if (bestMatchValue > otherBestMatchValue)
-		return NSOrderedDescending;
-    return NSOrderedSame;
+	float	matchValue = WORST_CASE_PIXEL_MATCH;
+	int		i;
+	
+    [_tileMatchesLock lock];
+		for (i = 0; i < _matchCount; i++)
+			if (_matches[i].tileImage == tileImage)
+			{
+				matchValue = _matches[i].matchValue;
+				break;
+			}
+    [_tileMatchesLock unlock];
+	return matchValue;
 }
 
 
@@ -309,6 +345,7 @@
 {
     if (_userChosenImageMatch != nil) free(_userChosenImageMatch);
     [_tileMatchesLock release];
+    [_bestMatchLock release];
     [_outline release];
     [_bitmapRep release];
     free(_matches);

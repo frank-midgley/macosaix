@@ -5,30 +5,34 @@
 #import <Cocoa/Cocoa.h>
 #import "TileImage.h"
 
-#define TILE_BITMAP_SIZE 16.0
+#define TILE_BITMAP_SIZE 32.0
 
 typedef struct _TileMatch
 {
-    float	matchValue;
-    long	tileImageIndex;
+    float		matchValue;
+    TileImage	*tileImage;
 } TileMatch;
 
 #define WORST_CASE_PIXEL_MATCH 520200.0
 
-@interface Tile : NSObject <NSCoding>
+@interface Tile : NSObject
 {
-    NSBezierPath	*_outline;		// The shape of this tile
+    NSBezierPath		*_outline;		// The shape of this tile
+	NSMutableSet		*_neighborSet;	// A set containing tiles that are considered neighbors of this tile
     NSBitmapImageRep	*_bitmapRep;		// The portion of the original image that is in this tile
-    TileMatch		*_matches;		// Array of TileMatches
-    int			_matchCount;
-    NSLock		*_tileMatchesLock;	// thread safety
-    int			_bestUniqueMatchIndex;	// The index in _matches of the best unique match
-    TileMatch		*_userChosenImageMatch;	// will be nil if user has not choosen an image
-    int			_maxMatches;
-    NSDocument		*_document;		// The document this tile is a part of
+    TileMatch			*_matches;		// Array of TileMatches
+    int					_matchCount;
+    NSLock				*_tileMatchesLock,	// thread safety
+                        *_bestMatchLock;
+    TileImage			*_bestMatchTileImage;	// The index in _matches of the best unique match
+    TileMatch			*_userChosenImageMatch;	// will be nil if user has not choosen an image
+    int					_maxMatches;
+    NSDocument			*_document;		// The document this tile is a part of
 }
 
-- (void)setMaxMatches:(int)maxMatches;
+- (void)addNeighbor:(Tile *)neighboringTile;
+- (void)removeNeighbor:(Tile *)nonNeighboringTile;
+- (NSArray *)neighbors;
 
 - (void)setOutline:(NSBezierPath *)outline;
 - (NSBezierPath *)outline;
@@ -38,22 +42,20 @@ typedef struct _TileMatch
 
 - (void)setDocument:(NSDocument *)document;
 
-- (float)matchAgainst:(NSBitmapImageRep *)matchRep tileImage:(TileImage *)tileImage
-	  tileImageIndex:(int)tileImageIndex forDocument:(NSDocument *)document;
+- (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep fromTileImage:(TileImage *)tileImage
+				  forDocument:(NSDocument *)document;
 
-- (TileMatch *)bestMatch;
-- (float)bestMatchValue;
-- (TileMatch *)bestUniqueMatch;
-- (float)bestUniqueMatchValue;
-- (void)setBestUniqueMatchIndex:(int)matchIndex;
+- (TileImage *)displayedTileImage;
+- (void)calculateBestMatch;
 
-- (void)setUserChosenImageIndex:(long)index;
-- (long)userChosenImageIndex;
+- (void)setUserChosenImageIndex:(TileImage *)userChosenTileImage;
+- (TileImage *)userChosenTileImage;
 
 - (TileMatch *)matches;
 - (int)matchCount;
 - (void)lockMatches;
 - (void)unlockMatches;
-- (NSComparisonResult)compareBestMatchValue:(Tile *)otherTile;
+
+- (float)matchValueForTileImage:(TileImage *)tileImage;
 
 @end
