@@ -123,7 +123,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 }
 
 
-#pragma mark
+#pragma mark -
 #pragma mark Pausing/resuming
 
 
@@ -185,7 +185,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 }
 
 
-#pragma mark
+#pragma mark -
 #pragma mark Save and Open methods
 
 
@@ -220,8 +220,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
    didSaveSelector:(SEL)didSaveSelector 
 	   contextInfo:(void *)contextInfo;
 {
-	BOOL			success = NO,
-					wasPaused = paused;
+	BOOL			wasPaused = paused;
 	NSFileManager	*fileManager = [NSFileManager defaultManager];
 	
 		// Pause the mosaic so that it is in a static state while saving.
@@ -232,15 +231,15 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 		// Create the wrapper directory if it doesn't already exist.
 	if ([fileManager fileExistsAtPath:fileName] || [fileManager createDirectoryAtPath:fileName attributes:nil])
 	{
-		if (![cachedImagesPath hasPrefix:fileName])
-		{
-				// This is the first time this mosaic has been saved so move 
-				// the image cache directory from /tmp to the new location.
-			NSString	*savedCachedImagesPath = [fileName stringByAppendingPathComponent:@"Cached Images"];
-			[fileManager movePath:cachedImagesPath toPath:savedCachedImagesPath handler:nil];
-			[cachedImagesPath autorelease];
-			cachedImagesPath = [savedCachedImagesPath retain];
-		}
+//		if (![cachedImagesPath hasPrefix:fileName])
+//		{
+//				// This is the first time this mosaic has been saved so move 
+//				// the image cache directory from /tmp to the new location.
+//			NSString	*savedCachedImagesPath = [fileName stringByAppendingPathComponent:@"Cached Images"];
+//			[fileManager movePath:cachedImagesPath toPath:savedCachedImagesPath handler:nil];
+//			[cachedImagesPath autorelease];
+//			cachedImagesPath = [savedCachedImagesPath retain];
+//		}
 		
 			// Display a sheet while the save is underway
 //		[progressPanelLabel setStringValue:@"Saving..."];
@@ -251,15 +250,11 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 //			modalDelegate:self 
 //		   didEndSelector:@selector(saveSheetDidEnd:returnCode:contextInfo:) 
 //			  contextInfo:nil];
-//		
-//		[NSThread detachNewThreadSelector:@selector(threadedSaveToPath:) 
-//								 toTarget:self 
-//							   withObject:[NSArray arrayWithObjects:fileName, [NSNumber numberWithBool:wasPaused], nil]];
 		
-		success = YES;
+		[NSThread detachNewThreadSelector:@selector(threadedSaveWithParameters:) 
+								 toTarget:self 
+							   withObject:[NSArray arrayWithObjects:fileName, [NSNumber numberWithBool:wasPaused], nil]];
 	}
-	
-	return success;
 }
 
 
@@ -274,7 +269,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 }
 
 
-- (NSFileWrapper *)fileWrapperRepresentationOfType:(NSString *)type;
+- (void)threadedSaveWithParameters:(NSArray *)parameters
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	NSString			*savePath = [parameters objectAtIndex:0];
@@ -387,13 +382,8 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 }
 
 
-- (BOOL)loadFileWrapperRepresentation:(NSFileWrapper *)wrapper ofType:(NSString *)docType
-{
-}
 
-
-
-#pragma mark
+#pragma mark -
 #pragma mark Tile management
 
 
@@ -630,7 +620,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 }
 
 
-#pragma mark
+#pragma mark -
 #pragma mark Image source enumeration
 
 
@@ -754,7 +744,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 }
 
 
-#pragma mark
+#pragma mark -
 #pragma mark Image matching
 
 
@@ -809,10 +799,14 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 		id<MacOSaiXImageSource>	pixletImageSource = [nextImageDict objectForKey:@"Image Source"];
 		NSString				*pixletImageIdentifier = [nextImageDict objectForKey:@"Image Identifier"];
 		
+			// If the pixlet image is large then use a scaled down copy instead to speed matching.
+		if ([pixletImage size].width > (TILE_BITMAP_SIZE * 2.0) && [pixletImage size].height > (TILE_BITMAP_SIZE * 2.0))
+			pixletImage = [pixletImage copyWithLargestDimension:TILE_BITMAP_SIZE * 2.0];
+		
 			// Add this image to the cache.  If the identifier is nil or zero-length then 
 			// a new identifier will be returned.
 		pixletImageIdentifier = [imageCache cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
-
+		
 		NSMutableDictionary	*cachedReps = [NSMutableDictionary dictionaryWithCapacity:16];
 		
 			// loop through the tiles and compute the pixlet's match
@@ -899,7 +893,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 }
 
 
-#pragma mark
+#pragma mark -
 #pragma mark Uniqueness
 
 
@@ -1046,7 +1040,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 }
 
 
-#pragma mark
+#pragma mark -
 
 
 - (void)dealloc
