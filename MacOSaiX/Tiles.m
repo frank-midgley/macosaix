@@ -205,7 +205,8 @@
 		
 		// The lower the matchValue the better, so if it's already greater than the previous worst
 		// then it's no use going any further.
-//		if (matchValue / (float)(pixelCount + pixelsLeft) > prevWorst) return NO;
+		if (matchValue / (float)(pixelCount + pixelsLeft) > prevWorst)
+			return NO;
     }
 
 		// now average it per pixel
@@ -345,8 +346,6 @@
 																[imageMatch imageSource],
 																nil]])
 					bestImageMatch = [imageMatch retain];
-//				else
-//					NSLog(@"phew");
 			
 				// If we can't be unique then go for our best match.
 			if (!bestImageMatch && [imageMatches count] > 0)
