@@ -18,19 +18,26 @@
 @interface MacOSaiXImageCache : NSObject 
 {
 	NSMutableDictionary			*diskCache,
-								*memoryCache;
+								*memoryCache,
+								*nativeImageSizeDict;
 	NSString					*cachedImagesPath;
-    NSLock						*cacheLock;
-    NSMutableArray				*orderedCache,
-                                *orderedCacheID;
-	unsigned long				cachedImageCount;
+    NSRecursiveLock				*cacheLock;
+    NSMutableArray				*imageRepRecencyArray,
+                                *imageKeyRecencyArray;
+	unsigned long				cachedImageCount,
+								perfectHitCount,
+								scalableHitCount,
+								missCount;
+	unsigned long long			memoryCacheSize;
 }
 
 - (NSString *)cacheImage:(NSImage *)image 
 		  withIdentifier:(NSString *)imageIdentifier 
 			  fromSource:(id<MacOSaiXImageSource>)imageSource;
 
-- (NSImage *)imageForIdentifier:(NSString *)imageIdentifier fromSource:(id<MacOSaiXImageSource>)imageSource;
+- (NSImageRep *)imageRepAtSize:(NSSize)size 
+				 forIdentifier:(NSString *)imageIdentifier 
+					fromSource:(id<MacOSaiXImageSource>)imageSource;
 
 - (NSString *)xmlDataWithImageSources:(NSArray *)imageSources;
 

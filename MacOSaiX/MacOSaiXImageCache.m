@@ -9,10 +9,11 @@
 
 #import "MacOSaiXImageCache.h"
 #import <unistd.h>
+#import <malloc/malloc.h>
 
 
     // The number of cached images that will be held in memory at any one time.
-#define IMAGE_CACHE_MAX_COUNT 100
+#define MAX_MEMORY_CACHE_SIZE 100*1024*1024
 
 
 @implementation MacOSaiXImageCache
@@ -28,12 +29,13 @@
 		if (tempPath)
 		{
 			cachedImagesPath = [[NSString stringWithCString:tempPath] retain];
-			cacheLock = [[NSLock alloc] init];
+			cacheLock = [[NSRecursiveLock alloc] init];
 			diskCache = [[NSMutableDictionary dictionary] retain];
 			memoryCache = [[NSMutableDictionary dictionary] retain];
+			nativeImageSizeDict = [[NSMutableDictionary dictionary] retain];
 			
-			orderedCache = [[NSMutableArray array] retain];
-			orderedCacheID = [[NSMutableArray array] retain];
+			imageRepRecencyArray = [[NSMutableArray array] retain];
+			imageKeyRecencyArray = [[NSMutableArray array] retain];
 		}
 		else
 		{
@@ -76,6 +78,50 @@
 }
 
 
+- (void)addImageRep:(NSBitmapImageRep *)imageRep toMemoryCacheForKey:(NSString *)imageKey
+{
+		// Remove the least recently accessed image rep from the memory cache until we have
+		// enough room to store the new rep.
+	size_t	imageRepSize = malloc_size((void *)[imageRep bitmapData]);
+	while (memoryCacheSize + imageRepSize > MAX_MEMORY_CACHE_SIZE)
+	{
+		NSString			*oldestKey = [imageKeyRecencyArray lastObject];
+		NSBitmapImageRep	*oldestRep = [imageRepRecencyArray lastObject];
+		unsigned long long	oldestRepSize = malloc_size([oldestRep bitmapData]);
+		NSMutableArray		*oldestRepArray = [memoryCache objectForKey:oldestKey];
+		
+		[oldestRepArray removeObjectIdenticalTo:oldestRep];
+		if ([oldestRepArray count] == 0)
+		{
+			[memoryCache removeObjectForKey:oldestKey];
+			[nativeImageSizeDict removeObjectForKey:oldestKey];
+		}
+		
+		[imageKeyRecencyArray removeLastObject];
+		[imageRepRecencyArray removeLastObject];
+		
+		memoryCacheSize -= oldestRepSize;
+	}
+
+		// Get the existing array for this key or create a new array.
+	NSMutableArray	*keyRepArray = [memoryCache objectForKey:imageKey];
+	if (!keyRepArray)
+	{
+		keyRepArray = [NSMutableArray array];
+		[memoryCache setObject:keyRepArray forKey:imageKey];
+	}
+	
+		// Add the image rep to the memory cache and update its size.
+	[keyRepArray addObject:imageRep];
+	memoryCacheSize += imageRepSize;
+	
+		// Remember how recently we last saw this rep.
+		// The newest items are closer to index 0.
+	[imageRepRecencyArray insertObject:imageRep atIndex:0];
+	[imageKeyRecencyArray insertObject:imageKey atIndex:0];
+}
+
+
 - (NSString *)cacheImage:(NSImage *)image 
 		  withIdentifier:(NSString *)imageIdentifier 
 			  fromSource:(id<MacOSaiXImageSource>)imageSource
@@ -96,46 +142,121 @@
 		}
 		else
 			imageKey = [self keyWithImageSource:imageSource identifier:imageIdentifier];
+			
+			// Get a bitmap image rep at the full size of the image.
+		NSBitmapImageRep	*fullSizeRep = nil;
 		
-			// Cache the image in memory for efficient retrieval.
-		[memoryCache setObject:image forKey:imageKey];
-		[orderedCache insertObject:image atIndex:0];
-		[orderedCacheID insertObject:imageKey atIndex:0];
-		if ([orderedCache count] > IMAGE_CACHE_MAX_COUNT)
+		while (!fullSizeRep)
 		{
-			[memoryCache removeObjectForKey:[orderedCacheID lastObject]];
-			[orderedCache removeLastObject];
-			[orderedCacheID removeLastObject];
+			NS_DURING
+				[image lockFocus];
+					NSImageRep	*originalRep = [[image representations] objectAtIndex:0];
+					NSRect		imageRect = NSMakeRect(0.0, 0.0, [originalRep size].width, [originalRep size].height);
+					fullSizeRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:imageRect] autorelease];
+				[image unlockFocus];
+			NS_HANDLER
+				NSLog(@"Failed to lock focus on %@", imageIdentifier);
+			NS_ENDHANDLER
 		}
+
+			// Cache the image in memory for efficient retrieval.
+		[self addImageRep:fullSizeRep toMemoryCacheForKey:imageKey];
+//		NSLog(@"Native size of %@ is %f by %f", imageIdentifier, [fullSizeRep size].width, [fullSizeRep size].height);
+		[nativeImageSizeDict setObject:[NSValue valueWithSize:[fullSizeRep size]] forKey:imageKey];
+		
 	[cacheLock unlock];
 	
 	return imageIdentifier;
 }
 
 
-- (NSImage *)imageForIdentifier:(NSString *)imageIdentifier fromSource:(id<MacOSaiXImageSource>)imageSource
+- (NSImageRep *)imageRepAtSize:(NSSize)size 
+				 forIdentifier:(NSString *)imageIdentifier 
+					fromSource:(id<MacOSaiXImageSource>)imageSource
 {
-	NSImage		*image = nil;
-	
+	NSBitmapImageRep	*imageRep = nil,
+						*scalableRep = nil;
+	NSString			*imageKey = [self keyWithImageSource:imageSource identifier:imageIdentifier];
+
 	[cacheLock lock];
-		NSString	*imageKey = [self keyWithImageSource:imageSource identifier:imageIdentifier];
+		NSValue			*nativeSizeValue = [nativeImageSizeDict objectForKey:imageKey];
+		NSSize			repSize = NSZeroSize;
 		
-			// Check if the image is in the memory cache.
-		image = [memoryCache objectForKey:imageKey];
-		if (image)
+		if (nativeSizeValue)
+		{
+				// There is at least one rep cached for this image.  Calculate the size that is 
+				// just small enough to enclose the requested size.
+			NSSize			nativeSize = [nativeSizeValue sizeValue];
+			if (size.width / nativeSize.width < size.height / nativeSize.height)
+				repSize = NSMakeSize(size.height * nativeSize.width / nativeSize.height, size.height);
+			else
+				repSize = NSMakeSize(size.width, size.width * nativeSize.height / nativeSize.width);
+			
+			repSize.width = (int)(repSize.width + 0.5);
+			repSize.height = (int)(repSize.height + 0.5);
+			
+				// Check if there is a cached image rep we can use.
+			NSEnumerator		*cachedRepEnumerator = [[memoryCache objectForKey:imageKey] objectEnumerator];
+			NSBitmapImageRep	*cachedRep = nil;
+			while (cachedRep = [cachedRepEnumerator nextObject])
+			{
+				NSSize	cachedRepSize = [cachedRep size];
+				
+				if (NSEqualSizes(cachedRepSize, repSize))
+				{
+						// Found an exact size match.  Perfect cache hit.
+					perfectHitCount++;
+					imageRep = cachedRep;
+					break;
+				}
+				else if (NSEqualSizes(cachedRepSize, nativeSize))
+					scalableRep = cachedRep;	// this is the original, OK to scale from it
+				else if (repSize.width <= nativeSize.width &&	// not looking for a rep bigger than the original image and...
+						 cachedRepSize.width >= repSize.width * 2.0 &&	// the cached rep is big enough to scale down and...
+						 (!scalableRep || [scalableRep size].width > cachedRepSize.width))	// there was no previous match or the
+																							// previous match was larger then...
+					scalableRep = cachedRep;	// we can scale this rep to the size we need.  Partial cache hit.
+			}
+		}
+		
+		if (imageRep)
         {
+				// There was an exact match in the cache.
 				// Remove the image from its current position in the memory cache.
 				// It will be added at the head of the queue below.
-			int index = [orderedCache indexOfObjectIdenticalTo:image];
-            if (index != NSNotFound)
-            {
-                [orderedCache removeObjectAtIndex:index];
-                [orderedCacheID removeObjectAtIndex:index];
-            }
-        }
+			int index = [imageKeyRecencyArray indexOfObjectIdenticalTo:imageKey];
+			if (index != NSNotFound)
+			{
+				[imageKeyRecencyArray removeObjectAtIndex:index];
+				[imageRepRecencyArray removeObjectAtIndex:index];
+			}
+		}
+		else if (scalableRep)
+		{
+				// Scale a copy of the closest rep to the desired size.
+			scalableHitCount++;
+			NSImage		*scaledImage = [[NSImage alloc] initWithSize:repSize];
+			NSRect		scaledRect = NSMakeRect(0.0, 0.0, repSize.width, repSize.height);
+			[scaledImage setCachedSeparately:YES];
+			NS_DURING
+				[scaledImage lockFocus];
+					[scalableRep drawInRect:NSMakeRect(0.0, 0.0, repSize.width, repSize.height)];
+					imageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:scaledRect] autorelease];
+				[scaledImage unlockFocus];
+			NS_HANDLER
+				NSLog(@"Could not lock focus on image to scale.");
+			NS_ENDHANDLER
+			[scaledImage release];
+			[self addImageRep:imageRep toMemoryCacheForKey:imageKey];
+		}
 		else
 		{
-				// See if we have the image in our disk cache.
+				// There is no rep we can use in the memory cache.
+				// See if we have the image in our disk cache, otherwise re-request it from the source.
+			missCount++;
+			NSLog(@"Cache miss rate: %.2f%%", missCount * 100.0 / (perfectHitCount + scalableHitCount + missCount));
+			
+			NSImage		*image = nil;
 			NSNumber	*imageID = [diskCache objectForKey:imageKey];
 			if (imageID)
 				image = [[[NSImage alloc] initWithContentsOfFile:[self filePathForCachedImageID:[imageID unsignedLongValue]]] autorelease];
@@ -146,33 +267,25 @@
 				image = [imageSource imageForIdentifier:imageIdentifier];
 			}
 			
-            if (image)
+            if ([image isValid])
 			{
-					// Disable caching to avoid deadlocks.  Hopefully this won't be necessary in a future OS...
 				[image setCacheMode:NSImageCacheNever];
 				
-					// Add the image to the in-memory cache.
-				[memoryCache setObject:image forKey:imageKey];
+					// Ignore whatever DPI was set for the image.  We just care about the bitmap.
+				NSImageRep	*originalRep = [[image representations] objectAtIndex:0];
+				[image setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
+				
+				[self cacheImage:image withIdentifier:imageIdentifier fromSource:imageSource];
+				
+					// Now that the image is cached again get a rep at the desired size.
+				imageRep = [self imageRepAtSize:size forIdentifier:imageIdentifier fromSource:imageSource];
 			}
-		}
-		
-		if (image)
-		{
-				// Add this image at the front of the in-memory cache.
-			[orderedCache insertObject:image atIndex:0];
-			[orderedCacheID insertObject:imageKey atIndex:0];
-			
-				// Prune the in-memory cache if it has gotten too large.
-			if ([orderedCache count] > IMAGE_CACHE_MAX_COUNT)
-			{
-				[memoryCache removeObjectForKey:[orderedCacheID lastObject]];
-				[orderedCache removeLastObject];
-				[orderedCacheID removeLastObject];
-			}
+			else
+				NSLog(@"Invalid image retrieved for %@", imageKey);
 		}
 	[cacheLock unlock];
 	
-	return image;
+	return imageRep;
 }
 
 
@@ -207,8 +320,8 @@
 	[cacheLock release];
 	[diskCache release];
 	[memoryCache release];
-	[orderedCache release];
-	[orderedCacheID release];
+	[imageRepRecencyArray release];
+	[imageKeyRecencyArray release];
     
     [super dealloc];
 }
