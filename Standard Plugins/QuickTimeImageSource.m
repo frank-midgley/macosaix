@@ -99,18 +99,21 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 	[currentImage autorelease];
 	currentImage = [[NSImage alloc] initWithSize:NSMakeSize(64.0, 64.0)];
 	
-	[currentImage lockFocus];
-		if ([image size].width > [image size].height)
-			[image drawInRect:NSMakeRect(0, (64.0 - 64.0 / [image size].width * [image size].height) / 2.0, 64, 64 / [image size].width * [image size].height)
-					 fromRect:NSZeroRect
-					operation:NSCompositeCopy
-					 fraction:1.0];
-		else
-			[image drawInRect:NSMakeRect((64.0 - 64.0 / [image size].height * [image size].width) / 2.0, 0, 64.0 / [image size].height * [image size].width, 64)
-					 fromRect:NSZeroRect
-					operation:NSCompositeCopy
-					 fraction:1.0];
-	[currentImage unlockFocus];
+	NS_DURING
+		[currentImage lockFocus];
+			if ([image size].width > [image size].height)
+				[image drawInRect:NSMakeRect(0, (64.0 - 64.0 / [image size].width * [image size].height) / 2.0, 64, 64 / [image size].width * [image size].height)
+						 fromRect:NSZeroRect
+						operation:NSCompositeCopy
+						 fraction:1.0];
+			else
+				[image drawInRect:NSMakeRect((64.0 - 64.0 / [image size].height * [image size].width) / 2.0, 0, 64.0 / [image size].height * [image size].width, 64)
+						 fromRect:NSZeroRect
+						operation:NSCompositeCopy
+						 fraction:1.0];
+		[currentImage unlockFocus];
+	NS_HANDLER
+	NS_ENDHANDLER
 }
 
 
