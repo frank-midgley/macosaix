@@ -53,17 +53,17 @@
 
     if (_displayTileOutlines)
     {
-	transform = [NSAffineTransform transform];
-	[transform translateXBy:0.5 yBy:-0.5];
-	[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
-	[[NSColor colorWithCalibratedWhite:0.0 alpha: 0.5] set];	// darken
-	[[transform transformBezierPath:_tileOutlines] stroke];
-
-	transform = [NSAffineTransform transform];
-	[transform translateXBy:-0.5 yBy:0.5];
-	[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
-	[[NSColor colorWithCalibratedWhite:1.0 alpha: 0.5] set];	// lighten
-	[[transform transformBezierPath:_tileOutlines] stroke];
+		transform = [NSAffineTransform transform];
+		[transform translateXBy:0.5 yBy:-0.5];
+		[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
+		[[NSColor colorWithCalibratedWhite:0.0 alpha: 0.5] set];	// darken
+		[[transform transformBezierPath:_tileOutlines] stroke];
+	
+		transform = [NSAffineTransform transform];
+		[transform translateXBy:-0.5 yBy:0.5];
+		[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
+		[[NSColor colorWithCalibratedWhite:1.0 alpha: 0.5] set];	// lighten
+		[[transform transformBezierPath:_tileOutlines] stroke];
     }
 
     // lighten the parts of the original image not currently showing in the mosaic
