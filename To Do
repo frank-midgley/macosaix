@@ -10,34 +10,36 @@ Need to be able to:
 ¥ Get image for identifier
 ¥ Determine if there are any more images
 
-Future version(s):
+Ideas for future versions:
     Service
-	Allow user to specify number of image matches kept for each tile.
-    Show tile extraction count in status bar
-    Calculate match of user chosen images
-    Statistics drawer/window
-    Width of status text problem (works when shown/hidden)
-    Better versioning in documents
-    Should pause also pause uniqueness thread?
-    Does save reset autosave clock?
-    Indicate best unique match in editor table
-    Set view mode (and icon in toolbar) on open
-    Disable 'center on selected tile' menu choice when not in editor
-    Trim solid borders for alternate image
-    More export image panel options (resolution, SVG format, ...)
-    Add code to support crop limit
-    Autosave on/off switch
-    Plug-in architecture for image sources and tile outlines
-    Mosaic quality calculation should take into account tile active pixel count
-    Toggle outline switch in editor?
-    iPhoto integration (plug-in)
-    "Must include" images
-    Printing (greeting card format?)
-    Grayscale option
-    Velocity engine
-    XGrid
-    Image regions
-	Icon source
+Ã	Allow user to specify number of image matches kept for each tile.
+Ã	Show tile extraction count in status bar
+	Calculate match of user chosen images
+	Statistics drawer/window (matches per second, etc.)
+	Width of status text problem (works when shown/hidden)
+	Better versioning in documents (XML may have done this since DTD can be versioned)
+	Should pause also pause uniqueness thread?
+	Does save reset autosave clock?
+	Indicate best unique match in editor table
+	Disable 'center on selected tile' menu choice when not using Tiles or Editor tab
+	Trim solid borders for alternate image
+	More export image panel options (resolution, SVG format, ...)
+	Add code to support crop limit
+	Autosave on/off switch
+Ã	Plug-in architecture for image sources and tile outlines
+	Mosaic quality calculation should take into account tile active pixel count
+	Toggle outline switch in editor?
+	"Must include" images
+	Printing (greeting card format?)
+	Grayscale option
+	Velocity engine
+	XGrid
+	Image regions
+	New image sources:
+		Icons
+		iSight source
+		iTunes album art
+		iPhoto albums
 
 
 Glyph crashes:
@@ -105,46 +107,29 @@ Ordered array:		images, fileIDs
 
 =======================================================================================
 
-@interface MacOSaiXDocument : NSDocument
-{
-}
--cacheImage:(NSImage *)image withIdentifier:(id)imageIdentifier fromSource:(ImageSource *)imageSource];
--cachedImageForIdentifier:(id)imageIdentifier fromSource:(ImageSource *)imageSource];
-
-
-// Populate cache while matching
-[document cacheImage:([imageSource canRefetchImages] ? thumbnailImage : fullImage) 
-	  withIdentifier:identifier 
-		  fromSource:imageSource];
-
-
-// While updating the onscreen mosaic image go for the lo-res images.  The image should be in the cache
-// unless the user messed with the saved file wrapper.
-NSImage *image = [document cachedImageForIdentifier:imageIdentifier fromSource:imageSource];
-if (!image && [imageSource canRefetchImages])
-	image = [imageSource imageForIdentifier:imageIdentifier];
-
-
-// While exporting go for the hi-res images first
-NSImage *image = nil;
-if ([imageSource canRefetchImages])
-	image = [imageSource imageForIdentifier:imageIdentifier];
-if (!image)
-	image = [document cachedImageForIdentifier:imageIdentifier fromSource:imageSource];
-
-=======================================================================================
-
 Rework TODO:
 ¥	Create MacOSaiXWindowController
-¥	Uniqueness
-¥	Saving
+¥	Rework MosaicView to not use a stored image but redraw the tiles as needed in -drawRect:.  Would allow for better zooming.
+Ã	Uniqueness
+¥	Saving (plug-ins state)
 ¥	Image sources GUI (whole utility drawer, actually)
 ¥	Get rid of framework?
 ¥	Hexagonal & puzzle tile shapes
 ¥	Glyph & google sources
 ¥	Original image view (scaling/tinting)
 ¥	Pausing
-¥	Exporting
+¥	Banded exporting
 ¥	Editor
+¥	Disable editor until after mosaic has started
 ¥	Push regions to next major release
-¥	Image cache purging
+¥	Image cache purging (on save)
+
+
+2.0a1 To Do:
+¥	Disable saving
+¥	List of what is/isn't working
+¥	Test on Jaguar
+Ã	Activate newly added image sources
+¥	Enable remove source button or disable it
+¥	Purge image cache directory on document dealloc
+¥	Disable tiles setup after mosaic starts?
