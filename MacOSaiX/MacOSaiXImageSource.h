@@ -17,6 +17,9 @@
 
 + (Class)editorClass;
 
+	// Whether multiple sources of this type can be added (maybe glyphs?)
++ (BOOL)allowMultipleImageSources;
+
 	// This method should return whether or not this source can
 - (NSImage *)image;
 - (id)descriptor;	// either an NSString or an NSAttributedString
@@ -49,8 +52,6 @@
 
 	// The view to insert into the drawer
 - (NSView *)imageSourceView;
-	// Whether multiple sources of this type can be added (maybe glyphs?)
-- (BOOL)allowMultipleImageSources;
 
 - (void)setOKButton:(NSButton *)button;
 

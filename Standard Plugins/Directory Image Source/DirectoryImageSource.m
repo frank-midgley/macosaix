@@ -25,6 +25,12 @@
 }
 
 
++ (BOOL)allowMultipleImageSources
+{
+	return YES;
+}
+
+
 - (id)initWithPath:(NSString *)path
 {
 	if (self = [super init])
@@ -114,6 +120,7 @@
 					image = [[NSImage alloc] initWithContentsOfFile:fullPath];
 				NS_HANDLER
 					// should something be logged?
+					NSLog(@"%@ is not a valid image file.", fullPath);
 				NS_ENDHANDLER
 			}
 		}
@@ -137,6 +144,7 @@
 		image = [[NSImage alloc] initWithContentsOfFile:[directoryPath stringByAppendingPathComponent:identifier]];
 	NS_HANDLER
 		// should something be logged?
+		NSLog(@"%@ is not a valid image file.", [directoryPath stringByAppendingPathComponent:identifier]);
 	NS_ENDHANDLER
 	
     return image;

@@ -13,12 +13,6 @@
 @implementation DirectoryImageSourceController
 
 
-- (BOOL)allowMultipleImageSources
-{
-	return YES;
-}
-
-
 - (NSView *)imageSourceView
 {
 	if (!imageSourceView)
