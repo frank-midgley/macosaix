@@ -24,9 +24,15 @@
 }
 
 
+- (void)setDelegate:(id)inDelegate
+{
+	delegate = inDelegate;
+}
+
+
 - (void)setTileOutlines:(NSArray *)outlines
 {
-	[[self document] setTileOutlines:outlines];
+	[delegate setTileOutlines:outlines];
 }
 
 

@@ -18,10 +18,12 @@
 						*_MacOSaiX_reserved4;
 	@public
 		IBOutlet NSView	*_setupView;
+		id				delegate;
 }
 
 + (NSString *)name;
 - (NSView *)setupView;
+- (void)setDelegate:(id)inDelegate;
 - (void)setTileOutlines:(NSArray *)outlines;
 
 
