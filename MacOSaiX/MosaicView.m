@@ -10,8 +10,9 @@
 - (void)awakeFromNib
 {
 	mosaicImageLock = [[NSLock alloc] init];
-	tilesNeedingDisplay = [[NSMutableArray array] retain];
 	tilesOutline = [[NSBezierPath bezierPath] retain];
+	tilesNeedingDisplay = [[NSMutableArray array] retain];
+	lastUpdate = [[NSDate date] retain];
 }
 
 
