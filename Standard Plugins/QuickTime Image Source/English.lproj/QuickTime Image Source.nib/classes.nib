@@ -6,7 +6,8 @@
             CLASS = QuickTimeImageSourceController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                imageSourceView = NSView; 
+                chooseMovieFileButton = NSButton; 
+                editorView = NSView; 
                 movieNameTextField = NSTextField; 
                 movieView = NSMovieView; 
                 recentMoviesPopUpButton = NSPopUpButton; 
