@@ -137,7 +137,7 @@ Ordered array:		images, fileIDs
 Ã		Make in-memory cache size, rather than count, dependent
 ¥	Saving (+ plug-ins state)
 ¥	Loading (+ plug-ins state)
-¥	Version check
+Ã	Version check
 ¥	Implement or disable neighborhood size GUI
 ¥	Limit better matches cache
 Ã	Switch to showing mosaic when mosaic starts
