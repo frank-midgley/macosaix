@@ -25,13 +25,15 @@
 	if (!_setupView)
 	{
 		NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
+		NSString		*previousTilesWide = [defaults objectForKey:@"Tiles Wide"],
+						*previousTilesHigh = [defaults objectForKey:@"Tiles High"];
 		
 		[NSBundle loadNibNamed:@"RectangularTilesSetup" owner:self];
 
-//		[_tilesAcrossStepper setStringValue:[defaults objectForKey:@"Tiles Wide"]];
+		[_tilesAcrossStepper setStringValue:(previousTilesWide ? previousTilesWide : @"40")];
 		_tilesWide = [_tilesAcrossStepper intValue];
 		[_tilesAcrossView setIntValue:_tilesWide];
-//		[_tilesDownStepper setStringValue:[defaults objectForKey:@"Tiles High"]];
+		[_tilesDownStepper setStringValue:(previousTilesHigh ? previousTilesHigh : @"40")];
 		_tilesHigh = [_tilesDownStepper intValue];
 		[_tilesDownView setIntValue:_tilesHigh];
 
