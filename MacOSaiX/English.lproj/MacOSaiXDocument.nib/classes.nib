@@ -7,6 +7,7 @@
                 allowUserToChooseImage = id; 
                 beginExportImage = id; 
                 cancelImageSource = id; 
+                changeTileShapes = id; 
                 chooseOriginalImage = id; 
                 removeImageSource = id; 
                 saveImageSource = id; 
@@ -49,6 +50,7 @@
                 imageSourcesPopUpButton = NSPopUpButton; 
                 imageSourcesRemoveButton = NSButton; 
                 imageSourcesTableView = NSTableView; 
+                imageUseCountPopUpButton = NSPopUpButton; 
                 mosaicScrollView = NSScrollView; 
                 mosaicView = MosaicView; 
                 neighborhoodSizePopUpButton = NSPopUpButton; 
@@ -60,9 +62,13 @@
                 setTileShapesButton = NSButton; 
                 statusBarView = NSView; 
                 statusMessageView = NSTextField; 
+                tileShapesBeingEdited = id; 
+                tileShapesDescriptionField = NSTextField; 
                 tileShapesEditor = id; 
                 tileShapesPopUpButton = NSPopUpButton; 
                 tileShapesView = NSView; 
+                tileSizeField = NSTextField; 
+                tileSizeLabel = NSTextField; 
                 totalTilesField = NSTextField; 
                 utilitiesDrawer = NSDrawer; 
                 utilitiesTabView = NSTabView; 

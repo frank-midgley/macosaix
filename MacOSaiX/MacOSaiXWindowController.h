@@ -37,15 +37,20 @@ typedef enum
 	unsigned long					exportProgressTileCount;
 	
 		// Setup tab
-	IBOutlet NSPopUpButton			*originalImagePopUpButton,
-									*tileShapesPopUpButton;
+	IBOutlet NSPopUpButton			*originalImagePopUpButton;
+	IBOutlet NSTextField			*tileShapesDescriptionField,
+									*totalTilesField,
+									*tileSizeLabel,
+									*tileSizeField;
+	IBOutlet NSPopUpButton			*neighborhoodSizePopUpButton,
+									*imageUseCountPopUpButton;
+	
+		// Tile shapes sheet
+	IBOutlet NSPopUpButton			*tileShapesPopUpButton;
 	IBOutlet NSView					*tileShapesView;
 	id<MacOSaiXTileShapesEditor>	tileShapesEditor;
 	id<MacOSaiXTileShapes>			tileShapesBeingEdited;
 	IBOutlet NSButton				*setTileShapesButton;
-	IBOutlet NSTextField			*totalTilesField;
-	IBOutlet NSPopUpButton			*neighborhoodSizePopUpButton;
-	int								neighborhoodSize;
 	
 		// Images tab
 	IBOutlet NSPopUpButton			*imageSourcesPopUpButton;
@@ -106,15 +111,16 @@ typedef enum
 
 - (IBAction)selectTileAtPoint:(NSPoint)thePoint;
 
-	// Setup tab methods
+	// Setup drawer
 - (IBAction)chooseOriginalImage:(id)sender;
-- (IBAction)setTileShapesPlugIn:(id)sender;
-- (IBAction)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes;
+- (IBAction)changeTileShapes:(id)sender;
 - (IBAction)setNeighborhoodSize:(id)sender;
-
-	// Images tab methods
 - (IBAction)addNewImageSource:(id)sender;
 - (IBAction)removeImageSource:(id)sender;
+
+	// Tile shapes sheet
+- (IBAction)setTileShapesPlugIn:(id)sender;
+- (IBAction)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes;
 
 	// Image source editor methods
 - (IBAction)saveImageSource:(id)sender;

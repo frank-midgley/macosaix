@@ -114,31 +114,44 @@
 		[originalImagePopUpButton selectItemAtIndex:0];
 		
 			// Load the names of the tile shapes plug-ins
-		NSString		*titleFormat = @"%@ Tile Shapes";
-		NSEnumerator	*enumerator = [[(MacOSaiX *)[NSApp delegate] tileShapesClasses] objectEnumerator];
-		Class			tileShapesClass = nil;
-		float			maxWidth = 0.0;
-		[tileShapesPopUpButton removeAllItems];
-		while (tileShapesClass = [enumerator nextObject])
+//		NSString		*titleFormat = @"%@ Tile Shapes";
+//		NSEnumerator	*enumerator = [[(MacOSaiX *)[NSApp delegate] tileShapesClasses] objectEnumerator];
+//		Class			tileShapesClass = nil;
+//		float			maxWidth = 0.0;
+//		[tileShapesPopUpButton removeAllItems];
+//		while (tileShapesClass = [enumerator nextObject])
+//		{
+//			[tileShapesPopUpButton addItemWithTitle:[NSString stringWithFormat:titleFormat, [tileShapesClass name]]];
+//			[[tileShapesPopUpButton lastItem] setRepresentedObject:tileShapesClass];
+//			
+//			[tileShapesPopUpButton selectItemAtIndex:[tileShapesPopUpButton numberOfItems] - 1];
+//			[tileShapesPopUpButton sizeToFit];
+//			maxWidth = MAX(maxWidth, [tileShapesPopUpButton frame].size.width);
+//		}
+//		[tileShapesPopUpButton setFrameSize:NSMakeSize(maxWidth, [tileShapesPopUpButton frame].size.height)];
+//		[tileShapesPopUpButton selectItemAtIndex:0];
+//		[self setTileShapesPlugIn:self];
+		
+			// Fill in the description of the current tile shapes.
+		id	tileShapesDescription = [[[self document] tileShapes] briefDescription];
+		if ([tileShapesDescription isKindOfClass:[NSString class]])
+			[tileShapesDescriptionField setStringValue:tileShapesDescription];
+		else if ([tileShapesDescription isKindOfClass:[NSAttributedString class]])
+			[tileShapesDescriptionField setAttributedStringValue:tileShapesDescription];
+		else if ([tileShapesDescription isKindOfClass:[NSString class]])
 		{
-			[tileShapesPopUpButton addItemWithTitle:[NSString stringWithFormat:titleFormat, [tileShapesClass name]]];
-			[[tileShapesPopUpButton lastItem] setRepresentedObject:tileShapesClass];
-			
-			[tileShapesPopUpButton selectItemAtIndex:[tileShapesPopUpButton numberOfItems] - 1];
-			[tileShapesPopUpButton sizeToFit];
-			maxWidth = MAX(maxWidth, [tileShapesPopUpButton frame].size.width);
+			NSTextAttachment	*imageTA = [[[NSTextAttachment alloc] init] autorelease];
+			[(NSTextAttachmentCell *)[imageTA attachmentCell] setImage:tileShapesDescription];
+			[tileShapesDescriptionField setAttributedStringValue:[NSAttributedString attributedStringWithAttachment:imageTA]];
 		}
-		[tileShapesPopUpButton setFrameSize:NSMakeSize(maxWidth, [tileShapesPopUpButton frame].size.height)];
-		[tileShapesPopUpButton selectItemAtIndex:0];
-		[self setTileShapesPlugIn:self];
+		else
+			[tileShapesDescriptionField setStringValue:@"No description available"];
 		
 			// Set the neighborhood size pop-up.
 		int				popUpIndex = [[self document] neighborhoodSize] - 1;
 		if (popUpIndex >= 0 && popUpIndex < [neighborhoodSizePopUpButton numberOfItems])
 			[neighborhoodSizePopUpButton selectItemAtIndex:popUpIndex];
-	}
-	
-	{
+		
 			// Set up the "Image Sources" tab
 		[imageSourcesTableView setDoubleAction:@selector(editImageSource:)];
 
@@ -146,16 +159,15 @@
 			setDataCell:[[[NSImageCell alloc] init] autorelease]];
 		[imageSourcesRemoveButton setEnabled:NO];	// temporarily disabled for 2.0a1
 	
-			// Load the image source plug-ins and create an instance of each controller
+			// Populate the "Add New Source..." pop-up menu with the names of the image sources.
+			// The represented object of each menu item will be the image source's class.
 		NSEnumerator	*enumerator = [[[NSApp delegate] imageSourceClasses] objectEnumerator];
 		Class			imageSourceClass;
 		[imageSourcesPopUpButton removeAllItems];
-		[imageSourcesPopUpButton addItemWithTitle:@"Add Source of Images"];
+		[imageSourcesPopUpButton addItemWithTitle:@"Add New Source..."];
 		while (imageSourceClass = [enumerator nextObject])
 		{
-				// add the name of the image source to the pop-up menu
 			[imageSourcesPopUpButton addItemWithTitle:[NSString stringWithFormat:@"%@...", [imageSourceClass name]]];
-				// attach it to the menu item (it will be dealloced when the menu item releases it)
 			[[imageSourcesPopUpButton lastItem] setRepresentedObject:imageSourceClass];
 		}
 	}
@@ -475,6 +487,12 @@
 
 #pragma mark -
 #pragma mark Tile shapes methods
+
+
+- (IBAction)changeTileShapes:(id)sender
+{
+	
+}
 
 
 - (IBAction)setTileShapesPlugIn:(id)sender
@@ -1413,7 +1431,7 @@
 {
     float	aspectRatio = [[[self document] originalImage] size].width / [[[self document] originalImage] size].height,
 			windowTop = [sender frame].origin.y + [sender frame].size.height,
-			minHeight = 155;
+			minHeight = 413;
     NSSize	diff;
     NSRect	screenFrame = [[sender screen] frame];
     
@@ -1460,7 +1478,7 @@
 {
 		// this method is called during animated window resizing, not windowWillResize
     [self setZoom:self];
-    [utilitiesTabView setNeedsDisplay:YES];
+//    [utilitiesTabView setNeedsDisplay:YES];
 }
 
 
