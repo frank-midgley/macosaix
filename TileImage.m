@@ -4,24 +4,24 @@
 
 static int		_maxLoadedImages;
 static NSMutableArray	*_loadedTileImages;
-static NSRecursiveLock	*_loadImageLock, *_unloadImageLock;
+static NSRecursiveLock	*_loadImageLock, *_removeImageFromCacheLock;
 
 + (void)initialize
 {
     _maxLoadedImages = 512;
     _loadedTileImages = [[NSMutableArray arrayWithCapacity:_maxLoadedImages] retain];
     _loadImageLock = [[NSRecursiveLock alloc] init];
-    _unloadImageLock = _loadImageLock;	//[[NSRecursiveLock alloc] init];
+    _removeImageFromCacheLock = _loadImageLock;	//[[NSRecursiveLock alloc] init];
 }
 
 
-- (id)initWithIdentifier:(id)identifier fromSource:(ImageSource *)imageSource
+- (id)initWithIdentifier:(id)identifier fromImageSourceIndex:(int)sourceIndex
 {
-    if (identifier == nil || imageSource == nil)
-	NSLog(@"Illegal TileImage initialization");
+    if (identifier == nil) NSLog(@"Illegal TileImage initialization");
     self = [super init];
     _imageIdentifier = [identifier retain];
-    _imageSource = [imageSource retain];
+    _imageSourceIndex = sourceIndex;
+    _useCount = 0;
     return self;
 }
 
@@ -29,7 +29,9 @@ static NSRecursiveLock	*_loadImageLock, *_unloadImageLock;
 - (id)initWithCoder:(NSCoder *)coder
 {
     self = [super init];
-    _imageSource = [[coder decodeObject] retain];
+//    _imageSource = [[coder decodeObject] retain];
+    _imageSourceIndex = [[coder decodeObject] intValue];
+    _useCount = [[coder decodeObject] intValue];
     _imageIdentifier = [[coder decodeObject] retain];
     return self;
 }
@@ -37,14 +39,16 @@ static NSRecursiveLock	*_loadImageLock, *_unloadImageLock;
 
 - (void)encodeWithCoder:(NSCoder *)coder
 {
-    [coder encodeObject:_imageSource];
+//    [coder encodeObject:_imageSource];
+    [coder encodeObject:[NSNumber numberWithInt:_imageSourceIndex]];
+    [coder encodeObject:[NSNumber numberWithInt:_useCount]];
     [coder encodeObject:_imageIdentifier];
 }
 
 
-- (ImageSource *)imageSource
+- (int)imageSourceIndex
 {
-    return _imageSource;
+    return _imageSourceIndex;
 }
 
 
@@ -54,85 +58,98 @@ static NSRecursiveLock	*_loadImageLock, *_unloadImageLock;
 }
 
 
-- (NSImage *)image
+- (NSImage *)imageFromSources:(NSArray *)imageSources;
 {
     NSImage	*imageRef;
     
-    [_unloadImageLock lock];
-	imageRef = [_image retain];
-	[imageRef autorelease];
-    [_unloadImageLock unlock];
+    [_removeImageFromCacheLock lock];
+		imageRef = [_image retain];
+		[imageRef autorelease];
+    [_removeImageFromCacheLock unlock];
     
     if (imageRef != nil)
     {
-	// move ourself to the head of the cache so we don't get de-allocated so soon
-	[_unloadImageLock lock];
-	    [_loadedTileImages removeObjectIdenticalTo:[self retain]];
-	    [_loadedTileImages insertObject:self atIndex:0];
-	    [self release];
-	[_unloadImageLock unlock];
-	return imageRef;
+			// Our image is cached.
+			// move ourself to the head of the cache so we don't get de-allocated so soon
+		[_removeImageFromCacheLock lock];
+			[_loadedTileImages removeObjectIdenticalTo:[self retain]];
+			[_loadedTileImages insertObject:self atIndex:0];
+			[self release];
+		[_removeImageFromCacheLock unlock];
+		return imageRef;
     }
 
-    //NSLog(@"\n\tLoading %@", _imageIdentifier);
-    // load the image
-    imageRef = [_imageSource imageForIdentifier:_imageIdentifier];
+		// we weren't cached, reload our image from the image source
+    imageRef = [[imageSources objectAtIndex:_imageSourceIndex] imageForIdentifier:_imageIdentifier];
 
     if (imageRef != nil)
     {
-	// Scale the image down to 128 pixels on its smaller axis to save memory
-	if ([imageRef size].width < [imageRef size].height && [imageRef size].width > 128)
-	{
-	    [imageRef setSize:NSMakeSize(128, 128 * [imageRef size].height / [imageRef size].width)];
-	    [imageRef recache];
-	}
-	if ([imageRef size].width > [imageRef size].height && [imageRef size].height > 128)
-	{
-	    [imageRef setSize:NSMakeSize(128 * [imageRef size].width / [imageRef size].height, 128)];
-	    [imageRef recache];
-	}
-	
-	[_loadImageLock lock];
-	    if (_image == nil)	// otherwise another thread loaded it
-	    {
-		_image = [imageRef retain];
+			// Scale the image down to 128 pixels on its smaller axis to save memory
+		if ([imageRef size].width < [imageRef size].height && [imageRef size].width > 128)
+		{
+			[imageRef setSize:NSMakeSize(128, 128 * [imageRef size].height / [imageRef size].width)];
+			[imageRef recache];
+		}
+		if ([imageRef size].width > [imageRef size].height && [imageRef size].height > 128)
+		{
+			[imageRef setSize:NSMakeSize(128 * [imageRef size].width / [imageRef size].height, 128)];
+			[imageRef recache];
+		}
 		
-		// add ourself to the list of images that are loaded
-		[_loadedTileImages insertObject:self atIndex:0];
-		
-		// unload another image if the cache is full
-		//[_unloadImageLock lock];
-		    if ([_loadedTileImages count] > _maxLoadedImages)
-			[(TileImage *)[_loadedTileImages lastObject] unloadImage];
-		//[_unloadImageLock unlock];
-	    }
-	[_loadImageLock unlock];
+		[_loadImageLock lock];
+			if (_image == nil)	// otherwise another thread loaded it
+			{
+				_image = [imageRef retain];
+				
+					// add ourself to the list of images that are loaded
+				[_loadedTileImages insertObject:self atIndex:0];
+				[self release];
+				
+					// unload another image if the cache is full
+				//[_unloadImageLock lock];
+					if ([_loadedTileImages count] > _maxLoadedImages)
+					[(TileImage *)[_loadedTileImages lastObject] removeImageFromCache];
+				//[_unloadImageLock unlock];
+			}
+		[_loadImageLock unlock];
     }
     
-    return _image;
+    return imageRef;
 }
 
 
-- (void)unloadImage
+- (void)removeImageFromCache
 {
-    [_unloadImageLock lock];
-	//NSLog(@"\n\tUnloading %@", _imageIdentifier);
-	[_image release];
-	_image = nil;
-	[_loadedTileImages removeObjectIdenticalTo:self];
-    [_unloadImageLock unlock];
+    [_removeImageFromCacheLock lock];
+		//NSLog(@"\n\tUnloading %@", _imageIdentifier);
+		[_image release];
+		_image = nil;
+		[self retain];
+		[_loadedTileImages removeObjectIdenticalTo:self];
+    [_removeImageFromCacheLock unlock];
+}
+
+
+- (void)imageIsInUse
+{
+    _useCount++;
+}
+
+
+- (BOOL)imageIsNotInUse
+{
+    return (--_useCount == 0);
 }
 
 
 - (void)dealloc
 {
-    [_unloadImageLock lock];
+    [_removeImageFromCacheLock lock];
 	//NSLog(@"\n\tDeallocating %@", _imageIdentifier);
-	if (_image != nil) [self unloadImage];
+	if (_image != nil) [self removeImageFromCache];
 	[_imageIdentifier release];
-	[_imageSource release];
 	[super dealloc];
-    [_unloadImageLock unlock];
+    [_removeImageFromCacheLock unlock];
 }
 
 @end

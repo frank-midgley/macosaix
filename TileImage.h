@@ -11,19 +11,22 @@
 #import "ImageSource.h"
 
 @interface TileImage : NSObject <NSCoding> {
-    ImageSource	*_imageSource;
+    int		_imageSourceIndex, _useCount;
     id		_imageIdentifier;
     NSImage	*_image;
 }
 
 + (void)initialize;
-- (id)initWithIdentifier:(id)identifier fromSource:(ImageSource *)imageSource;
+- (id)initWithIdentifier:(id)identifier fromImageSourceIndex:(int)sourceIndex;
 
-- (ImageSource *)imageSource;
+- (int)imageSourceIndex;
 - (id)imageIdentifier;
 
-- (NSImage *)image;
+- (NSImage *)imageFromSources:(NSArray *)imageSources;
 
-- (void)unloadImage;
+- (void)removeImageFromCache;
+
+- (void)imageIsInUse;
+- (BOOL)imageIsNotInUse;
 
 @end
