@@ -16,7 +16,19 @@
 #define MAX_MEMORY_CACHE_SIZE 200*1024*1024
 
 
+static	MacOSaiXImageCache	*sharedImageCache = nil;
+
+
 @implementation MacOSaiXImageCache
+
+
++ (MacOSaiXImageCache *)sharedImageCache
+{
+	if (!sharedImageCache)
+		sharedImageCache = [[MacOSaiXImageCache alloc] init];
+	
+	return sharedImageCache;
+}
 
 
 - (id)init
@@ -238,7 +250,7 @@
 			scalableHitCount++;
 			NSImage		*scaledImage = [[NSImage alloc] initWithSize:repSize];
 			NSRect		scaledRect = NSMakeRect(0.0, 0.0, repSize.width, repSize.height);
-			[scaledImage setCacheMode:NSImageCacheNever];
+//			[scaledImage setCacheMode:NSImageCacheNever];
 			[scaledImage setCachedSeparately:YES];
 			NS_DURING
 				[scaledImage lockFocus];
@@ -271,7 +283,8 @@
 			
             if ([image isValid])
 			{
-				[image setCacheMode:NSImageCacheNever];
+				[image setCachedSeparately:YES];
+//				[image setCacheMode:NSImageCacheNever];
 				
 					// Ignore whatever DPI was set for the image.  We just care about the bitmap.
 				NSImageRep	*originalRep = [[image representations] objectAtIndex:0];
