@@ -9,16 +9,37 @@
 #import <AppKit/AppKit.h>
 #import "Tiles.h"
 
-@interface MosaicView : NSImageView
+typedef enum
+{ _viewMosaic, _viewTilesOutline, _viewImageSources, _viewImageRegions, _viewHighlightedTile }
+MosaicViewMode;
+
+@interface MosaicView : NSView
 {
-    Tile*	_highlightedTile;
-    int		_phase;
+	NSImage			*_originalImage, *_mosaicImage;
+	MosaicViewMode	_viewMode;
+	
+		// ivar for _viewTileSetup
+	NSBezierPath	*_tilesOutline;
+	
+		// ivars for viewHighlightedTile
+    Tile*			_highlightedTile;
+    int				_phase;
 }
 
 - (id)init;
+- (void)setOriginalImage:(NSImage *)originalImage;
+- (void)setMosaicImage:(NSImage *)mosaicImage;
+- (void)setViewMode:(MosaicViewMode)mode;
+- (MosaicViewMode)viewMode;
 - (void)mouseDown:(NSEvent *)theEvent;
+- (void)drawRect:(NSRect)theRect;
+
+	// viewTileSetup methods
+- (void)setTileOutlines:(NSArray *)tileOutlines;
+
+	// viewHighlightedTile methods
 - (void)highlightTile:(Tile *)tile;
 - (void)animateHighlight;
-- (void)drawRect:(NSRect)theRect;
+
 
 @end
