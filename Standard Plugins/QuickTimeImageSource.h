@@ -18,6 +18,7 @@
 	TimeValue	minIncrement,
                 currentTimeValue, 
                 duration;
+	NSImage		*currentImage;
 }
 
 @end

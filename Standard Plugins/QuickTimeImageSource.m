@@ -7,6 +7,11 @@
 static NSRecursiveLock  *sQuickTimeLock = nil;
 
 
+@interface QuickTimeImageSource (PrivateMethods)
+- (void)setCurrentImage:(NSImage *)image;
+@end
+
+
 @implementation QuickTimeImageSource
 
 
@@ -69,8 +74,10 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 						SetMovieBox(movie, &movieBounds);
 						NSLog(@"Movie size:%d, %d", movieBounds.right, movieBounds.bottom);
 						
-                        minIncrement = GetMovieTimeScale(movie) / 30;   // at most 30 frames/second
+                        minIncrement = GetMovieTimeScale(movie) / 10;   // equals 10 fps
 						duration = GetMovieDuration(movie);
+						
+						[self setCurrentImage:[self imageForIdentifier:[NSNumber numberWithLong:GetMoviePosterTime(movie)]]];
 					}
 					
 					CloseMovieFile(theRefNum);
@@ -87,10 +94,30 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 }
 
 
+- (void)setCurrentImage:(NSImage *)image
+{
+	[currentImage autorelease];
+	currentImage = [[NSImage alloc] initWithSize:NSMakeSize(64.0, 64.0)];
+	
+	[currentImage lockFocus];
+		if ([image size].width > [image size].height)
+			[image drawInRect:NSMakeRect(0, (64.0 - 64.0 / [image size].width * [image size].height) / 2.0, 64, 64 / [image size].width * [image size].height)
+					 fromRect:NSZeroRect
+					operation:NSCompositeCopy
+					 fraction:1.0];
+		else
+			[image drawInRect:NSMakeRect((64.0 - 64.0 / [image size].height * [image size].width) / 2.0, 0, 64.0 / [image size].height * [image size].width, 64)
+					 fromRect:NSZeroRect
+					operation:NSCompositeCopy
+					 fraction:1.0];
+	[currentImage unlockFocus];
+}
+
+
 	// return the image to be displayed in the list of image sources
 - (NSImage *)image;
 {
-    return [[NSWorkspace sharedWorkspace] iconForFile:moviePath];
+    return currentImage ? currentImage : [[NSWorkspace sharedWorkspace] iconForFile:moviePath];
 }
 
 
@@ -134,6 +161,7 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 			currentTimeValue += minIncrement;
 		else
 			currentTimeValue = nextInterestingTime;
+		_imageCount++;
 	}
     
 //    NSLog(@"Next interesting time=%@", [NSNumber numberWithLong:currentTimeValue]);
@@ -149,6 +177,9 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 	[self performSelectorOnMainThread:@selector(imageForIdentifierOnMainThread:) 
 						   withObject:[NSArray arrayWithObjects:identifier, imageAtTimeValue, nil]
 						waitUntilDone:YES];
+	
+	if ([identifier longValue] == currentTimeValue)
+		[self setCurrentImage:imageAtTimeValue];
 	
 	return imageAtTimeValue;
 }
@@ -190,6 +221,8 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 - (void)dealloc
 {
 	[moviePath release];
+	
+	[super dealloc];
 }
 
 
