@@ -104,9 +104,10 @@
 
 - (NSImage *)nextImageAndIdentifier:(NSString **)identifier
 {
-	NSImage		*image = nil;
-	NSString	*subPath = nil;
-		
+	NSImage			*image = nil;
+	NSString		*subPath = nil;
+	NSFileManager	*fileManager = [NSFileManager defaultManager];
+	
 		// Enumerate our directory until we find a valid image file or run out of files.
 	do
 	{
@@ -120,12 +121,22 @@
 				
 				// If the path doesn't point to an iPhoto thumb or original then try to open it.
 				// Otherwise we get duplicates of iPhoto images in the mosaic.
-			if (iPhotoLibraryIndex == NSNotFound || thumbsIndex < iPhotoLibraryIndex || originalsIndex < iPhotoLibraryIndex)
+			if ([[[fileManager fileAttributesAtPath:fullPath traverseLink:NO] fileType]	
+					isEqualToString:NSFileTypeRegular] && 
+				iPhotoLibraryIndex == NSNotFound || thumbsIndex < iPhotoLibraryIndex || originalsIndex < iPhotoLibraryIndex)
 			{
 				NS_DURING
 					image = [[[NSImage alloc] initWithContentsOfFile:fullPath] autorelease];
+					
+					if (!image)
+					{
+							// The image might have the wrong or a missing file extension so 
+							// try init'ing it based on its contents instead.  This requires 
+							// more memory so only do this if initWithContentsOfFile fails.
+						NSData	*data = [[NSData alloc] initWithContentsOfFile:fullPath];
+						image = [[[NSImage alloc] initWithData:data] autorelease];
+					}
 				NS_HANDLER
-					// should something be logged?
 					NSLog(@"%@ is not a valid image file.", fullPath);
 				NS_ENDHANDLER
 			}
@@ -148,8 +159,15 @@
 	
 	NS_DURING
 		image = [[[NSImage alloc] initWithContentsOfFile:[directoryPath stringByAppendingPathComponent:identifier]] autorelease];
+		if (!image)
+		{
+				// The image might have the wrong or a missing file extension so 
+				// try init'ing it based on its contents instead.  This requires 
+				// more memory so only do this if initWithContentsOfFile fails.
+			NSData	*data = [[NSData alloc] initWithContentsOfFile:fullPath];
+			image = [[[NSImage alloc] initWithData:data] autorelease];
+		}
 	NS_HANDLER
-		// should something be logged?
 		NSLog(@"%@ is not a valid image file.", [directoryPath stringByAppendingPathComponent:identifier]);
 	NS_ENDHANDLER
 	
