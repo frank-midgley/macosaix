@@ -7,24 +7,23 @@
     IBOutlet id			window;
     IBOutlet id			mosaicView;
     IBOutlet id			originalView;
-    IBOutlet id			imagesMatched;
-    IBOutlet id			goButton;
+    IBOutlet id			selectedTileFilePath;
+    IBOutlet id			openButton, saveButton;
     IBOutlet id			progressIndicator;
     NSImage			*originalImage, *mosaicImage;
-    NSMutableArray		*tileOutlines;
-    NSMutableArray		*_tiles;
-    float			*bestMatch;
+    NSMutableArray		*_tiles, *_updatedTiles;
     NSDirectoryEnumerator	*enumerator;
-    int				imageCount, maxImages;
-    BOOL			inProgress, somethingChanged;
+    BOOL			somethingChanged;
     NSString			*pixPath;
-    NSLock			*mosaicLock;
+    NSLock			*mosaicLock, *_updatedTilesLock;
+    Tile			*_selectedTile;
 }
 
 - (void)startMosaic:(id)sender;
 - (void)updateDisplay:(id)timer;
 - (void)enumerateAndMatchFiles:(id)foo;
-- (float)computeMatch:(Tile *)tile with:(NSBitmapImageRep *)imageRep previousBest:(float)prevBest;
+- (void)selectTileAtPoint:(NSPoint)thePoint;
+- (void)saveMosaicImage:(id)sender;
 
 // application delegate methods
 - (void)applicationDidFinishLaunching:(NSNotification *)note;

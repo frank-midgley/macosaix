@@ -1,39 +1,50 @@
 #import "MosaicView.h"
+#import "Tiles.h"
 
 @implementation MosaicView
 
-- (id)initWithFrame:(NSRect)frame
+- (id)init
 {
-    if (self = [super initWithFrame:frame])
-    {
-	[self setBoundsSize:frame.size];
-	_image = nil;
-    }
+    [super init];
+    _highlightedTile = nil;
     return self;
 }
 
-- (void)setImage:(NSImage*)image
+
+- (void)mouseDown:(NSEvent *)theEvent
 {
-    NSImage	*oldImage;
-    
-    if (image != _image)
-    {
-	oldImage = _image;
-	_image = [image retain];
-	[oldImage release];
-	oldImage = nil;
-	[_image setScalesWhenResized:YES];
-	[self setBoundsOrigin:NSMakePoint(0, 0)];
-	[self setBoundsSize:[_image size]];
-    }
+    BOOL keepOn = YES;
+    NSPoint mouseLoc;
+
+    while (keepOn) {
+        theEvent = [[self window] nextEventMatchingMask: NSLeftMouseUpMask];
+
+        if ([theEvent type] == NSLeftMouseUp)
+	{
+	    mouseLoc = [self convertPoint:[theEvent locationInWindow] fromView:nil];
+	    if ([self mouse:mouseLoc inRect:[self bounds]])
+		[[[self window] delegate] selectTileAtPoint:mouseLoc];
+	    keepOn = NO;
+        }
+
+    };
+
+    return;
 }
 
-- (void)drawRect:(NSRect)rect
+
+- (void)highlightTile:(Tile *)tile
 {
-    [self lockFocus];
-//    [self setBoundsSize:[_image size]];
-    [_image compositeToPoint:NSMakePoint(0, 0) operation:NSCompositeCopy];
-    [self unlockFocus];
+    _highlightedTile = tile;
+}
+
+
+- (void)drawRect:(NSRect)theRect
+{
+    [super drawRect:theRect];
+    [[NSColor blackColor] set];
+    [[_highlightedTile outline] setLineWidth:4.0];
+    [[_highlightedTile outline] stroke];
 }
 
 @end

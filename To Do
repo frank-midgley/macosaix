@@ -1,0 +1,10 @@
+"New Mosaic..." dialog
+Crop images instead of scaling
+Prohibit repeating images
+Zoom in on individual tile
+Google interface
+Printing
+Reuse NSBitmapImageRep in matching code - re-use for same sized tiles
+"Must include" images
+Way of pausing spawned thread
+Restrict window resizing to preserver image's aspect ratio

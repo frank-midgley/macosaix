@@ -7,15 +7,16 @@
 //
 
 #import <AppKit/AppKit.h>
-
+#import "Tiles.h"
 
 @interface MosaicView : NSImageView
 {
-    NSImage*	_image;
+    Tile*	_highlightedTile;
 }
 
-- (id)initWithFrame:(NSRect)frame;
-- (void)setImage:(NSImage*)image;
-- (void)drawRect:(NSRect)rect;
+- (id)init;
+- (void)mouseDown:(NSEvent *)theEvent;
+- (void)highlightTile:(Tile *)tile;
+- (void)drawRect:(NSRect)theRect;
 
 @end
