@@ -237,6 +237,7 @@
 		NSOpenPanel	*oPanel = [NSOpenPanel openPanel];
 		[oPanel setCanChooseFiles:YES];
 		[oPanel setCanChooseDirectories:NO];
+		[oPanel setAccessoryView:openOriginalAccessoryView];
 		[oPanel beginSheetForDirectory:nil
 								  file:nil
 								 types:[NSImage imageFileTypes]
@@ -473,9 +474,12 @@
 		else
 			statusMessage = [NSString stringWithString:@"Done"];
 		
-		[statusMessageView setStringValue:[NSString stringWithFormat:@"Images: %d     Quality: %2.1f%%     Status: %@",
+//		[statusMessageView setStringValue:[NSString stringWithFormat:@"Images: %d     Quality: %2.1f%%     Status: %@",
+//																	 [[self document] imagesMatched], 
+//																	 overallMatch, 
+//																	 statusMessage]];
+		[statusMessageView setStringValue:[NSString stringWithFormat:@"Images: %d     Quality: (not working)     Status: %@",
 																	 [[self document] imagesMatched], 
-																	 overallMatch, 
 																	 statusMessage]];
 		
 		[imageSourcesTableView reloadData];
@@ -1665,6 +1669,14 @@
 		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXOriginalImageDidChangeNotification object:[self document]];
 		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXDocumentDidChangeStateNotification object:[self document]];
 		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXTileShapesDidChangeStateNotification object:[self document]];
+		
+		[tileRefreshLock lock];
+			[tilesToRefresh release];
+			tilesToRefresh = nil;
+		[tileRefreshLock unlock];
+		
+		while (refreshTilesThreadCount > 0)
+			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 	}
 }
 
@@ -1911,6 +1923,9 @@
     
 	[tileShapesEditor release];
 	[tileShapesBeingEdited release];
+	
+	[tileRefreshLock release];
+	[tilesToRefresh release];
 	
 		// We are responsible for releasing any top-level objects in the nib file that we opened.
 	// ???

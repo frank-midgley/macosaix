@@ -14,7 +14,6 @@
 	
 	IBOutlet NSTextField				*statusMessageView;
 	
-	
     IBOutlet NSView						*statusBarView;
 	
     IBOutlet NSView						*zoomToolbarView;
@@ -25,6 +24,7 @@
     IBOutlet NSDrawer					*settingsDrawer;
 	IBOutlet NSImageView				*originalImageThumbView;
 	IBOutlet NSPopUpButton				*originalImagePopUpButton;
+	IBOutlet NSView						*openOriginalAccessoryView;
 	IBOutlet NSTextField				*tileShapesDescriptionField,
 										*totalTilesField,
 										*tileSizeLabelField,
