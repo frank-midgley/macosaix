@@ -216,9 +216,15 @@
 		while (tilesSetupControllerClass = [enumerator nextObject])
 			[tilesSetupPopUpButton addItemWithTitle:[tilesSetupControllerClass name]];
 		[self setTilesSetupPlugIn:self];
+		
+			// Restore the last neighborhood size that the user chose.
+		int				popUpIndex = [[NSUserDefaults standardUserDefaults] integerForKey:@"Neighborhood Size"] - 1;
+		if (popUpIndex >= 0 && popUpIndex < [neighborhoodSizePopUpButton numberOfItems])
+			[neighborhoodSizePopUpButton selectItemAtIndex:popUpIndex];
 	}
 	
-	{	// Set up the "Image Sources" tab
+	{
+			// Set up the "Image Sources" tab
 		[imageSourcesTabView setTabViewType:NSNoTabsNoBorder];
 
 		imageSources = [[NSMutableArray arrayWithCapacity:4] retain];
@@ -756,7 +762,7 @@
 		// Calculate the directly neighboring tiles of each tile.  This is used to calculate
 		// each tile's neighborhood when combined with the neighborhood size setting.
 	if (!directNeighbors)
-		directNeighbors = [[NSMutableArray array] retain];
+		directNeighbors = [[NSMutableDictionary dictionary] retain];
 	else
 		[directNeighbors removeAllObjects];
 	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
@@ -781,11 +787,14 @@
 			if (tile2 != tile && NSIntersectsRect(zoomedTileBounds, [[tile2 outline] bounds]))
 				[directNeighborArray addObject:tile2];
 		
-		[directNeighbors addObject:directNeighborArray];
+		[directNeighbors setObject:directNeighborArray forKey:[NSString stringWithFormat:@"%p", tile]];
 	}
 	
 	[self setNeighborhoodSize:self];
 	
+	if (selectedTile)
+		[self selectTileAtPoint:tileSelectionPoint];
+		
 	mosaicStarted = NO;
 }
 
@@ -1372,15 +1381,15 @@
 {
 	neighborhoodSize = [neighborhoodSizePopUpButton indexOfSelectedItem] + 1;
 	
+	[[NSUserDefaults standardUserDefaults] setInteger:neighborhoodSize forKey:@"Neighborhood Size"];
+	
 	// TODO: what if a mosaic is already in the works?  how do we reset?
 	
 		// At a minimum each tile neighbors its direct neighbors.
-	NSEnumerator	*tileEnumerator = [tiles objectEnumerator],
-					*directNeighborsEnumerator = [directNeighbors objectEnumerator];
+	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
 	Tile			*tile = nil;
-	NSArray			*directNeighborArray = nil;
-	while ((tile = [tileEnumerator nextObject]) && (directNeighborArray = [directNeighborsEnumerator nextObject]))
-		[tile setNeighbors:directNeighborArray];
+	while (tile = [tileEnumerator nextObject])
+		[tile setNeighbors:[directNeighbors objectForKey:[NSString stringWithFormat:@"%p", tile]]];
 	
 	int	degreeOfSeparation;
 	for (degreeOfSeparation = 1; degreeOfSeparation < neighborhoodSize; degreeOfSeparation++)
@@ -1395,11 +1404,14 @@
 			Tile				*neighbor = nil;
 			
 			while (!documentIsClosing && (neighbor = [neighborEnumerator nextObject]))
-				[tile addNeighbors:[directNeighbors objectAtIndex:[tiles indexOfObjectIdenticalTo:neighbor]]];
+				[tile addNeighbors:[directNeighbors objectForKey:[NSString stringWithFormat:@"%p", neighbor]]];
 			
 			[pool2 release];
 		}
 	}
+	
+	if (selectedTile)
+		[mosaicView highlightTile:selectedTile];
 }
 
 
@@ -1557,6 +1569,11 @@
 
 - (void)selectTileAtPoint:(NSPoint)thePoint
 {
+	tileSelectionPoint = thePoint;
+	
+	[selectedTile autorelease];
+	selectedTile = nil;
+		
     thePoint.x = thePoint.x / [mosaicView frame].size.width;
     thePoint.y = thePoint.y / [mosaicView frame].size.height;
     
@@ -1565,7 +1582,7 @@
     for (i = 0; i < [tiles count]; i++)
         if ([[[tiles objectAtIndex:i] outline] containsPoint:thePoint])
         {
-            selectedTile = [tiles objectAtIndex:i];
+            selectedTile = [[tiles objectAtIndex:i] retain];
             [mosaicView highlightTile:selectedTile];
 			
 			if ([mosaicView viewMode] == viewHighlightedTile)
@@ -1585,7 +1602,7 @@
 
 - (void)animateSelectedTile:(id)timer
 {
-    if (selectedTile != nil && !documentIsClosing)
+    if (selectedTile && !documentIsClosing)
         [mosaicView animateHighlight];
 }
 
@@ -1594,7 +1611,7 @@
 {
     [selectedTileImages release];
     
-    if (selectedTile == nil)
+    if (selectedTile)
     {
         [editorUseCustomImage setState:NSOffState];
         [editorUseBestUniqueMatch setState:NSOffState];
@@ -2537,6 +2554,7 @@
     [refindUniqueTilesLock release];
     [imageQueueLock release];
     [tiles release];
+	[selectedTile release];
     [tileOutlines release];
     [imageQueue release];
     [selectedTileImages release];
@@ -2548,6 +2566,7 @@
     [lastSaved release];
     [tileImages release];
     [tileImagesLock release];
+	[directNeighbors release];
     
     [super dealloc];
 }

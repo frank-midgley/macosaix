@@ -40,7 +40,7 @@ typedef enum
 	IBOutlet NSTextField			*totalTilesField;
 	IBOutlet NSPopUpButton			*neighborhoodSizePopUpButton;
 	int								neighborhoodSize;
-	NSMutableArray					*directNeighbors;
+	NSMutableDictionary				*directNeighbors;
 	
 		// Images tab
 	IBOutlet NSPopUpButton			*imageSourcesPopUpButton;
@@ -91,6 +91,7 @@ typedef enum
 								exportImageThreadAlive;
     float						overallMatch, lastDisplayMatch, zoom;
     Tile						*selectedTile;
+	NSPoint						tileSelectionPoint;
     NSWindow					*mainWindow, *mosaicImageDrawWindow;
     NSBezierPath				*combinedOutlines;
     NSMenuItem					*zoomToolbarMenuItem, *viewToolbarMenuItem;
