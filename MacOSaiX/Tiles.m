@@ -88,7 +88,7 @@
 {
 	if (self = [super init])
 	{
-		outline = [inOutline copy];
+		outline = [inOutline retain];
 		document = inDocument;	// the document retains us so we don't retain it
 		
 		cachedMatches = [[NSMutableDictionary dictionary] retain];
@@ -309,7 +309,6 @@
 	else
 		return nil;
 }
-
 
 - (void)dealloc
 {
