@@ -49,6 +49,7 @@
                 exportWidth = NSTextField; 
                 imageSourceEditorBox = NSBox; 
                 imageSourceEditorCancelButton = NSButton; 
+                imageSourceEditorController = id; 
                 imageSourceEditorOKButton = NSButton; 
                 imageSourceEditorPanel = NSPanel; 
                 imageSourcesPopUpButton = NSPopUpButton; 
@@ -57,7 +58,6 @@
                 imageUseCountPopUpButton = NSPopUpButton; 
                 mosaicScrollView = NSScrollView; 
                 mosaicView = MosaicView; 
-                neighborhoodSizePopUpButton = NSPopUpButton; 
                 originalImagePopUpButton = NSPopUpButton; 
                 originalImageThumbView = NSImageView; 
                 progressPanel = NSPanel; 
@@ -74,6 +74,8 @@
                 tileShapesEditor = id; 
                 tileShapesPanel = NSPanel; 
                 tileShapesPopUpButton = NSPopUpButton; 
+                tileSizeField = NSTextField; 
+                tileSizeLabelField = NSTextField; 
                 totalTilesField = NSTextField; 
                 zoomSlider = NSSlider; 
                 zoomToolbarSubmenu = NSMenu; 
