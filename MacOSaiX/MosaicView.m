@@ -133,7 +133,7 @@
 			NS_ENDHANDLER
 		[mosaicImageLock unlock];
 		
-		[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:tile waitUntilDone:YES];
+		[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:tile waitUntilDone:NO];
 	}
 
 	[pool release];
