@@ -6,6 +6,7 @@
                 addNewImageSource = id; 
                 allowUserToChooseImage = id; 
                 beginExportImage = id; 
+                cancelChangingTileShapes = id; 
                 cancelImageSource = id; 
                 changeTileShapes = id; 
                 chooseOriginalImage = id; 
@@ -34,6 +35,7 @@
             CLASS = MacOSaiXWindowController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                changeTileShapesButton = NSButton; 
                 editorChooseImage = NSButton; 
                 editorLabel = NSTextField; 
                 editorTable = NSTableView; 
@@ -61,17 +63,16 @@
                 progressPanelIndicator = NSProgressIndicator; 
                 progressPanelLabel = NSTextField; 
                 setTileShapesButton = NSButton; 
+                settingsDrawer = NSDrawer; 
                 statusBarView = NSView; 
                 statusMessageView = NSTextField; 
                 tileShapesBeingEdited = id; 
+                tileShapesBox = NSBox; 
                 tileShapesDescriptionField = NSTextField; 
                 tileShapesEditor = id; 
+                tileShapesPanel = NSPanel; 
                 tileShapesPopUpButton = NSPopUpButton; 
-                tileShapesView = NSView; 
-                tileSizeField = NSTextField; 
-                tileSizeLabel = NSTextField; 
                 totalTilesField = NSTextField; 
-                utilitiesDrawer = NSDrawer; 
                 zoomSlider = NSSlider; 
                 zoomToolbarSubmenu = NSMenu; 
                 zoomToolbarView = NSView; 
