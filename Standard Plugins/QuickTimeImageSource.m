@@ -1,9 +1,36 @@
 #import <AppKit/AppKit.h>
 #import <QuickTime/QuickTime.h>
 #import "QuickTimeImageSource.h"
+#import <pthread.h>
 
+
+static NSRecursiveLock  *sQuickTimeLock = nil;
 
 @implementation QuickTimeImageSource
+
+
+- (void)lockQuickTime
+{
+	if (!sQuickTimeLock)
+		sQuickTimeLock = [[NSRecursiveLock alloc] init];
+	
+	void (*funcPtr)(int) = CFBundleGetFunctionPointerForName(CFBundleGetBundleWithIdentifier(CFSTR("com.apple.QuickTime")),
+															 CFSTR("EnterMoviesOnThread"));
+	if (funcPtr)
+		funcPtr(1L << 1);
+
+	[sQuickTimeLock lock];
+}
+
+
+- (void)unlockQuickTime
+{
+	void (*funcPtr)() = CFBundleGetFunctionPointerForName(CFBundleGetBundleWithIdentifier(CFSTR("com.apple.QuickTime")),
+															 CFSTR("ExitMoviesOnThread"));
+	if (funcPtr)
+		funcPtr();
+	[sQuickTimeLock unlock];
+}
 
 
 - (id)initWithPath:(NSString *)path
@@ -39,6 +66,8 @@
 						OffsetRect(&movieBounds, -movieBounds.left, -movieBounds.top);
 						SetMovieBox(_movie, &movieBounds);
 						NSLog(@"Movie size:%d, %d", movieBounds.right, movieBounds.bottom);
+						
+						_duration = GetMovieDuration(_movie);
 					}
 					
 					CloseMovieFile(theRefNum);
@@ -71,13 +100,22 @@
 
 - (BOOL)hasMoreImages
 {
-	return _curTimeValue < GetMovieDuration(_movie);
+	return _curTimeValue < _duration;
 }
 
 
 - (id)nextImageIdentifier
 {
-	_curTimeValue += 100;
+	[self lockQuickTime];
+		GetMovieNextInterestingTime (_movie, nextTimeStep, 0, nil, _curTimeValue, 1, &_curTimeValue, &_duration);
+		OSErr   err = GetMoviesError();
+	[self unlockQuickTime];
+	
+	if (err != noErr)
+		NSLog(@"Error %d getting next interesting time.", err);
+	
+    NSLog(@"Next interesting time=%@", [NSNumber numberWithLong:_curTimeValue]);
+	
 	return [NSNumber numberWithLong:_curTimeValue];
 }
 
@@ -86,9 +124,18 @@
 {
 	TimeValue	requestedTime = [identifier longValue];
 	
-	if (requestedTime > GetMovieDuration(_movie)) return nil;
+	if (requestedTime > _duration) return nil;
 	
-	PicHandle	picHandle = GetMoviePict(_movie, requestedTime);
+//	if (!pthread_main_np())
+//		CSSetComponentsThreadMode(kCSAcceptThreadSafeComponentsOnlyMode);
+	
+	[self lockQuickTime];
+		PicHandle	picHandle = GetMoviePict(_movie, requestedTime);
+	[self unlockQuickTime];
+	OSErr   err = GetMoviesError();
+	if (err != noErr)
+		NSLog(@"Error %d getting movie picture.", err);
+	
 	NSImage		*imageAtTimeValue = nil;
 	Rect		movieBounds = {0, 0, 0, 0};
 	

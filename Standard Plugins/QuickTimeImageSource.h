@@ -15,7 +15,7 @@
 {
     NSString	*_moviePath;
 	Movie		_movie;
-	TimeValue	_curTimeValue;
+	TimeValue	_curTimeValue, _duration;
 }
 
 @end
