@@ -252,18 +252,22 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 			NSRect		scaledRect = NSMakeRect(0.0, 0.0, repSize.width, repSize.height);
 			[scaledImage setCachedSeparately:YES];
 			[scaledImage setCacheMode:NSImageCacheNever];
-			NS_DURING
-				[scaledImage lockFocus];
-					[scalableRep drawInRect:NSMakeRect(0.0, 0.0, repSize.width, repSize.height)];
-					imageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:scaledRect] autorelease];
-				[scaledImage unlockFocus];
-			NS_HANDLER
-				NSLog(@"Could not lock focus on image to scale.");
-			NS_ENDHANDLER
+			do
+			{
+				NS_DURING
+					[scaledImage lockFocus];
+						[scalableRep drawInRect:NSMakeRect(0.0, 0.0, repSize.width, repSize.height)];
+						imageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:scaledRect] autorelease];
+					[scaledImage unlockFocus];
+				NS_HANDLER
+					NSLog(@"Could not lock focus on image to scale.");
+				NS_ENDHANDLER
+			} while (!imageRep);
 			[scaledImage release];
 			[self addImageRep:imageRep toMemoryCacheForKey:imageKey];
 		}
-		else
+		
+		if (!imageRep)
 		{
 				// There is no rep we can use in the memory cache.
 				// See if we have the image in our disk cache, otherwise re-request it from the source.
