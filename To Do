@@ -126,18 +126,17 @@ Rework TODO:
 ¥	Disable editor until after mosaic has started
 ¥	Push regions to next major release
 ¥	Image cache purging (on save)
+¥	Change idle message
+¥	Test on Jaguar
 
 
 2.0a1 To Do:
 Ã	Disable saving
-¥	List of what is/isn't working
-¥	Test on Jaguar
 Ã	Activate newly added image sources
 Ã	Enable remove source button or disable it
 Ã	Purge image cache directory on document dealloc
-¥	Disable tiles setup after mosaic starts?
+Ã	Disable tiles setup after mosaic starts
 Ã	Turn down priority of worker threads
-¥	Change idle message
 
 
 Working:
@@ -157,6 +156,7 @@ Not Working:
 	Glyph Source
 	Removing Sources
 	Editor
-
+	Quality
+	
 
 
