@@ -817,7 +817,7 @@
 //    [[drawWindow contentView] unlockFocus];
     [drawWindow close];
 
-		// Calculate the neighboring tiles of each tile based on number of tiles away repeats are allowed.
+		// Calculate the directly neighboring tiles of each tile based on number of tiles away repeats are allowed.
 		// For example if tiles are allowed to repeat past 1 neighbor than the direct neighbors of a tile
 		// would be in its neighbor set.  If 2 then the direct neighbors and all of their direct neighbors
 		// would be in the set.
@@ -849,21 +849,33 @@
 //		NSLog(@"Tile at %p has %d neighbors.", tile, [[tile neighbors] count]);
 		extractionPercentComplete = 50.0 + (int)(index * 50.0 / [tileOutlines count]);
 	}
-
-	int	i;
-	for (i = 0; i < 0; i++)
+	
+	int	neighborhoodSize = 3;
+	if (neighborhoodSize > 1)	// the code above already handled neighborhoods of size 1
 	{
-			// Add the neighbors of every neighbor of each tile to the tile.
+			// First make a copy of the direct neighbors of each tile.
+		NSMutableArray	*directNeighbors = [NSMutableArray array];
 		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
 		Tile			*tile = nil;
 		while (!documentIsClosing && (tile = [tileEnumerator nextObject]))
-		{ 
-			NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
-			NSEnumerator	*neighborEnumerator = [[tile neighbors] objectEnumerator];
-			Tile			*neighbor = nil;
-			while (!documentIsClosing && (neighbor = [neighborEnumerator nextObject]))
-				[tile addNeighbors:[neighbor neighbors]];
-			[pool2 release];
+			[directNeighbors addObject:[tile neighbors]];	// -neighbors returns a new collection that is unaffected by the calls below
+			
+		int	degreeOfSeparation;
+		for (degreeOfSeparation = 1; degreeOfSeparation < neighborhoodSize; degreeOfSeparation++)
+		{
+				// Add the direct neighbors of every tile's neighbor to the tile.
+			tileEnumerator = [tiles objectEnumerator];
+			while (!documentIsClosing && (tile = [tileEnumerator nextObject]))
+			{ 
+				NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
+				NSEnumerator		*neighborEnumerator = [[tile neighbors] objectEnumerator];
+				Tile				*neighbor = nil;
+				
+				while (!documentIsClosing && (neighbor = [neighborEnumerator nextObject]))
+					[tile addNeighbors:[directNeighbors objectAtIndex:[tiles indexOfObjectIdenticalTo:neighbor]]];
+				
+				[pool2 release];
+			}
 		}
 	}
 	
@@ -875,130 +887,6 @@
     [pool release];
     
     createTilesThreadAlive = NO;
-}
-
-
-- (void)recalculateTileDisplayMatches:(id)object
-{
-/*
-    NSAutoreleasePool	*pool, *pool2;
-    float		overallMatch = 0.0;
-    
-    pool = [[NSAutoreleasePool alloc] init];
-	NSAssert(pool, @"pool");
-    
-    mosaicImageDrawWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0,
-									      [mosaicImage size].width,
-									      [mosaicImage size].height)
-							 styleMask:NSBorderlessWindowMask
-							   backing:NSBackingStoreBuffered defer:NO];
-    while (!documentIsClosing)
-	{
-		// allocate a second auto-release pool
-		pool2 = [[NSAutoreleasePool alloc] init];
-		while (pool2 == nil)
-		{
-			[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
-			pool2 = [[NSAutoreleasePool alloc] init];
-		}
-		
-		integrateMatchesThreadAlive = YES;
-		
-		// wait until all tiles have at least one match before finding uniqueness
-		// (otherwise, the orderedTiles order is the same as tiles and the
-		//  screen gets updated too orderly.)
-		while ([[tiles lastObject] matchCount] == 0 && !documentIsClosing)
-			[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
-	
-		[refindUniqueTilesLock lock];
-		if (!refindUniqueTiles)
-		{
-			// there hasn't been a better match since we last recalculated, wait a second and check again
-			[refindUniqueTilesLock unlock];
-			integrateMatchesThreadAlive = YES;
-			[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
-		}
-		else
-		{
-			NSArray		*orderedTiles;
-			NSMutableArray	*updatedTiles = [NSMutableArray arrayWithCapacity:10],
-					*imagesInUse = [NSMutableArray arrayWithCapacity:[tiles count]];
-			int			index;
-			
-			integrateMatchesThreadAlive = YES;
-			refindUniqueTiles = NO;
-			[refindUniqueTilesLock unlock];
-			
-			overallMatch = 0.0;
-			
-			orderedTiles = [tiles sortedArrayUsingSelector:@selector(compareBestMatchValue:)];
-			for (index = 0; index < [orderedTiles count] && !documentIsClosing; index++)
-			{
-			Tile		*tile = [orderedTiles objectAtIndex:index];
-			ImageMatch	*matches = [tile matches];
-			int		matchCount = [tile matchCount];
-			
-			[tile lockMatches];
-				if ([tile userChosenImageIndex] != -1)
-				{
-	//			overallMatch += (721 - sqrt( ??? ) / 721;
-				[updatedTiles addObject:tile];
-				[imagesInUse addObject:[tileImages objectAtIndex:[tile userChosenImageIndex]]];
-				}
-				else
-				{
-				int	i;
-				BOOL	foundMatch = NO;
-				
-				for (i = 0; i < matchCount && !documentIsClosing; i++)
-				{
-					if (![imagesInUse containsObject:
-						[tileImages objectAtIndex:matches[i].tileImageIndex]])
-					{
-					foundMatch = YES;
-					if ([tile bestUniqueMatch] != &matches[i])
-					{
-						[updatedTiles addObject:tile];
-						[tile setBestUniqueMatchIndex:i];
-					}
-					[imagesInUse addObject:[tileImages objectAtIndex:matches[i].tileImageIndex]];
-					
-					break;
-					}
-				}
-				
-				if (foundMatch == NO && [tile bestUniqueMatch] != nil && !documentIsClosing)
-				{	// this tile had a match but has no matching image now
-					[tile setBestUniqueMatchIndex:-1];
-					[updatedTiles addObject:tile];
-				}
-				
-				if (foundMatch)
-					overallMatch += (721 - sqrt([tile bestUniqueMatchValue])) / 721;
-				}
-				
-				if ([updatedTiles count] >= 10 && !documentIsClosing) // && !paused)
-				[self updateMosaicImage:updatedTiles];
-			[tile unlockMatches];
-			
-			[refindUniqueTilesLock lock];
-				//if (refindUniqueTiles) index = [orderedTiles count];
-			[refindUniqueTilesLock unlock];
-			}
-			if ([updatedTiles count] > 0 && !documentIsClosing)	// && !paused)
-			[self updateMosaicImage:updatedTiles];
-			overallMatch = overallMatch * 100.0 / [tiles count];
-		}
-		
-		[pool2 release];
-	}	// end of while (!documentIsClosing)
-    
-    [mosaicImageDrawWindow close];
-
-    [pool release];
-
-    integrateMatchesThreadAlive = NO;
-*/
 }
 
 
@@ -1697,10 +1585,8 @@
     NSPoint				origin;
     NSBezierPath		*bezierPath = [NSBezierPath bezierPath];
     
-    [selectedTile lockMatches];
-		ImageMatch	*imageMatch = [[selectedTile matches] objectAtIndex:rowIndex];
-        image = [self cachedImageForIdentifier:[imageMatch imageIdentifier] fromSource:[imageMatch imageSource]];
-    [selectedTile unlockMatches];
+	ImageMatch	*imageMatch = [[selectedTile matches] objectAtIndex:rowIndex];
+	image = [self cachedImageForIdentifier:[imageMatch imageIdentifier] fromSource:[imageMatch imageSource]];
     if (image == nil)
         return [NSImage imageNamed:@"Blank"];
 	

@@ -123,8 +123,6 @@ typedef enum
 - (void)spawnImageSourceThreads;
 - (void)synchronizeMenus;
 
-
-- (void)recalculateTileDisplayMatches:(id)object;
 - (void)updateMosaicImage:(NSMutableArray *)updatedTiles;
 - (void)calculateImageMatches:(id)path;
 - (void)createTileCollectionWithOutlines:(id)object;
