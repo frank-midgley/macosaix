@@ -14,6 +14,7 @@
     NSMutableArray		*fontNames;
 	NSMutableDictionary	*colorLists;
 	NSString			*letterPool;
+	
 	unsigned long		imageCountLimit,
 						imageCount;
 

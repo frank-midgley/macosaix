@@ -16,6 +16,12 @@
 
 static NSImage	*glyphSourceImage = nil;
 
+
+@interface MacOSaiXGlyphImageSource (PrivateMethods)
+- (void)calculateBoundingRectForGlyphs;
+@end
+
+
 @implementation MacOSaiXGlyphImageSource
 
 
@@ -49,7 +55,8 @@ static NSImage	*glyphSourceImage = nil;
 
 + (NSArray *)builtInColorListNames
 {
-	return [NSArray arrayWithObjects:@"Grayscale", 
+	return [NSArray arrayWithObjects:@"All Colors",
+									 @"Grayscale", 
 									 @"Redscale", 
 									 @"Greenscale", 
 									 @"Bluescale", 
@@ -62,14 +69,16 @@ static NSImage	*glyphSourceImage = nil;
 {
 	if (self = [super init])
 	{
-		fontNames = [[NSMutableArray array] retain];
-		
-		colorLists = [[NSMutableDictionary dictionary] retain];
-		
 		focusWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(-10000, -10000, 128, 128)
 							   styleMask:NSBorderlessWindowMask
 							 backing:NSBackingStoreBuffered defer:NO];
 		focusWindowLock = [[NSLock alloc] init];
+		
+		fontNames = [[[NSFontManager sharedFontManager] availableFonts] mutableCopy];
+		colorLists = [[NSMutableDictionary dictionaryWithObject:[NSMutableArray arrayWithObject:@"All Colors"]
+														 forKey:@"Built-in"] retain];
+		
+		[self calculateBoundingRectForGlyphs];
 	}
 	
 	return self;
@@ -137,48 +146,45 @@ static NSImage	*glyphSourceImage = nil;
 
 - (NSColor *)randomColor
 {
-	float	red = 0.0,
-			green = 0.0,
-			blue = 0.0;
+	float		red = 0.0,
+				green = 0.0,
+				blue = 0.0;
+	NSString	*colorListClass = [[colorLists allKeys] objectAtIndex:(random() % [[colorLists allKeys] count])];
 	
-	if ([colorLists count] == 0)
+	if ([colorListClass isEqualToString:@"Built-in"])
 	{
-		red = (random() % 256) / 256.0;
-		green = (random() % 256) / 256.0;
-		blue = (random() % 256) / 256.0;
-	}
-	else
-	{
-		NSString	*colorListClass = [[colorLists allKeys] objectAtIndex:(random() % [[colorLists allKeys] count])];
+		NSArray		*colorClassLists = [colorLists objectForKey:colorListClass];
+		NSString	*colorListName = [colorClassLists objectAtIndex:(random() % [colorClassLists count])];
 		
-		if ([colorListClass isEqualToString:@"Built-in"])
+		if ([colorListName isEqualToString:@"All Colors"])
 		{
-			NSArray		*colorClassLists = [colorLists objectForKey:colorListClass];
-			NSString	*colorListName = [colorClassLists objectAtIndex:(random() % [colorClassLists count])];
-			
-			if ([colorListName isEqualToString:@"Grayscale"])
-				red = green = blue = (random() % 256) / 256.0;
-			else if ([colorListName isEqualToString:@"Redscale"])
-			{
-				red = (random() % 256) / 256.0;
-				green = blue = (random() % (int)(red * 256.0)) / 256.0;
-			}
-			else if ([colorListName isEqualToString:@"Greenscale"])
-			{
-				green = 1.0;
-				red = blue = (random() % 256) / 256.0;
-			}
-			else if ([colorListName isEqualToString:@"Bluescale"])
-			{
-				blue = 1.0;
-				red = green = (random() % 256) / 256.0;
-			}
-			else if ([colorListName isEqualToString:@"Sepia Tone"])
-			{
-				red = (random() % 256) / 256.0;
-				green = red * (1.0 - (0.35 * (1.0 - 5.0 / 6.0)));
-				blue = red * (1.0 - 0.35);
-			}
+			red = (random() % 256) / 256.0;
+			green = (random() % 256) / 256.0;
+			blue = (random() % 256) / 256.0;
+		}
+		else if ([colorListName isEqualToString:@"Grayscale"])
+			red = green = blue = (random() % 256) / 256.0;
+		else if ([colorListName isEqualToString:@"Redscale"])
+		{
+			red = (random() % 256) / 256.0;
+			green = blue = (random() % (int)(red * 256.0)) / 256.0;
+		}
+		else if ([colorListName isEqualToString:@"Greenscale"])
+		{
+			green = 1.0;
+			red = blue = (random() % 256) / 256.0;
+		}
+		else if ([colorListName isEqualToString:@"Bluescale"])
+		{
+			blue = 1.0;
+			red = green = (random() % 256) / 256.0;
+		}
+		else if ([colorListName isEqualToString:@"Sepia Tone"])
+		{
+				// Convert from HSV space: Hue = 50 degrees, Saturation = 35%, Value = random
+			red = (random() % 256) / 256.0;
+			green = red * (1.0 - (0.35 * (1.0 - 5.0 / 6.0)));
+			blue = red * (1.0 - 0.35);
 		}
 	}
 	
@@ -188,7 +194,7 @@ static NSImage	*glyphSourceImage = nil;
 
 - (NSImage *)nextImageAndIdentifier:(NSString **)identifier
 {
-	NSImage			*image = nil;
+	NSImage	*image = nil;
 	
 	if ([fontNames count] > 0)
 	{
@@ -411,15 +417,21 @@ static NSImage	*glyphSourceImage = nil;
 
 - (void)addFontWithName:(NSString *)fontName
 {
-	[fontNames addObject:fontName];
-	[self calculateBoundingRectForGlyphs];
+	if (![fontNames containsObject:fontName])
+	{
+		[fontNames addObject:fontName];
+		[self calculateBoundingRectForGlyphs];
+	}
 }
 
 
 - (void)removeFontWithName:(NSString *)fontName
 {
-	[fontNames removeObject:fontName];
-	[self calculateBoundingRectForGlyphs];
+	if ([fontNames containsObject:fontName])
+	{
+		[fontNames removeObject:fontName];
+		[self calculateBoundingRectForGlyphs];
+	}
 }
 
 
