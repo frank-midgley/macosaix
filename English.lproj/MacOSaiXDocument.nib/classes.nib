@@ -7,9 +7,11 @@
                 beginExportImage = id; 
                 setExportHeightFromWidth = id; 
                 setExportWidthFromHeight = id; 
+                setImageSourcesPlugIn = id; 
                 setJPEGExport = id; 
                 setShowOutlines = id; 
                 setTIFFExport = id; 
+                setTilesSetupPlugIn = id; 
                 setViewAloneMode = id; 
                 setViewCompareMode = id; 
                 setViewEditMode = id; 
@@ -27,46 +29,41 @@
             CLASS = MacOSaiXDocument; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                "_editorChooseImage" = id; 
-                "_editorLabel" = id; 
-                "_editorTable" = id; 
-                "_editorUseBestUniqueMatch" = id; 
-                "_editorUseCustomImage" = id; 
-                "_editorUseSelectedImage" = id; 
-                "_editorUserChosenImage" = id; 
-                "_exportHeight" = id; 
+                "_editorChooseImage" = NSButton; 
+                "_editorLabel" = NSTextField; 
+                "_editorTable" = NSTableView; 
+                "_editorUseBestUniqueMatch" = NSButtonCell; 
+                "_editorUseCustomImage" = NSButtonCell; 
+                "_editorUseSelectedImage" = NSButton; 
+                "_editorUserChosenImage" = NSImageView; 
+                "_exportHeight" = NSTextField; 
                 "_exportPanelAccessoryView" = id; 
-                "_exportWidth" = id; 
+                "_exportProgressIndicator" = id; 
+                "_exportProgressLabel" = id; 
+                "_exportProgressPanel" = id; 
+                "_exportWidth" = NSTextField; 
+                "_imageSourcesPopUpButton" = NSPopUpButton; 
+                "_imageSourcesRemoveButton" = NSButton; 
+                "_imageSourcesTabView" = NSTabView; 
+                "_imageSourcesTable" = NSTableView; 
+                "_mosaicScrollView" = NSScrollView; 
+                "_mosaicView" = MosaicView; 
                 "_originalView" = OriginalView; 
                 "_showOutlinesSwitch" = id; 
-                "_startMosaicButton" = NSButton; 
-                "_tilePopUpButton" = NSPopUpButton; 
-                "_tileSetupView" = id; 
-                exportProgressIndicator = id; 
-                exportProgressLabel = id; 
-                exportProgressPanel = id; 
-                imageSourcesDrawer = id; 
-                imageSourcesTable = id; 
-                mosaicView = id; 
-                statusBarView = id; 
-                statusMessageView = id; 
-                tabView = NSTabView; 
-                viewAloneButton = NSButton; 
-                viewCompareButton = NSButton; 
-                viewEditorButton = NSButton; 
-                viewRegionsButton = NSButton; 
-                viewTilesSetupButton = NSButton; 
-                viewToolbarMenu = id; 
-                viewToolbarSubmenu = NSMenu; 
-                viewToolbarView = id; 
-                window = NSWindow; 
-                zoomSlider = id; 
-                zoomToolbarSubmenu = NSMenu; 
-                zoomToolbarView = id; 
+                "_statusBarView" = NSView; 
+                "_statusMessageView" = NSTextField; 
+                "_tilesSetupPopUpButton" = NSPopUpButton; 
+                "_tilesSetupView" = NSBox; 
+                "_totalTilesField" = NSTextField; 
+                "_utilitiesDrawer" = NSDrawer; 
+                "_utilitiesTabView" = NSTabView; 
+                "_zoomSlider" = id; 
+                "_zoomToolbarSubmenu" = NSMenu; 
+                "_zoomToolbarView" = id; 
             }; 
             SUPERCLASS = NSDocument; 
         }, 
-        {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSImageView; }, 
+        {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
         {CLASS = NotifyingScrollView; LANGUAGE = ObjC; SUPERCLASS = NSScrollView; }, 
         {CLASS = OriginalView; LANGUAGE = ObjC; SUPERCLASS = NSImageView; }
     ); 

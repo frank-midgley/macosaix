@@ -28,21 +28,6 @@
         }, 
         {
             ACTIONS = {saveMosaicImage = id; startMosaic = id; }; 
-            CLASS = MacOSaiXController; 
-            LANGUAGE = ObjC; 
-            OUTLETS = {
-                mosaicView = id; 
-                openButton = id; 
-                originalView = id; 
-                progressIndicator = id; 
-                saveButton = id; 
-                selectedTileFilePath = id; 
-                window = id; 
-            }; 
-            SUPERCLASS = NSObject; 
-        }, 
-        {
-            ACTIONS = {saveMosaicImage = id; startMosaic = id; }; 
             CLASS = MacOSaiXDocument; 
             LANGUAGE = ObjC; 
             OUTLETS = {
