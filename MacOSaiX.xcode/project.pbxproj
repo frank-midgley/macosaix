@@ -46,6 +46,22 @@
 //002
 //003
 //004
+//010
+//011
+//012
+//013
+//014
+		01DF6CEB070133DF00512549 = {
+			fileRef = 926CE4E903E7627700C7E70E;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+//010
+//011
+//012
+//013
+//014
 //080
 //081
 //082
@@ -200,12 +216,10 @@
 		4A9504CCFFE6A4B311CA0CBA = {
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
-				DEBUGGING_SYMBOLS = YES;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				OPTIMIZATION_CFLAGS = "-O0";
 				ZERO_LINK = YES;
 			};
 			isa = PBXBuildStyle;
@@ -214,9 +228,8 @@
 		4A9504CDFFE6A4B311CA0CBA = {
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
-				DEBUGGING_SYMBOLS = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				OPTIMIZATION_CFLAGS = "-O3";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				ZERO_LINK = NO;
 			};
 			isa = PBXBuildStyle;
@@ -308,7 +321,7 @@
 			buildRules = (
 			);
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Versions/A/Frameworks /Users/fmidgley/Development/MacOSaiX/build";
+				FRAMEWORK_SEARCH_PATHS = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Versions/A/Frameworks\" \"$(BUILT_PRODUCTS_DIR)\" /Users/frank/Development/MacOSaiX/build";
 				GCC_OPTIMIZATION_LEVEL = 0;
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = MacOSaiX/Info.plist;
@@ -351,7 +364,6 @@
 			files = (
 				92848A1706611CE6003B3514,
 				92848A1A06611CE6003B3514,
-				92848A1C06611CE6003B3514,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -570,6 +582,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9284899F06611CE5003B3514,
+				01DF6CEB070133DF00512549,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1056,7 +1069,7 @@
 			buildRules = (
 			);
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = /Users/fmidgley/Development/MacOSaiX/build;
+				FRAMEWORK_SEARCH_PATHS = "$(BUILT_PRODUCTS_DIR)";
 				INFOPLIST_FILE = "Standard Plugins/Rectangular Tiles Setup/Info.plist";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
@@ -1375,12 +1388,6 @@
 		};
 		92848A1B06611CE6003B3514 = {
 			fileRef = 928489B406611CE6003B3514;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		92848A1C06611CE6003B3514 = {
-			fileRef = 92848A0406611CE6003B3514;
 			isa = PBXBuildFile;
 			settings = {
 			};
