@@ -1624,6 +1624,13 @@
 	}
 	else if (resizingWindow == tileShapesPanel)
 	{
+		NSSize	panelSize = [tileShapesPanel frame].size,
+				editorBoxSize = [[tileShapesBox contentView] frame].size;
+		float	minWidth = (panelSize.width - editorBoxSize.width) + [tileShapesEditor editorViewMinimumSize].width,
+				minHeight = (panelSize.height - editorBoxSize.height) + [tileShapesEditor editorViewMinimumSize].height;
+		
+		proposedFrameSize.width = MAX(proposedFrameSize.width, minWidth);
+		proposedFrameSize.height = MAX(proposedFrameSize.height, minHeight);
 	}
 	else if (resizingWindow == imageSourceEditorPanel)
 	{
