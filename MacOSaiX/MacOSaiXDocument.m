@@ -82,7 +82,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 - (void)makeWindowControllers
 {
-	MacOSaiXWindowController	*controller = [[MacOSaiXWindowController alloc] initWithWindowNibName:@"MacOSaiXDocument"];
+	MacOSaiXWindowController	*controller = [[[MacOSaiXWindowController alloc] initWithWindowNibName:@"MacOSaiXDocument"] autorelease];
 	
 	[self addWindowController:controller];
 	[controller showWindow:self];
@@ -120,7 +120,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 - (NSImage *)originalImage
 {
-	return originalImage;
+	return [[originalImage retain] autorelease];
 }
 
 
@@ -1214,7 +1214,8 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
     [tileImages release];
     [tileImagesLock release];
 	[directNeighbors release];
-    
+    [imageCache release];
+	
     [super dealloc];
 }
 
