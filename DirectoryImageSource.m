@@ -7,7 +7,9 @@
 {
     [super initWithObject:theObject];
 
-    _nextFile = _directoryPath = _enumerator = nil;
+    _nextFile = nil;
+    _directoryPath = nil;
+    _enumerator = nil;
     
     if ([theObject isKindOfClass:[NSString class]])
     {
@@ -32,9 +34,10 @@
     _nextFile = [[coder decodeObject] retain];
     
     _enumerator = [[[NSFileManager defaultManager] enumeratorAtPath:_directoryPath] retain];
-    do
-	nextFile = [_enumerator nextObject];
-    while (![_nextFile isEqualToString:nextFile] && nextFile != nil);
+    if (_nextFile != nil)
+	do
+	    nextFile = [_enumerator nextObject];
+	while (![_nextFile isEqualToString:nextFile] && nextFile != nil);
     
     return self;
 }
@@ -62,18 +65,19 @@
 
 - (id)nextImageIdentifier
 {
-    NSString	*nextFile, *fullPath;
+    NSString	*nextFile = nil,
+				*fullPath = nil;
     
     // lookup the path of the next image
     do
     {
-	if (_enumerator == nil)
-	    nextFile = nil;
-	else
-	{
-	    nextFile = [_enumerator nextObject];
-	    fullPath = [_directoryPath stringByAppendingString:nextFile];
-	}
+		if (_enumerator == nil)
+			nextFile = nil;
+		else
+		{
+			if (nextFile = [_enumerator nextObject])
+				fullPath = [_directoryPath stringByAppendingString:nextFile];
+		}
     }
     while (nextFile != nil &&
 	    (![[NSImage imageFileTypes] containsObject:[nextFile pathExtension]] ||
@@ -87,11 +91,11 @@
     
     if (nextFile != nil)
     {
-	_imageCount++;
-	return nextFile;
+		_imageCount++;
+		return nextFile;
     }
     else
-	return nil;	// no more images
+		return nil;	// no more images
 }
 
 
