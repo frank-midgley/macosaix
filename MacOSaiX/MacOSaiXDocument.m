@@ -242,11 +242,11 @@
 		NSEnumerator	*enumerator = [[[NSApp delegate] imageSourceClasses] objectEnumerator];
 		Class			imageSourceClass;
 		[imageSourcesPopUpButton removeAllItems];
-		[imageSourcesPopUpButton addItemWithTitle:@"Current Image Sources"];
+		[imageSourcesPopUpButton addItemWithTitle:@"Add Source of Images"];
 		while (imageSourceClass = [enumerator nextObject])
 		{
 				// add the name of the image source to the pop-up menu
-			[imageSourcesPopUpButton addItemWithTitle:[imageSourceClass name]];
+			[imageSourcesPopUpButton addItemWithTitle:[NSString stringWithFormat:@"%@...", [imageSourceClass name]]];
 				// attach it to the menu item (it will be dealloced when the menu item releases it)
 			[[imageSourcesPopUpButton lastItem] setRepresentedObject:imageSourceClass];
 		}
@@ -1009,7 +1009,7 @@
 	[calculateImageMatchesThreadLock unlock];
 
     NSImage				*scratchImage = [[[NSImage alloc] initWithSize:NSMakeSize(1024, 1024)] autorelease];
-	[scratchImage setCachedSeparately:YES];
+	[scratchImage setCacheMode:NSImageCacheNever];
 	
 //	NSLog(@"Calculating image matches\n");
 	
@@ -1053,16 +1053,30 @@
 			else
 				thumbnailSize = NSMakeSize(pixletImageSize.width * kThumbnailMax / pixletImageSize.height, kThumbnailMax);
 			NSImage				*thumbnailImage = [[NSImage alloc] initWithSize:thumbnailSize];
-			NS_DURING
-				[thumbnailImage lockFocus];
-					[pixletImage drawInRect:NSMakeRect(0.0, 0.0, thumbnailSize.width, thumbnailSize.height) 
-								   fromRect:NSMakeRect(0.0, 0.0, pixletImageSize.width, pixletImageSize.height) 
-								  operation:NSCompositeCopy 
-								   fraction:1.0];
+			
+			BOOL				haveFocus = NO;
+			
+			while (!haveFocus && !documentIsClosing)
+			{
+				NS_DURING
+					[thumbnailImage lockFocus];
+					haveFocus = YES;
+				NS_HANDLER
+				NS_ENDHANDLER
+			}
+			
+			if (haveFocus)
+			{
+				[pixletImage drawInRect:NSMakeRect(0.0, 0.0, thumbnailSize.width, thumbnailSize.height) 
+							   fromRect:NSMakeRect(0.0, 0.0, pixletImageSize.width, pixletImageSize.height) 
+							  operation:NSCompositeCopy 
+							   fraction:1.0];
 				[thumbnailImage unlockFocus];
-			NS_HANDLER
-			NS_ENDHANDLER
-			[self cacheImage:thumbnailImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
+				[self cacheImage:thumbnailImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
+			}
+			else
+				NSLog(@"Couldn't create cached thumbnail image.");
+			
 			[thumbnailImage release];
 		}
 		else
