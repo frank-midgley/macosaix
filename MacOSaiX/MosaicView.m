@@ -44,15 +44,26 @@
 		// Create an NSImage to hold the mosaic image (somewhat arbitrary size)
 	[mosaicImageLock lock];
 		[mosaicImage autorelease];
-		mosaicImage = [[NSImage alloc] initWithSize:NSMakeSize(1600, 1600 * [originalImage size].height / 
-																			[originalImage size].width)];
-
+		mosaicImage = [[NSImage alloc] initWithSize:NSMakeSize(1600.0, 1600.0 * [originalImage size].height / [originalImage size].width)];
+		[mosaicImage lockFocus];
+			[[NSColor blackColor] set];
+			NSRectFill(NSMakeRect(0.0, 0.0, [mosaicImage size].width, [mosaicImage size].height));
+		[mosaicImage unlockFocus];
+		
 			// set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined on a unit square)
 		[mosaicImageTransform release];
 		mosaicImageTransform = [[NSAffineTransform transform] retain];
 		[mosaicImageTransform translateXBy:0.5 yBy:0.5];	// line up with pixel boundaries
 		[mosaicImageTransform scaleXBy:[mosaicImage size].width yBy:[mosaicImage size].height];
 	[mosaicImageLock unlock];
+	
+	[self performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:nil waitUntilDone:NO];
+}
+
+
+- (void)setNeedsDisplay
+{
+	[super setNeedsDisplay:YES];
 }
 
 
