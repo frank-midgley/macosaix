@@ -10,6 +10,7 @@
 
 
 #define kMacOSaiXImageSourceSettingType @"Element Type"
+#define kMacOSaiXImageSourceSettingText @"Element Text"
 
 
 @protocol MacOSaiXImageSource <NSObject, NSCopying>

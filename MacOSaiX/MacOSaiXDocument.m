@@ -865,9 +865,15 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 			}
             break;
 		}
-
+		
+		case kCFXMLNodeTypeText:
+			if ([[stack lastObject] isKindOfClass:[NSMutableDictionary class]])
+				[[stack lastObject] setObject:(NSString *)CFXMLNodeGetString(node) 
+									   forKey:kMacOSaiXImageSourceSettingText];
+			break;
+		
         default:
-			;
+//			NSLog(@"Ignoring %d", CFXMLNodeGetTypeCode(node));
 	}
 	
 	if (newObject)
