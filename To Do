@@ -3,8 +3,6 @@ Ideas for future versions:
 	Calculate match value of user chosen images
 	Statistics drawer/window (matches per second, etc.)
 	Width of status text problem (works when shown/hidden)
-	Better versioning in documents (XML may satisfy this since DTD can be versioned)
-	Does save reset autosave clock?
 	Indicate best unique match in editor table
 	Disable 'center on selected tile' menu choice when no tile is selected
 	Trim solid borders for alternate image
@@ -16,7 +14,6 @@ Ideas for future versions:
 	Autosave on/off switch
 	"Must include" images
 	Printing (greeting card format?)
-	Grayscale option
 	Velocity engine
 	XGrid
 	Image regions
@@ -24,19 +21,14 @@ Ideas for future versions:
 		Icons
 		iSight source
 		iTunes album art
-		iPhoto albums
 		flickr
 	Directory source
 		Option to only use images bigger or smaller than certain dimensions
 		Alias support during enumeration
-	Glyph source
-		Color palettes
-		Font selection
-		Text selection (e.g. decl. of ind.)
-		Limit on images generated (so it doesn't overpower other sources)
 	"option to replace ALL instances of one tile with another picture"
 	Button/menu item to not use selected image anywhere.  (probably in editor)
 	AppleScript support
+	Rework MosaicView to not use a stored image but redraw the tiles as needed in -drawRect:.  Would allow for better zooming.
 
 =======================================================================================
 
@@ -45,91 +37,42 @@ Riemersma metric:
 
 =======================================================================================
 
-2.0x To Do:
+2.0.0x To Do:
 ¥	Allow setup to be changed after mosaic has been started
 ¥	Make sure pixels are being pulled from bitmaps correctly
-Ã	Make neighborhood calculation more efficient or threaded
-¥	Rework MosaicView to not use a stored image but redraw the tiles as needed in -drawRect:.  Would allow for better zooming.
 ¥	Buffered exporting (allow larger sizes)
 ¥	Editor
-Ã	Rework prefs
-Ã	Enable image source removal (includes purging of its images...)
 ¥	Mosaic quality calculation should take into account each tile's percentage coverage of original image
 ¥	Get rid of lines in exporting
 ¥	Compare straight color match vs. Riemersma
-Ã	Link to home page in About box or help menu
-¥	Resurrect Glyph source
-¥	Sizing of tile shapes and image source editor sheets
 ¥	Add preferences API for image source plug-ins
 ¥	Add preferences API for tile shapes plug-ins
 	Image cache
 ¥		purge unused images in disk cache on save
-Ã	Rename Tiles class to MacOSaiXTile
 ¥	Resizing when zoomed does not stay centered.
 ¥	Preference/option for what to display for non-unique tiles.
 ¥	New mosaic from image on clipboard
-
-2.0a2 To Do:
-Ã	Uniqueness
-Ã	Image sources GUI (whole utility drawer, actually)
-Ã	Recent originals in open panel
-Ã	Make all image identifiers strings (still used as plist dictionary key?)
-Ã	Change idle message
-Ã	Pausing
-Ã	Split MacOSaiXWindowController out of MacOSaiXDocument
-Ã	Rework tile shapes plug-in API to get rid of framework
-Ã	Rework rectangular shapes plug-in to conform with new API
-	Image cache
-Ã		Make in-memory cache size, rather than count, dependent
-Ã	Saving (+ plug-ins state)
-Ã	Autosaving
-Ã	Disable Save As... for now
-Ã	Loading (+ plug-ins state)
-Ã	Version check
-Ã	Disable neighborhood size GUI
-Ã	Limit better matches cache
-Ã	Switch to showing mosaic when mosaic starts
-Ã	Get zoom working again
-Ã	Make image cache class level
-Ã	Add ability to toggle between displaying original or mosaic.
-Ã	Resume toolbar icon should read Start before mosaic has begun
-Ã	"Show Tile Outlines" menu item should switch to "Hide Tile Outlines"
-Ã	Rework hexagonal shapes plug-in to conform with new API
 ¥	Rework puzzle shapes plug-in to conform with new API
-Ã	Make image count work with attributed descriptors
-Ã	Export panel progress not updating
-Ã	Limit export sizes to 10,000 pixels (NSWindow limit)
-?	Make saved documents bundles
-Ã	Handle failure to parse XML
-Ã	Show average aspect ratio in setup
+¥	Make sure saved documents are bundles
 	Google source:
-Ã		Meaningful description in table
-?		Make sure cache doesn't fill disk
+¥		Make sure cache doesn't fill disk
 	QuickTime source:
 ¥		Show aspect ratio
 ¥		Scale movie when sheet presented
 ¥		Recent movies
 	Directory source:
-Ã		Find images by more than extension
 ¥		Recent directories
 ¥		Show more folder levels (outline view?)
-x	Original image view (scaling/tinting)
-	
+	Glyphs source:
+¥		Exception on pasting letters
 
 =======================================================================================
 
+2.0a3 To Do:
 
-For each image:
-	For each tile:
-		If image match better than current image match then add tile to list of possibles
-*	Calculate which tiles should use the image based on user settings:
-		Each image can be used 1-° times.
-			and
-		Tiles using the same image must be (some distance) apart.
-	For each tile to update:
-		Add tile's previous image to queue of images to match
-		Set the tile's image to this image
-
-=======================================================================================
+Ã	iPhoto plug-in
+	Glyphs plug-in
+Ã		Update to new API
+¥		Can't specify count
 
 
