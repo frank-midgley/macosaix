@@ -12,8 +12,6 @@
                 chooseOriginalImage = id; 
                 removeImageSource = id; 
                 saveImageSource = id; 
-                setExportHeightFromWidth = id; 
-                setExportWidthFromHeight = id; 
                 setImageReuseDistance = id; 
                 setImageUseCount = id; 
                 setJPEGExport = id; 
@@ -59,6 +57,7 @@
                 imageUseCountPopUpButton = NSPopUpButton; 
                 mosaicScrollView = NSScrollView; 
                 mosaicView = MosaicView; 
+                openOriginalAccessoryView = NSView; 
                 originalImagePopUpButton = NSPopUpButton; 
                 originalImageThumbView = NSImageView; 
                 progressPanel = NSPanel; 
