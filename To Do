@@ -124,7 +124,7 @@ Ordered array:		images, fileIDs
 ¥	Preference/option for what to display for non-unique tiles.
 
 2.0a2 To Do:
-?	Uniqueness
+Ã	Uniqueness
 Ã	Image sources GUI (whole utility drawer, actually)
 Ã	Recent originals in open panel
 Ã	Make all image identifiers strings (still used as plist dictionary key?)
@@ -136,25 +136,26 @@ Ordered array:		images, fileIDs
 	Image cache
 Ã		Make in-memory cache size, rather than count, dependent
 Ã	Saving (+ plug-ins state)
-¥	Autosaving
+Ã	Autosaving
 ¥	Disable Save As... for now
 Ã	Loading (+ plug-ins state)
 Ã	Version check
 Ã	Disable neighborhood size GUI
-¥	Adjust image re-use spacing based on number of repeats allowed
-?	Limit better matches cache
+?	Adjust image re-use spacing based on number of repeats allowed
+Ã	Limit better matches cache
 Ã	Switch to showing mosaic when mosaic starts
 Ã	Get zoom working again
 Ã	Make image cache class level
 Ã	Add ability to toggle between displaying original or mosaic.
 Ã	Resume toolbar icon should read Start before mosaic has begun
-¥	"Show Tile Outlines" menu item should switch to "Hide Tile Outlines"
+Ã	"Show Tile Outlines" menu item should switch to "Hide Tile Outlines"
 ¥	Rework hexagonal shapes plug-in to conform with new API
 ¥	Rework puzzle shapes plug-in to conform with new API
 ¥	Make image count work with attributed descriptors
 Ã	Export panel progress not updating
 ¥	Limit export sizes to 10,000 pixels (NSWindow limit)
 ?	Make saved documents bundles
+¥	Handle failure to parse XML
 Ã	Show average aspect ratio in setup
 	Google source:
 Ã		Meaningful description in table
