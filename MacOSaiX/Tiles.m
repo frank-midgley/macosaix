@@ -271,7 +271,7 @@
         // If the user has picked a specific image to use then no calculation is necessary
 	if ([imageMatches count]> 0 && !userChosenImageMatch)
 	{
-		[bestMatchLock lock];
+        [imageMatchesLock lock];
 		#if 0
 			bestMatchTileImage = nil;
 			
@@ -326,12 +326,12 @@
 																[imageMatch imageSource],
 																nil]])
 					bestImageMatch = [imageMatch retain];
-				else
-					NSLog(@"phew");
+//				else
+//					NSLog(@"phew");
 			
 			bestMatchChanged = (originalBestMatch != bestImageMatch);
 		#endif
-		[bestMatchLock unlock];
+        [imageMatchesLock unlock];
 	}
 	
 	return bestMatchChanged;
@@ -419,13 +419,12 @@
 
 - (void)dealloc
 {
-    if (userChosenImageMatch)
-		free(userChosenImageMatch);
+    [userChosenImageMatch release];
     [imageMatchesLock release];
     [bestMatchLock release];
     [outline release];
     [bitmapRep release];
-    free(imageMatches);
+    [imageMatches release];
 	
     [super dealloc];
 }
