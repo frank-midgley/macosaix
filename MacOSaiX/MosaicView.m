@@ -19,6 +19,13 @@
 	tilesOutline = [[NSBezierPath bezierPath] retain];
 	tilesNeedingDisplay = [[NSMutableArray array] retain];
 	lastUpdate = [[NSDate date] retain];
+	
+	NSImage	*blackImage = [[NSImage alloc] initWithSize:NSMakeSize(16.0, 16.0)];
+	[blackImage lockFocus];
+		[[NSColor blackColor] set];
+		[NSBezierPath fillRect:NSMakeRect(0.0, 0.0, 16.0, 16.0)];
+	[blackImage unlockFocus];
+	blackRep = [[blackImage bestRepresentationForDevice:nil] retain];
 }
 
 
@@ -35,10 +42,6 @@
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(tileShapesDidChange:) 
 													 name:MacOSaiXTileShapesDidChangeStateNotification 
-												   object:document];
-		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(tileImageDidChange:) 
-													 name:MacOSaiXTileImageDidChangeNotification 
 												   object:document];
 		
 		[self tileShapesDidChange:nil];
@@ -97,15 +100,18 @@
 }
 
 
-- (void)tileImageDidChange:(NSNotification *)notification
+- (void)refreshTile:(MacOSaiXTile *)tileToRefresh
 {
-	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	MacOSaiXTile		*tile = [[notification userInfo] objectForKey:@"Tile"];
-	NSBezierPath		*clipPath = [mosaicImageTransform transformBezierPath:[tile outline]];
-	MacOSaiXImageMatch	*imageMatch = [tile displayedImageMatch];
-	NSImageRep			*newImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[clipPath bounds].size
-																			   forIdentifier:[imageMatch imageIdentifier] 
-																				  fromSource:[imageMatch imageSource]];
+	NSBezierPath		*clipPath = [mosaicImageTransform transformBezierPath:[tileToRefresh outline]];
+	MacOSaiXImageMatch	*imageMatch = [tileToRefresh displayedImageMatch];
+	NSImageRep			*newImageRep = nil;
+	
+	if (imageMatch)
+		newImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[clipPath bounds].size
+															  forIdentifier:[imageMatch imageIdentifier] 
+															     fromSource:[imageMatch imageSource]];
+	else
+		newImageRep = blackRep;
 	
 	if (newImageRep)
 	{
@@ -139,22 +145,13 @@
 			NS_HANDLER
 				NSLog(@"Could not lock focus on mosaic image");
 			NS_ENDHANDLER
+			
+			[tilesNeedingDisplay addObject:tileToRefresh];
 		[mosaicImageLock unlock];
-		
-		[tilesNeedingDisplay addObject:tile];
-		
-		if ([lastUpdate timeIntervalSinceNow] < -0.1)
-		{
-			[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:nil waitUntilDone:YES];
-			
-			[tilesNeedingDisplay removeAllObjects];
-			
-			[lastUpdate release];
-			lastUpdate = [[NSDate date] retain];
-		}
 	}
-
-	[pool release];
+	
+	if ([lastUpdate timeIntervalSinceNow] < -0.1)
+		[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:nil waitUntilDone:YES];
 }
 
 
@@ -162,14 +159,21 @@
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	
-	NSAffineTransform	*transform = [NSAffineTransform transform];
-	[transform translateXBy:-0.5 yBy:-0.5];	// line up with pixel boundaries
-	[transform scaleXBy:([self frame].size.width + 1.0) yBy:([self frame].size.height + 1.0)];
-	
-	NSEnumerator	*tileEnumerator = [tilesNeedingDisplay objectEnumerator];
-	MacOSaiXTile	*tileNeedingDisplay = nil;
-	while (tileNeedingDisplay = [tileEnumerator nextObject])
-		[self setNeedsDisplayInRect:[[transform transformBezierPath:[tileNeedingDisplay outline]] bounds]];
+	[mosaicImageLock lock];
+		NSAffineTransform	*transform = [NSAffineTransform transform];
+		[transform translateXBy:-0.5 yBy:-0.5];	// line up with pixel boundaries
+		[transform scaleXBy:([self frame].size.width + 1.0) yBy:([self frame].size.height + 1.0)];
+		
+		NSEnumerator	*tileEnumerator = [tilesNeedingDisplay objectEnumerator];
+		MacOSaiXTile	*tileNeedingDisplay = nil;
+		while (tileNeedingDisplay = [tileEnumerator nextObject])
+			[self setNeedsDisplayInRect:[[transform transformBezierPath:[tileNeedingDisplay outline]] bounds]];
+		
+		[tilesNeedingDisplay removeAllObjects];
+		
+		[lastUpdate release];
+		lastUpdate = [[NSDate date] retain];
+	[mosaicImageLock unlock];
 	
 	[pool release];
 }
@@ -360,6 +364,7 @@
 	[tilesNeedingDisplay release];
 	[lastUpdate release];
 	[tilesOutline release];
+	[blackRep release];
 		
 	[super dealloc];
 }

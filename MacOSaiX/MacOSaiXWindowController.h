@@ -70,7 +70,11 @@
     IBOutlet NSView						*exportPanelAccessoryView;
 	IBOutlet NSTextField				*exportWidth, *exportHeight;
 	unsigned long						exportProgressTileCount;
-
+	
+	NSMutableArray						*tilesToRefresh;
+	NSLock								*tileRefreshLock;
+	int									refreshTilesThreadCount;
+	
     NSTimer								*animateTileTimer;
     NSMutableArray						*selectedTileImages;
     NSMutableDictionary					*toolbarItems;

@@ -31,6 +31,8 @@
 		// Queued tile view invalidation
 	NSMutableArray		*tilesNeedingDisplay;
 	NSDate				*lastUpdate;
+	
+	NSImageRep			*blackRep;
 }
 
 - (void)setDocument:(MacOSaiXDocument *)inDocument;
@@ -40,6 +42,8 @@
 
 - (void)setViewTileOutlines:(BOOL)inViewTileOutlines;
 - (BOOL)viewTileOutlines;
+
+- (void)refreshTile:(MacOSaiXTile *)tileToRefresh;
 
 	// viewHighlightedTile methods
 - (void)highlightTile:(MacOSaiXTile *)tile;

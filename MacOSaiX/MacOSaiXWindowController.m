@@ -14,6 +14,9 @@
 #import <pthread.h>
 
 
+#define MAX_REFRESH_THREAD_COUNT 2
+
+
 @interface MacOSaiXWindowController (PrivateMethods)
 - (void)updateStatus:(NSTimer *)timer;
 - (void)synchronizeMenus;
@@ -36,6 +39,9 @@
 		statusBarShowing = YES;
 		exportFormat = NSJPEGFileType;
 		
+		tileRefreshLock = [[NSLock alloc] init];
+		tilesToRefresh = [[NSMutableArray array] retain];
+		
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(originalImageDidChange:) 
 													 name:MacOSaiXOriginalImageDidChangeNotification 
@@ -47,6 +53,10 @@
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(tileShapesDidChange:) 
 													 name:MacOSaiXTileShapesDidChangeStateNotification 
+												   object:[self document]];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(tileImageDidChange:) 
+													 name:MacOSaiXTileImageDidChangeNotification 
 												   object:[self document]];
 	}
 	
@@ -520,6 +530,65 @@
 	[[viewMenu itemWithTag:1] setState:([mosaicView viewOriginal] ? NSOffState : NSOnState)];
 
 	[[viewMenu itemWithTitle:@"Show Status Bar"] setTitle:(statusBarShowing ? @"Hide Status Bar" : @"Show Status Bar")];
+}
+
+
+- (void)tileImageDidChange:(NSNotification *)notification
+{
+	MacOSaiXTile		*tile = [[notification userInfo] objectForKey:@"Tile"];
+	
+	[tileRefreshLock lock];
+		if ([tilesToRefresh indexOfObjectIdenticalTo:tile] == NSNotFound)
+			[tilesToRefresh addObject:tile];
+		
+		if (refreshTilesThreadCount == 0)
+			[NSApplication detachDrawingThread:@selector(refreshTiles:) toTarget:self withObject:nil];
+	[tileRefreshLock unlock];
+	
+	// TODO: update the editor if this tile is selected (if it still exists...)
+}
+
+
+- (void)refreshTiles:(id)dummy
+{
+	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	MacOSaiXTile		*tileToRefresh = nil;
+
+        // Make sure only one copy of this thread runs at any time.
+	[tileRefreshLock lock];
+		if (refreshTilesThreadCount >= MAX_REFRESH_THREAD_COUNT)
+		{
+                // Not allowed to run any more threads, just exit.
+			[tileRefreshLock unlock];
+			[pool release];
+			return;
+		}
+		refreshTilesThreadCount++;
+	[tileRefreshLock unlock];
+	
+	do
+	{
+		NSAutoreleasePool	*innerPool = [[NSAutoreleasePool alloc] init];
+		
+		[tileRefreshLock lock];
+			if ([tilesToRefresh count] > 0)
+			{
+				tileToRefresh = [tilesToRefresh objectAtIndex:0];
+				[tilesToRefresh removeObjectAtIndex:0];
+			}
+		[tileRefreshLock unlock];
+		
+		if (tileToRefresh)
+			[mosaicView refreshTile:tileToRefresh];
+		
+		[innerPool release];
+	} while (tileToRefresh);
+	
+	[tileRefreshLock lock];
+		refreshTilesThreadCount--;
+	[tileRefreshLock unlock];
+	
+	[pool release];
 }
 
 
