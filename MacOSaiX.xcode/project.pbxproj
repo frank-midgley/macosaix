@@ -85,7 +85,7 @@
 				01453D3B071B6F0E00BCEC7C,
 			);
 			isa = PBXGroup;
-			name = "Tiles Setup";
+			name = "Tile Shapes";
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -438,10 +438,6 @@
 				F5517EEF020CD88F01000106,
 				01BBDECB0747081400F17A9F,
 				01BBDECC0747081400F17A9F,
-				F53FEE25024A568201000108,
-				F53FEE26024A568201000108,
-				F54167CC024C0FB80100010B,
-				F54167CD024C0FB80100010B,
 				F566B485028052CF01000108,
 				F566B486028052CF01000108,
 				00EAAC6000853DFB7F000001,
@@ -450,6 +446,7 @@
 				923384DB072180700010BE04,
 				928F724A0661214000873AE2,
 				928F726C066121AE00873AE2,
+				92BFFEC1079A2DD50052CC4C,
 				928F72460661211600873AE2,
 				F57C77BD025E6D6001000102,
 			);
@@ -774,7 +771,6 @@
 				9284898406611CE5003B3514,
 				9284898506611CE5003B3514,
 				9284898706611CE5003B3514,
-				9284898906611CE5003B3514,
 				923384DD072180700010BE04,
 				9289DDA7073D713100C88091,
 				9289DDA9073D713100C88091,
@@ -824,14 +820,6 @@
 				);
 			};
 		};
-		9284898906611CE5003B3514 = {
-			fileRef = F53FEE25024A568201000108;
-			isa = PBXBuildFile;
-			settings = {
-				ATTRIBUTES = (
-				);
-			};
-		};
 		9284898A06611CE5003B3514 = {
 			buildActionMask = 2147483647;
 			files = (
@@ -849,6 +837,7 @@
 				92951FEA068A7FDC00366ACB,
 				92951FF1068A7FE600366ACB,
 				92951FF9068A7FE900366ACB,
+				92BFFEC3079A2DD50052CC4C,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -916,7 +905,6 @@
 				9284899806611CE5003B3514,
 				9284899906611CE5003B3514,
 				9284899B06611CE5003B3514,
-				9284899D06611CE5003B3514,
 				9289DDA8073D713100C88091,
 				9289DDAA073D713100C88091,
 				01BBDECE0747081400F17A9F,
@@ -958,12 +946,6 @@
 		};
 		9284899B06611CE5003B3514 = {
 			fileRef = F5517EEF020CD88F01000106;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		9284899D06611CE5003B3514 = {
-			fileRef = F53FEE26024A568201000108;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -2131,6 +2113,31 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
+		92BFFEC1079A2DD50052CC4C = {
+			children = (
+				92BFFEC2079A2DD50052CC4C,
+			);
+			isa = PBXVariantGroup;
+			name = Credits.html;
+			path = "";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		92BFFEC2079A2DD50052CC4C = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text.html;
+			name = English;
+			path = MacOSaiX/English.lproj/Credits.html;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		92BFFEC3079A2DD50052CC4C = {
+			fileRef = 92BFFEC1079A2DD50052CC4C;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		92F2B1D3048027510000011E = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -2234,24 +2241,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		F53FEE25024A568201000108 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			name = NotifyingScrollView.h;
-			path = MacOSaiX/NotifyingScrollView.h;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		F53FEE26024A568201000108 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.objc;
-			name = NotifyingScrollView.m;
-			path = MacOSaiX/NotifyingScrollView.m;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		F5407219023FE6860100010A = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -2285,24 +2274,6 @@
 			lastKnownFileType = sourcecode.c.objc;
 			name = GoogleImageSource.m;
 			path = "Standard Plugins/Google Image Source/GoogleImageSource.m";
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		F54167CC024C0FB80100010B = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			name = OriginalView.h;
-			path = MacOSaiX/OriginalView.h;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		F54167CD024C0FB80100010B = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.objc;
-			name = OriginalView.m;
-			path = MacOSaiX/OriginalView.m;
 			refType = 4;
 			sourceTree = "<group>";
 		};
@@ -2500,8 +2471,8 @@
 		};
 		F5EE25FD03901F9D01705684 = {
 			children = (
-				01453C99071B6EE300BCEC7C,
 				01453CA7071B6EED00BCEC7C,
+				01453C99071B6EE300BCEC7C,
 			);
 			isa = PBXGroup;
 			name = "Standard Plugins";
