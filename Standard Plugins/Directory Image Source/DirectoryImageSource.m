@@ -66,9 +66,9 @@
 	
 		// Create an attributed string containing our path that truncates in the middle so that
 		// the path's volume and nearest parent directories are both visible.
-	NSMutableParagraphStyle	*style = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
-	NSDictionary			*attributeDict = [NSDictionary dictionaryWithObject:style forKey:NSParagraphStyleAttributeName];
+	NSMutableParagraphStyle	*style = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
 	[style setLineBreakMode:NSLineBreakByTruncatingMiddle];
+	NSDictionary			*attributeDict = [NSDictionary dictionaryWithObject:style forKey:NSParagraphStyleAttributeName];
 	[directoryDescriptor autorelease];
     directoryDescriptor = [[NSAttributedString alloc] initWithString:directoryPath attributes:attributeDict];
 
