@@ -45,23 +45,6 @@
 		
 		tileRefreshLock = [[NSLock alloc] init];
 		tilesToRefresh = [[NSMutableArray array] retain];
-		
-		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(originalImageDidChange:) 
-													 name:MacOSaiXOriginalImageDidChangeNotification 
-												   object:[self document]];
-		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(documentDidChangeState:) 
-													 name:MacOSaiXDocumentDidChangeStateNotification 
-												   object:[self document]];
-		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(tileShapesDidChange:) 
-													 name:MacOSaiXTileShapesDidChangeStateNotification 
-												   object:[self document]];
-		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(tileImageDidChange:) 
-													 name:MacOSaiXTileImageDidChangeNotification 
-												   object:[self document]];
 	}
 	
     return self;
@@ -76,6 +59,23 @@
 
 - (void)awakeFromNib
 {
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(originalImageDidChange:) 
+												 name:MacOSaiXOriginalImageDidChangeNotification 
+											   object:[self document]];
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(documentDidChangeState:) 
+												 name:MacOSaiXDocumentDidChangeStateNotification 
+											   object:[self document]];
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(tileShapesDidChange:) 
+												 name:MacOSaiXTileShapesDidChangeStateNotification 
+											   object:[self document]];
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(tileImageDidChange:) 
+												 name:MacOSaiXTileImageDidChangeNotification 
+											   object:[self document]];
+	
     viewMenu = [[[NSApp mainMenu] itemWithTitle:@"View"] submenu];
     fileMenu = [[[NSApp mainMenu] itemWithTitle:@"File"] submenu];
 
@@ -865,7 +865,7 @@
 	
 			// TODO: we don't always want to resume automatically...
 		if ([[self document] tileShapes])
-			[[self document] resume];
+			[self resume];
 		
 		[imageSourcesTableView reloadData];
 	}
@@ -1380,6 +1380,8 @@
 		return ([[[self document] imageSources] count] > 0);
 //	else
 //		return [[self document] validateMenuItem:menuItem];
+
+	return YES;
 }
 
 
