@@ -22,8 +22,7 @@
 								windowFinishedLoading,	// flag to indicate nib was loaded
 								finishLoading;	// flag to indicate doc was not new,
 												// so perform second phase of initializing
-    long						imagesMatched,
-								unfetchableCount;
+    long						imagesMatched;
 	NSLock						*pauseLock;
 	int							tileCreationPercentComplete;
     BOOL						createTilesThreadAlive,

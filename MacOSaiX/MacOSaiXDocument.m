@@ -214,7 +214,11 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 }
 
 
-- (BOOL)writeToFile:(NSString *)fileName ofType:(NSString *)type;
+- (void)saveToFile:(NSString *)fileName 
+	 saveOperation:(NSSaveOperationType)saveOperation 
+		  delegate:(id)delegate 
+   didSaveSelector:(SEL)didSaveSelector 
+	   contextInfo:(void *)contextInfo;
 {
 	BOOL			success = NO,
 					wasPaused = paused;
@@ -228,18 +232,17 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 		// Create the wrapper directory if it doesn't already exist.
 	if ([fileManager fileExistsAtPath:fileName] || [fileManager createDirectoryAtPath:fileName attributes:nil])
 	{
-//		if (![cachedImagesPath hasPrefix:fileName])
-//		{
-//				// This is the first time this mosaic has been saved so move 
-//				// the image cache directory from /tmp to the new location.
-//			NSString	*savedCachedImagesPath = [fileName stringByAppendingPathComponent:@"Cached Images"];
-//			[fileManager movePath:cachedImagesPath toPath:savedCachedImagesPath handler:nil];
-//			[cachedImagesPath autorelease];
-//			cachedImagesPath = [savedCachedImagesPath retain];
-//		}
+		if (![cachedImagesPath hasPrefix:fileName])
+		{
+				// This is the first time this mosaic has been saved so move 
+				// the image cache directory from /tmp to the new location.
+			NSString	*savedCachedImagesPath = [fileName stringByAppendingPathComponent:@"Cached Images"];
+			[fileManager movePath:cachedImagesPath toPath:savedCachedImagesPath handler:nil];
+			[cachedImagesPath autorelease];
+			cachedImagesPath = [savedCachedImagesPath retain];
+		}
 		
 			// Display a sheet while the save is underway
-			// TODO: figure out how to do this asynchronously and coordinate with window controller
 //		[progressPanelLabel setStringValue:@"Saving..."];
 //		[progressPanelIndicator setDoubleValue:0.0];
 //		[progressPanelCancelButton setAction:@selector(cancelSave:)];
@@ -271,7 +274,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 }
 
 
-- (void)threadedSaveToPath:(NSArray *)parameters
+- (NSFileWrapper *)fileWrapperRepresentationOfType:(NSString *)type;
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	NSString			*savePath = [parameters objectAtIndex:0];
@@ -384,64 +387,10 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 }
 
 
-- (NSData *)dataRepresentationOfType:(NSString *)aType
+- (BOOL)loadFileWrapperRepresentation:(NSFileWrapper *)wrapper ofType:(NSString *)docType
 {
-		// Saving is totally overriden in -writeToFile:ofType:.
-	return nil;
 }
 
-
-- (BOOL)loadDataRepresentation:(NSData *)data ofType:(NSString *)aType
-{
-    NSDictionary	*storage = [NSUnarchiver unarchiveObjectWithData:data];
-    NSString		*version = [storage objectForKey:@"Version"];
-    NSData		*imageData;
-    NSImage		*image;
-    NSAutoreleasePool	*pool;
-    int			index;
-    
-    if ([version isEqualToString:@"1.0b1"])
-    {
-	imageData = [[storage objectForKey:@"originalImageURL"] resourceDataUsingCache:NO];
-	image = [[[NSImage alloc] initWithData:imageData] autorelease];
-	[image setDataRetained:YES];
-	[image setScalesWhenResized:YES];
-//	[self setOriginalImage:image fromURL:[storage objectForKey:@"originalImageURL"]];
-	
-//	[self setImageSources:[storage objectForKey:@"imageSources"]];
-	
-	pool = [[NSAutoreleasePool alloc] init];
-	    [tileImages release];
-	    tileImages = [[NSUnarchiver unarchiveObjectWithData:[storage objectForKey:@"tileImages"]] retain];
-	[pool release];
-	
-	pool = [[NSAutoreleasePool alloc] init];
-	    tiles = [[NSUnarchiver unarchiveObjectWithData:[storage objectForKey:@"tiles"]] retain];
-	[pool release];
-	
-	// finish loading tiles
-	tileOutlines = nil;
-	
-	imagesMatched = [[storage objectForKey:@"imagesMatched"] longValue];
-	
-	[imageQueue addObjectsFromArray:[storage objectForKey:@"imageQueue"]];
-	
-//	viewMode = [[storage objectForKey:@"viewMode"] intValue];
-	
-//	storedWindowFrame = [[storage objectForKey:@"window frame"] rectValue];
-    
-	paused = ([[storage objectForKey:@"paused"] intValue] == 1 ? YES : NO);
-	
-	finishLoading = YES;
-	
-	[lastSaved autorelease];
-	lastSaved = [[NSDate date] retain];
-
-	return YES;	// document was loaded successfully
-    }
-    
-    return NO;	// unknown version of saved document
-}
 
 
 #pragma mark
@@ -808,6 +757,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 #pragma mark
 #pragma mark Image matching
 
+
 - (void)calculateImageMatches:(id)dummy
 {
 		// This method is called in a new thread whenever a non-empty image queue is discovered.
@@ -859,22 +809,9 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 		id<MacOSaiXImageSource>	pixletImageSource = [nextImageDict objectForKey:@"Image Source"];
 		NSString				*pixletImageIdentifier = [nextImageDict objectForKey:@"Image Identifier"];
 		
-			// Add this image to the cache.
-		if (pixletImageIdentifier)
-		{
-				// Just cache a thumbnail, no need to waste the disk since we can refetch.
-			NSImage	*thumbnailImage = [pixletImage copyWithLargestDimension:kImageCacheThumbnailSize];
-			[imageCache cacheImage:thumbnailImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
-			[thumbnailImage release];
-		}
-		else
-		{
-				// Cache the full sized image since we can't refetch it from the image source.
-				// Create an identifier with a fixed prefix we can check for later to know that 
-				// the image can't be refetched.
-			pixletImageIdentifier = [NSString stringWithFormat:@"Unfetchable %ld", unfetchableCount++];
-			[imageCache cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
-		}
+			// Add this image to the cache.  If the identifier is nil or zero-length then 
+			// a new identifier will be returned.
+		pixletImageIdentifier = [imageCache cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
 
 		NSMutableDictionary	*cachedReps = [NSMutableDictionary dictionaryWithCapacity:16];
 		
