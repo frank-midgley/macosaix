@@ -142,7 +142,7 @@
 			NS_ENDHANDLER
 		[mosaicImageLock unlock];
 		
-		[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:tile waitUntilDone:YES];
+		[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:tile waitUntilDone:NO];
 	}
 
 	[pool release];
@@ -157,8 +157,7 @@
 	
 	if ([lastUpdate timeIntervalSinceNow] < -0.1)	//|| [tilesNeedingDisplay count] > 32)
 	{
-		NSAffineTransform	*transform = [[NSAffineTransform transform] retain];
-		[transform translateXBy:0.5 yBy:0.5];	// line up with pixel boundaries
+		NSAffineTransform	*transform = [NSAffineTransform transform];
 		[transform scaleXBy:[self frame].size.width yBy:[self frame].size.height];
 		
 		NSEnumerator	*tileEnumerator = [tilesNeedingDisplay objectEnumerator];
