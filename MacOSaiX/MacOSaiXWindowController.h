@@ -133,4 +133,9 @@ typedef enum
 - (IBAction)setExportWidthFromHeight:(id)sender;
 - (IBAction)setExportHeightFromWidth:(id)sender;
 
+	// Progress panel methods
+- (void)displayProgressPanelWithMessage:(NSString *)message;
+- (void)setProgressPercentComplete:(NSNumber *)percentComplete;
+- (void)closeProgressPanel;
+
 @end

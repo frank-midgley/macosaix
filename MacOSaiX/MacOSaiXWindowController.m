@@ -15,6 +15,7 @@
 #import "OriginalView.h"
 #import "NSImage+MacOSaiX.h"
 #import <unistd.h>
+#import <pthread.h>
 
 
 @interface MacOSaiXWindowController (PrivateMethods)
@@ -1184,14 +1185,7 @@
     if (returnCode == NSOKButton)
     {
 			// Display a progress panel while the export is underway.
-		[progressPanelLabel setStringValue:@"Exporting mosaic image..."];
-		[progressPanelIndicator startAnimation:self];
-		[progressPanelIndicator setMaxValue:[[[self document] tiles] count]];
-		[NSApp beginSheet:progressPanel
-		   modalForWindow:[self window]
-			modalDelegate:self
-		   didEndSelector:nil
-			  contextInfo:contextInfo];
+		[self displayProgressPanelWithMessage:@"Exporting mosaic image..."];
 		
 			// Spawn a thread to do the export so the GUI doesn't get tied up.
 		[NSApplication detachDrawingThread:@selector(exportImage:)
@@ -1290,16 +1284,56 @@
 }
 
 
-- (void)closeProgressPanel
+#pragma mark -
+#pragma mark Progress panel
+
+
+- (void)displayProgressPanelWithMessage:(NSString *)message
 {
-	[NSApp endSheet:progressPanel];
-	[progressPanel orderOut:nil];
+	if (pthread_main_np())
+	{
+		[progressPanelIndicator setDoubleValue:0.0];
+		[progressPanelIndicator setIndeterminate:YES];
+		[progressPanelIndicator startAnimation:self];
+		[NSApp beginSheet:progressPanel
+		   modalForWindow:[self window]
+			modalDelegate:self
+		   didEndSelector:nil
+			  contextInfo:nil];
+	}
+	else
+		[self performSelectorOnMainThread:@selector(displayProgressPanelWithMessage:) 
+							   withObject:message 
+							waitUntilDone:YES];
 }
 
 
 - (void)setProgressPercentComplete:(NSNumber *)percentComplete
 {
-	[progressPanelIndicator setDoubleValue:[percentComplete doubleValue]];
+	if (pthread_main_np())
+	{
+		[progressPanelIndicator setIndeterminate:NO];
+		[progressPanelIndicator setDoubleValue:[percentComplete doubleValue]];
+	}
+	else
+		[self performSelectorOnMainThread:@selector(setProgressPercentComplete:) 
+							   withObject:nil 
+							waitUntilDone:YES];
+}
+
+
+- (void)closeProgressPanel
+{
+	if (pthread_main_np())
+	{
+		[NSApp endSheet:progressPanel];
+		[progressPanelIndicator stopAnimation:self];
+		[progressPanel orderOut:nil];
+	}
+	else
+		[self performSelectorOnMainThread:@selector(closeProgressPanel) 
+							   withObject:nil 
+							waitUntilDone:YES];
 }
 
 
