@@ -7,7 +7,9 @@
 	<key>Perform Update Check at Launch</key>
 	<true/>
 	<key>Image Use Count</key>
-	<integer>1</integer>
+	<integer>0</integer>
+	<key>Image Reuse Distance</key>
+	<integer>10</integer>
 	<key>Last Chosen Tile Shapes Class</key>
 	<string>MacOSaiXRectangularTileShapes</string>
 	<key>Rectangular Tile Shapes</key>
