@@ -356,6 +356,30 @@
 			settings = {
 			};
 		};
+		01AD286D07E3C99A00420875 = {
+			children = (
+				01AD286E07E3C99A00420875,
+			);
+			isa = PBXVariantGroup;
+			name = GoogleImageSearch.gif;
+			path = "";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01AD286E07E3C99A00420875 = {
+			isa = PBXFileReference;
+			lastKnownFileType = image.gif;
+			name = English;
+			path = "Standard Plugins/Google Image Source/English.lproj/GoogleImageSearch.gif";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01AD286F07E3C99B00420875 = {
+			fileRef = 01AD286D07E3C99A00420875;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		01BBDECB0747081400F17A9F = {
 			fileEncoding = 4;
 			isa = PBXFileReference;
@@ -822,6 +846,7 @@
 				F514D5A303949AA801B25AF1,
 				F580657F02456D1901000104,
 				928F72910661226000873AE2,
+				01AD286D07E3C99A00420875,
 				928F72E00661234700873AE2,
 			);
 			isa = PBXGroup;
@@ -1276,6 +1301,7 @@
 				928F72B90661229700873AE2,
 				928F72C00661229F00873AE2,
 				928F72E10661234700873AE2,
+				01AD286F07E3C99B00420875,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
