@@ -17,10 +17,13 @@ typedef enum
 {
     IBOutlet MosaicView				*mosaicView;
 	IBOutlet NSScrollView			*mosaicScrollView;
+
 	IBOutlet NSTextField			*statusMessageView;
+
     IBOutlet NSDrawer				*utilitiesDrawer;
-    IBOutlet NSTabView				*utilitiesTabView;
+
     IBOutlet NSView					*statusBarView;
+	
     IBOutlet NSView					*zoomToolbarView;
 	IBOutlet NSSlider				*zoomSlider;
     IBOutlet NSMenu					*zoomToolbarSubmenu;
@@ -37,6 +40,7 @@ typedef enum
 	unsigned long					exportProgressTileCount;
 	
 		// Setup tab
+	IBOutlet NSImageView			*originalImageThumbView;
 	IBOutlet NSPopUpButton			*originalImagePopUpButton;
 	IBOutlet NSTextField			*tileShapesDescriptionField,
 									*totalTilesField,

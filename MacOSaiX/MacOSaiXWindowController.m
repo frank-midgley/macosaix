@@ -105,8 +105,7 @@
 				NSMenuItem	*originalItem = [[[NSMenuItem alloc] init] autorelease];
 				[originalItem setTitle:originalName];
 				[originalItem setRepresentedObject:originalPath];
-				if (originalThumbnail)
-					[originalItem setImage:originalThumbnail];
+				[originalItem setImage:originalThumbnail];
 				[[originalImagePopUpButton menu] insertItem:originalItem
 													atIndex:[originalImagePopUpButton numberOfItems] - 1];
 			}
@@ -232,7 +231,21 @@
 	NSString	*originalPath = [[originalImagePopUpButton selectedItem] representedObject];
 	
 	if (originalPath)
+	{
+			// Return the currently displayed thumbnail to its menu item.
+		if ([[self document] originalImagePath])
+		{
+			int	previousIndex = [originalImagePopUpButton indexOfItemWithRepresentedObject:[[self document] originalImagePath]];
+			[[originalImagePopUpButton itemAtIndex:previousIndex] setImage:[originalImageThumbView image]];
+		}
+		
+			// Move the newly chosen original's thumbnail to the image view.
+		[originalImageThumbView setImage:[[originalImagePopUpButton selectedItem] image]];
+		[[originalImagePopUpButton selectedItem] setImage:nil];
+		
+			// Update the document.
 		[[self document] setOriginalImagePath:originalPath];
+	}
 	else
 	{
 			// Prompt the user to choose the image from which to make a mosaic.
@@ -261,7 +274,7 @@
 		
 			// Remember this original in the user's defaults so they can easily re-choose it for future mosaics.
 		NSImage			*originalImage = [[self document] originalImage];
-		NSImage			*thumbnailImage = [originalImage copyWithLargestDimension:16.0];
+		NSImage			*thumbnailImage = [originalImage copyWithLargestDimension:32.0];
 		NSMutableArray	*originals = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] mutableCopy] autorelease];
 		if (originals)
 		{
@@ -298,8 +311,7 @@
 		NSMenuItem	*originalItem = [[[NSMenuItem alloc] init] autorelease];
 		[originalItem setTitle:[[imagePath lastPathComponent] stringByDeletingPathExtension]];
 		[originalItem setRepresentedObject:imagePath];
-		if (thumbnailImage)
-			[originalItem setImage:thumbnailImage];
+		[originalImageThumbView setImage:thumbnailImage];
 		[[originalImagePopUpButton menu] insertItem:originalItem atIndex:0];
 		[originalImagePopUpButton selectItemAtIndex:0];
 		
@@ -986,17 +998,14 @@
 	{
 		case viewMosaicAndOriginal:
 			[mosaicView setViewMode:viewMosaic];
-			[utilitiesTabView selectTabViewItemWithIdentifier:@"Original"];
 			[utilitiesDrawer open];
 			break;
 		case viewMosaicAndTilesSetup:
 			[mosaicView setViewMode:viewTilesOutline];
-			[utilitiesTabView selectTabViewItemWithIdentifier:@"Tiles"];
 			[utilitiesDrawer open];
 			break;
 		case viewMosaicAndRegions:
 			[mosaicView setViewMode:viewImageRegions];
-			[utilitiesTabView selectTabViewItemWithIdentifier:@"Images"];
 			[utilitiesDrawer open];
 			break;
 		case viewMosaicEditor:
@@ -1005,7 +1014,6 @@
 			[self updateEditor];
 			[editorTable scrollRowToVisible:0];
 			[editorTable reloadData];
-			[utilitiesTabView selectTabViewItemWithIdentifier:@"Editor"];
 			[utilitiesDrawer open];
 			break;
 		case viewMosaicAlone:
@@ -1479,7 +1487,6 @@
 {
 		// this method is called during animated window resizing, not windowWillResize
     [self setZoom:self];
-//    [utilitiesTabView setNeedsDisplay:YES];
 }
 
 
@@ -1585,21 +1592,21 @@
 
 - (void)tabView:(NSTabView *)tabView didSelectTabViewItem:(NSTabViewItem *)tabViewItem
 {
-	if (tabView == utilitiesTabView)
-	{
-		int selectedIndex =  [tabView indexOfTabViewItem:tabViewItem];
-		
-		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Tiles"])
-			[mosaicView setViewMode:viewTilesOutline];
-		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Images"])
-			[mosaicView setViewMode:viewImageSources];
-		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Original"])
-			[mosaicView setViewMode:viewMosaic];
-		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Regions"])
-			[mosaicView setViewMode:viewImageRegions];
-		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Editor"])
-			[mosaicView setViewMode:viewHighlightedTile];
-	}
+//	if (tabView == utilitiesTabView)
+//	{
+//		int selectedIndex =  [tabView indexOfTabViewItem:tabViewItem];
+//		
+//		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Tiles"])
+//			[mosaicView setViewMode:viewTilesOutline];
+//		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Images"])
+//			[mosaicView setViewMode:viewImageSources];
+//		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Original"])
+//			[mosaicView setViewMode:viewMosaic];
+//		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Regions"])
+//			[mosaicView setViewMode:viewImageRegions];
+//		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Editor"])
+//			[mosaicView setViewMode:viewHighlightedTile];
+//	}
 }
 
 
