@@ -19,6 +19,7 @@
 
 
 	// Notifications
+NSString	*MacOSaiXDocumentDidChangeStateNotification = @"MacOSaiXDocumentDidChangeStateNotification";
 NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDidChangeNotification";
 
 
@@ -67,6 +68,8 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 		tileImagesLock = [[NSLock alloc] init];
 		
 		enumerationThreadCountLock = [[NSLock alloc] init];
+		enumerationCountsLock = [[NSLock alloc] init];
+		enumerationCounts = [[NSMutableDictionary dictionary] retain];
 		
 		imageCache = [[MacOSaiXImageCache alloc] init];
 	}
@@ -145,6 +148,8 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 			[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 		
 		paused = YES;
+		
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
 	}
 }
 
@@ -170,6 +175,8 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 			[pauseLock unlock];
 			
 			paused = NO;
+			
+			[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
 		}
 	}
 }
@@ -411,8 +418,6 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 	
 	// finish loading tiles
 	tileOutlines = nil;
-	for (index = 0; index < [tiles count]; index++)
-	    [(Tile *)[tiles objectAtIndex:index] setDocument:self];
 	
 	imagesMatched = [[storage objectForKey:@"imagesMatched"] longValue];
 	
@@ -546,8 +551,9 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 {
     if (tileOutlines == nil || originalImage == nil)
 		return;
-    else
-		createTilesThreadAlive = YES;
+
+	createTilesThreadAlive = YES;
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
 	
 		// Don't usurp the main thread.
 	[NSThread setThreadPriority:0.1];
@@ -638,6 +644,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 		[[drawWindow contentView] unlockFocus];
 		
 		tileCreationPercentComplete = (int)(index * 50.0 / [tileOutlines count]);
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
 	}
 	
     [drawWindow close];
@@ -648,6 +655,8 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
     [pool release];
     
     createTilesThreadAlive = NO;
+	
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
 }
 
 
@@ -686,8 +695,9 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 - (void)enumerateImageSourceInNewThread:(id<MacOSaiXImageSource>)imageSource
 {
 	[enumerationThreadCountLock lock];
-			enumerationThreadCount++;
+		enumerationThreadCount++;
 	[enumerationThreadCountLock unlock];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
 	
 		// Don't usurp the main thread.
 	[NSThread setThreadPriority:0.1];
@@ -720,10 +730,18 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 											imageSource, @"Image Source", 
 											imageIdentifier, @"Image Identifier", // last since it could be nil
 											nil]];
+				
+				[enumerationCountsLock lock];
+					NSString		*key = [NSString stringWithFormat:@"%p", imageSource];
+					unsigned long	currentCount = [[enumerationCounts objectForKey:key] unsignedLongValue];
+					[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:currentCount + 1] forKey:key];
+				[enumerationCountsLock unlock];
 			[imageQueueLock unlock];
 
 			if (!calculateImageMatchesThreadAlive)
 				[NSApplication detachDrawingThread:@selector(calculateImageMatches:) toTarget:self withObject:nil];
+			
+			[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
 		}
 		sourceHasMoreImages = [imageSource hasMoreImages];
 		
@@ -731,8 +749,10 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 	}
 	
 	[enumerationThreadCountLock lock];
-			enumerationThreadCount--;
+		enumerationThreadCount--;
 	[enumerationThreadCountLock unlock];
+	
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
 }
 
 
@@ -744,8 +764,28 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 
 - (unsigned long)countOfImagesFromSource:(id<MacOSaiXImageSource>)imageSource
 {
-	// TODO: should this come from here or the image cache?
-	return 0;
+	unsigned long	enumerationCount = 0;
+	
+	[enumerationCountsLock lock];
+		enumerationCount = [[enumerationCounts objectForKey:[NSString stringWithFormat:@"%p", imageSource]] unsignedLongValue];
+	[enumerationCountsLock unlock];
+	
+	return enumerationCount;
+}
+
+
+- (unsigned long)imagesMatched
+{
+	unsigned long	totalCount = 0;
+	
+	[enumerationCountsLock lock];
+		NSEnumerator	*sourceEnumerator = [enumerationCounts keyEnumerator];
+		NSString		*key = nil;
+		while (key = [sourceEnumerator nextObject])
+			totalCount += [[enumerationCounts objectForKey:key] unsignedLongValue];
+	[enumerationCountsLock unlock];
+	
+	return totalCount;
 }
 
 
@@ -770,7 +810,9 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 		}
 		calculateImageMatchesThreadAlive = YES;
 	[calculateImageMatchesThreadLock unlock];
-
+	
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
+	
     NSImage				*scratchImage = [[[NSImage alloc] initWithSize:NSMakeSize(1024, 1024)] autorelease];
 	[scratchImage setCacheMode:NSImageCacheNever];
 	
@@ -927,7 +969,9 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 	[calculateImageMatchesThreadLock lock];
 		calculateImageMatchesThreadAlive = NO;
 	[calculateImageMatchesThreadLock unlock];
-
+	
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
+	
 		// clean up and shutdown this thread
     [pool release];
 }
@@ -935,13 +979,6 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 - (BOOL)isCalculatingImageMatches
 {
 	return calculateImageMatchesThreadAlive;
-}
-
-
-- (unsigned long)imagesMatched
-{
-	// TODO
-	return 0;
 }
 
 
@@ -967,7 +1004,9 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 		}
 		calculateDisplayedImagesThreadAlive = YES;
 	[calculateDisplayedImagesThreadLock unlock];
-
+	
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
+	
 //	NSLog(@"Calculating displayed images\n");
 	
 		// Don't usurp the main thread.
@@ -1022,7 +1061,9 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 	[calculateDisplayedImagesThreadLock lock];
 	    calculateDisplayedImagesThreadAlive = NO;
 	[calculateDisplayedImagesThreadLock unlock];
-
+	
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
+	
         // Launch another copy of ourself if any other tiles need refreshing
     if (tilesAddedToRefreshSet)
         [NSApplication detachDrawingThread:@selector(calculateDisplayedImages:) toTarget:self withObject:nil];
@@ -1120,6 +1161,8 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 	[pauseLock release];
     [imageQueueLock release];
 	[enumerationThreadCountLock release];
+	[enumerationCountsLock release];
+	[enumerationCounts release];
     [tiles release];
     [tileOutlines release];
     [imageQueue release];

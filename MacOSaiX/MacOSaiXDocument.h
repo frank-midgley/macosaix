@@ -27,9 +27,12 @@
 	NSLock						*pauseLock;
 	int							tileCreationPercentComplete;
     BOOL						createTilesThreadAlive,
-								calculateImageMatchesThreadAlive,
-								exportImageThreadAlive;
+								calculateImageMatchesThreadAlive;
+								
 	int							enumerationThreadCount;
+	NSMutableDictionary			*enumerationCounts;
+	NSLock						*enumerationCountsLock;
+	
     float						overallMatch, lastDisplayMatch;
     NSDate						*lastSaved;
     int							autosaveFrequency;
@@ -82,4 +85,5 @@
 
 
 	// Notifications
+extern NSString	*MacOSaiXDocumentDidChangeStateNotification;
 extern NSString	*MacOSaiXOriginalImageDidChangeNotification;
