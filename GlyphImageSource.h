@@ -11,7 +11,8 @@
 
 @interface GlyphImageSource : ImageSource {
     NSArray	*_fontNames;
-    NSWindow	*_drawWindow;	// for offscreen drawing
+    NSWindow	*_focusWindow;	// for offscreen drawing
+    NSLock	*_focusWindowLock;
 }
 
 @end
