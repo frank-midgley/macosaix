@@ -112,7 +112,6 @@ Ordered array:		images, fileIDs
 ¥	Mosaic quality calculation should take into account each tile's percentage coverage of original image
 ¥	Get rid of lines in exporting
 ¥	Compare straight color match vs. Riemersma
-¥	Version check
 Ã	Link to home page in About box or help menu
 ¥	Resurrect Glyph source
 ¥	Sizing of tile shapes and image source editor sheets
@@ -121,6 +120,7 @@ Ordered array:		images, fileIDs
 	Image cache
 ¥		purge unused images in disk cache on save
 Ã	Rename Tiles class to MacOSaiXTile
+¥	Resizing when zoomed does not stay centered.
 
 2.0a2 To Do:
 ?	Uniqueness
@@ -136,8 +136,10 @@ Ordered array:		images, fileIDs
 Ã		Make in-memory cache size, rather than count, dependent
 ¥	Saving (+ plug-ins state)
 ¥	Loading (+ plug-ins state)
-¥	Get zoom working again
-¥	Make image cache class level
+¥	Version check
+¥	Implement or disable neighborhood size GUI
+Ã	Get zoom working again
+Ã	Make image cache class level
 Ã	Add ability to toggle between displaying original or mosaic.
 ¥	Resume toolbar icon should read Start before mosaic has begun
 ¥	"Show Tile Outlines" menu item should switch to "Hide Tile Outlines"
@@ -146,7 +148,7 @@ Ordered array:		images, fileIDs
 ¥	Rework puzzle shapes plug-in to conform with new API
 ¥	Make image count work with attributed descriptors
 	Google source:
-¥		Meaningful description in table
+Ã		Meaningful description in table
 ¥		Make sure cache doesn't fill disk
 ¥	Show average aspect ratio in setup
 	QuickTime source:
