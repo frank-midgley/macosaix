@@ -1,0 +1,71 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {
+                allowUserToChooseImage = id; 
+                beginExportImage = id; 
+                setExportHeightFromWidth = id; 
+                setExportWidthFromHeight = id; 
+                setImageSourcesPlugIn = id; 
+                setJPEGExport = id; 
+                setShowOutlines = id; 
+                setTIFFExport = id; 
+                setTilesSetupPlugIn = id; 
+                setViewAloneMode = id; 
+                setViewCompareMode = id; 
+                setViewEditMode = id; 
+                setViewRegionsMode = id; 
+                setViewTileSetupMode = id; 
+                setZoom = id; 
+                startMosaic = id; 
+                toggleImageSourcesDrawer = id; 
+                togglePause = id; 
+                toggleStatusBar = id; 
+                useBestUniqueMatch = id; 
+                useCustomImage = id; 
+                useSelectedImage = id; 
+            }; 
+            CLASS = MacOSaiXDocument; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                "_editorChooseImage" = NSButton; 
+                "_editorLabel" = NSTextField; 
+                "_editorTable" = NSTableView; 
+                "_editorUseBestUniqueMatch" = NSButtonCell; 
+                "_editorUseCustomImage" = NSButtonCell; 
+                "_editorUseSelectedImage" = NSButton; 
+                "_editorUserChosenImage" = NSImageView; 
+                "_exportHeight" = NSTextField; 
+                "_exportPanelAccessoryView" = id; 
+                "_exportProgressIndicator" = id; 
+                "_exportProgressLabel" = id; 
+                "_exportProgressPanel" = id; 
+                "_exportWidth" = NSTextField; 
+                "_imageSourcesPopUpButton" = NSPopUpButton; 
+                "_imageSourcesRemoveButton" = NSButton; 
+                "_imageSourcesTabView" = NSTabView; 
+                "_imageSourcesTable" = NSTableView; 
+                "_mosaicScrollView" = NSScrollView; 
+                "_mosaicView" = MosaicView; 
+                "_originalView" = OriginalView; 
+                "_showOutlinesSwitch" = id; 
+                "_statusBarView" = NSView; 
+                "_statusMessageView" = NSTextField; 
+                "_tilesSetupPopUpButton" = NSPopUpButton; 
+                "_tilesSetupView" = NSBox; 
+                "_totalTilesField" = NSTextField; 
+                "_utilitiesDrawer" = NSDrawer; 
+                "_utilitiesTabView" = NSTabView; 
+                "_zoomSlider" = id; 
+                "_zoomToolbarSubmenu" = NSMenu; 
+                "_zoomToolbarView" = id; 
+            }; 
+            SUPERCLASS = NSDocument; 
+        }, 
+        {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
+        {CLASS = NotifyingScrollView; LANGUAGE = ObjC; SUPERCLASS = NSScrollView; }, 
+        {CLASS = OriginalView; LANGUAGE = ObjC; SUPERCLASS = NSImageView; }
+    ); 
+    IBVersion = 1; 
+}
