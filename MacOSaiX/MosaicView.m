@@ -1,6 +1,6 @@
 #import "MosaicView.h"
 #import "Tiles.h"
-#import "MacOSaiXDocument.h"
+#import "MacOSaiXWindowController.h"
 
 @implementation MosaicView
 
@@ -68,7 +68,7 @@
 				{
 					mouseLoc = [self convertPoint:[theEvent locationInWindow] fromView:nil];
 					if ([self mouse:mouseLoc inRect:[self bounds]])
-						[(MacOSaiXDocument *)[[self window] delegate] selectTileAtPoint:mouseLoc];
+						[(MacOSaiXWindowController *)[[self window] delegate] selectTileAtPoint:mouseLoc];
 					keepOn = NO;
 				}
 			}
