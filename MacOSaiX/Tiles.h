@@ -6,7 +6,7 @@
 
 #import "MacOSaiXImageSource.h"
 
-#define TILE_BITMAP_SIZE 32.0
+#define TILE_BITMAP_SIZE 16.0
 
 
 @interface ImageMatch : NSObject
@@ -15,6 +15,7 @@
     id<MacOSaiXImageSource>	imageSource;
 	NSString				*imageIdentifier;
 }
+
 - (id)initWithMatchValue:(float)inMatchValue 
 	  forImageIdentifier:(NSString *)inImageIdentifier 
 		 fromImageSource:(id<MacOSaiXImageSource>)inImageSource;
@@ -31,6 +32,7 @@
 {
     NSBezierPath		*outline;				// The shape of this tile
 	NSMutableSet		*neighborSet;			// A set containing tiles that are considered neighbors of this tile
+	NSMutableDictionary	*imagesInUseByNeighbors;
     NSBitmapImageRep	*bitmapRep,				// The portion of the original image that is in this tile
                         *maskRep;
     NSMutableArray		*imageMatches;			// Array of ImageMatches
@@ -39,7 +41,7 @@
     ImageMatch			*bestImageMatch,
 						*userChosenImageMatch;	// will be nil if user has not choosen an image
     int					maxMatches;
-    NSDocument			*document;				// The document this tile is a part of
+    NSDocument			*document;				// The document this tile is a part of (non-retained)
 }
 
 	// designated initializer
@@ -50,6 +52,7 @@
 - (void)addNeighbors:(NSArray *)neighboringTiles;
 - (void)removeNeighbor:(Tile *)nonNeighboringTile;
 - (NSArray *)neighbors;
+- (void)neighboringTile:(Tile *)neighboringTile changedImageMatchFrom:(ImageMatch *)originalMatch to:(ImageMatch *)newMatch;
 
 - (void)setOutline:(NSBezierPath *)outline;
 - (NSBezierPath *)outline;

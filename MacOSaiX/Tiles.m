@@ -58,17 +58,20 @@
 
 - (id)initWithOutline:(NSBezierPath *)inOutline fromDocument:(NSDocument *)inDocument
 {
-    self = [super init];
-    
-    imageMatchesLock = [[NSLock alloc] init];
-    bestMatchLock = [[NSLock alloc] init];
-	
-	imageMatches = [[NSMutableArray array] retain];
-	
-    outline = [inOutline copy];
-    document = inDocument;	// the document retains us so we don't retain it
-    
-    return self;
+	if (self = [super init])
+	{
+		imageMatchesLock = [[NSLock alloc] init];
+		bestMatchLock = [[NSLock alloc] init];
+
+		imageMatches = [[NSMutableArray array] retain];
+
+		outline = [inOutline copy];
+		document = inDocument;	// the document retains us so we don't retain it
+		
+		imagesInUseByNeighbors = [[NSMutableDictionary dictionary] retain];
+
+	}
+	return self;
 }
 
 
@@ -109,6 +112,21 @@
 - (NSArray *)neighbors
 {
 	return [neighborSet allObjects];
+}
+
+
+- (void)neighboringTile:(Tile *)neighboringTile changedImageMatchFrom:(ImageMatch *)originalMatch to:(ImageMatch *)newMatch
+{
+	NSString	*tileKey = [NSString stringWithFormat:@"%p", neighboringTile];
+	
+	if (newMatch)
+		[imagesInUseByNeighbors setObject:[NSArray arrayWithObjects:
+												[newMatch imageIdentifier],
+												[newMatch imageSource],
+												nil]
+								   forKey:tileKey];
+	else
+		[imagesInUseByNeighbors removeObjectForKey:tileKey];
 }
 
 
@@ -197,7 +215,7 @@
                         greenDiff = *(bitmap1_off + 1) - *(bitmap2_off + 1), 
                         blueDiff = *(bitmap1_off + 2) - *(bitmap2_off + 2);
                 
-#if 0
+#if 1
 				float	redAverage = (*bitmap1_off + *bitmap2_off) / 2.0;
 				matchValue += ((2.0 + redAverage / 256.0) * redDiff * redDiff + 
                                4 * greenDiff * greenDiff + 
@@ -296,84 +314,50 @@
 {
 	BOOL				bestMatchChanged = NO;
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	ImageMatch			*originalBestMatch = bestImageMatch;
 	
         // If the user has picked a specific image to use then no calculation is necessary
 	[imageMatchesLock lock];
-		if ([imageMatches count]> 0 && !userChosenImageMatch)
+		if ([imageMatches count] > 0 && !userChosenImageMatch)
 		{
-		#if 0
-			bestMatchTileImage = nil;
-			
-			int	i;
-			for (i = 0; i < [imageMatches count] && !bestMatchTileImage; i++)
-			{
-				NSEnumerator	*neighborEnumerator = [neighborSet objectEnumerator];
-				Tile			*neighbor;
-				BOOL			betterThanNeighbors = YES;
-				
-				while (betterThanNeighbors && (neighbor = [neighborEnumerator nextObject]))
-					if (imageMatches[i].matchValue > [neighbor matchValueForTileImage:imageMatches[i].cachedImage])
-						betterThanNeighbors = NO;
-				
-				if (betterThanNeighbors)
-				{
-					bestMatchTileImage = imageMatches[i].cachedImage;
-					bestMatchChanged = YES;
-				}
-			}
-			
-			if (!bestMatchTileImage)
-			{
-				bestMatchTileImage = imageMatches[0].cachedImage;
-				bestMatchChanged = YES;
-			}
-		#else
-				// Get the set of images used by our neighbors
-			NSMutableSet	*imagesInUseByNeighbors = [NSMutableSet set];
-			NSEnumerator	*neighborEnumerator = [neighborSet objectEnumerator];
-			Tile			*neighboringTile = nil;
-			while (neighboringTile = [neighborEnumerator nextObject])
-			{
-				ImageMatch  *neighborMatch = [neighboringTile displayedImageMatch];
-				
-				if (neighborMatch)
-					[imagesInUseByNeighbors addObject:[NSArray arrayWithObjects:
-															[neighborMatch imageIdentifier],
-															[neighborMatch imageSource],
-															nil]];
-			}
-				
 				// Loop through our matches and pick the first one not in use by any of our neighbors
 			NSEnumerator	*matchEnumerator = [imageMatches objectEnumerator];
-			ImageMatch		*imageMatch = nil,
-							*originalBestMatch = bestImageMatch;
+			ImageMatch		*imageMatch = nil;
 			[bestImageMatch autorelease];
 			bestImageMatch = nil;
 			while (!bestImageMatch && (imageMatch = [matchEnumerator nextObject]))
-				if (![imagesInUseByNeighbors containsObject:[NSArray arrayWithObjects:
-																[imageMatch imageIdentifier],
-																[imageMatch imageSource],
-																nil]])
+				if (![[imagesInUseByNeighbors allValues] containsObject:[NSArray arrayWithObjects:
+																			[imageMatch imageIdentifier],
+																			[imageMatch imageSource],
+																			nil]])
 					bestImageMatch = [imageMatch retain];
 			
 				// If we can't be unique then go for our best match.
 			if (!bestImageMatch && [imageMatches count] > 0)
 			{
-				if ([imageMatches count] == [neighborSet count] + 1)
+				if ([imageMatches count] > [neighborSet count])
 					NSLog(@"Huh?");
 				bestImageMatch = [[imageMatches objectAtIndex:0] retain];
 			}
 			
 			bestMatchChanged = (originalBestMatch != bestImageMatch);
-		#endif
 		}
 	[imageMatchesLock unlock];
 	
 	if (bestMatchChanged)
+	{
+			// Is this actually faster than NSNotificationCenter?
+		NSEnumerator	*neighborEnumerator = [neighborSet objectEnumerator];
+		Tile			*neighbor = nil;
+		while (neighbor = [neighborEnumerator nextObject])
+			[neighbor neighboringTile:self changedImageMatchFrom:originalBestMatch to:bestImageMatch];
+		
 		[[NSNotificationCenter defaultCenter] postNotificationName:@"Tile Image Changed" 
 															object:document
-														  userInfo:[NSDictionary dictionaryWithObject:self forKey:@"Tile"]];
-
+														  userInfo:[NSDictionary dictionaryWithObject:self 
+																							   forKey:@"Tile"]];
+	}
+	
 	[pool release];
 	
 	return bestMatchChanged;
@@ -461,12 +445,16 @@
 
 - (void)dealloc
 {
-    [userChosenImageMatch release];
+    [outline release];
+	[neighborSet release];
+	[imagesInUseByNeighbors release];
+    [bitmapRep release];
+	[maskRep release];
+    [imageMatches release];
     [imageMatchesLock release];
     [bestMatchLock release];
-    [outline release];
-    [bitmapRep release];
-    [imageMatches release];
+	[bestImageMatch release];
+    [userChosenImageMatch release];
 	
     [super dealloc];
 }
