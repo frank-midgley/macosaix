@@ -3,11 +3,8 @@
 #import "MosaicView.h"
 #import "OriginalView.h"
 #import "Tiles.h"
-
-typedef enum
-{
-	nascentState, runningState, pausedState, savingState, exportingState
-} MacOSaiXDocumentState;
+#import <MacOSaiXPlugins/TilesSetupController.h>
+#import <MacOSaiXPlugins/ImageSourceController.h>
 
 typedef enum
 {
@@ -17,39 +14,55 @@ typedef enum
 
 @interface MacOSaiXDocument : NSDocument 
 {
-    IBOutlet NSWindow		*window;
-    IBOutlet NSTabView		*tabView;
-    IBOutlet id				mosaicView;
-    IBOutlet OriginalView	*_originalView;
-    IBOutlet id				_showOutlinesSwitch, statusMessageView;
-    IBOutlet id				viewToolbarView, viewToolbarMenu;
-    IBOutlet NSButton		*viewCompareButton, *viewTilesSetupButton, *viewRegionsButton, *viewAloneButton, 
-							*viewEditorButton;
-    IBOutlet id				exportProgressPanel, exportProgressLabel, exportProgressIndicator;
-    IBOutlet id				_utilitiesDrawer, _imageSourcesTable;
-    IBOutlet id				statusBarView;
-    IBOutlet id				_editorLabel, _editorUseCustomImage, _editorUseBestUniqueMatch;
-    IBOutlet id				_editorUserChosenImage, _editorChooseImage, _editorTable, _editorUseSelectedImage;
-    IBOutlet id				zoomToolbarView, zoomSlider;
-    IBOutlet NSMenu			*zoomToolbarSubmenu, *viewToolbarSubmenu;
-    IBOutlet id				_exportPanelAccessoryView, _exportWidth, _exportHeight;
-    
-		// tile setup pane
-	IBOutlet NSPopUpButton	*_tilePopUpButton;
-	IBOutlet id				_tileSetupView;
-	IBOutlet NSButton		*_startMosaicButton;
+    IBOutlet MosaicView			*_mosaicView;
+	IBOutlet NSScrollView		*_mosaicScrollView;
+	IBOutlet NSTextField		*_statusMessageView;
+    IBOutlet NSDrawer			*_utilitiesDrawer;
+    IBOutlet NSTabView			*_utilitiesTabView;
+    IBOutlet NSView				*_statusBarView;
+    IBOutlet id					_zoomToolbarView, _zoomSlider;
+    IBOutlet NSMenu				*_zoomToolbarSubmenu;
 	
+		// Export panel
+    IBOutlet id					_exportProgressPanel, _exportProgressLabel, _exportProgressIndicator;
+    IBOutlet id					_exportPanelAccessoryView;
+	IBOutlet NSTextField		*_exportWidth, *_exportHeight;
+    
+		// Tiles setup tab
+	IBOutlet NSPopUpButton		*_tilesSetupPopUpButton;
+	IBOutlet NSBox				*_tilesSetupView;
+	IBOutlet NSTextField		*_totalTilesField;
+	TilesSetupController		*_tilesSetupController;
+	
+		// Image sources tab
+	IBOutlet NSPopUpButton		*_imageSourcesPopUpButton;
+	IBOutlet NSTabView			*_imageSourcesTabView;
+	IBOutlet NSTableView		*_imageSourcesTable;
+	IBOutlet NSButton			*_imageSourcesRemoveButton;
+	
+		// Original tab
+    IBOutlet OriginalView		*_originalView;
+    IBOutlet id					_showOutlinesSwitch;
+		
+		// Tile editor tab
+    IBOutlet NSTextField		*_editorLabel;
+	IBOutlet NSButtonCell		*_editorUseCustomImage,
+								*_editorUseBestUniqueMatch;
+    IBOutlet NSImageView		*_editorUserChosenImage;
+	IBOutlet NSButton			*_editorChooseImage,
+								*_editorUseSelectedImage;
+	IBOutlet NSTableView		*_editorTable;
+
     NSURL						*_originalImageURL;
     NSImage						*_originalImage, *_mosaicImage, *_mosaicUpdateImage;
     NSLock						*_mosaicImageLock, *_refindUniqueTilesLock, *_imageQueueLock;
     NSTimer						*_updateDisplayTimer, *_animateTileTimer;
-    NSMutableArray				*_imageSources, *_tileOutlines, *_tiles, *_imageQueue, *_selectedTileImages;
+    NSMutableArray				*_imageSources, *_tiles, *_imageQueue, *_selectedTileImages;
+	NSArray						*_tileOutlines;
     NSMutableDictionary			*_toolbarItems;
     NSToolbarItem				*_viewToolbarItem, *_pauseToolbarItem;
     BOOL						_documentIsClosing,	// flag set to true when document is closing
-								_refindUniqueTiles,	// 
-								_paused, _statusBarShowing,
-								_viewIsChanging, // flag used to handle animated resizing
+								_mosaicStarted, _paused, _statusBarShowing,
 								_updateTilesFlag, _mosaicImageUpdated,
 								_windowFinishedLoading,	// flag to indicate nib was loaded
 								_finishLoading;	// flag to indicate doc was not new,
@@ -57,12 +70,10 @@ typedef enum
     long						_imagesMatched;
     NSArray						*_removedSubviews;
     NSMenu						*_viewMenu, *_fileMenu;
-	MacOSaiXDocumentState		_documentState;
     MacOSaiXDocumentViewMode	_viewMode;
     BOOL						_createTilesThreadAlive,
 								_enumerateImageSourcesThreadAlive, 
-								_processImagesThreadAlive,
-								_integrateMatchesThreadAlive,
+								_calculateImageMatchesThreadAlive,
 								_exportImageThreadAlive;
     float						_overallMatch, _lastDisplayMatch, _zoom;
     Tile						*_selectedTile;
@@ -74,31 +85,34 @@ typedef enum
 								_exportProgressTileCount;
     NSRect						_storedWindowFrame;
     NSMutableArray				*_tileImages;
-    NSLock						*_tileImagesLock;
+    NSLock						*_tileImagesLock,
+								*_calculateImageMatchesThreadLock;
     TileImage					*_unusedTileImage;
     NSBitmapImageFileType		_exportFormat;
     NSSavePanel					*_savePanel;
+	ImageSource					*_manualImageSource;
+	
+		// ivars for the calculate displayed images thread
+	NSMutableSet				*_refreshTilesSet;
+	NSLock						*_refreshTilesSetLock,
+								*_calculateDisplayedImagesThreadLock;
+	BOOL						_calculateDisplayedImagesThreadAlive;
 }
 
 - (void)chooseOriginalImage;
 - (void)chooseOriginalImageOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
     contextInfo:(void *)context;
-- (void)setDocumentState:(MacOSaiXDocumentState)state;
-- (void)startMosaic:(id)sender;
+- (void)startMosaic;
 
-- (void)setTileOutlines:(NSMutableArray *)tileOutlines;
+- (void)setTilesSetupPlugIn:(id)sender;
+- (void)spawnImageSourceThreads;
 - (void)synchronizeMenus;
+
+
 - (void)recalculateTileDisplayMatches:(id)object;
 - (void)updateMosaicImage:(NSMutableArray *)updatedTiles;
-- (void)enumerateImageSources:(id)object;
-- (void)processImageURLQueue:(id)path;
+- (void)calculateImageMatches:(id)path;
 - (void)createTileCollectionWithOutlines:(id)object;
-
-	// Tile image methods
-- (long)addTileImage:(TileImage *)tileImage;
-- (void)tileImageIndexInUse:(long)index;
-- (void)tileImageIndexNotInUse:(long)index;
-- (void)removeTileImage:(TileImage *)tileImage;
 
 	// View methods
 - (void)setViewCompareMode:(id)sender;
@@ -108,13 +122,12 @@ typedef enum
 - (void)setViewEditMode:(id)sender;
 - (void)setViewMode:(int)mode;
 - (void)setZoom:(id)sender;
-- (void)calculateFramesFromSize:(NSSize)frameSize;
 - (void)toggleStatusBar:(id)sender;
 - (void)setShowOutlines:(id)sender;
 - (void)toggleImageSourcesDrawer:(id)sender;
 - (void)togglePause:(id)sender;
 
-// Editor methods
+	// Editor methods
 - (void)selectTileAtPoint:(NSPoint)thePoint;
 - (void)updateEditor;
 - (BOOL)showTileMatchInEditor:(TileMatch *)tileMatch selecting:(BOOL)selecting;
@@ -128,6 +141,8 @@ typedef enum
 
 // Image sources methods
 - (void)addImageSource:(ImageSource *)imageSource;
+- (void)showCurrentImageSources;
+- (void)setImageSourcesPlugIn:(id)sender;
 
 // Export image methods
 - (void)beginExportImage:(id)sender;
