@@ -1014,6 +1014,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 			// Set the caching behavior of the image.  We'll be adding bitmap representations of various
 			// sizes to the image so it doesn't need to do any of its own caching.
 		[image setCacheMode:NSImageCacheNever];
+		[image setCachedSeparately:YES];
 		
 		BOOL	imageIsValid = NO;
 		
@@ -1173,6 +1174,8 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 		Tile			*tile = nil;
 		while ((tile = [tileEnumerator nextObject]) && !documentIsClosing)
 		{
+			NSAutoreleasePool	*pool3 = [[NSAutoreleasePool alloc] init];
+			
 				// Get a rep for the image scaled to the tile's bitmap size.
 			NSBitmapImageRep	*imageRep = [[self imageCache] imageRepAtSize:[[tile bitmapRep] size] 
 																forIdentifier:pixletImageIdentifier 
@@ -1186,12 +1189,18 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 												  withIdentifier:pixletImageIdentifier
 											     fromImageSource:pixletImageSource];
 				
-				if (![tile imageMatch] || matchValue <= [[tile imageMatch] matchValue])
+				if (![tile imageMatch] || 
+					matchValue < [[tile imageMatch] matchValue] ||
+					(matchValue == [[tile imageMatch] matchValue] && 
+					 [[tile imageMatch] imageSource] == pixletImageSource && 
+					 [[[tile imageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier]))
 					[betterMatches addObject:[[[ImageMatch alloc] initWithMatchValue:matchValue 
 															      forImageIdentifier:pixletImageIdentifier 
 																     fromImageSource:pixletImageSource
 																		     forTile:tile] autorelease]];
 			}
+			
+			[pool3 release];
 		}
 		
 			// Figure out which tiles should be set to use the image based on the user's settings.
@@ -1202,11 +1211,12 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 		{
 			ImageMatch	*betterMatch = [betterMatches objectAtIndex:0];
 			Tile		*tile = [betterMatch tile];
-			ImageMatch	*previousMatch = [tile imageMatch];
 			
 				// Add the tile's current image back to the queue so it can potentially get re-used by other tiles.
 				// TBD: when will images in the disk cache get purged?
-			if (previousMatch)
+			ImageMatch	*previousMatch = [tile imageMatch];
+			if (previousMatch && ([previousMatch imageSource] != pixletImageSource || 
+				![[previousMatch imageIdentifier] isEqualToString:pixletImageIdentifier]))
 			{
 				if (!queueLocked)
 				{
@@ -1235,8 +1245,8 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 			}
 		}
 #endif
-
-		imagesMatched++;
+		if (pixletImage)
+			imagesMatched++;
 		
 		if (!queueLocked)
 			[imageQueueLock lock];

@@ -13,7 +13,7 @@
 
 
     // The number of cached images that will be held in memory at any one time.
-#define MAX_MEMORY_CACHE_SIZE 100*1024*1024
+#define MAX_MEMORY_CACHE_SIZE 200*1024*1024
 
 
 @implementation MacOSaiXImageCache
@@ -83,7 +83,7 @@
 		// Remove the least recently accessed image rep from the memory cache until we have
 		// enough room to store the new rep.
 	size_t	imageRepSize = malloc_size((void *)[imageRep bitmapData]);
-	while (memoryCacheSize + imageRepSize > MAX_MEMORY_CACHE_SIZE)
+	while ([memoryCache count] > 0 && (memoryCacheSize + imageRepSize) > MAX_MEMORY_CACHE_SIZE)
 	{
 		NSString			*oldestKey = [imageKeyRecencyArray lastObject];
 		NSBitmapImageRep	*oldestRep = [imageRepRecencyArray lastObject];
@@ -94,7 +94,8 @@
 		if ([oldestRepArray count] == 0)
 		{
 			[memoryCache removeObjectForKey:oldestKey];
-			[nativeImageSizeDict removeObjectForKey:oldestKey];
+			if (![oldestKey isEqualToString:imageKey])
+				[nativeImageSizeDict removeObjectForKey:oldestKey];
 		}
 		
 		[imageKeyRecencyArray removeLastObject];
@@ -237,6 +238,7 @@
 			scalableHitCount++;
 			NSImage		*scaledImage = [[NSImage alloc] initWithSize:repSize];
 			NSRect		scaledRect = NSMakeRect(0.0, 0.0, repSize.width, repSize.height);
+			[scaledImage setCacheMode:NSImageCacheNever];
 			[scaledImage setCachedSeparately:YES];
 			NS_DURING
 				[scaledImage lockFocus];
@@ -254,7 +256,7 @@
 				// There is no rep we can use in the memory cache.
 				// See if we have the image in our disk cache, otherwise re-request it from the source.
 			missCount++;
-			NSLog(@"Cache miss rate: %.2f%%", missCount * 100.0 / (perfectHitCount + scalableHitCount + missCount));
+			NSLog(@"Cache miss rate: %.3f%%", missCount * 100.0 / (perfectHitCount + scalableHitCount + missCount));
 			
 			NSImage		*image = nil;
 			NSNumber	*imageID = [diskCache objectForKey:imageKey];
