@@ -29,8 +29,6 @@
 {
 	if (!_setupView)
 	{
-		NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
-		
 		[NSBundle loadNibNamed:@"HexagonalTilesSetup" owner:self];
 
 			// Update the nib with the user's last used settings.
@@ -105,12 +103,12 @@
 - (void)createTileOutlines
 {
     int				x, y;
-    float			xSize = 1.0 / (_tilesWide - 1.0/3.0), ySize = 1.0 / _tilesHigh, originX, originY;
+    float			xSize = 1.0 / (tilesWide - 1.0/3.0), ySize = 1.0 / tilesHigh, originX, originY;
     NSBezierPath	*tileOutline;
     NSMutableArray	*tileOutlines = [NSMutableArray arrayWithCapacity:x * y];
     
-    for (x = 0; x < _tilesWide; x++)
-        for (y = 0; y < ((x % 2 == 0) ? _tilesHigh : _tilesHigh + 1); y++)
+    for (x = 0; x < tilesWide; x++)
+        for (y = 0; y < ((x % 2 == 0) ? tilesHigh : tilesHigh + 1); y++)
         {
             originX = xSize * (x - 1.0 / 3.0);
             originY = ySize * ((x % 2 == 0) ? y : y - 0.5);
