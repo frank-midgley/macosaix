@@ -25,10 +25,10 @@
     NSMutableArray				*imageSources,
 								*tiles;
 	id<MacOSaiXTileShapes>		tileShapes;
+	float						averageTileAspectRatio;
 	
 	int							imageUseCount;
 	int							neighborhoodSize;
-	NSMutableDictionary			*directNeighbors;
 
 		// Document state
     BOOL						documentIsClosing,	// flag set to true when document is closing
@@ -59,8 +59,9 @@
 		
 		// Saving
     NSDate						*lastSaved;
-    int							autosaveFrequency;
-	BOOL						saving;
+    NSTimer						*autosaveTimer;
+	BOOL						saving,
+								loading;
 }
 
 - (void)setOriginalImagePath:(NSString *)path;
@@ -69,11 +70,11 @@
 
 - (void)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes;
 - (id<MacOSaiXTileShapes>)tileShapes;
+- (float)averageTileAspectRatio;
 
 - (int)imageUseCount;
 - (void)setImageUseCount:(int)count;
 - (int)neighborhoodSize;
-- (void)setNeighborhoodSize:(int)size;
 
 - (BOOL)wasStarted;
 - (BOOL)isPaused;
