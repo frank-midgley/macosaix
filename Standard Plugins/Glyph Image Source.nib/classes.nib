@@ -1,0 +1,17 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            CLASS = GlyphImageSourceController; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = ImageSourceController; 
+        }, 
+        {
+            CLASS = ImageSourceController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {"_imageSourceView" = NSView; }; 
+            SUPERCLASS = NSWindowController; 
+        }
+    ); 
+    IBVersion = 1; 
+}
