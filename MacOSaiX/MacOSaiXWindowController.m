@@ -41,6 +41,11 @@
 		viewMode = viewMosaicAndOriginal;
 		statusBarShowing = YES;
 		exportFormat = NSJPEGFileType;
+		
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(originalImageDidChange:) 
+													 name:MacOSaiXOriginalImageDidChangeNotification 
+												   object:[self document]];
 	}
 	
     return self;
@@ -141,9 +146,11 @@
 	}
 	
 	[self setViewMode:viewMosaicAndTilesSetup];
+	[mosaicView setDocument:[self document]];
 	
 		// For some reason IB insists on setting the drawer width to 200.  Have to set the size in code instead.
 	[utilitiesDrawer setContentSize:NSMakeSize(400, [utilitiesDrawer contentSize].height)];
+	[utilitiesDrawer open:self];
 	
     selectedTile = nil;
     
@@ -191,7 +198,7 @@
 	NSString	*originalPath = [[originalImagePopUpButton selectedItem] representedObject];
 	
 	if (originalPath)
-		[self setOriginalImagePath:originalPath];
+		[[self document] setOriginalImagePath:originalPath];
 	else
 	{
 			// Prompt the user to choose the image from which to make a mosaic.
@@ -214,103 +221,87 @@
 						   contextInfo:(void *)context
 {
     if (returnCode == NSOKButton)
-		[self setOriginalImagePath:[[sheet filenames] objectAtIndex:0]];
-}
-
-
-- (void)setOriginalImagePath:(NSString *)path
-{
-	[[self document] setOriginalImagePath:path];
-	
-		// Remember this original for later use
-	NSMutableArray	*originals = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] mutableCopy] autorelease];
-	if (originals)
 	{
-			// Remove any previous entry from the defaults for the image at this path.
-		NSEnumerator	*originalEnumerator = [originals objectEnumerator];
-		NSDictionary	*originalDict = nil;
-		while (originalDict = [originalEnumerator nextObject])
-			if ([[originalDict objectForKey:@"Path"] isEqualToString:path])
+		NSString	*imagePath = [[sheet filenames] objectAtIndex:0];
+		[[self document] setOriginalImagePath:imagePath];
+		
+			// Remember this original in the user's defaults so they can easily re-choose it for future mosaics.
+		NSImage			*originalImage = [[self document] originalImage];
+		NSMutableArray	*originals = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] mutableCopy] autorelease];
+		if (originals)
+		{
+				// Remove any previous entry from the defaults for the image at this path.
+			NSEnumerator	*originalEnumerator = [originals objectEnumerator];
+			NSDictionary	*originalDict = nil;
+			while (originalDict = [originalEnumerator nextObject])
+				if ([[originalDict objectForKey:@"Path"] isEqualToString:imagePath])
+				{
+					[originals removeObject:originalDict];
+					break;
+				}
+		}
+		else
+			originals = [NSMutableArray array];
+		NSSize			origSize = [originalImage size];
+		NSImage			*thumbnailImage = [[[NSImage alloc] initWithSize:NSMakeSize(16.0, 16.0)] autorelease];
+		[thumbnailImage lockFocus];
+			if (origSize.width > origSize.height)
+				[originalImage drawInRect:NSMakeRect(0, (16.0 - 16.0 * origSize.height / origSize.width) / 2.0, 16.0, 16.0 * origSize.height / origSize.width) 
+								 fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
+			else
+				[originalImage drawInRect:NSMakeRect((16.0 - 16.0 * origSize.width / origSize.height) / 2.0, 0, 16.0 * origSize.width / origSize.height, 32.0)
+								 fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
+		[thumbnailImage unlockFocus];
+		[originals insertObject:[NSDictionary dictionaryWithObjectsAndKeys:
+									imagePath, @"Path", 
+									[[imagePath lastPathComponent] stringByDeletingPathExtension], @"Name", 
+									[thumbnailImage TIFFRepresentation], @"Thumbnail Data",
+									nil]
+						atIndex:0];
+		[[NSUserDefaults standardUserDefaults] setObject:originals forKey:@"Recent Originals"];
+		[[NSUserDefaults standardUserDefaults] synchronize];
+		
+			// Update the original image pop-up menu.
+		NSEnumerator	*itemEnumerator = [[[originalImagePopUpButton menu] itemArray] objectEnumerator];
+		NSMenuItem		*item = nil;
+		while (item = [itemEnumerator nextObject])
+			if ([[item representedObject] isEqualToString:imagePath])
 			{
-				[originals removeObject:originalDict];
+				[[originalImagePopUpButton menu] removeItem:item];
 				break;
 			}
+		NSMenuItem	*originalItem = [[[NSMenuItem alloc] init] autorelease];
+		[originalItem setTitle:[[imagePath lastPathComponent] stringByDeletingPathExtension]];
+		[originalItem setRepresentedObject:imagePath];
+		if (thumbnailImage)
+			[originalItem setImage:thumbnailImage];
+		[[originalImagePopUpButton menu] insertItem:originalItem atIndex:0];
+		[originalImagePopUpButton selectItemAtIndex:0];
+		
+// TODO: Where should this be?
+//			// Create a timer to animate any selected tile ten times per second.
+//			// TODO: only do this when a tile is highlighted
+//		animateTileTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1
+//								 target:(id)self
+//								   selector:@selector(animateSelectedTile:)
+//								   userInfo:nil
+//								repeats:YES] retain];
 	}
-	else
-		originals = [NSMutableArray array];
-	NSSize			origSize = [originalImage size];
-	NSImage			*thumbnailImage = [[[NSImage alloc] initWithSize:NSMakeSize(16.0, 16.0)] autorelease];
-	[thumbnailImage lockFocus];
-		if (origSize.width > origSize.height)
-			[originalImage drawInRect:NSMakeRect(0, (16.0 - 16.0 * origSize.height / origSize.width) / 2.0, 16.0, 16.0 * origSize.height / origSize.width) 
-							 fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
-		else
-			[originalImage drawInRect:NSMakeRect((16.0 - 16.0 * origSize.width / origSize.height) / 2.0, 0, 16.0 * origSize.width / origSize.height, 32.0)
-							 fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
-	[thumbnailImage unlockFocus];
-	[originals insertObject:[NSDictionary dictionaryWithObjectsAndKeys:
-								path, @"Path", 
-								[[path lastPathComponent] stringByDeletingPathExtension], @"Name", 
-								[thumbnailImage TIFFRepresentation], @"Thumbnail Data",
-								nil]
-					atIndex:0];
-	[[NSUserDefaults standardUserDefaults] setObject:originals forKey:@"Recent Originals"];
-	[[NSUserDefaults standardUserDefaults] synchronize];
-	
-		// Update the original image pop-up menu.
-	NSEnumerator	*itemEnumerator = [[[originalImagePopUpButton menu] itemArray] objectEnumerator];
-	NSMenuItem		*item = nil;
-	while (item = [itemEnumerator nextObject])
-		if ([[item representedObject] isEqualToString:path])
-		{
-			[[originalImagePopUpButton menu] removeItem:item];
-			break;
-		}
-	NSMenuItem	*originalItem = [[[NSMenuItem alloc] init] autorelease];
-	[originalItem setTitle:[[path lastPathComponent] stringByDeletingPathExtension]];
-	[originalItem setRepresentedObject:path];
-	if (thumbnailImage)
-		[originalItem setImage:thumbnailImage];
-	[[originalImagePopUpButton menu] insertItem:originalItem atIndex:0];
-	[originalImagePopUpButton selectItemAtIndex:0];
-	
-		// Create an NSImage to hold the mosaic image (somewhat arbitrary size)
-    [mosaicImage autorelease];
-    mosaicImage = [[NSImage alloc] initWithSize:NSMakeSize(1600, 1600 * 
-						[originalImage size].height / [originalImage size].width)];
-    
-	[mosaicView setOriginalImage:originalImage];
-	[mosaicView setMosaicImage:mosaicImage];
-	[mosaicView setViewMode:viewTilesOutline];
-	
-    mosaicImageUpdated = NO;
+}
 
-    mosaicImageLock = [[NSLock alloc] init];
-    
-		// Create a timer to update the window once per second.
-    updateDisplayTimer = [[NSTimer scheduledTimerWithTimeInterval:1.0
-							   target:(id)self
-							 selector:@selector(updateDisplay:)
-							 userInfo:nil
-							  repeats:YES] retain];
-		// Create a timer to animate any selected tile ten times per second.
-		// TODO: only do this when a tile is highlighted and in Tiles or Editor mode.
-    animateTileTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1
-							 target:(id)self
-						       selector:@selector(animateSelectedTile:)
-						       userInfo:nil
-							repeats:YES] retain];
 
-    [[NSNotificationCenter defaultCenter] addObserver:self
-					     selector:@selector(mosaicViewDidScroll:)
-						 name:@"View Did Scroll" object:nil];
-
-    removedSubviews = nil;
-    
+- (void)originalImageDidChange:(NSNotification *)notification
+{
+		// Set the zoom so that all of the new image is displayed.
+    [zoomSlider setFloatValue:0.0];
     [self setZoom:self];
 	
-	// TODO: resize the window to respect the original's aspect ratio
+		// Resize the window to respect the original's aspect ratio
+	[[self window] setFrameTopLeftPoint:NSMakePoint(NSMinX([[self window] frame]), NSMaxY([[self window] frame]))];
 }
+
+
+#pragma mark
 
 
 - (void)pause
@@ -405,15 +396,6 @@
 												 [[self document] imagesMatched], overallMatch, statusMessage];
     [statusMessageView setStringValue:fullMessage];
     
-    // update the mosaic image
-    if (mosaicImageUpdated && [mosaicImageLock tryLock])
-    {
-		[mosaicView setMosaicImage:nil];
-		[mosaicView setMosaicImage:mosaicImage];
-		mosaicImageUpdated = NO;
-		[mosaicImageLock unlock];
-    }
-    
     // update the image sources table
     [imageSourcesTableView reloadData];
     
@@ -450,11 +432,10 @@
 	[totalTilesField setIntValue:[tileOutlines count]];
 	
 	[[self document] setTileOutlines:tileOutlines];
+	[mosaicView setTileOutlines:tileOutlines];
 	
 	if (selectedTile)
 		[self selectTileAtPoint:tileSelectionPoint];
-		
-	mosaicStarted = NO;
 }
 
 
@@ -481,7 +462,7 @@
 			tilesSetupController = [[tilesSetupControllerClass alloc] init];
 			
 				// let the plug-in know how to message back to us
-			[tilesSetupController setDocument:[self document]];
+			[tilesSetupController setDelegate:self];
 			
 				// Display the plug-in's view
 			[tilesSetupView setContentView:[tilesSetupController setupView]];
@@ -705,6 +686,7 @@
 - (NSImage *)createEditorImage:(int)rowIndex
 {
     NSImage				*image = nil;
+/*
     NSAffineTransform	*transform = [NSAffineTransform transform];
     NSSize				tileSize = [[selectedTile outline] bounds].size;
     float				scale;
@@ -773,6 +755,7 @@
 //	}
     [image unlockFocus];
     [selectedTileImages replaceObjectAtIndex:rowIndex withObject:image];
+*/
     return image;
 }
 
@@ -957,9 +940,10 @@
     else zoom = [zoomSlider floatValue];
     
     // set the zoom...
-    zoom = zoom;
     [zoomSlider setFloatValue:zoom];
     
+	[mosaicView setFrame:[[mosaicScrollView contentView] frame]];
+/*
     if (mosaicImage != nil)
     {
 		NSRect	bounds, frame;
@@ -985,6 +969,7 @@
 		[[mosaicScrollView contentView] setBounds:bounds];
 		[mosaicScrollView setNeedsDisplay:YES];
     }
+*/
 }
 
 
@@ -1129,8 +1114,8 @@
     NSSavePanel	*savePanel = [NSSavePanel savePanel];
     if ([exportWidth intValue] == 0)
     {
-        [exportWidth setIntValue:[originalImage size].width * 4];
-        [exportHeight setIntValue:[originalImage size].height * 4];
+        [exportWidth setIntValue:[[[self document] originalImage] size].width * 4];
+        [exportHeight setIntValue:[[[self document] originalImage] size].height * 4];
     }
     [savePanel setAccessoryView:exportPanelAccessoryView];
     
@@ -1160,13 +1145,15 @@
 
 - (IBAction)setExportWidthFromHeight:(id)sender
 {
-    [exportWidth setIntValue:[exportHeight intValue] / [originalImage size].height * [originalImage size].width + 0.5];
+    [exportWidth setIntValue:[exportHeight intValue] / [[[self document] originalImage] size].height * 
+							 [[[self document] originalImage] size].width + 0.5];
 }
 
 
 - (IBAction)setExportHeightFromWidth:(id)sender
 {
-    [exportHeight setIntValue:[exportWidth intValue] / [originalImage size].width * [originalImage size].height + 0.5];
+    [exportHeight setIntValue:[exportWidth intValue] / [[[self document] originalImage] size].width * 
+							  [[[self document] originalImage] size].height + 0.5];
 }
 
 
@@ -1314,7 +1301,7 @@
 
 - (NSSize)windowWillResize:(NSWindow *)sender toSize:(NSSize)proposedFrameSize
 {
-    float	aspectRatio = [mosaicImage size].width / [mosaicImage size].height,
+    float	aspectRatio = [[[self document] originalImage] size].width / [[[self document] originalImage] size].height,
 			windowTop = [sender frame].origin.y + [sender frame].size.height,
 			minHeight = 155;
     NSSize	diff;
@@ -1558,8 +1545,8 @@
 
 - (void)dealloc
 {
-    [mosaicImage release];
-    [mosaicImageLock release];
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	
 	[selectedTile release];
     [selectedTileImages release];
     [toolbarItems release];

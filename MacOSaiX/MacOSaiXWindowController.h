@@ -67,14 +67,12 @@ typedef enum
 //    IBOutlet NSTextField			*matchValueTextField;
 
     NSString						*originalImagePath;
-    NSImage							*originalImage, *mosaicImage, *mosaicUpdateImage;
-    NSLock							*mosaicImageLock;
-    NSTimer							*updateDisplayTimer, *animateTileTimer;
+    NSTimer							*animateTileTimer;
     NSMutableArray					*selectedTileImages;
     NSMutableDictionary				*toolbarItems;
     NSToolbarItem					*viewToolbarItem, *pauseToolbarItem;
-    BOOL							mosaicStarted, statusBarShowing,
-									updateTilesFlag, mosaicImageUpdated,
+    BOOL							statusBarShowing,
+									updateTilesFlag, 
 									windowFinishedLoading,	// flag to indicate nib was loaded
 									finishLoading;	// flag to indicate doc was not new,
 													// so perform second phase of initializing
@@ -86,7 +84,6 @@ typedef enum
 	NSPoint							tileSelectionPoint;
     NSWindow						*mainWindow, *mosaicImageDrawWindow;
     NSMenuItem						*zoomToolbarMenuItem, *viewToolbarMenuItem;
-    NSRect							storedWindowFrame;
     NSMutableArray					*tileImages;
     NSBitmapImageFileType			exportFormat;
 	id<MacOSaiXImageSource>			*manualImageSource;
