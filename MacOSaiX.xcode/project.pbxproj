@@ -444,6 +444,10 @@
 				F5666CCAC5B062B401D943E0,
 				00E5856E005F0FA87F000001,
 				00E5856D005F0FA87F000001,
+				9289DDA3073D713100C88091,
+				9289DDA4073D713100C88091,
+				9289DDA5073D713100C88091,
+				9289DDA6073D713100C88091,
 				F5517EEE020CD88F01000106,
 				F5517EEF020CD88F01000106,
 				F53FEE25024A568201000108,
@@ -786,6 +790,8 @@
 				9284898806611CE5003B3514,
 				9284898906611CE5003B3514,
 				923384DD072180700010BE04,
+				9289DDA7073D713100C88091,
+				9289DDA9073D713100C88091,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -932,6 +938,8 @@
 				9284899B06611CE5003B3514,
 				9284899C06611CE5003B3514,
 				9284899D06611CE5003B3514,
+				9289DDA8073D713100C88091,
+				9289DDAA073D713100C88091,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1335,7 +1343,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				928489D006611CE6003B3514,
-				92848A1E06611CE6003B3514,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1648,7 +1655,6 @@
 			files = (
 				928489FF06611CE6003B3514,
 				92848A0106611CE6003B3514,
-				92848A2006611CE6003B3514,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1727,19 +1733,7 @@
 			settings = {
 			};
 		};
-		92848A1E06611CE6003B3514 = {
-			fileRef = 928489B406611CE6003B3514;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		92848A1F06611CE6003B3514 = {
-			fileRef = 928489B406611CE6003B3514;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		92848A2006611CE6003B3514 = {
 			fileRef = 928489B406611CE6003B3514;
 			isa = PBXBuildFile;
 			settings = {
@@ -1789,6 +1783,66 @@
 		};
 		9286575A0734584600EFC32A = {
 			fileRef = 923384DB072180700010BE04;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		9289DDA3073D713100C88091 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = MacOSaiXImageCache.h;
+			path = MacOSaiX/MacOSaiXImageCache.h;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		9289DDA4073D713100C88091 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = MacOSaiXImageCache.m;
+			path = MacOSaiX/MacOSaiXImageCache.m;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		9289DDA5073D713100C88091 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = MacOSaiXWindowController.h;
+			path = MacOSaiX/MacOSaiXWindowController.h;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		9289DDA6073D713100C88091 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = MacOSaiXWindowController.m;
+			path = MacOSaiX/MacOSaiXWindowController.m;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		9289DDA7073D713100C88091 = {
+			fileRef = 9289DDA3073D713100C88091;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		9289DDA8073D713100C88091 = {
+			fileRef = 9289DDA4073D713100C88091;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		9289DDA9073D713100C88091 = {
+			fileRef = 9289DDA5073D713100C88091;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		9289DDAA073D713100C88091 = {
+			fileRef = 9289DDA6073D713100C88091;
 			isa = PBXBuildFile;
 			settings = {
 			};
