@@ -201,12 +201,11 @@ static NSImage	*glyphSourceImage = nil;
 				green = 0.0,
 				blue = 0.0;
 	NSString	*colorListClass = [[colorLists allKeys] objectAtIndex:(random() % [[colorLists allKeys] count])];
+	NSArray		*colorClassLists = [colorLists objectForKey:colorListClass];
+	NSString	*colorListName = [colorClassLists objectAtIndex:(random() % [colorClassLists count])];
 	
 	if ([colorListClass isEqualToString:@"Built-in"])
 	{
-		NSArray		*colorClassLists = [colorLists objectForKey:colorListClass];
-		NSString	*colorListName = [colorClassLists objectAtIndex:(random() % [colorClassLists count])];
-		
 		if ([colorListName isEqualToString:@"All Colors"])
 		{
 			red = (random() % 256) / 256.0;
@@ -238,6 +237,16 @@ static NSImage	*glyphSourceImage = nil;
 			blue = red * (1.0 - 0.35);
 		}
 	}
+	else if ([colorListClass isEqualToString:@"System-wide"])
+	{
+		NSColorList	*colorList = [NSColorList colorListNamed:colorListName];
+		NSArray		*colorKeys = [colorList allKeys];
+		NSColor		*color = [colorList colorWithKey:[colorKeys objectAtIndex:(random() % [colorKeys count])]];
+		
+		red = [color redComponent];
+		green = [color greenComponent];
+		blue = [color blueComponent];
+	}
 	
 	return [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];
 }
@@ -247,7 +256,7 @@ static NSImage	*glyphSourceImage = nil;
 {
 	NSImage	*image = nil;
 	
-	if ([fontNames count] > 0)
+	if ([fontNames count] > 0 && [colorLists count] > 0)
 	{
 		unsigned int	fontNum = random() % [fontNames count];
 		NSFont			*font = [NSFont fontWithName:[fontNames objectAtIndex:fontNum] size:12.0];
@@ -517,7 +526,12 @@ static NSImage	*glyphSourceImage = nil;
 	NSMutableArray	*membersOfClass = [colorLists objectForKey:listClass];
 	
 	if (membersOfClass)
+	{
 		[membersOfClass removeObject:listName];
+		
+		if ([membersOfClass count] == 0)
+			[colorLists removeObjectForKey:listClass];
+	}
 }
 
 
