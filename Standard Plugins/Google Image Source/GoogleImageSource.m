@@ -138,25 +138,75 @@ NSString *escapedNSString(NSString *string)
 {
 	[urlBase autorelease];
 	urlBase = [[NSMutableString stringWithString:@"http://images.google.com/images?svnum=10&hl=en&"] retain];
-	if (requiredTerms && [requiredTerms length] > 0)
+	[descriptor autorelease];
+	descriptor = [[NSMutableString string] retain];
+	
+	if ([requiredTerms length] > 0)
+	{
 		[urlBase appendString:[NSString stringWithFormat:@"as_q=%@&", escapedNSString(requiredTerms)]];
-	if (optionalTerms && [optionalTerms length] > 0)
+		[descriptor appendString:requiredTerms];
+	}
+	
+	if ([optionalTerms length] > 0)
+	{
 		[urlBase appendString:[NSString stringWithFormat:@"as_oq=%@&", escapedNSString(optionalTerms)]];
-	if (excludedTerms && [excludedTerms length] > 0)
+		if ([descriptor length] > 0)
+			[descriptor appendString:@" and any of "];
+		else
+			[descriptor appendString:@"Any of "];
+		[descriptor appendString:optionalTerms];
+	}
+	
+	if ([excludedTerms length] > 0)
+	{
 		[urlBase appendString:[NSString stringWithFormat:@"as_eq=%@&", escapedNSString(excludedTerms)]];
+		if ([descriptor length] > 0)
+			[descriptor appendString:@" but not "];
+		else
+			[descriptor appendString:@"Not "];
+		[descriptor appendString:excludedTerms];
+	}
+	
 	switch (colorSpace)
 	{
 		case anyColorSpace:
-			[urlBase appendString:@"imgc=&"]; break;
+			[urlBase appendString:@"imgc=&"];
+			break;
 		case rgbColorSpace:
-			[urlBase appendString:@"imgc=color&"]; break;
+			[urlBase appendString:@"imgc=color&"];
+			if ([descriptor length] > 0)
+				[descriptor appendString:@" color"];
+			else
+				[descriptor appendString:@"Color"];
+			break;
 		case grayscaleColorSpace:
-			[urlBase appendString:@"imgc=gray&"]; break;
+			[urlBase appendString:@"imgc=gray&"];
+			if ([descriptor length] > 0)
+				[descriptor appendString:@" grayscale"];
+			else
+				[descriptor appendString:@"Grayscale"];
+			break;
 		case blackAndWhiteColorSpace:
-			[urlBase appendString:@"imgc=mono&"]; break;
+			[urlBase appendString:@"imgc=mono&"];
+			if ([descriptor length] > 0)
+				[descriptor appendString:@" black & white"];
+			else
+				[descriptor appendString:@"Black & white"];
+			break;
 	}
-	if (siteString && [siteString length] > 0)
+	
+	if ([siteString length] > 0)
+	{
 		[urlBase appendString:[NSString stringWithFormat:@"as_sitesearch=%@&", escapedNSString(siteString)]];
+		if ([descriptor length] > 0)
+			[descriptor appendString:@" images from "];
+		else
+			[descriptor appendString:@"Images from "];
+		[descriptor appendString:siteString];
+	}
+	else
+		[descriptor appendString:@" images"];
+	
 	switch (adultContentFiltering)
 	{
 		case strictFiltering:
@@ -167,10 +217,6 @@ NSString *escapedNSString(NSString *string)
 			[urlBase appendString:@"safe=off&"]; break;
 	}
 	[urlBase appendString:@"start="];
-
-	[descriptor autorelease];
-	descriptor = [[NSMutableString string] retain];
-	[descriptor appendString:@"something..."];
 }
 
 
