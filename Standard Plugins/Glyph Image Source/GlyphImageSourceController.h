@@ -16,17 +16,14 @@
 	IBOutlet NSView				*editorView;
 	
 		// Fonts tab
-	IBOutlet NSMatrix			*fontsMatrix;
 	IBOutlet NSOutlineView		*fontsOutlineView;
 	IBOutlet NSButton			*noFontsButton, 
 								*allFontsButton;
 	
 		// Colors tab
-	IBOutlet NSMatrix			*colorsMatrix;
 	IBOutlet NSOutlineView		*colorsOutlineView;
 	
 		// Letters tab
-	IBOutlet NSMatrix			*lettersMatrix;
 	IBOutlet NSTextView			*lettersView;
 
 		// Sample images
@@ -54,17 +51,14 @@
 }
 
 	// Fonts tab
-- (IBAction)setFontsOption:(id)sender;
 - (IBAction)toggleFont:(id)sender;
 - (IBAction)chooseNoFonts:(id)sender;
 - (IBAction)chooseAllFonts:(id)sender;
 
 	// Colors tab
-- (IBAction)setColorsOption:(id)sender;
 - (IBAction)toggleColor:(id)sender;
 
 	// Letters tab
-- (IBAction)setLettersOption:(id)sender;
 
 	// Counts
 - (IBAction)setCountOption:(id)sender;

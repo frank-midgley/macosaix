@@ -129,16 +129,10 @@
 		systemWideColorLists = [[NSColorList availableColorLists] retain];
 		
 			// Populate the GUI with this source's settings.
-		if ([[currentImageSource letterPool] length] == 0)
-		{
-			[lettersMatrix selectCellAtRow:0 column:1];
-			[lettersView setString:@""];
-		}
-		else
-		{
-			[lettersMatrix selectCellAtRow:1 column:1];
+		if ([[currentImageSource letterPool] length] > 0)
 			[lettersView setString:[currentImageSource letterPool]];
-		}
+		else
+			[lettersView setString:@""];
 		
 		if ([currentImageSource imageCountLimit] == 0)
 		{
@@ -179,12 +173,6 @@
 	}
 	
 	return fontMembers;
-}
-
-
-- (IBAction)setFontsOption:(id)sender
-{
-	
 }
 
 
@@ -234,22 +222,37 @@
 
 - (IBAction)chooseNoFonts:(id)sender
 {
+	while ([chosenFonts count] > 0)
+	{
+		[currentImageSource removeFontWithName:[[chosenFonts objectAtIndex:0] fontName]];
+		[chosenFonts removeObjectAtIndex:0];
+	}
 	
+	[fontsOutlineView reloadData];
+	[self updateSizeField];
 }
 
 
 - (IBAction)chooseAllFonts:(id)sender
 {
+	NSEnumerator	*fontNameEnumerator = [[[NSFontManager sharedFontManager] availableFonts] objectEnumerator];
+	NSString		*fontName = nil;
 	
+	while (fontName = [fontNameEnumerator nextObject])
+	{
+		NSFont	*font = [NSFont fontWithName:fontName size:12.0];
+		if (font)
+			[chosenFonts addObject:font];
+		
+		[currentImageSource addFontWithName:fontName];
+	}
+	
+	[fontsOutlineView reloadData];
+	[self updateSizeField];
 }
 
 
 #pragma mark Colors tab
-
-
-- (IBAction)setColorsOption:(id)sender
-{
-}
 
 
 - (IBAction)toggleColor:(id)sender
@@ -274,16 +277,17 @@
 #pragma mark Letters tab
 
 
-- (IBAction)setLettersOption:(id)sender
-{
-}
-
-
 #pragma mark Fonts tab
 
 
 - (IBAction)setCountOption:(id)sender
 {
+	if ([countMatrix selectedRow] == 0)
+		[currentImageSource setImageCountLimit:0];	// unlimited
+	else if ([countMatrix selectedRow] == 1)
+		[currentImageSource setImageCountLimit:[countTextField intValue]];
+	else
+		[currentImageSource setImageCountLimit:[[lettersView string] length]];
 }
 
 
@@ -296,15 +300,12 @@
 	if ([notification object] == lettersView)
 	{
 		if ([[lettersView string] length] > 0)
-		{
-			[lettersMatrix selectCellAtRow:1 column:1];
 			[currentImageSource setLetterPool:[lettersView string]];
-		}
 		else
-		{
-			[lettersMatrix selectCellAtRow:0 column:1];
 			[currentImageSource setLetterPool:nil];
-		}
+		
+		if ([countMatrix selectedRow] == 2)
+			[currentImageSource setImageCountLimit:[[lettersView string] length]];
 	}
 }
 
