@@ -10,14 +10,18 @@
 
 @protocol MacOSaiXTileShapes <NSObject, NSCopying>
 
-// TBD: initWithXML, saveXML?
-
 	// Name to display in pop-up menu
 + (NSString *)name;
 
+	// A class whose instances conform to the MacOSaiXTileShapesEditor protocol.
 + (Class)editorClass;
 
+	// A class whose instances conform to the MacOSaiXTileShapesPreferencesController protocol.
 + (Class)preferencesControllerClass;
+
+// TBD: initWithXML or parser callbacks?
+
+- (NSString *)settingsAsXMLElement;
 
 - (NSArray *)shapes;
 

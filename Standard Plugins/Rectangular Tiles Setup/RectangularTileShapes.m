@@ -80,6 +80,12 @@
 }
 
 
+- (NSString *)settingsAsXMLElement
+{
+	return [NSString stringWithFormat:@"<DIMENSIONS ACROSS=\"%d\" DOWN=\"%d\"/>", tilesAcross, tilesDown];
+}
+
+
 - (NSArray *)shapes
 {
 	int				x, y;

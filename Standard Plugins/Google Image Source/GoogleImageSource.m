@@ -77,6 +77,58 @@ NSString *escapedNSString(NSString *string)
 }
 
 
+- (NSString *)escapeXMLEntites:(NSString *)string
+{
+	NSMutableString	*escapedString = [NSMutableString stringWithString:(string ? string : @"")];
+	
+	[escapedString replaceOccurrencesOfString:@"&" withString:@"&amp;" options:0 range:NSMakeRange(0, [escapedString length])];
+	[escapedString replaceOccurrencesOfString:@"<" withString:@"&lt;" options:0 range:NSMakeRange(0, [escapedString length])];
+	[escapedString replaceOccurrencesOfString:@">" withString:@"&gt;" options:0 range:NSMakeRange(0, [escapedString length])];
+	[escapedString replaceOccurrencesOfString:@"'" withString:@"&apos;" options:0 range:NSMakeRange(0, [escapedString length])];
+	[escapedString replaceOccurrencesOfString:@"\"" withString:@"&quot;" options:0 range:NSMakeRange(0, [escapedString length])];
+	
+	return [NSString stringWithString:escapedString];
+}
+
+
+- (NSString *)settingsAsXMLElement
+{
+	NSMutableString	*settingsXML = [NSMutableString string];
+	
+	[settingsXML appendFormat:@"<TERMS REQUIRED=\"%@\"\n       OPTIONAL=\"%@\"\n       EXCLUDED=\"%@\"/>\n", 
+							  [self escapeXMLEntites:[self requiredTerms]],
+							  [self escapeXMLEntites:[self optionalTerms]],
+							  [self escapeXMLEntites:[self requiredTerms]]];
+	
+	switch ([self colorSpace])
+	{
+		case anyColorSpace:
+			[settingsXML appendString:@"<COLOR_SPACE FILTER=\"ANY\"/>\n"]; break;
+		case rgbColorSpace:
+			[settingsXML appendString:@"<COLOR_SPACE FILTER=\"RGB\"/>\n"]; break;
+		case grayscaleColorSpace:
+			[settingsXML appendString:@"<COLOR_SPACE FILTER=\"GRAYSCALE\"/>\n"]; break;
+		case blackAndWhiteColorSpace:
+			[settingsXML appendString:@"<COLOR_SPACE FILTER=\"B&amp;W\"/>\n"]; break;
+	}
+	
+	if ([self siteString])
+		[settingsXML appendFormat:@"<SITE FILTER=\"%@\"/>\n", [self escapeXMLEntites:[self siteString]]];
+	
+	switch ([self adultContentFiltering])
+	{
+		case strictFiltering:
+			[settingsXML appendString:@"<ADULT_CONTENT FILTER=\"STRICT\"/>\n"]; break;
+		case moderateFiltering:
+			[settingsXML appendString:@"<ADULT_CONTENT FILTER=\"MODERATE\"/>\n"]; break;
+		case noFiltering:
+			[settingsXML appendString:@"<ADULT_CONTENT FILTER=\"NONE\"/>\n"]; break;
+	}
+	
+	return settingsXML;
+}
+
+
 - (void)updateQueryAndDescriptor
 {
 	[urlBase autorelease];

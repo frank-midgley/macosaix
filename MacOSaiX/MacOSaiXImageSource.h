@@ -10,8 +10,6 @@
 
 @protocol MacOSaiXImageSource <NSObject, NSCopying>
 
-// TBD: initWithXML?
-
 	// Name to display in image source pop-up menu
 + (NSString *)name;
 
@@ -19,6 +17,10 @@
 
 	// Whether multiple sources of this type can be added (maybe glyphs?)
 + (BOOL)allowMultipleImageSources;
+
+// TBD: initWithXML or parser callbacks?
+
+- (NSString *)settingsAsXMLElement;
 
 	// This method should return whether or not this source can
 - (NSImage *)image;

@@ -42,6 +42,12 @@
 }
 
 
+- (NSString *)settingsAsXMLElement
+{
+	return [NSString stringWithFormat:@"<DIRECTORY PATH=\"%@\"/>", [self path]];
+}
+
+
 - (NSString *)path
 {
 	return [[directoryPath retain] autorelease];
