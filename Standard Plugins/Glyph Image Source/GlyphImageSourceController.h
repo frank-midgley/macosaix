@@ -15,31 +15,58 @@
 {
 	IBOutlet NSView				*editorView;
 	
+		// Fonts tab
+	IBOutlet NSMatrix			*fontsMatrix;
 	IBOutlet NSOutlineView		*fontsOutlineView;
-	IBOutlet NSTableView		*colorsTableView;
-	IBOutlet NSButton			*toggleFontsButton,
-								*toggleColorsButton;
-	IBOutlet NSMatrix			*textMatrix,
-								*countMatrix;
-	IBOutlet NSTextView			*textView;
-	IBOutlet NSTextField		*countTextField;
+	IBOutlet NSButton			*noFontsButton, 
+								*allFontsButton;
+	
+		// Colors tab
+	IBOutlet NSMatrix			*colorsMatrix;
+	IBOutlet NSOutlineView		*colorsOutlineView;
+	
+		// Letters tab
+	IBOutlet NSMatrix			*lettersMatrix;
+	IBOutlet NSTextView			*lettersView;
+
+		// Sample images
 	IBOutlet NSImageView		*sampleImageView;
 	IBOutlet NSTextField		*sizeTextField;
+	
+		// Counts
+	IBOutlet NSMatrix			*countMatrix;
+	IBOutlet NSTextField		*countTextField;
 	
 	NSButton					*okButton;
 	
 	MacOSaiXGlyphImageSource	*currentImageSource;
 	NSTimer						*sampleTimer;
+	
+		// Font outline view data sources
 	NSArray						*fontFamilyNames;
 	NSMutableArray				*chosenFonts;
 	NSMutableDictionary			*availableFontMembers;
+	
+		// Colors table data sources
+	NSArray						*builtinColorLists,
+								*systemWideColorLists,
+								*photoshopColorLists;
 }
 
+	// Fonts tab
+- (IBAction)setFontsOption:(id)sender;
 - (IBAction)toggleFont:(id)sender;
-- (IBAction)toggleSelectedFonts:(id)sender;
+- (IBAction)chooseNoFonts:(id)sender;
+- (IBAction)chooseAllFonts:(id)sender;
+
+	// Colors tab
+- (IBAction)setColorsOption:(id)sender;
 - (IBAction)toggleColor:(id)sender;
-- (IBAction)toggleSelectedColors:(id)sender;
-- (IBAction)setTextOption:(id)sender;
+
+	// Letters tab
+- (IBAction)setLettersOption:(id)sender;
+
+	// Counts
 - (IBAction)setCountOption:(id)sender;
 
 @end
