@@ -23,7 +23,7 @@
 		
 	NSImage	*copy = [[NSImage alloc] initWithSize:copySize];
 	[copy setCachedSeparately:YES];
-//	[copy setCacheMode:NSImageCacheNever];
+	[copy setCacheMode:NSImageCacheNever];
 	BOOL	haveFocus = NO;
 	
 	while (!haveFocus)	// && ???
