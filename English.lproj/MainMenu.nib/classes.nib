@@ -21,7 +21,7 @@
             SUPERCLASS = NSObject; 
         }, 
         {
-            ACTIONS = {newMacOSaiXDocument = id; openPreferences = id; }; 
+            ACTIONS = {openPreferences = id; }; 
             CLASS = MacOSaiX; 
             LANGUAGE = ObjC; 
             SUPERCLASS = NSObject; 

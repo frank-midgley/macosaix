@@ -15,23 +15,29 @@
 		<key>200</key>
 		<string>374 403 72 66 0 0 1152 746 </string>
 		<key>306</key>
-		<string>340 420 506 154 0 0 1152 746 </string>
+		<string>342 420 506 154 0 0 1152 746 </string>
 		<key>35</key>
 		<string>24 322 161 84 0 0 1152 746 </string>
+		<key>353</key>
+		<string>241 268 493 452 0 0 1152 746 </string>
 		<key>38</key>
-		<string>499 460 115 74 0 0 1152 746 </string>
+		<string>519 462 153 70 0 0 1152 746 </string>
 		<key>58</key>
-		<string>450 271 218 452 0 0 1152 746 </string>
+		<string>486 271 218 452 0 0 1152 746 </string>
 		<key>67</key>
-		<string>406 500 126 102 0 0 1152 746 </string>
+		<string>406 500 111 48 0 0 1152 746 </string>
 	</dict>
 	<key>IBFramework Version</key>
-	<string>286.0</string>
+	<string>291.0</string>
 	<key>IBLockedObjects</key>
 	<array>
 		<integer>80</integer>
 	</array>
+	<key>IBOpenObjects</key>
+	<array>
+		<integer>353</integer>
+	</array>
 	<key>IBSystem Version</key>
-	<string>6D52</string>
+	<string>6I32</string>
 </dict>
 </plist>
