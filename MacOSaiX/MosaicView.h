@@ -3,16 +3,13 @@
 //  MacOSaiX
 //
 //  Created by Frank Midgley on Sat Feb 02 2002.
-//  Copyright (c) 2001 MyCompanyName. All rights reserved.
+//  Copyright (c) 2001-5 Frank M. Midgley.  All rights reserved.
 //
 
 #import <Cocoa/Cocoa.h>
 #import "MacOSaiXDocument.h"
 #import "Tiles.h"
 
-typedef enum
-{ viewMosaic, viewTilesOutline, viewImageSources, viewImageRegions, viewHighlightedTile }
-MosaicViewMode;
 
 @interface MosaicView : NSView
 {
@@ -20,27 +17,32 @@ MosaicViewMode;
 	NSImage				*mosaicImage;
 	NSLock				*mosaicImageLock;
 	NSAffineTransform	*mosaicImageTransform;
-	MosaicViewMode		viewMode;
+	BOOL				viewOriginal;	// vs. the mosaic
 	
-		// ivar for viewTileSetup
+		// Tile outlines display
+	BOOL				viewTileOutlines;
 	NSBezierPath		*tilesOutline,
 						*neighborhoodOutline;
 					
-		// ivars for viewHighlightedTile
-    Tile*				highlightedTile;
+		// Selected tile highlighting
+    MacOSaiXTile		*highlightedTile;
     int					phase;
 	
+		// Queued tile view invalidation
 	NSMutableArray		*tilesNeedingDisplay;
 	NSDate				*lastUpdate;
 }
 
 - (void)setDocument:(MacOSaiXDocument *)inDocument;
 
-- (void)setViewMode:(MosaicViewMode)mode;
-- (MosaicViewMode)viewMode;
+- (void)setViewOriginal:(BOOL)inViewOriginal;
+- (BOOL)viewOriginal;
+
+- (void)setViewTileOutlines:(BOOL)inViewTileOutlines;
+- (BOOL)viewTileOutlines;
 
 	// viewHighlightedTile methods
-- (void)highlightTile:(Tile *)tile;
+- (void)highlightTile:(MacOSaiXTile *)tile;
 - (void)animateHighlight;
 
 

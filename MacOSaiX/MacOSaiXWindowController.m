@@ -37,7 +37,6 @@
 {
     if (self = [super initWithWindow:window])
     {
-		viewMode = viewMosaicAndOriginal;
 		statusBarShowing = YES;
 		exportFormat = NSJPEGFileType;
 		
@@ -71,7 +70,6 @@
     fileMenu = [[[NSApp mainMenu] itemWithTitle:@"File"] submenu];
 
 		// set up the toolbar
-    pauseToolbarItem = nil;
     zoomToolbarMenuItem = [[NSMenuItem alloc] initWithTitle:@"Zoom" action:nil keyEquivalent:@""];
     [zoomToolbarMenuItem setSubmenu:zoomToolbarSubmenu];
     toolbarItems = [[NSMutableDictionary dictionary] retain];
@@ -161,8 +159,8 @@
 		[[editorTable tableColumnWithIdentifier:@"image"] setDataCell:[[[NSImageCell alloc] init] autorelease]];
 	}
 	
-	[self setViewMode:viewMosaicAlone];	//viewMosaicAndTilesSetup];
 	[mosaicView setDocument:[self document]];
+	[self setViewOriginalImage:self];
 	
 		// For some reason IB insists on setting the drawer width to 200.  Have to set the size in code instead.
 	[settingsDrawer setContentSize:NSMakeSize(400, [settingsDrawer contentSize].height)];
@@ -301,15 +299,6 @@
 		[originalImagePopUpButton selectItemAtIndex:0];
 		
 		[thumbnailImage release];
-		
-// TODO: Where should this be?
-//			// Create a timer to animate any selected tile ten times per second.
-//			// TODO: only do this when a tile is highlighted
-//		animateTileTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1
-//								 target:(id)self
-//								   selector:@selector(animateSelectedTile:)
-//								   userInfo:nil
-//								repeats:YES] retain];
 	}
 }
 
@@ -328,6 +317,67 @@
 					animate:YES];
 	
 	[self updateStatus:nil];
+	
+		// Create the toolbar icons for the View Original/View Mosaic item.  Toolbar item images 
+		// must be 32x32 so we center the thumbnail in an image of the correct size.
+	[originalToolbarImage release];
+	originalToolbarImage = [[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)];
+	NSImage	*thumbnailImage = [[[[self document] originalImage] copyWithLargestDimension:32.0] autorelease];
+	NSSize	thumbSize = [thumbnailImage size];
+	[originalToolbarImage lockFocus];
+		if (thumbSize.width > thumbSize.height)
+			[thumbnailImage compositeToPoint:NSMakePoint(0.0, (32.0 - thumbSize.height) / 2.0) operation:NSCompositeCopy];
+		else
+			[thumbnailImage compositeToPoint:NSMakePoint((32.0 - thumbSize.width) / 2.0, 0.0) operation:NSCompositeCopy];
+	[originalToolbarImage unlockFocus];
+		// Create a version that looks like a 4x4 mosaic.
+	[mosaicToolbarImage release];
+	mosaicToolbarImage = [originalToolbarImage copy];
+	[mosaicToolbarImage lockFocus];
+		float	quarterWidth = thumbSize.width / 4.0,
+				quarterHeight = thumbSize.height / 4.0,
+				xStart = 0.0,
+				yStart = 0.0;
+		if (thumbSize.width > thumbSize.height)
+			yStart = (32.0 - thumbSize.height) / 2.0;
+		else
+			xStart = (32.0 - thumbSize.width) / 2.0;
+		
+			// Lighten the top and left edges.
+		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
+		int	i;
+		for (i = 0; i < 4; i++)
+		{
+			[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + 0.0, 
+														  yStart + (i + 1) * quarterHeight - 0.5)
+									  toPoint:NSMakePoint(xStart + quarterWidth * 4.0 - 0.5, 
+														  yStart + (i + 1) * quarterHeight - 0.5)];
+			[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + i * quarterWidth + 0.5, 
+														  yStart + 0.0)
+									  toPoint:NSMakePoint(xStart + i * quarterWidth + 0.5, 
+														  yStart + quarterHeight * 4.0 - 0.5)];
+		}
+		
+			// Darken the bottom and right edges.
+		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
+		for (i = 0; i < 4; i++)
+		{
+			[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + 0.5, 
+														  yStart + i * quarterHeight + 0.5)
+									  toPoint:NSMakePoint(xStart + quarterWidth * 4.0, 
+														  yStart + i * quarterHeight + 0.5)];
+			[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + (i + 1) * quarterWidth - 0.5, 
+														  yStart + 0.0)
+									  toPoint:NSMakePoint(xStart + (i + 1) * quarterWidth - 0.5, 
+														  yStart + quarterHeight * 4.0 - 0.5)];
+		}
+	[mosaicToolbarImage unlockFocus];
+	
+		// Update the toolbar item.
+	if ([mosaicView viewOriginal])
+		[toggleOriginalToolbarItem setImage:mosaicToolbarImage];
+	else
+		[toggleOriginalToolbarItem setImage:originalToolbarImage];
 }
 
 
@@ -455,17 +505,12 @@
 
 - (void)synchronizeMenus
 {
-    [[fileMenu itemWithTag:1] setTitle:([[self document] isPaused] ? @"Resume Matching" : @"Pause Matching")];
-    
-    [[viewMenu itemWithTitle:@"View Mosaic and Original"]
-	setState:(viewMode == viewMosaicAndOriginal ? NSOnState : NSOffState)];
-    [[viewMenu itemWithTitle:@"View Mosaic Alone"]
-	setState:(viewMode == viewMosaicAlone ? NSOnState : NSOffState)];
-    [[viewMenu itemWithTitle:@"View Mosaic Editor"]
-	setState:(viewMode == viewMosaicEditor ? NSOnState : NSOffState)];
+	[[fileMenu itemWithTag:1] setTitle:([[self document] isPaused] ? @"Resume Matching" : @"Pause Matching")];
 
-    [[viewMenu itemWithTitle:@"Show Status Bar"]
-	setTitle:(statusBarShowing ? @"Hide Status Bar" : @"Show Status Bar")];
+	[[viewMenu itemWithTag:0] setState:([mosaicView viewOriginal] ? NSOnState : NSOffState)];
+	[[viewMenu itemWithTag:1] setState:([mosaicView viewOriginal] ? NSOffState : NSOnState)];
+
+	[[viewMenu itemWithTitle:@"Show Status Bar"] setTitle:(statusBarShowing ? @"Hide Status Bar" : @"Show Status Bar")];
 }
 
 
@@ -695,30 +740,53 @@
 {
 	tileSelectionPoint = thePoint;
 	
-	[selectedTile autorelease];
-	selectedTile = nil;
-		
     thePoint.x = thePoint.x / [mosaicView frame].size.width;
     thePoint.y = thePoint.y / [mosaicView frame].size.height;
     
         // TBD: this isn't terribly efficient...
 	NSEnumerator	*tileEnumerator = [[[self document] tiles] objectEnumerator];
-	Tile			*tile = nil;
+	MacOSaiXTile	*tile = nil;
 	while (tile = [tileEnumerator nextObject])
         if ([[tile outline] containsPoint:thePoint])
         {
-            selectedTile = [tile retain];
-            [mosaicView highlightTile:selectedTile];
+			[selectedTile autorelease];
 			
-			if ([mosaicView viewMode] == viewHighlightedTile)
+			if (tile == selectedTile)
 			{
-				[editorLabel setStringValue:@"Image to use for selected tile:"];
-				[editorUseCustomImage setEnabled:YES];
-				[editorUseBestUniqueMatch setEnabled:YES];
+				selectedTile = nil;
 				
-				[editorTable scrollRowToVisible:0];
-				[self updateEditor];
-            }
+					// Get rid of the timer when no tile is selected.
+				[animateTileTimer invalidate];
+				[animateTileTimer release];
+				animateTileTimer = nil;
+			}
+			else
+			{
+				if (!selectedTile)
+				{
+						// Create a timer to animate the selected tile ten times per second.
+					animateTileTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1
+											 target:(id)self
+											   selector:@selector(animateSelectedTile:)
+											   userInfo:nil
+											repeats:YES] retain];
+				}
+				
+				selectedTile = [tile retain];
+			}
+			
+			[mosaicView highlightTile:selectedTile];
+			
+//			if ([mosaicView viewMode] == viewHighlightedTile)
+//			{
+//					// Populate the editor with this tile.
+//				[editorLabel setStringValue:@"Image to use for selected tile:"];
+//				[editorUseCustomImage setEnabled:YES];
+//				[editorUseBestUniqueMatch setEnabled:YES];
+//				
+//				[editorTable scrollRowToVisible:0];
+//				[self updateEditor];
+//            }
 			
 			break;
         }
@@ -727,7 +795,7 @@
 
 - (void)animateSelectedTile:(id)timer
 {
-    if (selectedTile && ![[self document] isClosing])
+    if (![[self document] isClosing])
         [mosaicView animateHighlight];
 }
 
@@ -970,70 +1038,42 @@
 #pragma mark View methods
 
 
-- (void)setViewCompareMode:(id)sender;
+- (IBAction)setViewOriginalImage:(id)sender
 {
-    [self setViewMode:viewMosaicAndOriginal];
+	[mosaicView setViewOriginal:YES];
+	
+	[[viewMenu itemWithTag:0] setState:NSOnState];
+	[[viewMenu itemWithTag:1] setState:NSOffState];
+	
+	[toggleOriginalToolbarItem setLabel:@"Show Mosaic"];
+	[toggleOriginalToolbarItem setImage:mosaicToolbarImage];
 }
 
 
-- (void)setViewTileSetupMode:(id)sender
+- (IBAction)setViewMosaic:(id)sender
 {
-    [self setViewMode:viewMosaicAndTilesSetup];
+	[mosaicView setViewOriginal:NO];
+	
+	[[viewMenu itemWithTag:0] setState:NSOffState];
+	[[viewMenu itemWithTag:1] setState:NSOnState];
+	
+	[toggleOriginalToolbarItem setLabel:@"Show Original"];
+	[toggleOriginalToolbarItem setImage:originalToolbarImage];
 }
 
 
-- (void)setViewRegionsMode:(id)sender
+- (IBAction)toggleViewOriginal:(id)sender
 {
-    [self setViewMode:viewMosaicAndRegions];
+	if ([mosaicView viewOriginal])
+		[self setViewMosaic:self];
+	else
+		[self setViewOriginalImage:self];
 }
 
 
-- (void)setViewAloneMode:(id)sender;
+- (IBAction)toggleTileOutlines:(id)sender
 {
-    [self setViewMode:viewMosaicAlone];
-}
-
-
-- (void)setViewEditMode:(id)sender;
-{
-    [self setViewMode:viewMosaicEditor];
-}
-
-
-- (void)setViewMode:(int)mode
-{
-    if (mode == viewMode) return;
-    
-    viewMode = mode;
-	[mosaicView highlightTile:nil];
-	switch (mode)
-	{
-		case viewMosaicAndOriginal:
-			[mosaicView setViewMode:viewMosaic];
-			[settingsDrawer open];
-			break;
-		case viewMosaicAndTilesSetup:
-			[mosaicView setViewMode:viewTilesOutline];
-			[settingsDrawer open];
-			break;
-		case viewMosaicAndRegions:
-			[mosaicView setViewMode:viewImageRegions];
-			[settingsDrawer open];
-			break;
-		case viewMosaicEditor:
-			[mosaicView setViewMode:viewHighlightedTile];
-			[mosaicView highlightTile:selectedTile];
-			[self updateEditor];
-			[editorTable scrollRowToVisible:0];
-			[editorTable reloadData];
-			[settingsDrawer open];
-			break;
-		case viewMosaicAlone:
-			[mosaicView setViewMode:viewMosaic];
-			[settingsDrawer close];
-			break;
-    }
-    [self synchronizeMenus];
+	[mosaicView setViewTileOutlines:![mosaicView viewTileOutlines]];
 }
 
 
@@ -1183,7 +1223,7 @@
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
     if ([[menuItem title] isEqualToString:@"Center on Selected Tile"])
-		return (viewMode == viewMosaicEditor && selectedTile != nil && zoom != 0.0);
+		return (selectedTile != nil && zoom != 0.0);
     else
 		return [[self document] validateMenuItem:menuItem];
 }
@@ -1305,7 +1345,7 @@
 						tilesExported = 0;
 	
 	NSEnumerator		*tileEnumerator = [[[self document] tiles] objectEnumerator];
-	Tile				*tile = nil;
+	MacOSaiXTile		*tile = nil;
 	while (tile = [tileEnumerator nextObject])
     {
         NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
@@ -1528,17 +1568,7 @@
     
     toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier] autorelease];
     
-    if ([itemIdentifier isEqualToString:@"Zoom"])
-    {
-		[toolbarItem setMinSize:NSMakeSize(64, 14)];
-		[toolbarItem setMaxSize:NSMakeSize(64, 14)];
-		[toolbarItem setLabel:@"Zoom"];
-		[toolbarItem setPaletteLabel:@"Zoom"];
-		[toolbarItem setView:zoomToolbarView];
-		[toolbarItem setMenuFormRepresentation:zoomToolbarMenuItem];
-    }
-
-    if ([itemIdentifier isEqualToString:@"ExportImage"])
+	if ([itemIdentifier isEqualToString:@"Export Image"])
     {
 		[toolbarItem setImage:[NSImage imageNamed:@"ExportImage"]];
 		[toolbarItem setLabel:@"Export Image"];
@@ -1547,8 +1577,16 @@
 		[toolbarItem setAction:@selector(beginExportImage:)];
 		[toolbarItem setToolTip:@"Export an image of the mosaic"];
     }
-
-    if ([itemIdentifier isEqualToString:@"SettingsDrawer"])
+	else if ([itemIdentifier isEqualToString:@"Pause"])
+    {
+		[toolbarItem setImage:[NSImage imageNamed:@"Pause"]];
+		[toolbarItem setLabel:[[self document] isPaused] ? @"Resume" : @"Pause"];
+		[toolbarItem setPaletteLabel:[[self document] isPaused] ? @"Resume" : @"Pause"];
+		[toolbarItem setTarget:self];
+		[toolbarItem setAction:@selector(togglePause:)];
+		pauseToolbarItem = toolbarItem;
+    }
+	else if ([itemIdentifier isEqualToString:@"Settings Drawer"])
     {
 		[toolbarItem setImage:[NSImage imageNamed:@"UtilityDrawer"]];
 		[toolbarItem setLabel:@"Settings"];
@@ -1557,15 +1595,23 @@
 		[toolbarItem setAction:@selector(toggle:)];
 		[toolbarItem setToolTip:@"Show/hide settings drawer"];
     }
-
-    if ([itemIdentifier isEqualToString:@"Pause"])
+	else if ([itemIdentifier isEqualToString:@"Toggle Original"])
     {
-		[toolbarItem setImage:[NSImage imageNamed:@"Pause"]];
-		[toolbarItem setLabel:[[self document] isPaused] ? @"Resume" : @"Pause"];
-		[toolbarItem setPaletteLabel:[[self document] isPaused] ? @"Resume" : @"Pause"];
+		[toolbarItem setImage:[NSImage imageNamed:@"Toggle Original"]];
+		[toolbarItem setLabel:[mosaicView viewOriginal] ? @"View Mosaic" : @"View Original"];
+		[toolbarItem setPaletteLabel:[mosaicView viewOriginal] ? @"View Mosaic" : @"View Original"];
 		[toolbarItem setTarget:self];
-		[toolbarItem setAction:@selector(togglePause:)];
-		pauseToolbarItem = toolbarItem;
+		[toolbarItem setAction:@selector(toggleViewOriginal:)];
+		toggleOriginalToolbarItem = toolbarItem;
+    }
+    else if ([itemIdentifier isEqualToString:@"Zoom"])
+    {
+		[toolbarItem setMinSize:NSMakeSize(64, 14)];
+		[toolbarItem setMaxSize:NSMakeSize(64, 14)];
+		[toolbarItem setLabel:@"Zoom"];
+		[toolbarItem setPaletteLabel:@"Zoom"];
+		[toolbarItem setView:zoomToolbarView];
+		[toolbarItem setMenuFormRepresentation:zoomToolbarMenuItem];
     }
     
     [toolbarItems setObject:toolbarItem forKey:itemIdentifier];
@@ -1585,7 +1631,7 @@
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar;
 {
-    return [NSArray arrayWithObjects:@"Zoom", @"ExportImage", @"Pause", @"SettingsDrawer", 
+    return [NSArray arrayWithObjects:@"Export Image", @"Pause", @"Settings Drawer", @"Toggle Original", @"Zoom", 
 				     NSToolbarCustomizeToolbarItemIdentifier, NSToolbarSpaceItemIdentifier,
 				     NSToolbarFlexibleSpaceItemIdentifier, NSToolbarSeparatorItemIdentifier,
 				     nil];
@@ -1594,31 +1640,8 @@
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar;
 {
-    return [NSArray arrayWithObjects:@"Zoom", @"ExportImage", @"Pause", 
-									 NSToolbarFlexibleSpaceItemIdentifier, @"SettingsDrawer", nil];
-}
-
-
-#pragma mark -
-#pragma mark Tab view delegate methods
-
-- (void)tabView:(NSTabView *)tabView didSelectTabViewItem:(NSTabViewItem *)tabViewItem
-{
-//	if (tabView == utilitiesTabView)
-//	{
-//		int selectedIndex =  [tabView indexOfTabViewItem:tabViewItem];
-//		
-//		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Tiles"])
-//			[mosaicView setViewMode:viewTilesOutline];
-//		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Images"])
-//			[mosaicView setViewMode:viewImageSources];
-//		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Original"])
-//			[mosaicView setViewMode:viewMosaic];
-//		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Regions"])
-//			[mosaicView setViewMode:viewImageRegions];
-//		if (selectedIndex == [utilitiesTabView indexOfTabViewItemWithIdentifier:@"Editor"])
-//			[mosaicView setViewMode:viewHighlightedTile];
-//	}
+    return [NSArray arrayWithObjects:@"Toggle Original", @"Zoom", @"Pause", @"Export Image", 
+									 NSToolbarFlexibleSpaceItemIdentifier, @"Settings Drawer", nil];
 }
 
 

@@ -7,12 +7,6 @@
 #import "MacOSaiXDocument.h"
 
 
-typedef enum
-{
-	viewMosaicAndTilesSetup, viewMosaicAndOriginal, viewMosaicAlone, viewMosaicAndRegions, viewMosaicEditor
-} MacOSaiXDocumentViewMode;
-
-
 @interface MacOSaiXWindowController : NSWindowController 
 {
     IBOutlet MosaicView				*mosaicView;
@@ -78,7 +72,9 @@ typedef enum
     NSTimer							*animateTileTimer;
     NSMutableArray					*selectedTileImages;
     NSMutableDictionary				*toolbarItems;
-    NSToolbarItem					*viewToolbarItem, *pauseToolbarItem;
+    NSToolbarItem					*toggleOriginalToolbarItem, *pauseToolbarItem;
+	NSImage							*originalToolbarImage,
+									*mosaicToolbarImage;
     BOOL							statusBarShowing,
 									updateTilesFlag, 
 									windowFinishedLoading,	// flag to indicate nib was loaded
@@ -86,9 +82,8 @@ typedef enum
 													// so perform second phase of initializing
     NSArray							*removedSubviews;
     NSMenu							*viewMenu, *fileMenu;
-    MacOSaiXDocumentViewMode		viewMode;
     float							overallMatch, lastDisplayMatch, zoom;
-    Tile							*selectedTile;
+    MacOSaiXTile					*selectedTile;
 	NSPoint							tileSelectionPoint;
     NSWindow						*mainWindow, *mosaicImageDrawWindow;
     NSMenuItem						*zoomToolbarMenuItem, *viewToolbarMenuItem;
@@ -100,12 +95,10 @@ typedef enum
 - (MacOSaiXDocument *)document;
 
 	// View methods
-- (IBAction)setViewCompareMode:(id)sender;
-- (IBAction)setViewTileSetupMode:(id)sender;
-- (IBAction)setViewRegionsMode:(id)sender;
-- (IBAction)setViewAloneMode:(id)sender;
-- (IBAction)setViewEditMode:(id)sender;
-- (IBAction)setViewMode:(int)mode;
+- (IBAction)setViewOriginalImage:(id)sender;
+- (IBAction)setViewMosaic:(id)sender;
+- (IBAction)toggleViewOriginal:(id)sender;
+- (IBAction)toggleTileOutlines:(id)sender;
 - (IBAction)setZoom:(id)sender;
 - (IBAction)toggleStatusBar:(id)sender;
 - (IBAction)toggleImageSourcesDrawer:(id)sender;
