@@ -80,9 +80,7 @@
             }; 
             SUPERCLASS = NSWindowController; 
         }, 
-        {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
-        {CLASS = NotifyingScrollView; LANGUAGE = ObjC; SUPERCLASS = NSScrollView; }, 
-        {CLASS = OriginalView; LANGUAGE = ObjC; SUPERCLASS = NSImageView; }
+        {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSView; }
     ); 
     IBVersion = 1; 
 }
