@@ -10,14 +10,18 @@
     NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
     NSMutableDictionary	*appDefaults = [NSMutableDictionary dictionary];
     
-    [appDefaults setObject:@"5" forKey:@"Autosave Frequency"];
+    [appDefaults setObject:@"15" forKey:@"Autosave Frequency"];
     [appDefaults setObject:@"Rectangles" forKey:@"Tile Shapes"];
     [appDefaults setObject:@"20" forKey:@"Tiles Wide"];
     [appDefaults setObject:@"20" forKey:@"Tiles High"];
-    [appDefaults setObject:[NSArchiver archivedDataWithRootObject:
-				[NSMutableArray arrayWithObject:[[DirectoryImageSource alloc]
-				    initWithObject:[NSHomeDirectory() stringByAppendingString:@"/Pictures"]]]] 			    forKey:@"Image Sources"];
+    [appDefaults setObject:[NSArchiver archivedDataWithRootObject:[NSMutableArray arrayWithObjects:
+				    [[ImageSource alloc] init], 
+				    [[DirectoryImageSource alloc]
+					initWithObject:[NSHomeDirectory() stringByAppendingString:@"/Pictures"]],
+				    nil]]
+		    forKey:@"Image Sources"];
     [defaults registerDefaults:appDefaults];
+    [defaults setBool:YES forKey:@"AppleDockIconEnabled"];
 }
 
 
