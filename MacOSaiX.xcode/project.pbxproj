@@ -317,6 +317,48 @@
 			settings = {
 			};
 		};
+		01AB92E907DB797300DB4B86 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = "NSString+MacOSaiX.h";
+			path = "MacOSaiX/NSString+MacOSaiX.h";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01AB92EA07DB797300DB4B86 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = "NSString+MacOSaiX.m";
+			path = "MacOSaiX/NSString+MacOSaiX.m";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01AB92EB07DB797300DB4B86 = {
+			fileRef = 01AB92E907DB797300DB4B86;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		01AB92EC07DB797300DB4B86 = {
+			fileRef = 01AB92EA07DB797300DB4B86;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		01AB92ED07DB797E00DB4B86 = {
+			children = (
+				01BBDECB0747081400F17A9F,
+				01BBDECC0747081400F17A9F,
+				01AB92E907DB797300DB4B86,
+				01AB92EA07DB797300DB4B86,
+			);
+			isa = PBXGroup;
+			name = "Cocoa Extensions";
+			refType = 4;
+			sourceTree = "<group>";
+		};
 		01AC3A3B07B0997C0025F915 = {
 			isa = PBXFileReference;
 			lastKnownFileType = image.png;
@@ -465,8 +507,6 @@
 				9289DDA6073D713100C88091,
 				F5517EEE020CD88F01000106,
 				F5517EEF020CD88F01000106,
-				01BBDECB0747081400F17A9F,
-				01BBDECC0747081400F17A9F,
 				F566B485028052CF01000108,
 				F566B486028052CF01000108,
 				00EAAC6000853DFB7F000001,
@@ -475,6 +515,7 @@
 				923384DB072180700010BE04,
 				92F00CE207C1B1D0004F6D06,
 				92F00CE307C1B1D0004F6D06,
+				01AB92ED07DB797E00DB4B86,
 				0127354207CD6EBB0053037A,
 				928F724A0661214000873AE2,
 				928F726C066121AE00873AE2,
@@ -811,6 +852,7 @@
 				9287C13B075A5CC6004C07EF,
 				92F00CCE07C1AA55004F6D06,
 				92F00CE407C1B1D0004F6D06,
+				01AB92EB07DB797300DB4B86,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -948,6 +990,7 @@
 				01BBDECE0747081400F17A9F,
 				92F00CCF07C1AA55004F6D06,
 				92F00CE507C1B1D0004F6D06,
+				01AB92EC07DB797300DB4B86,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
