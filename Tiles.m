@@ -1,8 +1,6 @@
 #import "Tiles.h"
 #import "TileMatch.h"
 
-#define MAX_MATCHES 2
-
 @implementation Tile
 
 - (id)init
@@ -12,6 +10,7 @@
     _bitmapRep = nil;
     _matches = [[NSMutableArray arrayWithCapacity:0] retain];
     _displayUpdateQueue = nil;
+    _displayMatch = nil;
     return self;
 }
 
@@ -67,99 +66,140 @@
 }
 
 
-- (void)matchAgainst:(NSBitmapImageRep *)imageRep fromFile:(NSString *)filePath
+- (float)matchAgainst:(NSBitmapImageRep *)matchRep fromURL:(NSURL *)imageURL
+	   displayRep:(NSBitmapImageRep *)displayRep maxMatches:(int)maxMatches
 {
     int			bytesPerPixel1, bytesPerRow1, bytesPerPixel2, bytesPerRow2;
+    int			pixelCount = 0, pixelsLeft;
     int			x, y, x_off, y_off, r1, r2, g1, g2, b1, b2, index = 0;
     unsigned char	*bitmap1, *bitmap2, *bitmap1_off, *bitmap2_off;
     float		prevWorst, matchValue = 0.0, redAverage;
     TileMatch		*newMatch;
     
-    if (imageRep == nil) return;
+    if (matchRep == nil || displayRep == nil) return WORST_CASE_PIXEL_MATCH;
     
     // the size of _bitmapRep will be a maximum of TILE_BITMAP_SIZE pixels
     // the size of the smaller dimension of imageRep will be TILE_BITMAP_SIZE pixels
     // pixels in imageRep outside of _bitmapRep centered in imageRep will be ignored
     
     bitmap1 = [_bitmapRep bitmapData];	NSAssert(bitmap1 != nil, @"bitmap1 is nil");
-    bitmap2 = [imageRep bitmapData];	NSAssert(bitmap2 != nil, @"bitmap2 is nil");
+    bitmap2 = [matchRep bitmapData];	NSAssert(bitmap2 != nil, @"bitmap2 is nil");
     bytesPerPixel1 = [_bitmapRep hasAlpha] ? 4 : 3;
     bytesPerRow1 = [_bitmapRep bytesPerRow];
-    bytesPerPixel2 = [imageRep hasAlpha] ? 4 : 3;
-    bytesPerRow2 = [imageRep bytesPerRow];
+    bytesPerPixel2 = [matchRep hasAlpha] ? 4 : 3;
+    bytesPerRow2 = [matchRep bytesPerRow];
     
-    prevWorst = ([_matches count] < MAX_MATCHES) ? WORST_CASE_PIXEL_MATCH :
-						   [[_matches lastObject] matchValue];
-    prevWorst *= [_bitmapRep size].width * [_bitmapRep size].height;
+    prevWorst = ([_matches count] < maxMatches) ? WORST_CASE_PIXEL_MATCH :
+						  [[_matches lastObject] matchValue];
 
     // one of the offsets should be 0
-    x_off = ([imageRep size].width - [_bitmapRep size].width) / 2.0;
-    y_off = ([imageRep size].height - [_bitmapRep size].height) / 2.0;
+    x_off = ([matchRep size].width - [_bitmapRep size].width) / 2.0;
+    y_off = ([matchRep size].height - [_bitmapRep size].height) / 2.0;
 
     // sum the difference of all the pixels in the two bitmaps using the Riemersma metric
     // (courtesy of Dr. Dobbs 11/2001 pg. 58)
+    pixelsLeft = [_bitmapRep size].width * [_bitmapRep size].height;
     for (x = 0; x < [_bitmapRep size].width; x++)
+    {
 	for (y = 0; y < [_bitmapRep size].height; y++)
 	{
 	    bitmap1_off = bitmap1 + x * bytesPerPixel1 + y * bytesPerRow1;
 	    r1 = *bitmap1_off++; g1 = *bitmap1_off++; b1 = *bitmap1_off++;
 	    bitmap2_off = bitmap2 + (x + x_off) * bytesPerPixel2 + (y + y_off) * bytesPerRow2;
 	    r2 = *bitmap2_off++; g2 = *bitmap2_off++; b2 = *bitmap2_off++;
-	    redAverage = (r1 + r2) / 2.0;
-	    matchValue += (2+redAverage/256.0)*(r1-r2)*(r1-r2) + 4*(g1-g2)*(g1-g2) + 
-			  (2+(255.0-redAverage)/256.0)*(b1-b2)*(b1-b2);
-	    
-	    if (matchValue > prevWorst) return;	// the lower the matchValue the better, so if it's already
-						//  greater than the previous worst, it's no use going any further
+	    if (*bitmap1_off > 0)
+	    {
+		pixelCount++;
+		redAverage = (r1 + r2) / 2.0;
+		matchValue += (2+redAverage/256.0)*(r1-r2)*(r1-r2) + 4*(g1-g2)*(g1-g2) + 
+			      (2+(255.0-redAverage)/256.0)*(b1-b2)*(b1-b2);
+	    }
+	    pixelsLeft--;
 	}
+	// the lower the matchValue the better, so if it's already greater than the previous worst,
+	// it's no use going any further
+	if (matchValue / (float)(pixelCount + pixelsLeft) > prevWorst) return WORST_CASE_PIXEL_MATCH;
+    }
 
     // now average it per pixel
-    matchValue /= [_bitmapRep size].width * [_bitmapRep size].height;
-    
-    //NSLog(@"   Matches better (%f vs. %f)", matchValue, prevWorst);
+    matchValue /= pixelCount;
+    if (matchValue > prevWorst) return WORST_CASE_PIXEL_MATCH;
     
     newMatch = [[TileMatch alloc] init];
     if (newMatch == nil)
     {
 	NSLog(@"Could not allocate new TileMatch");
-	return;
+	return WORST_CASE_PIXEL_MATCH;
     }
-    [newMatch setFilePath:filePath];
-    [newMatch setBitmapRep:imageRep];
+    [newMatch setImageURL:imageURL];
+    [newMatch setBitmapRep:displayRep];
     [newMatch setMatchValue:matchValue];
 	
     // Determine where in the list it belongs (the best match should always be at index 0)
     while (index < [_matches count] && [[_matches objectAtIndex:index] matchValue] < matchValue) index++;
 
     // Add it to the list of matches
-    //NSLog(@"    Adding match at index %d", index);
     [_matches insertObject:newMatch atIndex:index];
 	
-    // Only keep the best MAX_MATCHES matches
-    if ([_matches count] == MAX_MATCHES+1)
+    // Only keep the best maxMatches matches
+    if ([_matches count] == maxMatches + 1)
     {
 	[[_matches lastObject] release];
 	[_matches removeLastObject];
     }
     
-    /*if ([_matches count] == 2)
-    {
-	newMatch = [_matches objectAtIndex:0];
-	newMatch = [_matches objectAtIndex:1];
-    }*/
+    _bestMatchValue = [[_matches objectAtIndex:0] matchValue];
     
-    if (index == 0)	// we have a new best match, add this tile to the display queue (if it's not already in it)
-    {
-	[[_displayUpdateQueue objectAtIndex:0] lock];
-	if ([_displayUpdateQueue indexOfObjectIdenticalTo:self] == NSNotFound) [_displayUpdateQueue addObject:self];
-	[[_displayUpdateQueue objectAtIndex:0] unlock];
-    }
+    return matchValue;
 }
 
 
 - (TileMatch *)bestMatch
 {
     return ([_matches count] == 0) ? nil : [_matches objectAtIndex:0];
+}
+
+
+- (float)bestMatchValue
+{
+    return _bestMatchValue;
+}
+
+
+- (void)setDisplayMatch:(TileMatch *)displayMatch
+{
+    _displayMatch = displayMatch;
+    _displayMatchValue = [displayMatch matchValue];
+}
+
+
+- (TileMatch *)displayMatch
+{
+    return _displayMatch;
+}
+
+
+- (float)displayMatchValue
+{
+    return _displayMatchValue;
+}
+
+
+- (NSMutableArray *)matches
+{
+    return _matches;
+}
+
+
+- (NSComparisonResult)compareBestMatchValue:(Tile *)otherTile
+{
+    float	otherBest = [otherTile bestMatchValue];
+    
+    if (_bestMatchValue < otherBest)
+	return NSOrderedAscending;
+    else if (_bestMatchValue > otherBest)
+	return NSOrderedDescending;
+    return NSOrderedSame;
 }
 
 

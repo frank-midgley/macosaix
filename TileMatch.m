@@ -5,28 +5,22 @@
 - (id)init
 {
     [super init];
-    _filePath = nil;
+    _imageURL = nil;
     _matchValue = WORST_CASE_PIXEL_MATCH;
     return self;
 }
 
-- (void)setFilePath:(NSString *)filePath
+- (void)setImageURL:(NSURL *)imageURL
 {
-    NSString	*oldFilePath;
-    
-    if (filePath != _filePath)
-    {
-	oldFilePath = _filePath;
-	_filePath = [filePath retain];
-	[oldFilePath release];
-	oldFilePath = nil;
-    }
+    NSAssert(imageURL != nil, @"imageURL has been released");
+    [_imageURL autorelease];
+    _imageURL = [imageURL copy];
 }
 
 
-- (NSString *)filePath
+- (NSURL *)imageURL
 {
-    return _filePath;
+    return _imageURL;
 }
 
 
@@ -64,7 +58,7 @@
 
 - (void)dealloc
 {
-    if (_filePath != nil) [_filePath release];
+    if (_imageURL != nil) [_imageURL release];
     if (_bitmapRep != nil) [_bitmapRep release];
     [super dealloc];
 }

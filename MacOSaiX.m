@@ -3,6 +3,21 @@
 
 @implementation MacOSaiX
 
+- (void)applicationDidFinishLaunching
+{
+    // allocate locks?
+    
+    // To provide a service:
+    //EncryptoClass *encryptor;
+    //encryptor = [[EncryptoClass alloc] init];
+    //[NSApp setServicesProvider:encryptor];
+}
+
+
+- (void)newMacOSaiXWithPasteboard:(NSPasteboard *)pBoard userObject:(id)userObj error:(NSString **)error
+{
+}
+
 - (BOOL)applicationShouldOpenUntitledFile:(NSApplication *)sender
 {
     return NO;
