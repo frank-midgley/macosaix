@@ -824,6 +824,7 @@
 		// TO DO: This currently only calculates the direct neighbors.
 	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
 	Tile			*tile = nil;
+	index = 0;
     while (!documentIsClosing && (tile = [tileEnumerator nextObject]))
 	{
 		NSRect	tileBounds = [[tile outline] bounds],
@@ -843,8 +844,27 @@
 			if (tile2 != tile && NSIntersectsRect(zoomedTileBounds, [[tile2 outline] bounds]))
 				[tile addNeighbor:tile2];
 				
+		index++;
+		
 //		NSLog(@"Tile at %p has %d neighbors.", tile, [[tile neighbors] count]);
-		extractionPercentComplete = 50 + (int)(index * 50.0 / [tileOutlines count]);
+		extractionPercentComplete = 50.0 + (int)(index * 50.0 / [tileOutlines count]);
+	}
+
+	int	i;
+	for (i = 0; i < 0; i++)
+	{
+			// Add the neighbors of every neighbor of each tile to the tile.
+		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+		Tile			*tile = nil;
+		while (!documentIsClosing && (tile = [tileEnumerator nextObject]))
+		{ 
+			NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
+			NSEnumerator	*neighborEnumerator = [[tile neighbors] objectEnumerator];
+			Tile			*neighbor = nil;
+			while (!documentIsClosing && (neighbor = [neighborEnumerator nextObject]))
+				[tile addNeighbors:[neighbor neighbors]];
+			[pool2 release];
+		}
 	}
 	
     [(OriginalView *)originalView setTileOutlines:combinedOutline];
@@ -1087,7 +1107,7 @@
 				thumbnailSize = NSMakeSize(kThumbnailMax, pixletImageSize.height * kThumbnailMax / pixletImageSize.width);
 			else
 				thumbnailSize = NSMakeSize(pixletImageSize.width * kThumbnailMax / pixletImageSize.height, kThumbnailMax);
-			NSImage				*thumbnailImage = [[[NSImage alloc] initWithSize:thumbnailSize] autorelease];
+			NSImage				*thumbnailImage = [[NSImage alloc] initWithSize:thumbnailSize];
 //			NSBitmapImageRep	*thumbnailRep = [[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nil 
 //																						 pixelsWide:thumbnailSize.width 
 //																						 pixelsHigh:thumbnailSize.height 
@@ -1106,6 +1126,7 @@
 							   fraction:1.0];
 			[thumbnailImage unlockFocus];
 			[self cacheImage:thumbnailImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
+			[thumbnailImage release];
 		}
 		else
 		{
@@ -1229,6 +1250,9 @@
     NSEnumerator	*tileEnumerator = [tilesToRefresh objectEnumerator];
     Tile			*tileToRefresh = nil;
     while (!documentIsClosing && (tileToRefresh = [tileEnumerator nextObject]))
+	{
+		NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
+		
         if ([tileToRefresh calculateBestMatch])
         {
 			// The image to display for this tile changed so update the mosaic image and add the tile's neighbors 
@@ -1285,6 +1309,9 @@
                 [mosaicImageLock unlock];
             }
         }
+		
+		[pool2 release];
+	}
 
 	[calculateDisplayedImagesThreadLock lock];
 	    calculateDisplayedImagesThreadAlive = NO;
