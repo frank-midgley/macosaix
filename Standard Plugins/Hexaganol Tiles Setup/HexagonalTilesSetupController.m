@@ -3,11 +3,16 @@
 //  MacOSaiX
 //
 //  Created by Frank Midgley on Thu Jan 23 2003.
-//  Copyright (c) 2003 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2003-2004 Frank M. Midgley. All rights reserved.
 //
 
 #import <Cocoa/Cocoa.h>
 #import "HexagonalTilesSetupController.h"
+
+
+@interface HexagonalTilesSetupController (PrivateMethods)
+- (void)createTileOutlines;
+@end
 
 
 @implementation HexagonalTilesSetupController
@@ -28,33 +33,71 @@
 		
 		[NSBundle loadNibNamed:@"HexagonalTilesSetup" owner:self];
 
-//		[_tilesAcrossStepper setStringValue:[defaults objectForKey:@"Tiles Wide"]];
-        [_tilesAcrossStepper setIntValue:53];
-		_tilesWide = [_tilesAcrossStepper intValue];
-		[_tilesAcrossView setIntValue:_tilesWide];
-//		[_tilesDownStepper setStringValue:[defaults objectForKey:@"Tiles High"]];
-        [_tilesDownStepper setIntValue:30];
-		_tilesHigh = [_tilesDownStepper intValue];
-		[_tilesDownView setIntValue:_tilesHigh];
-
+			// Update the nib with the user's last used settings.
+		NSDictionary	*plugInDefaults = [[NSUserDefaults standardUserDefaults] objectForKey:@"Hexagonal Tiles"];
+		
+		int				previousTilesWide = [[plugInDefaults objectForKey:@"Tiles Wide"] intValue];
+		tilesWide = (previousTilesWide > 0 && previousTilesWide <= [_tilesAcrossStepper maxValue]) ? 
+						previousTilesWide : [_tilesAcrossStepper intValue];
+		[_tilesAcrossStepper setIntValue:tilesWide];
+		[_tilesAcrossView setIntValue:tilesWide];
+		
+		int				previousTilesHigh = [[plugInDefaults objectForKey:@"Tiles High"] intValue];
+		tilesHigh = (previousTilesHigh > 0 && previousTilesHigh <= [_tilesDownStepper maxValue]) ? 
+						previousTilesHigh : [_tilesDownStepper intValue];
+		[_tilesDownStepper setIntValue:tilesHigh];
+		[_tilesDownView setIntValue:tilesHigh];
+		
+			// Create an initial set of tile outlines based on the current settings.
 		[self createTileOutlines];
 	}
+	
 	return _setupView;
 }
 
 
-- (void)setTilesAcross:(id)sender
+- (void)updatePlugInDefaults
 {
-    _tilesWide = [_tilesAcrossStepper intValue];
-    [_tilesAcrossView setIntValue:_tilesWide];
+	[[NSUserDefaults standardUserDefaults] setObject:[NSDictionary dictionaryWithObjectsAndKeys:
+														[NSNumber numberWithInt:tilesWide], @"Tiles Wide", 
+														[NSNumber numberWithInt:tilesHigh], @"Tiles High", 
+														nil]
+											  forKey:@"Rectangular Tiles"];
+}
+
+
+- (IBAction)setTilesAcross:(id)sender
+{
+		// Jump by 10 if the user had the option key down, by one otherwise.
+	if (([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0)
+	{
+		if ([_tilesAcrossStepper intValue] > tilesWide)
+			[_tilesAcrossStepper setIntValue:MIN(tilesWide + 10, [_tilesAcrossStepper maxValue])];
+		else if ([_tilesAcrossStepper intValue] < tilesWide)
+			[_tilesAcrossStepper setIntValue:MAX(tilesWide - 10, [_tilesAcrossStepper minValue])];
+	}
+    tilesWide = [_tilesAcrossStepper intValue];
+    [_tilesAcrossView setIntValue:tilesWide];
+	
+	[self updatePlugInDefaults];
 	[self createTileOutlines];
 }
 
 
-- (void)setTilesDown:(id)sender
+- (IBAction)setTilesDown:(id)sender
 {
-    _tilesHigh = [_tilesDownStepper intValue];
-    [_tilesDownView setIntValue:_tilesHigh];
+		// Jump by 10 if the user had the option key down, by one otherwise.
+	if (([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0)
+	{
+		if ([_tilesDownStepper intValue] > tilesHigh)
+			[_tilesDownStepper setIntValue:MIN(tilesHigh + 10, [_tilesDownStepper maxValue])];
+		else if ([_tilesDownStepper intValue] < tilesHigh)
+			[_tilesDownStepper setIntValue:MAX(tilesHigh - 10, [_tilesDownStepper minValue])];
+	}
+    tilesHigh = [_tilesDownStepper intValue];
+    [_tilesDownView setIntValue:tilesHigh];
+	
+	[self updatePlugInDefaults];
 	[self createTileOutlines];
 }
 
