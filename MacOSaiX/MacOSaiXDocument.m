@@ -430,8 +430,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				[fileHandle writeData:[tileShapesXML dataUsingEncoding:NSUTF8StringEncoding]];
 				[fileHandle writeData:[@"</TILE_SHAPES_SETTINGS>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				
-				[fileHandle writeData:[@"<IMAGE_USAGE>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
-				[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\">\n", [self useCount], [self neighborhoodSize]] dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[@"<IMAGE_USAGE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\">\n", [self imageUseCount], [self neighborhoodSize]] dataUsingEncoding:NSUTF8StringEncoding]];
 				[fileHandle writeData:[@"</IMAGE_USAGE>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				
 //				NSDictionary	*imagesInUse = [self imagesInUse];
@@ -521,10 +521,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 																				points[1].x, points[1].y]];
 								break;
 							case NSClosePathBezierPathElement:
-								index = [[tile outline] elementCount];	// done, break out of the loop
+								[buffer appendString:@"\t\t\t<CLOSE_PATH>\n"];
 								break;
-							default:
-								;
 						}
 					}
 					[buffer appendString:@"\t\t</OUTLINE>\n"];
@@ -633,96 +631,129 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 #pragma mark Loading
 
 
-/*
-- (void)load
+// Loading the saved XML is currently done using the CFXML API so that we can run on Jaguar.
+// Once Jaguar support is no longer required this could be cleaned up by switching to the NSXML API.
+
+
+	// Parser callback prototypes.
+void		*createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info);
+void		addChild(CFXMLParserRef parser, void *parent, void *child, void *info);
+void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
+//CFDataRef	resolveExternalEntity(CFXMLParserRef parser, CFXMLExternalID *extID, void *info);
+//Boolean		handleError(CFXMLParserRef parser, CFXMLParserStatusCode error, void *info);
+
+
+- (BOOL)readFromFile:(NSString *)fileName ofType:(NSString *)type
 {
-	// First, set up the parser callbacks.
-	CFXMLParserCallBacks callbacks = {0, createStructure, addChild, endStructure, resolveEntity, handleError};
+	BOOL	success = NO;
+	NSData	*xmlData = [NSData dataWithContentsOfFile:[fileName stringByAppendingPathComponent:@"Mosaic.xml"]];
+	
+	if (xmlData)
+	{
+			// Set up the parser callbacks.
+		CFXMLParserCallBacks	callbacks = {0, createStructure, addChild, endStructure, NULL, NULL};	//resolveExternalEntity, handleError};
 
-	// Create the parser with the option to skip whitespace.
-	parser = CFXMLParserCreate(kCFAllocatorDefault, xmlData, urlOut, kCFXMLParserSkipWhitespace, kCFXMLNodeCurrentVersion, &callbacks);
+			// Create the parser with the option to skip whitespace.
+		CFXMLParserRef			parser = CFXMLParserCreate(kCFAllocatorDefault, 
+														   (CFDataRef)xmlData, 
+														   NULL, 
+														   kCFXMLParserSkipWhitespace, 
+														   kCFXMLNodeCurrentVersion, 
+														   &callbacks,
+														   NULL);
 
-	// Invoke the parser.
-	if (!CFXMLParserParse(parser))
-		printf("parse failed\n");
+			// Invoke the parser.
+		if (!CFXMLParserParse(parser))
+			printf("parse failed\n");
+		
+		success = YES;
+	}
+	
+	return success;
 }
+
 
 void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 {
-    CFStringRef myTypeStr;
-    CFStringRef myDataStr;
-    CFXMLDocumentInfo *docInfoPtr;
+	id					newObject = nil;
 
-		// Use the dataTypeID to determine what to print.
     switch (CFXMLNodeGetTypeCode(node))
 	{
-        case kCFXMLNodeTypeDocument:
-            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeDocument\n");
-            docInfoPtr = CFXMLNodeGetInfoPtr(node);
-            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("Document URL: %@\n"), CFURLGetString(docInfoPtr->sourceURL));
-            break;
-
         case kCFXMLNodeTypeElement:
-            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeElement\n");
-            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("Element: %@\n"), CFXMLNodeGetString(node));
+		{
+			NSString	*elementType = (NSString *)CFXMLNodeGetString(node);
+			if ([elementType isEqualToString:@"IMAGE_SOURCES"])
+			{
+				newObject = self;
+			}
+			else if ([elementType isEqualToString:@"IMAGE_SOURCE"])
+			{
+				
+			}
+			else if ([elementType isEqualToString:@"TILES"])
+			{
+				newObject = self;
+			}
+			else if ([elementType isEqualToString:@"TILE"])
+			{
+				newObject = [[MacOSaiXTile alloc] initWithOutline:nil fromDocument:self];
+			}
+			else if ([elementType isEqualToString:@"OUTLINE"])
+			{
+				newObject = [[NSBezierPath bezierPath] retain];
+			}
+			else if ([elementType isEqualToString:@"OUTLINE"])
+			{
+				newObject = [[NSBezierPath bezierPath] retain];
+			}
+			else if ([elementType isEqualToString:@"MOVE_TO"] || 
+					 [elementType isEqualToString:@"LINE_TO"] || 
+					 [elementType isEqualToString:@"CURVE_TO"] || 
+					 [elementType isEqualToString:@"CLOSE_PATH"])
+			{
+				CFXMLElementInfo	*nodeInfo = (CFXMLElementInfo *)CFXMLNodeGetInfoPtr(node);
+				newObject = [NSMutableDictionary dictionaryWithDictionary:(NSDictionary *)nodeInfo->attributes]
+				[newObject setObject:elementType forKey:@"Element Type"];
+			}
             break;
-
-        case kCFXMLNodeTypeProcessingInstruction:
-            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeProcessingInstruction\n");
-            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("PI: %@\n"), CFXMLNodeGetString(node));
-            break;
-
-        case kCFXMLNodeTypeComment:
-            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeComment\n");
-            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("Comment: %@\n"), CFXMLNodeGetString(node));
-            break;
-
-        case kCFXMLNodeTypeText:
-            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeText\n");
-            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("Text:%@\n"), CFXMLNodeGetString(node));
-            break;
-
-        case kCFXMLNodeTypeCDATASection:
-            myTypeStr = CFSTR("Data Type ID: kCFXMLDataTypeCDATASection\n");
-            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("CDATA: %@\n"), CFXMLNodeGetString(node));
-            break;
-
-        case kCFXMLNodeTypeEntityReference:
-            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeEntityReference\n");
-            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("Entity reference: %@\n"), CFXMLNodeGetString(node));
-            break;
-
-        case kCFXMLNodeTypeDocumentType:
-            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeDocumentType\n");
-            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("DTD: %@\n"), CFXMLNodeGetString(node));
-            break;
-
-        case kCFXMLNodeTypeWhitespace:
-            myTypeStr = CFSTR("Data Type ID: kCFXMLNodeTypeWhitespace\n");
-            myDataStr = CFStringCreateWithFormat(NULL, NULL, CFSTR("Whitespace: %@\n"), CFXMLNodeGetString(node));
-            break;
+		}
 
         default:
-            myTypeStr = CFSTR("Data Type ID: UNKNOWN\n");
-            myDataStr = CFSTR("Unknown type.\n");
-        }
+			;
+	}
 
-    // Print the contents.
-    printf("---Create Structure Called--- \n");
-    CFShow(myTypeStr);
-    CFShow(myDataStr);
-
-    // Return the data string for use by the addChild and 
-    // endStructure callbacks.
-    return myDataStr;
+    // Return the object that will be passed to the addChild and endStructure callbacks.
+    return (void *)newObject;
 }
 
 
 void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 {
-    printf("---Add Child Called--- \n");
-    printf("Parent being added to: "); CFShow((CFStringRef)parent);
-    printf("Child being added: "); CFShow((CFStringRef)child);
+	if (parent == self && [(id)child conformsToProtocol:@protocol(MacOSaiXTileShapes)])
+		[self setTileShapes:(id<MacOSaiXTileShapes>)child];
+	else if (parent == self && [(id)child conformsToProtocol:@protocol(MacOSaiXImageSource)])
+		[self addImageSource:(id<MacOSaiXImageSource>)child];
+	else if (parent == self && [(id)child isKindOfClass:[MacOSaiXTile class]])
+		[tiles addObject:(MacOSaiXTile *)child];
+	else if ([(id)parent isKindOfClass:[MacOSaiXTile class] && [(id)child isKindOfClass:[NSBezierPath class]])
+		[(MacOSaiXTile *)parent setOutline:(NSBezierPath *)child];
+	else if ([(id)parent isKindOfClass:[NSBezierPath class]] && [(id)child isKindOfClass:[NSDictionary class]])
+	{
+		NSBezierPath	*tileOutline = (NSBezierPath *)parent;
+		NSDictionary	*attributes = (NSDictionary *)child;
+		NSString		*elementType = [attributes objectForKey:@"Element Type"];
+		
+		if ([elementType isEqualToString:@"MOVE_TO"])
+			[tileOutline moveToPoint:NSMakePoint([[attributes objectForKey:@"X"] floatValue], [[attributes objectForKey:@"Y"] floatValue])];
+		else if ([elementType isEqualToString:@"LINE_TO"])
+			[tileOutline lineToPoint:NSMakePoint([[attributes objectForKey:@"X"] floatValue], [[attributes objectForKey:@"Y"] floatValue])];
+		else if ([elementType isEqualToString:@"CURVE_TO"])
+			[tileOutline curveToPoint:NSMakePoint([[attributes objectForKey:@"X"] floatValue], [[attributes objectForKey:@"Y"] floatValue])
+						 controlPoint1:NSMakePoint([[attributes objectForKey:@"C1X"] floatValue], [[attributes objectForKey:@"C1Y"] floatValue]) 
+						 controlPoint2:NSMakePoint([[attributes objectForKey:@"C2X"] floatValue], [[attributes objectForKey:@"C2Y"] floatValue])];
+		else if ([elementType isEqualToString:@"CLOSE_PATH"])
+			[tileOutline closePath];
+	}
 }
 
 
@@ -735,7 +766,7 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
     // we can release the string.
     CFRelease(xmlType);
 }
-*/
+
 
 #pragma mark -
 #pragma mark Tile management
@@ -1213,12 +1244,17 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 		if (betterMatches)
 		{
 				// Remove any tiles from the list that have gotten a better match since the list was cached.
+				// Also remove any tiles that have the exact same match value but for a different image.  This 
+				// avoids infinite loop conditions if you have multiple image files containing the exact same image.
 			NSEnumerator		*betterMatchEnumerator = [[NSArray arrayWithArray:betterMatches] objectEnumerator];
 			MacOSaiXImageMatch	*betterMatch = nil;
 			while ((betterMatch = [betterMatchEnumerator nextObject]) && !documentIsClosing)
 			{
 				MacOSaiXImageMatch	*currentMatch = [[betterMatch tile] imageMatch];
-				if (currentMatch && [currentMatch matchValue] < [betterMatch matchValue])
+				if (currentMatch && ([currentMatch matchValue] < [betterMatch matchValue] || 
+									 ([currentMatch matchValue] == [betterMatch matchValue] && 
+										([currentMatch imageSource] != [betterMatch imageSource] || 
+										 [currentMatch imageIdentifier] != [betterMatch imageIdentifier]))))
 					[betterMatches removeObjectIdenticalTo:betterMatch];
 			}
 		}
@@ -1301,7 +1337,10 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 														[previousMatch imageIdentifier], @"Image Identifier",
 														nil];
 					if (![imageQueue containsObject:newQueueEntry])
+					{
+//						NSLog(@"Rechecking %@", [previousMatch imageIdentifier]);
 						[imageQueue addObject:newQueueEntry];
+					}
 				}
 				
 				[tile setImageMatch:betterMatch];
