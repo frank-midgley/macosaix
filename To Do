@@ -134,7 +134,7 @@ Rework TODO:
 ¥	Test on Jaguar
 Ã	Activate newly added image sources
 Ã	Enable remove source button or disable it
-¥	Purge image cache directory on document dealloc
+Ã	Purge image cache directory on document dealloc
 ¥	Disable tiles setup after mosaic starts?
 Ã	Turn down priority of worker threads
 ¥	Change idle message
