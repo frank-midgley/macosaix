@@ -17,7 +17,9 @@
 		<key>306</key>
 		<string>339 420 507 154 0 0 1152 746 </string>
 		<key>353</key>
-		<string>378 256 432 480 0 0 1152 746 </string>
+		<string>513 376 459 512 0 0 1280 938 </string>
+		<key>663</key>
+		<string>487 310 413 440 0 0 1280 938 </string>
 		<key>67</key>
 		<string>406 500 111 48 0 0 1152 746 </string>
 	</dict>
@@ -31,6 +33,6 @@
 		<integer>8</integer>
 	</array>
 	<key>IBSystem Version</key>
-	<string>7R28</string>
+	<string>7S215</string>
 </dict>
 </plist>
