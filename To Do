@@ -65,6 +65,8 @@ Riemersma metric:
 ¥		Show more folder levels (outline view?)
 	Glyphs source:
 ¥		Exception on pasting letters
+¥		Use each letter once
+¥		Remember previous choices
 
 =======================================================================================
 
@@ -73,6 +75,5 @@ Riemersma metric:
 Ã	iPhoto plug-in
 	Glyphs plug-in
 Ã		Update to new API
-¥		Can't specify count
 
 
