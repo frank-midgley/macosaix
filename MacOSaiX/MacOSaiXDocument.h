@@ -52,6 +52,7 @@ typedef enum
 	IBOutlet NSButton			*_editorChooseImage,
 								*_editorUseSelectedImage;
 	IBOutlet NSTableView		*_editorTable;
+    IBOutlet NSTextField		*_matchValueTextField;
 
     NSURL						*_originalImageURL;
     NSImage						*_originalImage, *_mosaicImage, *_mosaicUpdateImage;
