@@ -376,7 +376,7 @@
 }
 
 
-#pragma mark
+#pragma mark -
 #pragma mark ???
 
 
@@ -410,7 +410,7 @@
 
 - (void)updateStatus:(NSTimer *)timer
 {
-    NSString	*statusMessage, *fullMessage;
+    NSString	*statusMessage = nil;
     
     // update the status bar
 	if (![[self document] originalImage])
@@ -419,13 +419,13 @@
 		statusMessage = @"You have not set the tile shapes";
 	else if ([[[self document] imageSources] count] == 0)
 		statusMessage = @"You have not added any image sources";
+	else if ([[self document] isExtractingTileImagesFromOriginal])
+		statusMessage = [NSString stringWithFormat:@"Extracting tile images (%.0f%%)", 
+												   [[self document] tileCreationPercentComplete]];
 	else if (![[self document] wasStarted])
 		statusMessage = @"Ready to begin.  Click the Start Mosaic button in the toolbar.";
-	else if ([[self document] isExtractingTileImagesFromOriginal])
-		statusMessage = [NSString stringWithFormat:@"Extracting tile images (%f%%)", 
-												   [[self document] tileCreationPercentComplete]];
 	else if ([[self document] isCalculatingImageMatches] && [[self document] isCalculatingDisplayedImages])
-		statusMessage = [NSString stringWithString:@"Matching and finding unique tiles..."];
+		statusMessage = [NSString stringWithString:@"Matching images and finding unique tiles..."];
 	else if ([[self document] isCalculatingImageMatches])
 		statusMessage = [NSString stringWithString:@"Matching images..."];
 	else if ([[self document] isCalculatingDisplayedImages])
@@ -435,15 +435,12 @@
 	else if ([[self document] isEnumeratingImageSources])
 		statusMessage = [NSString stringWithString:@"Looking for new images..."];
 	else
-		statusMessage = [NSString stringWithString:@"No more images"];
+		statusMessage = [NSString stringWithString:@"Done"];
 	
-    fullMessage = [NSString stringWithFormat:@"Images: %d     Quality: %2.1f%%     Status: %@",
-											 [[self document] imagesMatched], overallMatch, statusMessage];
-//	if ([fullMessage sizeWithAttributes:[[statusMessageView attributedStringValue] attributesAtIndex:0 effectiveRange:nil]].width 
-//		> [statusMessageView frame].size.width)
-//		fullMessage = [NSString stringWithFormat:@"%d     %2.1f%%     %@",
-//												 [[self document] imagesMatched], overallMatch, statusMessage];
-    [statusMessageView setStringValue:fullMessage];
+    [statusMessageView setStringValue:[NSString stringWithFormat:@"Images: %d     Quality: %2.1f%%     Status: %@",
+																 [[self document] imagesMatched], 
+																 overallMatch, 
+																 statusMessage]];
     
 		// update the image sources table
     [imageSourcesTableView reloadData];
@@ -516,6 +513,7 @@
 		NSTextField	*errorView = [[[NSTextField alloc] initWithFrame:[tileShapesView frame]] autorelease];
 		
 		[errorView setStringValue:@"Could not load the plug-in"];
+		[errorView setEditable:NO];
 		[[tileShapesView superview] addSubview:errorView];
 		[tileShapesView removeFromSuperview];
 		tileShapesView = errorView;	// the superview retains it.
@@ -1248,6 +1246,7 @@
 - (void)exportImage:(NSString *)exportFilename
 {
     NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	NSString			*exportError = nil;
 	
 		// Don't usurp the main thread.
 	[NSThread setThreadPriority:0.1];
@@ -1257,7 +1256,7 @@
 	NS_DURING
 		[exportImage lockFocus];
 	NS_HANDLER
-		NSLog(@"Could not lock focus on export image");
+		exportError = [NSString stringWithFormat:@"Could not draw images into mosaic.  (%@)", [localException reason]];
 	NS_ENDHANDLER
 	
     NSAffineTransform	*transform = [NSAffineTransform transform];
@@ -1319,18 +1318,26 @@
 		// Now convert the image into the desired output format.
     NSBitmapImageRep	*exportRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0, 0, [exportImage size].width, 
 									     [exportImage size].height)];
-    [exportImage unlockFocus];
+	NS_DURING
+		[exportImage unlockFocus];
 
-	NSData		*bitmapData = (exportFormat == NSJPEGFileType) ? 
-									[exportRep representationUsingType:NSJPEGFileType properties:nil] :
-									[exportRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0];
-    [bitmapData writeToFile:exportFilename atomically:YES];
-    
+		NSData		*bitmapData = (exportFormat == NSJPEGFileType) ? 
+										[exportRep representationUsingType:NSJPEGFileType properties:nil] :
+										[exportRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0];
+		[bitmapData writeToFile:exportFilename atomically:YES];
+	NS_HANDLER
+		exportError = [NSString stringWithFormat:@"Could not convert the mosaic to the requested format.  (%@)",
+												 [localException reason]];
+	NS_ENDHANDLER
+	
     [pool release];
     [exportRep release];
     [exportImage release];
 	
-	[self performSelectorOnMainThread:@selector(closeProgressPanel) withObject:nil waitUntilDone:YES];
+	[self closeProgressPanel];
+	
+	if (exportError)
+		;	// TODO: need to drop a sheet on the main thread...
 }
 
 
