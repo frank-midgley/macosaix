@@ -55,6 +55,7 @@
                 mosaicView = MosaicView; 
                 neighborhoodSizePopUpButton = NSPopUpButton; 
                 originalImagePopUpButton = NSPopUpButton; 
+                originalImageThumbView = NSImageView; 
                 progressPanel = NSPanel; 
                 progressPanelCancelButton = NSButton; 
                 progressPanelIndicator = NSProgressIndicator; 
@@ -71,7 +72,6 @@
                 tileSizeLabel = NSTextField; 
                 totalTilesField = NSTextField; 
                 utilitiesDrawer = NSDrawer; 
-                utilitiesTabView = NSTabView; 
                 zoomSlider = NSSlider; 
                 zoomToolbarSubmenu = NSMenu; 
                 zoomToolbarView = NSView; 
