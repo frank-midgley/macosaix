@@ -19,22 +19,19 @@
 
 
 @interface MacOSaiXWindowController (PrivateMethods)
-- (void)chooseOriginalImage;
-- (void)spawnImageSourceThreads;
+- (void)updateStatus:(NSTimer *)timer;
 - (void)synchronizeMenus;
-- (void)updateMosaicImage:(NSMutableArray *)updatedTiles;
-- (void)calculateImageMatches:(id)path;
 - (void)updateEditor;
 - (BOOL)showTileMatchInEditor:(ImageMatch *)tileMatch selecting:(BOOL)selecting;
 - (NSImage *)createEditorImage:(int)rowIndex;
 - (void)allowUserToChooseImageOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
     contextInfo:(void *)context;
 - (void)exportImage:(id)exportFilename;
-- (void)setOriginalImagePath:(NSString *)path;
 @end
 
 
 @implementation MacOSaiXWindowController
+
 
 - (id)initWithWindow:(NSWindow *)window
 {
@@ -117,14 +114,21 @@
 		[originalImagePopUpButton selectItemAtIndex:0];
 		
 			// Load the names of the tile shapes plug-ins
+		NSString		*titleFormat = @"%@ Tile Shapes";
 		NSEnumerator	*enumerator = [[(MacOSaiX *)[NSApp delegate] tileShapesClasses] objectEnumerator];
 		Class			tileShapesClass = nil;
+		float			maxWidth = 0.0;
 		[tileShapesPopUpButton removeAllItems];
 		while (tileShapesClass = [enumerator nextObject])
 		{
-			[tileShapesPopUpButton addItemWithTitle:[tileShapesClass name]];
+			[tileShapesPopUpButton addItemWithTitle:[NSString stringWithFormat:titleFormat, [tileShapesClass name]]];
 			[[tileShapesPopUpButton lastItem] setRepresentedObject:tileShapesClass];
+			
+			[tileShapesPopUpButton selectItemAtIndex:[tileShapesPopUpButton numberOfItems] - 1];
+			[tileShapesPopUpButton sizeToFit];
+			maxWidth = MAX(maxWidth, [tileShapesPopUpButton frame].size.width);
 		}
+		[tileShapesPopUpButton setFrameSize:NSMakeSize(maxWidth, [tileShapesPopUpButton frame].size.height)];
 		[tileShapesPopUpButton selectItemAtIndex:0];
 		[self setTileShapesPlugIn:self];
 		
@@ -197,6 +201,8 @@
 //		[[self window] setFrame:windowFrame display:YES animate:YES];
 //    }
 //	[pauseToolbarItem setLabel:@"Start Mosaic"];
+	
+	[self updateStatus:nil];
 	
 		// Default to the most recently used original or prompt to choose one
 		// if no previous original was found.
@@ -305,7 +311,13 @@
     [self setZoom:self];
 	
 		// Resize the window to respect the original's aspect ratio
-	[[self window] setFrameTopLeftPoint:NSMakePoint(NSMinX([[self window] frame]), NSMaxY([[self window] frame]))];
+	NSRect	curFrame = [[self window] frame];
+	NSSize	newSize = [self windowWillResize:[self window] toSize:curFrame.size];
+	[[self window] setFrame:NSMakeRect(NSMinX(curFrame), NSMaxY(curFrame) - newSize.height, newSize.width, newSize.height)
+					display:YES
+					animate:YES];
+	
+	[self updateStatus:nil];
 }
 
 
@@ -332,7 +344,7 @@
 {
 	if ([[self document] isPaused])
 	{
-		if ([[[[self document] tiles] objectAtIndex:0] bitmapRep] == nil)
+		if ([[self document] wasStarted])
 		{
 				// Make sure the tiles can't be tweaked now that the mosaic was started.
 			[tileShapesPopUpButton setEnabled:NO];
@@ -401,8 +413,10 @@
     NSString	*statusMessage, *fullMessage;
     
     // update the status bar
-	if ([[[self document] tiles] count] == 0)
-		statusMessage = @"You have not chosen any tile shapes";
+	if (![[self document] originalImage])
+		statusMessage = @"You have not chosen the original image";
+	else if ([[[self document] tiles] count] == 0)
+		statusMessage = @"You have not set the tile shapes";
 	else if ([[[self document] imageSources] count] == 0)
 		statusMessage = @"You have not added any image sources";
 	else if (![[self document] wasStarted])
@@ -478,14 +492,14 @@
 		tileShapesEditor = [[tileShapesEditorClass alloc] init];
 		
 			// Swap in the view of the new editor.
-		NSRect	frame = [tileShapesView frame];
-		NSView	*superView = [tileShapesView superview];
+		NSRect			frame = [tileShapesView frame];
+		unsigned int	autoResizingMask = [tileShapesView autoresizingMask];
+		NSView			*superView = [tileShapesView superview];
 		[tileShapesView removeFromSuperview];
 		
-		[[tileShapesEditor editorView] setAutoresizingMask:NSViewNotSizable];
 		[[tileShapesEditor editorView] setFrame:frame];
+		[[tileShapesEditor editorView] setAutoresizingMask:autoResizingMask];
 		[superView addSubview:[tileShapesEditor editorView]];
-		[[tileShapesEditor editorView] setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 		tileShapesView = [tileShapesEditor editorView];	// the superview retains it.
 		
 			// Get the existing tile shapes from our document.
@@ -1439,6 +1453,16 @@
 }
 
 
+- (void)windowWillClose:(NSNotification *)notification
+{
+	if ([notification object] == [self window])
+	{
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXOriginalImageDidChangeNotification object:[self document]];
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXDocumentDidChangeStateNotification object:[self document]];
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXTileShapesDidChangeStateNotification object:[self document]];
+	}
+}
+
 
 // Toolbar delegate methods
 
@@ -1630,8 +1654,6 @@
 
 - (void)dealloc
 {
-	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	
 	[selectedTile release];
     [selectedTileImages release];
     [toolbarItems release];
@@ -1643,7 +1665,11 @@
 	[tileShapesEditor release];
 	[tileShapesBeingEdited release];
 	
+		// We are responsible for releasing any top-level objects in the nib file that we opened.
+	// ???
+	
     [super dealloc];
 }
+
 
 @end
