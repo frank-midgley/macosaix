@@ -1045,12 +1045,15 @@
 //																						bytesPerRow:0 
 //																					   bitsPerPixel:0] autorelease];
 //			[thumbnailImage addRepresentation:thumbnailRep];
-			[thumbnailImage lockFocus];	//OnRepresentation:thumbnailRep];
-				[pixletImage drawInRect:NSMakeRect(0.0, 0.0, thumbnailSize.width, thumbnailSize.height) 
-							   fromRect:NSMakeRect(0.0, 0.0, pixletImageSize.width, pixletImageSize.height) 
-							  operation:NSCompositeCopy 
-							   fraction:1.0];
-			[thumbnailImage unlockFocus];
+			NS_DURING
+				[thumbnailImage lockFocus];	//OnRepresentation:thumbnailRep];
+					[pixletImage drawInRect:NSMakeRect(0.0, 0.0, thumbnailSize.width, thumbnailSize.height) 
+								   fromRect:NSMakeRect(0.0, 0.0, pixletImageSize.width, pixletImageSize.height) 
+								  operation:NSCompositeCopy 
+								   fraction:1.0];
+				[thumbnailImage unlockFocus];
+			NS_HANDLER
+			NS_ENDHANDLER
 			[self cacheImage:thumbnailImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
 			[thumbnailImage release];
 		}
@@ -1087,20 +1090,32 @@
 			{
 					// no bitmap at the correct size was found, try to create a new one
 				NSBitmapImageRep	*rep = nil;
+				BOOL				lockedFocus = NO;
+				
+				while (!lockedFocus)
+				{
+					NS_DURING
+						[scratchImage lockFocus];
+						lockedFocus = YES;
+					NS_HANDLER
+						// TBD: how to handle this?
+						NSLog(@"Could not lock focus on scratch image, what should I do?");
+					NS_ENDHANDLER
+				}
 				
 				NS_DURING
-					[scratchImage lockFocus];
-						[pixletImage drawInRect:subRect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
-						rep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:subRect];
-						if (rep)
-							[cachedReps addObject:[rep autorelease]];
-						else
-							cachedRepIndex = -1;
-					[scratchImage unlockFocus];
+					[pixletImage drawInRect:subRect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
+					rep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:subRect];
+					if (rep)
+						[cachedReps addObject:[rep autorelease]];
+					else
+						cachedRepIndex = -1;
 				NS_HANDLER
 					// TBD: how to handle this?
-					NSLog(@"Could not lock focus on scratch image, what should I do?");
+					NSLog(@"Could not create cached bitmap.");
 				NS_ENDHANDLER
+				
+				[scratchImage unlockFocus];
 			}
 	
 				// If the tile reports that the image matches better than its previous worst match
