@@ -27,6 +27,10 @@
 - (void)removeFontWithName:(NSString *)fontName;
 - (NSArray *)fontNames;
 
+- (void)addColorList:(NSString *)listName ofClass:(NSString *)listClass;
+- (void)removeColorList:(NSString *)listName ofClass:(NSString *)listClass;
+- (void)colorListsOfClass:(NSString *)listClass;
+
 - (void)setLetterPool:(NSString *)pool;
 - (NSString *)letterPool;
 

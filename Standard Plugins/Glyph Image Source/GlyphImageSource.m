@@ -332,6 +332,9 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
+#pragma mark Fonts
+
+
 - (void)addFontWithName:(NSString *)fontName
 {
 	[fontNames addObject:fontName];
@@ -350,6 +353,27 @@ static NSImage	*glyphSourceImage = nil;
 {
 	return [NSArray arrayWithArray:fontNames];
 }
+
+
+#pragma mark Colors
+
+
+- (void)addColorList:(NSString *)listName ofClass:(NSString *)listClass
+{
+}
+
+
+- (void)removeColorList:(NSString *)listName ofClass:(NSString *)listClass
+{
+}
+
+
+- (void)colorListsOfClass:(NSString *)listClass
+{
+}
+
+
+#pragma mark Letters
 
 
 - (void)setLetterPool:(NSString *)pool
@@ -390,6 +414,7 @@ static NSImage	*glyphSourceImage = nil;
 	[letterPool release];
     [focusWindow close];
     [focusWindowLock release];
+	
     [super dealloc];
 }
 
