@@ -261,10 +261,23 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 - (void)updateChangeCount:(NSDocumentChangeType)changeType
 {
-//	if (changeType == NSChangeDone && !autosaveTimer)
-//		autosaveTimer = [[NSTimer timerWithTimeInterval:60 target:self selector:@selector(autosave:) userInfo:nil repeats:NO] retain];
+	if (changeType == NSChangeDone && !autosaveTimer)
+		[self performSelectorOnMainThread:@selector(startAutosaveTimer:) withObject:nil waitUntilDone:YES];
 	
 	[super updateChangeCount:changeType];
+}
+
+
+- (void)startAutosaveTimer:(id)dummy
+{
+	if ([autosaveTimer isValid])
+		[autosaveTimer invalidate];
+	[autosaveTimer autorelease];
+	
+	int	autosaveInterval = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Autosave Frequency"] description] intValue] * 60;
+	if (autosaveInterval < 60)
+		autosaveInterval = 60;
+	autosaveTimer = [[NSTimer scheduledTimerWithTimeInterval:autosaveInterval target:self selector:@selector(autosave:) userInfo:nil repeats:NO] retain];
 }
 
 
@@ -306,12 +319,12 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	
 	BOOL			wasPaused = paused;
 	
+		// Display a sheet while the save is underway
+// TODO:	[[self mainWindowController] setCancelAction:@selector(cancelSave) andTarget:self];
+	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving..."];
+	
 		// Pause the mosaic so that it is in a static state while saving.
 	[self pause];
-	
-		// Display a sheet while the save is underway
-	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving..."];
-// TODO:	[[self mainWindowController] setCancelAction:@selector(cancelSave) andTarget:self];
 	
 	NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
 											fileName, @"Save Path", 
@@ -340,10 +353,10 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	
 	BOOL			wasPaused = paused;
 	
+	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving..."];
+
 		// Pause the mosaic so that it is in a static state while saving.
 	[self pause];
-	
-	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving..."];
 
 	NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
 											fullDocumentPath, @"Save Path", 
@@ -423,11 +436,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	SEL					didSaveSelector = NSSelectorFromString([parameters objectForKey:@"Did Save Selector"]);
 	void				*contextInfo = (void *)[[parameters objectForKey:@"Context Info"] unsignedLongValue];
 	BOOL				wasPaused = [[parameters objectForKey:@"Was Paused"] boolValue];
-	
-	if ([autosaveTimer isValid])
-		[autosaveTimer invalidate];
-	[autosaveTimer autorelease];
-	autosaveTimer = nil;
 	
 	NS_DURING
 		// TODO: take the save operation into account
@@ -657,7 +665,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	
 	if (![(MacOSaiX *)[NSApp delegate] isQuitting])
 	{
-		autosaveTimer = [[NSTimer timerWithTimeInterval:60 target:self selector:@selector(autosave:) userInfo:nil repeats:NO] retain];
+		[self performSelectorOnMainThread:@selector(startAutosaveTimer:) withObject:nil waitUntilDone:YES];
 		if (!wasPaused)
 			[self resume];
 	}
@@ -1186,12 +1194,11 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	
     [drawWindow close];
     
+	mosaicStarted = YES;
+	
 		// Start up the mosaic
 	if (!loading)
-	{
-		mosaicStarted = YES;
 		[self resume];
-	}
 
     [pool release];
     
