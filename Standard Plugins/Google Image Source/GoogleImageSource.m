@@ -27,6 +27,11 @@ NSString *escapedNSString(NSString *string)
 }
 
 
+@interface GoogleImageSource (PrivateMethods)
+- (void)updateQueryAndDescriptor;
+@end
+
+
 @implementation GoogleImageSource
 
 
