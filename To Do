@@ -125,7 +125,7 @@ Ordered array:		images, fileIDs
 ¥		purge unused images in disk cache on save
 
 2.0a2 To Do:
-Ã	Uniqueness
+?	Uniqueness
 Ã	Image sources GUI (whole utility drawer, actually)
 Ã	Recent originals in open panel
 Ã	Make all image identifiers strings (still used as plist dictionary key?)
@@ -134,10 +134,11 @@ Ordered array:		images, fileIDs
 Ã	Split MacOSaiXWindowController out of MacOSaiXDocument
 Ã	Rework tile shapes plug-in API to get rid of framework
 Ã	Rework rectangular shapes plug-in to conform with new API
+	Image cache
+Ã		Make in-memory cache size, rather than count, dependent
 ¥	Saving (+ plug-ins state)
 ¥	Loading
-	Image cache
-¥		Make in-memory cache size, rather than count, dependent
+¥	Add ability to toggle between displaying original or mosaic.
 ¥	Resume toolbar icon should read Start before mosaic has begun
 ¥	Rework hexagonal shapes plug-in to conform with new API
 ¥	Rework puzzle shapes plug-in to conform with new API
