@@ -91,14 +91,45 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 }
 
 
-- (void)setWindowControllersDirty:(BOOL)dirty
-{
-	NSEnumerator		*controllerEnumerator = [[self windowControllers] objectEnumerator];
-	NSWindowController	*controller = nil;
-	
-	while (controller = [controllerEnumerator nextObject])
-		[controller setDocumentEdited:dirty];
-}
+//- (void)shouldCloseWindowController:(NSWindowController *)windowController 
+//						   delegate:(id)delegate 
+//				shouldCloseSelector:(SEL)callback 
+//						contextInfo:(void *)contextInfo
+//{
+//	if (saving)
+//	{
+//		if (delegate && [delegate respondsToSelector:callback])
+//		{
+//				// ...
+//				// The delegate's selector has the signature:
+//				// - (void)document:(NSDocument *)doc didSave:(BOOL)didSave contextInfo:(void *)contextInfo
+//			NSMethodSignature	*signature = [[delegate class] instanceMethodSignatureForSelector:callback];
+//			NSInvocation		*shouldCloseCallback = [NSInvocation invocationWithMethodSignature:signature];
+//			BOOL				shouldClose = NO;
+//			
+//			[shouldCloseCallback setTarget:delegate];
+//			[shouldCloseCallback setSelector:callback];
+//			[shouldCloseCallback setArgument:&self atIndex:2];
+//			[shouldCloseCallback setArgument:&shouldClose atIndex:3];
+//			[shouldCloseCallback setArgument:&contextInfo atIndex:4];
+//			[shouldCloseCallback invoke];
+//		}
+//	}
+//	else
+//		[super shouldCloseWindowController:windowController 
+//								  delegate:delegate 
+//					   shouldCloseSelector:callback 
+//							   contextInfo:contextInfo];
+//}
+
+
+//- (void)removeWindowController:(NSWindowController *)windowController
+//{
+//	if (saving)
+//		;
+//	else
+//		[super removeWindowController:windowController];
+//}
 
 
 - (MacOSaiXImageCache *)imageCache
@@ -117,7 +148,10 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		originalImagePath = [[NSString stringWithString:path] retain];
 		originalImage = [[NSImage alloc] initWithContentsOfFile:path];
 		[originalImage setCacheMode:NSImageCacheNever];
-		[originalImage setScalesWhenResized:NO];
+
+			// Ignore whatever DPI was set for the image.  We just care about the bitmap.
+		NSImageRep	*originalRep = [[originalImage representations] objectAtIndex:0];
+		[originalImage setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
 		
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXOriginalImageDidChangeNotification object:self];
 	}
@@ -244,8 +278,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		// Pause the mosaic so that it is in a static state while saving.
 	[self pause];
 	
-	// TBD: set a "saving" flag?
-	
 		// Display a sheet while the save is underway
 	[[[self windowControllers] objectAtIndex:0] displayProgressPanelWithMessage:@"Saving..."];
 // TODO:	[[[self windowControllers] objectAtIndex:0] setCancelAction:@selector(cancelSave) andTarget:self];
@@ -266,6 +298,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 							 toTarget:self 
 						   withObject:parameters];
 }
+
 
 - (BOOL)writeToFile:(NSString *)fullDocumentPath 
 			 ofType:(NSString *)docType 
@@ -358,6 +391,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	SEL					didSaveSelector = NSSelectorFromString([parameters objectForKey:@"Did Save Selector"]);
 	void				*contextInfo = (void *)[[parameters objectForKey:@"Context Info"] unsignedLongValue];
 	BOOL				wasPaused = [[parameters objectForKey:@"Was Paused"] boolValue];
+	
+	NSLog(@"Beginning save");
 	
 	NS_DURING
 		// TODO: take the save operation into account
@@ -530,8 +565,14 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	[self setFileType:@"MacOSaiX Project"];
 	[self updateChangeCount:NSChangeCleared];
 	
+	NSLog(@"Save completed");
+	
+	[self setIsSaving:NO];
+	
 	if (didSaveDelegate && [didSaveDelegate respondsToSelector:didSaveSelector])
 	{
+		NSLog(@"Calling back to save delegate");
+		
 			// Now that the save has completed (successfully or not) let the delegate know.
 			// The delegate's selector has the signature:
 			// - (void)document:(NSDocument *)doc didSave:(BOOL)didSave contextInfo:(void *)contextInfo
@@ -540,19 +581,19 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		
 		[saveCallback setTarget:didSaveDelegate];
 		[saveCallback setSelector:didSaveSelector];
-		[saveCallback setArgument:&self atIndex:0];
-		[saveCallback setArgument:&saveSucceeded atIndex:1];
-		[saveCallback setArgument:&contextInfo atIndex:2];
+		[saveCallback setArgument:&self atIndex:2];
+		[saveCallback setArgument:&saveSucceeded atIndex:3];
+		[saveCallback setArgument:&contextInfo atIndex:4];
 		[saveCallback invoke];
 	}
 	
-	[self setIsSaving:NO];
+	NSLog(@"Sending save completed notification");
 	
 		// TODO: include @"User Cancelled" key
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidSaveNotification 
 														object:self 
 													  userInfo:nil];
-	
+
 	if (!wasPaused && ![(MacOSaiX *)[NSApp delegate] isQuitting])
 		[self resume];
 
@@ -765,7 +806,8 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 	
 	[self calculateTileNeighborhoods];
 		
-	mosaicStarted = NO;
+	if ([imageSources count] > 0)
+		[self resume];
 }
 
 
@@ -968,7 +1010,6 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 			// Set the caching behavior of the image.  We'll be adding bitmap representations of various
 			// sizes to the image so it doesn't need to do any of its own caching.
 		[image setCacheMode:NSImageCacheNever];
-		[image setScalesWhenResized:NO];
 		
 		BOOL	imageIsValid = NO;
 		
@@ -978,31 +1019,41 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 			NSLog(@"Exception raised while checking image validity (%@)", localException);
 		NS_ENDHANDLER
 			
-		if (image && imageIsValid && [image size].width > 16 && [image size].height > 16)
+		if (image && imageIsValid)
 		{
-			[imageQueueLock lock];	// this will be locked if the queue is full
-				while ([imageQueue count] > MAXIMAGEURLS)
-				{
-					[imageQueueLock unlock];
-					[imageQueueLock lock];
-				}
-				[imageQueue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-											image, @"Image",
-											imageSource, @"Image Source", 
-											imageIdentifier, @"Image Identifier", // last since it could be nil
-											nil]];
-				
-				[enumerationCountsLock lock];
-					NSString		*key = [NSString stringWithFormat:@"%p", imageSource];
-					unsigned long	currentCount = [[enumerationCounts objectForKey:key] unsignedLongValue];
-					[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:currentCount + 1] forKey:key];
-				[enumerationCountsLock unlock];
-			[imageQueueLock unlock];
-
-			if (!calculateImageMatchesThreadAlive)
-				[NSApplication detachDrawingThread:@selector(calculateImageMatches:) toTarget:self withObject:nil];
+				// Ignore whatever DPI was set for the image.  We just care about the bitmap.
+			NSImageRep	*originalRep = [[image representations] objectAtIndex:0];
+			[image setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
 			
-			[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
+			if ([image size].width > 16 && [image size].height > 16)
+			{
+				[imageQueueLock lock];	// this will be locked if the queue is full
+					while (!documentIsClosing && [imageQueue count] > MAXIMAGEURLS)
+					{
+						[imageQueueLock unlock];
+						[imageQueueLock lock];
+					}
+					
+					// TODO: are we losing an image if documentIsClosing?
+					
+					[imageQueue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+												image, @"Image",
+												imageSource, @"Image Source", 
+												imageIdentifier, @"Image Identifier", // last since it could be nil
+												nil]];
+					
+					[enumerationCountsLock lock];
+						NSString		*key = [NSString stringWithFormat:@"%p", imageSource];
+						unsigned long	currentCount = [[enumerationCounts objectForKey:key] unsignedLongValue];
+						[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:currentCount + 1] forKey:key];
+					[enumerationCountsLock unlock];
+				[imageQueueLock unlock];
+
+				if (!documentIsClosing && !calculateImageMatchesThreadAlive)
+					[NSApplication detachDrawingThread:@selector(calculateImageMatches:) toTarget:self withObject:nil];
+				
+				[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
+			}
 		}
 		sourceHasMoreImages = [imageSource hasMoreImages];
 		
@@ -1107,60 +1158,25 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 		NSString				*pixletImageIdentifier = [nextImageDict objectForKey:@"Image Identifier"];
 		
 			// If the pixlet image is large then use a scaled down copy instead to speed matching.
-		if ([pixletImage size].width > (TILE_BITMAP_SIZE * 2.0) && [pixletImage size].height > (TILE_BITMAP_SIZE * 2.0))
-			pixletImage = [pixletImage copyWithLargestDimension:TILE_BITMAP_SIZE * 2.0];
+//		if ([pixletImage size].width > (TILE_BITMAP_SIZE * 2.0) && [pixletImage size].height > (TILE_BITMAP_SIZE * 2.0))
+//			pixletImage = [pixletImage copyWithLargestDimension:TILE_BITMAP_SIZE * 2.0];
 		
 			// Add this image to the cache.  If the identifier is nil or zero-length then 
 			// a new identifier will be returned.
 		pixletImageIdentifier = [imageCache cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
-		
-		NSMutableDictionary	*cachedReps = [NSMutableDictionary dictionaryWithCapacity:16];
 		
 			// loop through the tiles and compute the pixlet's match
 		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
 		Tile			*tile = nil;
 		while ((tile = [tileEnumerator nextObject]) && !documentIsClosing)
 		{
-				// scale the smaller of the pixlet's image's dimensions to the size used
-				// for pixel matching and extract the rep
-			float	scale = MAX([[tile bitmapRep] size].width / [pixletImage size].width, 
-								[[tile bitmapRep] size].height / [pixletImage size].height);
-			NSRect	subRect = NSMakeRect(0, 0, (int)([pixletImage size].width * scale + 0.5),
-										 (int)([pixletImage size].height * scale + 0.5));
-			
-				// Check if we already have a rep of this size.
-			NSImageRep		*imageRep = [cachedReps objectForKey:NSStringFromSize(subRect.size)];
-			if (!imageRep)
-			{
-					// No bitmap at the correct size was found, try to create a new one
-				BOOL	lockedFocus = NO;
-				
-				while (!lockedFocus)
-				{
-					NS_DURING
-						[scratchImage lockFocus];
-						lockedFocus = YES;
-					NS_HANDLER
-						// TBD: how to handle this?
-						NSLog(@"Could not lock focus on scratch image, what should I do?");
-					NS_ENDHANDLER
-				}
-				
-				NS_DURING
-					[pixletImage drawInRect:subRect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
-					imageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:subRect] autorelease];
-					if (imageRep)
-						[cachedReps setObject:imageRep forKey:NSStringFromSize(subRect.size)];
-				NS_HANDLER
-					// TBD: how to handle this?
-					NSLog(@"Could not create cached bitmap (%@).", localException);
-				NS_ENDHANDLER
-				
-				[scratchImage unlockFocus];
-			}
+				// Get an rep for the image scaled to the tile's bitmap size.
+			NSImageRep		*imageRep = [[self imageCache] imageRepAtSize:[[tile bitmapRep] size] 
+															forIdentifier:pixletImageIdentifier 
+															   fromSource:pixletImageSource];
 	
 				// If the tile reports that the image matches better than its previous worst match
-				// then add the tile and its neighbors to the set of tiles potentially needing redraw.
+				// then add the tile to the set of tiles potentially needing redraw.
 			if (imageRep && [tile matchAgainstImageRep:(NSBitmapImageRep *)imageRep
 										withIdentifier:pixletImageIdentifier
 									   fromImageSource:pixletImageSource])
@@ -1169,7 +1185,6 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 				
 				[refreshTilesSetLock lock];
 					[refreshTilesSet addObject:tile];
-//???					[refreshTilesSet addObjectsFromArray:[tile neighbors]];
 				[refreshTilesSetLock unlock];
 
 				if (!calculateDisplayedImagesThreadAlive)
@@ -1296,6 +1311,9 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 	[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) 
 							  toTarget:self 
 							withObject:imageSource];
+	
+	if ([self tileShapes])
+		[self resume];
 }
 
 
@@ -1310,18 +1328,118 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 #pragma mark -
 
 
-- (void)canCloseDocumentWithDelegate:(id)delegate shouldCloseSelector:(SEL)shouldCloseSelector
-			 contextInfo:(void *)contextInfo
+- (void)canCloseDocumentWithDelegate:(id)delegate 
+				 shouldCloseSelector:(SEL)shouldCloseSelector
+						 contextInfo:(void *)contextInfo
 {
+	NSLog(@"\"Can close document\" called");
+	
 		// pause threads so document dirty state doesn't change
     if (!paused)
 		[self pause];
-	
-    while ([self isExtractingTileImagesFromOriginal] || [self isCalculatingImageMatches])	//|| [self isCalculatingDisplayedImages])
-		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
     
-    [super canCloseDocumentWithDelegate:delegate shouldCloseSelector:shouldCloseSelector 
-			    contextInfo:contextInfo];
+	if ([self isDocumentEdited])
+	{
+			// Present a sheet that allows the user to save, cancel or not save.
+			// TODO: get the localized versions of these strings
+		NSString		*title = [NSString stringWithFormat:@"Do you want to save the changes you made in document \"%@\"?",
+															[[self fileName] lastPathComponent]], 
+						*saveString = @"Save",
+						*dontSaveString = @"Don't Save", 
+						*cancelString = @"Cancel", 
+						*message = @"Your changes will be lost if you don't save them.";
+		NSDictionary	*metaContextInfo = [[NSDictionary dictionaryWithObjectsAndKeys:
+												delegate, @"Should Close Delegate", 
+												NSStringFromSelector(shouldCloseSelector), @"Should Close Selector", 
+												[NSString stringWithFormat:@"%p", contextInfo], @"Context Info",
+												nil] retain];
+		
+		NSBeginAlertSheet(title, saveString, dontSaveString, cancelString, 
+						  [[[self windowControllers] objectAtIndex:0] window],
+						  self, nil, @selector(shouldCloseSheetDidDismiss:returnCode:contextInfo:), metaContextInfo, 
+						  message);
+	}
+	else
+		[super canCloseDocumentWithDelegate:delegate shouldCloseSelector:shouldCloseSelector 
+					contextInfo:contextInfo];
+}
+
+
+- (void)shouldCloseSheetDidDismiss:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)metaContextInfo
+{
+	BOOL	shouldClose = NO;
+	
+	switch (returnCode)
+	{
+		case NSAlertDefaultReturn:
+				// The user chose to save.  When the save is complete it will call back to our
+				// method which will then call back to the close initiator.
+			[self saveDocumentWithDelegate:self 
+						   didSaveSelector:@selector(closeAfterDocument:didSave:contextInfo:) 
+							   contextInfo:metaContextInfo];
+			break;
+
+			// The user chose to cancel or not to save.  Immediately call back to the close initiator,
+			// returning NO if they cancelled or YES if they chose not to save.
+		case NSAlertAlternateReturn:
+			shouldClose = YES;
+		case NSAlertOtherReturn:
+		{
+			id		shouldCloseDelegate = [(NSDictionary *)metaContextInfo objectForKey:@"Should Close Delegate"];
+			SEL		shouldCloseSelector = NSSelectorFromString([(NSDictionary *)metaContextInfo objectForKey:@"Should Close Selector"]);
+			void	*contextInfo = nil;
+			if ([(NSDictionary *)metaContextInfo objectForKey:@"Context Info"])
+				sscanf([[(NSDictionary *)metaContextInfo objectForKey:@"Context Info"] UTF8String], "%p", &contextInfo);
+			
+			if (shouldCloseDelegate && [shouldCloseDelegate respondsToSelector:shouldCloseSelector])
+			{
+					// Now that the save has completed (successfully or not) let the delegate know.
+					// The delegate's selector has the signature:
+					// - (void)document:(NSDocument *)doc shouldClose:(BOOL)didSave contextInfo:(void *)contextInfo
+				NSMethodSignature	*signature = [[shouldCloseDelegate class] instanceMethodSignatureForSelector:shouldCloseSelector];
+				NSInvocation		*shouldCloseCallback = [NSInvocation invocationWithMethodSignature:signature];
+				
+				[shouldCloseCallback setTarget:shouldCloseDelegate];
+				[shouldCloseCallback setSelector:shouldCloseSelector];
+				[shouldCloseCallback setArgument:&self atIndex:2];
+				[shouldCloseCallback setArgument:&shouldClose atIndex:3];
+				[shouldCloseCallback setArgument:&contextInfo atIndex:4];
+				[shouldCloseCallback invoke];
+			}
+			
+			[(id)metaContextInfo release];
+			break;
+		}
+	}
+}
+
+
+- (void)closeAfterDocument:(NSDocument *)doc didSave:(BOOL)didSave contextInfo:(void *)metaContextInfo
+{
+		// The save has completed so call back to the close initiator.
+	id		shouldCloseDelegate = [(NSDictionary *)metaContextInfo objectForKey:@"Should Close Delegate"];
+	SEL		shouldCloseSelector = NSSelectorFromString([(NSDictionary *)metaContextInfo objectForKey:@"Should Close Selector"]);
+	void	*contextInfo = nil;
+	if ([(NSDictionary *)metaContextInfo objectForKey:@"Context Info"])
+		sscanf([[(NSDictionary *)metaContextInfo objectForKey:@"Context Info"] UTF8String], "%p", &contextInfo);
+	
+	if (shouldCloseDelegate && [shouldCloseDelegate respondsToSelector:shouldCloseSelector])
+	{
+			// Now that the save has completed (successfully or not) let the delegate know.
+			// The delegate's selector has the signature:
+			// - (void)document:(NSDocument *)doc shouldClose:(BOOL)didSave contextInfo:(void *)contextInfo
+		NSMethodSignature	*signature = [[shouldCloseDelegate class] instanceMethodSignatureForSelector:shouldCloseSelector];
+		NSInvocation		*shouldCloseCallback = [NSInvocation invocationWithMethodSignature:signature];
+		
+		[shouldCloseCallback setTarget:shouldCloseDelegate];
+		[shouldCloseCallback setSelector:shouldCloseSelector];
+		[shouldCloseCallback setArgument:&self atIndex:2];
+		[shouldCloseCallback setArgument:&didSave atIndex:3];
+		[shouldCloseCallback setArgument:&contextInfo atIndex:4];
+		[shouldCloseCallback invoke];
+	}
+	
+	[(id)metaContextInfo release];
 }
 
 
@@ -1333,14 +1451,17 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 
 - (void)close
 {
+	NSLog(@"Closing document");
+	
 	if (documentIsClosing)
 		return;	// make sure to do the steps below only once (not sure why this method sometimes gets called twice...)
 	
-		// let other threads know we are closing
+		// Let the helper threads know we are closing and resume so that they can exit.
 	documentIsClosing = YES;
+	[self resume];
 	
 		// wait for the threads to shut down
-    while ([self isExtractingTileImagesFromOriginal] || [self isCalculatingImageMatches])	//|| [self isCalculatingDisplayedImages])
+    while ([self isExtractingTileImagesFromOriginal] || [self isEnumeratingImageSources] || [self isCalculatingImageMatches])
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
 		
 		// Give the image sources a chance to clean up before we close shop
@@ -1356,6 +1477,8 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 
 - (void)dealloc
 {
+	NSLog(@"Dealloc'ing document");
+	
     [originalImagePath release];
     [originalImage release];
 	[pauseLock release];
