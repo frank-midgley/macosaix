@@ -63,12 +63,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		calculateImageMatchesThreadLock = [[NSLock alloc] init];
 		betterMatchesCache = [[NSMutableDictionary dictionary] retain];
 		
-			// set up ivars for "calculateDisplayedImages" thread
-		calculateDisplayedImagesThreadAlive = NO;
-		calculateDisplayedImagesThreadLock = [[NSLock alloc] init];
-		refreshTilesSet = [[NSMutableSet setWithCapacity:256] retain];
-		refreshTilesSetLock = [[NSLock alloc] init];
-
 		tileImages = [[NSMutableArray arrayWithCapacity:0] retain];
 		tileImagesLock = [[NSLock alloc] init];
 		
@@ -204,7 +198,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			// Wait for any queued images to get processed.
 			// TBD: can we condition lock here instead of poll?
 			// TBD: this could block the main thread
-		while ([self isCalculatingImageMatches])	//|| [self isCalculatingDisplayedImages])
+		while ([self isCalculatingImageMatches])
 			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 		
 		paused = YES;
@@ -822,6 +816,18 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 }
 
 
+- (int)imageUseCount
+{
+	return imageUseCount;
+}
+
+
+- (void)setImageUseCount:(int)count
+{
+	imageUseCount = count;
+}
+
+
 - (int)neighborhoodSize
 {
 	return neighborhoodSize;
@@ -1226,35 +1232,42 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 		
 		if ([betterMatches count] == 0)
 		{
-			NSLog(@"%@ from %@ is not needed", pixletImageIdentifier, pixletImageSource);
+//			NSLog(@"%@ from %@ is not needed", pixletImageIdentifier, pixletImageSource);
 			[betterMatchesCache removeObjectForKey:pixletKey];
+			
+			// TBD: Is this the right place to purge images from the disk cache?
 		}
 		else
 		{
 			// Figure out which tiles should be set to use the image based on the user's settings.
 #if 1
-				// Just allow one use of each image for now.
-			ImageMatch	*betterMatch = [betterMatches objectAtIndex:0];
-			Tile		*tile = [betterMatch tile];
-			
-				// Add the tile's current image back to the queue so it can potentially get re-used by other tiles.
-				// TBD: when will images in the disk cache get purged?
-			ImageMatch	*previousMatch = [tile imageMatch];
-			if (previousMatch && ([previousMatch imageSource] != pixletImageSource || 
-				![[previousMatch imageIdentifier] isEqualToString:pixletImageIdentifier]))
+				// Just allow a fixed number of uses of each image for now.  No neighborhood size yet.
+			int	i, useCount = [self imageUseCount];
+			if (useCount == 0 || [betterMatches count] < useCount)
+				useCount = [betterMatches count];
+			for (i = 0; i < useCount; i++)
 			{
-				if (!queueLocked)
+				ImageMatch	*betterMatch = [betterMatches objectAtIndex:i];
+				Tile		*tile = [betterMatch tile];
+				
+					// Add the tile's current image back to the queue so it can potentially get re-used by other tiles.
+				ImageMatch	*previousMatch = [tile imageMatch];
+				if (previousMatch && ([previousMatch imageSource] != pixletImageSource || 
+					![[previousMatch imageIdentifier] isEqualToString:pixletImageIdentifier]))
 				{
-					[imageQueueLock lock];
-					queueLocked = YES;
+					if (!queueLocked)
+					{
+						[imageQueueLock lock];
+						queueLocked = YES;
+					}
+					[imageQueue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+												[previousMatch imageSource], @"Image Source", 
+												[previousMatch imageIdentifier], @"Image Identifier",
+												nil]];
 				}
-				[imageQueue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-											[previousMatch imageSource], @"Image Source", 
-											[previousMatch imageIdentifier], @"Image Identifier",
-											nil]];
+				
+				[tile setImageMatch:betterMatch];
 			}
-			
-			[tile setImageMatch:betterMatch];
 			[self updateChangeCount:NSChangeDone];
 #else
 			NSEnumerator	*matchEnumerator = [betterMatches objectEnumerator];
@@ -1294,16 +1307,6 @@ void endStructure(CFXMLParserRef parser, void *xmlType, void *info)
 - (BOOL)isCalculatingImageMatches
 {
 	return calculateImageMatchesThreadAlive;
-}
-
-
-#pragma mark -
-#pragma mark Uniqueness
-
-
-- (BOOL)isCalculatingDisplayedImages
-{
-	return calculateDisplayedImagesThreadAlive;
 }
 
 

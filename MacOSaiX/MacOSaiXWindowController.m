@@ -128,8 +128,10 @@
 		else
 			[tileShapesDescriptionField setStringValue:@"No description available"];
 		
-			// Set the neighborhood size pop-up.
-		int				popUpIndex = [[self document] neighborhoodSize] - 1;
+			// Set the image use count and neighborhood size pop-ups.
+		int				popUpIndex = [imageUseCountPopUpButton indexOfItemWithTag:[[self document] imageUseCount]];
+		[imageUseCountPopUpButton selectItemAtIndex:popUpIndex];
+		popUpIndex = [[self document] neighborhoodSize] - 1;
 		if (popUpIndex >= 0 && popUpIndex < [neighborhoodSizePopUpButton numberOfItems])
 			[neighborhoodSizePopUpButton selectItemAtIndex:popUpIndex];
 		
@@ -422,12 +424,8 @@
 												   [[self document] tileCreationPercentComplete]];
 	else if (![[self document] wasStarted])
 		statusMessage = @"Ready to begin.  Click the Start Mosaic button in the toolbar.";
-	else if ([[self document] isCalculatingImageMatches] && [[self document] isCalculatingDisplayedImages])
-		statusMessage = [NSString stringWithString:@"Matching images and finding unique tiles..."];
 	else if ([[self document] isCalculatingImageMatches])
 		statusMessage = [NSString stringWithString:@"Matching images..."];
-	else if ([[self document] isCalculatingDisplayedImages])
-		statusMessage = [NSString stringWithString:@"Finding unique tiles..."];
 	else if ([[self document] isPaused])
 		statusMessage = [NSString stringWithString:@"Paused"];
 	else if ([[self document] isEnumeratingImageSources])
@@ -587,7 +585,7 @@
 
 - (IBAction)setImageUseCount:(id)sender
 {
-//	[[self document] setImageUseCount:[[imageUseCountPopUpButton selectedItem] tag]];
+	[[self document] setImageUseCount:[[imageUseCountPopUpButton selectedItem] tag]];
 }
 
 

@@ -116,6 +116,7 @@ typedef enum
 	// Settings drawer
 - (IBAction)chooseOriginalImage:(id)sender;
 - (IBAction)changeTileShapes:(id)sender;
+- (IBAction)setImageUseCount:(id)sender;
 - (IBAction)setNeighborhoodSize:(id)sender;
 - (IBAction)addNewImageSource:(id)sender;
 - (IBAction)removeImageSource:(id)sender;

@@ -7,9 +7,6 @@
 
 @interface MacOSaiXDocument : NSDocument 
 {
-	int							neighborhoodSize;
-	NSMutableDictionary			*directNeighbors;
-
     NSString					*originalImagePath;
     NSImage						*originalImage;
     NSMutableArray				*imageSources,
@@ -17,6 +14,10 @@
 	id<MacOSaiXTileShapes>		tileShapes;
 	MacOSaiXImageCache			*imageCache;
 	
+	int							imageUseCount;
+	int							neighborhoodSize;
+	NSMutableDictionary			*directNeighbors;
+
 		// Document state
     BOOL						documentIsClosing,	// flag set to true when document is closing
 								mosaicStarted, 
@@ -43,12 +44,6 @@
 	BOOL						calculateImageMatchesThreadAlive;
     long						imagesMatched;
 	NSMutableDictionary			*betterMatchesCache;
-	
-		// Calculate displayed images
-	NSMutableSet				*refreshTilesSet;
-	NSLock						*refreshTilesSetLock,
-								*calculateDisplayedImagesThreadLock;
-	BOOL						calculateDisplayedImagesThreadAlive;
 		
 		// Saving
     NSDate						*lastSaved;
@@ -63,6 +58,8 @@
 - (void)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes;
 - (id<MacOSaiXTileShapes>)tileShapes;
 
+- (int)imageUseCount;
+- (void)setImageUseCount:(int)count;
 - (int)neighborhoodSize;
 - (void)setNeighborhoodSize:(int)size;
 
@@ -83,8 +80,6 @@
 
 - (BOOL)isCalculatingImageMatches;
 - (unsigned long)imagesMatched;
-
-- (BOOL)isCalculatingDisplayedImages;
 
 - (NSArray *)imageSources;
 - (void)addImageSource:(id<MacOSaiXImageSource>)imageSource;
