@@ -2,15 +2,21 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            CLASS = GlyphImageSourceController; 
+            ACTIONS = {setCountOption = id; setTextOption = id; toggleColor = id; toggleFont = id; }; 
+            CLASS = MacOSaiXGlyphImageSourceController; 
             LANGUAGE = ObjC; 
-            SUPERCLASS = ImageSourceController; 
-        }, 
-        {
-            CLASS = ImageSourceController; 
-            LANGUAGE = ObjC; 
-            OUTLETS = {"_imageSourceView" = NSView; }; 
-            SUPERCLASS = NSWindowController; 
+            OUTLETS = {
+                colorsTableView = NSTableView; 
+                countMatrix = NSMatrix; 
+                countTextField = NSTextField; 
+                editorView = NSView; 
+                fontsTableView = NSTableView; 
+                okButton = NSButton; 
+                sampleImageView = NSImageView; 
+                textMatrix = NSMatrix; 
+                textView = NSTextView; 
+            }; 
+            SUPERCLASS = NSObject; 
         }
     ); 
     IBVersion = 1; 

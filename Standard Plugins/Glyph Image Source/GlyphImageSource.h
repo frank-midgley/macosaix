@@ -3,16 +3,28 @@
 //  MacOSaiX
 //
 //  Created by Frank Midgley on Thu Apr 04 2002.
-//  Copyright (c) 2001 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2001-2005 Frank M. Midgley. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
-#import "ImageSource.h"
+#import <Cocoa/Cocoa.h>
+#import "MacOSaiXImageSource.h"
 
-@interface GlyphImageSource : ImageSource {
-    NSArray	*_fontNames;
-    NSWindow	*_focusWindow;	// for offscreen drawing
-    NSLock	*_focusWindowLock;
+@interface MacOSaiXGlyphImageSource : NSObject <MacOSaiXImageSource>
+{
+    NSMutableArray	*fontNames,
+					*colorNames;
+    NSWindow		*focusWindow;	// for offscreen drawing
+    NSLock			*focusWindowLock;
+	
+	unsigned long	imageCountLimit,
+					imageCount;
 }
+
+- (void)addFontWithName:(NSString *)fontName;
+- (void)removeFontWithName:(NSString *)fontName;
+- (NSArray *)fontNames;
+
+- (void)setImageCountLimit:(unsigned long)limit;
+- (unsigned long)imageCountLimit;
 
 @end
