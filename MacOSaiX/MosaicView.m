@@ -18,6 +18,7 @@
 	mosaicImageLock = [[NSLock alloc] init];
 	tilesOutline = [[NSBezierPath bezierPath] retain];
 	tilesNeedingDisplay = [[NSMutableArray array] retain];
+	tilesNeedingDisplayLock = [[NSLock alloc] init];
 	lastUpdate = [[NSDate date] retain];
 	
 	NSImage	*blackImage = [[NSImage alloc] initWithSize:NSMakeSize(16.0, 16.0)];
@@ -114,30 +115,30 @@
 	else
 		newImageRep = blackRep;
 	
-	[mosaicImageLock lock];
-		if (newImageRep)
+	if (newImageRep)
+	{
+			// Draw the tile's new image in the mosaic
+		NSSize			newImageRepSize = [newImageRep size];
+		NSRect			drawRect;
+		
+			// scale the image to the tile's size, but preserve it's aspect ratio
+		if ([clipPath bounds].size.width / newImageRepSize.width <
+			[clipPath bounds].size.height / newImageRepSize.height)
 		{
-				// Draw the tile's new image in the mosaic
-			NSSize			newImageRepSize = [newImageRep size];
-			NSRect			drawRect;
-			
-				// scale the image to the tile's size, but preserve it's aspect ratio
-			if ([clipPath bounds].size.width / newImageRepSize.width <
-				[clipPath bounds].size.height / newImageRepSize.height)
-			{
-				drawRect.size = NSMakeSize([clipPath bounds].size.height * newImageRepSize.width / newImageRepSize.height,
-										   [clipPath bounds].size.height);
-				drawRect.origin = NSMakePoint([clipPath bounds].origin.x - (drawRect.size.width - [clipPath bounds].size.width) / 2.0,
-											  [clipPath bounds].origin.y);
-			}
-			else
-			{
-				drawRect.size = NSMakeSize([clipPath bounds].size.width,
-										   [clipPath bounds].size.width * newImageRepSize.height / newImageRepSize.width);
-				drawRect.origin = NSMakePoint([clipPath bounds].origin.x,
-											  [clipPath bounds].origin.y - (drawRect.size.height - [clipPath bounds].size.height) /2.0);
-			}
-			
+			drawRect.size = NSMakeSize([clipPath bounds].size.height * newImageRepSize.width / newImageRepSize.height,
+									   [clipPath bounds].size.height);
+			drawRect.origin = NSMakePoint([clipPath bounds].origin.x - (drawRect.size.width - [clipPath bounds].size.width) / 2.0,
+										  [clipPath bounds].origin.y);
+		}
+		else
+		{
+			drawRect.size = NSMakeSize([clipPath bounds].size.width,
+									   [clipPath bounds].size.width * newImageRepSize.height / newImageRepSize.width);
+			drawRect.origin = NSMakePoint([clipPath bounds].origin.x,
+										  [clipPath bounds].origin.y - (drawRect.size.height - [clipPath bounds].size.height) /2.0);
+		}
+		
+		[mosaicImageLock lock];
 			NS_DURING
 				[mosaicImage lockFocus];
 					[clipPath setClip];
@@ -146,21 +147,44 @@
 			NS_HANDLER
 				NSLog(@"Could not lock focus on mosaic image");
 			NS_ENDHANDLER
-			
+		[mosaicImageLock unlock];
+//		NSArray	*paramaters = [NSArray arrayWithObjects:clipPath, newImageRep, [NSValue valueWithRect:drawRect], nil];
+//		[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:paramaters waitUntilDone:YES];
+		
+		[tilesNeedingDisplayLock lock];
 			[tilesNeedingDisplay addObject:tileToRefresh];
-		}
+		[tilesNeedingDisplayLock unlock];
 		
 		if ([lastUpdate timeIntervalSinceNow] < -0.1)
-			[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:nil waitUntilDone:NO];
-	[mosaicImageLock unlock];
+			[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:nil waitUntilDone:YES];
+	}
 }
+
+
+//- (void)drawTileImage:(NSArray *)paramaters
+//{
+//	NSBezierPath	*clipPath = [paramaters objectAtIndex:0];
+//	NSImageRep		*newImageRep = [paramaters objectAtIndex:1];
+//	NSRect			drawRect = [[paramaters objectAtIndex:2] rectValue];
+//	
+//	[mosaicImageLock lock];
+//		NS_DURING
+//			[mosaicImage lockFocus];
+//				[clipPath setClip];
+//				[newImageRep drawInRect:drawRect];
+//			[mosaicImage unlockFocus];
+//		NS_HANDLER
+//			NSLog(@"Could not lock focus on mosaic image");
+//		NS_ENDHANDLER
+//	[mosaicImageLock unlock];
+//}
 
 
 - (void)setTileNeedsDisplay:(id)dummy
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	
-	[mosaicImageLock lock];
+	[tilesNeedingDisplayLock lock];
 		NSAffineTransform	*transform = [NSAffineTransform transform];
 		[transform translateXBy:-0.5 yBy:-0.5];	// line up with pixel boundaries
 		[transform scaleXBy:([self frame].size.width + 1.0) yBy:([self frame].size.height + 1.0)];
@@ -174,7 +198,7 @@
 		
 		[lastUpdate release];
 		lastUpdate = [[NSDate date] retain];
-	[mosaicImageLock unlock];
+	[tilesNeedingDisplayLock unlock];
 	
 	[pool release];
 }
