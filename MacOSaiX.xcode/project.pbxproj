@@ -57,6 +57,12 @@
 			settings = {
 			};
 		};
+		01DF729B070A5C6000512549 = {
+			fileRef = 92848A0406611CE6003B3514;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 //010
 //011
 //012
@@ -69,18 +75,23 @@
 //084
 		080E96DDFE201D6D7F000001 = {
 			children = (
-				F5666CCAC5B062B401D943E0,
-				00E5856D005F0FA87F000001,
 				29B97316FDCFA39411CA2CEA,
+				F5666CC9C5B062B401D943E0,
+				F5666CCAC5B062B401D943E0,
+				00E5856E005F0FA87F000001,
+				00E5856D005F0FA87F000001,
+				F5517EEE020CD88F01000106,
 				F5517EEF020CD88F01000106,
+				F53FEE25024A568201000108,
 				F53FEE26024A568201000108,
+				F54167CC024C0FB80100010B,
 				F54167CD024C0FB80100010B,
+				F566B485028052CF01000108,
 				F566B486028052CF01000108,
-				F54A32C4024E65680100010C,
+				00EAAC6000853DFB7F000001,
 				00EAAC6100853DFB7F000001,
 				928F724A0661214000873AE2,
 				928F726C066121AE00873AE2,
-				F53FEE2C024A5FDF01000108,
 				928F72460661211600873AE2,
 				F57C77BD025E6D6001000102,
 			);
@@ -364,6 +375,7 @@
 			files = (
 				92848A1706611CE6003B3514,
 				92848A1A06611CE6003B3514,
+				01DF729B070A5C6000512549,
 			);
 			isa = PBXCopyFilesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1999,22 +2011,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		F53FEE2C024A5FDF01000108 = {
-			children = (
-				F5666CC9C5B062B401D943E0,
-				00E5856E005F0FA87F000001,
-				F5517EEE020CD88F01000106,
-				F53FEE25024A568201000108,
-				F54167CC024C0FB80100010B,
-				F566B485028052CF01000108,
-				F54A32C3024E65680100010C,
-				00EAAC6000853DFB7F000001,
-			);
-			isa = PBXGroup;
-			name = Headers;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		F5407215023FE6510100010A = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -2092,24 +2088,6 @@
 			lastKnownFileType = image.icns;
 			name = "Application Icon.icns";
 			path = "Icon work/Application Icon/Application Icon.icns";
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		F54A32C3024E65680100010C = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			name = TileImage.h;
-			path = MacOSaiX/TileImage.h;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		F54A32C4024E65680100010C = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.objc;
-			name = TileImage.m;
-			path = MacOSaiX/TileImage.m;
 			refType = 4;
 			sourceTree = "<group>";
 		};
