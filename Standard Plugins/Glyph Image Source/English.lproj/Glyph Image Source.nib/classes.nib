@@ -3,27 +3,32 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
+                chooseAllFonts = id; 
+                chooseNoFonts = id; 
+                setColorsOption = id; 
                 setCountOption = id; 
-                setTextOption = id; 
+                setFontsOption = id; 
+                setLettersOption = id; 
                 toggleColor = id; 
                 toggleFont = id; 
                 toggleSelectedColors = id; 
-                toggleSelectedFonts = id; 
             }; 
             CLASS = MacOSaiXGlyphImageSourceController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                colorsTableView = NSTableView; 
+                allFontsButton = NSButton; 
+                colorsMatrix = NSMatrix; 
+                colorsOutlineView = NSOutlineView; 
                 countMatrix = NSMatrix; 
                 countTextField = NSTextField; 
                 editorView = NSView; 
+                fontsMatrix = NSMatrix; 
                 fontsOutlineView = NSOutlineView; 
+                lettersMatrix = NSMatrix; 
+                lettersView = NSTextView; 
+                noFontsButton = NSButton; 
                 sampleImageView = NSImageView; 
                 sizeTextField = NSTextField; 
-                textMatrix = NSMatrix; 
-                textView = NSTextView; 
-                toggleColorsButton = NSButton; 
-                toggleFontsButton = NSButton; 
             }; 
             SUPERCLASS = NSObject; 
         }
