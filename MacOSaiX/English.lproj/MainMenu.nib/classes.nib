@@ -2,19 +2,16 @@
     IBClasses = (
         {
             ACTIONS = {
-                addDirectoryImageSource = id; 
-                addGlyphImageSource = id; 
-                addGoogleImageSource = id; 
                 beginExportImage = id; 
                 centerViewOnSelectedTile = id; 
-                setViewAloneMode = id; 
-                setViewCompareMode = id; 
-                setViewEditMode = id; 
+                setViewMosaic = id; 
+                setViewOriginalImage = id; 
                 setZoom = id; 
                 toggleImageSourcesDrawer = id; 
                 toggleMinimizeDuplicates = id; 
                 togglePause = id; 
                 toggleStatusBar = id; 
+                toggleTileOutlines = id; 
             }; 
             CLASS = FirstResponder; 
             LANGUAGE = ObjC; 
