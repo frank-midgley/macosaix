@@ -12,6 +12,7 @@
 #import "MacOSaiXDocument.h"
 #import "MacOSaiXWindowController.h"
 #import "Tiles.h"
+#import "NSImage+MacOSaiX.h"
 //#import <unistd.h>
 
 	// The maximum size of the image URL queue
@@ -102,6 +103,8 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 		
 		originalImagePath = [[NSString stringWithString:path] retain];
 		originalImage = [[NSImage alloc] initWithContentsOfFile:path];
+		[originalImage setCacheMode:NSImageCacheNever];
+		[originalImage setScalesWhenResized:NO];
 		
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXOriginalImageDidChangeNotification object:self];
 	}
@@ -717,7 +720,20 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 		NSString	*imageIdentifier = nil;
 		NSImage		*image = [imageSource nextImageAndIdentifier:&imageIdentifier];
 		
-		if (image && [image isValid] && [image size].width > 16 && [image size].height > 16)
+			// Set the caching behavior of the image.  We'll be adding bitmap representations of various
+			// sizes to the image so it doesn't need to do any of its own caching.
+		[image setCacheMode:NSImageCacheNever];
+		[image setScalesWhenResized:NO];
+		
+		BOOL	imageIsValid = NO;
+		
+		NS_DURING
+			imageIsValid = [image isValid];
+		NS_HANDLER
+			NSLog(@"Exception raised while checking image validity (%@)", localException);
+		NS_ENDHANDLER
+			
+		if (image && imageIsValid && [image size].width > 16 && [image size].height > 16)
 		{
 			[imageQueueLock lock];	// this will be locked if the queue is full
 				while ([imageQueue count] > MAXIMAGEURLS)
@@ -843,48 +859,12 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 		id<MacOSaiXImageSource>	pixletImageSource = [nextImageDict objectForKey:@"Image Source"];
 		NSString				*pixletImageIdentifier = [nextImageDict objectForKey:@"Image Identifier"];
 		
-			// Set the caching behavior of the image.  We'll be adding bitmap representations of various
-			// sizes to the image so it doesn't need to do any of its own caching.
-		[pixletImage setCacheMode:NSImageCacheNever];
-		[pixletImage setScalesWhenResized:NO];
-		
 			// Add this image to the cache.
 		if (pixletImageIdentifier)
 		{
 				// Just cache a thumbnail, no need to waste the disk since we can refetch.
-			NSSize				thumbnailSize, pixletImageSize = [pixletImage size];
-			if (pixletImageSize.width > pixletImageSize.height)
-				thumbnailSize = NSMakeSize(kImageCacheThumbnailSize, 
-										   pixletImageSize.height * kImageCacheThumbnailSize / pixletImageSize.width);
-			else
-				thumbnailSize = NSMakeSize(pixletImageSize.width * kImageCacheThumbnailSize / pixletImageSize.height, 
-										   kImageCacheThumbnailSize);
-			NSImage				*thumbnailImage = [[NSImage alloc] initWithSize:thumbnailSize];
-			
-			BOOL				haveFocus = NO;
-			
-			while (!haveFocus && !documentIsClosing)
-			{
-				NS_DURING
-					[thumbnailImage lockFocus];
-					haveFocus = YES;
-				NS_HANDLER
-					NSLog(@"Couldn't lock focus on thumbnail: %@", localException);
-				NS_ENDHANDLER
-			}
-			
-			if (haveFocus)
-			{
-				[pixletImage drawInRect:NSMakeRect(0.0, 0.0, thumbnailSize.width, thumbnailSize.height) 
-							   fromRect:NSMakeRect(0.0, 0.0, pixletImageSize.width, pixletImageSize.height) 
-							  operation:NSCompositeCopy 
-							   fraction:1.0];
-				[thumbnailImage unlockFocus];
-				[imageCache cacheImage:thumbnailImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
-			}
-			else
-				NSLog(@"Couldn't create cached thumbnail image.");
-			
+			NSImage	*thumbnailImage = [pixletImage copyWithLargestDimension:kImageCacheThumbnailSize];
+			[imageCache cacheImage:thumbnailImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
 			[thumbnailImage release];
 		}
 		else
@@ -949,7 +929,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 			{
 				[refreshTilesSetLock lock];
 					[refreshTilesSet addObject:tile];
-					[refreshTilesSet addObjectsFromArray:[tile neighbors]];
+//???					[refreshTilesSet addObjectsFromArray:[tile neighbors]];
 				[refreshTilesSetLock unlock];
 
 				if (!calculateDisplayedImagesThreadAlive)
@@ -984,6 +964,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
 
 #pragma mark
 #pragma mark Uniqueness
+
 
 - (void)calculateDisplayedImages:(id)dummy
 {
@@ -1025,38 +1006,15 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
     NSEnumerator	*tileEnumerator = [tilesToRefresh objectEnumerator];
     Tile			*tileToRefresh = nil;
     while (!documentIsClosing && (tileToRefresh = [tileEnumerator nextObject]))
-	{
-		NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
-		
         if ([tileToRefresh calculateBestMatch])
         {
-			// The image to display for this tile changed so update the mosaic image and add the tile's neighbors 
-			// to the set of tiles to refresh in case they can use the image we just stopped using.
-            
-            tilesAddedToRefreshSet = YES;
-            
+				// The image to display for this tile changed so add the tile's neighbors to the 
+				// set of tiles to refresh in case they can use the image we just stopped using.
+			tilesAddedToRefreshSet = YES;
             [refreshTilesSetLock lock];
                 [refreshTilesSet addObjectsFromArray:[tileToRefresh neighbors]];
             [refreshTilesSetLock unlock];
-            
-			ImageMatch		*imageMatch = [tileToRefresh displayedImageMatch];
-            NSImage			*matchImage = [imageCache cachedImageForIdentifier:[imageMatch imageIdentifier] 
-																	fromSource:[imageMatch imageSource]];
-            if (!matchImage)
-                NSLog(@"Could not load image\t%@", [imageMatch imageIdentifier]);
-            else
-            {
-				[[NSNotificationCenter defaultCenter] postNotificationName:@"Tile Image Changed" 
-																	object:self
-																  userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
-																				tileToRefresh, @"Tile",
-																				matchImage, @"New Image",
-																				nil]];
-            }
         }
-		
-		[pool2 release];
-	}
 
 	[calculateDisplayedImagesThreadLock lock];
 	    calculateDisplayedImagesThreadAlive = NO;
@@ -1068,7 +1026,7 @@ NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDi
     if (tilesAddedToRefreshSet)
         [NSApplication detachDrawingThread:@selector(calculateDisplayedImages:) toTarget:self withObject:nil];
 
-		// clean up and shutdown this thread
+		// clean up and shutdown this thread.
     [pool release];
 }
 
