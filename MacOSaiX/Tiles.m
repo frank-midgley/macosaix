@@ -266,7 +266,7 @@
         [imageMatchesLock unlock];
         
             // mark the document as needing saving
-        [document updateChangeCount:NSChangeDone];
+//        [document updateChangeCount:NSChangeDone];	// temporary for 2.0a1 release
 //    }
     
     return YES;
