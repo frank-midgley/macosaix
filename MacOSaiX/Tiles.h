@@ -1,27 +1,35 @@
 //  Created by fmidgley on Mon Apr 11 2001.
 //  Copyright (c) 2001 _CompanyName__. All rights reserved.
 
-#import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
 
 #import "MacOSaiXImageSource.h"
 
+
 #define TILE_BITMAP_SIZE 16.0
 
+
+@class Tile;
+@class MacOSaiXDocument;
 
 @interface ImageMatch : NSObject
 {
     float					matchValue;
     id<MacOSaiXImageSource>	imageSource;
 	NSString				*imageIdentifier;
+	Tile					*tile;
 }
 
 - (id)initWithMatchValue:(float)inMatchValue 
 	  forImageIdentifier:(NSString *)inImageIdentifier 
-		 fromImageSource:(id<MacOSaiXImageSource>)inImageSource;
+		 fromImageSource:(id<MacOSaiXImageSource>)inImageSource
+				 forTile:(Tile *)inTile;
 - (float)matchValue;
 - (id<MacOSaiXImageSource>)imageSource;
 - (NSString *)imageIdentifier;
+- (Tile *)tile;
+- (NSComparisonResult)compare:(ImageMatch *)otherMatch;
+
 @end
 
 
@@ -30,29 +38,24 @@
 
 @interface Tile : NSObject
 {
-    NSBezierPath		*outline;				// The shape of this tile
+	NSBezierPath		*outline;				// The shape of this tile
 	NSMutableSet		*neighborSet;			// A set containing tiles that are considered neighbors of this tile
 	NSMutableDictionary	*imagesInUseByNeighbors;
-    NSBitmapImageRep	*bitmapRep,				// The portion of the original image that is in this tile
-                        *maskRep;
-    NSMutableArray		*imageMatches;			// Array of ImageMatches
-    NSLock				*imageMatchesLock,		// thread safety
-                        *bestMatchLock;
-    ImageMatch			*bestImageMatch,
+	NSBitmapImageRep	*bitmapRep,				// The portion of the original image that is in this tile
+						*maskRep;
+	ImageMatch			*imageMatch,
+						*nonUniqueImageMatch,
 						*userChosenImageMatch;	// will be nil if user has not choosen an image
-    int					maxMatches;
-    NSDocument			*document;				// The document this tile is a part of (non-retained)
+	MacOSaiXDocument	*document;				// The document this tile is a part of (non-retained)
+	NSMutableDictionary	*cachedMatches;
+	NSMutableArray		*cachedMatchesOrder;
 }
 
 	// designated initializer
-- (id)initWithOutline:(NSBezierPath *)outline fromDocument:(NSDocument *)document;
+- (id)initWithOutline:(NSBezierPath *)outline fromDocument:(MacOSaiXDocument *)document;
 
-- (void)setNeighbors:(NSArray *)neighboringTiles;
-- (void)addNeighbor:(Tile *)neighboringTile;
-- (void)addNeighbors:(NSArray *)neighboringTiles;
-- (void)removeNeighbor:(Tile *)nonNeighboringTile;
-- (NSArray *)neighbors;
-- (void)neighboringTile:(Tile *)neighboringTile changedImageMatchFrom:(ImageMatch *)originalMatch to:(ImageMatch *)newMatch;
+- (void)setNeighboringTiles:(NSArray *)neighboringTiles;
+- (NSArray *)neighboringTiles;
 
 - (void)setOutline:(NSBezierPath *)outline;
 - (NSBezierPath *)outline;
@@ -60,21 +63,21 @@
 - (void)setBitmapRep:(NSBitmapImageRep *)bitmapRep withMask:(NSBitmapImageRep *)maskRep;
 - (NSBitmapImageRep *)bitmapRep;
 
-- (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep
-			  withIdentifier:(NSString *)imageIdentifier
-		     fromImageSource:(id<MacOSaiXImageSource>)imageSource;
+- (float)matchValueForImageRep:(NSBitmapImageRep *)matchRep
+			    withIdentifier:(NSString *)imageIdentifier
+			   fromImageSource:(id<MacOSaiXImageSource>)imageSource;
+//- (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep
+//			  withIdentifier:(NSString *)imageIdentifier
+//		     fromImageSource:(id<MacOSaiXImageSource>)imageSource;
 //- (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep fromCachedImage:(CachedImage *)cachedImage
 //				  forDocument:(NSDocument *)document;
 
-- (ImageMatch *)displayedImageMatch;
-- (BOOL)calculateBestMatch;
+- (ImageMatch *)imageMatch;
+- (void)setImageMatch:(ImageMatch *)match;
 
 - (void)setUserChosenImageIdentifer:(NSString *)imageIdentifier fromImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (ImageMatch *)userChosenImageMatch;
 
-- (NSArray *)matches;
-- (int)matchCount;
-
-- (float)matchValueForImageIdentifer:(NSString *)imageIdentifier fromImageSource:(id<MacOSaiXImageSource>)imageSource;
+- (ImageMatch *)displayedImageMatch;
 
 @end

@@ -1,5 +1,6 @@
-#import <string.h>
+//#import <string.h>
 #import "Tiles.h"
+#import "MacOSaiXDocument.h"
 
 
 @implementation ImageMatch
@@ -8,12 +9,14 @@
 - (id)initWithMatchValue:(float)inMatchValue 
 	  forImageIdentifier:(NSString *)inImageIdentifier 
 		 fromImageSource:(id<MacOSaiXImageSource>)inImageSource
+				 forTile:(Tile *)inTile
 {
 	if (self = [super init])
 	{
 		matchValue = inMatchValue;
 		imageIdentifier = [inImageIdentifier retain];
 		imageSource = [inImageSource retain];
+		tile = inTile;
 	}
 	
 	return self;
@@ -38,6 +41,25 @@
 }
 
 
+- (Tile *)tile
+{
+	return tile;
+}
+
+
+- (NSComparisonResult)compare:(ImageMatch *)otherMatch
+{
+	float	otherMatchValue = [otherMatch matchValue];
+	
+	if (matchValue > otherMatchValue)
+		return NSOrderedDescending;
+	else if (matchValue < otherMatchValue)
+		return NSOrderedAscending;
+	else
+		return NSOrderedSame;
+}
+
+
 - (void)dealloc
 {
 	[imageIdentifier release];
@@ -56,26 +78,21 @@
 @implementation Tile
 
 
-- (id)initWithOutline:(NSBezierPath *)inOutline fromDocument:(NSDocument *)inDocument
+- (id)initWithOutline:(NSBezierPath *)inOutline fromDocument:(MacOSaiXDocument *)inDocument
 {
 	if (self = [super init])
 	{
-		imageMatchesLock = [[NSLock alloc] init];
-		bestMatchLock = [[NSLock alloc] init];
-
-		imageMatches = [[NSMutableArray array] retain];
-
 		outline = [inOutline copy];
 		document = inDocument;	// the document retains us so we don't retain it
 		
-		imagesInUseByNeighbors = [[NSMutableDictionary dictionary] retain];
-
+		cachedMatches = [[NSMutableDictionary dictionary] retain];
+		cachedMatchesOrder = [[NSMutableArray array] retain];
 	}
 	return self;
 }
 
 
-- (void)setNeighbors:(NSArray *)neighboringTiles
+- (void)setNeighboringTiles:(NSArray *)neighboringTiles
 {
 	[neighborSet autorelease];
 	neighborSet = [[NSMutableSet setWithArray:neighboringTiles] retain];
@@ -83,52 +100,10 @@
 }
 
 
-- (void)addNeighbor:(Tile *)neighboringTile
-{
-	if (!neighborSet)
-		neighborSet = [[NSMutableSet setWithCapacity:10] retain];
-	
-	if (neighboringTile != self)
-		[neighborSet addObject:neighboringTile];
-}
-
-
-- (void)addNeighbors:(NSArray *)neighboringTiles
-{
-	if (!neighborSet)
-		neighborSet = [[NSMutableSet setWithCapacity:10] retain];
-	
-	[neighborSet addObjectsFromArray:neighboringTiles];
-	[neighborSet removeObject:self];
-}
-
-
-- (void)removeNeighbor:(Tile *)nonNeighboringTile
-{
-	[neighborSet removeObject:nonNeighboringTile];
-}
-
-
-- (NSArray *)neighbors
+- (NSArray *)neighboringTiles
 {
 	return [neighborSet allObjects];
 }
-
-
-- (void)neighboringTile:(Tile *)neighboringTile changedImageMatchFrom:(ImageMatch *)originalMatch to:(ImageMatch *)newMatch
-{
-	NSString	*tileKey = [NSString stringWithFormat:@"%p", neighboringTile];
-	
-	if (newMatch)
-		[imagesInUseByNeighbors setObject:[NSArray arrayWithObjects:
-												[newMatch imageIdentifier],
-												[newMatch imageSource],
-												nil]
-								   forKey:tileKey];
-	else
-		[imagesInUseByNeighbors removeObjectForKey:tileKey];
-}
-
 
 - (void)setOutline:(NSBezierPath *)inOutline
 {
@@ -160,207 +135,141 @@
 
 	// Match this tile's bitmap against matchRep and return whether the new match is better
 	// than this tile's previous worst.
-- (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep
-			  withIdentifier:(NSString *)imageIdentifier
-		     fromImageSource:(id<MacOSaiXImageSource>)imageSource
+//- (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep
+//			  withIdentifier:(NSString *)imageIdentifier
+//		     fromImageSource:(id<MacOSaiXImageSource>)imageSource
+- (float)matchValueForImageRep:(NSBitmapImageRep *)matchRep
+			    withIdentifier:(NSString *)imageIdentifier
+			   fromImageSource:(id<MacOSaiXImageSource>)imageSource
 {
-    int				bytesPerPixel1, bytesPerRow1, bytesPerPixel2, bytesPerRow2, maskBytesPerPixel, maskBytesPerRow;
-    int				pixelCount = 0, pixelsLeft;
-    int				x, y, x_off, y_off, x_size, y_size;
-    int				index = 0;  //, left, right;
-    unsigned char	*bitmap1, *bitmap2, *maskBitmap;
-    float			prevWorst, matchValue = 0.0;
-    
-    if (matchRep == nil) return NO;
-    
-		// the size of bitmapRep will be a maximum of TILE_BITMAP_SIZE pixels
-		// the size of the smaller dimension of imageRep will be TILE_BITMAP_SIZE pixels
-		// pixels in imageRep outside of bitmapRep centered in imageRep will be ignored
-    
-    bitmap1 = [bitmapRep bitmapData];	NSAssert(bitmap1 != nil, @"bitmap1 is nil");
-    maskBitmap = [maskRep bitmapData];
-    bitmap2 = [matchRep bitmapData];	NSAssert(bitmap2 != nil, @"bitmap2 is nil");
-    bytesPerPixel1 = [bitmapRep hasAlpha] ? 4 : 3;
-    bytesPerRow1 = [bitmapRep bytesPerRow];
-    maskBytesPerPixel = [maskRep hasAlpha] ? 4 : 3;
-    maskBytesPerRow = [maskRep bytesPerRow];
-    bytesPerPixel2 = [matchRep hasAlpha] ? 4 : 3;
-    bytesPerRow2 = [matchRep bytesPerRow];
-    
-	[imageMatchesLock lock];
-		prevWorst = ([imageMatches count] == 0 || [imageMatches count] < ([neighborSet count] + 1)) ? 
-						WORST_CASE_PIXEL_MATCH : [[imageMatches lastObject] matchValue];
-	[imageMatchesLock unlock];
-
-		// one of the offsets should be 0
-    x_off = ([matchRep size].width - [bitmapRep size].width) / 2.0;
-    y_off = ([matchRep size].height - [bitmapRep size].height) / 2.0;
-
-		// sum the difference of all the pixels in the two bitmaps using the Riemersma metric
-		// (courtesy of Dr. Dobbs 11/2001 pg. 58)
-    x_size = [bitmapRep size].width; y_size = [bitmapRep size].height;
-    pixelsLeft = x_size * y_size;
-    for (x = 0; x < x_size; x++)
-    {
-		for (y = 0; y < y_size; y++)
-		{
-            unsigned char	*bitmap1_off = bitmap1 + x * bytesPerPixel1 + y * bytesPerRow1,
-                            *bitmap2_off = bitmap2 + (x + x_off) * bytesPerPixel2 + (y + y_off) * bytesPerRow2,
-                            *mask_off = maskBitmap + x * maskBytesPerPixel + y * maskBytesPerRow;
-                
-                // If there's no alpha channel or the alpha channel bit is not 0 then consider this pixel
-//			if (bytesPerPixel1 == 3 || *bitmap1_off > 0)
-			{
-                int		redDiff = *bitmap1_off - *bitmap2_off, 
-                        greenDiff = *(bitmap1_off + 1) - *(bitmap2_off + 1), 
-                        blueDiff = *(bitmap1_off + 2) - *(bitmap2_off + 2);
-                
-#if 1
-				float	redAverage = (*bitmap1_off + *bitmap2_off) / 2.0;
-				matchValue += ((2.0 + redAverage / 256.0) * redDiff * redDiff + 
-                               4 * greenDiff * greenDiff + 
-                               (2 + (255.0 - redAverage) / 256.0) * blueDiff * blueDiff)
-                               * ((*mask_off) / 256.0); // weighted by alpha value from mask
-#else
-                matchValue += (redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff) * ((*mask_off) / 256.0);
-#endif
-				pixelCount++;
-			}
-		}
-		pixelsLeft -= y_size;
-		
-		// The lower the matchValue the better, so if it's already greater than the previous worst
-		// then it's no use going any further.
-		if (matchValue / (float)(pixelCount + pixelsLeft) > prevWorst)
-			return NO;
-    }
-
-		// now average it per pixel
-    if (pixelCount == 0)
-		NSLog(@"Transparent image matched?");
-    matchValue /= pixelCount;
-//    NSLog(@"Match value = %f", matchValue);
-    if (matchValue > prevWorst)
-		return NO;
-    
-		// Determine where in the list it belongs (the best match should always be at index 0)
-	[imageMatchesLock lock];
-		for (index = 0; index < [imageMatches count]; index++)
-			if (matchValue < [[imageMatches objectAtIndex:index] matchValue])
-				break;
-	[imageMatchesLock unlock];
-
-/*
-    left = 0; right = matchCount; index = 0;
-    while (right > left)
-    {
-		index = (int)((left + right) / 2);
-		if (matchValue > imageMatches[index].matchValue)
-			left = index + 1;
-		else
-			right = index;
-    }
-*/	
-//	NSLog(@"      Adding matching image (%f) to tile %p at index %d", matchValue, self, index);
-
-//    if (index < ([neighborSet count] + 1))
-//    {
-        [imageMatchesLock lock];
-                // Add the new match to the list of matches at the correct position
-			ImageMatch  *newMatch = [[[ImageMatch alloc] initWithMatchValue:matchValue
-														 forImageIdentifier:imageIdentifier 
-															fromImageSource:imageSource] autorelease];
-			[imageMatches insertObject:newMatch atIndex:index];
-			
-                // If we already have the max number of matches we need then let go of our worst match
-            if ([imageMatches count] > [neighborSet count] + 1)
-            {
-				[imageMatches removeLastObject];
-				
-                    // If the match just removed was our current best then recalculate	// or just signal the need to recalculate?
-//                if ([imageMatches indexOfObjectIdenticalTo:bestImageMatch] == NSNotFound)
-//                    [self calculateBestMatch];
-            }
-        [imageMatchesLock unlock];
-        
-            // mark the document as needing saving
-//        [document updateChangeCount:NSChangeDone];	// temporary for 2.0a1 release
-//    }
-    
-    return YES;
-}
-
-
-- (ImageMatch *)displayedImageMatch
-{
-	ImageMatch	*match = nil;
+	float		matchValue = 0.0;
+	NSString	*matchKey = [NSString stringWithFormat:@"%p %@", imageSource, imageIdentifier];
+	NSNumber	*cachedMatch = [cachedMatches objectForKey:matchKey];
 	
-	[imageMatchesLock lock];
-		if (userChosenImageMatch)
-			match = [[userChosenImageMatch retain] autorelease];
-		else if (bestImageMatch)
-			match = [[bestImageMatch retain] autorelease];
-		else if ([imageMatches count] > 0)
-			match = [imageMatches objectAtIndex:0];
-	[imageMatchesLock unlock];
-	
-	return match;
-}
-
-
-    // Pick the match with the highest value that isn't already used by one of our neighbors.
-    // If all matches are already in use then pick the match with the highest value.
-- (BOOL)calculateBestMatch
-{
-	BOOL				bestMatchChanged = NO;
-	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	ImageMatch			*originalBestMatch = bestImageMatch;
-	
-        // If the user has picked a specific image to use then no calculation is necessary
-	[imageMatchesLock lock];
-		if ([imageMatches count] > 0 && !userChosenImageMatch)
-		{
-				// Loop through our matches and pick the first one not in use by any of our neighbors
-			NSEnumerator	*matchEnumerator = [imageMatches objectEnumerator];
-			ImageMatch		*imageMatch = nil;
-			[bestImageMatch autorelease];
-			bestImageMatch = nil;
-			while (!bestImageMatch && (imageMatch = [matchEnumerator nextObject]))
-				if (![[imagesInUseByNeighbors allValues] containsObject:[NSArray arrayWithObjects:
-																			[imageMatch imageIdentifier],
-																			[imageMatch imageSource],
-																			nil]])
-					bestImageMatch = [imageMatch retain];
-			
-				// If we can't be unique then go for our best match.
-			if (!bestImageMatch && [imageMatches count] > 0)
-			{
-				if ([imageMatches count] > [neighborSet count])
-					NSLog(@"Huh?");
-				bestImageMatch = [[imageMatches objectAtIndex:0] retain];
-			}
-			
-			bestMatchChanged = (originalBestMatch != bestImageMatch);
-		}
-	[imageMatchesLock unlock];
-	
-	if (bestMatchChanged)
+	if (cachedMatch)
 	{
-			// Is this actually faster than NSNotificationCenter?
-		NSEnumerator	*neighborEnumerator = [neighborSet objectEnumerator];
-		Tile			*neighbor = nil;
-		while (neighbor = [neighborEnumerator nextObject])
-			[neighbor neighboringTile:self changedImageMatchFrom:originalBestMatch to:bestImageMatch];
+		matchValue = [cachedMatch floatValue];
+		[cachedMatchesOrder removeObject:matchKey];
+	}
+	else
+	{
+		int				bytesPerPixel1, bytesPerRow1, bytesPerPixel2, bytesPerRow2, maskBytesPerPixel, maskBytesPerRow;
+		int				pixelCount = 0, pixelsLeft;
+		int				x, y, x_off, y_off, x_size, y_size;
+		unsigned char	*bitmap1, *bitmap2, *maskBitmap;
+		float			currentMatchValue;
 		
-		[[NSNotificationCenter defaultCenter] postNotificationName:@"Tile Image Changed" 
-															object:document
-														  userInfo:[NSDictionary dictionaryWithObject:self 
-																							   forKey:@"Tile"]];
+		if (matchRep == nil) return WORST_CASE_PIXEL_MATCH;
+		
+			// the size of bitmapRep will be a maximum of TILE_BITMAP_SIZE pixels
+			// the size of the smaller dimension of imageRep will be TILE_BITMAP_SIZE pixels
+			// pixels in imageRep outside of bitmapRep centered in imageRep will be ignored
+		
+		bitmap1 = [bitmapRep bitmapData];	NSAssert(bitmap1 != nil, @"bitmap1 is nil");
+		maskBitmap = [maskRep bitmapData];
+		bitmap2 = [matchRep bitmapData];	NSAssert(bitmap2 != nil, @"bitmap2 is nil");
+		bytesPerPixel1 = [bitmapRep hasAlpha] ? 4 : 3;
+		bytesPerRow1 = [bitmapRep bytesPerRow];
+		maskBytesPerPixel = [maskRep hasAlpha] ? 4 : 3;
+		maskBytesPerRow = [maskRep bytesPerRow];
+		bytesPerPixel2 = [matchRep hasAlpha] ? 4 : 3;
+		bytesPerRow2 = [matchRep bytesPerRow];
+		
+		currentMatchValue = (imageMatch ? [imageMatch matchValue] : WORST_CASE_PIXEL_MATCH);
+
+			// one of the offsets should be 0
+		x_off = ([matchRep size].width - [bitmapRep size].width) / 2.0;
+		y_off = ([matchRep size].height - [bitmapRep size].height) / 2.0;
+
+			// sum the difference of all the pixels in the two bitmaps using the Riemersma metric
+			// (courtesy of Dr. Dobbs 11/2001 pg. 58)
+		x_size = [bitmapRep size].width; y_size = [bitmapRep size].height;
+		pixelsLeft = x_size * y_size;
+		for (x = 0; x < x_size; x++)
+		{
+			for (y = 0; y < y_size; y++)
+			{
+				unsigned char	*bitmap1_off = bitmap1 + x * bytesPerPixel1 + y * bytesPerRow1,
+								*bitmap2_off = bitmap2 + (x + x_off) * bytesPerPixel2 + (y + y_off) * bytesPerRow2,
+								*mask_off = maskBitmap + x * maskBytesPerPixel + y * maskBytesPerRow;
+					
+					// If there's no alpha channel or the alpha channel bit is not 0 then consider this pixel
+	//			if (bytesPerPixel1 == 3 || *bitmap1_off > 0)
+				{
+					int		redDiff = *bitmap1_off - *bitmap2_off, 
+							greenDiff = *(bitmap1_off + 1) - *(bitmap2_off + 1), 
+							blueDiff = *(bitmap1_off + 2) - *(bitmap2_off + 2);
+					
+	#if 1
+					float	redAverage = (*bitmap1_off + *bitmap2_off) / 2.0;
+					matchValue += ((2.0 + redAverage / 256.0) * redDiff * redDiff + 
+								   4 * greenDiff * greenDiff + 
+								   (2 + (255.0 - redAverage) / 256.0) * blueDiff * blueDiff)
+								   * ((*mask_off) / 256.0); // weighted by alpha value from mask
+	#else
+					matchValue += (redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff) * ((*mask_off) / 256.0);
+	#endif
+					pixelCount++;
+				}
+			}
+			pixelsLeft -= y_size;
+			
+			// The lower the matchValue the better, so if it's already greater than the previous worst
+			// then it's no use going any further.
+			if (matchValue / (float)(pixelCount + pixelsLeft) > currentMatchValue)
+				return WORST_CASE_PIXEL_MATCH;
+		}
+
+			// Average the value per pixel.
+			// A pixel count of zero means that the image was completely transparent and we shouldn't use it.
+		matchValue = (pixelCount == 0 ? WORST_CASE_PIXEL_MATCH : matchValue / pixelCount);
+		
+		if ([cachedMatchesOrder count] > 100)
+		{
+			[cachedMatches removeObjectForKey:[cachedMatchesOrder lastObject]];
+			[cachedMatchesOrder removeLastObject];
+		}
+		[cachedMatches setObject:[NSNumber numberWithFloat:matchValue] forKey:matchKey];
+		
+		if (!imageMatch && (!nonUniqueImageMatch || matchValue < [nonUniqueImageMatch matchValue]))
+		{
+			[nonUniqueImageMatch autorelease];
+			nonUniqueImageMatch = [[ImageMatch alloc] initWithMatchValue:matchValue 
+													  forImageIdentifier:imageIdentifier 
+														 fromImageSource:imageSource 
+																 forTile:self];
+			if (!userChosenImageMatch)
+				[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileImageDidChangeNotification
+																	object:document 
+																  userInfo:[NSDictionary dictionaryWithObject:self forKey:@"Tile"]];
+		}
 	}
 	
-	[pool release];
+	[cachedMatchesOrder insertObject:matchKey atIndex:0];
 	
-	return bestMatchChanged;
+	return matchValue;
+}
+
+
+- (void)setImageMatch:(ImageMatch *)match
+{
+	[imageMatch autorelease];
+	imageMatch = [match retain];
+	
+		// Now that we have a real match we don't need the placeholder anymore.
+	[nonUniqueImageMatch autorelease];
+	nonUniqueImageMatch = nil;
+	
+	if (!userChosenImageMatch)
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileImageDidChangeNotification
+															object:document 
+														  userInfo:[NSDictionary dictionaryWithObject:self forKey:@"Tile"]];
+}
+
+
+- (ImageMatch *)imageMatch
+{
+	return imageMatch;
 }
 
 
@@ -390,6 +299,9 @@
 		[document tileImageIndexInUse:userChosenImageMatch->tileImageIndex];
     }
 */
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileImageDidChangeNotification
+														object:document 
+													  userInfo:[NSDictionary dictionaryWithObject:self forKey:@"Tile"]];
 }
 
 
@@ -399,47 +311,14 @@
 }
 
 
-- (NSArray *)matches
+- (ImageMatch *)displayedImageMatch
 {
-    NSArray	*matchesCopy = nil;
-	
-	[imageMatchesLock lock];
-		matchesCopy = [NSArray arrayWithArray:imageMatches];
-	[imageMatchesLock unlock];
-	
-	return matchesCopy;
-}
-
-
-- (int)matchCount
-{
-	int	count = 0;
-	
-	[imageMatchesLock lock];
-		count = [imageMatches count];
-	[imageMatchesLock unlock];
-	
-    return count;
-}
-
-
-- (float)matchValueForImageIdentifer:(NSString *)imageIdentifier fromImageSource:(id<MacOSaiXImageSource>)imageSource
-{
-	float	matchValue = WORST_CASE_PIXEL_MATCH;
-	
-    [imageMatchesLock lock];
-		NSEnumerator	*matchEnumerator = [imageMatches objectEnumerator];
-		ImageMatch		*imageMatch = nil;
-		
-		while (imageMatch = [matchEnumerator nextObject])
-			if ([[imageMatch imageIdentifier] isEqualToString:imageIdentifier] && [imageMatch imageSource] == imageSource)
-			{
-				matchValue = [imageMatch matchValue];
-				break;
-			}
-    [imageMatchesLock unlock];
-	
-	return matchValue;
+	if (userChosenImageMatch)
+		return userChosenImageMatch;
+	else if (imageMatch)
+		return imageMatch;
+	else
+		return nonUniqueImageMatch;
 }
 
 
@@ -447,14 +326,13 @@
 {
     [outline release];
 	[neighborSet release];
-	[imagesInUseByNeighbors release];
     [bitmapRep release];
 	[maskRep release];
-    [imageMatches release];
-    [imageMatchesLock release];
-    [bestMatchLock release];
-	[bestImageMatch release];
+	[imageMatch release];
     [userChosenImageMatch release];
+	[nonUniqueImageMatch release];
+	[cachedMatches release];
+	[cachedMatchesOrder release];
 	
     [super dealloc];
 }
