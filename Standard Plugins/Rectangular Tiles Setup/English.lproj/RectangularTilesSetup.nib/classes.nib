@@ -1,0 +1,24 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {setTilesAcross = id; setTilesDown = id; }; 
+            CLASS = RectangularTilesSetupController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                "_tilesAcrossStepper" = NSStepper; 
+                "_tilesAcrossView" = NSTextField; 
+                "_tilesDownStepper" = NSStepper; 
+                "_tilesDownView" = NSTextField; 
+            }; 
+            SUPERCLASS = TilesSetupController; 
+        }, 
+        {
+            CLASS = TilesSetupController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {"_setupView" = NSView; }; 
+            SUPERCLASS = NSWindowController; 
+        }
+    ); 
+    IBVersion = 1; 
+}

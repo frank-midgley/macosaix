@@ -1,0 +1,20 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {CLASS = GoogleImageSource; LANGUAGE = ObjC; SUPERCLASS = ImageSource; }, 
+        {
+            CLASS = GoogleImageSourceController; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = ImageSourceController; 
+        }, 
+        {CLASS = ImageSource; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {addImageSource = id; cancelAddImageSource = id; }; 
+            CLASS = ImageSourceController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {"_imageSourceView" = NSView; }; 
+            SUPERCLASS = NSWindowController; 
+        }
+    ); 
+    IBVersion = 1; 
+}
