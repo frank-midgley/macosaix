@@ -34,9 +34,9 @@
 
 @implementation MacOSaiXWindowController
 
-- (id)init
+- (id)initWithWindow:(NSWindow *)window
 {
-    if (self = [super init])
+    if (self = [super initWithWindow:window])
     {
 		viewMode = viewMosaicAndOriginal;
 		statusBarShowing = YES;
@@ -45,6 +45,10 @@
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(originalImageDidChange:) 
 													 name:MacOSaiXOriginalImageDidChangeNotification 
+												   object:[self document]];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(documentDidChangeState:) 
+													 name:MacOSaiXDocumentDidChangeStateNotification 
 												   object:[self document]];
 	}
 	
@@ -365,11 +369,32 @@
 	return (MacOSaiXDocument *)[super document];
 }
 
-- (void)updateDisplay:(id)timer
+
+- (void)documentDidChangeState:(NSNotification *)notification
+{
+	[self performSelectorOnMainThread:@selector(updateStatus:) withObject:nil waitUntilDone:NO];
+}
+
+
+//- (void)documentDidChangeState:(NSNotification *)notification
+//{
+//	[statusUpdateTimerLock lock];
+//		if (![statusUpdateTimer isValid])
+//		{
+//			[statusUpdateTimer release];
+//			statusUpdateTimer = [[NSTimer scheduledTimerWithTimeInterval:0.5 
+//																  target:self 
+//																selector:@selector(updateStatus:) 
+//																userInfo:nil 
+//																 repeats:NO] retain];
+//		}
+//	[statusUpdateTimerLock unlock];
+//}
+
+
+- (void)updateStatus:(NSTimer *)timer
 {
     NSString	*statusMessage, *fullMessage;
-    
-    if ([[self document] isClosing]) return;
     
     // update the status bar
     if ([[self document] isCreatingTiles])
@@ -381,22 +406,22 @@
 		statusMessage = [NSString stringWithString:@"Matching images..."];
     else if ([[self document] isCalculatingDisplayedImages])
 		statusMessage = [NSString stringWithString:@"Finding unique tiles..."];
-    else if ([[self document] isEnumeratingImageSources] > 0)
-		statusMessage = [NSString stringWithString:@"Looking for new images..."];
     else if ([[self document] isPaused])
 		statusMessage = [NSString stringWithString:@"Paused"];
+    else if ([[self document] isEnumeratingImageSources])
+		statusMessage = [NSString stringWithString:@"Looking for new images..."];
     else
 		statusMessage = [NSString stringWithString:@"No more images"];
 	
-    fullMessage = [NSString stringWithFormat:@"Images Matched: %d     Mosaic Quality: %2.1f%%     Status: %@",
+    fullMessage = [NSString stringWithFormat:@"Images: %d     Quality: %2.1f%%     Status: %@",
 											 [[self document] imagesMatched], overallMatch, statusMessage];
-	if ([fullMessage sizeWithAttributes:[[statusMessageView attributedStringValue] attributesAtIndex:0 effectiveRange:nil]].width 
-		> [statusMessageView frame].size.width)
-		fullMessage = [NSString stringWithFormat:@"%d     %2.1f%%     %@",
-												 [[self document] imagesMatched], overallMatch, statusMessage];
+//	if ([fullMessage sizeWithAttributes:[[statusMessageView attributedStringValue] attributesAtIndex:0 effectiveRange:nil]].width 
+//		> [statusMessageView frame].size.width)
+//		fullMessage = [NSString stringWithFormat:@"%d     %2.1f%%     %@",
+//												 [[self document] imagesMatched], overallMatch, statusMessage];
     [statusMessageView setStringValue:fullMessage];
     
-    // update the image sources table
+		// update the image sources table
     [imageSourcesTableView reloadData];
     
     // autosave if it's time
