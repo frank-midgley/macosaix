@@ -11,20 +11,16 @@
                 setLettersOption = id; 
                 toggleColor = id; 
                 toggleFont = id; 
-                toggleSelectedColors = id; 
             }; 
             CLASS = MacOSaiXGlyphImageSourceController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 allFontsButton = NSButton; 
-                colorsMatrix = NSMatrix; 
                 colorsOutlineView = NSOutlineView; 
                 countMatrix = NSMatrix; 
                 countTextField = NSTextField; 
                 editorView = NSView; 
-                fontsMatrix = NSMatrix; 
                 fontsOutlineView = NSOutlineView; 
-                lettersMatrix = NSMatrix; 
                 lettersView = NSTextView; 
                 noFontsButton = NSButton; 
                 sampleImageView = NSImageView; 
