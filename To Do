@@ -51,30 +51,40 @@ Riemersma metric:
 
 =======================================================================================
 
-Saved.mosaic
-	Original.jpg/png/whatever
-	Image Sources.plist
-		Image sources dictionary
-			ID (key)
-			Properties dictionary (includes class name)
-	Cached images folder
-		Cached Images.plist
-			Version
-			Cached images dictionary
-				ID (key)
-				Image source ID & image identifier
+Saved.mosaic wrapper directory
+1)	Original.jpg
+
+2)	Mosaic.xml
+		<?xml version="1.0" encoding="UTF-8"?>
+		<!DOCTYPE plist PUBLIC "-//Frank Midgley//DTD MacOSaiX 1.0//EN" "http://homepage.mac.com/knarf/DTDs/MacOSaiX-1.0.dtd">
+		<IMAGE_SOURCES>
+			<IMAGE_SOURCE ID="">
+				<PROPERTIES BUNDLE_ID="">
+					... content supplied by plug-in of class...
+				</PROPERTIES>
+			</IMAGE_SOURCE>
+		</IMAGE_SOURCES>
+		<TILES_SETUP BUNDLE_ID="">
+			... content supplied by plug-in of class...
+		</TILES_SETUP>
+		<CACHED_IMAGES>
+			<CACHED_IMAGE FILE_ID="" SOURCE_ID="" IMAGE_ID=""/>
+		</CACHED_IMAGES>
+		<TILES>
+			<TILE>
+				<OUTLINE>
+					<MOVE_TO X="" Y=""/>
+					<LINE_TO X="" Y=""/>
+					<CURVE_TO X="" Y="" C1X="" C1Y="" C2X="" C2Y=""/>
+				</OUTLINE>
+				<MATCH SOURCE_ID="" IDENTIFIER="" VALUE="" (BEST_UNIQUE) (USER_CHOSEN)/>
+			</TILE>
+		</TILES>
+
+3)	Image Cache folder
 		<Cached image 1>.jpg
 			...
 		<Cached image n>.jpg
-	Tiles.plist
-		Tiles setup properties dictionary (includes class name)
-		Tiles array										2500
-			Array of outline elements					 100
-				Points									   3
-			Array of matches							  24
-				Image source ID
-				Image identifier
-				Match value
 
 =======================================================================================
 
