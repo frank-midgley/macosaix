@@ -60,8 +60,10 @@
 
 @protocol MacOSaiXImageSourceController <NSObject>
 
-	// The view to insert into the drawer
-- (NSView *)imageSourceView;
+	// The view to use for editing an image source.
+- (NSView *)editorView;
+- (NSSize)editorViewMinimumSize;
+- (NSResponder *)editorViewFirstResponder;
 
 - (void)setOKButton:(NSButton *)button;
 

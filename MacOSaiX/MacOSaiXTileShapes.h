@@ -45,6 +45,8 @@
 
 	// The view containing the editing controls.
 - (NSView *)editorView;
+- (NSSize)editorViewMinimumSize;
+- (NSResponder *)editorViewFirstResponder;
 
 - (void)editTileShapes:(id<MacOSaiXTileShapes>)tilesSetup forOriginalImage:(NSImage *)originalImage;
 
