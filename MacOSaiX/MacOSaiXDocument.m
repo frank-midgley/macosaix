@@ -583,7 +583,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 						int	sourceIndex = [imageSources indexOfObjectIdenticalTo:[uniqueMatch imageSource]];
 						[buffer appendString:[NSString stringWithFormat:@"\t\t<UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%f\"/>\n", 
 																		  sourceIndex,
-																		  [uniqueMatch imageIdentifier],
+																		  [NSString stringByEscapingXMLEntites:[uniqueMatch imageIdentifier]],
 																		  [uniqueMatch matchValue]]];
 					}
 					MacOSaiXImageMatch	*userChosenMatch = [tile userChosenImageMatch];
@@ -592,7 +592,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 						int	sourceIndex = [imageSources indexOfObjectIdenticalTo:[userChosenMatch imageSource]];
 						[buffer appendString:[NSString stringWithFormat:@"\t\t<USER_CHOSEN_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%f\"/>\n", 
 																		  sourceIndex,
-																		  [userChosenMatch imageIdentifier],
+																		  [NSString stringByEscapingXMLEntites:[userChosenMatch imageIdentifier]],
 																		  [userChosenMatch matchValue]]];
 					}
 //					[fileHandle writeData:[@"\t\t<MATCH_DATA>\n" dataUsingEncoding:NSUTF8StringEncoding]];
@@ -1507,22 +1507,11 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 			
 				// Sort the array with the best matches first.
 			[betterMatches sortUsingSelector:@selector(compare:)];
-			
-				// Only remember up to 1000 of the best matches.
-			if ([betterMatches count] > 256)
-			{
-				[betterMatches removeObjectsInRange:NSMakeRange(256, [betterMatches count] - 256)];
-					// Add a dummy entry on the end so we know that entries were removed.
-				[betterMatches addObject:[[[MacOSaiXImageMatch alloc] init] autorelease]];
-			}
-				
-				// Remember this list so we don't have to do all of the matches again.
-			[betterMatchesCache setObject:betterMatches forKey:pixletKey];
 		}
 		
-		if ([betterMatches count] == 0)
+		if (betterMatches && [betterMatches count] == 0)
 		{
-//			NSLog(@"%@ from %@ is not needed", pixletImageIdentifier, pixletImageSource);
+//			NSLog(@"%@ from %@ is no longer needed", pixletImageIdentifier, pixletImageSource);
 			[betterMatchesCache removeObjectForKey:pixletKey];
 			
 			// TBD: Is this the right place to purge images from the disk cache?
@@ -1566,37 +1555,67 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 					[matchesToUpdate addObject:betterMatch];
 			}
 			
-			NSEnumerator		*matchesToUpdateEnumerator = [matchesToUpdate objectEnumerator];
-			MacOSaiXImageMatch	*matchToUpdate = nil;
-			while (matchToUpdate = [matchesToUpdateEnumerator nextObject])
+			if ([matchesToUpdate count] == useCount || [(MacOSaiXImageMatch *)[betterMatches lastObject] tile])
 			{
-					// Add the tile's current image back to the queue so it can potentially get re-used by other tiles.
-				MacOSaiXImageMatch	*previousMatch = [[matchToUpdate tile] imageMatch];
-				if (previousMatch && ([previousMatch imageSource] != pixletImageSource || 
-					![[previousMatch imageIdentifier] isEqualToString:pixletImageIdentifier]) &&
-					[self imageUseCount] > 0)
+					// There were enough matches in betterMatches.
+				NSEnumerator		*matchesToUpdateEnumerator = [matchesToUpdate objectEnumerator];
+				MacOSaiXImageMatch	*matchToUpdate = nil;
+				while (matchToUpdate = [matchesToUpdateEnumerator nextObject])
 				{
-					if (!queueLocked)
+						// Add the tile's current image back to the queue so it can potentially get re-used by other tiles.
+					MacOSaiXImageMatch	*previousMatch = [[matchToUpdate tile] imageMatch];
+					if (previousMatch && ([previousMatch imageSource] != pixletImageSource || 
+						![[previousMatch imageIdentifier] isEqualToString:pixletImageIdentifier]) &&
+						[self imageUseCount] > 0)
 					{
-						[imageQueueLock lock];
-						queueLocked = YES;
+						if (!queueLocked)
+						{
+							[imageQueueLock lock];
+							queueLocked = YES;
+						}
+						
+						NSDictionary	*newQueueEntry = [NSDictionary dictionaryWithObjectsAndKeys:
+															[previousMatch imageSource], @"Image Source", 
+															[previousMatch imageIdentifier], @"Image Identifier",
+															nil];
+						if (![imageQueue containsObject:newQueueEntry])
+						{
+	//						NSLog(@"Rechecking %@", [previousMatch imageIdentifier]);
+							[imageQueue addObject:newQueueEntry];
+						}
 					}
 					
-					NSDictionary	*newQueueEntry = [NSDictionary dictionaryWithObjectsAndKeys:
-														[previousMatch imageSource], @"Image Source", 
-														[previousMatch imageIdentifier], @"Image Identifier",
-														nil];
-					if (![imageQueue containsObject:newQueueEntry])
-					{
-//						NSLog(@"Rechecking %@", [previousMatch imageIdentifier]);
-						[imageQueue addObject:newQueueEntry];
-					}
+					[[matchToUpdate tile] setImageMatch:matchToUpdate];
 				}
 				
-				[[matchToUpdate tile] setImageMatch:matchToUpdate];
+				[self updateChangeCount:NSChangeDone];
+			}
+			else
+			{
+				NSLog(@"Didn't cache enough matches for uniqueness...");
+				[betterMatchesCache removeObjectForKey:pixletKey];
+				NSDictionary	*newQueueEntry = [NSDictionary dictionaryWithObjectsAndKeys:
+													pixletImageSource, @"Image Source", 
+													pixletImageIdentifier, @"Image Identifier",
+													nil];
+				if (![imageQueue containsObject:newQueueEntry])
+				{
+//						NSLog(@"Rechecking %@", [previousMatch imageIdentifier]);
+					[imageQueue addObject:newQueueEntry];
+				}
 			}
 			
-			[self updateChangeCount:NSChangeDone];
+				// Only remember up to 50 of the best matches.
+			int	roughUpperBound = pow(sqrt([tiles count]) / imageReuseDistance, 2);
+			if ([betterMatches count] > roughUpperBound)
+			{
+				[betterMatches removeObjectsInRange:NSMakeRange(roughUpperBound, [betterMatches count] - roughUpperBound)];
+					// Add a dummy entry with a nil tile on the end so we know that entries were removed.
+				[betterMatches addObject:[[[MacOSaiXImageMatch alloc] init] autorelease]];
+			}
+				
+				// Remember this list so we don't have to do all of the matches again.
+			[betterMatchesCache setObject:betterMatches forKey:pixletKey];
 		}
 		
 		if (pixletImage)
@@ -1656,6 +1675,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 			[tile setImageMatch:nil];
 	
 	[imageSources removeObject:imageSource];
+	[[MacOSaiXImageCache sharedImageCache] removeCachedImageRepsFromSource:imageSource];
 	
 	[self updateChangeCount:NSChangeDone];
 	
