@@ -820,6 +820,7 @@
 		[imageSourcesTableView reloadData];
 	}
 	
+	[imageSourceEditorController editImageSource:nil];
 	[imageSourceEditorController release];
 	imageSourceEditorController = nil;
 	[(id)contextInfo release];
