@@ -50,7 +50,7 @@
     
     [oPanel setCanChooseFiles:YES];
     [oPanel setCanChooseDirectories:NO];
-    [oPanel beginSheetForDirectory:NSHomeDirectory()
+    [oPanel beginSheetForDirectory:nil
 			      file:nil
 			     types:nil
 		    modalForWindow:[self window]
