@@ -1441,7 +1441,6 @@
 			files = (
 				928489DD06611CE6003B3514,
 				928489DE06611CE6003B3514,
-				92ECCFAF07F0F25700C77375,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2380,7 +2379,6 @@
 			files = (
 				92E3E17B07E7BF1B00E62AB8,
 				92E3E17D07E7BF1B00E62AB8,
-				92E3E1C207E7D04600E62AB8,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2538,12 +2536,6 @@
 			settings = {
 			};
 		};
-		92E3E1C207E7D04600E62AB8 = {
-			fileRef = 01AB92EA07DB797300DB4B86;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		92E3E22C07E7E22A00E62AB8 = {
 			fileRef = 92E3E15F07E7BE8C00E62AB8;
 			isa = PBXBuildFile;
@@ -2552,12 +2544,6 @@
 		};
 		92ECCFAE07F0F25600C77375 = {
 			fileRef = 01AB92E907DB797300DB4B86;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		92ECCFAF07F0F25700C77375 = {
-			fileRef = 01AB92EA07DB797300DB4B86;
 			isa = PBXBuildFile;
 			settings = {
 			};
