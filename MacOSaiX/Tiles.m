@@ -294,7 +294,8 @@
     // If all matches are already in use then pick the match with the highest value.
 - (BOOL)calculateBestMatch
 {
-	BOOL	bestMatchChanged = NO;
+	BOOL				bestMatchChanged = NO;
+	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	
         // If the user has picked a specific image to use then no calculation is necessary
 	[imageMatchesLock lock];
@@ -372,6 +373,8 @@
 		[[NSNotificationCenter defaultCenter] postNotificationName:@"Tile Image Changed" 
 															object:document
 														  userInfo:[NSDictionary dictionaryWithObject:self forKey:@"Tile"]];
+
+	[pool release];
 	
 	return bestMatchChanged;
 }
