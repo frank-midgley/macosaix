@@ -99,6 +99,18 @@
 	{
 		currentImageSource = (MacOSaiXGlyphImageSource *)imageSource;
 		
+		if ([[currentImageSource fontNames] count] == 0)
+		{
+				// Set the defaults for a new source.
+				// TODO: get these from the user defaults
+			NSEnumerator	*fontNameEnumerator = [[[NSFontManager sharedFontManager] availableFonts] objectEnumerator];
+			NSString		*fontName = nil;
+			while (fontName = [fontNameEnumerator nextObject])
+				[currentImageSource addFontWithName:fontName];
+				
+			[currentImageSource addColorList:@"All Colors" ofClass:@"Built-in"];
+		}
+		
 			// Start a timer to show sample images for the current settings.
 		sampleTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 
 													   target:self 
