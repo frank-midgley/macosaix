@@ -6,7 +6,8 @@
 //  Copyright (c) 2001 MyCompanyName. All rights reserved.
 //
 
-#import <AppKit/AppKit.h>
+#import <Cocoa/Cocoa.h>
+#import "MacOSaiXDocument.h"
 #import "Tiles.h"
 
 typedef enum
@@ -15,25 +16,27 @@ MosaicViewMode;
 
 @interface MosaicView : NSView
 {
-	NSImage			*originalImage, *mosaicImage;
-	MosaicViewMode	viewMode;
+	MacOSaiXDocument	*document;
+	NSImage				*mosaicImage;
+	NSLock				*mosaicImageLock;
+	NSAffineTransform	*mosaicImageTransform;
+	MosaicViewMode		viewMode;
 	
 		// ivar for viewTileSetup
-	NSBezierPath	*tilesOutline,
-					*neighborhoodOutline;
+	NSBezierPath		*tilesOutline,
+						*neighborhoodOutline;
 					
 		// ivars for viewHighlightedTile
-    Tile*			highlightedTile;
-    int				phase;
+    Tile*				highlightedTile;
+    int					phase;
 }
 
 - (id)init;
-- (void)setOriginalImage:(NSImage *)originalImage;
-- (void)setMosaicImage:(NSImage *)mosaicImage;
+
+- (void)setDocument:(MacOSaiXDocument *)inDocument;
+
 - (void)setViewMode:(MosaicViewMode)mode;
 - (MosaicViewMode)viewMode;
-- (void)mouseDown:(NSEvent *)theEvent;
-- (void)drawRect:(NSRect)theRect;
 
 	// viewTileSetup methods
 - (void)setTileOutlines:(NSArray *)tileOutlines;
