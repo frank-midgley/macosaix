@@ -47,6 +47,12 @@
 }
 
 
+- (void)setTile:(MacOSaiXTile *)inTile
+{
+	tile = inTile;	// don't retain
+}
+
+
 - (NSComparisonResult)compare:(MacOSaiXImageMatch *)otherMatch
 {
 	float	otherMatchValue = [otherMatch matchValue];

@@ -28,6 +28,7 @@
 - (id<MacOSaiXImageSource>)imageSource;
 - (NSString *)imageIdentifier;
 - (MacOSaiXTile *)tile;
+- (void)setTile:(MacOSaiXTile *)inTile;
 - (NSComparisonResult)compare:(MacOSaiXImageMatch *)otherMatch;
 
 @end
