@@ -321,8 +321,12 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 				[nativeImageSizeDict removeObjectForKey:key];
 				
 				unsigned	keyIndex = [imageKeyRecencyArray indexOfObjectIdenticalTo:key];
-				[imageKeyRecencyArray removeObjectAtIndex:keyIndex];
-				[imageRepRecencyArray removeObjectAtIndex:keyIndex];
+				
+				if (keyIndex != NSNotFound)
+				{
+					[imageKeyRecencyArray removeObjectAtIndex:keyIndex];
+					[imageRepRecencyArray removeObjectAtIndex:keyIndex];
+				}
 			}
 	[cacheLock unlock];
 }
