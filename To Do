@@ -159,7 +159,7 @@ Ordered array:		images, fileIDs
 Ã	Show average aspect ratio in setup
 	Google source:
 Ã		Meaningful description in table
-¥		Make sure cache doesn't fill disk
+?		Make sure cache doesn't fill disk
 	QuickTime source:
 ¥		Show aspect ratio
 ¥		Scale movie when sheet presented
