@@ -38,28 +38,38 @@
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification
 {
-	NSDate				*dateOfNextUpdateCheck = [[NSUserDefaults standardUserDefaults] objectForKey:@"Update Check After Date"];
-	NSString			*versionToSkip = [[NSUserDefaults standardUserDefaults] objectForKey:@"Update Check Version to Skip"],
-						*currentVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+	NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
 	
-	if (!dateOfNextUpdateCheck || [dateOfNextUpdateCheck timeIntervalSinceNow] <= 0)
+	if ([defaults boolForKey:@"Perform Update Check at Launch"])
 	{
-		[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"Update Check After Date"];
+		NSDate				*dateOfNextUpdateCheck = [defaults objectForKey:@"Update Check After Date"];
+		NSString			*versionToSkip = [defaults objectForKey:@"Update Check Version to Skip"],
+							*currentVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
 		
-		MacPADSocket	*macPAD = [[MacPADSocket alloc] init];
-		[macPAD setDelegate:self];
-		
-		if ([macPAD compareVersion:currentVersion toVersion:versionToSkip] != NSOrderedDescending)
+			// Check if the user didn't previously click the "Ask Me Again Later" button or 
+			// if it's been long enough to check again.
+		if (!dateOfNextUpdateCheck || [dateOfNextUpdateCheck timeIntervalSinceNow] <= 0)
 		{
-			[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"Update Check Version to Skip"];
-			versionToSkip = nil;
+				// Clear out the date now that we're past it.
+			[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"Update Check After Date"];
+			
+			MacPADSocket	*macPAD = [[MacPADSocket alloc] init];
+			[macPAD setDelegate:self];
+			
+			if ([macPAD compareVersion:currentVersion toVersion:versionToSkip] != NSOrderedDescending)
+			{
+					// Remove the version to skip from the prefs if the current version is newer.
+				[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"Update Check Version to Skip"];
+				versionToSkip = nil;
+			}
+			
+				// Perform the update check based on the version to skip (if defined) or the current version.
+			if (versionToSkip)
+				[macPAD performCheck:[NSURL URLWithString:@"http://homepage.mac.com/knarf/MacOSaiX/Version.plist"]
+						withVersion:versionToSkip];
+			else
+				[macPAD performCheckWithURL:[NSURL URLWithString:@"http://homepage.mac.com/knarf/MacOSaiX/Version.plist"]];
 		}
-		
-		if (versionToSkip)
-			[macPAD performCheck:[NSURL URLWithString:@"http://homepage.mac.com/knarf/MacOSaiX/Version.plist"]
-					withVersion:versionToSkip];
-		else
-			[macPAD performCheckWithURL:[NSURL URLWithString:@"http://homepage.mac.com/knarf/MacOSaiX/Version.plist"]];
 	}
 	
 	[self discoverPlugIns];
@@ -139,6 +149,9 @@
 	NSDirectoryEnumerator	*pathEnumerator = [[NSFileManager defaultManager]
  enumeratorAtPath:plugInsPath];
 	NSString				*plugInSubPath;
+	
+	[tileShapesClasses removeAllObjects];
+	[imageSourceClasses removeAllObjects];
 	
 	while (plugInSubPath = [pathEnumerator nextObject])
 	{
