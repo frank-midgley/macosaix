@@ -1134,7 +1134,7 @@
 
 - (void)dealloc
 {
-    [originalImageURL release];
+    [originalImagePath release];
     [originalImage release];
 	[pauseLock release];
     [imageQueueLock release];

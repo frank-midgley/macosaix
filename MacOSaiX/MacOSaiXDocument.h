@@ -52,6 +52,7 @@
 	MacOSaiXImageCache			*imageCache;
 }
 
+- (void)setOriginalImagePath:(NSString *)path;
 - (void)setTileOutlines:(NSArray *)tileOutlines;
 - (void)setNeighborhoodSize:(int)size;
 
