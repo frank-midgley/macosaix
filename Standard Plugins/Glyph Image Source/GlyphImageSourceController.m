@@ -304,7 +304,25 @@
 
 
 #pragma mark -
-#pragma mark Table view data source methods
+#pragma mark Text delegate methods
+
+
+- (void)controlTextDidChange:(NSNotification *)notification
+{
+	if ([notification object] == countTextField)
+	{
+		if ([[countTextField stringValue] length] > 0)
+		{
+			[currentImageSource setImageCountLimit:[countTextField intValue]];
+			[countMatrix selectCellAtRow:2 column:1];
+		}
+		else
+		{
+			[currentImageSource setImageCountLimit:0];
+			[countMatrix selectCellAtRow:1 column:1];
+		}
+	}
+}
 
 
 - (void)textDidChange:(NSNotification *)notification
