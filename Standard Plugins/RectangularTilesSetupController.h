@@ -19,5 +19,6 @@
 
 - (void)setTilesAcross:(id)sender;
 - (void)setTilesDown:(id)sender;
+- (void)createTileOutlines;
 
 @end
