@@ -7,13 +7,13 @@
                 allowUserToChooseImage = id; 
                 beginExportImage = id; 
                 cancelImageSource = id; 
+                chooseOriginalImage = id; 
                 removeImageSource = id; 
                 saveImageSource = id; 
                 setExportHeightFromWidth = id; 
                 setExportWidthFromHeight = id; 
                 setJPEGExport = id; 
                 setNeighborhoodSize = id; 
-                setShowOutlines = id; 
                 setTIFFExport = id; 
                 setTilesSetupPlugIn = id; 
                 setViewAloneMode = id; 
@@ -29,7 +29,7 @@
                 useCustomImage = id; 
                 useSelectedImage = id; 
             }; 
-            CLASS = MacOSaiXDocument; 
+            CLASS = MacOSaiXWindowController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 editorChooseImage = NSButton; 
@@ -40,7 +40,7 @@
                 editorUseSelectedImage = NSButton; 
                 editorUserChosenImage = NSImageView; 
                 exportHeight = NSTextField; 
-                exportPanelAccessoryView = id; 
+                exportPanelAccessoryView = NSView; 
                 exportWidth = NSTextField; 
                 imageSourceEditorBox = NSBox; 
                 imageSourceEditorOKButton = NSButton; 
@@ -48,16 +48,14 @@
                 imageSourcesPopUpButton = NSPopUpButton; 
                 imageSourcesRemoveButton = NSButton; 
                 imageSourcesTableView = NSTableView; 
-                matchValueTextField = NSTextField; 
                 mosaicScrollView = NSScrollView; 
                 mosaicView = MosaicView; 
                 neighborhoodSizePopUpButton = NSPopUpButton; 
-                originalView = OriginalView; 
+                originalImagePopUpButton = NSPopUpButton; 
                 progressPanel = NSPanel; 
                 progressPanelCancelButton = NSButton; 
                 progressPanelIndicator = NSProgressIndicator; 
                 progressPanelLabel = NSTextField; 
-                showOutlinesSwitch = id; 
                 statusBarView = NSView; 
                 statusMessageView = NSTextField; 
                 tilesSetupPopUpButton = NSPopUpButton; 
@@ -65,11 +63,11 @@
                 totalTilesField = NSTextField; 
                 utilitiesDrawer = NSDrawer; 
                 utilitiesTabView = NSTabView; 
-                zoomSlider = id; 
+                zoomSlider = NSSlider; 
                 zoomToolbarSubmenu = NSMenu; 
-                zoomToolbarView = id; 
+                zoomToolbarView = NSView; 
             }; 
-            SUPERCLASS = NSDocument; 
+            SUPERCLASS = NSWindowController; 
         }, 
         {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
         {CLASS = NotifyingScrollView; LANGUAGE = ObjC; SUPERCLASS = NSScrollView; }, 
