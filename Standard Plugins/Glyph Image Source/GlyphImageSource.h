@@ -17,7 +17,8 @@
 	
 	unsigned long		imageCountLimit,
 						imageCount;
-
+	
+	NSMutableDictionary	*glyphsDict;
 	NSRect				glyphsBounds;
 	
     NSWindow			*focusWindow;	// for offscreen drawing

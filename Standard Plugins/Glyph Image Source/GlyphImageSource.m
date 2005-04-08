@@ -77,6 +77,8 @@ static NSImage	*glyphSourceImage = nil;
 		
 		fontNames = [[NSMutableArray array] retain];
 		colorLists = [[NSMutableDictionary dictionary] retain];
+		
+		glyphsDict = [[NSMutableDictionary dictionary] retain];
 	}
 	
 	return self;
@@ -252,6 +254,42 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
+- (NSArray *)glyphsForFont:(NSFont *)font
+{
+	NSString	*fontName = [font fontName];
+	NSArray		*glyphNums = [glyphsDict objectForKey:fontName];
+	
+	if (!glyphNums)
+	{
+		NSLayoutManager	*layoutManager = [[NSLayoutManager alloc] init];
+		NSDictionary	*attributes = [NSDictionary dictionaryWithObject:font forKey:NSFontAttributeName];
+		NSTextStorage	*textStorage = [[NSTextStorage alloc] initWithString:[self letterPool] attributes:attributes];
+		NSTextContainer	*textContainer = [[NSTextContainer alloc] init];
+		
+		[layoutManager addTextContainer:textContainer];
+		[textStorage addLayoutManager:layoutManager];
+		
+		unsigned	glyphCount = [layoutManager numberOfGlyphs],
+					glyphIndex;
+		NSGlyph		glyphs[glyphCount];
+		
+		glyphNums = [NSMutableArray arrayWithCapacity:glyphCount];
+		[layoutManager getGlyphs:glyphs range:NSMakeRange(0, glyphCount)];
+		
+		[textContainer release];
+		[textStorage release];
+		[layoutManager release];
+		
+		for (glyphIndex = 0; glyphIndex < glyphCount; glyphIndex++)
+			[(NSMutableArray *)glyphNums addObject:[NSNumber numberWithInt:glyphs[glyphIndex]]];
+		
+		[glyphsDict setObject:glyphNums forKey:fontName];
+	}
+	
+	return glyphNums;
+}
+
+
 - (NSImage *)nextImageAndIdentifier:(NSString **)identifier
 {
 	NSImage	*image = nil;
@@ -266,14 +304,8 @@ static NSImage	*glyphSourceImage = nil;
 			NSGlyph			glyphNum;
 			if ([self letterPool])
 			{
-				NSLayoutManager	*layoutManager = [[[NSLayoutManager alloc] init] autorelease];
-				NSDictionary	*attributes = [NSDictionary dictionaryWithObject:font
-																		  forKey:NSFontAttributeName];
-				NSTextStorage	*textStorage = [[NSTextStorage alloc] initWithString:[self letterPool]
-																		  attributes:attributes];
-				[textStorage addLayoutManager:layoutManager];
-				unsigned	glyphCount = [layoutManager numberOfGlyphs];
-				glyphNum = [layoutManager glyphAtIndex:random() % glyphCount];
+				NSArray	*glyphNums = [self glyphsForFont:font];
+				glyphNum = [[glyphNums objectAtIndex:random() % [glyphNums count]] intValue];
 			}
 			else
 				glyphNum = random() % ([font numberOfGlyphs] - 1) + 1;
@@ -433,15 +465,11 @@ static NSImage	*glyphSourceImage = nil;
 		{
 			if ([self letterPool])
 			{
-				NSLayoutManager	*layoutManager = [[[NSLayoutManager alloc] init] autorelease];
-				NSDictionary	*attributes = [NSDictionary dictionaryWithObject:font
-																		  forKey:NSFontAttributeName];
-				NSTextStorage	*textStorage = [[NSTextStorage alloc] initWithString:[self letterPool]
-																		  attributes:attributes];
-				[textStorage addLayoutManager:layoutManager];
-				unsigned	i, glyphCount = [layoutManager numberOfGlyphs];
-				for (i = 0; i < glyphCount; i++)
-					glyphsBounds = NSUnionRect(glyphsBounds, [font boundingRectForGlyph:[layoutManager glyphAtIndex:i]]);
+				NSEnumerator	*glyphEnumerator = [[self glyphsForFont:font] objectEnumerator];
+				NSNumber		*glyphNum = nil;
+				
+				while ((glyphNum = [glyphEnumerator nextObject]))
+					glyphsBounds = NSUnionRect(glyphsBounds, [font boundingRectForGlyph:[glyphNum intValue]]);
 			}
 			else
 				glyphsBounds = NSUnionRect(glyphsBounds, [font boundingRectForFont]);
@@ -490,6 +518,8 @@ static NSImage	*glyphSourceImage = nil;
 	if ([fontNames containsObject:fontName])
 	{
 		[fontNames removeObject:fontName];
+		[glyphsDict removeObjectForKey:fontName];
+		
 		[self calculateBoundingRectForGlyphs];
 	}
 }
@@ -548,6 +578,9 @@ static NSImage	*glyphSourceImage = nil;
 {
 	[letterPool autorelease];
 	letterPool = [pool copy];
+	
+	[glyphsDict removeAllObjects];
+	
 	[self calculateBoundingRectForGlyphs];
 }
 
@@ -581,6 +614,7 @@ static NSImage	*glyphSourceImage = nil;
     [fontNames release];
 	[colorLists release];
 	[letterPool release];
+	[glyphsDict release];
 	
     [focusWindow close];
     [focusWindowLock release];
