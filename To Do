@@ -75,5 +75,7 @@ Riemersma metric:
 Ã	iPhoto plug-in
 	Glyphs plug-in
 Ã		Update to new API
-
+¥	0x124c crashers (any others?)
+¥	Window zooming
+¥	Tile refresh leaves black edges
 
