@@ -882,6 +882,8 @@
 				F57C77AD025D0CFF01000102,
 				92B45F74041A9E78006867F5,
 				92B45F75041A9E78006867F5,
+				92C8AAF0080870100073045F,
+				92C8AAF1080870100073045F,
 				F54EF786025F976A01000103,
 				928F728F0661226000873AE2,
 				928F72DC0661231B00873AE2,
@@ -1410,6 +1412,7 @@
 				928489D806611CE6003B3514,
 				928489D906611CE6003B3514,
 				92ECCFAE07F0F25600C77375,
+				92C8AAF2080870100073045F,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1441,6 +1444,7 @@
 			files = (
 				928489DD06611CE6003B3514,
 				928489DE06611CE6003B3514,
+				92C8AAF3080870100073045F,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2315,6 +2319,36 @@
 		};
 		92BFFEC3079A2DD50052CC4C = {
 			fileRef = 92BFFEC1079A2DD50052CC4C;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		92C8AAF0080870100073045F = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = GlyphTableColumn.h;
+			path = "Standard Plugins/Glyph Image Source/GlyphTableColumn.h";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		92C8AAF1080870100073045F = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = GlyphTableColumn.m;
+			path = "Standard Plugins/Glyph Image Source/GlyphTableColumn.m";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		92C8AAF2080870100073045F = {
+			fileRef = 92C8AAF0080870100073045F;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		92C8AAF3080870100073045F = {
+			fileRef = 92C8AAF1080870100073045F;
 			isa = PBXBuildFile;
 			settings = {
 			};
