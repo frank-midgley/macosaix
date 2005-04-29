@@ -223,13 +223,13 @@ static NSImage	*glyphSourceImage = nil;
 		}
 		else if ([colorListName isEqualToString:@"Greenscale"])
 		{
-			green = 1.0;
-			red = blue = (random() % 256) / 256.0;
+			green = (random() % 256) / 256.0;
+			red = blue = (random() % (int)(green * 256.0)) / 256.0;
 		}
 		else if ([colorListName isEqualToString:@"Bluescale"])
 		{
-			blue = 1.0;
-			red = green = (random() % 256) / 256.0;
+			blue = (random() % 256) / 256.0;
+			red = green = (random() % (int)(blue * 256.0)) / 256.0;
 		}
 		else if ([colorListName isEqualToString:@"Sepia Tone"])
 		{
