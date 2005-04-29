@@ -56,7 +56,9 @@
 - (IBAction)chooseAllFonts:(id)sender;
 
 	// Colors tab
+- (id)tableView:(NSTableView *)tableView dataCellForTableColumn:(NSTableColumn *)tableColumn row:(int)rowIndex;
 - (IBAction)toggleColor:(id)sender;
+- (IBAction)editSystemWideColors:(id)sender;
 
 	// Letters tab
 

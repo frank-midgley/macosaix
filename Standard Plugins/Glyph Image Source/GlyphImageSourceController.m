@@ -138,7 +138,7 @@
 		
 			// Get the list of colors defined by the NSColorPanel.
 		[systemWideColorLists autorelease];
-		systemWideColorLists = [[NSColorList availableColorLists] retain];
+		systemWideColorLists = [[NSColorList availableColorLists] mutableCopy];
 		
 			// Populate the GUI with this source's settings.
 		if ([[currentImageSource letterPool] length] > 0)
@@ -156,11 +156,18 @@
 			[countMatrix selectCellAtRow:1 column:1];
 			[countTextField setIntValue:[currentImageSource imageCountLimit]];
 		}
+		
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(colorListDidChange:)
+													 name:NSColorListDidChangeNotification 
+												   object:nil];
 	}
 	else
 	{
 		[sampleTimer invalidate];
 		sampleTimer = nil;
+		
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:NSColorListDidChangeNotification object:nil];
 	}
 }
 
@@ -286,6 +293,26 @@
 }
 
 
+- (IBAction)editSystemWideColors:(id)sender
+{
+	[NSColorPanel setPickerMode:NSColorListModeColorPanel];
+	[NSApp orderFrontColorPanel:sender];
+}
+
+
+- (void)colorListDidChange:(NSNotification *)notification
+{
+	NSColorList	*colorList = [notification object];
+	
+	if (![systemWideColorLists containsObject:colorList])
+	{
+		[systemWideColorLists addObject:colorList];
+//		[systemWideColorLists sortUsingSelector:@selector(compare:)];
+		[colorsOutlineView reloadData];
+	}
+}
+
+
 #pragma mark Letters tab
 
 
@@ -395,7 +422,25 @@
 
 - (id)outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
 {
-	return nil;
+	id	objectValue = nil;
+	
+	if (outlineView == colorsOutlineView)
+		if ([item isKindOfClass:[NSString class]])
+			objectValue = item;
+	
+	return objectValue;
+}
+
+
+- (id)tableView:(NSTableView *)tableView dataCellForTableColumn:(NSTableColumn *)tableColumn row:(int)rowIndex
+{
+	id	cell = nil;
+	
+	if (tableView == colorsOutlineView)
+		if ([[colorsOutlineView itemAtRow:rowIndex] isKindOfClass:[NSString class]])
+			cell = [[[NSCell alloc] initTextCell:@""] autorelease];
+	
+	return cell;
 }
 
 
@@ -439,13 +484,7 @@
 	}
 	else
 	{
-		if ([item isKindOfClass:[NSString class]])
-		{
-			[cell setState:NSOffState];
-			[cell setEnabled:NO];
-			[cell setTitle:@"System-wide Color Lists"];
-		}
-		else
+		if ([item isKindOfClass:[NSColorList class]])
 		{
 			NSString	*listClass = nil;
 			if ([builtinColorLists containsObject:item])
@@ -459,7 +498,6 @@
 				[cell setState:NSOnState];
 			else
 				[cell setState:NSOffState];
-			[cell setEnabled:YES];
 			[cell setTitle:[(NSColorList *)item name]];
 		}
 	}

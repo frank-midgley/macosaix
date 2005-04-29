@@ -5,10 +5,8 @@
             ACTIONS = {
                 chooseAllFonts = id; 
                 chooseNoFonts = id; 
-                setColorsOption = id; 
+                editSystemWideColors = id; 
                 setCountOption = id; 
-                setFontsOption = id; 
-                setLettersOption = id; 
                 toggleColor = id; 
                 toggleFont = id; 
             }; 
@@ -27,6 +25,11 @@
                 sizeTextField = NSTextField; 
             }; 
             SUPERCLASS = NSObject; 
+        }, 
+        {
+            CLASS = MacOSaiXGlyphTableColumn; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = NSTableColumn; 
         }
     ); 
     IBVersion = 1; 
