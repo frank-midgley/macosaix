@@ -17,7 +17,9 @@
 	IBOutlet NSView				*editorView;
 
 	IBOutlet NSImageView		*iconView;
-	IBOutlet NSPopUpButton		*albumsPopUp;
+	IBOutlet NSMatrix			*matrix;
+	IBOutlet NSPopUpButton		*albumsPopUp,
+								*keywordsPopUp;
 	
 	NSButton					*okButton;
 	
@@ -25,6 +27,8 @@
 	MacOSaiXiPhotoImageSource	*currentImageSource;
 }
 
+- (IBAction)chooseAllPhotos:(id)sender;
 - (IBAction)chooseAlbum:(id)sender;
+- (IBAction)chooseKeyword:(id)sender;
 
 @end

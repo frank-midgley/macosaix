@@ -14,18 +14,18 @@
 @interface MacOSaiXiPhotoImageSource : NSObject <MacOSaiXImageSource>
 {
     NSString				*albumName,
-							*lastEnumeratedImageName,
-							*enumerationRoot;
-	NSAttributedString		*albumDescription;
-    NSDirectoryEnumerator	*albumEnumerator;
-	BOOL					haveMoreImages,
-							imagesHaveBeenEnumerated;
+							*keywordName;
+	NSAttributedString		*sourceDescription;
+    NSMutableArray			*remainingPhotoIDs;
 }
 
-+ (NSString *)albumsPath;
 + (NSImage *)albumImage;
++ (NSImage *)keywordImage;
 
 - (NSString *)albumName;
 - (void)setAlbumName:(NSString *)name;
+
+- (NSString *)keywordName;
+- (void)setKeywordName:(NSString *)name;
 
 @end
