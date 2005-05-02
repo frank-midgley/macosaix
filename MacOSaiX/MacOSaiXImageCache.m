@@ -95,7 +95,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		// Remove the least recently accessed image rep from the memory cache until we have
 		// enough room to store the new rep.
 	size_t	imageRepSize = malloc_size((void *)[imageRep bitmapData]);
-	while ([memoryCache count] > 0 && (memoryCacheSize + imageRepSize) > MAX_MEMORY_CACHE_SIZE)
+	while ([memoryCache count] > 0 && ((memoryCacheSize + imageRepSize) > MAX_MEMORY_CACHE_SIZE || [imageKeyRecencyArray count] > 256))
 	{
 		NSString			*oldestKey = [imageKeyRecencyArray lastObject];
 		NSBitmapImageRep	*oldestRep = [imageRepRecencyArray lastObject];
@@ -132,6 +132,8 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		// The newest items are closer to index 0.
 	[imageRepRecencyArray insertObject:imageRep atIndex:0];
 	[imageKeyRecencyArray insertObject:imageKey atIndex:0];
+	
+//	NSLog(@"%d image reps in cache", [imageRepRecencyArray count]);
 }
 
 
