@@ -23,7 +23,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>2.0a2</string>
+	<string>2.0a3</string>
 	<key>NSPrincipalClass</key>
 	<string>GoogleImageSource</string>
 </dict>

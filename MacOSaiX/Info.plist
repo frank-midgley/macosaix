@@ -24,7 +24,7 @@
 	<key>CFBundleExecutable</key>
 	<string>MacOSaiX</string>
 	<key>CFBundleGetInfoString</key>
-	<string>2.0a2</string>
+	<string>2.0a3</string>
 	<key>CFBundleIconFile</key>
 	<string>Application Icon</string>
 	<key>CFBundleIdentifier</key>
@@ -36,7 +36,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.0a2</string>
+	<string>2.0a3</string>
 	<key>CFBundleVersion</key>
 	<string>2.0a3</string>
 	<key>NSMainNibFile</key>

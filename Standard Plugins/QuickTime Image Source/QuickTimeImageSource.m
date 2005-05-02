@@ -70,12 +70,22 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 }
 
 
-- (id)initWithPath:(NSString *)path
+- (id)init
 {
 	if (self = [super init])
 	{
-		[self setPath:path];
 		currentImageLock = [[NSLock alloc] init];
+	}
+
+    return self;
+}
+
+
+- (id)initWithPath:(NSString *)path
+{
+	if (self = [self init])
+	{
+		[self setPath:path];
 	}
 
     return self;
