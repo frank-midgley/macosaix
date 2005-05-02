@@ -189,13 +189,12 @@
 	
 	[tilesNeedingDisplayLock lock];
 		NSAffineTransform	*transform = [NSAffineTransform transform];
-		[transform translateXBy:-1.0 yBy:-1.0];
-		[transform scaleXBy:([self frame].size.width + 2.0) yBy:([self frame].size.height + 2.0)];
+		[transform scaleXBy:([self frame].size.width) yBy:([self frame].size.height)];
 		
 		NSEnumerator	*tileEnumerator = [tilesNeedingDisplay objectEnumerator];
 		MacOSaiXTile	*tileNeedingDisplay = nil;
 		while (tileNeedingDisplay = [tileEnumerator nextObject])
-			[self setNeedsDisplayInRect:[[transform transformBezierPath:[tileNeedingDisplay outline]] bounds]];
+			[self setNeedsDisplayInRect:NSInsetRect([[transform transformBezierPath:[tileNeedingDisplay outline]] bounds], -1.0, -1.0)];
 		
 		[tilesNeedingDisplay removeAllObjects];
 		
