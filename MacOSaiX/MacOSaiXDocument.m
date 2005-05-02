@@ -873,6 +873,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 			break;
 		
         default:
+			;
 //			NSLog(@"Ignoring %d", CFXMLNodeGetTypeCode(node));
 	}
 	
