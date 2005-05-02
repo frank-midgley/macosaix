@@ -143,7 +143,6 @@
 
 		[[imageSourcesTableView tableColumnWithIdentifier:@"Image Source Type"]
 			setDataCell:[[[NSImageCell alloc] init] autorelease]];
-		[imageSourcesRemoveButton setEnabled:NO];	// temporarily disabled for 2.0a1
 	
 			// Populate the "Add New Source..." pop-up menu with the names of the image sources.
 			// The represented object of each menu item will be the image source's class.
