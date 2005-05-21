@@ -29,6 +29,7 @@ Ideas for future versions:
 	Button/menu item to not use selected image anywhere.  (probably in editor)
 	AppleScript support
 	Rework MosaicView to not use a stored image but redraw the tiles as needed in -drawRect:.  Would allow for better zooming.
+	RSS feed
 
 =======================================================================================
 
@@ -37,21 +38,27 @@ Riemersma metric:
 
 =======================================================================================
 
+2.x To Do:
+¥	Buffered exporting (allow larger sizes)
+¥	Compare straight color match vs. Riemersma
+¥	New mosaic from image on clipboard
+
+
 2.0.0x To Do:
+¥	Streaming QT source (2.1?)
 ¥	Allow setup to be changed after mosaic has been started
 ¥	Make sure pixels are being pulled from bitmaps correctly
-¥	Buffered exporting (allow larger sizes)
 ¥	Editor
 ¥	Mosaic quality calculation should take into account each tile's percentage coverage of original image
 ¥	Get rid of lines in exporting
-¥	Compare straight color match vs. Riemersma
 ¥	Add preferences API for image source plug-ins
 ¥	Add preferences API for tile shapes plug-ins
 	Image cache
 ¥		purge unused images in disk cache on save
-¥	Resizing when zoomed does not stay centered.
-¥	Preference/option for what to display for non-unique tiles.
-¥	New mosaic from image on clipboard
+¥	Resizing when zoomed does not stay centered and draws funky
+	Preferences:
+¥		What to display for non-unique tiles
+¥		Auto-start on image source add
 ¥	Rework puzzle shapes plug-in to conform with new API
 ¥	Make sure saved documents are bundles
 	Google source:
@@ -67,15 +74,8 @@ Riemersma metric:
 ¥		Exception on pasting letters
 ¥		Use each letter once
 ¥		Remember previous choices
-
-=======================================================================================
-
-2.0a3 To Do:
-
-Ã	iPhoto plug-in
-	Glyphs plug-in
-Ã		Update to new API
 ¥	0x124c crashers (any others?)
 ¥	Window zooming
-¥	Tile refresh leaves black edges
-
+?	Tile refresh leaves black edges
+¥	Export defaults to >10000 pixels for large original
+¥	Check for new crash log(s)
