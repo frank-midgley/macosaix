@@ -11,9 +11,11 @@
 @interface MacOSaiXPreferencesController : NSWindowController
 {
     IBOutlet NSTextField	*autosaveFrequencyField;
-	IBOutlet NSButton		*updateCheckBox;
+	IBOutlet NSButton		*updateCheckBox,
+							*autoStartCheckBox;
 }
 
 - (IBAction)setUpdateCheck:(id)sender;
+- (IBAction)setAutoStart:(id)sender;
 
 @end

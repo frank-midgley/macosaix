@@ -21,8 +21,17 @@
 		frequency = 1;
     [autosaveFrequencyField setIntValue:frequency];
 	
-	BOOL			checkForUpdate = [defaults boolForKey:@"Perform Update Check at Launch"];
-	[updateCheckBox setState:(checkForUpdate ? NSOnState : NSOffState)];
+	[updateCheckBox setState:([defaults boolForKey:@"Perform Update Check at Launch"] ? NSOnState : NSOffState)];
+	[autoStartCheckBox setState:([defaults boolForKey:@"Automatically Start Mosaics"] ? NSOnState : NSOffState)];
+}
+
+
+- (void)controlTextDidChange:(NSNotification *)notification
+{
+    NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
+    
+    [defaults setInteger:[autosaveFrequencyField intValue] forKey:@"Autosave Frequency"];
+    [defaults synchronize];
 }
 
 
@@ -35,11 +44,11 @@
 }
 
 
-- (void)controlTextDidChange:(NSNotification *)notification
+- (IBAction)setAutoStart:(id)sender
 {
     NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
-    
-    [defaults setInteger:[autosaveFrequencyField intValue] forKey:@"Autosave Frequency"];
+	
+	[defaults setBool:([autoStartCheckBox state] == NSOnState) forKey:@"Automatically Start Mosaics"];
     [defaults synchronize];
 }
 
