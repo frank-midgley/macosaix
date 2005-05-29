@@ -1639,34 +1639,34 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 					}
 					
 					[self updateChangeCount:NSChangeDone];
+					
+						// Only remember a reasonable number of the best matches.
+					int	roughUpperBound = pow(sqrt([tiles count]) / imageReuseDistance, 2);
+					if ([betterMatches count] > roughUpperBound)
+					{
+						[betterMatches removeObjectsInRange:NSMakeRange(roughUpperBound, [betterMatches count] - roughUpperBound)];
+						
+							// Add a dummy entry with a nil tile on the end so we know that entries were removed.
+						[betterMatches addObject:[[[MacOSaiXImageMatch alloc] init] autorelease]];
+					}
+						
+						// Remember this list so we don't have to do all of the matches again.
+					[betterMatchesCache setObject:betterMatches forKey:pixletKey];
 				}
 				else
 				{
-	//				NSLog(@"Didn't cache enough matches for uniqueness...");
+						// There weren't enough matches in the cache to satisfy the user's prefs 
+						// so we need to re-calculate the matches.
 					[betterMatchesCache removeObjectForKey:pixletKey];
+					betterMatches = nil;	// The betterMatchesCache had the last retain on the array.
+					
 					NSDictionary	*newQueueEntry = [NSDictionary dictionaryWithObjectsAndKeys:
 														pixletImageSource, @"Image Source", 
 														pixletImageIdentifier, @"Image Identifier",
 														nil];
 					if (![imageQueue containsObject:newQueueEntry])
-					{
-	//						NSLog(@"Rechecking %@", [previousMatch imageIdentifier]);
 						[imageQueue addObject:newQueueEntry];
-					}
 				}
-				
-					// Only remember a reasonable number of the best matches.
-				int	roughUpperBound = pow(sqrt([tiles count]) / imageReuseDistance, 2);
-				if ([betterMatches count] > roughUpperBound)
-				{
-					[betterMatches removeObjectsInRange:NSMakeRange(roughUpperBound, [betterMatches count] - roughUpperBound)];
-					
-						// Add a dummy entry with a nil tile on the end so we know that entries were removed.
-					[betterMatches addObject:[[[MacOSaiXImageMatch alloc] init] autorelease]];
-				}
-					
-					// Remember this list so we don't have to do all of the matches again.
-				[betterMatchesCache setObject:betterMatches forKey:pixletKey];
 			}
 			
 			if (pixletImage)
