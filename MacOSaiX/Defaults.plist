@@ -6,6 +6,8 @@
 	<integer>15</integer>
 	<key>Perform Update Check at Launch</key>
 	<true/>
+	<key>Automatically Start Mosaics</key>
+	<true/>
 	<key>Image Use Count</key>
 	<integer>0</integer>
 	<key>Image Reuse Distance</key>
