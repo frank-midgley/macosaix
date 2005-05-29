@@ -812,8 +812,9 @@
 		[[self document] removeImageSource:originalImageSource];
 		[[self document] addImageSource:editedImageSource];
 	
-			// TODO: we don't always want to resume automatically...
-		if ([[self document] tileShapes])
+			// Auto start the mosaic if possible and the user wants to.
+		if ([[self document] tileShapes] && 
+			[[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Start Mosaics"])
 			[self resume];
 		
 		[imageSourcesTableView reloadData];
