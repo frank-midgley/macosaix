@@ -1441,42 +1441,49 @@
         NSBezierPath		*clipPath = [transform transformBezierPath:[tile outline]];
         
         tilesExported++;
-        [NSGraphicsContext saveGraphicsState];
-        [clipPath addClip];
 		
-			// Get the image in use by this tile.
-		MacOSaiXImageMatch	*match = [tile displayedImageMatch];
-		NSImageRep			*pixletImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[clipPath bounds].size 
-																					  forIdentifier:[match imageIdentifier] 
-																						 fromSource:[match imageSource]];
+		NS_DURING
+			[NSGraphicsContext saveGraphicsState];
+			[clipPath addClip];
+			
+				// Get the image in use by this tile.
+			MacOSaiXImageMatch	*match = [tile displayedImageMatch];
+			NSImageRep			*pixletImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[clipPath bounds].size 
+																						  forIdentifier:[match imageIdentifier] 
+																							 fromSource:[match imageSource]];
+			
+				// Translate the tile's outline (in unit space) to the size of the exported image.
+			NSRect		drawRect;
+			if ([clipPath bounds].size.width / [pixletImageRep size].width <
+				[clipPath bounds].size.height / [pixletImageRep size].height)
+			{
+				drawRect.size = NSMakeSize([clipPath bounds].size.height * [pixletImageRep size].width /
+							[pixletImageRep size].height,
+							[clipPath bounds].size.height);
+				drawRect.origin = NSMakePoint([clipPath bounds].origin.x - 
+								(drawRect.size.width - [clipPath bounds].size.width) / 2.0,
+							[clipPath bounds].origin.y);
+			}
+			else
+			{
+				drawRect.size = NSMakeSize([clipPath bounds].size.width,
+							[clipPath bounds].size.width * [pixletImageRep size].height /
+							[pixletImageRep size].width);
+				drawRect.origin = NSMakePoint([clipPath bounds].origin.x,
+							[clipPath bounds].origin.y - 
+								(drawRect.size.height - [clipPath bounds].size.height) / 2.0);
+			}
+			
+				// Finally, draw the tile's image.
+			[pixletImageRep drawInRect:drawRect];
+			
+				// Clean up
+			[NSGraphicsContext restoreGraphicsState];
+		NS_HANDLER
+			NSLog(@"Exception during export: %@", localException);
+			[NSGraphicsContext restoreGraphicsState];
+		NS_ENDHANDLER
 		
-			// Translate the tile's outline (in unit space) to the size of the exported image.
-		NSRect		drawRect;
-        if ([clipPath bounds].size.width / [pixletImageRep size].width <
-            [clipPath bounds].size.height / [pixletImageRep size].height)
-        {
-            drawRect.size = NSMakeSize([clipPath bounds].size.height * [pixletImageRep size].width /
-                        [pixletImageRep size].height,
-                        [clipPath bounds].size.height);
-            drawRect.origin = NSMakePoint([clipPath bounds].origin.x - 
-                            (drawRect.size.width - [clipPath bounds].size.width) / 2.0,
-                        [clipPath bounds].origin.y);
-        }
-        else
-        {
-            drawRect.size = NSMakeSize([clipPath bounds].size.width,
-                        [clipPath bounds].size.width * [pixletImageRep size].height /
-                        [pixletImageRep size].width);
-            drawRect.origin = NSMakePoint([clipPath bounds].origin.x,
-                        [clipPath bounds].origin.y - 
-                            (drawRect.size.height - [clipPath bounds].size.height) / 2.0);
-        }
-		
-			// Finally, draw the tile's image.
-        [pixletImageRep drawInRect:drawRect];
-		
-			// Clean up
-        [NSGraphicsContext restoreGraphicsState];
         [pool2 release];
 		
 		[self setProgressPercentComplete:[NSNumber numberWithDouble:((double)tilesExported / (double)tileCount * 100.0)] ];
