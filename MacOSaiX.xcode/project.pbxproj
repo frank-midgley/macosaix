@@ -81,6 +81,78 @@
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0129763F0846A1DE0095AD36 = {
+			compilerSpec = com.apple.compilers.gcc.3_3;
+			fileType = sourcecode.c;
+			isEditable = 1;
+			isa = PBXBuildRule;
+			outputFiles = (
+			);
+		};
+		012976400846A1F60095AD36 = {
+			compilerSpec = com.apple.compilers.gcc.3_3;
+			fileType = sourcecode.c;
+			isEditable = 1;
+			isa = PBXBuildRule;
+			outputFiles = (
+			);
+		};
+		012976430846A1FF0095AD36 = {
+			compilerSpec = com.apple.compilers.gcc.3_3;
+			fileType = sourcecode.c;
+			isEditable = 1;
+			isa = PBXBuildRule;
+			outputFiles = (
+			);
+		};
+		012976460846A2060095AD36 = {
+			compilerSpec = com.apple.compilers.gcc.3_3;
+			fileType = sourcecode.c;
+			isEditable = 1;
+			isa = PBXBuildRule;
+			outputFiles = (
+			);
+		};
+		012976490846A2100095AD36 = {
+			compilerSpec = com.apple.compilers.gcc.3_3;
+			fileType = sourcecode.c;
+			isEditable = 1;
+			isa = PBXBuildRule;
+			outputFiles = (
+			);
+		};
+		0129764C0846A2170095AD36 = {
+			compilerSpec = com.apple.compilers.gcc.3_3;
+			fileType = sourcecode.c;
+			isEditable = 1;
+			isa = PBXBuildRule;
+			outputFiles = (
+			);
+		};
+		0129764F0846A21D0095AD36 = {
+			compilerSpec = com.apple.compilers.gcc.3_3;
+			fileType = sourcecode.c;
+			isEditable = 1;
+			isa = PBXBuildRule;
+			outputFiles = (
+			);
+		};
+		012976520846A2280095AD36 = {
+			compilerSpec = com.apple.compilers.gcc.3_3;
+			fileType = sourcecode.c;
+			isEditable = 1;
+			isa = PBXBuildRule;
+			outputFiles = (
+			);
+		};
+		012976550846A2340095AD36 = {
+			compilerSpec = com.apple.compilers.gcc.3_3;
+			fileType = sourcecode.c;
+			isEditable = 1;
+			isa = PBXBuildRule;
+			outputFiles = (
+			);
+		};
 		01453C99071B6EE300BCEC7C = {
 			children = (
 				927FA75C03FA3607000A0D3F,
@@ -150,6 +222,7 @@
 				01453D48071B6F2D00BCEC7C,
 			);
 			buildRules = (
+				012976430846A1FF0095AD36,
 			);
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
@@ -445,6 +518,7 @@
 				01CB07E4071A1F2B00710BCF,
 			);
 			buildRules = (
+				012976400846A1F60095AD36,
 			);
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = /Users/frank/Development/MacOSaiX/build;
@@ -475,6 +549,30 @@
 			path = "Hexagonal Tiles.plugin";
 			refType = 3;
 			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		01FAF1D4084031C2003A2726 = {
+			children = (
+				01FAF1D5084031C2003A2726,
+			);
+			isa = PBXVariantGroup;
+			name = "Crash Reporter.nib";
+			path = "";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01FAF1D5084031C2003A2726 = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.nib;
+			name = English;
+			path = "MacOSaiX/English.lproj/Crash Reporter.nib";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		01FAF1D6084031C2003A2726 = {
+			fileRef = 01FAF1D4084031C2003A2726;
+			isa = PBXBuildFile;
+			settings = {
+			};
 		};
 //010
 //011
@@ -903,6 +1001,7 @@
 				9284897B06611CE5003B3514,
 			);
 			buildRules = (
+				0129763F0846A1DE0095AD36,
 			);
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Versions/A/Frameworks\" \"$(BUILT_PRODUCTS_DIR)\" /Users/frank/Development/MacOSaiX/build";
@@ -1031,6 +1130,7 @@
 				01AC3A3C07B0997C0025F915,
 				92F00D0807C1B52B004F6D06,
 				0127354307CD6EBB0053037A,
+				01FAF1D6084031C2003A2726,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1176,6 +1276,7 @@
 				928489BF06611CE6003B3514,
 			);
 			buildRules = (
+				012976490846A2100095AD36,
 			);
 			buildSettings = {
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -1279,6 +1380,7 @@
 				928489CF06611CE6003B3514,
 			);
 			buildRules = (
+				0129764F0846A21D0095AD36,
 			);
 			buildSettings = {
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -1385,6 +1487,7 @@
 				928489E206611CE6003B3514,
 			);
 			buildRules = (
+				0129764C0846A2170095AD36,
 			);
 			buildSettings = {
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -1498,6 +1601,7 @@
 				928489EE06611CE6003B3514,
 			);
 			buildRules = (
+				012976460846A2060095AD36,
 			);
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "$(BUILT_PRODUCTS_DIR)";
@@ -1589,6 +1693,7 @@
 				928489FE06611CE6003B3514,
 			);
 			buildRules = (
+				012976550846A2340095AD36,
 			);
 			buildSettings = {
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -1904,6 +2009,7 @@
 				928F725D066121A700873AE2,
 				928F725F066121A700873AE2,
 				92F00D0607C1B52B004F6D06,
+				01FAF1D4084031C2003A2726,
 			);
 			isa = PBXGroup;
 			name = "Nib's";
@@ -2361,6 +2467,7 @@
 				92E3E15D07E7BE8C00E62AB8,
 			);
 			buildRules = (
+				012976520846A2280095AD36,
 			);
 			buildSettings = {
 				GCC_OPTIMIZATION_LEVEL = 0;
