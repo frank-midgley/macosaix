@@ -42,10 +42,11 @@ Riemersma metric:
 ¥	Buffered exporting (allow larger sizes)
 ¥	Compare straight color match vs. Riemersma
 ¥	New mosaic from image on clipboard
+¥	Mosaic image source.  (use images from an existing mosaic) (Mark Everdell)
+¥	Streaming QT source
 
 
 2.0.0x To Do:
-¥	Streaming QT source (2.1?)
 ¥	Allow setup to be changed after mosaic has been started
 ¥	Make sure pixels are being pulled from bitmaps correctly
 ¥	Editor
@@ -58,7 +59,7 @@ Riemersma metric:
 ¥	Resizing when zoomed does not stay centered and draws funky
 	Preferences:
 ¥		What to display for non-unique tiles
-¥		Auto-start on image source add
+Ã		Auto-start on image source add
 ¥	Rework puzzle shapes plug-in to conform with new API
 ¥	Make sure saved documents are bundles
 	Google source:
@@ -74,8 +75,10 @@ Riemersma metric:
 ¥		Exception on pasting letters
 ¥		Use each letter once
 ¥		Remember previous choices
-¥	0x124c crashers (any others?)
+Ã	0x124c crashers (any others?)
 ¥	Window zooming
 ?	Tile refresh leaves black edges
 ¥	Export defaults to >10000 pixels for large original
 ¥	Check for new crash log(s)
+¥	Autosave pref checkbox
+¥	Disable autosave during export
