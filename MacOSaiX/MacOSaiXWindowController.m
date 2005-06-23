@@ -1084,7 +1084,8 @@
 		     modalDelegate:self
 		    didEndSelector:@selector(allowUserToChooseImageOpenPanelDidEnd:returnCode:contextInfo:)
 		       contextInfo:nil];
-*/}
+*/
+}
 
 
 - (void)allowUserToChooseImageOpenPanelDidEnd:(NSOpenPanel *)sheet 
@@ -1594,13 +1595,13 @@
 }
 
 
-- (NSSize)windowWillResize:(NSWindow *)resizingWindow toSize:(NSSize)proposedFrameSize
+- (NSSize)windowWillResize2:(NSWindow *)resizingWindow toSize:(NSSize)proposedFrameSize
 {
 	if (resizingWindow == [self window])
 	{
 		float	aspectRatio = [[[self document] originalImage] size].width / [[[self document] originalImage] size].height,
-				windowTop = [resizingWindow frame].origin.y + [resizingWindow frame].size.height,
-				minHeight = 413;
+				windowTop = NSMaxY([resizingWindow frame]), 
+				minHeight = 413;	// TODO: get this from nib setting
 		NSSize	diff;
 		NSRect	screenFrame = [[resizingWindow screen] frame];
 		
@@ -1654,11 +1655,14 @@
 }
 
 
-- (NSRect)windowWillUseStandardFrame:(NSWindow *)window defaultFrame:(NSRect)defaultFrame
+- (NSRect)windowWillUseStandardFrame2:(NSWindow *)window defaultFrame:(NSRect)defaultFrame
 {
 	if (window == [self window])
 	{
-		defaultFrame.size = [self windowWillResize:window toSize:defaultFrame.size];
+		NSSize	size = [self windowWillResize:window toSize:defaultFrame.size];
+		defaultFrame.origin = [window frame].origin;
+		defaultFrame.origin.y += NSHeight(defaultFrame) - size.height;
+		defaultFrame.size = size;
 
 		[mosaicScrollView setNeedsDisplay:YES];
 	}
