@@ -44,9 +44,13 @@ Riemersma metric:
 ¥	New mosaic from image on clipboard
 ¥	Mosaic image source.  (use images from an existing mosaic) (Mark Everdell)
 ¥	Streaming QT source
+	Image cache
+¥		purge unused images in disk cache on save
+	Preferences:
+¥		What to display for non-unique tiles
 
 
-2.0.0x To Do:
+2.0x To Do:
 ¥	Allow setup to be changed after mosaic has been started
 ¥	Make sure pixels are being pulled from bitmaps correctly
 ¥	Editor
@@ -54,12 +58,7 @@ Riemersma metric:
 ¥	Get rid of lines in exporting
 ¥	Add preferences API for image source plug-ins
 ¥	Add preferences API for tile shapes plug-ins
-	Image cache
-¥		purge unused images in disk cache on save
 ¥	Resizing when zoomed does not stay centered and draws funky
-	Preferences:
-¥		What to display for non-unique tiles
-Ã		Auto-start on image source add
 ¥	Rework puzzle shapes plug-in to conform with new API
 ¥	Make sure saved documents are bundles
 	Google source:
@@ -75,10 +74,14 @@ Riemersma metric:
 ¥		Exception on pasting letters
 ¥		Use each letter once
 ¥		Remember previous choices
-Ã	0x124c crashers (any others?)
-¥	Window zooming
-?	Tile refresh leaves black edges
-¥	Export defaults to >10000 pixels for large original
-¥	Check for new crash log(s)
 ¥	Autosave pref checkbox
+
+2.0a4 To Do:
+Ã	0x124c crashers (any others?)
+	Preferences:
+Ã		Auto-start on image source add
+¥	Check for new crash log(s)
+¥	Window zooming
+¥	Export defaults to >10000 pixels for large original
 ¥	Disable autosave during export
+?	Tile refresh leaves black edges
