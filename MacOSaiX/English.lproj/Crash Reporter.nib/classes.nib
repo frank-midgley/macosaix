@@ -1,4 +1,24 @@
 {
-    IBClasses = ({CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }); 
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {cancelReport = id; submitReport = id; toggleReportDetails = id; }; 
+            CLASS = MacOSaiXCrashReporterController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                cancelReportButton = NSButton; 
+                crashDescriptionField = NSTextField; 
+                crashLogTextView = NSTextView; 
+                detailsBox = NSBox; 
+                detailsButton = NSButton; 
+                emailAddressField = NSTextField; 
+                memoryField = NSTextField; 
+                plugInsTable = NSTableView; 
+                processorCountField = NSTextField; 
+                submitReportButton = NSButton; 
+            }; 
+            SUPERCLASS = NSWindowController; 
+        }
+    ); 
     IBVersion = 1; 
 }
