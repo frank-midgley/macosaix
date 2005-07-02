@@ -16,7 +16,7 @@
 	IBOutlet NSButton		*detailsButton;
 	IBOutlet NSBox			*detailsBox;
 	IBOutlet NSTextField	*memoryField,
-							*processorCountField;
+							*processorField;
 	IBOutlet NSTableView	*plugInsTable;
 	IBOutlet NSTextView		*crashLogTextView;
 	IBOutlet NSButton		*submitReportButton,
