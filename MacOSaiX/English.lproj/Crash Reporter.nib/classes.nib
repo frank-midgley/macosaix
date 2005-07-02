@@ -14,7 +14,7 @@
                 emailAddressField = NSTextField; 
                 memoryField = NSTextField; 
                 plugInsTable = NSTableView; 
-                processorCountField = NSTextField; 
+                processorField = NSTextField; 
                 submitReportButton = NSButton; 
             }; 
             SUPERCLASS = NSWindowController; 
