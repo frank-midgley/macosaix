@@ -5,6 +5,8 @@
 #import "MacOSaiXDocument.h"
 #import "MacPADSocket.h"
 #import "MacOSaiXUpdateAvailableController.h"
+#import "MacOSaiXCrashReporterController.h"
+
 #import <pthread.h>
 
 
@@ -71,6 +73,8 @@
 				[macPAD performCheckWithURL:[NSURL URLWithString:@"http://homepage.mac.com/knarf/MacOSaiX/Version.plist"]];
 		}
 	}
+	
+	[MacOSaiXCrashReporterController checkForCrash];
 	
 	[self discoverPlugIns];
 }
