@@ -21,6 +21,8 @@
 	IBOutlet NSTextView		*crashLogTextView;
 	IBOutlet NSButton		*submitReportButton,
 							*cancelReportButton;
+	
+	NSMutableArray			*plugIns;
 }
 
 + (void)checkForCrash;

@@ -8,6 +8,10 @@
 
 #import "MacOSaiXCrashReporterController.h"
 
+#import "MacOSaiX.h"
+#import "MacOSaiXTileShapes.h"
+#import "MacOSaiXImageSource.h"
+
 #import <sys/sysctl.h>
 
 
@@ -33,8 +37,14 @@
 
 - (void)awakeFromNib
 {
-	[memoryField setIntValue:NSRealMemoryAvailable()];
-	
+		// Show the amount of physical memory installed.
+	unsigned	memorySize = NSRealMemoryAvailable();
+	if (memorySize < 1 * 1024 * 1024 * 1024)
+		[memoryField setStringValue:[NSString stringWithFormat:@"%d MB", memorySize / (1024 * 1024)]];
+	else
+		[memoryField setStringValue:[NSString stringWithFormat:@"%.1f GB", (float)memorySize / (1024.0 * 1024.0 * 1024.0)]];
+		
+		// Show the count and type of CPU(s)
 	int			numCPU = 0;
 	NSString	*cpuCount = @"",
 				*cpuType = @"Unknown",
@@ -77,6 +87,36 @@
 	}
 	
 	[processorField setStringValue:[NSString stringWithFormat:@"%@%@%@", cpuCount, cpuType, cpuSubType]];
+	
+		// Build the data source for the plug-ins table.
+	plugIns = [[NSMutableArray array] retain];
+	MacOSaiX		*appDelegate = [NSApp delegate];
+	[appDelegate discoverPlugIns];
+	NSArray			*plugInClasses = [[appDelegate tileShapesClasses] arrayByAddingObjectsFromArray:[appDelegate imageSourceClasses]];
+	NSEnumerator	*plugInClassEnumerator = [plugInClasses objectEnumerator];
+	Class			plugInClass = nil;
+	while ((plugInClass = [plugInClassEnumerator nextObject]))
+	{
+		NSString	*version = [[NSBundle bundleForClass:plugInClass] objectForInfoDictionaryKey:@"CFBundleVersion"];
+		
+		if ([plugInClass conformsToProtocol:@protocol(MacOSaiXTileShapes)])
+			[plugIns addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+												@"Tile Shapes", @"Type", 
+												[plugInClass name], @"Name", 
+												version, @"Version", 
+												nil]];
+		else if ([plugInClass conformsToProtocol:@protocol(MacOSaiXImageSource)])
+			[plugIns addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+												@"Image Source", @"Type", 
+												[plugInClass name], @"Name", 
+												version, @"Version", 
+												nil]];
+	}
+	[plugInsTable reloadData];
+	
+		// 
+	NSString	*crashLogPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Logs/CrashReporter/MacOSaiX.crash.log"];
+	[crashLogTextView setString:[NSString stringWithContentsOfFile:crashLogPath]];
 }
 
 
@@ -97,13 +137,28 @@
 
 - (int)numberOfRowsInTableView:(NSTableView *)tableView
 {
-	return 0;
+	return [plugIns count];
 }
 
 
 - (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 {
-	return nil;
+	return [[plugIns objectAtIndex:row] objectForKey:[tableColumn identifier]];
+}
+
+
+- (void)tableView:(NSTableView *)tableView sortDescriptorsDidChange:(NSArray *)oldDescriptors
+{
+	[plugIns sortUsingDescriptors:[tableView sortDescriptors]];
+	[tableView reloadData];
+}
+
+
+- (void)dealloc
+{
+	[plugIns release];
+	
+	[super dealloc];
 }
 
 
