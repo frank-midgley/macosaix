@@ -20,12 +20,38 @@
 
 + (void)checkForCrash
 {
-	if (YES)
+	NSDate		*lastKnownCrashDate = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Known Crash"];
+	NSString	*crashLogPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Logs/CrashReporter/MacOSaiX.crash.log"];
+	NSArray		*crashLogs = [[NSString stringWithContentsOfFile:crashLogPath] componentsSeparatedByString:@"\n**********\n\n"];
+	NSString	*mostRecentCrash = [crashLogs lastObject];
+	
+	if (mostRecentCrash)
 	{
-		MacOSaiXCrashReporterController	*controller = [[self alloc] initWithWindow:nil];
+		NSScanner	*dateScanner = [NSScanner scannerWithString:mostRecentCrash];
+		NSString	*mostRecentCrashDateString = nil;
 		
-		[controller showWindow:self];
+		[scanner scanUpToString:@"Date/Time:" intoString:nil];
+		if ([scanner scanUpToString:@"/n" intoString:&mostRecentCrashDateString] &&
+			[lastKnownCrashDate compare:mostRecentCrashDateString] == NSOrderedAscending)
+		{
+			NSDate							*mostRecentCrashDate = [NSDate dateWithString:mostRecentCrashDateString];
+			MacOSaiXCrashReporterController	*controller = [[self alloc] initWithCrashLog:mostRecentCrash 
+																			   crashDate:mostRecentCrashDate];
+			
+			[controller showWindow:self];
+		}
 	}
+}
+
+
+- (id)initWithCrashLog:(NSString *)crashLog crashDate:(NSDate *)crashDate
+{
+	if (self = [super initWithWindow:nil])
+	{
+		
+	}
+	
+	return self;
 }
 
 
@@ -91,7 +117,6 @@
 		// Build the data source for the plug-ins table.
 	plugIns = [[NSMutableArray array] retain];
 	MacOSaiX		*appDelegate = [NSApp delegate];
-	[appDelegate discoverPlugIns];
 	NSArray			*plugInClasses = [[appDelegate tileShapesClasses] arrayByAddingObjectsFromArray:[appDelegate imageSourceClasses]];
 	NSEnumerator	*plugInClassEnumerator = [plugInClasses objectEnumerator];
 	Class			plugInClass = nil;
