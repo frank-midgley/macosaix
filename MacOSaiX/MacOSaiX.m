@@ -74,9 +74,9 @@
 		}
 	}
 	
-	[MacOSaiXCrashReporterController checkForCrash];
-	
 	[self discoverPlugIns];
+	
+	[MacOSaiXCrashReporterController checkForCrash];
 }
 
 
