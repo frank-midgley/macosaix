@@ -91,8 +91,8 @@
 		outline = [inOutline retain];
 		document = inDocument;	// the document retains us so we don't retain it
 		
-		cachedMatches = [[NSMutableDictionary dictionary] retain];
-		cachedMatchesOrder = [[NSMutableArray array] retain];
+//		cachedMatches = [[NSMutableDictionary dictionary] retain];
+//		cachedMatchesOrder = [[NSMutableArray array] retain];
 	}
 	return self;
 }
@@ -319,8 +319,8 @@
 	[imageMatch release];
     [userChosenImageMatch release];
 	[nonUniqueImageMatch release];
-	[cachedMatches release];
-	[cachedMatchesOrder release];
+//	[cachedMatches release];
+//	[cachedMatchesOrder release];
 	
     [super dealloc];
 }

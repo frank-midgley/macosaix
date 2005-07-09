@@ -48,8 +48,8 @@
 						*nonUniqueImageMatch,
 						*userChosenImageMatch;	// will be nil if user has not choosen an image
 	MacOSaiXDocument	*document;				// The document this tile is a part of (non-retained)
-	NSMutableDictionary	*cachedMatches;
-	NSMutableArray		*cachedMatchesOrder;
+//	NSMutableDictionary	*cachedMatches;
+//	NSMutableArray		*cachedMatchesOrder;
 }
 
 	// designated initializer
