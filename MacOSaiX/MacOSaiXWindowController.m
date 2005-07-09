@@ -1595,7 +1595,7 @@
 }
 
 
-- (NSSize)windowWillResize2:(NSWindow *)resizingWindow toSize:(NSSize)proposedFrameSize
+- (NSSize)windowWillResize:(NSWindow *)resizingWindow toSize:(NSSize)proposedFrameSize
 {
 	if (resizingWindow == [self window])
 	{
@@ -1655,7 +1655,7 @@
 }
 
 
-- (NSRect)windowWillUseStandardFrame2:(NSWindow *)window defaultFrame:(NSRect)defaultFrame
+- (NSRect)windowWillUseStandardFrame:(NSWindow *)window defaultFrame:(NSRect)defaultFrame
 {
 	if (window == [self window])
 	{
