@@ -11,21 +11,32 @@
 
 @interface MacOSaiXCrashReporterController : NSWindowController
 {
-	IBOutlet NSTextField	*crashDescriptionField,
-							*emailAddressField;
-	IBOutlet NSButton		*detailsButton;
-	IBOutlet NSBox			*detailsBox;
-	IBOutlet NSTextField	*memoryField,
-							*processorField;
-	IBOutlet NSTableView	*plugInsTable;
-	IBOutlet NSTextView		*crashLogTextView;
-	IBOutlet NSButton		*submitReportButton,
-							*cancelReportButton;
+	NSString						*crashLog;
+	NSDate							*crashDate;
 	
-	NSMutableArray			*plugIns;
+	IBOutlet NSTextField			*crashDescriptionField,
+									*emailAddressField;
+	IBOutlet NSButton				*detailsButton;
+	IBOutlet NSBox					*detailsBox;
+	IBOutlet NSTextField			*memoryField,
+									*processorField;
+	IBOutlet NSTableView			*plugInsTable;
+	IBOutlet NSTextView				*crashLogTextView;
+	IBOutlet NSProgressIndicator	*progressIndicator;
+	IBOutlet NSButton				*submitReportButton,
+									*cancelReportButton;
+	
+	NSSize							defaultWindowMinSize,
+									defaultWindowMaxSize;
+	unsigned int					detailsBoxAutoresizeMask;
+	float							detailsBoxWidthDiff;
+	
+	NSMutableArray					*plugIns;
 }
 
 + (void)checkForCrash;
+
+- (id)initWithCrashLog:(NSString *)crashLog crashDate:(NSDate *)crashDate;
 
 - (IBAction)toggleReportDetails:(id)sender;
 
