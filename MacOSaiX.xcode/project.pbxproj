@@ -775,11 +775,9 @@
 		};
 		29B97323FDCFA39411CA2CEA = {
 			children = (
-				F514D53C0390266E01B25AF1,
-				29B97324FDCFA39411CA2CEA,
-				29B97325FDCFA39411CA2CEA,
 				F599E5560266AAD101000103,
-				926CE4E903E7627700C7E70E,
+				F514D53C0390266E01B25AF1,
+				29B97325FDCFA39411CA2CEA,
 				92F2B1EC048027FA0000011E,
 			);
 			isa = PBXGroup;
@@ -787,14 +785,6 @@
 			path = "";
 			refType = 4;
 			sourceTree = "<group>";
-		};
-		29B97324FDCFA39411CA2CEA = {
-			isa = PBXFileReference;
-			lastKnownFileType = wrapper.framework;
-			name = AppKit.framework;
-			path = /System/Library/Frameworks/AppKit.framework;
-			refType = 0;
-			sourceTree = "<absolute>";
 		};
 		29B97325FDCFA39411CA2CEA = {
 			isa = PBXFileReference;
@@ -988,14 +978,6 @@
 			isa = PBXBuildFile;
 			settings = {
 			};
-		};
-		926CE4E903E7627700C7E70E = {
-			isa = PBXFileReference;
-			lastKnownFileType = wrapper.framework;
-			name = MacOSaiXPlugins.framework;
-			path = build/MacOSaiXPlugins.framework;
-			refType = 2;
-			sourceTree = SOURCE_ROOT;
 		};
 		927FA75B03FA35EE000A0D3F = {
 			children = (
