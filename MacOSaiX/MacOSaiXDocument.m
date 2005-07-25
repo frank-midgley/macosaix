@@ -58,6 +58,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		[self setHasUndoManager:FALSE];	// don't track undo-able changes
 		
 		paused = YES;
+		autoSaveEnabled = YES;
+		
 		imageSources = [[NSMutableArray arrayWithCapacity:0] retain];
 		lastSaved = [[NSDate date] retain];
 
@@ -257,6 +259,55 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 
 #pragma mark -
+#pragma mark Autosave
+
+
+- (void)setAutoSaveEnabled:(BOOL)flag
+{
+	autoSaveEnabled = flag;
+	
+		// Save now if we missed the timer when we were disabled.
+	if (flag && [self isDocumentEdited] && missedAutoSave)
+		[self performSelectorOnMainThread:@selector(saveDocument:) withObject:self waitUntilDone:NO];
+	
+	missedAutoSave = NO;
+}
+
+
+- (BOOL)autoSaveEnabled
+{
+	return autoSaveEnabled;
+}
+
+
+- (void)startAutosaveTimer:(id)dummy
+{
+		// Clear out any previous timer.
+	if ([autosaveTimer isValid])
+		[autosaveTimer invalidate];
+	[autosaveTimer autorelease];
+	
+		// Set up a new timer.
+	int	autosaveInterval = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Autosave Frequency"] description] intValue] * 60;
+	if (autosaveInterval < 60)
+		autosaveInterval = 60;
+	autosaveTimer = [[NSTimer scheduledTimerWithTimeInterval:autosaveInterval target:self selector:@selector(autoSave:) userInfo:nil repeats:NO] retain];
+}
+
+
+- (void)autoSave:(NSTimer *)timer
+{
+	if ([self autoSaveEnabled])
+	{
+		if ([self isDocumentEdited])
+			[self saveDocument:self];
+	}
+	else
+		missedAutoSave = YES;
+}
+
+
+#pragma mark -
 #pragma mark Saving
 
 
@@ -266,25 +317,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		[self performSelectorOnMainThread:@selector(startAutosaveTimer:) withObject:nil waitUntilDone:YES];
 	
 	[super updateChangeCount:changeType];
-}
-
-
-- (void)startAutosaveTimer:(id)dummy
-{
-	if ([autosaveTimer isValid])
-		[autosaveTimer invalidate];
-	[autosaveTimer autorelease];
-	
-	int	autosaveInterval = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Autosave Frequency"] description] intValue] * 60;
-	if (autosaveInterval < 60)
-		autosaveInterval = 60;
-	autosaveTimer = [[NSTimer scheduledTimerWithTimeInterval:autosaveInterval target:self selector:@selector(autosave:) userInfo:nil repeats:NO] retain];
-}
-
-
-- (void)autosave:(NSTimer *)timer
-{
-	[self saveDocument:self];
 }
 
 
@@ -450,7 +482,21 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		if (([fileManager fileExistsAtPath:savePath isDirectory:&isDir] && isDir) || 
 			[fileManager createDirectoryAtPath:savePath attributes:nil])
 		{
-					// Create the master save file in XML format.
+				// Make the folder a package.
+			FSRef		folderRef;
+			OSStatus	status = FSPathMakeRef([savePath UTF8String], &folderRef, NULL);
+			if (status == noErr)
+			{
+				FSCatalogInfo	info;
+				OSErr			err = FSGetCatalogInfo(&folderRef, kFSCatInfoFinderInfo, &info, NULL, NULL, NULL);
+				if (err == noErr)
+				{
+					((FInfo *)&(info.finderInfo))->fdFlags |= kHasBundle;
+					err = FSSetCatalogInfo(&folderRef, kFSCatInfoFinderInfo, &info);
+				}
+			}
+			
+				// Create the master save file in XML format.
 			NSString	*xmlPath = [savePath stringByAppendingPathComponent:@"Mosaic.xml"];
 			if (![[NSFileManager defaultManager] createFileAtPath:xmlPath contents:nil attributes:nil])
 			{

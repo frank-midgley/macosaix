@@ -33,7 +33,9 @@
 		// Document state
     BOOL						documentIsClosing,	// flag set to true when document is closing
 								mosaicStarted, 
-								paused;
+								paused,
+								autoSaveEnabled,
+								missedAutoSave;
 	NSLock						*pauseLock;
     float						overallMatch, lastDisplayMatch;
 	
@@ -84,6 +86,9 @@
 
 - (BOOL)isSaving;
 - (BOOL)isClosing;
+
+- (void)setAutoSaveEnabled:(BOOL)flag;
+- (BOOL)autoSaveEnabled;
 
 - (BOOL)isExtractingTileImagesFromOriginal;
 - (float)tileCreationPercentComplete;
