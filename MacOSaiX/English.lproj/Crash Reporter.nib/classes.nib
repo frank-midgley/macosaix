@@ -15,6 +15,7 @@
                 memoryField = NSTextField; 
                 plugInsTable = NSTableView; 
                 processorField = NSTextField; 
+                progressIndicator = NSProgressIndicator; 
                 submitReportButton = NSButton; 
             }; 
             SUPERCLASS = NSWindowController; 
