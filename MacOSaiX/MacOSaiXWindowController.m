@@ -1356,22 +1356,40 @@
 
 - (void)beginExportImage:(id)sender
 {
-		// First pause the mosaic so we don't have a moving target.
+		// Disable auto saving so it doesn't interfere with exporting.
+	[[self document] setAutoSaveEnabled:NO];
+	
+		// Pause the mosaic so we don't have a moving target.
 	BOOL		wasPaused = [[self document] isPaused];
     [self pause];
     
 		// Set up the save panel for exporting.
+	NSString	*defaultExtension = (exportFormat == NSJPEGFileType ? @"jpg" : @"tiff"),
+				*defaultName = [[self document] displayName];
+	if ([defaultName hasSuffix:@".mosaic"])
+		defaultName = [defaultName stringByDeletingPathExtension];
+	defaultName = [[defaultName stringByAppendingString:@" Export"] stringByAppendingPathExtension:defaultExtension];
     NSSavePanel	*savePanel = [NSSavePanel savePanel];
     if ([exportWidth intValue] == 0)
     {
-        [exportWidth setIntValue:[[[self document] originalImage] size].width * 4];
-        [exportHeight setIntValue:[[[self document] originalImage] size].height * 4];
+		NSSize	originalSize = [[[self document] originalImage] size];
+		float	scale = 4.0;
+		
+		if (originalSize.width * scale > 10000.0)
+			scale = 10000.0 / originalSize.width;
+		if (originalSize.height * scale > 10000.0)
+			scale = 10000.0 / originalSize.height;
+			
+        [exportWidth setIntValue:(int)(originalSize.width * scale + 0.5)];
+        [exportHeight setIntValue:(int)(originalSize.height * scale + 0.5)];
     }
+	[savePanel setCanSelectHiddenExtension:YES];
+    [savePanel setRequiredFileType:defaultExtension];
     [savePanel setAccessoryView:exportPanelAccessoryView];
-    
+	
 		// Ask the user where to export the image.
     [savePanel beginSheetForDirectory:NSHomeDirectory()
-				 file:@"Mosaic.jpg"
+				 file:defaultName
 		       modalForWindow:[self window]
 			modalDelegate:self
 		       didEndSelector:@selector(exportImageSavePanelDidEnd:returnCode:contextInfo:)
@@ -1407,6 +1425,9 @@
 								  toTarget:self 
 								withObject:[(NSSavePanel *)sheet filename]];
 	}
+	else
+			// Re-enable auto saving.
+		[[self document] setAutoSaveEnabled:YES];
 }
 
 
@@ -1424,7 +1445,7 @@
 	NS_DURING
 		[exportImage lockFocus];
 	NS_HANDLER
-		exportError = [NSString stringWithFormat:@"Could not draw images into mosaic.  (%@)", [localException reason]];
+		exportError = [NSString stringWithFormat:@"Could not draw images into the mosaic.  (%@)", [localException reason]];
 	NS_ENDHANDLER
 	
 	[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
@@ -1439,55 +1460,59 @@
 	while (tile = [tileEnumerator nextObject])
     {
         NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
-        NSBezierPath		*clipPath = [transform transformBezierPath:[tile outline]];
-        
-        tilesExported++;
 		
-		NS_DURING
-			[NSGraphicsContext saveGraphicsState];
-			[clipPath addClip];
-			
-				// Get the image in use by this tile.
-			MacOSaiXImageMatch	*match = [tile displayedImageMatch];
-			NSImageRep			*pixletImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[clipPath bounds].size 
-																						  forIdentifier:[match imageIdentifier] 
-																							 fromSource:[match imageSource]];
-			
-				// Translate the tile's outline (in unit space) to the size of the exported image.
-			NSRect		drawRect;
-			if ([clipPath bounds].size.width / [pixletImageRep size].width <
-				[clipPath bounds].size.height / [pixletImageRep size].height)
-			{
-				drawRect.size = NSMakeSize([clipPath bounds].size.height * [pixletImageRep size].width /
-							[pixletImageRep size].height,
-							[clipPath bounds].size.height);
-				drawRect.origin = NSMakePoint([clipPath bounds].origin.x - 
-								(drawRect.size.width - [clipPath bounds].size.width) / 2.0,
-							[clipPath bounds].origin.y);
-			}
-			else
-			{
-				drawRect.size = NSMakeSize([clipPath bounds].size.width,
-							[clipPath bounds].size.width * [pixletImageRep size].height /
-							[pixletImageRep size].width);
-				drawRect.origin = NSMakePoint([clipPath bounds].origin.x,
-							[clipPath bounds].origin.y - 
-								(drawRect.size.height - [clipPath bounds].size.height) / 2.0);
-			}
-			
-				// Finally, draw the tile's image.
-			[pixletImageRep drawInRect:drawRect];
-			
-				// Clean up
-			[NSGraphicsContext restoreGraphicsState];
-		NS_HANDLER
-			NSLog(@"Exception during export: %@", localException);
-			[NSGraphicsContext restoreGraphicsState];
-		NS_ENDHANDLER
+			// Get the image in use by this tile.
+		MacOSaiXImageMatch	*match = [tile displayedImageMatch];
+		
+		if (match)
+		{
+			NS_DURING
+					// Clip the tile's image to the outline of the tile.
+				NSBezierPath	*clipPath = [transform transformBezierPath:[tile outline]];
+				[NSGraphicsContext saveGraphicsState];
+				[clipPath addClip];
+				
+					// Get the image for this tile from the cache.
+				NSImageRep			*pixletImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[clipPath bounds].size 
+																							  forIdentifier:[match imageIdentifier] 
+																								 fromSource:[match imageSource]];
+				
+					// Translate the tile's outline (in unit space) to the size of the exported image.
+				NSRect		drawRect;
+				if ([clipPath bounds].size.width / [pixletImageRep size].width <
+					[clipPath bounds].size.height / [pixletImageRep size].height)
+				{
+					drawRect.size = NSMakeSize([clipPath bounds].size.height * [pixletImageRep size].width /
+								[pixletImageRep size].height,
+								[clipPath bounds].size.height);
+					drawRect.origin = NSMakePoint([clipPath bounds].origin.x - 
+									(drawRect.size.width - [clipPath bounds].size.width) / 2.0,
+								[clipPath bounds].origin.y);
+				}
+				else
+				{
+					drawRect.size = NSMakeSize([clipPath bounds].size.width,
+								[clipPath bounds].size.width * [pixletImageRep size].height /
+								[pixletImageRep size].width);
+					drawRect.origin = NSMakePoint([clipPath bounds].origin.x,
+								[clipPath bounds].origin.y - 
+									(drawRect.size.height - [clipPath bounds].size.height) / 2.0);
+				}
+				
+					// Finally, draw the tile's image.
+				[pixletImageRep drawInRect:drawRect];
+				
+					// Clean up.
+				[NSGraphicsContext restoreGraphicsState];
+			NS_HANDLER
+				NSLog(@"Exception during export: %@", localException);
+				[NSGraphicsContext restoreGraphicsState];
+			NS_ENDHANDLER
+		}
 		
         [pool2 release];
 		
-		[self setProgressPercentComplete:[NSNumber numberWithDouble:((double)tilesExported / (double)tileCount * 100.0)] ];
+		[self setProgressPercentComplete:[NSNumber numberWithDouble:((double)++tilesExported / (double)tileCount * 100.0)] ];
     }
 	
 		// Now convert the image into the desired output format.
@@ -1512,7 +1537,22 @@
 	[self closeProgressPanel];
 	
 	if (exportError)
-		;	// TODO: need to drop a sheet on the main thread...
+		[self performSelectorOnMainThread:@selector(displayExportErrorSheet:) withObject:exportError waitUntilDone:NO];
+	else
+		[[self document] setAutoSaveEnabled:YES];	// Re-enable auto saving.
+}
+
+
+- (void)displayExportErrorSheet:(NSString *)errorString
+{
+	NSBeginAlertSheet(@"The mosaic could not be exported.", @"OK", nil, nil, [self window], 
+					  self, nil, @selector(exportErrorSheetDidDismiss:), nil, errorString);
+}
+
+
+- (void)exportErrorSheetDidDismiss:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+	[[self document] setAutoSaveEnabled:YES];	// Re-enable auto saving.
 }
 
 
