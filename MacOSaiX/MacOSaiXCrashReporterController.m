@@ -200,7 +200,6 @@
 
 - (IBAction)submitReport:(id)sender
 {
-	BOOL		messageSent = NO;
 	NSString	*crashDescription = ([[crashDescriptionField stringValue] length] > 0 ? [crashDescriptionField stringValue] : 
 																						@"I can't remember what I was doing."), 
 				*contactEmail = ([[emailAddressField stringValue] length] > 0 ? [emailAddressField stringValue] : 
