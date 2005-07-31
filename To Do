@@ -60,7 +60,6 @@ Riemersma metric:
 ¥	Add preferences API for tile shapes plug-ins
 ¥	Resizing when zoomed does not stay centered and draws funky
 ¥	Rework puzzle shapes plug-in to conform with new API
-¥	Make sure saved documents are bundles
 	Google source:
 ¥		Make sure cache doesn't fill disk
 	QuickTime source:
@@ -80,8 +79,9 @@ Riemersma metric:
 Ã	0x124c crashers (any others?)
 	Preferences:
 Ã		Auto-start on image source add
-¥	Check for new crash log(s)
+Ã	Check for new crash log(s)
 ¥	Window zooming
-¥	Export defaults to >10000 pixels for large original
-¥	Disable autosave during export
+Ã	Export defaults to >10000 pixels for large original
+Ã	Disable autosave during export
 ?	Tile refresh leaves black edges
+Ã	Make sure saved documents are bundles
