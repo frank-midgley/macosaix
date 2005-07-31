@@ -74,6 +74,7 @@ Riemersma metric:
 ¥		Use each letter once
 ¥		Remember previous choices
 ¥	Autosave pref checkbox
+¥	DOCTYPE plist in XML?
 
 2.0a4 To Do:
 Ã	0x124c crashers (any others?)
