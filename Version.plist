@@ -39,7 +39,7 @@
 		<string>http://homepage.mac.com/knarf/MacOSaiX/MacOSaiX2.0a4.dmg</string>
 	</array>
 	<key>productFileSize</key>
-	<string>420KB</string>
+	<string>416KB</string>
 	<key>productIconURL</key>
 	<string></string>
 	<key>productKeywords</key>
@@ -72,6 +72,7 @@
 • Auto-save is now disabled during exporting to avoid conflict that causes export to fail.
 • MacOSaiX now checks for a previous crash and prompts to file a crash report.
 • Fixed intermittent crashing bug when "Each image may appear" setting was not "once" or "any number of times".
+• Documents saved after removing an image source can now be opened successfully.
 </string>
 	<key>productRequirements</key>
 	<string></string>
