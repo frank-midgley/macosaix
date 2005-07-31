@@ -626,10 +626,13 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					if (uniqueMatch)
 					{
 						int	sourceIndex = [imageSources indexOfObjectIdenticalTo:[uniqueMatch imageSource]];
-						[buffer appendString:[NSString stringWithFormat:@"\t\t<UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%f\"/>\n", 
-																		  sourceIndex,
-																		  [NSString stringByEscapingXMLEntites:[uniqueMatch imageIdentifier]],
-																		  [uniqueMatch matchValue]]];
+							// Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
+							// fully working.
+						if (sourceIndex != NSNotFound)
+							[buffer appendString:[NSString stringWithFormat:@"\t\t<UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%f\"/>\n", 
+																			  sourceIndex,
+																			  [NSString stringByEscapingXMLEntites:[uniqueMatch imageIdentifier]],
+																			  [uniqueMatch matchValue]]];
 					}
 					MacOSaiXImageMatch	*userChosenMatch = [tile userChosenImageMatch];
 					if (userChosenMatch)
@@ -817,114 +820,125 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	id					newObject = nil;
-	NSMutableArray		*stack = [(NSArray *)info objectAtIndex:0];
-	MacOSaiXDocument	*document = (MacOSaiXDocument *)[stack objectAtIndex:0];
+	volatile id			newObject = nil;
 	
-    switch (CFXMLNodeGetTypeCode(node))
-	{
-        case kCFXMLNodeTypeElement:
+	NS_DURING
+		NSMutableArray		*stack = [(NSArray *)info objectAtIndex:0];
+		MacOSaiXDocument	*document = (MacOSaiXDocument *)[stack objectAtIndex:0];
+		
+		switch (CFXMLNodeGetTypeCode(node))
 		{
-			NSString			*elementType = (NSString *)CFXMLNodeGetString(node);
-			CFXMLElementInfo	*nodeInfo = (CFXMLElementInfo *)CFXMLNodeGetInfoPtr(node);
+			case kCFXMLNodeTypeElement:
+			{
+				NSString			*elementType = (NSString *)CFXMLNodeGetString(node);
+				CFXMLElementInfo	*nodeInfo = (CFXMLElementInfo *)CFXMLNodeGetInfoPtr(node);
+				
+				if ([elementType isEqualToString:@"MOSAIC"])
+				{
+					newObject = document;
+				}
+				else if ([elementType isEqualToString:@"ORIGINAL_IMAGE"])
+				{
+					newObject = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"PATH"];
+				}
+				else if ([elementType isEqualToString:@"TILE_SHAPES_SETTINGS"])
+				{
+					NSString	*className = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"CLASS"];
+					
+					newObject = [[NSClassFromString(className) alloc] init];
+				}
+				else if ([elementType isEqualToString:@"IMAGE_USAGE"])
+				{
+					newObject = document;
+				}
+				else if ([elementType isEqualToString:@"IMAGE_REUSE"])
+				{
+					NSString	*imageReuseCount = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"COUNT"];
+					
+					[document setImageUseCount:[imageReuseCount intValue]];
+					
+					newObject = document;
+				}
+				else if ([elementType isEqualToString:@"IMAGE_SOURCES"])
+				{
+					newObject = document;
+				}
+				else if ([elementType isEqualToString:@"IMAGE_SOURCE"])
+				{
+					NSString	*className = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"CLASS"],
+								*imageCount = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"IMAGE_COUNT"];
+					
+					newObject = [[NSClassFromString(className) alloc] init];
+					
+					[document setImageCount:[imageCount intValue] forImageSource:newObject];
+				}
+				else if ([elementType isEqualToString:@"TILES"])
+				{
+					newObject = document;
+				}
+				else if ([elementType isEqualToString:@"TILE"])
+				{
+					newObject = [[MacOSaiXTile alloc] initWithOutline:nil fromDocument:document];
+				}
+				else if ([elementType isEqualToString:@"OUTLINE"])
+				{
+					newObject = [[NSBezierPath bezierPath] retain];
+				}
+				else if ([elementType isEqualToString:@"MOVE_TO"] || 
+						 [elementType isEqualToString:@"LINE_TO"] || 
+						 [elementType isEqualToString:@"CURVE_TO"] || 
+						 [elementType isEqualToString:@"CLOSE_PATH"])
+				{
+					newObject = [[NSMutableDictionary dictionaryWithDictionary:(NSDictionary *)nodeInfo->attributes] retain];
+					[(NSMutableDictionary *)newObject setObject:elementType forKey:@"Element Type"];
+				}
+				else if ([elementType isEqualToString:@"UNIQUE_MATCH"])
+				{
+					if ([[document mainWindowController] viewingOriginal])
+						[[document mainWindowController] performSelectorOnMainThread:@selector(setViewMosaic:) 
+																		  withObject:nil 
+																	   waitUntilDone:NO];
+					
+					int					sourceIndex = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"SOURCE"] intValue];
+					if (sourceIndex >= 0 && sourceIndex < [[document imageSources] count])
+					{
+						NSString			*imageIdentifier = [NSString stringByUnescapingXMLEntites:
+																	[(NSDictionary *)nodeInfo->attributes objectForKey:@"ID"]];
+						float				matchValue = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"VALUE"] floatValue];
+						
+						newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
+																forImageIdentifier:imageIdentifier 
+																   fromImageSource:[[document imageSources] objectAtIndex:sourceIndex] 
+																		   forTile:nil];
+					}
+					else
+						CFXMLParserAbort(parser,kCFXMLErrorMalformedStartTag, CFSTR("Tile is using an image from an unknown source."));
+				}
+				else
+				{
+					newObject = [[NSMutableDictionary dictionaryWithDictionary:(NSDictionary *)nodeInfo->attributes] retain];
+					[(NSMutableDictionary *)newObject setObject:elementType forKey:@"Element Type"];
+				}
+				break;
+			}
 			
-			if ([elementType isEqualToString:@"MOSAIC"])
-			{
-				newObject = document;
-			}
-			else if ([elementType isEqualToString:@"ORIGINAL_IMAGE"])
-			{
-				newObject = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"PATH"];
-			}
-			else if ([elementType isEqualToString:@"TILE_SHAPES_SETTINGS"])
-			{
-				NSString	*className = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"CLASS"];
-				
-				newObject = [[NSClassFromString(className) alloc] init];
-			}
-			else if ([elementType isEqualToString:@"IMAGE_USAGE"])
-			{
-				newObject = document;
-			}
-			else if ([elementType isEqualToString:@"IMAGE_REUSE"])
-			{
-				NSString	*imageReuseCount = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"COUNT"];
-				
-				[document setImageUseCount:[imageReuseCount intValue]];
-				
-				newObject = document;
-			}
-			else if ([elementType isEqualToString:@"IMAGE_SOURCES"])
-			{
-				newObject = document;
-			}
-			else if ([elementType isEqualToString:@"IMAGE_SOURCE"])
-			{
-				NSString	*className = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"CLASS"],
-							*imageCount = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"IMAGE_COUNT"];
-				
-				newObject = [[NSClassFromString(className) alloc] init];
-				
-				[document setImageCount:[imageCount intValue] forImageSource:newObject];
-			}
-			else if ([elementType isEqualToString:@"TILES"])
-			{
-				newObject = document;
-			}
-			else if ([elementType isEqualToString:@"TILE"])
-			{
-				newObject = [[MacOSaiXTile alloc] initWithOutline:nil fromDocument:document];
-			}
-			else if ([elementType isEqualToString:@"OUTLINE"])
-			{
-				newObject = [[NSBezierPath bezierPath] retain];
-			}
-			else if ([elementType isEqualToString:@"MOVE_TO"] || 
-					 [elementType isEqualToString:@"LINE_TO"] || 
-					 [elementType isEqualToString:@"CURVE_TO"] || 
-					 [elementType isEqualToString:@"CLOSE_PATH"])
-			{
-				newObject = [[NSMutableDictionary dictionaryWithDictionary:(NSDictionary *)nodeInfo->attributes] retain];
-				[(NSMutableDictionary *)newObject setObject:elementType forKey:@"Element Type"];
-			}
-			else if ([elementType isEqualToString:@"UNIQUE_MATCH"])
-			{
-				if ([[document mainWindowController] viewingOriginal])
-					[[document mainWindowController] performSelectorOnMainThread:@selector(setViewMosaic:) 
-																	  withObject:nil 
-																   waitUntilDone:NO];
-				
-				int					sourceIndex = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"SOURCE"] intValue];
-				NSString			*imageIdentifier = [NSString stringByUnescapingXMLEntites:
-															[(NSDictionary *)nodeInfo->attributes objectForKey:@"ID"]];
-				float				matchValue = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"VALUE"] floatValue];
-				
-				newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
-														forImageIdentifier:imageIdentifier 
-														   fromImageSource:[[document imageSources] objectAtIndex:sourceIndex] 
-																   forTile:nil];
-			}
-			else
-			{
-				newObject = [[NSMutableDictionary dictionaryWithDictionary:(NSDictionary *)nodeInfo->attributes] retain];
-				[(NSMutableDictionary *)newObject setObject:elementType forKey:@"Element Type"];
-			}
-            break;
+			case kCFXMLNodeTypeText:
+				if ([[stack lastObject] isKindOfClass:[NSMutableDictionary class]])
+					[[stack lastObject] setObject:(NSString *)CFXMLNodeGetString(node) 
+										   forKey:kMacOSaiXImageSourceSettingText];
+				break;
+			
+			default:
+				;
+	//			NSLog(@"Ignoring %d", CFXMLNodeGetTypeCode(node));
 		}
 		
-		case kCFXMLNodeTypeText:
-			if ([[stack lastObject] isKindOfClass:[NSMutableDictionary class]])
-				[[stack lastObject] setObject:(NSString *)CFXMLNodeGetString(node) 
-									   forKey:kMacOSaiXImageSourceSettingText];
-			break;
-		
-        default:
-			;
-//			NSLog(@"Ignoring %d", CFXMLNodeGetTypeCode(node));
-	}
-	
-	if (newObject)
-		[stack addObject:newObject];
+		if (newObject)
+			[stack addObject:newObject];
+	NS_HANDLER
+		CFXMLParserAbort(parser,kCFXMLErrorMalformedStartTag, 
+						 (CFStringRef)[NSString stringWithFormat:@"Could not create structure (%@)", [localException reason]]);
+	NS_ENDHANDLER
 	
 	[pool release];
 	
@@ -1768,6 +1782,16 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource
 {
+		// Remove any images from this source that are waiting to be matched.
+	[imageQueueLock lock];
+		NSEnumerator		*imageQueueDictEnumerator = [[NSArray arrayWithArray:imageQueue] objectEnumerator];
+		NSDictionary		*imageQueueDict = nil;
+		while (imageQueueDict = [imageQueueDictEnumerator nextObject])
+			if ([imageQueueDict objectForKey:@"Image Source"] == imageSource)
+				[imageQueue removeObjectIdenticalTo:imageQueueDict];
+	[imageQueueLock unlock];
+	
+		// Remove any images from this source from the tiles.
 	NSEnumerator		*tileEnumerator = [tiles objectEnumerator];
 	MacOSaiXTile		*tile = nil;
 	while (tile = [tileEnumerator nextObject])
