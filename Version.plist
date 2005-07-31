@@ -21,7 +21,7 @@
 	<key>fileCreator</key>
 	<string></string>
 	<key>fileReleaseDateD</key>
-	<string>30</string>
+	<string>31</string>
 	<key>fileReleaseDateM</key>
 	<string>07</string>
 	<key>fileReleaseDateY</key>
@@ -39,11 +39,14 @@
 		<string>http://homepage.mac.com/knarf/MacOSaiX/MacOSaiX2.0a4.dmg</string>
 	</array>
 	<key>productFileSize</key>
-	<string>408KB</string>
+	<string>420KB</string>
 	<key>productIconURL</key>
 	<string></string>
 	<key>productKeywords</key>
 	<array>
+		<string>image</string>
+		<string>collage</string>
+		<string>photo</string>
 		<string>mosaic</string>
 	</array>
 	<key>productLanguages</key>
