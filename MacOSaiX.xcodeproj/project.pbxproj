@@ -358,7 +358,7 @@
 		928F725C066121A700873AE2 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = MacOSaiX/English.lproj/MacOSaiXDocument.nib; sourceTree = "<group>"; };
 		928F725E066121A700873AE2 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = MacOSaiX/English.lproj/MainMenu.nib; sourceTree = "<group>"; };
 		928F7260066121A700873AE2 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = MacOSaiX/English.lproj/Preferences.nib; sourceTree = "<group>"; };
-		928F726D066121AE00873AE2 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.strings; name = English; path = MacOSaiX/English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		928F726D066121AE00873AE2 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = MacOSaiX/English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		928F72900661226000873AE2 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Glyph Image Source/English.lproj/Glyph Image Source.nib"; sourceTree = "<group>"; };
 		928F72920661226000873AE2 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Google Image Source/English.lproj/Google Image Source.nib"; sourceTree = "<group>"; };
 		928F72940661226000873AE2 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Rectangular Tiles Setup/English.lproj/RectangularTileShapes.nib"; sourceTree = "<group>"; };
