@@ -354,7 +354,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	
 		// Display a sheet while the save is underway
 // TODO:	[[self mainWindowController] setCancelAction:@selector(cancelSave) andTarget:self];
-	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving the mosaic..."];
+	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving mosaic project..."];
 	
 		// Pause the mosaic so that it is in a static state while saving.
 	[self pause];
@@ -386,7 +386,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	
 	BOOL			wasPaused = paused;
 	
-	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving..."];
+	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving mosaic project..."];
 
 		// Pause the mosaic so that it is in a static state while saving.
 	[self pause];
@@ -1118,7 +1118,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 														object:self 
 													  userInfo:nil];
 		
-	if (!loading && [imageSources count] > 0)
+	if (!loading && [imageSources count] > 0 && [[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Start Mosaics"])
 		[self resume];
 }
 
