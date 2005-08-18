@@ -40,10 +40,8 @@
     float						overallMatch, lastDisplayMatch;
 	
 		// Tile creation
-	int							tileCreationPercentComplete;
-    BOOL						createTilesThreadAlive;
-    NSMutableArray				*tileImages;
-    NSLock						*tileImagesLock;
+//	int							tileCreationPercentComplete;
+//    BOOL						createTilesThreadAlive;
 
 		// Image source enumeration
     NSLock						*enumerationThreadCountLock;
@@ -90,8 +88,8 @@
 - (void)setAutoSaveEnabled:(BOOL)flag;
 - (BOOL)autoSaveEnabled;
 
-- (BOOL)isExtractingTileImagesFromOriginal;
-- (float)tileCreationPercentComplete;
+//- (BOOL)isExtractingTileImagesFromOriginal;
+//- (float)tileCreationPercentComplete;
 - (NSArray *)tiles;
 
 - (BOOL)isEnumeratingImageSources;
