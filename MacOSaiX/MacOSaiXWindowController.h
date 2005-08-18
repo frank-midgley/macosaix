@@ -52,15 +52,14 @@
 										*imageSourceEditorOKButton;
 	id<MacOSaiXImageSourceController>	imageSourceEditorController;
 		
-		// Editor tab
-    IBOutlet NSTextField				*editorLabel;
-	IBOutlet NSButtonCell				*editorUseCustomImage,
-										*editorUseBestUniqueMatch;
-    IBOutlet NSImageView				*editorUserChosenImage;
-	IBOutlet NSButton					*editorChooseImage,
-										*editorUseSelectedImage;
-	IBOutlet NSTableView				*editorTable;
-//    IBOutlet NSTextField				*matchValueTextField;
+		// Editor
+	IBOutlet NSView						*editorAccessoryView;
+	IBOutlet NSBox						*editorChosenImageBox;
+	IBOutlet NSImageView				*editorOriginalImageView,
+										*editorChosenImageView;
+	IBOutlet NSTextField				*editorPercentCroppedTextField, 
+										*editorMatchQualityTextField;
+	IBOutlet NSProgressIndicator		*editorProgressIndicator;
 	
 		// Progress panel
     IBOutlet NSPanel					*progressPanel;
@@ -116,6 +115,7 @@
 - (IBAction)togglePause:(id)sender;
 
 - (IBAction)selectTileAtPoint:(NSPoint)thePoint;
+- (IBAction)chooseImageForSelectedTile:(id)sender;
 
 	// Settings drawer
 - (IBAction)chooseOriginalImage:(id)sender;
@@ -135,10 +135,7 @@
 - (IBAction)cancelImageSource:(id)sender;
 
 	// Editor tab methods
-- (IBAction)useCustomImage:(id)sender;
-- (IBAction)useBestUniqueMatch:(id)sender;
-- (IBAction)allowUserToChooseImage:(id)sender;
-- (IBAction)useSelectedImage:(id)sender;
+- (IBAction)chooseImageForSelectedTile:(id)sender;
 
 	// Export image methods
 - (IBAction)beginExportImage:(id)sender;

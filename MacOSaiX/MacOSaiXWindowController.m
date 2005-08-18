@@ -27,7 +27,6 @@
 - (void)synchronizeMenus;
 - (void)updateEditor;
 - (BOOL)showTileMatchInEditor:(MacOSaiXImageMatch *)tileMatch selecting:(BOOL)selecting;
-- (NSImage *)createEditorImage:(int)rowIndex;
 - (void)allowUserToChooseImageOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
     contextInfo:(void *)context;
 - (void)exportImage:(id)exportFilename;
@@ -160,10 +159,6 @@
 	[self synchronizeGUIWithDocument];
 	
 	[tileShapesBox setContentViewMargins:NSMakeSize(16.0, 16.0)];
-	
-	{	// Set up the "Editor" tab
-		[[editorTable tableColumnWithIdentifier:@"image"] setDataCell:[[[NSImageCell alloc] init] autorelease]];
-	}
 	
 	[mosaicView setDocument:[self document]];
 	[self setViewOriginalImage:self];
@@ -889,17 +884,6 @@
 			
 			[mosaicView highlightTile:selectedTile];
 			
-//			if ([mosaicView viewMode] == viewHighlightedTile)
-//			{
-//					// Populate the editor with this tile.
-//				[editorLabel setStringValue:@"Image to use for selected tile:"];
-//				[editorUseCustomImage setEnabled:YES];
-//				[editorUseBestUniqueMatch setEnabled:YES];
-//				
-//				[editorTable scrollRowToVisible:0];
-//				[self updateEditor];
-//            }
-			
 			break;
         }
 }
@@ -912,238 +896,184 @@
 }
 
 
-- (void)updateEditor
+- (NSImage *)highlightTile:(MacOSaiXTile *)tile inImage:(NSImage *)image croppedPercentage:(float *)croppedPercentage
 {
-    [selectedTileImages release];
-    
-    if (selectedTile)
-    {
-        [editorUseCustomImage setState:NSOffState];
-        [editorUseBestUniqueMatch setState:NSOffState];
-        [editorUserChosenImage setImage:nil];
-        [editorChooseImage setEnabled:NO];
-        [editorUseSelectedImage setEnabled:NO];
-        selectedTileImages = [[NSMutableArray arrayWithCapacity:0] retain];
-    }
+		// Scale the image to at most 128 pixels.
+    NSImage				*highlightedImage = nil;
+    if ([image size].width > [image size].height)
+        highlightedImage = [[[NSImage alloc] initWithSize:NSMakeSize(128.0, 128.0 / [image size].width * [image size].height)] autorelease];
     else
-    {
-        if ([selectedTile userChosenImageMatch])
-        {
-            [editorUseCustomImage setState:NSOffState];	// NSOnState];	temp for 2.0a1
-            [editorUseBestUniqueMatch setState:NSOffState];
-// TODO:            [editorUserChosenImage setImage:[[selectedTile userChosenImageMatch] image]];
-        }
-        else
-        {
-            [editorUseCustomImage setState:NSOffState];
-            [editorUseBestUniqueMatch setState:NSOffState];	// NSOnState];	temp for 2.0a1
-            [editorUserChosenImage setImage:nil];
-            
-            NSImage	*image = [[[NSImage alloc] initWithSize:[[selectedTile bitmapRep] size]] autorelease];
-            [image addRepresentation:[selectedTile bitmapRep]];
-            [editorUserChosenImage setImage:image];
-        }
-    
-        [editorChooseImage setEnabled:NO];	// YES];	temp for 2.0a1
-        [editorUseSelectedImage setEnabled:NO];	// YES];	temp for 2.0a1
-        
-//        selectedTileImages = [[NSMutableArray arrayWithCapacity:[selectedTile matchCount]] retain];
-//        int	i;
-//        for (i = 0; i < [selectedTile matchCount]; i++)
-//            [selectedTileImages addObject:[NSNull null]];
-    }
-    
-    [editorTable reloadData];
-}
-
-
-- (BOOL)showTileMatchInEditor:(MacOSaiXImageMatch *)tileMatch selecting:(BOOL)selecting
-{
-//    if (selectedTile == nil) return NO;
-//    
-//    int	i;
-//    for (i = 0; i < [selectedTile matchCount]; i++)
-//        if (&([selectedTile matches][i]) == tileMatch)
-//        {
-//            if (selecting)
-//                [editorTable selectRow:i byExtendingSelection:NO];
-//            [editorTable scrollRowToVisible:i];
-//            return YES;
-//        }
-    
-    return NO;
-}
-
-
-- (NSImage *)createEditorImage:(int)rowIndex
-{
-    NSImage				*image = nil;
-/*
-    NSAffineTransform	*transform = [NSAffineTransform transform];
-    NSSize				tileSize = [[selectedTile outline] bounds].size;
+        highlightedImage = [[[NSImage alloc] initWithSize:NSMakeSize(128.0 / [image size].height * [image size].width, 128.0)] autorelease];
+	
+		// Figure out where the tile fits within the image.
+    NSSize				tileSize = [[tile outline] bounds].size;
     float				scale;
     NSPoint				origin;
-    NSBezierPath		*bezierPath = [NSBezierPath bezierPath];
-    
-	MacOSaiXImageMatch	*imageMatch = [[selectedTile matches] objectAtIndex:rowIndex];
-	image = [[[self document] imageCache] imageForIdentifier:[imageMatch imageIdentifier] 
-												  fromSource:[imageMatch imageSource]];
-    if (image == nil)
-        return [NSImage imageNamed:@"Blank"];
+    if (([highlightedImage size].width / tileSize.width) < ([highlightedImage size].height / tileSize.height))
+    {
+		scale = [highlightedImage size].width / tileSize.width;
+		origin = NSMakePoint(0.0, ([highlightedImage size].height - tileSize.height * scale) / 2.0);
+		if (croppedPercentage)
+			*croppedPercentage = ([highlightedImage size].width * ([highlightedImage size].height - tileSize.height * scale)) / 
+								 ([highlightedImage size].width * [highlightedImage size].height) * 100.0;
+    }
+    else
+    {
+		scale = [highlightedImage size].height / tileSize.height;
+		origin = NSMakePoint(([highlightedImage size].width - tileSize.width * scale) / 2.0, 0.0);
+		if (croppedPercentage)
+			*croppedPercentage = (([highlightedImage size].width - tileSize.width * scale) * [highlightedImage size].height) / 
+								 ([highlightedImage size].width * [highlightedImage size].height) * 100.0;
+    }
 	
-    image = [[image copy] autorelease];
-    
-    // scale the image to at most 80 pixels (the size of the editor column)
-    if ([image size].width > [image size].height)
-        [image setSize:NSMakeSize(80, 80 / [image size].width * [image size].height)];
-    else
-        [image setSize:NSMakeSize(80 / [image size].height * [image size].width, 80)];
-
-    tileSize.width *= [mosaicImage size].width;
-    tileSize.height *= [mosaicImage size].height;
-    if (([image size].width / tileSize.width) < ([image size].height / tileSize.height))
-    {
-		scale = [image size].width / tileSize.width;
-		origin = NSMakePoint(0.0, ([image size].height - tileSize.height * scale) / 2.0);
-    }
-    else
-    {
-		scale = [image size].height / tileSize.height;
-		origin = NSMakePoint(([image size].width - tileSize.width * scale) / 2.0, 0.0);
-    }
+		// Create a transform to scale and translate the tile outline.
+    NSAffineTransform	*transform = [NSAffineTransform transform];
     [transform translateXBy:origin.x yBy:origin.y];
     [transform scaleXBy:scale yBy:scale];
-    [transform scaleXBy:[mosaicImage size].width yBy:[mosaicImage size].height];
-    [transform translateXBy:[[selectedTile outline] bounds].origin.x * -1
-			yBy:[[selectedTile outline] bounds].origin.y * -1];
+    [transform translateXBy:-[[tile outline] bounds].origin.x yBy:-[[tile outline] bounds].origin.y];
     
 	NS_DURING
-		[image lockFocus];
+		[highlightedImage lockFocus];
+				// Start with the original image.
+			[image compositeToPoint:NSZeroPoint operation:NSCompositeCopy];
+		
+			NSBezierPath	*tileOutline = [transform transformBezierPath:[tile outline]];
+			
+				// Lighten the area outside of the tile.
+			NSBezierPath	*lightenOutline = [NSBezierPath bezierPath];
+			[lightenOutline moveToPoint:NSMakePoint(0, 0)];
+			[lightenOutline lineToPoint:NSMakePoint(0, [highlightedImage size].height)];
+			[lightenOutline lineToPoint:NSMakePoint([highlightedImage size].width, [highlightedImage size].height)];
+			[lightenOutline lineToPoint:NSMakePoint([highlightedImage size].width, 0)];
+			[lightenOutline closePath];
+			[lightenOutline appendBezierPath:tileOutline];
+			[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
+			[lightenOutline fill];
+			
+				// Darken the outline of the tile.
+			[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
+			[tileOutline stroke];
+		[highlightedImage unlockFocus];
 	NS_HANDLER
 		NSLog(@"Could not lock focus on editor image");
 	NS_ENDHANDLER
-	// add the tile outline
-	[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	//lighten
-	[bezierPath moveToPoint:NSMakePoint(0, 0)];
-	[bezierPath lineToPoint:NSMakePoint(0, [image size].height)];
-	[bezierPath lineToPoint:NSMakePoint([image size].width, [image size].height)];
-	[bezierPath lineToPoint:NSMakePoint([image size].width, 0)];
-	[bezierPath closePath];
-	[bezierPath appendBezierPath:[transform transformBezierPath:[selectedTile outline]]];
-	[bezierPath fill];
-	[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set]; //darken
-	[bezierPath stroke];
 	
-	// add a badge if it's the user chosen image
-//	if ([[selectedTile matches] objectAtIndex:rowIndex] == [selectedTile displayMatch])
-//	{
-//	    NSBezierPath	*badgePath = [NSBezierPath bezierPathWithOvalInRect:
-//						NSMakeRect([image size].width - 12, 2, 10, 10)];
-//						
-//	    [[NSColor colorWithCalibratedRed:1.0 green:0 blue:0 alpha:1.0] set];
-//	    [badgePath fill];
-//	    [[NSColor colorWithCalibratedRed:0.5 green:0 blue:0 alpha:1.0] set];
-//	    [badgePath stroke];
-//	}
-    [image unlockFocus];
-    [selectedTileImages replaceObjectAtIndex:rowIndex withObject:image];
-*/
-    return image;
+    return highlightedImage;
 }
 
 
-- (void)useCustomImage:(id)sender
+- (IBAction)chooseImageForSelectedTile:(id)sender
 {
-/* TBD
-    if ([selectedTile bestUniqueMatch] != nil)
-	[selectedTile setUserChosenImageIndex:[selectedTile bestUniqueMatch]->tileImageIndex];
-    else
-	[selectedTile setUserChosenImageIndex:[selectedTile bestMatch]->tileImageIndex];
-    [selectedTile setBestUniqueMatchIndex:-1];
+		// Create the image for the "Original Image" view of the accessory view.
+	NSImage		*originalImageForTile = [[[NSImage alloc] initWithSize:NSMakeSize(128.0, 128.0)] autorelease];
+	NS_DURING
+		[originalImageForTile lockFocus];
+		
+			// Start with a black background.
+		[[NSColor blackColor] set];
+		NSRectFill(NSMakeRect(0.0, 0.0, 128.0, 128.0));
+		
+			// Determine the bounds of the tile in the original image and in the scratch window.
+		NSBezierPath	*tileOutline = [selectedTile outline];
+		NSImage			*originalImage = [[self document] originalImage];
+		NSRect			origRect = NSMakeRect([tileOutline bounds].origin.x * [originalImage size].width,
+											  [tileOutline bounds].origin.y * [originalImage size].height,
+											  [tileOutline bounds].size.width * [originalImage size].width,
+											  [tileOutline bounds].size.height * [originalImage size].height);
+		
+			// Expand the rectangle so that it's square.
+		if (origRect.size.width > origRect.size.height)
+			origRect = NSInsetRect(origRect, 0.0, (origRect.size.height - origRect.size.width) / 2.0);
+		else
+			origRect = NSInsetRect(origRect, (origRect.size.width - origRect.size.height) / 2.0, 0.0);
+		
+			// Copy out the portion of the original image contained by the tile's outline.
+		[originalImage drawInRect:NSMakeRect(0.0, 0.0, 128.0, 128.0) fromRect:origRect operation:NSCompositeCopy fraction:1.0];
+		[originalImageForTile unlockFocus];
+	NS_HANDLER
+		NSLog(@"Exception raised while extracting tile images: %@", [localException name]);
+	NS_ENDHANDLER
+	[editorOriginalImageView setImage:[self highlightTile:selectedTile inImage:originalImageForTile croppedPercentage:nil]];
 	
-    [refindUniqueTilesLock lock];
-	refindUniqueTiles = YES;
-    [refindUniqueTilesLock unlock];
+	[editorMatchQualityTextField setStringValue:@""];
+	[editorPercentCroppedTextField setStringValue:@""];
 
-    [self updateEditor];
-*/
+		// Prompt the user to choose the image from which to make a mosaic.
+	NSOpenPanel	*oPanel = [NSOpenPanel openPanel];
+	[oPanel setCanChooseFiles:YES];
+	[oPanel setCanChooseDirectories:NO];
+	[oPanel setAccessoryView:editorAccessoryView];
+	[oPanel setDelegate:self];
+	[oPanel beginSheetForDirectory:nil
+							  file:nil
+							 types:[NSImage imageFileTypes]
+					modalForWindow:[self window]
+					 modalDelegate:self
+					didEndSelector:@selector(chooseImageForSelectedTilePanelDidEnd:returnCode:contextInfo:)
+					   contextInfo:nil];
 }
 
 
-- (void)allowUserToChooseImage:(id)sender
+- (void)panelSelectionDidChange:(id)sender
 {
-/*
-    NSOpenPanel		*oPanel = [NSOpenPanel openPanel];
-    
-    [oPanel setCanChooseFiles:YES];
-    [oPanel setCanChooseDirectories:NO];
-    [oPanel beginSheetForDirectory:NSHomeDirectory()
-			      file:nil
-			     types:[NSImage imageFileTypes]
-		    modalForWindow:[self window]
-		     modalDelegate:self
-		    didEndSelector:@selector(allowUserToChooseImageOpenPanelDidEnd:returnCode:contextInfo:)
-		       contextInfo:nil];
-*/
+	if ([[sender URLs] count] == 0)
+	{
+		[editorChosenImageBox setTitle:@"No Image Selected"];
+		[editorChosenImageView setImage:nil];
+		[editorMatchQualityTextField setStringValue:@""];
+	}
+	else
+	{
+		NSString			*chosenImageIdentifier = [[sender filenames] objectAtIndex:0];
+		[editorChosenImageBox setTitle:[[NSFileManager defaultManager] displayNameAtPath:chosenImageIdentifier]];
+		
+		NSImage				*chosenImage = [[[NSImage alloc] initWithContentsOfFile:chosenImageIdentifier] autorelease];
+		
+		if (chosenImage)
+		{
+			NSImageRep			*originalRep = [[chosenImage representations] objectAtIndex:0];
+			NSSize				imageSize = NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh]);
+			if (imageSize.width > imageSize.height)
+				imageSize = NSMakeSize(128.0, 128.0 * imageSize.height/imageSize.width);
+			else
+				imageSize = NSMakeSize(128.0 * imageSize.width/imageSize.height, 128.0);
+			[originalRep setSize:imageSize];
+			[chosenImage setSize:imageSize];
+			
+			float				croppedPercentage = 0.0;
+			[editorChosenImageView setImage:[self highlightTile:selectedTile inImage:chosenImage croppedPercentage:&croppedPercentage]];
+
+			[editorPercentCroppedTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", croppedPercentage]];
+			
+				// Calculate how well the chosen image matches the selected tile.
+			[[MacOSaiXImageCache sharedImageCache] cacheImage:chosenImage withIdentifier:chosenImageIdentifier fromSource:nil];
+			NSSize				tileBitmapSize = [[selectedTile outline] bounds].size;
+			if (tileBitmapSize.width > tileBitmapSize.height)
+				tileBitmapSize = NSMakeSize(TILE_BITMAP_SIZE, TILE_BITMAP_SIZE * tileBitmapSize.height/tileBitmapSize.width);
+			else
+				tileBitmapSize = NSMakeSize(TILE_BITMAP_SIZE * tileBitmapSize.width/tileBitmapSize.height, TILE_BITMAP_SIZE);
+			NSBitmapImageRep	*chosenImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:tileBitmapSize 
+																						  forIdentifier:chosenImageIdentifier 
+																							 fromSource:nil];
+			float	matchValue = [selectedTile matchValueForImageRep:chosenImageRep
+													  withIdentifier:chosenImageIdentifier
+													 fromImageSource:nil],
+					worstCaseMatch = sqrtf([selectedTile worstCaseMatchValue]), 
+					matchPercentage = (worstCaseMatch - sqrtf(matchValue)) / worstCaseMatch * 100.0;
+			[editorMatchQualityTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", matchPercentage]];
+		}
+	}
 }
 
 
-- (void)allowUserToChooseImageOpenPanelDidEnd:(NSOpenPanel *)sheet 
+- (void)chooseImageForSelectedTilePanelDidEnd:(NSOpenPanel *)sheet 
 								   returnCode:(int)returnCode
-								  contextInfo:(void *)context
+							      contextInfo:(void *)context
 {
-/*
-    CachedImage	*cachedImage;
-    
-    if (returnCode != NSOKButton) return;
-
-    cachedImage = [[[CachedImage alloc] initWithIdentifier:[[sheet URLs] objectAtIndex:0] fromImageSource:manualImageSource] autorelease];
-//TBD    [selectedTile setUserChosenImageIndex:[self addTileImage:cachedImage]];
-//TBD    [selectedTile setBestUniqueMatchIndex:-1];
-    
-    [refindUniqueTilesLock lock];
-//TBD	refindUniqueTiles = YES;
-    [refindUniqueTilesLock unlock];
-
-    [self updateEditor];
-
-    [self updateChangeCount:NSChangeDone];
-*/
-}
-
-
-- (void)useBestUniqueMatch:(id)sender
-{
-/*	TBD
-    [selectedTile setUserChosenImageIndex:-1];
-    
-    [refindUniqueTilesLock lock];
-	refindUniqueTiles = YES;
-    [refindUniqueTilesLock unlock];
-
-    [self updateEditor];
-    
-    [self updateChangeCount:NSChangeDone];
-*/
-}
-
-
-- (void)useSelectedImage:(id)sender
-{
-/* TBD
-    long	index = [selectedTile matches][[editorTable selectedRow]].tileImageIndex;
-    
-    [selectedTile setUserChosenImageIndex:index];
-    [selectedTile setBestUniqueMatchIndex:-1];
-
-    [refindUniqueTilesLock lock];
-	refindUniqueTiles = YES;
-    [refindUniqueTilesLock unlock];
-
-    [self updateEditor];
-
-    [self updateChangeCount:NSChangeDone];
-*/
+    if (returnCode == NSOKButton)
+	{
+		[[sheet filenames] objectAtIndex:0];
+	}
 }
 
 
@@ -1840,9 +1770,6 @@
 {
     if (aTableView == imageSourcesTableView)
 		return [[[self document] imageSources] count];
-		
-    if (aTableView == editorTable)
-		return 0;	// TODO: (selectedTile == nil ? 0 : [selectedTile matchCount]);
 	
 	return 0;
 }
@@ -1876,22 +1803,6 @@
 				return nil;
 		}
     }
-    else if (aTableView == editorTable)
-    {
-		NSImage	*image = nil;
-		
-		if (selectedTile)
-		{
-			image = [selectedTileImages objectAtIndex:rowIndex];
-			if ([image isKindOfClass:[NSNull class]] && rowIndex != -1)
-			{
-				image = [self createEditorImage:rowIndex];
-				[selectedTileImages replaceObjectAtIndex:rowIndex withObject:image];
-			}
-		}
-		
-		return image;
-    }
 	else
 		return nil;
 }
@@ -1903,16 +1814,6 @@
 	{
 		[imageSourcesRemoveButton setEnabled:([imageSourcesTableView selectedRow] != -1)];
 	}
-    else if ([notification object] == editorTable)
-    {
-//        int	selectedRow = [editorTable selectedRow];
-//        
-//        if (selectedRow >= 0)
-//            [matchValueTextField setStringValue:[NSString stringWithFormat:@"%f", 
-//                                                    [selectedTile matches][selectedRow].matchValue]];
-//        else
-//            [matchValueTextField setStringValue:@""];
-    }
 }
 
 

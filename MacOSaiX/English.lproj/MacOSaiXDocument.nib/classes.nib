@@ -4,11 +4,11 @@
         {
             ACTIONS = {
                 addNewImageSource = id; 
-                allowUserToChooseImage = id; 
                 beginExportImage = id; 
                 cancelChangingTileShapes = id; 
                 cancelImageSource = id; 
                 changeTileShapes = id; 
+                chooseImageForSelectedTile = id; 
                 chooseOriginalImage = id; 
                 removeImageSource = id; 
                 saveImageSource = id; 
@@ -26,22 +26,19 @@
                 toggleStatusBar = id; 
                 toggleTileOutlines = id; 
                 toggleViewOriginal = id; 
-                useBestUniqueMatch = id; 
-                useCustomImage = id; 
-                useSelectedImage = id; 
             }; 
             CLASS = MacOSaiXWindowController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 cancelTileShapesButton = NSButton; 
                 changeTileShapesButton = NSButton; 
-                editorChooseImage = NSButton; 
-                editorLabel = NSTextField; 
-                editorTable = NSTableView; 
-                editorUseBestUniqueMatch = NSButtonCell; 
-                editorUseCustomImage = NSButtonCell; 
-                editorUseSelectedImage = NSButton; 
-                editorUserChosenImage = NSImageView; 
+                editorAccessoryView = NSView; 
+                editorChosenImageBox = NSBox; 
+                editorChosenImageView = NSImageView; 
+                editorMatchQualityTextField = NSTextField; 
+                editorOriginalImageView = NSImageView; 
+                editorPercentCroppedTextField = NSTextField; 
+                editorProgressIndicator = NSProgressIndicator; 
                 exportHeight = NSTextField; 
                 exportPanelAccessoryView = NSView; 
                 exportWidth = NSTextField; 
