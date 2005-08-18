@@ -6,7 +6,8 @@
 #import "MacOSaiXImageSource.h"
 
 
-#define TILE_BITMAP_SIZE 16.0
+#define TILE_BITMAP_SIZE		16.0
+#define WORST_CASE_PIXEL_MATCH	520200.0
 
 
 @class MacOSaiXTile;
@@ -34,9 +35,6 @@
 @end
 
 
-#define WORST_CASE_PIXEL_MATCH 520200.0
-
-
 @interface MacOSaiXTile : NSObject
 {
 	NSBezierPath		*outline;				// The shape of this tile
@@ -61,7 +59,9 @@
 - (void)setOutline:(NSBezierPath *)outline;
 - (NSBezierPath *)outline;
 
-- (void)setBitmapRep:(NSBitmapImageRep *)bitmapRep withMask:(NSBitmapImageRep *)maskRep;
+- (float)worstCaseMatchValue;
+
+- (void)resetBitmapRepAndMask;
 - (NSBitmapImageRep *)bitmapRep;
 
 - (float)matchValueForImageRep:(NSBitmapImageRep *)matchRep

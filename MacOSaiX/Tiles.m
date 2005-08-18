@@ -124,17 +124,78 @@
 }
 
 
-- (void)setBitmapRep:(NSBitmapImageRep *)inBitmapRep withMask:(NSBitmapImageRep *)inMaskRep
+- (float)worstCaseMatchValue
+{
+	return 256.0 * 256.0 * 9.0;
+}
+
+
+- (void)resetBitmapRepAndMask;
 {
     [bitmapRep autorelease];
-    bitmapRep = [inBitmapRep retain];
+    bitmapRep = nil;
     [maskRep autorelease];
-    maskRep = [inMaskRep retain];
+    maskRep = nil;
 }
 
 
 - (NSBitmapImageRep *)bitmapRep
 {
+	if (!bitmapRep)
+	{
+		NS_DURING
+				// Determine the bounds of the tile in the original image and in the workingImage.
+			NSBezierPath	*tileOutline = [self outline];
+			NSImage			*originalImage = [document originalImage];
+			NSRect			origRect = NSMakeRect([tileOutline bounds].origin.x * [originalImage size].width,
+												  [tileOutline bounds].origin.y * [originalImage size].height,
+												  [tileOutline bounds].size.width * [originalImage size].width,
+												  [tileOutline bounds].size.height * [originalImage size].height),
+							destRect = (origRect.size.width > origRect.size.height) ?
+										NSMakeRect(0, 0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE * origRect.size.height / origRect.size.width) : 
+										NSMakeRect(0, 0, TILE_BITMAP_SIZE * origRect.size.width / origRect.size.height, TILE_BITMAP_SIZE);
+			
+			NSImage	*workingImage = [[[NSImage alloc] initWithSize:destRect.size] autorelease];
+			[workingImage lockFocus];
+			
+				// Start with a black image to overwrite any previous scratch contents.
+			[[NSColor blackColor] set];
+			[[NSBezierPath bezierPathWithRect:destRect] fill];
+			
+				// Copy out the portion of the original image contained by the tile's outline.
+			[originalImage drawInRect:destRect fromRect:origRect operation:NSCompositeCopy fraction:1.0];
+			bitmapRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect];
+			if (bitmapRep == nil)
+				NSLog(@"Could not extract tile image from original.");
+		
+				// Calculate a mask image using the tile's outline that is the same size as the image
+				// extracted from the original.  The mask will be white for pixels that are inside the 
+				// tile and black outside.
+				// (This would work better if we could just replace the previous rep's alpha channel
+				//  but I haven't figured out an easy way to do that yet.)
+			[[NSGraphicsContext currentContext] saveGraphicsState];	// so we can undo the clip
+					// Start with a black background.
+				[[NSColor blackColor] set];
+				[[NSBezierPath bezierPathWithRect:destRect] fill];
+				
+					// Fill the tile's outline with white.
+				NSAffineTransform  *transform = [NSAffineTransform transform];
+				[transform scaleXBy:destRect.size.width / [tileOutline bounds].size.width
+								yBy:destRect.size.height / [tileOutline bounds].size.height];
+				[transform translateXBy:[tileOutline bounds].origin.x * -1
+									yBy:[tileOutline bounds].origin.y * -1];
+				[[NSColor whiteColor] set];
+				[[transform transformBezierPath:tileOutline] fill];
+				
+					// Copy out the mask image and store it in the tile.
+					// TO DO: RGB is wasting space, should be grayscale.
+				maskRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect];
+			[[NSGraphicsContext currentContext] restoreGraphicsState];
+		NS_HANDLER
+			NSLog(@"Exception raised while extracting tile images: %@", [localException name]);
+		NS_ENDHANDLER
+	}
+	
     return bitmapRep;
 }
 
@@ -166,7 +227,7 @@
 		// the size of the smaller dimension of imageRep will be TILE_BITMAP_SIZE pixels
 		// pixels in imageRep outside of bitmapRep centered in imageRep will be ignored
 	
-	bitmap1 = [bitmapRep bitmapData];	NSAssert(bitmap1 != nil, @"bitmap1 is nil");
+	bitmap1 = [[self bitmapRep] bitmapData];	NSAssert(bitmap1 != nil, @"bitmap1 is nil");
 	maskBitmap = [maskRep bitmapData];
 	bitmap2 = [matchRep bitmapData];	NSAssert(bitmap2 != nil, @"bitmap2 is nil");
 	bytesPerPixel1 = [bitmapRep hasAlpha] ? 4 : 3;
