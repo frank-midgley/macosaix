@@ -284,7 +284,10 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 			{
 					// This image is not in the disk cache so get the image from its source.
 //				NSLog(@"Requesting %@ from %@@%p", imageIdentifier, [imageSource class], imageSource);
-				image = [imageSource imageForIdentifier:imageIdentifier];
+				if (imageSource)
+					image = [imageSource imageForIdentifier:imageIdentifier];
+				else
+					image = [[[NSImage alloc] initWithContentsOfFile:imageIdentifier] autorelease];
 			}
 			
             if ([image isValid])
