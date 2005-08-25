@@ -12,6 +12,7 @@
                 chooseOriginalImage = id; 
                 removeImageSource = id; 
                 saveImageSource = id; 
+                setImageCropLimit = id; 
                 setImageReuseDistance = id; 
                 setImageUseCount = id; 
                 setJPEGExport = id; 
@@ -42,6 +43,7 @@
                 exportHeight = NSTextField; 
                 exportPanelAccessoryView = NSView; 
                 exportWidth = NSTextField; 
+                imageCropLimitPopUpButton = NSPopUpButton; 
                 imageReuseDistancePopUpButton = NSPopUpButton; 
                 imageSourceEditorBox = NSBox; 
                 imageSourceEditorCancelButton = NSButton; 
