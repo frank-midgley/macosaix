@@ -34,6 +34,9 @@
 		  withIdentifier:(NSString *)imageIdentifier 
 			  fromSource:(id<MacOSaiXImageSource>)imageSource;
 
+- (NSSize)nativeSizeOfImageWithIdentifier:(NSString *)imageIdentifier 
+							   fromSource:(id<MacOSaiXImageSource>)imageSource;
+
 - (NSBitmapImageRep *)imageRepAtSize:(NSSize)size 
 					   forIdentifier:(NSString *)imageIdentifier 
 						  fromSource:(id<MacOSaiXImageSource>)imageSource;

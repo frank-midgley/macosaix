@@ -185,6 +185,20 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 }
 
 
+- (NSSize)nativeSizeOfImageWithIdentifier:(NSString *)imageIdentifier 
+							   fromSource:(id<MacOSaiXImageSource>)imageSource
+{
+	[cacheLock lock];
+		NSValue		*sizeValue = [nativeImageSizeDict objectForKey:[self keyWithImageSource:imageSource identifier:imageIdentifier]];
+	[cacheLock unlock];
+	
+	if (sizeValue)
+		return [sizeValue sizeValue];
+	else
+		return NSZeroSize;
+}
+
+
 - (NSBitmapImageRep *)imageRepAtSize:(NSSize)size 
 					   forIdentifier:(NSString *)imageIdentifier 
 						  fromSource:(id<MacOSaiXImageSource>)imageSource
