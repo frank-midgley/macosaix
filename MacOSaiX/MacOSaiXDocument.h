@@ -28,7 +28,8 @@
 	NSSize						averageUnitTileSize;
 	
 	int							imageUseCount,
-								imageReuseDistance;
+								imageReuseDistance,
+								imageCropLimit;
 
 		// Document state
     BOOL						documentIsClosing,	// flag set to true when document is closing
@@ -76,6 +77,8 @@
 - (void)setImageUseCount:(int)count;
 - (int)imageReuseDistance;
 - (void)setImageReuseDistance:(int)distance;
+- (int)imageCropLimit;
+- (void)setImageCropLimit:(int)cropLimit;
 
 - (BOOL)wasStarted;
 - (BOOL)isPaused;

@@ -79,6 +79,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		
 		[self setImageUseCount:[[defaults objectForKey:@"Image Use Count"] intValue]];
 		[self setImageReuseDistance:[[defaults objectForKey:@"Image Reuse Distance"] intValue]];
+		[self setImageCropLimit:[[defaults objectForKey:@"Image Crop Limit"] intValue]];
 	}
 	
     return self;
@@ -233,17 +234,19 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 {
 	if (paused)
 	{
-		if (![self wasStarted])
+//		if (![self wasStarted])
+//		{
+//				// Automatically start the mosaic.
+//				// Show the mosaic image and start extracting the tile images.
+//			[[self mainWindowController] setViewMosaic:self];
+//			[NSApplication detachDrawingThread:@selector(extractTileImagesFromOriginalImage)
+//									  toTarget:self
+//									withObject:nil];
+//		}
+//		else
 		{
-				// Automatically start the mosaic.
-				// Show the mosaic image and start extracting the tile images.
-			[[self mainWindowController] setViewMosaic:self];
-			[NSApplication detachDrawingThread:@selector(extractTileImagesFromOriginalImage)
-									  toTarget:self
-									withObject:nil];
-		}
-		else
-		{
+			mosaicStarted = YES;
+			
 				// Start or restart the image sources
 			[pauseLock unlock];
 			
@@ -526,6 +529,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				
 				[fileHandle writeData:[@"<IMAGE_USAGE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\"/>\n", [self imageUseCount], [self imageReuseDistance]] dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_CROP LIMIT=\"%d\"/>\n", [self imageCropLimit]] dataUsingEncoding:NSUTF8StringEncoding]];
 				[fileHandle writeData:[@"</IMAGE_USAGE>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				
 //				NSDictionary	*imagesInUse = [self imagesInUse];
@@ -792,9 +796,6 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 	
 	if (!errorMessage)
 	{
-		[[self mainWindowController] setProgressMessage:@"Extracting tile images from original..."];
-		[self extractTileImagesFromOriginalImage];
-		
 			// Let anyone who cares know that our tile shapes (and thus our tiles array) have changed.
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
 															object:self 
@@ -850,9 +851,19 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 				}
 				else if ([elementType isEqualToString:@"IMAGE_REUSE"])
 				{
-					NSString	*imageReuseCount = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"COUNT"];
+					NSString	*imageReuseCount = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"COUNT"],
+								*imageReuseDistance = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"DISTANCE"];
 					
 					[document setImageUseCount:[imageReuseCount intValue]];
+					[document setImageReuseDistance:[imageReuseDistance intValue]];
+					
+					newObject = document;
+				}
+				else if ([elementType isEqualToString:@"IMAGE_CROP"])
+				{
+					NSString	*cropLimitString = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"LIMIT"];
+					
+					[document setImageCropLimit:[cropLimitString intValue]];
 					
 					newObject = document;
 				}
@@ -1187,6 +1198,20 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 {
 	imageReuseDistance = distance;
 	[[NSUserDefaults standardUserDefaults] setInteger:imageReuseDistance forKey:@"Image Reuse Distance"];
+	[[self mainWindowController] synchronizeGUIWithDocument];
+}
+
+
+- (int)imageCropLimit
+{
+	return imageCropLimit;
+}
+
+
+- (void)setImageCropLimit:(int)cropLimit
+{
+	imageCropLimit = cropLimit;
+	[[NSUserDefaults standardUserDefaults] setInteger:imageCropLimit forKey:@"Image Crop Limit"];
 	[[self mainWindowController] synchronizeGUIWithDocument];
 }
 
@@ -1582,32 +1607,49 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 				while ((tile = [tileEnumerator nextObject]) && !documentIsClosing)
 				{
 					NSAutoreleasePool	*pool3 = [[NSAutoreleasePool alloc] init];
+					NSSize				tileSize = [[tile bitmapRep] size],
+										pixletSize = [[MacOSaiXImageCache sharedImageCache] nativeSizeOfImageWithIdentifier:pixletImageIdentifier 
+																												 fromSource:pixletImageSource];
+					float				croppedPercentage;
 					
-						// Get a rep for the image scaled to the tile's bitmap size.
-					NSBitmapImageRep	*imageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[[tile bitmapRep] size] 
-																							forIdentifier:pixletImageIdentifier 
-																							   fromSource:pixletImageSource];
-			
-					if (imageRep)
+						// See if the image will be cropped too much.
+					if ((pixletSize.width / tileSize.width) < (pixletSize.height / tileSize.height))
+						croppedPercentage = (pixletSize.width * (pixletSize.height - tileSize.height * pixletSize.width / tileSize.width)) / 
+											 (pixletSize.width * pixletSize.height) * 100.0;
+					else
+						croppedPercentage = ((pixletSize.width - tileSize.width * pixletSize.height / tileSize.height) * pixletSize.height) / 
+											 (pixletSize.width * pixletSize.height) * 100.0;
+					
+					if (croppedPercentage <= [self imageCropLimit])
 					{
-							// Calculate how well this image matches this tile.
-						float	matchValue = [tile matchValueForImageRep:imageRep
-														  withIdentifier:pixletImageIdentifier
-														 fromImageSource:pixletImageSource];
-						
-							// If the tile does not already have a match or 
-							//    this image matches better than the tile's current best or
-							//    this image is the same as the tile's current best
-							// then add it to the list of tile's that might get this image.
-						if (![tile imageMatch] || 
-							matchValue < [[tile imageMatch] matchValue] ||
-							([[tile imageMatch] imageSource] == pixletImageSource && 
-							 [[[tile imageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier]))
-							[betterMatches addObject:[[[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
-																				  forImageIdentifier:pixletImageIdentifier 
-																					 fromImageSource:pixletImageSource
-																							 forTile:tile] autorelease]];
+							// Get a rep for the image scaled to the tile's bitmap size.
+						NSBitmapImageRep	*imageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:tileSize 
+																								forIdentifier:pixletImageIdentifier 
+																								   fromSource:pixletImageSource];
+				
+						if (imageRep)
+						{
+								// Calculate how well this image matches this tile.
+							float	matchValue = [tile matchValueForImageRep:imageRep
+															  withIdentifier:pixletImageIdentifier
+															 fromImageSource:pixletImageSource];
+							
+								// If the tile does not already have a match or 
+								//    this image matches better than the tile's current best or
+								//    this image is the same as the tile's current best
+								// then add it to the list of tile's that might get this image.
+							if (![tile imageMatch] || 
+								matchValue < [[tile imageMatch] matchValue] ||
+								([[tile imageMatch] imageSource] == pixletImageSource && 
+								 [[[tile imageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier]))
+								[betterMatches addObject:[[[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
+																					  forImageIdentifier:pixletImageIdentifier 
+																						 fromImageSource:pixletImageSource
+																								 forTile:tile] autorelease]];
+						}
 					}
+					else
+						NSLog(@"%@ would be cropped %.1f%%", pixletImageIdentifier, croppedPercentage);
 					
 					[pool3 release];
 				}
