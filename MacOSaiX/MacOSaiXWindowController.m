@@ -196,6 +196,8 @@
 	[imageUseCountPopUpButton selectItemAtIndex:popUpIndex];
 	popUpIndex = [imageReuseDistancePopUpButton indexOfItemWithTag:[[self document] imageReuseDistance]];
 	[imageReuseDistancePopUpButton selectItemAtIndex:popUpIndex];
+	popUpIndex = [imageCropLimitPopUpButton indexOfItemWithTag:[[self document] imageCropLimit]];
+	[imageCropLimitPopUpButton selectItemAtIndex:popUpIndex];
 	
 	[self updateTileSizeFields];
 }
@@ -454,9 +456,9 @@
 			statusMessage = @"You have not set the tile shapes";
 		else if ([[[self document] imageSources] count] == 0)
 			statusMessage = @"You have not added any image sources";
-		else if ([[self document] isExtractingTileImagesFromOriginal])
-			statusMessage = [NSString stringWithFormat:@"Extracting tile images (%.0f%%)", 
-													   [[self document] tileCreationPercentComplete]];
+//		else if ([[self document] isExtractingTileImagesFromOriginal])
+//			statusMessage = [NSString stringWithFormat:@"Extracting tile images (%.0f%%)", 
+//													   [[self document] tileCreationPercentComplete]];
 		else if (![[self document] wasStarted])
 			statusMessage = @"Ready to begin.  Click the Start Mosaic button in the toolbar.";
 		else if ([[self document] isCalculatingImageMatches])
@@ -713,6 +715,12 @@
 - (IBAction)setImageReuseDistance:(id)sender
 {
 	[[self document] setImageReuseDistance:[[imageReuseDistancePopUpButton selectedItem] tag]];
+}
+
+
+- (IBAction)setImageCropLimit:(id)sender
+{
+	[[self document] setImageCropLimit:[[imageCropLimitPopUpButton selectedItem] tag]];
 }
 
 

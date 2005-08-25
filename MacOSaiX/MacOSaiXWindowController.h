@@ -31,7 +31,8 @@
 										*tileSizeField;
 	IBOutlet NSButton					*changeTileShapesButton;
 	IBOutlet NSPopUpButton				*imageUseCountPopUpButton,
-										*imageReuseDistancePopUpButton;
+										*imageReuseDistancePopUpButton,
+										*imageCropLimitPopUpButton;
 	IBOutlet NSPopUpButton				*imageSourcesPopUpButton;
 	IBOutlet NSTableView				*imageSourcesTableView;
 	IBOutlet NSButton					*imageSourcesRemoveButton;
@@ -122,6 +123,7 @@
 - (IBAction)changeTileShapes:(id)sender;
 - (IBAction)setImageUseCount:(id)sender;
 - (IBAction)setImageReuseDistance:(id)sender;
+- (IBAction)setImageCropLimit:(id)sender;
 - (IBAction)addNewImageSource:(id)sender;
 - (IBAction)removeImageSource:(id)sender;
 
