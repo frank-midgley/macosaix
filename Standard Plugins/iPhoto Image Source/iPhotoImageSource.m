@@ -192,9 +192,30 @@ static NSImage	*iPhotoImage = nil,
 }
 
 
+- (void)executeAppleScriptOnMainThread:(NSMutableDictionary *)parameters
+{
+	NSDictionary			*scriptError = nil;
+	NSAppleEventDescriptor	*scriptResult = [[parameters objectForKey:@"Script"] executeAndReturnError:&scriptError];
+	
+	[parameters setObject:(scriptError ? (id)scriptError : (id)scriptResult) forKey:@"Result"];
+}
+
+
+- (id)executeAppleScript:(NSAppleScript *)script
+{
+	NSMutableDictionary		*parameters = [NSMutableDictionary dictionaryWithObject:script forKey:@"Script"];
+	
+	[self performSelectorOnMainThread:@selector(executeAppleScriptOnMainThread:) 
+						   withObject:parameters 
+						waitUntilDone:YES];
+	
+	return [parameters objectForKey:@"Result"];
+}
+
+
 - (void)getPhotoIDs
 {
-	NSString				*scriptText = nil;
+	NSString		*scriptText = nil;
 	if (albumName)
 		scriptText = [NSString stringWithFormat:@"tell application \"iPhoto\" to get id of photos of album \"%@\"", 
 												albumName];
@@ -210,18 +231,17 @@ static NSImage	*iPhotoImage = nil,
 	else
 		scriptText = @"tell application \"iPhoto\" to get id of photos";
 		
-	NSAppleScript			*getPhotoIDsScript = [[[NSAppleScript alloc] initWithSource:scriptText] autorelease];
-	NSDictionary			*getPhotoIDsError = nil;
-	NSAppleEventDescriptor	*getPhotoIDsResult = [getPhotoIDsScript executeAndReturnError:&getPhotoIDsError];
+	NSAppleScript	*getPhotoIDsScript = [[[NSAppleScript alloc] initWithSource:scriptText] autorelease];
+	id				getPhotoIDsResult = [self executeAppleScript:getPhotoIDsScript];
 	
 	remainingPhotoIDs = [[NSMutableArray array] retain];
 	
-	if (!getPhotoIDsError)
+	if ([getPhotoIDsResult isKindOfClass:[NSAppleEventDescriptor class]])
 	{
-		int	photoIDCount = [getPhotoIDsResult numberOfItems],
+		int	photoIDCount = [(NSAppleEventDescriptor *)getPhotoIDsResult numberOfItems],
 			photoIDIndex;
 		for (photoIDIndex = 1; photoIDIndex <= photoIDCount; photoIDIndex++)
-			[remainingPhotoIDs addObject:[[getPhotoIDsResult descriptorAtIndex:photoIDIndex] stringValue]];
+			[remainingPhotoIDs addObject:[[(NSAppleEventDescriptor *)getPhotoIDsResult descriptorAtIndex:photoIDIndex] stringValue]];
 	}
 }
 
@@ -251,16 +271,15 @@ static NSImage	*iPhotoImage = nil,
 
 - (NSString *)pathOfPhotoWithID:(NSString *)photoID
 {
-	NSString				*imagePath = nil;
-	NSString				*getImagePathText = [NSString stringWithFormat:
-													@"tell application \"iPhoto\" to get image path of first photo whose id is %@", 
-													photoID];
-	NSAppleScript			*getImagePathScript = [[[NSAppleScript alloc] initWithSource:getImagePathText] autorelease];
-	NSDictionary			*getImagePathError = nil;
-	NSAppleEventDescriptor	*getImagePathResult = [getImagePathScript executeAndReturnError:&getImagePathError];
+	NSString		*imagePath = nil;
+	NSString		*getImagePathText = [NSString stringWithFormat:@"tell application \"iPhoto\" to " \
+																	@"get image path of first photo whose id is %@", 
+																   photoID];
+	NSAppleScript	*getImagePathScript = [[[NSAppleScript alloc] initWithSource:getImagePathText] autorelease];
+	id				getImagePathResult = [self executeAppleScript:getImagePathScript];
 	
-	if (!getImagePathError)
-		imagePath = [getImagePathResult stringValue];
+	if ([getImagePathResult isKindOfClass:[NSAppleEventDescriptor class]])
+		imagePath = [(NSAppleEventDescriptor *)getImagePathResult stringValue];
 	
 	return imagePath;
 }
