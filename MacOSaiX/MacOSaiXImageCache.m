@@ -216,13 +216,13 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 				// There is at least one rep cached for this image.  Calculate the size that is 
 				// just small enough to enclose the requested size.
 			NSSize			nativeSize = [nativeSizeValue sizeValue];
-			if (size.width / nativeSize.width < size.height / nativeSize.height)
-				repSize = NSMakeSize(size.height * nativeSize.width / nativeSize.height, size.height);
-			else
-				repSize = NSMakeSize(size.width, size.width * nativeSize.height / nativeSize.width);
-			
-			repSize.width = (int)(repSize.width + 0.5);
-			repSize.height = (int)(repSize.height + 0.5);
+//			if (size.width / nativeSize.width < size.height / nativeSize.height)
+//				repSize = NSMakeSize(size.height * nativeSize.width / nativeSize.height, size.height);
+//			else
+//				repSize = NSMakeSize(size.width, size.width * nativeSize.height / nativeSize.width);
+//			
+//			repSize.width = (int)(repSize.width + 0.5);
+//			repSize.height = (int)(repSize.height + 0.5);
 			
 				// Check if there is a cached image rep we can use.
 			NSEnumerator		*cachedRepEnumerator = [[memoryCache objectForKey:imageKey] objectEnumerator];
@@ -231,7 +231,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 			{
 				NSSize	cachedRepSize = [cachedRep size];
 				
-				if (NSEqualSizes(cachedRepSize, repSize))
+				if (NSEqualSizes(cachedRepSize, size))
 				{
 						// Found an exact size match.  Perfect cache hit.
 					perfectHitCount++;
@@ -240,11 +240,11 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 				}
 				else if (NSEqualSizes(cachedRepSize, nativeSize))
 					scalableRep = cachedRep;	// this is the original, OK to scale from it
-				else if (repSize.width <= nativeSize.width &&	// not looking for a rep bigger than the original image and...
-						 cachedRepSize.width >= repSize.width * 2.0 &&	// the cached rep is big enough to scale down and...
-						 (!scalableRep || [scalableRep size].width > cachedRepSize.width))	// there was no previous match or the
-																							// previous match was larger then...
-					scalableRep = cachedRep;	// we can scale this rep to the size we need.  Partial cache hit.
+//				else if (repSize.width <= nativeSize.width &&	// not looking for a rep bigger than the original image and...
+//						 cachedRepSize.width >= repSize.width * 2.0 &&	// the cached rep is big enough to scale down and...
+//						 (!scalableRep || [scalableRep size].width > cachedRepSize.width))	// there was no previous match or the
+//																							// previous match was larger then...
+//					scalableRep = cachedRep;	// we can scale this rep to the size we need.  Partial cache hit.
 			}
 		}
 		
@@ -262,23 +262,38 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		}
 		else if (scalableRep)
 		{
-				// Scale a copy of the closest rep to the desired size.
+				// Scale and crop a copy of the closest rep to the desired size.
 			scalableHitCount++;
-			NSImage		*scaledImage = [[NSImage alloc] initWithSize:repSize];
-			NSRect		scaledRect = NSMakeRect(0.0, 0.0, repSize.width, repSize.height);
+			NSImage		*scaledImage = [[NSImage alloc] initWithSize:size];
 			[scaledImage setCachedSeparately:YES];
 			[scaledImage setCacheMode:NSImageCacheNever];
+			
+			NSRect		scaledRect;
+			if (([scalableRep pixelsWide] / size.width) < ([scalableRep pixelsHigh] / size.height))
+			{
+				float	scaledHeight = [scalableRep pixelsHigh] * size.width / [scalableRep pixelsWide];
+				scaledRect = NSMakeRect(0.0, (size.height - scaledHeight) / 2.0, size.width, scaledHeight);
+			}
+			else
+			{
+				float	scaledWidth = [scalableRep pixelsWide] * size.height / [scalableRep pixelsHigh];
+				scaledRect = NSMakeRect((size.width - scaledWidth) / 2.0, 0.0, scaledWidth, size.height);
+			}
+			
+			[[NSGraphicsContext currentContext] saveGraphicsState];
+			[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
 			do
 			{
 				NS_DURING
 					[scaledImage lockFocus];
-						[scalableRep drawInRect:NSMakeRect(0.0, 0.0, repSize.width, repSize.height)];
-						imageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:scaledRect] autorelease];
+						[scalableRep drawInRect:scaledRect];
+						imageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0.0, 0.0, size.width, size.height)] autorelease];
 					[scaledImage unlockFocus];
 				NS_HANDLER
 					NSLog(@"Could not lock focus on image to scale.");
 				NS_ENDHANDLER
 			} while (!imageRep);
+			[[NSGraphicsContext currentContext] restoreGraphicsState];
 			[scaledImage release];
 			[self addImageRep:imageRep toMemoryCacheForKey:imageKey];
 		}
@@ -309,7 +324,8 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 				[image setCachedSeparately:YES];
 				[image setCacheMode:NSImageCacheNever];
 				
-					// Ignore whatever DPI was set for the image.  We just care about the bitmap.
+					// Ignore whatever DPI was set for the image.  We just care about the bitmap's pixel size.
+					// TBD: scale down really big images?
 				NSImageRep	*originalRep = [[image representations] objectAtIndex:0];
 				[originalRep setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
 				[image setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
