@@ -46,8 +46,6 @@
 						*nonUniqueImageMatch,
 						*userChosenImageMatch;	// will be nil if user has not choosen an image
 	MacOSaiXDocument	*document;				// The document this tile is a part of (non-retained)
-//	NSMutableDictionary	*cachedMatches;
-//	NSMutableArray		*cachedMatchesOrder;
 }
 
 	// designated initializer
@@ -59,19 +57,9 @@
 - (void)setOutline:(NSBezierPath *)outline;
 - (NSBezierPath *)outline;
 
-- (float)worstCaseMatchValue;
-
 - (void)resetBitmapRepAndMask;
 - (NSBitmapImageRep *)bitmapRep;
-
-- (float)matchValueForImageRep:(NSBitmapImageRep *)matchRep
-			    withIdentifier:(NSString *)imageIdentifier
-			   fromImageSource:(id<MacOSaiXImageSource>)imageSource;
-//- (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep
-//			  withIdentifier:(NSString *)imageIdentifier
-//		     fromImageSource:(id<MacOSaiXImageSource>)imageSource;
-//- (BOOL)matchAgainstImageRep:(NSBitmapImageRep *)matchRep fromCachedImage:(CachedImage *)cachedImage
-//				  forDocument:(NSDocument *)document;
+- (NSBitmapImageRep *)maskRep;
 
 - (MacOSaiXImageMatch *)imageMatch;
 - (void)setImageMatch:(MacOSaiXImageMatch *)match;
