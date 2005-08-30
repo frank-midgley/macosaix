@@ -75,14 +75,10 @@ Riemersma metric:
 ¥		Remember previous choices
 ¥	Autosave pref checkbox
 ¥	DOCTYPE plist in XML?
-
-2.0a4 To Do:
-Ã	0x124c crashers (any others?)
-	Preferences:
-Ã		Auto-start on image source add
-Ã	Check for new crash log(s)
+¥	Make sure manually chosen image identifiers are XML safe.
 ¥	Window zooming
-Ã	Export defaults to >10000 pixels for large original
-Ã	Disable autosave during export
 ?	Tile refresh leaves black edges
-Ã	Make sure saved documents are bundles
+
+2.0a5 To Do:
+¥	Don't report crashes older than 2.0a4
+¥	Make sure exporting still works with changes to image caching
