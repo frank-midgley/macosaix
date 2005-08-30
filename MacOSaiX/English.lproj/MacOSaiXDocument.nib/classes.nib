@@ -36,10 +36,12 @@
                 editorAccessoryView = NSView; 
                 editorChosenImageBox = NSBox; 
                 editorChosenImageView = NSImageView; 
-                editorMatchQualityTextField = NSTextField; 
+                editorChosenMatchQualityTextField = NSTextField; 
+                editorChosenPercentCroppedTextField = NSTextField; 
+                editorCurrentImageView = NSImageView; 
+                editorCurrentMatchQualityTextField = NSTextField; 
+                editorCurrentPercentCroppedTextField = NSTextField; 
                 editorOriginalImageView = NSImageView; 
-                editorPercentCroppedTextField = NSTextField; 
-                editorProgressIndicator = NSProgressIndicator; 
                 exportHeight = NSTextField; 
                 exportPanelAccessoryView = NSView; 
                 exportWidth = NSTextField; 
