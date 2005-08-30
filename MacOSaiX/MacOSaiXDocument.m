@@ -11,6 +11,7 @@
 #import "MacOSaiXDocument.h"
 #import "MacOSaiXWindowController.h"
 #import "MacOSaiXImageCache.h"
+#import "MacOSaiXImageMatcher.h"
 #import "Tiles.h"
 #import "NSImage+MacOSaiX.h"
 #import "NSString+MacOSaiX.h"
@@ -1600,24 +1601,27 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 			
 			if (!betterMatches)
 			{
-					// Loop through all of the tiles and calculate how well this image matches.
 				betterMatches = [NSMutableArray array];
-				NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-				MacOSaiXTile	*tile = nil;
+				
+					// Loop through all of the tiles and calculate how well this image matches.
+				MacOSaiXImageMatcher	*matcher = [MacOSaiXImageMatcher sharedMatcher];
+				NSEnumerator			*tileEnumerator = [tiles objectEnumerator];
+				MacOSaiXTile			*tile = nil;
 				while ((tile = [tileEnumerator nextObject]) && !documentIsClosing)
 				{
 					NSAutoreleasePool	*pool3 = [[NSAutoreleasePool alloc] init];
-					NSSize				tileSize = [[tile bitmapRep] size],
+					NSBitmapImageRep	*tileBitmap = [tile bitmapRep];
+					NSSize				tileSize = [tileBitmap size],
 										pixletSize = [[MacOSaiXImageCache sharedImageCache] nativeSizeOfImageWithIdentifier:pixletImageIdentifier 
 																												 fromSource:pixletImageSource];
 					float				croppedPercentage;
 					
 						// See if the image will be cropped too much.
 					if ((pixletSize.width / tileSize.width) < (pixletSize.height / tileSize.height))
-						croppedPercentage = (pixletSize.width * (pixletSize.height - tileSize.height * pixletSize.width / tileSize.width)) / 
+						croppedPercentage = (pixletSize.width * (pixletSize.height - pixletSize.width * tileSize.height / tileSize.width)) / 
 											 (pixletSize.width * pixletSize.height) * 100.0;
 					else
-						croppedPercentage = ((pixletSize.width - tileSize.width * pixletSize.height / tileSize.height) * pixletSize.height) / 
+						croppedPercentage = ((pixletSize.width - pixletSize.height * tileSize.width / tileSize.height) * pixletSize.height) / 
 											 (pixletSize.width * pixletSize.height) * 100.0;
 					
 					if (croppedPercentage <= [self imageCropLimit])
@@ -1630,9 +1634,11 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 						if (imageRep)
 						{
 								// Calculate how well this image matches this tile.
-							float	matchValue = [tile matchValueForImageRep:imageRep
-															  withIdentifier:pixletImageIdentifier
-															 fromImageSource:pixletImageSource];
+							float	previousBest = ([tile imageMatch] ? [[tile imageMatch] matchValue] : 1.0), 
+									matchValue = [matcher compareImageRep:tileBitmap 
+																 withMask:[tile maskRep] 
+															   toImageRep:imageRep
+															 previousBest:previousBest];
 							
 								// If the tile does not already have a match or 
 								//    this image matches better than the tile's current best or
@@ -1647,9 +1653,9 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 																						 fromImageSource:pixletImageSource
 																								 forTile:tile] autorelease]];
 						}
+						else
+							;	// anything to do or just lose the chance to match this pixlet to this tile?
 					}
-					else
-						NSLog(@"%@ would be cropped %.1f%%", pixletImageIdentifier, croppedPercentage);
 					
 					[pool3 release];
 				}
