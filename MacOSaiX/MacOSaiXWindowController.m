@@ -9,6 +9,7 @@
 #import "MacOSaiXWindowController.h"
 #import "MacOSaiX.h"
 #import "MacOSaiXImageCache.h"
+#import "MacOSaiXImageMatcher.h"
 #import "NSImage+MacOSaiX.h"
 #import "NSString+MacOSaiX.h"
 #import <unistd.h>
@@ -904,48 +905,58 @@
 }
 
 
-- (NSImage *)highlightTile:(MacOSaiXTile *)tile inImage:(NSImage *)image croppedPercentage:(float *)croppedPercentage
+- (NSImage *)highlightTileOutline:(NSBezierPath *)tileOutline inImage:(NSImage *)image croppedPercentage:(float *)croppedPercentage
 {
 		// Scale the image to at most 128 pixels.
-    NSImage				*highlightedImage = nil;
-    if ([image size].width > [image size].height)
-        highlightedImage = [[[NSImage alloc] initWithSize:NSMakeSize(128.0, 128.0 / [image size].width * [image size].height)] autorelease];
-    else
-        highlightedImage = [[[NSImage alloc] initWithSize:NSMakeSize(128.0 / [image size].height * [image size].width, 128.0)] autorelease];
+    NSImage				*highlightedImage = [[[NSImage alloc] initWithSize:[image size]] autorelease];
+//    if ([image size].width > [image size].height)
+//        highlightedImage = [[[NSImage alloc] initWithSize:NSMakeSize(128.0, 128.0 / [image size].width * [image size].height)] autorelease];
+//    else
+//        highlightedImage = [[[NSImage alloc] initWithSize:NSMakeSize(128.0 / [image size].height * [image size].width, 128.0)] autorelease];
 	
-		// Figure out where the tile fits within the image.
-    NSSize				tileSize = [[tile outline] bounds].size;
-    float				scale;
+		// Figure out how to scale and translate the tile to fit within the image.
+    NSSize				tileSize = [tileOutline bounds].size,
+						originalSize = [[[self document] originalImage] size], 
+						denormalizedTileSize = NSMakeSize(tileSize.width * originalSize.width, 
+														  tileSize.height * originalSize.height);
+    float				xScale, yScale;
     NSPoint				origin;
-    if (([highlightedImage size].width / tileSize.width) < ([highlightedImage size].height / tileSize.height))
+    if (([image size].width / denormalizedTileSize.width) < ([image size].height / denormalizedTileSize.height))
     {
-		scale = [highlightedImage size].width / tileSize.width;
-		origin = NSMakePoint(0.0, ([highlightedImage size].height - tileSize.height * scale) / 2.0);
+			// Width is the limiting dimension.
+		float	scaledHeight = [image size].width * denormalizedTileSize.height / denormalizedTileSize.width, 
+				heightDiff = [image size].height - scaledHeight;
+		xScale = [image size].width / tileSize.width;
+		yScale = scaledHeight / tileSize.height;
+		origin = NSMakePoint(0.0, heightDiff / 2.0);
 		if (croppedPercentage)
-			*croppedPercentage = ([highlightedImage size].width * ([highlightedImage size].height - tileSize.height * scale)) / 
-								 ([highlightedImage size].width * [highlightedImage size].height) * 100.0;
+			*croppedPercentage = ([image size].width * heightDiff) / 
+								 ([image size].width * [image size].height) * 100.0;
     }
     else
     {
-		scale = [highlightedImage size].height / tileSize.height;
-		origin = NSMakePoint(([highlightedImage size].width - tileSize.width * scale) / 2.0, 0.0);
+			// Height is the limiting dimension.
+		float	scaledWidth = [image size].height * denormalizedTileSize.width / denormalizedTileSize.height, 
+				widthDiff = [image size].width - scaledWidth;
+		xScale = scaledWidth / tileSize.width;
+		yScale = [image size].height / tileSize.height;
+		origin = NSMakePoint(widthDiff / 2.0, 0.0);
 		if (croppedPercentage)
-			*croppedPercentage = (([highlightedImage size].width - tileSize.width * scale) * [highlightedImage size].height) / 
-								 ([highlightedImage size].width * [highlightedImage size].height) * 100.0;
+			*croppedPercentage = (widthDiff * [image size].height) / 
+								 ([image size].width * [image size].height) * 100.0;
     }
 	
 		// Create a transform to scale and translate the tile outline.
     NSAffineTransform	*transform = [NSAffineTransform transform];
     [transform translateXBy:origin.x yBy:origin.y];
-    [transform scaleXBy:scale yBy:scale];
-    [transform translateXBy:-[[tile outline] bounds].origin.x yBy:-[[tile outline] bounds].origin.y];
+    [transform scaleXBy:xScale yBy:yScale];
+    [transform translateXBy:-[tileOutline bounds].origin.x yBy:-[tileOutline bounds].origin.y];
+	NSBezierPath	*transformedTileOutline = [transform transformBezierPath:tileOutline];
     
 	NS_DURING
 		[highlightedImage lockFocus];
 				// Start with the original image.
 			[image compositeToPoint:NSZeroPoint operation:NSCompositeCopy];
-		
-			NSBezierPath	*tileOutline = [transform transformBezierPath:[tile outline]];
 			
 				// Lighten the area outside of the tile.
 			NSBezierPath	*lightenOutline = [NSBezierPath bezierPath];
@@ -954,13 +965,13 @@
 			[lightenOutline lineToPoint:NSMakePoint([highlightedImage size].width, [highlightedImage size].height)];
 			[lightenOutline lineToPoint:NSMakePoint([highlightedImage size].width, 0)];
 			[lightenOutline closePath];
-			[lightenOutline appendBezierPath:tileOutline];
+			[lightenOutline appendBezierPath:transformedTileOutline];
 			[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
 			[lightenOutline fill];
 			
 				// Darken the outline of the tile.
 			[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
-			[tileOutline stroke];
+			[transformedTileOutline stroke];
 		[highlightedImage unlockFocus];
 	NS_HANDLER
 		NSLog(@"Could not lock focus on editor image");
@@ -973,13 +984,15 @@
 - (IBAction)chooseImageForSelectedTile:(id)sender
 {
 		// Create the image for the "Original Image" view of the accessory view.
-	NSImage		*originalImageForTile = [[[NSImage alloc] initWithSize:NSMakeSize(128.0, 128.0)] autorelease];
+	NSRect		originalImageViewFrame = NSMakeRect(0.0, 0.0, [editorOriginalImageView frame].size.width, 
+															   [editorOriginalImageView frame].size.height);
+	NSImage		*originalImageForTile = [[[NSImage alloc] initWithSize:originalImageViewFrame.size] autorelease];
 	NS_DURING
 		[originalImageForTile lockFocus];
 		
 			// Start with a black background.
 		[[NSColor blackColor] set];
-		NSRectFill(NSMakeRect(0.0, 0.0, 128.0, 128.0));
+		NSRectFill(originalImageViewFrame);
 		
 			// Determine the bounds of the tile in the original image and in the scratch window.
 		NSBezierPath	*tileOutline = [selectedTile outline];
@@ -996,15 +1009,59 @@
 			origRect = NSInsetRect(origRect, (origRect.size.width - origRect.size.height) / 2.0, 0.0);
 		
 			// Copy out the portion of the original image contained by the tile's outline.
-		[originalImage drawInRect:NSMakeRect(0.0, 0.0, 128.0, 128.0) fromRect:origRect operation:NSCompositeCopy fraction:1.0];
+		[originalImage drawInRect:originalImageViewFrame fromRect:origRect operation:NSCompositeCopy fraction:1.0];
 		[originalImageForTile unlockFocus];
 	NS_HANDLER
 		NSLog(@"Exception raised while extracting tile images: %@", [localException name]);
 	NS_ENDHANDLER
-	[editorOriginalImageView setImage:[self highlightTile:selectedTile inImage:originalImageForTile croppedPercentage:nil]];
+	[editorOriginalImageView setImage:[self highlightTileOutline:[selectedTile outline] inImage:originalImageForTile croppedPercentage:nil]];
 	
-	[editorMatchQualityTextField setStringValue:@""];
-	[editorPercentCroppedTextField setStringValue:@""];
+		// Set up the current image box
+	MacOSaiXImageMatch	*currentMatch = [selectedTile imageMatch];
+	if (currentMatch)
+	{
+		NSSize				currentSize = [[MacOSaiXImageCache sharedImageCache] nativeSizeOfImageWithIdentifier:[currentMatch imageIdentifier] 
+																									  fromSource:[currentMatch imageSource]];
+		
+		if (NSEqualSizes(currentSize, NSZeroSize))
+		{
+				// The image is not in the cache so request a random sized rep to get it loaded.
+			[[MacOSaiXImageCache sharedImageCache] imageRepAtSize:NSMakeSize(1.0, 1.0) 
+													forIdentifier:[currentMatch imageIdentifier] 
+													   fromSource:[currentMatch imageSource]];
+			currentSize = [[MacOSaiXImageCache sharedImageCache] nativeSizeOfImageWithIdentifier:[currentMatch imageIdentifier] 
+																					  fromSource:[currentMatch imageSource]];
+		}
+		
+//		float				currentImageViewWidth = [editorCurrentImageView bounds].size.width;
+//		if (currentSize.width > currentSize.height)
+//			currentSize = NSMakeSize(currentImageViewWidth, currentImageViewWidth * currentSize.height / currentSize.width);
+//		else
+//			currentSize = NSMakeSize(currentImageViewWidth * currentSize.width / currentSize.height, currentImageViewWidth);
+		NSBitmapImageRep	*currentRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:currentSize 
+																				  forIdentifier:[currentMatch imageIdentifier] 
+																					 fromSource:[currentMatch imageSource]];
+		NSImage				*currentImage = [[[NSImage alloc] initWithSize:currentSize] autorelease];
+		[currentImage addRepresentation:currentRep];
+		float				croppedPercentage = 0.0;
+		[editorCurrentImageView setImage:[self highlightTileOutline:[selectedTile outline] inImage:currentImage croppedPercentage:&croppedPercentage]];
+//		float				worstCaseMatch = sqrtf([selectedTile worstCaseMatchValue]), 
+//							matchPercentage = (worstCaseMatch - sqrtf([currentMatch matchValue])) / worstCaseMatch * 100.0;
+		[editorCurrentMatchQualityTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", 100.0 - [currentMatch matchValue] * 100.0]];
+		[editorCurrentPercentCroppedTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", croppedPercentage]];
+	}
+	else
+	{
+		[editorCurrentImageView setImage:nil];
+		[editorCurrentMatchQualityTextField setStringValue:@"--"];
+		[editorCurrentPercentCroppedTextField setStringValue:@"--"];
+	}
+	
+		// Set up the chosen image box.
+	[editorChosenImageBox setTitle:@"No Image Selected"];
+	[editorChosenImageView setImage:nil];
+	[editorChosenMatchQualityTextField setStringValue:@"--"];
+	[editorChosenPercentCroppedTextField setStringValue:@"--"];
 
 		// Prompt the user to choose the image from which to make a mosaic.
 	NSOpenPanel	*oPanel = [NSOpenPanel openPanel];
@@ -1028,7 +1085,8 @@
 	{
 		[editorChosenImageBox setTitle:@"No Image Selected"];
 		[editorChosenImageView setImage:nil];
-		[editorMatchQualityTextField setStringValue:@""];
+		[editorChosenMatchQualityTextField setStringValue:@"--"];
+		[editorChosenPercentCroppedTextField setStringValue:@"--"];
 	}
 	else
 	{
@@ -1041,34 +1099,28 @@
 		{
 			NSImageRep			*originalRep = [[chosenImage representations] objectAtIndex:0];
 			NSSize				imageSize = NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh]);
-			if (imageSize.width > imageSize.height)
-				imageSize = NSMakeSize(128.0, 128.0 * imageSize.height/imageSize.width);
-			else
-				imageSize = NSMakeSize(128.0 * imageSize.width/imageSize.height, 128.0);
+//			if (imageSize.width > imageSize.height)
+//				imageSize = NSMakeSize(128.0, 128.0 * imageSize.height/imageSize.width);
+//			else
+//				imageSize = NSMakeSize(128.0 * imageSize.width/imageSize.height, 128.0);
 			[originalRep setSize:imageSize];
 			[chosenImage setSize:imageSize];
 			
 			float				croppedPercentage = 0.0;
-			[editorChosenImageView setImage:[self highlightTile:selectedTile inImage:chosenImage croppedPercentage:&croppedPercentage]];
+			[editorChosenImageView setImage:[self highlightTileOutline:[selectedTile outline] inImage:chosenImage croppedPercentage:&croppedPercentage]];
 
-			[editorPercentCroppedTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", croppedPercentage]];
+			[editorChosenPercentCroppedTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", croppedPercentage]];
 			
 				// Calculate how well the chosen image matches the selected tile.
 			[[MacOSaiXImageCache sharedImageCache] cacheImage:chosenImage withIdentifier:chosenImageIdentifier fromSource:nil];
-			NSSize				tileBitmapSize = [[selectedTile outline] bounds].size;
-			if (tileBitmapSize.width > tileBitmapSize.height)
-				tileBitmapSize = NSMakeSize(TILE_BITMAP_SIZE, TILE_BITMAP_SIZE * tileBitmapSize.height/tileBitmapSize.width);
-			else
-				tileBitmapSize = NSMakeSize(TILE_BITMAP_SIZE * tileBitmapSize.width/tileBitmapSize.height, TILE_BITMAP_SIZE);
-			NSBitmapImageRep	*chosenImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:tileBitmapSize 
+			NSBitmapImageRep	*chosenImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[[selectedTile bitmapRep] size] 
 																						  forIdentifier:chosenImageIdentifier 
 																							 fromSource:nil];
-			float	matchValue = [selectedTile matchValueForImageRep:chosenImageRep
-													  withIdentifier:chosenImageIdentifier
-													 fromImageSource:nil],
-					worstCaseMatch = sqrtf([selectedTile worstCaseMatchValue]), 
-					matchPercentage = (worstCaseMatch - sqrtf(matchValue)) / worstCaseMatch * 100.0;
-			[editorMatchQualityTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", matchPercentage]];
+			float				matchValue = [[MacOSaiXImageMatcher sharedMatcher] compareImageRep:[selectedTile bitmapRep]  
+																						  withMask:[selectedTile maskRep] 
+																						toImageRep:chosenImageRep
+																					  previousBest:1.0];
+			[editorChosenMatchQualityTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", 100.0 - matchValue * 100.0]];
 		}
 	}
 }

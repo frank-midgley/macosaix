@@ -57,10 +57,12 @@
 	IBOutlet NSView						*editorAccessoryView;
 	IBOutlet NSBox						*editorChosenImageBox;
 	IBOutlet NSImageView				*editorOriginalImageView,
+										*editorCurrentImageView, 
 										*editorChosenImageView;
-	IBOutlet NSTextField				*editorPercentCroppedTextField, 
-										*editorMatchQualityTextField;
-	IBOutlet NSProgressIndicator		*editorProgressIndicator;
+	IBOutlet NSTextField				*editorCurrentPercentCroppedTextField, 
+										*editorCurrentMatchQualityTextField,
+										*editorChosenPercentCroppedTextField, 
+										*editorChosenMatchQualityTextField;
 	
 		// Progress panel
     IBOutlet NSPanel					*progressPanel;
