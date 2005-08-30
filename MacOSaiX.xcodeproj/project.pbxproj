@@ -111,6 +111,8 @@
 		92951FEA068A7FDC00366ACB /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 928F725F066121A700873AE2 /* Preferences.nib */; };
 		92951FF1068A7FE600366ACB /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 928F724A0661214000873AE2 /* Info.plist */; };
 		92951FF9068A7FE900366ACB /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 928F726C066121AE00873AE2 /* InfoPlist.strings */; };
+		92B9087B08C25F0500D621F5 /* MacOSaiXImageMatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 92B9087908C25F0500D621F5 /* MacOSaiXImageMatcher.h */; };
+		92B9087C08C25F0600D621F5 /* MacOSaiXImageMatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */; };
 		92BFFEC3079A2DD50052CC4C /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = 92BFFEC1079A2DD50052CC4C /* Credits.html */; };
 		92C8AAF2080870100073045F /* GlyphTableColumn.h in Headers */ = {isa = PBXBuildFile; fileRef = 92C8AAF0080870100073045F /* GlyphTableColumn.h */; };
 		92C8AAF3080870100073045F /* GlyphTableColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92C8AAF1080870100073045F /* GlyphTableColumn.m */; };
@@ -375,6 +377,8 @@
 		92B45F71041A9DF1006867F5 /* DirectoryImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DirectoryImageSourceController.m; path = "Standard Plugins/Directory Image Source/DirectoryImageSourceController.m"; sourceTree = "<group>"; };
 		92B45F74041A9E78006867F5 /* GlyphImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlyphImageSourceController.h; path = "Standard Plugins/Glyph Image Source/GlyphImageSourceController.h"; sourceTree = "<group>"; };
 		92B45F75041A9E78006867F5 /* GlyphImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GlyphImageSourceController.m; path = "Standard Plugins/Glyph Image Source/GlyphImageSourceController.m"; sourceTree = "<group>"; };
+		92B9087908C25F0500D621F5 /* MacOSaiXImageMatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXImageMatcher.h; path = MacOSaiX/MacOSaiXImageMatcher.h; sourceTree = "<group>"; };
+		92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXImageMatcher.m; path = MacOSaiX/MacOSaiXImageMatcher.m; sourceTree = "<group>"; };
 		92BFFEC2079A2DD50052CC4C /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = MacOSaiX/English.lproj/Credits.html; sourceTree = "<group>"; };
 		92C8AAF0080870100073045F /* GlyphTableColumn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlyphTableColumn.h; path = "Standard Plugins/Glyph Image Source/GlyphTableColumn.h"; sourceTree = "<group>"; };
 		92C8AAF1080870100073045F /* GlyphTableColumn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GlyphTableColumn.m; path = "Standard Plugins/Glyph Image Source/GlyphTableColumn.m"; sourceTree = "<group>"; };
@@ -611,6 +615,8 @@
 				928F726C066121AE00873AE2 /* InfoPlist.strings */,
 				92BFFEC1079A2DD50052CC4C /* Credits.html */,
 				F57C77BD025E6D6001000102 /* Images */,
+				92B9087908C25F0500D621F5 /* MacOSaiXImageMatcher.h */,
+				92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */,
 			);
 			name = MacOSaiX.app;
 			sourceTree = "<group>";
@@ -845,6 +851,7 @@
 				92F00CE407C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.h in Headers */,
 				01AB92EB07DB797300DB4B86 /* NSString+MacOSaiX.h in Headers */,
 				01297701086A63D30095AD36 /* MacOSaiXCrashReporterController.h in Headers */,
+				92B9087B08C25F0500D621F5 /* MacOSaiXImageMatcher.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1474,6 +1481,7 @@
 				92F00CE507C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m in Sources */,
 				01AB92EC07DB797300DB4B86 /* NSString+MacOSaiX.m in Sources */,
 				01297702086A63D30095AD36 /* MacOSaiXCrashReporterController.m in Sources */,
+				92B9087C08C25F0600D621F5 /* MacOSaiXImageMatcher.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
