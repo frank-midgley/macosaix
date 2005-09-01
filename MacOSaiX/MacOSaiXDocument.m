@@ -717,7 +717,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	
 	if (![(MacOSaiX *)[NSApp delegate] isQuitting])
 	{
-		[self performSelectorOnMainThread:@selector(startAutosaveTimer:) withObject:nil waitUntilDone:YES];
+		[self performSelectorOnMainThread:@selector(startAutosaveTimer:) withObject:nil waitUntilDone:NO];
 		if (!wasPaused)
 			[self resume];
 	}
@@ -791,6 +791,8 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 			
 			[parserError release];
 		}
+		
+		CFRelease(parser);
 	}
 	else
 		errorMessage = @"The file could not be read.";
@@ -1530,7 +1532,9 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	
 		// Don't usurp the main thread.
 	[NSThread setThreadPriority:0.1];
-
+	
+	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
+	
 	[imageQueueLock lock];
 	while (!documentIsClosing && [imageQueue count] > 0)
 	{
@@ -1555,13 +1559,11 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 			id<MacOSaiXImageSource>	pixletImageSource = [nextImageDict objectForKey:@"Image Source"];
 			NSString				*pixletImageIdentifier = [nextImageDict objectForKey:@"Image Identifier"];
 			
-	//		NSLog(@"Matching %@ from %@", pixletImageIdentifier, pixletImageSource);
-			
 			if (pixletImage)
 			{
 					// Add this image to the cache.  If the identifier is nil or zero-length then 
 					// a new identifier will be returned.
-				pixletImageIdentifier = [[MacOSaiXImageCache sharedImageCache] cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
+				pixletImageIdentifier = [imageCache cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
 			}
 			
 				// Find the tiles that match this image better than their current image.
@@ -1601,8 +1603,27 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 			
 			if (!betterMatches)
 			{
+					// The better matches for this pixlet are not in the cache so we must calculate them.
 				betterMatches = [NSMutableArray array];
 				
+					// Get the size of the pixlet image.
+				NSSize					pixletSize;
+				if (pixletImage)
+					pixletSize = [pixletImage size];
+				else
+				{
+						// Get the size from the cache.
+					pixletSize = [imageCache nativeSizeOfImageWithIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
+					
+					if (NSEqualSizes(pixletSize, NSZeroSize))
+					{
+							// The image isn't in the cache.  Force it to load and then get its size.
+						pixletSize = [[imageCache imageRepAtSize:NSZeroSize 
+												   forIdentifier:pixletImageIdentifier 
+													  fromSource:pixletImageSource] size];
+					}
+				}
+
 					// Loop through all of the tiles and calculate how well this image matches.
 				MacOSaiXImageMatcher	*matcher = [MacOSaiXImageMatcher sharedMatcher];
 				NSEnumerator			*tileEnumerator = [tiles objectEnumerator];
@@ -1611,9 +1632,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 				{
 					NSAutoreleasePool	*pool3 = [[NSAutoreleasePool alloc] init];
 					NSBitmapImageRep	*tileBitmap = [tile bitmapRep];
-					NSSize				tileSize = [tileBitmap size],
-										pixletSize = [[MacOSaiXImageCache sharedImageCache] nativeSizeOfImageWithIdentifier:pixletImageIdentifier 
-																												 fromSource:pixletImageSource];
+					NSSize				tileSize = [tileBitmap size];
 					float				croppedPercentage;
 					
 						// See if the image will be cropped too much.
@@ -1627,9 +1646,9 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 					if (croppedPercentage <= [self imageCropLimit])
 					{
 							// Get a rep for the image scaled to the tile's bitmap size.
-						NSBitmapImageRep	*imageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:tileSize 
-																								forIdentifier:pixletImageIdentifier 
-																								   fromSource:pixletImageSource];
+						NSBitmapImageRep	*imageRep = [imageCache imageRepAtSize:tileSize 
+																	 forIdentifier:pixletImageIdentifier 
+																	    fromSource:pixletImageSource];
 				
 						if (imageRep)
 						{
@@ -1982,7 +2001,13 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 		// Let the helper threads know we are closing and resume so that they can clean up and exit.
 	documentIsClosing = YES;
 	[pauseLock unlock];
-//	[self resume];
+	
+	if ([autosaveTimer isValid])
+	{
+		[autosaveTimer invalidate];
+		[autosaveTimer autorelease];
+		autosaveTimer = nil;
+	}
 	
 		// wait for the threads to shut down
     while ([self isEnumeratingImageSources] || [self isCalculatingImageMatches])	// || [self isExtractingTileImagesFromOriginal]
@@ -1993,7 +2018,6 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 
 #pragma mark -
-
 
 - (void)dealloc
 {
