@@ -24,7 +24,8 @@
 								perfectHitCount,
 								scalableHitCount,
 								missCount;
-	unsigned long long			memoryCacheSize;
+	unsigned long long			maxMemoryCacheSize,
+								currentMemoryCacheSize;
 }
 
 
