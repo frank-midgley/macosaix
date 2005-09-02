@@ -154,6 +154,14 @@
 		{
 			[imageSourcesPopUpButton addItemWithTitle:[NSString stringWithFormat:@"%@...", [imageSourceClass name]]];
 			[[imageSourcesPopUpButton lastItem] setRepresentedObject:imageSourceClass];
+			
+			NSImage	*image = [[[imageSourceClass image] copy] autorelease];
+			[image setScalesWhenResized:YES];
+			if ([image size].width > [image size].height)
+				[image setSize:NSMakeSize(16.0, 16.0 * [image size].height / [image size].width)];
+			else
+				[image setSize:NSMakeSize(16.0 * [image size].width / [image size].height, 16.0)];
+			[[imageSourcesPopUpButton lastItem] setImage:image];
 		}
 	}
 	
