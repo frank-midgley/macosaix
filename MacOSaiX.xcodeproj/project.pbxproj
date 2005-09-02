@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0120B21F08C7FF8600974680 /* G.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0120B21E08C7FF8600974680 /* G.tiff */; };
 		0127354307CD6EBB0053037A /* Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0127354207CD6EBB0053037A /* Defaults.plist */; };
 		0128323A071B7297004ACF95 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		01297701086A63D30095AD36 /* MacOSaiXCrashReporterController.h in Headers */ = {isa = PBXBuildFile; fileRef = 012976FF086A63D30095AD36 /* MacOSaiXCrashReporterController.h */; };
@@ -318,6 +319,7 @@
 		00E5856E005F0FA87F000001 /* MacOSaiXDocument.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXDocument.h; path = MacOSaiX/MacOSaiXDocument.h; sourceTree = "<group>"; };
 		00EAAC6000853DFB7F000001 /* Tiles.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Tiles.h; path = MacOSaiX/Tiles.h; sourceTree = "<group>"; };
 		00EAAC6100853DFB7F000001 /* Tiles.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = Tiles.m; path = MacOSaiX/Tiles.m; sourceTree = "<group>"; };
+		0120B21E08C7FF8600974680 /* G.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = G.tiff; path = "Standard Plugins/Google Image Source/G.tiff"; sourceTree = "<group>"; };
 		0127354207CD6EBB0053037A /* Defaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = Defaults.plist; path = MacOSaiX/Defaults.plist; sourceTree = "<group>"; };
 		012976FF086A63D30095AD36 /* MacOSaiXCrashReporterController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXCrashReporterController.h; path = MacOSaiX/MacOSaiXCrashReporterController.h; sourceTree = "<group>"; };
 		01297700086A63D30095AD36 /* MacOSaiXCrashReporterController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXCrashReporterController.m; path = MacOSaiX/MacOSaiXCrashReporterController.m; sourceTree = "<group>"; };
@@ -603,6 +605,8 @@
 				0165CFCF086DE52B0070D6B5 /* Document/Controller */,
 				9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */,
 				9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */,
+				92B9087908C25F0500D621F5 /* MacOSaiXImageMatcher.h */,
+				92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */,
 				00EAAC6000853DFB7F000001 /* Tiles.h */,
 				00EAAC6100853DFB7F000001 /* Tiles.m */,
 				0165CFCE086DE5100070D6B5 /* Preferences */,
@@ -615,8 +619,6 @@
 				928F726C066121AE00873AE2 /* InfoPlist.strings */,
 				92BFFEC1079A2DD50052CC4C /* Credits.html */,
 				F57C77BD025E6D6001000102 /* Images */,
-				92B9087908C25F0500D621F5 /* MacOSaiXImageMatcher.h */,
-				92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */,
 			);
 			name = MacOSaiX.app;
 			sourceTree = "<group>";
@@ -694,6 +696,7 @@
 				F540721E023FE6E00100010A /* GoogleImageSource.m */,
 				F514D5A203949AA801B25AF1 /* GoogleImageSourceController.h */,
 				F514D5A303949AA801B25AF1 /* GoogleImageSourceController.m */,
+				0120B21E08C7FF8600974680 /* G.tiff */,
 				F580657F02456D1901000104 /* GoogleImageSource.gif */,
 				928F72910661226000873AE2 /* Google Image Source.nib */,
 				01AD286D07E3C99A00420875 /* GoogleImageSearch.gif */,
@@ -1378,6 +1381,7 @@
 				928F72C00661229F00873AE2 /* GoogleImageSource.gif in Resources */,
 				928F72E10661234700873AE2 /* Info.plist in Resources */,
 				01AD286F07E3C99B00420875 /* GoogleImageSearch.gif in Resources */,
+				0120B21F08C7FF8600974680 /* G.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
