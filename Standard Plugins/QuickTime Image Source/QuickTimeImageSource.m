@@ -12,6 +12,7 @@
 #import <pthread.h>
 
 
+static NSImage			*sQuickTimeImage = nil;
 static NSRecursiveLock  *sQuickTimeLock = nil;
 
 
@@ -25,9 +26,24 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 @implementation QuickTimeImageSource
 
 
++ (void)initialize
+{
+	NSURL		*quicktimeAppURL = nil;
+	LSFindApplicationForInfo(kLSUnknownCreator, CFSTR("com.apple.quicktimeplayer"), NULL, NULL, (CFURLRef *)&quicktimeAppURL);
+	
+	sQuickTimeImage = [[[NSWorkspace sharedWorkspace] iconForFile:[quicktimeAppURL path]] retain];
+}
+
+
 + (NSString *)name
 {
-	return @"QuickTime";
+	return @"QuickTime Movie";
+}
+
+
++ (NSImage *)image
+{
+	return sQuickTimeImage;
 }
 
 

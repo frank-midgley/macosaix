@@ -20,6 +20,17 @@
 }
 
 
++ (NSImage *)image
+{
+	NSImage	*image = [[NSWorkspace sharedWorkspace] iconForFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Pictures"]];
+	
+	if (!image)
+		image = [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode('fldr')];
+	
+	return image;
+}
+
+
 + (Class)editorClass
 {
 	return [DirectoryImageSourceController class];

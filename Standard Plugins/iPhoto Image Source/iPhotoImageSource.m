@@ -37,6 +37,12 @@ static NSImage	*iPhotoImage = nil,
 }
 
 
++ (NSImage *)image;
+{
+	return iPhotoImage;
+}
+
+
 + (Class)editorClass
 {
 	return [MacOSaiXiPhotoImageSourceController class];

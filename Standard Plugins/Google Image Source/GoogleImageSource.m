@@ -17,7 +17,8 @@
 static NSLock	*imageCacheLock = nil;
 static NSString	*imageCachePath = nil;
 
-static NSImage	*googleIcon = nil;
+static NSImage	*gIcon = nil,
+				*googleIcon = nil;
 
 
 NSString *escapedNSString(NSString *string)
@@ -46,14 +47,23 @@ NSString *escapedNSString(NSString *string)
 	
 	imageCacheLock = [[NSLock alloc] init];
 	
-	NSString	*iconPath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"GoogleImageSource"];
+	NSString	*iconPath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"G"];
+	gIcon = [[NSImage alloc] initWithContentsOfFile:iconPath];
+	
+	iconPath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"GoogleImageSource"];
 	googleIcon = [[NSImage alloc] initWithContentsOfFile:iconPath];
 }
 
 
 + (NSString *)name
 {
-	return @"Google";
+	return @"Google Image Search";
+}
+
+
++ (NSImage *)image;
+{
+    return gIcon;
 }
 
 

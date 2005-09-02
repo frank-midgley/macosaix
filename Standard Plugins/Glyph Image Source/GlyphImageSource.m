@@ -42,6 +42,12 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
++ (NSImage *)image
+{
+	return glyphSourceImage;
+}
+
+
 + (Class)editorClass
 {
 	return [MacOSaiXGlyphImageSourceController class];
