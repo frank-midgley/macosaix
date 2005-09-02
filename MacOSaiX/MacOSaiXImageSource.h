@@ -18,6 +18,9 @@
 	// Name to display in image source pop-up menu
 + (NSString *)name;
 
+	// The image for a generic source of this type.
++ (NSImage *)image;
+
 + (Class)editorClass;
 
 	// Whether multiple sources of this type can be added (maybe glyphs?)
@@ -31,8 +34,9 @@
 - (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict;
 - (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict;
 
-	// This method should return whether or not this source can
+	// An image representing this specific source (may be the same as +image)
 - (NSImage *)image;
+
 - (id)descriptor;	// either an NSString or an NSAttributedString
 
 	// This method should return whether there are any images remaining in the source.
