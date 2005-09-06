@@ -53,7 +53,6 @@ Riemersma metric:
 2.0x To Do:
 ¥	Allow setup to be changed after mosaic has been started
 ¥	Make sure pixels are being pulled from bitmaps correctly
-¥	Editor
 ¥	Mosaic quality calculation should take into account each tile's percentage coverage of original image
 ¥	Get rid of lines in exporting
 ¥	Add preferences API for image source plug-ins
@@ -75,10 +74,11 @@ Riemersma metric:
 ¥		Remember previous choices
 ¥	Autosave pref checkbox
 ¥	DOCTYPE plist in XML?
-¥	Make sure manually chosen image identifiers are XML safe.
 ¥	Window zooming
 ?	Tile refresh leaves black edges
 
 2.0a5 To Do:
 ¥	Don't report crashes older than 2.0a4
 ¥	Make sure exporting still works with changes to image caching
+¥	Editor
+¥	Make sure manually chosen image identifiers are XML safe.
