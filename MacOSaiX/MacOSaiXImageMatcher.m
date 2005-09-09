@@ -72,25 +72,26 @@ float colorDifference(pixelColor color1, pixelColor color2)
 		{
 			unsigned char	*imageOffset = imageBytes + startX * bytesPerPixel + startY * bytesPerRow,
 							maskByte = *(maskBytes + startX * maskBytesPerPixel + startY * maskBytesPerRow);
-			pixelColor		startColor = {*imageOffset, *(imageOffset + 1), *(imageOffset + 2)};
+//			pixelColor		startColor = {*imageOffset, *(imageOffset + 1), *(imageOffset + 2)};
 
 #if 1
 				// Alter the mask weight based on the start pixel's similarity to its neighbors.
 				// The more dissimilar it is the less important it is to get a good match for that pixel.
-			float			totalDifference = 0.0;
-			int				neighborX, neighborY, neighborCount = 0;
-			for (neighborX = MAX(0, startX - 2); neighborX < MIN(pixelsWide, startX + 2); neighborX++)
-				for (neighborY = MAX(0, startY - 2); neighborY < MIN(pixelsHigh, startY + 2); neighborY++)
-					if (startX != neighborX || startY != neighborY)
-					{
-						unsigned char	*neighborOffset = imageBytes + neighborX * bytesPerPixel + neighborY * bytesPerRow;
-						pixelColor		neighborColor = {*neighborOffset, *(neighborOffset + 1), *(neighborOffset + 2)};
-						
-						totalDifference += colorDifference(startColor, neighborColor);
-						neighborCount++;
-					}
-			float			adjustment = (MAX_COLOR_DIFF - (totalDifference / neighborCount)) / MAX_COLOR_DIFF;
-			adjustedMask[startX + startY * pixelsWide] = (maskRep ? (float)maskByte : 255.0) * adjustment;
+//			float			totalDifference = 0.0;
+//			int				neighborX, neighborY, neighborCount = 0;
+//			for (neighborX = MAX(0, startX - 2); neighborX < MIN(pixelsWide, startX + 2); neighborX++)
+//				for (neighborY = MAX(0, startY - 2); neighborY < MIN(pixelsHigh, startY + 2); neighborY++)
+//					if (startX != neighborX || startY != neighborY)
+//					{
+//						unsigned char	*neighborOffset = imageBytes + neighborX * bytesPerPixel + neighborY * bytesPerRow;
+//						pixelColor		neighborColor = {*neighborOffset, *(neighborOffset + 1), *(neighborOffset + 2)};
+//						
+//						totalDifference += colorDifference(startColor, neighborColor);
+//						neighborCount++;
+//					}
+//			float			adjustment = (MAX_COLOR_DIFF - (totalDifference / neighborCount)) / MAX_COLOR_DIFF;
+//			adjustedMask[startX + startY * pixelsWide] = (maskRep ? (float)maskByte : 255.0) * adjustment;
+			adjustedMask[startX + startY * pixelsWide] = (maskRep ? (float)maskByte : 255.0);
 #else			
 				// Alter the mask weight based on the size of the color patch this pixel is in.
 			NSMutableArray	*pointsInPatch = [NSMutableArray array], 
