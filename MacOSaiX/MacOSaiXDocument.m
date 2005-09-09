@@ -434,7 +434,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	MacOSaiXTile		*tile = nil;
 	while (tile = [tileEnumerator nextObject])
 	{
-		NSEnumerator		*matchEnumerator = [[NSArray arrayWithObjects:[tile imageMatch], [tile userChosenImageMatch], nil] 
+		NSEnumerator		*matchEnumerator = [[NSArray arrayWithObjects:[tile uniqueImageMatch], [tile userChosenImageMatch], nil] 
 																objectEnumerator];
 		MacOSaiXImageMatch	*match = nil;
 		while (match = [matchEnumerator nextObject])
@@ -624,7 +624,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					[buffer appendString:@"\t\t</OUTLINE>\n"];
 					
 						// Now write out the tile's matches.
-					MacOSaiXImageMatch	*uniqueMatch = [tile imageMatch];
+					MacOSaiXImageMatch	*uniqueMatch = [tile uniqueImageMatch];
 					if (uniqueMatch)
 					{
 						int	sourceIndex = [imageSources indexOfObjectIdenticalTo:[uniqueMatch imageSource]];
@@ -1022,7 +1022,7 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[MacOSaiXImageMatch class]])
 	{
 			// Set a tile's best unique image match.
-		[(MacOSaiXTile *)parent setImageMatch:(MacOSaiXImageMatch *)child];
+		[(MacOSaiXTile *)parent setUniqueImageMatch:(MacOSaiXImageMatch *)child];
 		[(MacOSaiXImageMatch *)child setTile:(MacOSaiXTile *)parent];
 	}
 	
@@ -1583,7 +1583,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 									countOfIndicesToRemove = 0;
 				while ((betterMatch = [betterMatchEnumerator nextObject]) && !documentIsClosing)
 				{
-					MacOSaiXImageMatch	*currentMatch = [[betterMatch tile] imageMatch];
+					MacOSaiXImageMatch	*currentMatch = [[betterMatch tile] uniqueImageMatch];
 					if (currentMatch && ([currentMatch matchValue] < [betterMatch matchValue] || 
 										 ([currentMatch matchValue] == [betterMatch matchValue] && 
 											([currentMatch imageSource] != [betterMatch imageSource] || 
@@ -1653,7 +1653,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 						if (imageRep)
 						{
 								// Calculate how well this image matches this tile.
-							float	previousBest = ([tile imageMatch] ? [[tile imageMatch] matchValue] : 1.0), 
+							float	previousBest = ([tile uniqueImageMatch] ? [[tile uniqueImageMatch] matchValue] : 1.0), 
 									matchValue = [matcher compareImageRep:tileBitmap 
 																 withMask:[tile maskRep] 
 															   toImageRep:imageRep
@@ -1663,10 +1663,10 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 								//    this image matches better than the tile's current best or
 								//    this image is the same as the tile's current best
 								// then add it to the list of tile's that might get this image.
-							if (![tile imageMatch] || 
-								matchValue < [[tile imageMatch] matchValue] ||
-								([[tile imageMatch] imageSource] == pixletImageSource && 
-								 [[[tile imageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier]))
+							if (![tile uniqueImageMatch] || 
+								matchValue < [[tile uniqueImageMatch] matchValue] ||
+								([[tile uniqueImageMatch] imageSource] == pixletImageSource && 
+								 [[[tile uniqueImageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier]))
 								[betterMatches addObject:[[[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
 																					  forImageIdentifier:pixletImageIdentifier 
 																						 fromImageSource:pixletImageSource
@@ -1731,13 +1731,13 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 				
 				if ([matchesToUpdate count] == useCount || [(MacOSaiXImageMatch *)[betterMatches lastObject] tile])
 				{
-						// There were enough matches in betterMatches.
+						// There were enough matches in betterMatches.  Update the winning tiles.
 					NSEnumerator		*matchesToUpdateEnumerator = [matchesToUpdate objectEnumerator];
 					MacOSaiXImageMatch	*matchToUpdate = nil;
 					while (matchToUpdate = [matchesToUpdateEnumerator nextObject])
 					{
 							// Add the tile's current image back to the queue so it can potentially get re-used by other tiles.
-						MacOSaiXImageMatch	*previousMatch = [[matchToUpdate tile] imageMatch];
+						MacOSaiXImageMatch	*previousMatch = [[matchToUpdate tile] uniqueImageMatch];
 						if (previousMatch && ([previousMatch imageSource] != pixletImageSource || 
 							![[previousMatch imageIdentifier] isEqualToString:pixletImageIdentifier]) &&
 							[self imageUseCount] > 0)
@@ -1759,7 +1759,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 							}
 						}
 						
-						[[matchToUpdate tile] setImageMatch:matchToUpdate];
+						[[matchToUpdate tile] setUniqueImageMatch:matchToUpdate];
 					}
 					
 					[self updateChangeCount:NSChangeDone];
@@ -1828,7 +1828,10 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (NSArray *)imageSources
 {
-	return [NSArray arrayWithArray:imageSources];
+	if (handPickedImageSource)
+		return [[NSArray arrayWithObject:handPickedImageSource] arrayByAddingObjectsFromArray:imageSources];
+	else
+		return [NSArray arrayWithArray:imageSources];
 }
 
 
@@ -1859,8 +1862,8 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	NSEnumerator		*tileEnumerator = [tiles objectEnumerator];
 	MacOSaiXTile		*tile = nil;
 	while (tile = [tileEnumerator nextObject])
-		if ([[tile imageMatch] imageSource] == imageSource)
-			[tile setImageMatch:nil];
+		if ([[tile uniqueImageMatch] imageSource] == imageSource)
+			[tile setUniqueImageMatch:nil];
 	
 	[imageSources removeObject:imageSource];
 	[[MacOSaiXImageCache sharedImageCache] removeCachedImageRepsFromSource:imageSource];
@@ -1868,6 +1871,53 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	[self updateChangeCount:NSChangeDone];
 	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
+}
+
+
+- (MacOSaiXHandPickedImageSource *)handPickedImageSource
+{
+	if (!handPickedImageSource)
+		handPickedImageSource = [[MacOSaiXHandPickedImageSource alloc] init];
+	
+	return handPickedImageSource;
+}
+
+
+- (void)setHandPickedImageAtPath:(NSString *)path withMatchValue:(float)matchValue forTile:(MacOSaiXTile *)tile
+{
+	MacOSaiXHandPickedImageSource	*handPickedSource = [self handPickedImageSource];
+	
+	if (![tile userChosenImageMatch])
+	{
+			// Increase the image count for the hand picked source.
+		[enumerationCountsLock lock];
+			unsigned long	currentCount = [[enumerationCounts objectForKey:[NSValue valueWithPointer:handPickedSource]] unsignedLongValue];
+			[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:currentCount + 1] 
+								  forKey:[NSValue valueWithPointer:handPickedSource]];
+		[enumerationCountsLock unlock];
+	}
+	
+	[tile setUserChosenImageMatch:[MacOSaiXImageMatch imageMatchWithValue:matchValue 
+													   forImageIdentifier:path 
+														  fromImageSource:handPickedSource 
+																  forTile:tile]];
+}
+
+
+- (void)removeHandPickedImageForTile:(MacOSaiXTile *)tile
+{
+	if ([tile userChosenImageMatch])
+	{
+			// Decrease the image count for the hand picked source.
+			MacOSaiXHandPickedImageSource	*handPickedSource = [self handPickedImageSource];
+		[enumerationCountsLock lock];
+			unsigned long	currentCount = [[enumerationCounts objectForKey:[NSValue valueWithPointer:handPickedSource]] unsignedLongValue];
+			[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:currentCount - 1] 
+								  forKey:[NSValue valueWithPointer:handPickedSource]];
+		[enumerationCountsLock unlock];
+		
+		[tile setUserChosenImageMatch:nil];
+	}
 }
 
 

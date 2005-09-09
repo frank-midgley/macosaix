@@ -8,9 +8,11 @@
 
 
 #import <Cocoa/Cocoa.h>
-#import "Tiles.h"
-#import "MacOSaiXTileShapes.h"
+
+#import "MacOSaiXHandPickedImageSource.h"
 #import "MacOSaiXImageSource.h"
+#import "MacOSaiXTileShapes.h"
+#import "Tiles.h"
 
 
 @class MacOSaiXWindowController;
@@ -18,51 +20,51 @@
 
 @interface MacOSaiXDocument : NSDocument 
 {
-	MacOSaiXWindowController	*mainWindowController;
-    NSString					*originalImagePath;
-    NSImage						*originalImage;
-	float						originalImageAspectRatio;
-    NSMutableArray				*imageSources,
-								*tiles;
-	id<MacOSaiXTileShapes>		tileShapes;
-	NSSize						averageUnitTileSize;
+	MacOSaiXWindowController		*mainWindowController;
+    NSString						*originalImagePath;
+    NSImage							*originalImage;
+	float							originalImageAspectRatio;
+    NSMutableArray					*imageSources,
+									*tiles;
+	id<MacOSaiXTileShapes>			tileShapes;
+	NSSize							averageUnitTileSize;
 	
-	int							imageUseCount,
-								imageReuseDistance,
-								imageCropLimit;
-
+	int								imageUseCount,
+									imageReuseDistance,
+									imageCropLimit;
+	MacOSaiXHandPickedImageSource	*handPickedImageSource;
 		// Document state
-    BOOL						documentIsClosing,	// flag set to true when document is closing
-								mosaicStarted, 
-								paused,
-								autoSaveEnabled,
-								missedAutoSave;
-	NSLock						*pauseLock;
-    float						overallMatch, lastDisplayMatch;
+    BOOL							documentIsClosing,	// flag set to true when document is closing
+									mosaicStarted, 
+									paused,
+									autoSaveEnabled,
+									missedAutoSave;
+	NSLock							*pauseLock;
+    float							overallMatch, lastDisplayMatch;
 	
 		// Tile creation
-//	int							tileCreationPercentComplete;
-//    BOOL						createTilesThreadAlive;
+//	int								tileCreationPercentComplete;
+//    BOOL							createTilesThreadAlive;
 
 		// Image source enumeration
-    NSLock						*enumerationThreadCountLock;
-	int							enumerationThreadCount;
-	NSMutableDictionary			*enumerationCounts;
-	NSLock						*enumerationCountsLock;
-    NSMutableArray				*imageQueue;
-    NSLock						*imageQueueLock;
+    NSLock							*enumerationThreadCountLock;
+	int								enumerationThreadCount;
+	NSMutableDictionary				*enumerationCounts;
+	NSLock							*enumerationCountsLock;
+    NSMutableArray					*imageQueue;
+    NSLock							*imageQueueLock;
 	
 		// Image matching
-    NSLock						*calculateImageMatchesThreadLock;
-	BOOL						calculateImageMatchesThreadAlive;
-    long						imagesMatched;
-	NSMutableDictionary			*betterMatchesCache;
+    NSLock							*calculateImageMatchesThreadLock;
+	BOOL							calculateImageMatchesThreadAlive;
+    long							imagesMatched;
+	NSMutableDictionary				*betterMatchesCache;
 		
 		// Saving
-    NSDate						*lastSaved;
-    NSTimer						*autosaveTimer;
-	BOOL						saving,
-								loading;
+    NSDate							*lastSaved;
+    NSTimer							*autosaveTimer;
+	BOOL							saving,
+									loading;
 }
 
 - (void)setOriginalImagePath:(NSString *)path;
@@ -104,6 +106,8 @@
 - (NSArray *)imageSources;
 - (void)addImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource;
+- (void)setHandPickedImageAtPath:(NSString *)path withMatchValue:(float)matchValue forTile:(MacOSaiXTile *)tile;
+- (void)removeHandPickedImageForTile:(MacOSaiXTile *)tile;
 
 @end
 
