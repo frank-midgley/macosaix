@@ -1,84 +1,5 @@
-//#import <string.h>
 #import "Tiles.h"
 #import "MacOSaiXDocument.h"
-
-
-@implementation MacOSaiXImageMatch
-
-
-- (id)initWithMatchValue:(float)inMatchValue 
-	  forImageIdentifier:(NSString *)inImageIdentifier 
-		 fromImageSource:(id<MacOSaiXImageSource>)inImageSource
-				 forTile:(MacOSaiXTile *)inTile
-{
-	if (self = [super init])
-	{
-		matchValue = inMatchValue;
-		imageIdentifier = [inImageIdentifier retain];
-		imageSource = [inImageSource retain];
-		tile = inTile;
-	}
-	
-	return self;
-}
-
-
-- (float)matchValue
-{
-	return matchValue;
-}
-
-
-- (id<MacOSaiXImageSource>)imageSource
-{
-	return imageSource;
-}
-
-
-- (NSString *)imageIdentifier
-{
-	return imageIdentifier;
-}
-
-
-- (MacOSaiXTile *)tile
-{
-	return tile;
-}
-
-
-- (void)setTile:(MacOSaiXTile *)inTile
-{
-	tile = inTile;	// don't retain
-}
-
-
-- (NSComparisonResult)compare:(MacOSaiXImageMatch *)otherMatch
-{
-	float	otherMatchValue = [otherMatch matchValue];
-	
-	if (matchValue > otherMatchValue)
-		return NSOrderedDescending;
-	else if (matchValue < otherMatchValue)
-		return NSOrderedAscending;
-	else
-		return NSOrderedSame;
-}
-
-
-- (void)dealloc
-{
-	[imageIdentifier release];
-	[imageSource release];
-	
-	[super dealloc];
-}
-
-
-@end
-
-
-#pragma mark -
 
 
 @implementation MacOSaiXTile
@@ -89,10 +10,7 @@
 	if (self = [super init])
 	{
 		outline = [inOutline retain];
-		document = inDocument;	// the document retains us so we don't retain it
-		
-//		cachedMatches = [[NSMutableDictionary dictionary] retain];
-//		cachedMatchesOrder = [[NSMutableArray array] retain];
+		document = inDocument;	// non-retained, it retains us
 	}
 	return self;
 }
@@ -130,8 +48,11 @@
 }
 
 
-- (void)resetBitmapRepAndMask;
+- (void)resetBitmapRepAndMask
 {
+		// TODO: this should not be called from outside.  we should listen for notifications 
+		// that the original image or tile shapes changed for our document and reset at that
+		// point.
     [bitmapRep autorelease];
     bitmapRep = nil;
     [maskRep autorelease];
@@ -222,7 +143,7 @@
 			   fromImageSource:(id<MacOSaiXImageSource>)imageSource
 					  optimize:(BOOL)optimize
 {
-	if (!imageMatch && (!nonUniqueImageMatch || matchValue < [nonUniqueImageMatch matchValue]))
+	if (!uniqueImageMatch && (!nonUniqueImageMatch || matchValue < [nonUniqueImageMatch matchValue]))
 	{
 		[nonUniqueImageMatch autorelease];
 		nonUniqueImageMatch = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
@@ -239,10 +160,10 @@
 */
 
 
-- (void)setImageMatch:(MacOSaiXImageMatch *)match
+- (void)setUniqueImageMatch:(MacOSaiXImageMatch *)match
 {
-	[imageMatch autorelease];
-	imageMatch = [match retain];
+	[uniqueImageMatch autorelease];
+	uniqueImageMatch = [match retain];
 	
 		// Now that we have a real match we don't need the placeholder anymore.
 		// TBD: or do we?  what if this gets set back to nil?
@@ -254,38 +175,17 @@
 }
 
 
-- (MacOSaiXImageMatch *)imageMatch
+- (MacOSaiXImageMatch *)uniqueImageMatch
 {
-	return imageMatch;
+	return [[uniqueImageMatch retain] autorelease];
 }
 
 
-- (void)setUserChosenImageIdentifer:(NSString *)imageIdentifier fromImageSource:(id<MacOSaiXImageSource>)imageSource
+- (void)setUserChosenImageMatch:(MacOSaiXImageMatch *)match
 {
-/*
-        // Don't do anything if the chosen image was already chosen
-    if (userChosenImageMatch != nil && userChosenImageMatch->tileImageIndex == index) return;
-    
-    if (index == -1)
-    {
-		if (userChosenImageMatch != nil)
-		{
-			[document tileImageIndexNotInUse:userChosenImageMatch->tileImageIndex];
-			free(userChosenImageMatch);
-			userChosenImageMatch = nil;
-		}
-    }
-    else
-    {
-		if (userChosenImageMatch == nil)
-			userChosenImageMatch = (MacOSaiXImageMatch *)malloc(sizeof(MacOSaiXImageMatch));
-		else
-			[document tileImageIndexNotInUse:userChosenImageMatch->tileImageIndex];
-		userChosenImageMatch->matchValue = 0;
-		userChosenImageMatch->tileImageIndex = index;
-		[document tileImageIndexInUse:userChosenImageMatch->tileImageIndex];
-    }
-*/
+	[userChosenImageMatch autorelease];
+	userChosenImageMatch = [match retain];
+	
 	[self sendImageChangedNotification];
 }
 
@@ -300,8 +200,8 @@
 {
 	if (userChosenImageMatch)
 		return userChosenImageMatch;
-	else if (imageMatch)
-		return imageMatch;
+	else if (uniqueImageMatch)
+		return uniqueImageMatch;
 	else if (NO)	// TODO: check showBestNonUniqueMatch pref
 		return nonUniqueImageMatch;
 	else
@@ -314,11 +214,9 @@
 	[neighborSet release];
     [bitmapRep release];
 	[maskRep release];
-	[imageMatch release];
+	[uniqueImageMatch release];
     [userChosenImageMatch release];
 	[nonUniqueImageMatch release];
-//	[cachedMatches release];
-//	[cachedMatchesOrder release];
 	
     [super dealloc];
 }
