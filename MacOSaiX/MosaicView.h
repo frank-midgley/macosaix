@@ -13,41 +13,43 @@
 
 @interface MosaicView : NSView
 {
-	MacOSaiXDocument	*document;
-	NSImage				*mosaicImage;
-	NSLock				*mosaicImageLock;
-	NSAffineTransform	*mosaicImageTransform;
-	BOOL				viewOriginal;	// vs. the mosaic
+	MacOSaiXDocument		*document;
+	NSImage					*mosaicImage;
+	NSLock					*mosaicImageLock;
+	NSAffineTransform		*mosaicImageTransform;
+	float					viewFade;
 	
 		// Tile outlines display
-	BOOL				viewTileOutlines;
-	NSBezierPath		*tilesOutline,
-						*neighborhoodOutline;
+	BOOL					viewTileOutlines;
+	NSBezierPath			*tilesOutline;
 					
 		// Selected tile highlighting
-    MacOSaiXTile		*highlightedTile;
-    int					phase;
+    MacOSaiXTile			*highlightedTile;
+	NSArray					*highlightedImageSources;
+	NSBezierPath			*highlightedImageSourcesOutline;
+    int						phase;
 	
 		// Queued tile view invalidation
-	NSMutableArray		*tilesNeedingDisplay;
-	NSLock				*tilesNeedingDisplayLock;
-	NSDate				*lastUpdate;
+	NSMutableArray			*tilesNeedingDisplay;
+	NSLock					*tilesNeedingDisplayLock;
+	NSDate					*lastUpdate;
 	
-	NSImageRep			*blackRep;
+	NSImageRep				*blackRep;
 }
 
 - (void)setDocument:(MacOSaiXDocument *)inDocument;
 
-- (void)setViewOriginal:(BOOL)inViewOriginal;
-- (BOOL)viewOriginal;
+- (void)setViewFade:(float)fade;
+- (float)fade;
 
 - (void)setViewTileOutlines:(BOOL)inViewTileOutlines;
 - (BOOL)viewTileOutlines;
 
 - (void)refreshTile:(MacOSaiXTile *)tileToRefresh;
 
-	// viewHighlightedTile methods
+	// Highlight methods
 - (void)highlightTile:(MacOSaiXTile *)tile;
+- (void)highlightImageSources:(NSArray *)imageSources;
 - (void)animateHighlight;
 
 

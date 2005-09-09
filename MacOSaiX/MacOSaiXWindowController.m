@@ -386,10 +386,12 @@
 		[mosaicToolbarImage unlockFocus];
 		
 			// Update the toolbar item.
-		if ([mosaicView viewOriginal])
-			[toggleOriginalToolbarItem setImage:mosaicToolbarImage];
-		else
-			[toggleOriginalToolbarItem setImage:originalToolbarImage];
+		[fadeOriginalButton setImage:newToolbarImage];
+// TODO: rework for fading
+//		if ([mosaicView viewOriginal])
+//			[toggleOriginalToolbarItem setImage:mosaicToolbarImage];
+//		else
+//			[toggleOriginalToolbarItem setImage:originalToolbarImage];
 	}
 }
 
@@ -1025,7 +1027,7 @@
 	[editorOriginalImageView setImage:[self highlightTileOutline:[selectedTile outline] inImage:originalImageForTile croppedPercentage:nil]];
 	
 		// Set up the current image box
-	MacOSaiXImageMatch	*currentMatch = [selectedTile imageMatch];
+	MacOSaiXImageMatch	*currentMatch = [selectedTile displayedImageMatch];
 	if (currentMatch)
 	{
 		NSSize				currentSize = [[MacOSaiXImageCache sharedImageCache] nativeSizeOfImageWithIdentifier:[currentMatch imageIdentifier] 
@@ -1124,11 +1126,11 @@
 			NSBitmapImageRep	*chosenImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[[selectedTile bitmapRep] size] 
 																						  forIdentifier:chosenImageIdentifier 
 																							 fromSource:nil];
-			float				matchValue = [[MacOSaiXImageMatcher sharedMatcher] compareImageRep:[selectedTile bitmapRep]  
-																						  withMask:[selectedTile maskRep] 
-																						toImageRep:chosenImageRep
-																					  previousBest:1.0];
-			[editorChosenMatchQualityTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", 100.0 - matchValue * 100.0]];
+			editorChosenMatchValue = [[MacOSaiXImageMatcher sharedMatcher] compareImageRep:[selectedTile bitmapRep]  
+																				  withMask:[selectedTile maskRep] 
+																				toImageRep:chosenImageRep
+																			  previousBest:1.0];
+			[editorChosenMatchQualityTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", 100.0 - editorChosenMatchValue * 100.0]];
 		}
 	}
 }
@@ -1139,9 +1141,16 @@
 							      contextInfo:(void *)context
 {
     if (returnCode == NSOKButton)
-	{
-		[[sheet filenames] objectAtIndex:0];
-	}
+		[[self document] setHandPickedImageAtPath:[[sheet filenames] objectAtIndex:0]
+								   withMatchValue:editorChosenMatchValue
+										  forTile:selectedTile];
+}
+
+
+- (IBAction)removeChosenImageForSelectedTile:(id)sender
+{
+	if (selectedTile)
+		[[self document] removeHandPickedImageForTile:selectedTile];
 }
 
 
@@ -1151,40 +1160,33 @@
 
 - (IBAction)setViewOriginalImage:(id)sender
 {
-	[mosaicView setViewOriginal:YES];
+	[mosaicView setViewFade:0.0];
+	[fadeSlider setFloatValue:0.0];
 	
 	[[viewMenu itemWithTag:0] setState:NSOnState];
 	[[viewMenu itemWithTag:1] setState:NSOffState];
-	
-	[toggleOriginalToolbarItem setLabel:@"Show Mosaic"];
-	[toggleOriginalToolbarItem setImage:mosaicToolbarImage];
 }
 
 
 - (IBAction)setViewMosaic:(id)sender
 {
-	[mosaicView setViewOriginal:NO];
+	[mosaicView setViewFade:1.0];
+	[fadeSlider setFloatValue:1.0];
 	
 	[[viewMenu itemWithTag:0] setState:NSOffState];
 	[[viewMenu itemWithTag:1] setState:NSOnState];
-	
-	[toggleOriginalToolbarItem setLabel:@"Show Original"];
-	[toggleOriginalToolbarItem setImage:originalToolbarImage];
 }
 
 
-- (IBAction)toggleViewOriginal:(id)sender
+- (IBAction)setViewFade:(id)sender
 {
-	if ([mosaicView viewOriginal])
-		[self setViewMosaic:self];
-	else
-		[self setViewOriginalImage:self];
+	[mosaicView setViewFade:[fadeSlider floatValue]];
 }
 
 
 - (BOOL)viewingOriginal
 {
-	return ([mosaicView viewOriginal]);
+	return ([mosaicView fade] == 0.0);
 }
 
 
@@ -1226,6 +1228,7 @@
 	centerPoint.y *= zoom;
 	[mosaicView scrollPoint:NSMakePoint(centerPoint.x - NSWidth(visibleRect) / 2.0, 
 										centerPoint.y - NSHeight(visibleRect) / 2.0)];
+	[mosaicView setNeedsDisplay:YES];
 }
 
 
@@ -1329,14 +1332,40 @@
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
-    if ([menuItem action] == @selector(centerViewOnSelectedTile:))
-		return (selectedTile != nil && zoom != 0.0);
-    else if ([menuItem action] == @selector(togglePause:))
-		return ([[[self document] imageSources] count] > 0);
-//	else
-//		return [[self document] validateMenuItem:menuItem];
+	SEL		actionToValidate = [menuItem action];
+	BOOL	valid = YES;
+	
+    if (actionToValidate == @selector(chooseImageForSelectedTile:) || 
+		actionToValidate == @selector(removeChosenImageForSelectedTile:))
+	{
+		if (selectedTile)
+		{
+			if ([selectedTile userChosenImageMatch])
+			{
+				[menuItem setTitle:@"Remove Chosen Image for Selected Tile..."];
+				[menuItem setAction:@selector(removeChosenImageForSelectedTile:)];
+			}
+			else
+			{
+				[menuItem setTitle:@"Choose Image for Selected Tile..."];
+				[menuItem setAction:@selector(chooseImageForSelectedTile:)];
+			}
+			
+			valid = YES;
+				
+		}
+		else
+		{
+			[menuItem setTitle:@"Choose Image for Selected Tile..."];
+			valid = NO;
+		}
+	}
+    else if (actionToValidate == @selector(centerViewOnSelectedTile:))
+		valid = (selectedTile != nil && zoom != 0.0);
+    else if (actionToValidate == @selector(togglePause:))
+		valid = ([[[self document] imageSources] count] > 0);
 
-	return YES;
+	return valid;
 }
 
 
@@ -1780,14 +1809,14 @@
 		[toolbarItem setAction:@selector(toggle:)];
 		[toolbarItem setToolTip:@"Show/hide settings drawer"];
     }
-	else if ([itemIdentifier isEqualToString:@"Toggle Original"])
+	else if ([itemIdentifier isEqualToString:@"View Fade"])
     {
-		[toolbarItem setImage:[NSImage imageNamed:@"Toggle Original"]];
-		[toolbarItem setLabel:[mosaicView viewOriginal] ? @"View Mosaic" : @"View Original"];
-		[toolbarItem setPaletteLabel:[mosaicView viewOriginal] ? @"View Mosaic" : @"View Original"];
-		[toolbarItem setTarget:self];
-		[toolbarItem setAction:@selector(toggleViewOriginal:)];
-		toggleOriginalToolbarItem = toolbarItem;
+		[toolbarItem setMinSize:[fadeToolbarView frame].size];
+		[toolbarItem setMaxSize:[fadeToolbarView frame].size];
+		[toolbarItem setLabel:@"Fade"];
+		[toolbarItem setPaletteLabel:@"Fade"];
+		[toolbarItem setView:fadeToolbarView];
+// TODO:		[toolbarItem setMenuFormRepresentation:zoomToolbarMenuItem];
     }
     else if ([itemIdentifier isEqualToString:@"Zoom"])
     {
@@ -1816,7 +1845,7 @@
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar;
 {
-    return [NSArray arrayWithObjects:@"Export Image", @"Pause", @"Settings Drawer", @"Toggle Original", @"Zoom", 
+    return [NSArray arrayWithObjects:@"Export Image", @"Pause", @"Settings Drawer", @"View Fade", @"Zoom", 
 				     NSToolbarCustomizeToolbarItemIdentifier, NSToolbarSpaceItemIdentifier,
 				     NSToolbarFlexibleSpaceItemIdentifier, NSToolbarSeparatorItemIdentifier,
 				     nil];
@@ -1825,7 +1854,7 @@
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar;
 {
-    return [NSArray arrayWithObjects:@"Toggle Original", @"Zoom", @"Pause", @"Export Image", 
+    return [NSArray arrayWithObjects:@"View Fade", @"Zoom", @"Pause", @"Export Image", 
 									 NSToolbarFlexibleSpaceItemIdentifier, @"Settings Drawer", nil];
 }
 
@@ -1880,7 +1909,17 @@
 {
     if ([notification object] == imageSourcesTableView)
 	{
-		[imageSourcesRemoveButton setEnabled:([imageSourcesTableView selectedRow] != -1)];
+		NSMutableArray	*selectedImageSources = [NSMutableArray array];
+		NSEnumerator	*selectedRowNumberEnumerator = [imageSourcesTableView selectedRowEnumerator];
+		NSNumber		*selectedRowNumber = nil;
+		while (selectedRowNumber = [selectedRowNumberEnumerator nextObject])
+		{
+			int	rowIndex = [selectedRowNumber intValue];
+			[selectedImageSources addObject:[[[self document] imageSources] objectAtIndex:rowIndex]];
+		}
+		
+		[imageSourcesRemoveButton setEnabled:([selectedImageSources count] > 0)];
+		[mosaicView highlightImageSources:selectedImageSources];
 	}
 }
 

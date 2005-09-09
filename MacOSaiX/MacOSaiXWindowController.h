@@ -16,6 +16,11 @@
 	
     IBOutlet NSView						*statusBarView;
 	
+	IBOutlet NSView						*fadeToolbarView;
+	IBOutlet NSButton					*fadeOriginalButton,
+										*fadeMosaicButton;
+	IBOutlet NSSlider					*fadeSlider;
+	
     IBOutlet NSView						*zoomToolbarView;
 	IBOutlet NSSlider					*zoomSlider;
     IBOutlet NSMenu						*zoomToolbarSubmenu;
@@ -53,7 +58,7 @@
 										*imageSourceEditorOKButton;
 	id<MacOSaiXImageSourceController>	imageSourceEditorController;
 		
-		// Editor
+		// Selected Tile Editor
 	IBOutlet NSView						*editorAccessoryView;
 	IBOutlet NSBox						*editorChosenImageBox;
 	IBOutlet NSImageView				*editorOriginalImageView,
@@ -63,6 +68,7 @@
 										*editorCurrentMatchQualityTextField,
 										*editorChosenPercentCroppedTextField, 
 										*editorChosenMatchQualityTextField;
+	float								editorChosenMatchValue;
 	
 		// Progress panel
     IBOutlet NSPanel					*progressPanel;
@@ -109,16 +115,13 @@
 	// View methods
 - (IBAction)setViewOriginalImage:(id)sender;
 - (IBAction)setViewMosaic:(id)sender;
-- (IBAction)toggleViewOriginal:(id)sender;
+- (IBAction)setViewFade:(id)sender;
 - (BOOL)viewingOriginal;
 - (IBAction)toggleTileOutlines:(id)sender;
 - (IBAction)setZoom:(id)sender;
 - (IBAction)toggleStatusBar:(id)sender;
 - (IBAction)toggleImageSourcesDrawer:(id)sender;
 - (IBAction)togglePause:(id)sender;
-
-- (IBAction)selectTileAtPoint:(NSPoint)thePoint;
-- (IBAction)chooseImageForSelectedTile:(id)sender;
 
 	// Settings drawer
 - (IBAction)chooseOriginalImage:(id)sender;
@@ -138,8 +141,10 @@
 - (IBAction)saveImageSource:(id)sender;
 - (IBAction)cancelImageSource:(id)sender;
 
-	// Editor tab methods
+	// Editor methods
+- (IBAction)selectTileAtPoint:(NSPoint)thePoint;
 - (IBAction)chooseImageForSelectedTile:(id)sender;
+- (IBAction)removeChosenImageForSelectedTile:(id)sender;
 
 	// Export image methods
 - (IBAction)beginExportImage:(id)sender;
