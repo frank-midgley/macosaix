@@ -85,7 +85,8 @@
 	NSLock								*tileRefreshLock;
 	int									refreshTilesThreadCount;
 	
-    NSTimer								*animateTileTimer;
+    NSTimer								*fadeTimer,
+										*animateTileTimer;
     NSMutableArray						*selectedTileImages;
     NSMutableDictionary					*toolbarItems;
     NSToolbarItem						*toggleOriginalToolbarItem, *pauseToolbarItem;

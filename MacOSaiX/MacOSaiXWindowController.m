@@ -825,11 +825,6 @@
 	{
 		[[self document] removeImageSource:originalImageSource];
 		[[self document] addImageSource:editedImageSource];
-	
-			// Auto start the mosaic if possible and the user wants to.
-		if ([[self document] tileShapes] && 
-			[[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Start Mosaics"])
-			[self resume];
 		
 		[imageSourcesTableView reloadData];
 	}
@@ -1180,6 +1175,10 @@
 
 - (IBAction)setViewFade:(id)sender
 {
+	[fadeTimer invalidate];
+	[fadeTimer release];
+	fadeTimer = nil;
+	
 	[mosaicView setViewFade:[fadeSlider floatValue]];
 }
 
@@ -1369,10 +1368,39 @@
 }
 
 
+- (void)fadeToMosaic:(NSTimer *)timer
+{
+	float	currentFade = [mosaicView fade];
+	
+	if (currentFade < 1.0)
+	{
+		[mosaicView setViewFade:MIN(currentFade + 0.01, 1.0)];
+		[fadeSlider setFloatValue:[mosaicView fade]];
+	}
+	else
+	{
+		[timer invalidate];
+		[timer release];
+		fadeTimer = nil;
+	}
+}
+
+
 - (void)togglePause:(id)sender
 {
 	if ([[self document] isPaused])
+	{
+		if ([mosaicView fade] == 0.0 && ![[self document] wasStarted])
+		{
+			fadeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.25 
+														  target:self 
+														selector:@selector(fadeToMosaic:) 
+														userInfo:nil 
+														 repeats:YES] retain];
+		}
+		
 		[self resume];
+	}
 	else
 		[self pause];
 }
@@ -1993,6 +2021,9 @@
 	
 	[tileRefreshLock release];
 	[tilesToRefresh release];
+	
+	[fadeTimer invalidate];
+	[fadeTimer release];
 	
 		// We are responsible for releasing any top-level objects in the nib file that we opened.
 	// ???
