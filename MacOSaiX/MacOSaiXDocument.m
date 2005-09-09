@@ -1844,6 +1844,11 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) 
 							  toTarget:self 
 							withObject:imageSource];
+
+		// Auto start the mosaic if possible and the user wants to.
+	if (!loading && [[self document] tileShapes] && 
+		[[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Start Mosaics"])
+		[self resume];
 }
 
 
