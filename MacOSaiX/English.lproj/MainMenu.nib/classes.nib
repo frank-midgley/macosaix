@@ -5,6 +5,7 @@
                 beginExportImage = id; 
                 centerViewOnSelectedTile = id; 
                 chooseImageForSelectedTile = id; 
+                removeChosenImageForSelectedTile = id; 
                 setViewMosaic = id; 
                 setViewOriginalImage = id; 
                 setZoom = id; 
