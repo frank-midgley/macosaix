@@ -17,6 +17,10 @@
 		01453D55071B6F8000BCEC7C /* PuzzleTilesSetupController.h in Headers */ = {isa = PBXBuildFile; fileRef = 01453D52071B6F8000BCEC7C /* PuzzleTilesSetupController.h */; };
 		01453D56071B6F8000BCEC7C /* PuzzleTilesSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01453D53071B6F8000BCEC7C /* PuzzleTilesSetupController.m */; };
 		014DB626071A2C8D00DF68C0 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 014DB625071A2C8D00DF68C0 /* Info.plist */; };
+		016A2C5208CD2611002D56C1 /* MacOSaiXImageMatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 016A2C5008CD2611002D56C1 /* MacOSaiXImageMatch.h */; };
+		016A2C5308CD2611002D56C1 /* MacOSaiXImageMatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */; };
+		016A2CCD08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */; };
+		016A2CCE08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */; };
 		01A1978E071A200E00B11558 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		01AB92EB07DB797300DB4B86 /* NSString+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */; };
 		01AB92EC07DB797300DB4B86 /* NSString+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 01AB92EA07DB797300DB4B86 /* NSString+MacOSaiX.m */; };
@@ -329,6 +333,10 @@
 		01453D52071B6F8000BCEC7C /* PuzzleTilesSetupController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PuzzleTilesSetupController.h; path = "Standard Plugins/Puzzle Tiles Setup/PuzzleTilesSetupController.h"; sourceTree = "<group>"; };
 		01453D53071B6F8000BCEC7C /* PuzzleTilesSetupController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = PuzzleTilesSetupController.m; path = "Standard Plugins/Puzzle Tiles Setup/PuzzleTilesSetupController.m"; sourceTree = "<group>"; };
 		014DB625071A2C8D00DF68C0 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = Info.plist; path = "Standard Plugins/Hexaganol Tiles Setup/Info.plist"; sourceTree = "<group>"; };
+		016A2C5008CD2611002D56C1 /* MacOSaiXImageMatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXImageMatch.h; path = MacOSaiX/MacOSaiXImageMatch.h; sourceTree = "<group>"; };
+		016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXImageMatch.m; path = MacOSaiX/MacOSaiXImageMatch.m; sourceTree = "<group>"; };
+		016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXHandPickedImageSource.h; path = MacOSaiX/MacOSaiXHandPickedImageSource.h; sourceTree = "<group>"; };
+		016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXHandPickedImageSource.m; path = MacOSaiX/MacOSaiXHandPickedImageSource.m; sourceTree = "<group>"; };
 		01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+MacOSaiX.h"; path = "MacOSaiX/NSString+MacOSaiX.h"; sourceTree = "<group>"; };
 		01AB92EA07DB797300DB4B86 /* NSString+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+MacOSaiX.m"; path = "MacOSaiX/NSString+MacOSaiX.m"; sourceTree = "<group>"; };
 		01AC3A3B07B0997C0025F915 /* Settings.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Settings.png; path = Images/Settings.png; sourceTree = "<group>"; };
@@ -619,6 +627,10 @@
 				928F726C066121AE00873AE2 /* InfoPlist.strings */,
 				92BFFEC1079A2DD50052CC4C /* Credits.html */,
 				F57C77BD025E6D6001000102 /* Images */,
+				016A2C5008CD2611002D56C1 /* MacOSaiXImageMatch.h */,
+				016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */,
+				016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */,
+				016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */,
 			);
 			name = MacOSaiX.app;
 			sourceTree = "<group>";
@@ -855,6 +867,8 @@
 				01AB92EB07DB797300DB4B86 /* NSString+MacOSaiX.h in Headers */,
 				01297701086A63D30095AD36 /* MacOSaiXCrashReporterController.h in Headers */,
 				92B9087B08C25F0500D621F5 /* MacOSaiXImageMatcher.h in Headers */,
+				016A2C5208CD2611002D56C1 /* MacOSaiXImageMatch.h in Headers */,
+				016A2CCD08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1486,6 +1500,8 @@
 				01AB92EC07DB797300DB4B86 /* NSString+MacOSaiX.m in Sources */,
 				01297702086A63D30095AD36 /* MacOSaiXCrashReporterController.m in Sources */,
 				92B9087C08C25F0600D621F5 /* MacOSaiXImageMatcher.m in Sources */,
+				016A2C5308CD2611002D56C1 /* MacOSaiXImageMatch.m in Sources */,
+				016A2CCE08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1845,10 +1861,12 @@
 		0142D72D0895BF23007F1FD2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				INFOPLIST_FILE = MacOSaiX/Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = MacOSaiX;
 				WRAPPER_EXTENSION = app;
+				ZERO_LINK = YES;
 			};
 			name = Debug;
 		};
