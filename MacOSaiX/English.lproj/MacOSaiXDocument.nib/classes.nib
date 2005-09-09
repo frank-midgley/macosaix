@@ -10,6 +10,7 @@
                 changeTileShapes = id; 
                 chooseImageForSelectedTile = id; 
                 chooseOriginalImage = id; 
+                removeChosenImageForSelectedTile = id; 
                 removeImageSource = id; 
                 saveImageSource = id; 
                 setImageCropLimit = id; 
@@ -19,6 +20,7 @@
                 setTIFFExport = id; 
                 setTileShapes = id; 
                 setTileShapesPlugIn = id; 
+                setViewFade = id; 
                 setViewMosaic = id; 
                 setViewOriginalImage = id; 
                 setZoom = id; 
@@ -26,7 +28,6 @@
                 togglePause = id; 
                 toggleStatusBar = id; 
                 toggleTileOutlines = id; 
-                toggleViewOriginal = id; 
             }; 
             CLASS = MacOSaiXWindowController; 
             LANGUAGE = ObjC; 
@@ -45,6 +46,10 @@
                 exportHeight = NSTextField; 
                 exportPanelAccessoryView = NSView; 
                 exportWidth = NSTextField; 
+                fadeMosaicButton = NSButton; 
+                fadeOriginalButton = NSButton; 
+                fadeSlider = NSSlider; 
+                fadeToolbarView = NSView; 
                 imageCropLimitPopUpButton = NSPopUpButton; 
                 imageReuseDistancePopUpButton = NSPopUpButton; 
                 imageSourceEditorBox = NSBox; 
