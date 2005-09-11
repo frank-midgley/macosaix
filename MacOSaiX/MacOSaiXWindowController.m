@@ -161,6 +161,8 @@
 				[image setSize:NSMakeSize(16.0, 16.0 * [image size].height / [image size].width)];
 			else
 				[image setSize:NSMakeSize(16.0 * [image size].width / [image size].height, 16.0)];
+			[image lockFocus];	// force the image to be scaled
+			[image unlockFocus];
 			[[imageSourcesPopUpButton lastItem] setImage:image];
 		}
 	}
@@ -501,8 +503,8 @@
 {
 	[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:([[self document] isPaused] ? @"Resume Matching" : @"Pause Matching")];
 
-	[[viewMenu itemWithTag:0] setState:([mosaicView viewOriginal] ? NSOnState : NSOffState)];
-	[[viewMenu itemWithTag:1] setState:([mosaicView viewOriginal] ? NSOffState : NSOnState)];
+	[[viewMenu itemWithTag:0] setState:([mosaicView fade] == 0.0 ? NSOnState : NSOffState)];
+	[[viewMenu itemWithTag:1] setState:([mosaicView fade] == 1.0 ? NSOnState : NSOffState)];
 
 	[[viewMenu itemAtIndex:[viewMenu indexOfItemWithTarget:nil andAction:@selector(toggleTileOutlines:)]] setTitle:([mosaicView viewTileOutlines] ? @"Hide Tile Outlines" : @"Show Tile Outlines")];
 	[[viewMenu itemAtIndex:[viewMenu indexOfItemWithTarget:nil andAction:@selector(toggleStatusBar:)]] setTitle:(statusBarShowing ? @"Hide Status Bar" : @"Show Status Bar")];
@@ -511,11 +513,9 @@
 
 - (void)tileImageDidChange:(NSNotification *)notification
 {
-	MacOSaiXTile		*tile = [[notification userInfo] objectForKey:@"Tile"];
-	
 	[tileRefreshLock lock];
-		if ([tilesToRefresh indexOfObjectIdenticalTo:tile] == NSNotFound)
-			[tilesToRefresh addObject:tile];
+		if ([tilesToRefresh indexOfObject:[notification userInfo]] == NSNotFound)
+			[tilesToRefresh addObject:[notification userInfo]];
 		
 		if (refreshTilesThreadCount == 0)
 			[NSApplication detachDrawingThread:@selector(refreshTiles:) toTarget:self withObject:nil];
@@ -529,6 +529,7 @@
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	MacOSaiXTile		*tileToRefresh = nil;
+	MacOSaiXImageMatch	*previousMatch = nil;
 
         // Make sure only one copy of this thread runs at any time.
 	[tileRefreshLock lock];
@@ -556,7 +557,8 @@
 		[tileRefreshLock unlock];
 		
 		if (tileToRefresh)
-			[mosaicView refreshTile:tileToRefresh];
+			[mosaicView refreshTile:[tileToRefresh objectForKey:@"Tile"] 
+					  previousMatch:[tileToRefresh objectForKey:@"Previous Match"]];
 		
 		[innerPool release];
 	} while (tileToRefresh);
@@ -1947,7 +1949,11 @@
 		}
 		
 		[imageSourcesRemoveButton setEnabled:([selectedImageSources count] > 0)];
-		[mosaicView highlightImageSources:selectedImageSources];
+		
+		if ([[[self document] imageSources] count] > 1)
+			[mosaicView highlightImageSources:selectedImageSources];
+		else
+			[mosaicView highlightImageSources:nil];
 	}
 }
 
