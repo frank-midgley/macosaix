@@ -127,11 +127,14 @@
 }
 
 
-- (void)sendImageChangedNotification
+- (void)sendNotificationThatImageChangedFrom:(MacOSaiXImageMatch *)previousMatch
 {
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileImageDidChangeNotification
 														object:document 
-													  userInfo:[NSDictionary dictionaryWithObject:self forKey:@"Tile"]];
+													  userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
+																	self, @"Tile", 
+																	previousMatch, @"Previous Match",
+																	nil]];
 }
 
 
@@ -162,6 +165,8 @@
 
 - (void)setUniqueImageMatch:(MacOSaiXImageMatch *)match
 {
+	MacOSaiXImageMatch	*previousMatch = uniqueImageMatch;
+	
 	[uniqueImageMatch autorelease];
 	uniqueImageMatch = [match retain];
 	
@@ -171,7 +176,7 @@
 	nonUniqueImageMatch = nil;
 	
 	if (!userChosenImageMatch)
-		[self sendImageChangedNotification];
+		[self sendNotificationThatImageChangedFrom:previousMatch];
 }
 
 
@@ -183,10 +188,12 @@
 
 - (void)setUserChosenImageMatch:(MacOSaiXImageMatch *)match
 {
+	MacOSaiXImageMatch	*previousMatch = userChosenImageMatch;
+	
 	[userChosenImageMatch autorelease];
 	userChosenImageMatch = [match retain];
 	
-	[self sendImageChangedNotification];
+	[self sendNotificationThatImageChangedFrom:previousMatch];
 }
 
 
