@@ -7,6 +7,7 @@
 
 @interface MosaicView (PrivateMethods)
 - (void)tileShapesDidChange:(NSNotification *)notification;
+- (void)createHighlightedImageSourcesOutline;
 @end
 
 
@@ -84,7 +85,7 @@
 
 - (void)setNeedsDisplay
 {
-	[super setNeedsDisplay:YES];
+	[self setNeedsDisplay:YES];
 }
 
 
@@ -102,8 +103,9 @@
 }
 
 
-- (void)refreshTile:(MacOSaiXTile *)tileToRefresh
+- (void)refreshTile:(MacOSaiXTile *)tileToRefresh previousMatch:(MacOSaiXImageMatch *)previousMatch
 {
+	BOOL				tileNeedsDisplay = NO;
 	NSBezierPath		*clipPath = [mosaicImageTransform transformBezierPath:[tileToRefresh outline]];
 	MacOSaiXImageMatch	*imageMatch = [tileToRefresh displayedImageMatch];
 	NSImageRep			*newImageRep = nil;
@@ -119,12 +121,37 @@
 	{
 		NSArray	*parameters = [NSArray arrayWithObjects:clipPath, newImageRep, nil];
 		[self performSelectorOnMainThread:@selector(drawTileImage:) withObject:parameters waitUntilDone:YES];
+		tileNeedsDisplay = YES;
+	}
+	
+		// Update the highlighted image sources outline if needed.
+	if ([highlightedImageSources containsObject:[previousMatch imageSource]] && 
+		![highlightedImageSources containsObject:[imageMatch imageSource]])
+	{
+			// There's no way to remove the tile's outline from the merged highlight 
+			// outline so we have to rebuild it from scratch.
+		[self createHighlightedImageSourcesOutline];
+		tileNeedsDisplay = YES;
+	}
+	else if ([highlightedImageSources containsObject:[imageMatch imageSource]] && 
+			 ![highlightedImageSources containsObject:[previousMatch imageSource]])
+	{
+		if (!highlightedImageSourcesOutline)
+			highlightedImageSourcesOutline = [[NSBezierPath bezierPath] retain];
+		[highlightedImageSourcesOutline appendBezierPath:[tileToRefresh outline]];
+		tileNeedsDisplay = YES;
+	}
+	
+	if (tileNeedsDisplay)
+	{
+		BOOL	timeToRefresh = NO;
 		
 		[tilesNeedingDisplayLock lock];
 			[tilesNeedingDisplay addObject:tileToRefresh];
+			timeToRefresh = ([lastUpdate timeIntervalSinceNow] < -0.1);
 		[tilesNeedingDisplayLock unlock];
 		
-		if ([lastUpdate timeIntervalSinceNow] < -0.1)
+		if (timeToRefresh)
 			[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:nil waitUntilDone:YES];
 	}
 }
@@ -245,6 +272,7 @@
 	{
 		NSSize				boundsSize = [self bounds].size;
 		NSAffineTransform	*transform = [NSAffineTransform transform];
+		[transform translateXBy:0.5 yBy:0.5];
 		[transform scaleXBy:boundsSize.width yBy:boundsSize.height];
 		NSBezierPath		*transformedOutline = [transform transformBezierPath:highlightedImageSourcesOutline];
 		
@@ -316,6 +344,20 @@
 }
 
 
+- (void)createHighlightedImageSourcesOutline
+{
+	NSEnumerator	*tileEnumerator = [[document tiles] objectEnumerator];
+	MacOSaiXTile	*tile = nil;
+	while (tile = [tileEnumerator nextObject])
+		if ([highlightedImageSources containsObject:[[tile displayedImageMatch] imageSource]])
+		{
+			if (!highlightedImageSourcesOutline)
+				highlightedImageSourcesOutline = [[NSBezierPath bezierPath] retain];
+			[highlightedImageSourcesOutline appendBezierPath:[tile outline]];
+		}
+}
+
+
 - (void)highlightImageSources:(NSArray *)imageSources
 {
 	if (highlightedImageSourcesOutline)
@@ -330,19 +372,7 @@
 		// Create a combined path for all tiles of our document that are not
 		// currently displaying an image from any of the sources.
 	if ([imageSources count] > 0)
-	{
-		NSEnumerator	*tileEnumerator = [[document tiles] objectEnumerator];
-		MacOSaiXTile	*tile = nil;
-		while (tile = [tileEnumerator nextObject])
-			if ([imageSources containsObject:[[tile displayedImageMatch] imageSource]])
-			{
-				if (!highlightedImageSourcesOutline)
-					highlightedImageSourcesOutline = [[NSBezierPath bezierPath] retain];
-				[highlightedImageSourcesOutline appendBezierPath:[tile outline]];
-			}
-			
-		// TODO: observe tile changes so the outline gets updated
-	}
+		[self createHighlightedImageSourcesOutline];
 	
 	if (highlightedImageSourcesOutline)
 		[self setNeedsDisplay:YES];

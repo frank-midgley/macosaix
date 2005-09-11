@@ -45,7 +45,7 @@
 - (void)setViewTileOutlines:(BOOL)inViewTileOutlines;
 - (BOOL)viewTileOutlines;
 
-- (void)refreshTile:(MacOSaiXTile *)tileToRefresh;
+- (void)refreshTile:(MacOSaiXTile *)tileToRefresh previousMatch:(MacOSaiXImageMatch *)previousMatch;
 
 	// Highlight methods
 - (void)highlightTile:(MacOSaiXTile *)tile;
