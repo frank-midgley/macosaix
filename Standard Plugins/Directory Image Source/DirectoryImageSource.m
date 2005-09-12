@@ -220,7 +220,7 @@
 				[data release];
 			}
 		NS_HANDLER
-			NSLog(@"%@ is not a valid image file.", [directoryPath stringByAppendingPathComponent:identifier]);
+			NSLog(@"%@ is not a valid image file.", fullPath);
 		NS_ENDHANDLER
 	}
 	
