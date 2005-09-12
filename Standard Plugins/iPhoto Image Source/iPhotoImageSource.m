@@ -137,7 +137,7 @@ static NSImage	*iPhotoImage = nil,
 		[self setKeywordName:nil];
 		
 		[sourceDescription autorelease];
-		sourceDescription = [[NSString stringWithFormat:@"photos from \"%@\"", albumName] retain];
+		sourceDescription = [[NSString stringWithFormat:@"Photos from \"%@\"", albumName] retain];
 		
 			// Indicate that the photo ID's need to be retrieved.
 		[remainingPhotoIDs autorelease];
