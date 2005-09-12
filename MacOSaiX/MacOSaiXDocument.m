@@ -7,11 +7,12 @@
 */
 
 
-#import "MacOSaiX.h"
 #import "MacOSaiXDocument.h"
-#import "MacOSaiXWindowController.h"
+
+#import "MacOSaiX.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatcher.h"
+#import "MacOSaiXWindowController.h"
 #import "Tiles.h"
 #import "NSImage+MacOSaiX.h"
 #import "NSString+MacOSaiX.h"
@@ -1765,6 +1766,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 					[self updateChangeCount:NSChangeDone];
 					
 						// Only remember a reasonable number of the best matches.
+						// TODO: cache this since it never changes
 					int	roughUpperBound = pow(sqrt([tiles count]) / imageReuseDistance, 2);
 					if ([betterMatches count] > roughUpperBound)
 					{
@@ -1846,8 +1848,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 							withObject:imageSource];
 
 		// Auto start the mosaic if possible and the user wants to.
-	if (!loading && [[self document] tileShapes] && 
-		[[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Start Mosaics"])
+	if (!loading && [self tileShapes] && [[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Start Mosaics"])
 		[self resume];
 }
 
