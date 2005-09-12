@@ -32,7 +32,6 @@
 	int								imageUseCount,
 									imageReuseDistance,
 									imageCropLimit;
-	MacOSaiXHandPickedImageSource	*handPickedImageSource;
 		// Document state
     BOOL							documentIsClosing,	// flag set to true when document is closing
 									mosaicStarted, 

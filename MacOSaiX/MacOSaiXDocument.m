@@ -639,13 +639,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					}
 					MacOSaiXImageMatch	*userChosenMatch = [tile userChosenImageMatch];
 					if (userChosenMatch)
-					{
-						int	sourceIndex = [imageSources indexOfObjectIdenticalTo:[userChosenMatch imageSource]];
-						[buffer appendString:[NSString stringWithFormat:@"\t\t<USER_CHOSEN_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%f\"/>\n", 
-																		  sourceIndex,
+						[buffer appendString:[NSString stringWithFormat:@"\t\t<USER_CHOSEN_MATCH ID=\"%@\" VALUE=\"%f\"/>\n", 
 																		  [NSString stringByEscapingXMLEntites:[userChosenMatch imageIdentifier]],
 																		  [userChosenMatch matchValue]]];
-					}
 //					[fileHandle writeData:[@"\t\t<MATCH_DATA>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 //					NSEnumerator	*matchEnumerator = [[tile matches] objectEnumerator];
 //					MacOSaiXImageMatch		*match = nil;
@@ -926,6 +922,17 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					else
 						CFXMLParserAbort(parser,kCFXMLErrorMalformedStartTag, CFSTR("Tile is using an image from an unknown source."));
 				}
+				else if ([elementType isEqualToString:@"USER_CHOSEN_MATCH"])
+				{
+					NSString	*imageIdentifier = [NSString stringByUnescapingXMLEntites:
+														[(NSDictionary *)nodeInfo->attributes objectForKey:@"ID"]];
+					float		matchValue = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"VALUE"] floatValue];
+					
+					newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
+															forImageIdentifier:imageIdentifier 
+															   fromImageSource:[document handPickedImageSource] 
+																	   forTile:nil];
+				}
 				else
 				{
 					newObject = [[NSMutableDictionary dictionaryWithDictionary:(NSDictionary *)nodeInfo->attributes] retain];
@@ -1022,8 +1029,13 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 	}
 	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[MacOSaiXImageMatch class]])
 	{
-			// Set a tile's best unique image match.
-		[(MacOSaiXTile *)parent setUniqueImageMatch:(MacOSaiXImageMatch *)child];
+		MacOSaiXImageMatch	*match = child;
+		
+		if ([[match imageSource] isKindOfClass:[MacOSaiXHandPickedImageSource class]])
+			[(MacOSaiXTile *)parent setUserChosenImageMatch:match];
+		else
+			[(MacOSaiXTile *)parent setUniqueImageMatch:match];
+		
 		[(MacOSaiXImageMatch *)child setTile:(MacOSaiXTile *)parent];
 	}
 	
@@ -1830,10 +1842,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (NSArray *)imageSources
 {
-	if (handPickedImageSource)
-		return [[NSArray arrayWithObject:handPickedImageSource] arrayByAddingObjectsFromArray:imageSources];
-	else
-		return [NSArray arrayWithArray:imageSources];
+	return [NSArray arrayWithArray:imageSources];
 }
 
 
@@ -1882,10 +1891,19 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (MacOSaiXHandPickedImageSource *)handPickedImageSource
 {
-	if (!handPickedImageSource)
-		handPickedImageSource = [[MacOSaiXHandPickedImageSource alloc] init];
+	NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
+	id<MacOSaiXImageSource>	imageSource = nil;
+	while (imageSource = [imageSourceEnumerator nextObject])
+		if ([imageSource isKindOfClass:[MacOSaiXHandPickedImageSource class]])
+			break;
 	
-	return handPickedImageSource;
+	if (!imageSource)
+	{
+		imageSource = [[[MacOSaiXHandPickedImageSource alloc] init] autorelease];
+		[imageSources addObject:imageSource];
+	}
+	
+	return imageSource;
 }
 
 
