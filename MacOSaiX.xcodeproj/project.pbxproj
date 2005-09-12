@@ -338,6 +338,8 @@
 		016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXHandPickedImageSource.h; path = MacOSaiX/MacOSaiXHandPickedImageSource.h; sourceTree = "<group>"; };
 		016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXHandPickedImageSource.m; path = MacOSaiX/MacOSaiXHandPickedImageSource.m; sourceTree = "<group>"; };
 		016A2E3108D1459D002D56C1 /* Version.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Version.plist; sourceTree = "<group>"; };
+		016A312108D5276A002D56C1 /* MacOSaiXImageDeallocator.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXImageDeallocator.h; path = MacOSaiX/MacOSaiXImageDeallocator.h; sourceTree = "<group>"; };
+		016A312208D5276A002D56C1 /* MacOSaiXImageDeallocator.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXImageDeallocator.m; path = MacOSaiX/MacOSaiXImageDeallocator.m; sourceTree = "<group>"; };
 		01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+MacOSaiX.h"; path = "MacOSaiX/NSString+MacOSaiX.h"; sourceTree = "<group>"; };
 		01AB92EA07DB797300DB4B86 /* NSString+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+MacOSaiX.m"; path = "MacOSaiX/NSString+MacOSaiX.m"; sourceTree = "<group>"; };
 		01AC3A3B07B0997C0025F915 /* Settings.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Settings.png; path = Images/Settings.png; sourceTree = "<group>"; };
@@ -632,6 +634,8 @@
 				016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */,
 				016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */,
 				016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */,
+				016A312108D5276A002D56C1 /* MacOSaiXImageDeallocator.h */,
+				016A312208D5276A002D56C1 /* MacOSaiXImageDeallocator.m */,
 			);
 			name = MacOSaiX.app;
 			sourceTree = "<group>";
