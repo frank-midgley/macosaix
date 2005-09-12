@@ -8,8 +8,8 @@
 
 
 #import "MacOSaiXImageCache.h"
+
 #import <unistd.h>
-#import <malloc/malloc.h>
 
 
 static	MacOSaiXImageCache	*sharedImageCache = nil;
