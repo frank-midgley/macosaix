@@ -13,6 +13,7 @@
                 removeChosenImageForSelectedTile = id; 
                 removeImageSource = id; 
                 saveImageSource = id; 
+                setExportFade = id; 
                 setImageCropLimit = id; 
                 setImageReuseDistance = id; 
                 setImageUseCount = id; 
@@ -43,6 +44,8 @@
                 editorCurrentMatchQualityTextField = NSTextField; 
                 editorCurrentPercentCroppedTextField = NSTextField; 
                 editorOriginalImageView = NSImageView; 
+                exportFadeSlider = NSSlider; 
+                exportFadedImageView = NSImageView; 
                 exportHeight = NSTextField; 
                 exportPanelAccessoryView = NSView; 
                 exportWidth = NSTextField; 
