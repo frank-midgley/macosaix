@@ -78,6 +78,8 @@
 	
 		// Export panel
     IBOutlet NSView						*exportPanelAccessoryView;
+	IBOutlet NSImageView				*exportFadedImageView;
+	IBOutlet NSSlider					*exportFadeSlider;
 	IBOutlet NSTextField				*exportWidth, *exportHeight;
 	unsigned long						exportProgressTileCount;
 	
@@ -149,6 +151,7 @@
 
 	// Export image methods
 - (IBAction)beginExportImage:(id)sender;
+- (IBAction)setExportFade:(id)sender;
 - (IBAction)setJPEGExport:(id)sender;
 - (IBAction)setTIFFExport:(id)sender;
 

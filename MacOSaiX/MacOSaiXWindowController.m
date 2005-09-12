@@ -1102,38 +1102,49 @@
 	}
 	else
 	{
-		NSString			*chosenImageIdentifier = [[sender filenames] objectAtIndex:0];
-		[editorChosenImageBox setTitle:[[NSFileManager defaultManager] displayNameAtPath:chosenImageIdentifier]];
-		
-		NSImage				*chosenImage = [[[NSImage alloc] initWithContentsOfFile:chosenImageIdentifier] autorelease];
-		
-		if (chosenImage)
-		{
-			NSImageRep			*originalRep = [[chosenImage representations] objectAtIndex:0];
-			NSSize				imageSize = NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh]);
+			// This shouldn't be necessary but updating the views right away often crashes 
+			// because of some interaction with the AppKit thread that is creating a preview 
+			// of the selected image.
+		[self performSelector:@selector(updateUserChosenViewsForImageAtPath:) withObject:[[sender filenames] objectAtIndex:0] afterDelay:0.0];
+	}
+}
+
+
+- (void)updateUserChosenViewsForImageAtPath:(NSString *)imagePath
+{
+	NSString			*chosenImageIdentifier = imagePath;
+	[editorChosenImageBox setTitle:[[NSFileManager defaultManager] displayNameAtPath:chosenImageIdentifier]];
+	
+	NSImage				*chosenImage = [[[NSImage alloc] initWithContentsOfFile:chosenImageIdentifier] autorelease];
+	[chosenImage setCachedSeparately:YES];
+	[chosenImage setCacheMode:NSImageCacheNever];
+	
+	if (chosenImage)
+	{
+		NSImageRep			*originalRep = [[chosenImage representations] objectAtIndex:0];
+		NSSize				imageSize = NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh]);
 //			if (imageSize.width > imageSize.height)
 //				imageSize = NSMakeSize(128.0, 128.0 * imageSize.height/imageSize.width);
 //			else
 //				imageSize = NSMakeSize(128.0 * imageSize.width/imageSize.height, 128.0);
-			[originalRep setSize:imageSize];
-			[chosenImage setSize:imageSize];
-			
-			float				croppedPercentage = 0.0;
-			[editorChosenImageView setImage:[self highlightTileOutline:[selectedTile outline] inImage:chosenImage croppedPercentage:&croppedPercentage]];
+		[originalRep setSize:imageSize];
+		[chosenImage setSize:imageSize];
+		
+		float				croppedPercentage = 0.0;
+		[editorChosenImageView setImage:[self highlightTileOutline:[selectedTile outline] inImage:chosenImage croppedPercentage:&croppedPercentage]];
 
-			[editorChosenPercentCroppedTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", croppedPercentage]];
-			
-				// Calculate how well the chosen image matches the selected tile.
-			[[MacOSaiXImageCache sharedImageCache] cacheImage:chosenImage withIdentifier:chosenImageIdentifier fromSource:nil];
-			NSBitmapImageRep	*chosenImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[[selectedTile bitmapRep] size] 
-																						  forIdentifier:chosenImageIdentifier 
-																							 fromSource:nil];
-			editorChosenMatchValue = [[MacOSaiXImageMatcher sharedMatcher] compareImageRep:[selectedTile bitmapRep]  
-																				  withMask:[selectedTile maskRep] 
-																				toImageRep:chosenImageRep
-																			  previousBest:1.0];
-			[editorChosenMatchQualityTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", 100.0 - editorChosenMatchValue * 100.0]];
-		}
+		[editorChosenPercentCroppedTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", croppedPercentage]];
+		
+			// Calculate how well the chosen image matches the selected tile.
+		[[MacOSaiXImageCache sharedImageCache] cacheImage:chosenImage withIdentifier:chosenImageIdentifier fromSource:nil];
+		NSBitmapImageRep	*chosenImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[[selectedTile bitmapRep] size] 
+																					  forIdentifier:chosenImageIdentifier 
+																						 fromSource:nil];
+		editorChosenMatchValue = [[MacOSaiXImageMatcher sharedMatcher] compareImageRep:[selectedTile bitmapRep]  
+																			  withMask:[selectedTile maskRep] 
+																			toImageRep:chosenImageRep
+																		  previousBest:1.0];
+		[editorChosenMatchQualityTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", 100.0 - editorChosenMatchValue * 100.0]];
 	}
 }
 
@@ -1416,6 +1427,7 @@
 #pragma mark -
 #pragma mark Export image methods
 
+
 - (void)beginExportImage:(id)sender
 {
 		// Disable auto saving so it doesn't interfere with exporting.
@@ -1432,6 +1444,8 @@
 		defaultName = [defaultName stringByDeletingPathExtension];
 	defaultName = [[defaultName stringByAppendingString:@" Export"] stringByAppendingPathExtension:defaultExtension];
     NSSavePanel	*savePanel = [NSSavePanel savePanel];
+	[exportFadeSlider setFloatValue:[mosaicView fade]];
+	[self setExportFade:self];
     if ([exportWidth intValue] == 0)
     {
 		NSSize	originalSize = [[[self document] originalImage] size];
@@ -1456,6 +1470,31 @@
 			modalDelegate:self
 		       didEndSelector:@selector(exportImageSavePanelDidEnd:returnCode:contextInfo:)
 			  contextInfo:[NSNumber numberWithBool:wasPaused]];
+}
+
+
+- (IBAction)setExportFade:(id)sender
+{
+	NSImage	*fadedImage = nil;
+	
+	if ([exportFadeSlider floatValue] == 0.0)
+		[exportFadedImageView setImage:[[self document] originalImage]];
+	else if ([exportFadeSlider floatValue] == 1.0)
+		[exportFadedImageView setImage:[mosaicView image]];
+	else
+	{
+		NSImage	*fadedImage = [[[self document] originalImage] copy];
+		
+		[fadedImage lockFocus];
+			[[mosaicView image] drawInRect:NSMakeRect(0.0, 0.0, [fadedImage size].width, [fadedImage size].height) 
+								  fromRect:NSZeroRect 
+								 operation:NSCompositeSourceOver 
+								  fraction:[exportFadeSlider floatValue]];
+		[fadedImage unlockFocus];
+		
+		[exportFadedImageView setImage:fadedImage];
+		[fadedImage release];
+	}
 }
 
 
@@ -1510,6 +1549,13 @@
 		exportError = [NSString stringWithFormat:@"Could not draw images into the mosaic.  (%@)", [localException reason]];
 	NS_ENDHANDLER
 	
+	NSRect		exportRect = NSMakeRect(0.0, 0.0, [exportWidth intValue], [exportHeight intValue]);
+	
+	[[[self document] originalImage] drawInRect:exportRect 
+									   fromRect:NSZeroRect 
+									  operation:NSCompositeCopy 
+									   fraction:1.0];
+	
 	[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
     NSAffineTransform	*transform = [NSAffineTransform transform];
     [transform scaleXBy:[exportImage size].width yBy:[exportImage size].height];
@@ -1562,7 +1608,12 @@
 				}
 				
 					// Finally, draw the tile's image.
-				[pixletImageRep drawInRect:drawRect];
+				NSImage *pixletImage = [[[NSImage alloc] initWithSize:[pixletImageRep size]] autorelease];
+				[pixletImage addRepresentation:pixletImageRep];
+				[pixletImage drawInRect:drawRect 
+							   fromRect:NSZeroRect 
+							  operation:NSCompositeSourceOver 
+							   fraction:[exportFadeSlider floatValue]];
 				
 					// Clean up.
 				[NSGraphicsContext restoreGraphicsState];
