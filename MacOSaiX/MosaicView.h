@@ -52,5 +52,6 @@
 - (void)highlightImageSources:(NSArray *)imageSources;
 - (void)animateHighlight;
 
+- (NSImage *)image;
 
 @end
