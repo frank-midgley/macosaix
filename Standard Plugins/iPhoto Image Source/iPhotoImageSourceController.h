@@ -27,6 +27,7 @@
 	MacOSaiXiPhotoImageSource	*currentImageSource;
 }
 
+- (IBAction)setSourceType:(id)sender;
 - (IBAction)chooseAllPhotos:(id)sender;
 - (IBAction)chooseAlbum:(id)sender;
 - (IBAction)chooseKeyword:(id)sender;

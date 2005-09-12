@@ -119,6 +119,17 @@
 }
 
 
+- (IBAction)setSourceType:(id)sender
+{
+	if ([matrix selectedRow] == 0)
+		[self chooseAllPhotos:sender];
+	else if ([matrix selectedRow] == 1)
+		[self chooseAlbum:sender];
+	else if ([matrix selectedRow] == 2)
+		[self chooseKeyword:sender];
+}
+
+
 - (IBAction)chooseAllPhotos:(id)sender
 {
 	[currentImageSource setAlbumName:nil];
