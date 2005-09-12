@@ -528,8 +528,7 @@
 - (void)refreshTiles:(id)dummy
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	MacOSaiXTile		*tileToRefresh = nil;
-	MacOSaiXImageMatch	*previousMatch = nil;
+	NSDictionary		*tileToRefresh = nil;
 
         // Make sure only one copy of this thread runs at any time.
 	[tileRefreshLock lock];
@@ -868,17 +867,19 @@
 	while (tile = [tileEnumerator nextObject])
         if ([[tile outline] containsPoint:thePoint])
         {
-			[selectedTile autorelease];
-			
 			if (tile == selectedTile)
 			{
-					// The selected tile was clicked so unselect it.
-				selectedTile = nil;
-				
-					// Get rid of the timer when no tile is selected.
-				[animateTileTimer invalidate];
-				[animateTileTimer release];
-				animateTileTimer = nil;
+				if ([[NSApp currentEvent] clickCount] == 1)
+				{
+						// The selected tile was clicked so unselect it.
+					[selectedTile autorelease];
+					selectedTile = nil;
+					
+						// Get rid of the timer when no tile is selected.
+					[animateTileTimer invalidate];
+					[animateTileTimer release];
+					animateTileTimer = nil;
+				}
 			}
 			else
 			{
@@ -893,6 +894,7 @@
 											repeats:YES] retain];
 				}
 				
+				[selectedTile autorelease];
 				selectedTile = [tile retain];
 			}
 			
@@ -902,6 +904,9 @@
 			
 			break;
         }
+
+	if ([[NSApp currentEvent] clickCount] == 2)
+		[self chooseImageForSelectedTile:self];
 }
 
 
@@ -1793,6 +1798,9 @@
 		
 		while (refreshTilesThreadCount > 0)
 			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+		
+		if ([fadeTimer isValid])
+			[fadeTimer invalidate];
 	}
 }
 
@@ -2028,7 +2036,8 @@
 	[tileRefreshLock release];
 	[tilesToRefresh release];
 	
-	[fadeTimer invalidate];
+	if ([fadeTimer isValid])
+		[fadeTimer invalidate];
 	[fadeTimer release];
 	
 		// We are responsible for releasing any top-level objects in the nib file that we opened.
