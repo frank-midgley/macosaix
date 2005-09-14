@@ -335,27 +335,27 @@
 			// Create the toolbar icons for the View Original/View Mosaic item.  Toolbar item images 
 			// must be 32x32 so we center the thumbnail in an image of the correct size.
 		[originalToolbarImage release];
-		originalToolbarImage = [[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)];
-		NSImage	*newToolbarImage = [[[[self document] originalImage] copyWithLargestDimension:32.0] autorelease];
-		NSSize	thumbSize = [newToolbarImage size];
+		float	scaledWidth = [originalImage size].width * 16.0 / [originalImage size].height;
+		originalToolbarImage = [[NSImage alloc] initWithSize:NSMakeSize(scaledWidth, 16.0)];
 		[originalToolbarImage lockFocus];
-			if (thumbSize.width > thumbSize.height)
-				[newToolbarImage compositeToPoint:NSMakePoint(0.0, (32.0 - thumbSize.height) / 2.0) operation:NSCompositeCopy];
-			else
-				[newToolbarImage compositeToPoint:NSMakePoint((32.0 - thumbSize.width) / 2.0, 0.0) operation:NSCompositeCopy];
+			[originalImage drawInRect:NSMakeRect(0.0, 0.0, scaledWidth, 16.0) 
+							 fromRect:NSZeroRect 
+							operation:NSCompositeCopy 
+							 fraction:1.0];
 		[originalToolbarImage unlockFocus];
 			// Create a version that looks like a 4x4 mosaic.
 		[mosaicToolbarImage release];
 		mosaicToolbarImage = [originalToolbarImage copy];
+		NSSize	thumbSize = [originalToolbarImage size];
 		[mosaicToolbarImage lockFocus];
 			float	quarterWidth = thumbSize.width / 4.0,
 					quarterHeight = thumbSize.height / 4.0,
 					xStart = 0.0,
 					yStart = 0.0;
 			if (thumbSize.width > thumbSize.height)
-				yStart = (32.0 - thumbSize.height) / 2.0;
+				yStart = (16.0 - thumbSize.height) / 2.0;
 			else
-				xStart = (32.0 - thumbSize.width) / 2.0;
+				xStart = (scaledWidth - thumbSize.width) / 2.0;
 			
 				// Lighten the top and left edges.
 			[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
@@ -388,12 +388,8 @@
 		[mosaicToolbarImage unlockFocus];
 		
 			// Update the toolbar item.
-		[fadeOriginalButton setImage:newToolbarImage];
-// TODO: rework for fading
-//		if ([mosaicView viewOriginal])
-//			[toggleOriginalToolbarItem setImage:mosaicToolbarImage];
-//		else
-//			[toggleOriginalToolbarItem setImage:originalToolbarImage];
+		[fadeOriginalButton setImage:originalToolbarImage];
+		[fadeMosaicButton setImage:mosaicToolbarImage];
 	}
 }
 
@@ -1080,6 +1076,7 @@
 	[oPanel setCanChooseFiles:YES];
 	[oPanel setCanChooseDirectories:NO];
 	[oPanel setAccessoryView:editorAccessoryView];
+	[oPanel setPrompt:@"Choose"];
 	[oPanel setDelegate:self];
 	[oPanel beginSheetForDirectory:nil
 							  file:nil
@@ -1154,9 +1151,12 @@
 							      contextInfo:(void *)context
 {
     if (returnCode == NSOKButton)
+	{
 		[[self document] setHandPickedImageAtPath:[[sheet filenames] objectAtIndex:0]
 								   withMatchValue:editorChosenMatchValue
 										  forTile:selectedTile];
+		[imageSourcesTableView reloadData];
+	}
 }
 
 
@@ -1246,6 +1246,20 @@
 	[mosaicView scrollPoint:NSMakePoint(centerPoint.x - NSWidth(visibleRect) / 2.0, 
 										centerPoint.y - NSHeight(visibleRect) / 2.0)];
 	[mosaicView setNeedsDisplay:YES];
+}
+
+
+- (IBAction)setMinimumZoom:(id)sender;
+{
+	[zoomSlider setFloatValue:[zoomSlider minValue]];
+	[self setZoom:self];
+}
+
+
+- (IBAction)setMaximumZoom:(id)sender
+{
+	[zoomSlider setFloatValue:[zoomSlider maxValue]];
+	[self setZoom:self];
 }
 
 
@@ -1352,31 +1366,10 @@
 	SEL		actionToValidate = [menuItem action];
 	BOOL	valid = YES;
 	
-    if (actionToValidate == @selector(chooseImageForSelectedTile:) || 
-		actionToValidate == @selector(removeChosenImageForSelectedTile:))
-	{
-		if (selectedTile)
-		{
-			if ([selectedTile userChosenImageMatch])
-			{
-				[menuItem setTitle:@"Remove Chosen Image for Selected Tile..."];
-				[menuItem setAction:@selector(removeChosenImageForSelectedTile:)];
-			}
-			else
-			{
-				[menuItem setTitle:@"Choose Image for Selected Tile..."];
-				[menuItem setAction:@selector(chooseImageForSelectedTile:)];
-			}
-			
-			valid = YES;
-				
-		}
-		else
-		{
-			[menuItem setTitle:@"Choose Image for Selected Tile..."];
-			valid = NO;
-		}
-	}
+    if (actionToValidate == @selector(chooseImageForSelectedTile:))
+		valid = (selectedTile != nil);
+	else if (actionToValidate == @selector(removeChosenImageForSelectedTile:))
+		valid = (selectedTile != nil && [selectedTile userChosenImageMatch]);
     else if (actionToValidate == @selector(centerViewOnSelectedTile:))
 		valid = (selectedTile != nil && zoom != 0.0);
     else if (actionToValidate == @selector(togglePause:))
@@ -1475,8 +1468,6 @@
 
 - (IBAction)setExportFade:(id)sender
 {
-	NSImage	*fadedImage = nil;
-	
 	if ([exportFadeSlider floatValue] == 0.0)
 		[exportFadedImageView setImage:[[self document] originalImage]];
 	else if ([exportFadeSlider floatValue] == 1.0)
@@ -1909,8 +1900,8 @@
     }
     else if ([itemIdentifier isEqualToString:@"Zoom"])
     {
-		[toolbarItem setMinSize:NSMakeSize(64, 14)];
-		[toolbarItem setMaxSize:NSMakeSize(64, 14)];
+		[toolbarItem setMinSize:NSMakeSize(70, 32)];
+		[toolbarItem setMaxSize:NSMakeSize(70, 32)];
 		[toolbarItem setLabel:@"Zoom"];
 		[toolbarItem setPaletteLabel:@"Zoom"];
 		[toolbarItem setView:zoomToolbarView];

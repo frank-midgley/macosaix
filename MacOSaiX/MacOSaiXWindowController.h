@@ -122,6 +122,8 @@
 - (BOOL)viewingOriginal;
 - (IBAction)toggleTileOutlines:(id)sender;
 - (IBAction)setZoom:(id)sender;
+- (IBAction)setMinimumZoom:(id)sender;
+- (IBAction)setMaximumZoom:(id)sender;
 - (IBAction)toggleStatusBar:(id)sender;
 - (IBAction)toggleImageSourcesDrawer:(id)sender;
 - (IBAction)togglePause:(id)sender;
