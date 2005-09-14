@@ -17,6 +17,9 @@
 		01453D55071B6F8000BCEC7C /* PuzzleTilesSetupController.h in Headers */ = {isa = PBXBuildFile; fileRef = 01453D52071B6F8000BCEC7C /* PuzzleTilesSetupController.h */; };
 		01453D56071B6F8000BCEC7C /* PuzzleTilesSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01453D53071B6F8000BCEC7C /* PuzzleTilesSetupController.m */; };
 		014DB626071A2C8D00DF68C0 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 014DB625071A2C8D00DF68C0 /* Info.plist */; };
+		016A242308D7C952009A93BF /* ZoomIn.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242208D7C952009A93BF /* ZoomIn.png */; };
+		016A242508D7C975009A93BF /* ZoomOut.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242408D7C975009A93BF /* ZoomOut.png */; };
+		016A248208D7D8E2009A93BF /* HandPicked.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A248108D7D8E2009A93BF /* HandPicked.png */; };
 		016A2C5208CD2611002D56C1 /* MacOSaiXImageMatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 016A2C5008CD2611002D56C1 /* MacOSaiXImageMatch.h */; };
 		016A2C5308CD2611002D56C1 /* MacOSaiXImageMatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */; };
 		016A2CCD08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */; };
@@ -333,6 +336,9 @@
 		01453D52071B6F8000BCEC7C /* PuzzleTilesSetupController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PuzzleTilesSetupController.h; path = "Standard Plugins/Puzzle Tiles Setup/PuzzleTilesSetupController.h"; sourceTree = "<group>"; };
 		01453D53071B6F8000BCEC7C /* PuzzleTilesSetupController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = PuzzleTilesSetupController.m; path = "Standard Plugins/Puzzle Tiles Setup/PuzzleTilesSetupController.m"; sourceTree = "<group>"; };
 		014DB625071A2C8D00DF68C0 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = Info.plist; path = "Standard Plugins/Hexaganol Tiles Setup/Info.plist"; sourceTree = "<group>"; };
+		016A242208D7C952009A93BF /* ZoomIn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ZoomIn.png; path = Images/ZoomIn.png; sourceTree = "<group>"; };
+		016A242408D7C975009A93BF /* ZoomOut.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ZoomOut.png; path = Images/ZoomOut.png; sourceTree = "<group>"; };
+		016A248108D7D8E2009A93BF /* HandPicked.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = HandPicked.png; path = Images/HandPicked.png; sourceTree = "<group>"; };
 		016A2C5008CD2611002D56C1 /* MacOSaiXImageMatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXImageMatch.h; path = MacOSaiX/MacOSaiXImageMatch.h; sourceTree = "<group>"; };
 		016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXImageMatch.m; path = MacOSaiX/MacOSaiXImageMatch.m; sourceTree = "<group>"; };
 		016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXHandPickedImageSource.h; path = MacOSaiX/MacOSaiXHandPickedImageSource.h; sourceTree = "<group>"; };
@@ -815,10 +821,13 @@
 				F58E0883028C71BF016CFBE9 /* BadgeRed.tiff */,
 				F594095B02472CFD01000104 /* Blank.tiff */,
 				F594095502469B3101000104 /* ExportImage.tiff */,
+				016A248108D7D8E2009A93BF /* HandPicked.png */,
 				F5940957024722BA01000104 /* ImageSources.tiff */,
 				F558F295027DBB8D01000103 /* Pause.tiff */,
 				F558F297027DBF1B01000103 /* Resume.tiff */,
 				01AC3A3B07B0997C0025F915 /* Settings.png */,
+				016A242208D7C952009A93BF /* ZoomIn.png */,
+				016A242408D7C975009A93BF /* ZoomOut.png */,
 			);
 			name = Images;
 			sourceTree = "<group>";
@@ -1381,6 +1390,9 @@
 				92F00D0807C1B52B004F6D06 /* Update Available.nib in Resources */,
 				0127354307CD6EBB0053037A /* Defaults.plist in Resources */,
 				01FAF1D6084031C2003A2726 /* Crash Reporter.nib in Resources */,
+				016A242308D7C952009A93BF /* ZoomIn.png in Resources */,
+				016A242508D7C975009A93BF /* ZoomOut.png in Resources */,
+				016A248208D7D8E2009A93BF /* HandPicked.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
