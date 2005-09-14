@@ -1,20 +1,15 @@
 Ideas for future versions:
     Service
-	Calculate match value of user chosen images
 	Statistics drawer/window (matches per second, etc.)
 	Width of status text problem (works when shown/hidden)
-	Indicate best unique match in editor table
-	Disable 'center on selected tile' menu choice when no tile is selected
 	Trim solid borders for alternate image
 	More export image panel options
 		resolution
 		SVG format
 		vector output (Glyphs only?)
-	Add code to support crop limit
 	Autosave on/off switch
 	"Must include" images
 	Printing (greeting card format?)
-	Velocity engine
 	XGrid
 	Image regions
 	New image sources:
@@ -22,6 +17,7 @@ Ideas for future versions:
 		iSight source
 		iTunes album art
 		flickr
+		Delicious
 	Directory source
 		Option to only use images bigger or smaller than certain dimensions
 		Alias support during enumeration
@@ -57,7 +53,6 @@ Riemersma metric:
 ¥	Get rid of lines in exporting
 ¥	Add preferences API for image source plug-ins
 ¥	Add preferences API for tile shapes plug-ins
-¥	Resizing when zoomed does not stay centered and draws funky
 ¥	Rework puzzle shapes plug-in to conform with new API
 	Google source:
 ¥		Make sure cache doesn't fill disk
@@ -78,7 +73,10 @@ Riemersma metric:
 ?	Tile refresh leaves black edges
 
 2.0a5 To Do:
-¥	Don't report crashes older than 2.0a4
-¥	Make sure exporting still works with changes to image caching
-¥	Editor
-¥	Make sure manually chosen image identifiers are XML safe.
+Ã	Resizing when zoomed does not stay centered and draws funky
+Ã	Don't report crashes older than 2.0a4
+Ã	Make sure exporting still works with changes to image caching
+Ã	Editor (saving)
+Ã	Make sure manually chosen image identifiers are XML safe.
+Ã	Calculate match value of user chosen images
+Ã	Add code to support crop limit
