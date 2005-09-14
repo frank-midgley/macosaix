@@ -20,7 +20,7 @@
 
 + (NSImage *)image
 {
-	return nil;
+	return [NSImage imageNamed:@"HandPicked"];
 }
 
 
@@ -67,7 +67,7 @@
 
 - (NSImage *)image
 {
-	return nil;
+	return [NSImage imageNamed:@"HandPicked"];
 }
 
 
