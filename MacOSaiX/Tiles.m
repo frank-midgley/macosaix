@@ -194,12 +194,15 @@
 
 - (void)setUserChosenImageMatch:(MacOSaiXImageMatch *)match
 {
-	MacOSaiXImageMatch	*previousMatch = userChosenImageMatch;
-	
-	[userChosenImageMatch autorelease];
-	userChosenImageMatch = [match retain];
-	
-	[self sendNotificationThatImageChangedFrom:previousMatch];
+	if (match != userChosenImageMatch)
+	{
+		MacOSaiXImageMatch	*previousMatch = userChosenImageMatch;
+		
+		[userChosenImageMatch autorelease];
+		userChosenImageMatch = [match retain];
+		
+		[self sendNotificationThatImageChangedFrom:previousMatch];
+	}
 }
 
 
