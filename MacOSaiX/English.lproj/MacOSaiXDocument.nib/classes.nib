@@ -18,6 +18,8 @@
                 setImageReuseDistance = id; 
                 setImageUseCount = id; 
                 setJPEGExport = id; 
+                setMaximumZoom = id; 
+                setMinimumZoom = id; 
                 setTIFFExport = id; 
                 setTileShapes = id; 
                 setTileShapesPlugIn = id; 
