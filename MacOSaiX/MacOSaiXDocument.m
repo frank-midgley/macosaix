@@ -1877,8 +1877,15 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	NSEnumerator		*tileEnumerator = [tiles objectEnumerator];
 	MacOSaiXTile		*tile = nil;
 	while (tile = [tileEnumerator nextObject])
-		if ([[tile uniqueImageMatch] imageSource] == imageSource)
-			[tile setUniqueImageMatch:nil];
+	{
+		if ([imageSource isKindOfClass:[MacOSaiXHandPickedImageSource class]])
+			[tile setUserChosenImageMatch:nil];
+		else
+		{
+			if ([[tile uniqueImageMatch] imageSource] == imageSource)
+				[tile setUniqueImageMatch:nil];
+		}
+	}
 	
 	[imageSources removeObject:imageSource];
 	[[MacOSaiXImageCache sharedImageCache] removeCachedImageRepsFromSource:imageSource];
@@ -1933,7 +1940,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	if ([tile userChosenImageMatch])
 	{
 			// Decrease the image count for the hand picked source.
-			MacOSaiXHandPickedImageSource	*handPickedSource = [self handPickedImageSource];
+		MacOSaiXHandPickedImageSource	*handPickedSource = [self handPickedImageSource];
 		[enumerationCountsLock lock];
 			unsigned long	currentCount = [[enumerationCounts objectForKey:[NSValue valueWithPointer:handPickedSource]] unsignedLongValue];
 			[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:currentCount - 1] 
