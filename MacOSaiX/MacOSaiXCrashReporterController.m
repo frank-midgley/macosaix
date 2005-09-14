@@ -21,6 +21,9 @@
 + (void)checkForCrash
 {
 	NSDate		*lastKnownCrashDate = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Known Crash"];
+	if (!lastKnownCrashDate)
+		lastKnownCrashDate = [NSDate dateWithNaturalLanguageString:@"2005/09/01"];
+	
 	NSString	*crashLogPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Logs/CrashReporter/MacOSaiX.crash.log"];
 	NSArray		*crashLogs = [[NSString stringWithContentsOfFile:crashLogPath] componentsSeparatedByString:@"\n**********\n\n"];
 	NSString	*mostRecentCrash = [crashLogs lastObject];
@@ -36,7 +39,7 @@
 		{
 			NSCalendarDate	*mostRecentCrashDate = [NSCalendarDate dateWithString:mostRecentCrashDateString
 																   calendarFormat:@"%Y-%m-%d %H:%M:%S.%F %z"];
-			if (!lastKnownCrashDate || [lastKnownCrashDate compare:mostRecentCrashDate] == NSOrderedAscending)
+			if ([lastKnownCrashDate compare:mostRecentCrashDate] == NSOrderedAscending)
 			{
 				MacOSaiXCrashReporterController	*controller = [[self alloc] initWithCrashLog:mostRecentCrash 
 																				   crashDate:mostRecentCrashDate];
