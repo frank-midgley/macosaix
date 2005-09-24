@@ -32,6 +32,9 @@
 		01BBDECD0747081400F17A9F /* NSImage+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01BBDECB0747081400F17A9F /* NSImage+MacOSaiX.h */; };
 		01BBDECE0747081400F17A9F /* NSImage+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */; };
 		01FAF1D6084031C2003A2726 /* Crash Reporter.nib in Resources */ = {isa = PBXBuildFile; fileRef = 01FAF1D4084031C2003A2726 /* Crash Reporter.nib */; };
+		921607B208E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */; };
+		9216086708E5DC9F0018C4C1 /* DirectoryImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = F540721A023FE6860100010A /* DirectoryImageSource.m */; };
+		9216086A08E5DCA70018C4C1 /* NSFileManager+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */; };
 		9227FD5F07E378CC0020C5F4 /* Hexagonal Tiles.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 01CB07E6071A1F2B00710BCF /* Hexagonal Tiles.plugin */; };
 		9227FD7107E37A240020C5F4 /* HexagonalTileShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = 9227FD6D07E37A240020C5F4 /* HexagonalTileShapes.h */; };
 		9227FD7207E37A240020C5F4 /* HexagonalTileShapes.m in Sources */ = {isa = PBXBuildFile; fileRef = 9227FD6E07E37A240020C5F4 /* HexagonalTileShapes.m */; };
@@ -64,7 +67,6 @@
 		9284899F06611CE5003B3514 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		928489B806611CE6003B3514 /* DirectoryImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = F5407219023FE6860100010A /* DirectoryImageSource.h */; };
 		928489B906611CE6003B3514 /* DirectoryImageSourceController.h in Headers */ = {isa = PBXBuildFile; fileRef = 92B45F70041A9DF1006867F5 /* DirectoryImageSourceController.h */; };
-		928489BD06611CE6003B3514 /* DirectoryImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = F540721A023FE6860100010A /* DirectoryImageSource.m */; };
 		928489BE06611CE6003B3514 /* DirectoryImageSourceController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B45F71041A9DF1006867F5 /* DirectoryImageSourceController.m */; };
 		928489C006611CE6003B3514 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		928489C806611CE6003B3514 /* GoogleImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = F540721D023FE6E00100010A /* GoogleImageSource.h */; };
@@ -356,6 +358,8 @@
 		01FAF1D5084031C2003A2726 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "MacOSaiX/English.lproj/Crash Reporter.nib"; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = main.m; path = MacOSaiX/main.m; sourceTree = "<group>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSFileManager+MacOSaiX.h"; path = "MacOSaiX/NSFileManager+MacOSaiX.h"; sourceTree = "<group>"; };
+		921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSFileManager+MacOSaiX.m"; path = "MacOSaiX/NSFileManager+MacOSaiX.m"; sourceTree = "<group>"; };
 		9227FD6D07E37A240020C5F4 /* HexagonalTileShapes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = HexagonalTileShapes.h; path = "Standard Plugins/Hexaganol Tiles Setup/HexagonalTileShapes.h"; sourceTree = "<group>"; };
 		9227FD6E07E37A240020C5F4 /* HexagonalTileShapes.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = HexagonalTileShapes.m; path = "Standard Plugins/Hexaganol Tiles Setup/HexagonalTileShapes.m"; sourceTree = "<group>"; };
 		9227FD6F07E37A240020C5F4 /* HexagonalTileShapesEditor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = HexagonalTileShapesEditor.h; path = "Standard Plugins/Hexaganol Tiles Setup/HexagonalTileShapesEditor.h"; sourceTree = "<group>"; };
@@ -709,6 +713,8 @@
 				92B45F71041A9DF1006867F5 /* DirectoryImageSourceController.m */,
 				928F72990661226000873AE2 /* Directory Image Source.nib */,
 				928F72D80661230700873AE2 /* Info.plist */,
+				921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */,
+				921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */,
 			);
 			name = Directory;
 			sourceTree = "<group>";
@@ -894,6 +900,7 @@
 				928489B806611CE6003B3514 /* DirectoryImageSource.h in Headers */,
 				928489B906611CE6003B3514 /* DirectoryImageSourceController.h in Headers */,
 				923384DC072180700010BE04 /* MacOSaiXImageSource.h in Headers */,
+				921607B208E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1520,6 +1527,7 @@
 				92B9087C08C25F0600D621F5 /* MacOSaiXImageMatcher.m in Sources */,
 				016A2C5308CD2611002D56C1 /* MacOSaiXImageMatch.m in Sources */,
 				016A2CCE08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m in Sources */,
+				9216086A08E5DCA70018C4C1 /* NSFileManager+MacOSaiX.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1527,8 +1535,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				928489BD06611CE6003B3514 /* DirectoryImageSource.m in Sources */,
 				928489BE06611CE6003B3514 /* DirectoryImageSourceController.m in Sources */,
+				9216086708E5DC9F0018C4C1 /* DirectoryImageSource.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
