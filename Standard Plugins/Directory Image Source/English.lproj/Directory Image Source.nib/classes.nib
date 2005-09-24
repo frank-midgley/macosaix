@@ -1,12 +1,13 @@
 {
     IBClasses = (
         {
-            ACTIONS = {chooseDirectory = id; }; 
+            ACTIONS = {chooseDirectory = id; setFollowsAliases = id; }; 
             CLASS = DirectoryImageSourceController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 changeDirectoryButton = NSButton; 
                 editorView = NSView; 
+                followsAliasesButton = NSButton; 
                 pathComponent1ImageView = NSImageView; 
                 pathComponent1TextField = NSTextField; 
                 pathComponent2ImageView = NSImageView; 

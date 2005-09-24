@@ -74,7 +74,7 @@
 	{
 		NSString	*component = [pathComponents objectAtIndex:index];
 		currentPath = [currentPath stringByAppendingPathComponent:component];
-		NSImage		*pathIcon = [[NSWorkspace sharedWorkspace] iconForFile:[currentPath stringByExpandingTildeInPath]];
+		NSImage		*pathIcon = (currentPath ? [[NSWorkspace sharedWorkspace] iconForFile:[currentPath stringByExpandingTildeInPath]] : nil);
 		
 		component = [[NSFileManager defaultManager] displayNameAtPath:[currentPath stringByExpandingTildeInPath]];
 //		if ([component isEqualTo:@"~"])
@@ -115,6 +115,8 @@
 			}
 		}
 	}
+	
+	[followsAliasesButton setState:([currentImageSource followsAliases] ? NSOnState : NSOffState)];
 }
 
 
@@ -192,6 +194,12 @@
 			// Display the new path in the GUI.
 		[self updateGUI];
 	}
+}
+
+
+- (IBAction)setFollowsAliases:(id)sender
+{
+	[currentImageSource setFollowsAliases:([followsAliasesButton state] == NSOnState)];
 }
 
 

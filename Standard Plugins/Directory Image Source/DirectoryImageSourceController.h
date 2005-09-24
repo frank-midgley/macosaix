@@ -26,12 +26,14 @@
 							*pathComponent3TextField,
 							*pathComponent4TextField,
 							*pathComponent5TextField;
-	IBOutlet NSButton		*changeDirectoryButton;
+	IBOutlet NSButton		*changeDirectoryButton, 
+							*followsAliasesButton;
 	
 		// The image source instance currently being edited.
 	DirectoryImageSource	*currentImageSource;
 }
 
 - (IBAction)chooseDirectory:(id)sender;
+- (IBAction)setFollowsAliases:(id)sender;
 
 @end

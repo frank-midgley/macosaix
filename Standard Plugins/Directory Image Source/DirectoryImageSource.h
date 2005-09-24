@@ -13,16 +13,20 @@
 
 @interface DirectoryImageSource : NSObject <MacOSaiXImageSource>
 {
-    NSString				*directoryPath,
+    NSString				*directoryPath, 
 							*lastEnumeratedPath;
 	NSImage					*directoryImage;
 	NSAttributedString		*directoryDescriptor;
     NSDirectoryEnumerator	*directoryEnumerator;
-	BOOL					haveMoreImages,
+	BOOL					followAliases, 
+							haveMoreImages, 
 							pathsHaveBeenEnumerated;
 }
 
 - (NSString *)path;
 - (void)setPath:(NSString *)path;
+
+- (BOOL)followsAliases;
+- (void)setFollowsAliases:(BOOL)flag;
 
 @end

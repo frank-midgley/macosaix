@@ -9,7 +9,7 @@
 #import "DirectoryImageSource.h"
 #import "DirectoryImageSourceController.h"
 #import "NSString+MacOSaiX.h"
-
+#import "NSFileManager+MacOSaiX.h"
 
 @implementation DirectoryImageSource
 
@@ -43,11 +43,12 @@
 }
 
 
-- (id)initWithPath:(NSString *)path
+- (id)init
 {
 	if (self = [super init])
 	{
-		[self setPath:path];
+		[self setPath:[NSHomeDirectory() stringByAppendingPathComponent:@"Pictures"]];
+		[self setFollowsAliases:YES];
 	}
 
     return self;
@@ -56,8 +57,9 @@
 
 - (NSString *)settingsAsXMLElement
 {
-	return [NSString stringWithFormat:@"<DIRECTORY PATH=\"%@\" LAST_USED_SUB_PATH=\"%@\"/>", 
-									  [NSString stringByEscapingXMLEntites:[self path]], 
+	return [NSString stringWithFormat:@"<DIRECTORY PATH=\"%@\" FOLLOW_ALIASES=\"%@\" LAST_USED_SUB_PATH=\"%@\"/>", 
+									  [NSString stringByEscapingXMLEntites:[self path]],
+									  ([self followsAliases] ? @"Y" : @"N"), 
 									  [NSString stringByEscapingXMLEntites:lastEnumeratedPath]];
 }
 
@@ -68,6 +70,8 @@
 	
 	if ([settingType isEqualToString:@"DIRECTORY"])
 		[self setPath:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"PATH"] description]]];
+	else if ([settingType isEqualToString:@"FOLLOW_ALIASES"])
+		[self setFollowsAliases:[[settingDict objectForKey:@"FOLLOW_ALIASES"] isEqualTo:@"Y"]]; 
 	else if ([settingType isEqualToString:@"LAST_USED_SUB_PATH"])
 		lastEnumeratedPath = [[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"LAST_USED_SUB_PATH"] description]] retain];
 }
@@ -99,7 +103,7 @@
 		// Get the icon at this path for display in the sources table.
 		// The table is refreshed often so we store the image in an ivar to avoid hitting the disk repeatedly.
 	[directoryImage autorelease];
-	directoryImage = [[[NSWorkspace sharedWorkspace] iconForFile:directoryPath] retain];
+	directoryImage = (directoryPath ? [[[NSWorkspace sharedWorkspace] iconForFile:directoryPath] retain] : nil);
 	
 		// Create an attributed string containing our path that truncates in the middle so that
 		// the path's volume and nearest parent directories are both visible.
@@ -108,17 +112,31 @@
 	NSDictionary			*attributeDict = [NSDictionary dictionaryWithObject:style forKey:NSParagraphStyleAttributeName];
 	[directoryDescriptor autorelease];
     directoryDescriptor = [[NSAttributedString alloc] initWithString:directoryPath attributes:attributeDict];
+	
+	haveMoreImages = YES;
+}
 
-		// Most importantly set up the enumerator that lets us walk through the directory.
-	[directoryEnumerator autorelease];
-	directoryEnumerator = [[[NSFileManager defaultManager] enumeratorAtPath:directoryPath] retain];
-	haveMoreImages = (directoryEnumerator != nil);
+
+- (BOOL)followsAliases
+{
+	return followAliases;
+}
+
+
+- (void)setFollowsAliases:(BOOL)flag
+{
+	followAliases = flag;
 }
 
 
 - (id)copyWithZone:(NSZone *)zone
 {
-	return [[DirectoryImageSource allocWithZone:zone] initWithPath:directoryPath];
+	DirectoryImageSource	*copy = [[DirectoryImageSource allocWithZone:zone] init];
+	
+	[copy setPath:[self path]];
+	[copy setFollowsAliases:[self followsAliases]];
+	
+	return copy;
 }
 
 
@@ -147,6 +165,11 @@
 	
 	if (!pathsHaveBeenEnumerated)
 	{
+			// Most importantly set up the enumerator that lets us walk through the directory.
+		directoryEnumerator = [[[NSFileManager defaultManager] enumeratorAtPath:directoryPath followAliases:followAliases] retain];
+		
+		haveMoreImages = (directoryEnumerator != nil);
+		
 			// Find the closest ancestor of the last file we enumerated that still exists on disk.
 		while ([lastEnumeratedPath length] > 0 && 
 			   ![[NSFileManager defaultManager] fileExistsAtPath:[directoryPath stringByAppendingPathComponent:lastEnumeratedPath]])
@@ -203,7 +226,8 @@
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 	NSImage		*image = nil;
-	NSString	*fullPath = [directoryPath stringByAppendingPathComponent:identifier], 
+	NSString	*fullPath = [[NSFileManager defaultManager] pathByResolvingAliasesInPath:
+																[directoryPath stringByAppendingPathComponent:identifier]], 
 				*fileType = [[[NSFileManager defaultManager] fileAttributesAtPath:fullPath traverseLink:NO] fileType];
 	
 	if ([fileType isEqualToString:NSFileTypeRegular])
