@@ -8,6 +8,17 @@
 
 #import "DirectoryImageSourceController.h"
 #import "DirectoryImageSource.h"
+#import "NSFileManager+MacOSaiX.h"
+
+
+@implementation NSDictionary (MacOSaiXDirectoryImageSourceController)
+
+- (NSComparisonResult)compareFolderPaths:(NSDictionary *)otherDict
+{
+	return [[self objectForKey:@"Path"] caseInsensitiveCompare:[otherDict objectForKey:@"Path"]];
+}
+
+@end
 
 
 @implementation DirectoryImageSourceController
@@ -24,97 +35,86 @@
 
 - (NSSize)editorViewMinimumSize
 {
-	return NSMakeSize(318.0, 176.0);
+	return NSMakeSize(367.0, 217.0);
 }
 
 
 - (NSResponder *)editorViewFirstResponder
 {
-	return changeDirectoryButton;
+	return folderTableView;
 }
 
 
 - (void)setOKButton:(NSButton *)button
 {
-	// No need to remember this, we are always in a valid state.
+	okButton = button;
 }
 
 
+- (int)rowOfCurrentFolder
+{
+	int					row = 0;
+	NSEnumerator		*folderEnumerator = [folderList objectEnumerator];
+	NSMutableDictionary	*folderDict = nil;
+	NSString			*currentPath = [currentImageSource path];
+	while (folderDict = [folderEnumerator nextObject])
+	{
+		if ([[folderDict objectForKey:@"Path"] isEqualToString:currentPath])
+			break;
+		
+		row++;
+	}
+	
+	return (folderDict ? row : -1);
+}
+
 - (void)updateGUI
 {
-		// Clear any previous entries out of the GUI
-	[pathComponent1ImageView setImage:nil];
-	[pathComponent2ImageView setImage:nil];
-	[pathComponent3ImageView setImage:nil];
-	[pathComponent4ImageView setImage:nil];
-	[pathComponent5ImageView setImage:nil];
-	[pathComponent1TextField setStringValue:@""];
-	[pathComponent2TextField setStringValue:@""];
-	[pathComponent3TextField setStringValue:@""];
-	[pathComponent4TextField setStringValue:@""];
-	[pathComponent5TextField setStringValue:@""];
+	NSArray			*knownFolders = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] 
+																				objectForKey:@"Folders"];
 	
-		// Root the display at the user's home folder if that's what we're in.
-	NSString		*sourcePath = [[currentImageSource path] stringByAbbreviatingWithTildeInPath];
-	NSMutableArray	*pathComponents = [[[sourcePath pathComponents] mutableCopy] autorelease];
-	NSString		*currentPath = [NSString string];
-	
-		// Root the display at a volume's root if the directory is not on the boot volume.
-	if ([pathComponents count] > 1 && [[pathComponents objectAtIndex:1] isEqualTo:@"Volumes"])
+	[folderList release];
+	if (knownFolders)
+		folderList = (NSMutableArray *)CFPropertyListCreateDeepCopy(kCFAllocatorDefault, 
+																	knownFolders, 
+																	kCFPropertyListMutableContainers);
+	else
 	{
-		[pathComponents removeObjectAtIndex:0];
-		[pathComponents removeObjectAtIndex:0];
-		currentPath = @"/Volumes";
+		NSString	*defaultFolder = [NSHomeDirectory() stringByAppendingPathComponent:@"Pictures"];
+		
+		folderList = [[NSMutableArray arrayWithObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:
+														defaultFolder, @"Path", 
+														@"--", @"Image Count", 
+														nil]] retain];
 	}
 	
-		// Loop through each path component and fill it into the GUI if appropriate.
-	int				componentCount = [pathComponents count],
-					index;
-	for (index = 0; index < componentCount; index++)
+	NSEnumerator		*folderEnumerator = [[NSArray arrayWithArray:folderList] objectEnumerator];
+	NSMutableDictionary	*folderDict = nil;
+	NSString			*currentPath = [currentImageSource path];
+	while (folderDict = [folderEnumerator nextObject])
 	{
-		NSString	*component = [pathComponents objectAtIndex:index];
-		currentPath = [currentPath stringByAppendingPathComponent:component];
-		NSImage		*pathIcon = (currentPath ? [[NSWorkspace sharedWorkspace] iconForFile:[currentPath stringByExpandingTildeInPath]] : nil);
+		NSString	*folderPath = [folderDict objectForKey:@"Path"];
 		
-		component = [[NSFileManager defaultManager] displayNameAtPath:[currentPath stringByExpandingTildeInPath]];
-//		if ([component isEqualTo:@"~"])
-//			component = [NSHomeDirectory() lastPathComponent];
-		
-		if (index == 0)
-		{
-			[pathComponent1ImageView setImage:pathIcon];
-			[pathComponent1TextField setStringValue:component];
-		}
-		else if (index == 1)
-		{
-			[pathComponent2ImageView setImage:pathIcon];
-			[pathComponent2TextField setStringValue:component];
-		}
-		else if (index == 2)
-		{
-			if (componentCount > 5)
-				[pathComponent3TextField setStringValue:@"..."];
-			else
-			{
-				[pathComponent3ImageView setImage:pathIcon];
-				[pathComponent3TextField setStringValue:component];
-			}
-		}
+		BOOL		isFolder;
+		if (![[NSFileManager defaultManager] fileExistsAtPath:folderPath isDirectory:&isFolder] || !isFolder)
+			[folderList removeObject:folderDict];
 		else
-		{
-			if ((index == componentCount - 1 && componentCount == 4) || 
-				(index == componentCount - 2 && componentCount > 4))
-			{
-				[pathComponent4ImageView setImage:pathIcon];
-				[pathComponent4TextField setStringValue:component];
-			}
-			else if (index == componentCount - 1 && componentCount > 4)
-			{
-				[pathComponent5ImageView setImage:pathIcon];
-				[pathComponent5TextField setStringValue:component];
-			}
-		}
+			[folderDict setObject:[[NSFileManager defaultManager] attributedPath:folderPath] forKey:@"Attributed Path"];
 	}
+	
+	if (currentPath && [self rowOfCurrentFolder] == -1)
+	{
+		[folderList addObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:
+									currentPath, @"Path", 
+									[[NSFileManager defaultManager] attributedPath:currentPath], @"Attributed Path", 
+									@"--", @"Image Count", 
+									nil]];
+	}
+	
+	[folderList sortUsingSelector:@selector(compareFolderPaths:)];
+	
+	[folderTableView selectRow:[self rowOfCurrentFolder] byExtendingSelection:NO];
+	[folderTableView reloadData];
 	
 	[followsAliasesButton setState:([currentImageSource followsAliases] ? NSOnState : NSOffState)];
 }
@@ -138,7 +138,7 @@
 	if (![(DirectoryImageSource *)imageSource path])
 	{
 			// Default to the last directory chosen by the user.
-		NSString	*lastChosenDirectory = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Directory Image Source"] 
+		NSString	*lastChosenDirectory = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] 
 																					objectForKey:@"Last Chosen Directory"];
 		
 			// Default to the user's home directory if the value from the defaults is not valid.
@@ -155,7 +155,7 @@
 }
 
 
-- (IBAction)chooseDirectory:(id)sender
+- (IBAction)chooseFolder:(id)sender
 {
 	NSWindow		*window = [editorView window];
 	// TODO: use parent if in drawer, but not if in sheet
@@ -168,24 +168,24 @@
 							 types:nil
 					modalForWindow:window
 					 modalDelegate:self
-					didEndSelector:@selector(chooseDirectoryDidEnd:returnCode:contextInfo:)
+					didEndSelector:@selector(chooseFolderDidEnd:returnCode:contextInfo:)
 					   contextInfo:nil];
 }
 
 
-- (void)chooseDirectoryDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode contextInfo:(void *)context
+- (void)chooseFolderDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode contextInfo:(void *)context
 {
     if (returnCode == NSOKButton)
 	{
 		NSString		*newPath = [[sheet filenames] objectAtIndex:0];
 		
 			// Remember this path for the next time the user creates a new source.
-		NSMutableDictionary	*plugInDefaults = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Directory Image Source"] 
+		NSMutableDictionary	*plugInDefaults = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] 
 														mutableCopy] autorelease];
 		if (!plugInDefaults)
 			plugInDefaults = [NSMutableDictionary dictionary];
 		[plugInDefaults setObject:newPath forKey:@"Last Chosen Directory"];
-		[[NSUserDefaults standardUserDefaults] setObject:plugInDefaults forKey:@"Directory Image Source"];
+		[[NSUserDefaults standardUserDefaults] setObject:plugInDefaults forKey:@"Folder Image Source"];
 		[[NSUserDefaults standardUserDefaults] synchronize];
 		
 			// Update the current image source instance.
@@ -197,9 +197,44 @@
 }
 
 
+- (IBAction)clearFolderList:(id)sender
+{
+	NSMutableDictionary	*plugInDefaults = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] 
+													mutableCopy] autorelease];
+	if (plugInDefaults)
+	{
+		[plugInDefaults setObject:[NSArray array] forKey:@"Folders"];
+		[[NSUserDefaults standardUserDefaults] setObject:plugInDefaults forKey:@"Folder Image Source"];
+		[[NSUserDefaults standardUserDefaults] synchronize];
+	}
+	
+	[currentImageSource setPath:nil];
+	
+	[self updateGUI];
+}
+
+
 - (IBAction)setFollowsAliases:(id)sender
 {
 	[currentImageSource setFollowsAliases:([followsAliasesButton state] == NSOnState)];
+}
+
+
+- (int)numberOfRowsInTableView:(NSTableView *)tableView
+{
+	return [folderList count];
+}
+
+
+- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
+{
+	return [[folderList objectAtIndex:row] objectForKey:[tableColumn identifier]];
+}
+
+
+- (void)tableViewSelectionDidChange:(NSNotification *)notification
+{
+	[okButton setEnabled:([folderTableView selectedRow] != -1)];
 }
 
 

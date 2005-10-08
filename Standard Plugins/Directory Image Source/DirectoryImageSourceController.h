@@ -3,7 +3,7 @@
 //  MacOSaiX
 //
 //  Created by Frank Midgley on Sat Mar 08 2003.
-//  Copyright (c) 2003-2004 Frank M. Midgley. All rights reserved.
+//  Copyright (c) 2003-2005 Frank M. Midgley. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -15,25 +15,21 @@
 @interface DirectoryImageSourceController : NSObject <MacOSaiXImageSourceController>
 {
 	IBOutlet NSView			*editorView;
-
-	IBOutlet NSImageView	*pathComponent1ImageView,
-							*pathComponent2ImageView,
-							*pathComponent3ImageView,
-							*pathComponent4ImageView,
-							*pathComponent5ImageView;
-	IBOutlet NSTextField	*pathComponent1TextField,
-							*pathComponent2TextField,
-							*pathComponent3TextField,
-							*pathComponent4TextField,
-							*pathComponent5TextField;
-	IBOutlet NSButton		*changeDirectoryButton, 
+	
+	IBOutlet NSTableView	*folderTableView;
+	IBOutlet NSButton		*chooseFolderButton, 
+							*clearFolderListButton, 
 							*followsAliasesButton;
+	NSButton				*okButton;
+	
+	NSMutableArray			*folderList;
 	
 		// The image source instance currently being edited.
 	DirectoryImageSource	*currentImageSource;
 }
 
-- (IBAction)chooseDirectory:(id)sender;
+- (IBAction)chooseFolder:(id)sender;
+- (IBAction)clearFolderList:(id)sender;
 - (IBAction)setFollowsAliases:(id)sender;
 
 @end

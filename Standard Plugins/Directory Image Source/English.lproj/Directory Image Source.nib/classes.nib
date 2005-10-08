@@ -1,23 +1,15 @@
 {
     IBClasses = (
         {
-            ACTIONS = {chooseDirectory = id; setFollowsAliases = id; }; 
+            ACTIONS = {chooseFolder = id; clearFolderList = id; setFollowsAliases = id; }; 
             CLASS = DirectoryImageSourceController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                changeDirectoryButton = NSButton; 
+                chooseFolderButton = NSButton; 
+                clearFolderListButton = NSButton; 
                 editorView = NSView; 
+                folderTableView = NSTableView; 
                 followsAliasesButton = NSButton; 
-                pathComponent1ImageView = NSImageView; 
-                pathComponent1TextField = NSTextField; 
-                pathComponent2ImageView = NSImageView; 
-                pathComponent2TextField = NSTextField; 
-                pathComponent3ImageView = NSImageView; 
-                pathComponent3TextField = NSTextField; 
-                pathComponent4ImageView = NSImageView; 
-                pathComponent4TextField = NSTextField; 
-                pathComponent5ImageView = NSImageView; 
-                pathComponent5TextField = NSTextField; 
             }; 
             SUPERCLASS = NSObject; 
         }, 

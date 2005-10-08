@@ -16,7 +16,7 @@
 
 + (NSString *)name
 {
-	return @"Local Directory";
+	return @"Folder";
 }
 
 
@@ -105,13 +105,8 @@
 	[directoryImage autorelease];
 	directoryImage = (directoryPath ? [[[NSWorkspace sharedWorkspace] iconForFile:directoryPath] retain] : nil);
 	
-		// Create an attributed string containing our path that truncates in the middle so that
-		// the path's volume and nearest parent directories are both visible.
-	NSMutableParagraphStyle	*style = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
-	[style setLineBreakMode:NSLineBreakByTruncatingMiddle];
-	NSDictionary			*attributeDict = [NSDictionary dictionaryWithObject:style forKey:NSParagraphStyleAttributeName];
 	[directoryDescriptor autorelease];
-    directoryDescriptor = [[NSAttributedString alloc] initWithString:directoryPath attributes:attributeDict];
+    directoryDescriptor = [[[NSFileManager defaultManager] attributedPath:directoryPath] retain];
 	
 	haveMoreImages = YES;
 }
