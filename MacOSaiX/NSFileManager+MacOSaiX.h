@@ -30,3 +30,10 @@
 - (NSDirectoryEnumerator *)enumeratorAtPath:(NSString *)path followAliases:(BOOL)flag;
 
 @end
+
+
+@interface NSFileManager (MacOSaiXAttributedPaths)
+
+- (NSAttributedString *)attributedPath:(NSString *)path;
+
+@end

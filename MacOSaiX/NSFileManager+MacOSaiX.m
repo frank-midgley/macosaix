@@ -184,3 +184,79 @@
 
 
 @end
+
+
+@implementation NSFileManager (MacOSaiXAttributedPaths)
+
+
+- (NSAttributedString *)attributedPath:(NSString *)path
+{
+	NSMutableArray	*pathComponents = [[[path pathComponents] mutableCopy] autorelease];
+	NSString		*fullPath = [NSString string];
+	
+	if ([pathComponents count] > 1)
+	{
+			// Check for special directories.
+		NSString	*firstComponent = [pathComponents objectAtIndex:1];
+		
+		if ([firstComponent isEqualToString:@"Volumes"] || [firstComponent isEqualToString:@"Users"])
+		{
+				// We don't want to see the boot drive, "Volumes" or "Users" icons.
+			fullPath = [@"/" stringByAppendingString:[pathComponents objectAtIndex:1]];
+			[pathComponents removeObjectAtIndex:0];
+			[pathComponents removeObjectAtIndex:0];
+		}
+		else if ([firstComponent isEqualToString:@"Network"])
+		{
+				// We don't want to see the boot drive icon.
+			fullPath = @"/";
+			[pathComponents removeObjectAtIndex:0];
+		}
+	}
+	
+		// Loop through the components and build up the attributed string.
+	NSMutableAttributedString	*attributedPath = [[[NSMutableAttributedString alloc] initWithString:@""] autorelease];
+	NSEnumerator				*componentEnumerator = [pathComponents objectEnumerator];
+	NSString					*pathComponent = nil;
+	while (pathComponent = [componentEnumerator nextObject])
+	{
+		if ([attributedPath length] > 0)
+		{
+			NSAttributedString	*delimiterAS = [[NSAttributedString alloc] initWithString:@" > "];
+			[attributedPath appendAttributedString:delimiterAS];
+			[delimiterAS release];
+		}
+		
+		fullPath = [fullPath stringByAppendingPathComponent:pathComponent];
+		
+		NSImage		*componentIcon = (fullPath ? [[NSWorkspace sharedWorkspace] iconForFile:fullPath] : nil);
+		[componentIcon setSize:NSMakeSize(16.0, 16.0)];
+		
+		NSString	*componentName = [[NSFileManager defaultManager] displayNameAtPath:fullPath];
+		
+		NSTextAttachment	*ta = [[NSTextAttachment alloc] init];
+		[(NSCell *)[ta attachmentCell] setImage:componentIcon];
+		NSAttributedString	*imageAS = [NSMutableAttributedString attributedStringWithAttachment:ta],
+							*nameAS = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" %@",
+																								componentName]];
+		[attributedPath appendAttributedString:imageAS];
+		[attributedPath addAttribute:NSBaselineOffsetAttributeName 
+							   value:[NSNumber numberWithInt:-3] 
+							   range:NSMakeRange([attributedPath length] - 1, 1)];
+		[attributedPath appendAttributedString:nameAS];
+		[nameAS release];
+		[ta release];
+	}
+	
+	NSMutableParagraphStyle	*style = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+	[style setLineBreakMode:NSLineBreakByTruncatingMiddle];
+	[attributedPath addAttribute:NSParagraphStyleAttributeName 
+						   value:style 
+						   range:NSMakeRange(0, [attributedPath length])];
+	[style release];
+	
+	return attributedPath;
+}
+
+
+@end
