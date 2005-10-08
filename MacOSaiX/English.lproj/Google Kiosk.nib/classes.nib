@@ -1,0 +1,20 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {setOriginalImage = id; toggleKeyword = id; }; 
+            CLASS = MacOSaiXGoogleKioskController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                chooseAllButton = NSButton; 
+                chooseNoneButton = NSButton; 
+                keywordMatrix = NSMatrix; 
+                mosaicView = MosaicView; 
+                originalImageMatrix = NSMatrix; 
+            }; 
+            SUPERCLASS = NSWindowController; 
+        }, 
+        {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSView; }
+    ); 
+    IBVersion = 1; 
+}
