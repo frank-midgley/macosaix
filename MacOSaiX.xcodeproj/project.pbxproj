@@ -32,6 +32,11 @@
 		01BBDECD0747081400F17A9F /* NSImage+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01BBDECB0747081400F17A9F /* NSImage+MacOSaiX.h */; };
 		01BBDECE0747081400F17A9F /* NSImage+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */; };
 		01FAF1D6084031C2003A2726 /* Crash Reporter.nib in Resources */ = {isa = PBXBuildFile; fileRef = 01FAF1D4084031C2003A2726 /* Crash Reporter.nib */; };
+		01FE977E08E8EC8900E4AC7C /* Google Kiosk.nib in Resources */ = {isa = PBXBuildFile; fileRef = 01FE977C08E8EC8900E4AC7C /* Google Kiosk.nib */; };
+		01FE978D08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.h in Headers */ = {isa = PBXBuildFile; fileRef = 01FE978B08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.h */; };
+		01FE978E08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE978C08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.m */; };
+		01FE981208F365C600E4AC7C /* MacOSaiXMosaic.h in Headers */ = {isa = PBXBuildFile; fileRef = 01FE981008F365C600E4AC7C /* MacOSaiXMosaic.h */; };
+		01FE981308F365C600E4AC7C /* MacOSaiXMosaic.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */; };
 		921607B208E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */; };
 		9216086708E5DC9F0018C4C1 /* DirectoryImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = F540721A023FE6860100010A /* DirectoryImageSource.m */; };
 		9216086A08E5DCA70018C4C1 /* NSFileManager+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */; };
@@ -356,6 +361,11 @@
 		01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSImage+MacOSaiX.m"; path = "MacOSaiX/NSImage+MacOSaiX.m"; sourceTree = "<group>"; };
 		01CB07E6071A1F2B00710BCF /* Hexagonal Tiles.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Hexagonal Tiles.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		01FAF1D5084031C2003A2726 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "MacOSaiX/English.lproj/Crash Reporter.nib"; sourceTree = "<group>"; };
+		01FE977D08E8EC8900E4AC7C /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "MacOSaiX/English.lproj/Google Kiosk.nib"; sourceTree = "<group>"; };
+		01FE978B08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXGoogleKioskController.h; path = MacOSaiX/MacOSaiXGoogleKioskController.h; sourceTree = "<group>"; };
+		01FE978C08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXGoogleKioskController.m; path = MacOSaiX/MacOSaiXGoogleKioskController.m; sourceTree = "<group>"; };
+		01FE981008F365C600E4AC7C /* MacOSaiXMosaic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXMosaic.h; path = MacOSaiX/MacOSaiXMosaic.h; sourceTree = "<group>"; };
+		01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXMosaic.m; path = MacOSaiX/MacOSaiXMosaic.m; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = main.m; path = MacOSaiX/main.m; sourceTree = "<group>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSFileManager+MacOSaiX.h"; path = "MacOSaiX/NSFileManager+MacOSaiX.h"; sourceTree = "<group>"; };
@@ -608,12 +618,24 @@
 		01AB92ED07DB797E00DB4B86 /* Cocoa Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */,
+				921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */,
 				01BBDECB0747081400F17A9F /* NSImage+MacOSaiX.h */,
 				01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */,
 				01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */,
 				01AB92EA07DB797300DB4B86 /* NSString+MacOSaiX.m */,
 			);
 			name = "Cocoa Extensions";
+			sourceTree = "<group>";
+		};
+		01FE978A08E8EDDA00E4AC7C /* Google Kiosk */ = {
+			isa = PBXGroup;
+			children = (
+				01FE978B08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.h */,
+				01FE978C08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.m */,
+				01FE977C08E8EC8900E4AC7C /* Google Kiosk.nib */,
+			);
+			name = "Google Kiosk";
 			sourceTree = "<group>";
 		};
 		080E96DDFE201D6D7F000001 /* MacOSaiX.app */ = {
@@ -623,7 +645,10 @@
 				928F725D066121A700873AE2 /* MainMenu.nib */,
 				F5666CC9C5B062B401D943E0 /* MacOSaiX.h */,
 				F5666CCAC5B062B401D943E0 /* MacOSaiX.m */,
+				01FE981008F365C600E4AC7C /* MacOSaiXMosaic.h */,
+				01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */,
 				0165CFCF086DE52B0070D6B5 /* Document/Controller */,
+				01FE978A08E8EDDA00E4AC7C /* Google Kiosk */,
 				9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */,
 				9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */,
 				92B9087908C25F0500D621F5 /* MacOSaiXImageMatcher.h */,
@@ -713,8 +738,6 @@
 				92B45F71041A9DF1006867F5 /* DirectoryImageSourceController.m */,
 				928F72990661226000873AE2 /* Directory Image Source.nib */,
 				928F72D80661230700873AE2 /* Info.plist */,
-				921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */,
-				921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */,
 			);
 			name = Directory;
 			sourceTree = "<group>";
@@ -890,6 +913,8 @@
 				92B9087B08C25F0500D621F5 /* MacOSaiXImageMatcher.h in Headers */,
 				016A2C5208CD2611002D56C1 /* MacOSaiXImageMatch.h in Headers */,
 				016A2CCD08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h in Headers */,
+				01FE978D08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.h in Headers */,
+				01FE981208F365C600E4AC7C /* MacOSaiXMosaic.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1400,6 +1425,7 @@
 				016A242308D7C952009A93BF /* ZoomIn.png in Resources */,
 				016A242508D7C975009A93BF /* ZoomOut.png in Resources */,
 				016A248208D7D8E2009A93BF /* HandPicked.png in Resources */,
+				01FE977E08E8EC8900E4AC7C /* Google Kiosk.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1528,6 +1554,8 @@
 				016A2C5308CD2611002D56C1 /* MacOSaiXImageMatch.m in Sources */,
 				016A2CCE08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m in Sources */,
 				9216086A08E5DCA70018C4C1 /* NSFileManager+MacOSaiX.m in Sources */,
+				01FE978E08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.m in Sources */,
+				01FE981308F365C600E4AC7C /* MacOSaiXMosaic.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1649,6 +1677,14 @@
 				01FAF1D5084031C2003A2726 /* English */,
 			);
 			name = "Crash Reporter.nib";
+			sourceTree = "<group>";
+		};
+		01FE977C08E8EC8900E4AC7C /* Google Kiosk.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				01FE977D08E8EC8900E4AC7C /* English */,
+			);
+			name = "Google Kiosk.nib";
 			sourceTree = "<group>";
 		};
 		9227FD7907E37A340020C5F4 /* HexagonalTileShapes.nib */ = {
