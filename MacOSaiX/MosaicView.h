@@ -7,13 +7,13 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import "MacOSaiXDocument.h"
+#import "MacOSaiXMosaic.h"
 #import "Tiles.h"
 
 
 @interface MosaicView : NSView
 {
-	MacOSaiXDocument		*document;
+	MacOSaiXMosaic			*mosaic;
 	NSImage					*mosaicImage;
 	NSLock					*mosaicImageLock;
 	NSAffineTransform		*mosaicImageTransform;
@@ -37,7 +37,7 @@
 	NSImageRep				*blackRep;
 }
 
-- (void)setDocument:(MacOSaiXDocument *)inDocument;
+- (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
 
 - (void)setViewFade:(float)fade;
 - (float)fade;

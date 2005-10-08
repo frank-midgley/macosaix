@@ -63,19 +63,19 @@
 	[[NSNotificationCenter defaultCenter] addObserver:self 
 											 selector:@selector(originalImageDidChange:) 
 												 name:MacOSaiXOriginalImageDidChangeNotification 
-											   object:[self document]];
+											   object:[self mosaic]];
 	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(documentDidChangeState:) 
-												 name:MacOSaiXDocumentDidChangeStateNotification 
-											   object:[self document]];
+											 selector:@selector(mosaicDidChangeState:) 
+												 name:MacOSaiXMosaicDidChangeStateNotification 
+											   object:[self mosaic]];
 	[[NSNotificationCenter defaultCenter] addObserver:self 
 											 selector:@selector(tileShapesDidChange:) 
 												 name:MacOSaiXTileShapesDidChangeStateNotification 
-											   object:[self document]];
+											   object:[self mosaic]];
 	[[NSNotificationCenter defaultCenter] addObserver:self 
 											 selector:@selector(tileImageDidChange:) 
 												 name:MacOSaiXTileImageDidChangeNotification 
-											   object:[self document]];
+											   object:[self mosaic]];
 	
     viewMenu = [[[NSApp mainMenu] itemWithTitle:@"View"] submenu];
     fileMenu = [[[NSApp mainMenu] itemWithTitle:@"File"] submenu];
@@ -121,10 +121,10 @@
 		}
 		[originalImagePopUpButton selectItemAtIndex:0];
 		
-//		[[self document] setTileShapes:[[[NSClassFromString(@"MacOSaiXRectangularTileShapes") alloc] init] autorelease]];
+//		[[self mosaic] setTileShapes:[[[NSClassFromString(@"MacOSaiXRectangularTileShapes") alloc] init] autorelease]];
 		
 			// Fill in the description of the current tile shapes.
-		id	tileShapesDescription = [[[self document] tileShapes] briefDescription];
+		id	tileShapesDescription = [[[self mosaic] tileShapes] briefDescription];
 		if ([tileShapesDescription isKindOfClass:[NSString class]])
 			[tileShapesDescriptionField setStringValue:tileShapesDescription];
 		else if ([tileShapesDescription isKindOfClass:[NSAttributedString class]])
@@ -171,7 +171,7 @@
 	
 	[tileShapesBox setContentViewMargins:NSMakeSize(16.0, 16.0)];
 	
-	[mosaicView setDocument:[self document]];
+	[mosaicView setMosaic:[self mosaic]];
 	[self setViewOriginalImage:self];
 	
 		// For some reason IB insists on setting the drawer width to 200.  Have to set the size in code instead.
@@ -203,11 +203,11 @@
 - (void)synchronizeGUIWithDocument
 {
 		// Set the image use count and reuse distance pop-ups.
-	int				popUpIndex = [imageUseCountPopUpButton indexOfItemWithTag:[[self document] imageUseCount]];
+	int				popUpIndex = [imageUseCountPopUpButton indexOfItemWithTag:[[self mosaic] imageUseCount]];
 	[imageUseCountPopUpButton selectItemAtIndex:popUpIndex];
-	popUpIndex = [imageReuseDistancePopUpButton indexOfItemWithTag:[[self document] imageReuseDistance]];
+	popUpIndex = [imageReuseDistancePopUpButton indexOfItemWithTag:[[self mosaic] imageReuseDistance]];
 	[imageReuseDistancePopUpButton selectItemAtIndex:popUpIndex];
-	popUpIndex = [imageCropLimitPopUpButton indexOfItemWithTag:[[self document] imageCropLimit]];
+	popUpIndex = [imageCropLimitPopUpButton indexOfItemWithTag:[[self mosaic] imageCropLimit]];
 	[imageCropLimitPopUpButton selectItemAtIndex:popUpIndex];
 	
 	[self updateTileSizeFields];
@@ -225,9 +225,9 @@
 	if (originalPath)
 	{
 			// Return the currently displayed thumbnail to its menu item.
-		if ([[self document] originalImagePath])
+		if ([[self mosaic] originalImagePath])
 		{
-			int	previousIndex = [originalImagePopUpButton indexOfItemWithRepresentedObject:[[self document] originalImagePath]];
+			int	previousIndex = [originalImagePopUpButton indexOfItemWithRepresentedObject:[[self mosaic] originalImagePath]];
 			[[originalImagePopUpButton itemAtIndex:previousIndex] setImage:[originalImageThumbView image]];
 		}
 		
@@ -235,8 +235,8 @@
 		[originalImageThumbView setImage:[[originalImagePopUpButton selectedItem] image]];
 		[[originalImagePopUpButton selectedItem] setImage:nil];
 		
-			// Update the document.
-		[[self document] setOriginalImagePath:originalPath];
+			// Update the mosaic.
+		[[self mosaic] setOriginalImagePath:originalPath];
 	}
 	else
 	{
@@ -261,7 +261,7 @@
 						   contextInfo:(void *)context
 {
     if (returnCode == NSOKButton)
-		[[self document] setOriginalImagePath:[[sheet filenames] objectAtIndex:0]];
+		[[self mosaic] setOriginalImagePath:[[sheet filenames] objectAtIndex:0]];
 }
 
 
@@ -274,8 +274,8 @@
 	else
 	{
 			// Remember this original in the user's defaults so they can easily re-choose it for future mosaics.
-		NSString		*originalImagePath = [[self document] originalImagePath];
-		NSImage			*originalImage = [[self document] originalImage];
+		NSString		*originalImagePath = [[self mosaic] originalImagePath];
+		NSImage			*originalImage = [[self mosaic] originalImage];
 		NSImage			*thumbnailImage = [originalImage copyWithLargestDimension:32.0];
 		NSMutableArray	*originals = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] mutableCopy] autorelease];
 		if (originals)
@@ -399,10 +399,10 @@
 
 - (void)pause
 {
-	if (![[self document] isPaused])
+	if (![[self mosaic] isPaused])
 	{
 		[self displayProgressPanelWithMessage:@"Pausing..."];
-		[[self document] pause];
+		[[self mosaic] pause];
 		[self closeProgressPanel];
 		
 			// Update the toolbar.
@@ -417,11 +417,11 @@
 
 - (void)resume
 {
-	if ([[self document] isPaused])
+	if ([[self mosaic] isPaused])
 	{
-		[[self document] resume];
+		[[self mosaic] resume];
 		
-		//if ([[self document] wasStarted])
+		//if ([[self mosaic] wasStarted])
 		{
 				// Make sure the tiles can't be tweaked now that the mosaic was started.
 			[originalImagePopUpButton setEnabled:NO];
@@ -441,54 +441,51 @@
 
 
 #pragma mark -
-#pragma mark ???
+#pragma mark Miscellaneous
 
 
-- (MacOSaiXDocument *)document
+- (MacOSaiXMosaic *)mosaic
 {
-	return (MacOSaiXDocument *)[super document];
+	return [(MacOSaiXDocument *)[self document] mosaic];
 }
 
 
-- (void)documentDidChangeState:(NSNotification *)notification
+- (void)mosaicDidChangeState:(NSNotification *)notification
 {
 	if (!pthread_main_np())
-		[self performSelectorOnMainThread:@selector(documentDidChangeState:) withObject:notification waitUntilDone:NO];
+		[self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
 	else
 	{
 		NSString	*statusMessage = nil;
 		
-		// update the status bar
-		if (![[self document] originalImage])
+			// update the status bar
+		if (![[self mosaic] originalImage])
 			statusMessage = @"You have not chosen the original image";
-		else if ([[[self document] tiles] count] == 0)
+		else if ([[[self mosaic] tiles] count] == 0)
 			statusMessage = @"You have not set the tile shapes";
-		else if ([[[self document] imageSources] count] == 0)
+		else if ([[[self mosaic] imageSources] count] == 0)
 			statusMessage = @"You have not added any image sources";
-//		else if ([[self document] isExtractingTileImagesFromOriginal])
-//			statusMessage = [NSString stringWithFormat:@"Extracting tile images (%.0f%%)", 
-//													   [[self document] tileCreationPercentComplete]];
-		else if (![[self document] wasStarted])
+		else if (![[self mosaic] wasStarted])
 			statusMessage = @"Ready to begin.  Click the Start Mosaic button in the toolbar.";
-		else if ([[self document] isCalculatingImageMatches])
+		else if ([[self mosaic] isCalculatingImageMatches])
 			statusMessage = [NSString stringWithString:@"Matching images..."];
-		else if ([[self document] isPaused])
+		else if ([[self mosaic] isPaused])
 			statusMessage = [NSString stringWithString:@"Paused"];
-		else if ([[self document] isEnumeratingImageSources])
+		else if ([[self mosaic] isEnumeratingImageSources])
 			statusMessage = [NSString stringWithString:@"Looking for new images..."];
 		else
 			statusMessage = [NSString stringWithString:@"Done"];
 		
 //		[statusMessageView setStringValue:[NSString stringWithFormat:@"Images: %d     Quality: %2.1f%%     Status: %@",
-//																	 [[self document] imagesMatched], 
+//																	 [[self mosaic] imagesMatched], 
 //																	 overallMatch, 
 //																	 statusMessage]];
 		[statusMessageView setStringValue:[NSString stringWithFormat:@"Images: %d     Status: %@",
-																	 [[self document] imagesMatched], 
+																	 [[self mosaic] imagesMatched], 
 																	 statusMessage]];
 		
 		[imageSourcesTableView reloadData];
-		[totalTilesField setIntValue:[[[self document] tiles] count]];
+		[totalTilesField setIntValue:[[[self mosaic] tiles] count]];
 		[self updateTileSizeFields];
 	}
 }
@@ -497,7 +494,7 @@
 
 - (void)synchronizeMenus
 {
-	[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:([[self document] isPaused] ? @"Resume Matching" : @"Pause Matching")];
+	[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:([[self mosaic] isPaused] ? @"Resume Matching" : @"Pause Matching")];
 
 	[[viewMenu itemWithTag:0] setState:([mosaicView fade] == 0.0 ? NSOnState : NSOffState)];
 	[[viewMenu itemWithTag:1] setState:([mosaicView fade] == 1.0 ? NSOnState : NSOffState)];
@@ -589,7 +586,7 @@
 			[tileShapesPopUpButton sizeToFit];
 			maxWidth = MAX(maxWidth, [tileShapesPopUpButton frame].size.width);
 			
-			if ([[[self document] tileShapes] isKindOfClass:tileShapesClass])
+			if ([[[self mosaic] tileShapes] isKindOfClass:tileShapesClass])
 				currentlyUsedClassIndex = [tileShapesPopUpButton numberOfItems] - 1;
 		}
 		[tileShapesPopUpButton setFrameSize:NSMakeSize(maxWidth, [tileShapesPopUpButton frame].size.height)];
@@ -640,14 +637,14 @@
 		[lastKeyView setNextKeyView:cancelTileShapesButton];
 		[setTileShapesButton setNextKeyView:(NSView *)[tileShapesEditor editorViewFirstResponder]];
 		
-			// Get the existing tile shapes from our document.
+			// Get the existing tile shapes from our mosaic.
 			// If they are not of the class the user just chose then create a new one with default settings.
-		if ([[[self document] tileShapes] class] == tileShapesClass)
-			tileShapesBeingEdited = [[[self document] tileShapes] copyWithZone:[self zone]];
+		if ([[[self mosaic] tileShapes] class] == tileShapesClass)
+			tileShapesBeingEdited = [[[self mosaic] tileShapes] copyWithZone:[self zone]];
 		else
 			tileShapesBeingEdited = [[tileShapesClass alloc] init];
 		
-		[tileShapesEditor editTileShapes:tileShapesBeingEdited forOriginalImage:[[self document] originalImage]];
+		[tileShapesEditor editTileShapes:tileShapesBeingEdited forOriginalImage:[[self mosaic] originalImage]];
 	}
 	else
 	{
@@ -676,7 +673,7 @@
 	[sheet orderOut:self];
 	
 	if (returnCode == NSOKButton)
-		[[self document] setTileShapes:tileShapesBeingEdited];
+		[[self mosaic] setTileShapes:tileShapesBeingEdited];
 	
 	[tileShapesBeingEdited release];
 	tileShapesBeingEdited = nil;
@@ -687,8 +684,8 @@
 
 - (void)updateTileSizeFields
 {
-	NSSize	tileUnitSize = (selectedTile ? [[selectedTile outline] bounds].size : [[self document] averageUnitTileSize]),
-			originalSize = [[[self document] originalImage] size];
+	NSSize	tileUnitSize = (selectedTile ? [[selectedTile outline] bounds].size : [[self mosaic] averageUnitTileSize]),
+			originalSize = [[[self mosaic] originalImage] size];
 	float	aspectRatio = (tileUnitSize.width * originalSize.width) / 
 						  (tileUnitSize.height * originalSize.height);
 	[tileSizeLabelField setStringValue:(selectedTile ? @"Selected tile size:" : @"Average tile size:")];
@@ -698,12 +695,12 @@
 
 - (void)tileShapesDidChange:(NSNotification *)notification
 {
-	NSString	*tileShapesDescription = [[[self document] tileShapes] briefDescription];
+	NSString	*tileShapesDescription = [[[self mosaic] tileShapes] briefDescription];
 	if (tileShapesDescription)
 		[tileShapesDescriptionField setStringValue:tileShapesDescription];
 	else
 		[tileShapesDescriptionField setStringValue:@"No description available"];
-	[totalTilesField setIntValue:[[[self document] tiles] count]];
+	[totalTilesField setIntValue:[[[self mosaic] tiles] count]];
 	
 	if (selectedTile)
 		[self selectTileAtPoint:tileSelectionPoint];
@@ -716,19 +713,19 @@
 
 - (IBAction)setImageUseCount:(id)sender
 {
-	[[self document] setImageUseCount:[[imageUseCountPopUpButton selectedItem] tag]];
+	[[self mosaic] setImageUseCount:[[imageUseCountPopUpButton selectedItem] tag]];
 }
 
 
 - (IBAction)setImageReuseDistance:(id)sender
 {
-	[[self document] setImageReuseDistance:[[imageReuseDistancePopUpButton selectedItem] tag]];
+	[[self mosaic] setImageReuseDistance:[[imageReuseDistancePopUpButton selectedItem] tag]];
 }
 
 
 - (IBAction)setImageCropLimit:(id)sender
 {
-	[[self document] setImageCropLimit:[[imageCropLimitPopUpButton selectedItem] tag]];
+	[[self mosaic] setImageCropLimit:[[imageCropLimitPopUpButton selectedItem] tag]];
 }
 
 
@@ -791,7 +788,7 @@
 - (IBAction)editImageSource:(id)sender
 {
 	if (sender == imageSourcesTableView)
-		[self editImageSourceInSheet:[[[self document] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]]];
+		[self editImageSourceInSheet:[[[self mosaic] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]]];
 }
 
 
@@ -820,8 +817,8 @@
 	
 	if (returnCode == NSOKButton)
 	{
-		[[self document] removeImageSource:originalImageSource];
-		[[self document] addImageSource:editedImageSource];
+		[[self mosaic] removeImageSource:originalImageSource];
+		[[self mosaic] addImageSource:editedImageSource];
 		
 		[imageSourcesTableView reloadData];
 	}
@@ -839,9 +836,9 @@
 						@"All tiles that were using images from this source will be changed to black.", 
 						@"Remove", @"Cancel", nil) == NSAlertDefaultReturn)
 	{
-		id<MacOSaiXImageSource>	imageSource = [[[self document] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]];
+		id<MacOSaiXImageSource>	imageSource = [[[self mosaic] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]];
 		
-		[[self document] removeImageSource:imageSource];
+		[[self mosaic] removeImageSource:imageSource];
 	}
 }
 
@@ -858,7 +855,7 @@
     thePoint.y = thePoint.y / [mosaicView frame].size.height;
     
         // TBD: this isn't terribly efficient...
-	NSEnumerator	*tileEnumerator = [[[self document] tiles] objectEnumerator];
+	NSEnumerator	*tileEnumerator = [[[self mosaic] tiles] objectEnumerator];
 	MacOSaiXTile	*tile = nil;
 	while (tile = [tileEnumerator nextObject])
         if ([[tile outline] containsPoint:thePoint])
@@ -908,7 +905,7 @@
 
 - (void)animateSelectedTile:(id)timer
 {
-    if (![[self document] isClosing])
+    if (![(MacOSaiXDocument *)[self document] isClosing])
         [mosaicView animateHighlight];
 }
 
@@ -924,7 +921,7 @@
 	
 		// Figure out how to scale and translate the tile to fit within the image.
     NSSize				tileSize = [tileOutline bounds].size,
-						originalSize = [[[self document] originalImage] size], 
+						originalSize = [[[self mosaic] originalImage] size], 
 						denormalizedTileSize = NSMakeSize(tileSize.width * originalSize.width, 
 														  tileSize.height * originalSize.height);
     float				xScale, yScale;
@@ -1004,7 +1001,7 @@
 		
 			// Determine the bounds of the tile in the original image and in the scratch window.
 		NSBezierPath	*tileOutline = [selectedTile outline];
-		NSImage			*originalImage = [[self document] originalImage];
+		NSImage			*originalImage = [[self mosaic] originalImage];
 		NSRect			origRect = NSMakeRect([tileOutline bounds].origin.x * [originalImage size].width,
 											  [tileOutline bounds].origin.y * [originalImage size].height,
 											  [tileOutline bounds].size.width * [originalImage size].width,
@@ -1152,9 +1149,9 @@
 {
     if (returnCode == NSOKButton)
 	{
-		[[self document] setHandPickedImageAtPath:[[sheet filenames] objectAtIndex:0]
-								   withMatchValue:editorChosenMatchValue
-										  forTile:selectedTile];
+		[[self mosaic] setHandPickedImageAtPath:[[sheet filenames] objectAtIndex:0]
+								 withMatchValue:editorChosenMatchValue
+										forTile:selectedTile];
 		[imageSourcesTableView reloadData];
 	}
 }
@@ -1163,7 +1160,7 @@
 - (IBAction)removeChosenImageForSelectedTile:(id)sender
 {
 	if (selectedTile)
-		[[self document] removeHandPickedImageForTile:selectedTile];
+		[[self mosaic] removeHandPickedImageForTile:selectedTile];
 }
 
 
@@ -1373,7 +1370,7 @@
     else if (actionToValidate == @selector(centerViewOnSelectedTile:))
 		valid = (selectedTile != nil && zoom != 0.0);
     else if (actionToValidate == @selector(togglePause:))
-		valid = ([[[self document] imageSources] count] > 0);
+		valid = ([[[self mosaic] imageSources] count] > 0);
 
 	return valid;
 }
@@ -1399,9 +1396,9 @@
 
 - (void)togglePause:(id)sender
 {
-	if ([[self document] isPaused])
+	if ([[self mosaic] isPaused])
 	{
-		if ([mosaicView fade] == 0.0 && ![[self document] wasStarted])
+		if ([mosaicView fade] == 0.0 && ![[self mosaic] wasStarted])
 		{
 			fadeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.25 
 														  target:self 
@@ -1424,10 +1421,10 @@
 - (void)beginExportImage:(id)sender
 {
 		// Disable auto saving so it doesn't interfere with exporting.
-	[[self document] setAutoSaveEnabled:NO];
+	[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:NO];
 	
 		// Pause the mosaic so we don't have a moving target.
-	BOOL		wasPaused = [[self document] isPaused];
+	BOOL		wasPaused = [[self mosaic] isPaused];
     [self pause];
     
 		// Set up the save panel for exporting.
@@ -1441,7 +1438,7 @@
 	[self setExportFade:self];
     if ([exportWidth intValue] == 0)
     {
-		NSSize	originalSize = [[[self document] originalImage] size];
+		NSSize	originalSize = [[[self mosaic] originalImage] size];
 		float	scale = 4.0;
 		
 		if (originalSize.width * scale > 10000.0)
@@ -1469,12 +1466,12 @@
 - (IBAction)setExportFade:(id)sender
 {
 	if ([exportFadeSlider floatValue] == 0.0)
-		[exportFadedImageView setImage:[[self document] originalImage]];
+		[exportFadedImageView setImage:[[self mosaic] originalImage]];
 	else if ([exportFadeSlider floatValue] == 1.0)
 		[exportFadedImageView setImage:[mosaicView image]];
 	else
 	{
-		NSImage	*fadedImage = [[[self document] originalImage] copy];
+		NSImage	*fadedImage = [[[self mosaic] originalImage] copy];
 		
 		[fadedImage lockFocus];
 			[[mosaicView image] drawInRect:NSMakeRect(0.0, 0.0, [fadedImage size].width, [fadedImage size].height) 
@@ -1519,7 +1516,7 @@
 	}
 	else
 			// Re-enable auto saving.
-		[[self document] setAutoSaveEnabled:YES];
+		[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:YES];
 }
 
 
@@ -1542,19 +1539,19 @@
 	
 	NSRect		exportRect = NSMakeRect(0.0, 0.0, [exportWidth intValue], [exportHeight intValue]);
 	
-	[[[self document] originalImage] drawInRect:exportRect 
-									   fromRect:NSZeroRect 
-									  operation:NSCompositeCopy 
-									   fraction:1.0];
+	[[[self mosaic] originalImage] drawInRect:exportRect 
+									 fromRect:NSZeroRect 
+									operation:NSCompositeCopy 
+									 fraction:1.0];
 	
 	[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
     NSAffineTransform	*transform = [NSAffineTransform transform];
     [transform scaleXBy:[exportImage size].width yBy:[exportImage size].height];
 	
-	unsigned long		tileCount = [[[self document] tiles] count],
+	unsigned long		tileCount = [[[self mosaic] tiles] count],
 						tilesExported = 0;
 	
-	NSEnumerator		*tileEnumerator = [[[self document] tiles] objectEnumerator];
+	NSEnumerator		*tileEnumerator = [[[self mosaic] tiles] objectEnumerator];
 	MacOSaiXTile		*tile = nil;
 	while (tile = [tileEnumerator nextObject])
     {
@@ -1643,7 +1640,7 @@
 	if (exportError)
 		[self performSelectorOnMainThread:@selector(displayExportErrorSheet:) withObject:exportError waitUntilDone:NO];
 	else
-		[[self document] setAutoSaveEnabled:YES];	// Re-enable auto saving.
+		[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:YES];	// Re-enable auto saving.
 }
 
 
@@ -1656,7 +1653,7 @@
 
 - (void)exportErrorSheetDidDismiss:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
-	[[self document] setAutoSaveEnabled:YES];	// Re-enable auto saving.
+	[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:YES];	// Re-enable auto saving.
 }
 
 
@@ -1743,7 +1740,7 @@
 {
 	if (resizingWindow == [self window])
 	{
-		float	aspectRatio = [[[self document] originalImage] size].width / [[[self document] originalImage] size].height,
+		float	aspectRatio = [[[self mosaic] originalImage] size].width / [[[self mosaic] originalImage] size].height,
 				windowTop = NSMaxY([resizingWindow frame]), 
 				minHeight = 413;	// TODO: get this from nib setting
 		NSSize	diff;
@@ -1829,9 +1826,9 @@
 {
 	if ([notification object] == [self window])
 	{
-		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXOriginalImageDidChangeNotification object:[self document]];
-		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXDocumentDidChangeStateNotification object:[self document]];
-		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXTileShapesDidChangeStateNotification object:[self document]];
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXOriginalImageDidChangeNotification object:[self mosaic]];
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXMosaicDidChangeStateNotification object:[self mosaic]];
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXTileShapesDidChangeStateNotification object:[self mosaic]];
 		
 		[tileRefreshLock lock];
 			[tilesToRefresh release];
@@ -1874,8 +1871,8 @@
 	else if ([itemIdentifier isEqualToString:@"Pause"])
     {
 		[toolbarItem setImage:[NSImage imageNamed:@"Pause"]];
-		[toolbarItem setLabel:[[self document] isPaused] ? @"Resume" : @"Pause"];
-		[toolbarItem setPaletteLabel:[[self document] isPaused] ? @"Resume" : @"Pause"];
+		[toolbarItem setLabel:[[self mosaic] isPaused] ? @"Resume" : @"Pause"];
+		[toolbarItem setPaletteLabel:[[self mosaic] isPaused] ? @"Resume" : @"Pause"];
 		[toolbarItem setTarget:self];
 		[toolbarItem setAction:@selector(togglePause:)];
 		pauseToolbarItem = toolbarItem;
@@ -1917,7 +1914,7 @@
 - (BOOL)validateToolbarItem:(NSToolbarItem *)theItem
 {
     if ([[theItem itemIdentifier] isEqualToString:@"Pause"])
-		return ([[[self document] tiles] count] > 0 && [[[self document] imageSources] count] > 0);
+		return ([[[self mosaic] tiles] count] > 0 && [[[self mosaic] imageSources] count] > 0);
     else
 		return YES;
 }
@@ -1946,7 +1943,7 @@
 - (int)numberOfRowsInTableView:(NSTableView *)aTableView
 {
     if (aTableView == imageSourcesTableView)
-		return [[[self document] imageSources] count];
+		return [[[self mosaic] imageSources] count];
 	
 	return 0;
 }
@@ -1956,14 +1953,14 @@
 {
     if (aTableView == imageSourcesTableView)
     {
-		id<MacOSaiXImageSource>	imageSource = [[[self document] imageSources] objectAtIndex:rowIndex];
+		id<MacOSaiXImageSource>	imageSource = [[[self mosaic] imageSources] objectAtIndex:rowIndex];
 		
 		if ([[aTableColumn identifier] isEqualToString:@"Image Source Type"])
 			return [imageSource image];
 		else
 		{
 				// TBD: this won't work once entries get removed from the dictionary...
-			long	imageCount = [[self document] countOfImagesFromSource:imageSource];
+			long	imageCount = [[self mosaic] countOfImagesFromSource:imageSource];
 			id		descriptor = [imageSource descriptor];
 			
 			if ([descriptor isKindOfClass:[NSString class]])
@@ -1995,12 +1992,12 @@
 		while (selectedRowNumber = [selectedRowNumberEnumerator nextObject])
 		{
 			int	rowIndex = [selectedRowNumber intValue];
-			[selectedImageSources addObject:[[[self document] imageSources] objectAtIndex:rowIndex]];
+			[selectedImageSources addObject:[[[self mosaic] imageSources] objectAtIndex:rowIndex]];
 		}
 		
 		[imageSourcesRemoveButton setEnabled:([selectedImageSources count] > 0)];
 		
-		if ([[[self document] imageSources] count] > 1)
+		if ([[[self mosaic] imageSources] count] > 1)
 			[mosaicView highlightImageSources:selectedImageSources];
 		else
 			[mosaicView highlightImageSources:nil];
@@ -2041,7 +2038,7 @@
 
 - (void)controlTextDidChange:(NSNotification *)notification
 {
-	NSSize	originalImageSize = [[[self document] originalImage] size];
+	NSSize	originalImageSize = [[[self mosaic] originalImage] size];
 	
 	if ([notification object] == exportWidth)
 		[exportHeight setIntValue:[exportWidth intValue] / originalImageSize.width * originalImageSize.height + 0.5];

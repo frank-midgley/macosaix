@@ -10,7 +10,7 @@
 #define TILE_BITMAP_SIZE		16.0
 
 
-@class MacOSaiXDocument;
+@class MacOSaiXMosaic;
 
 
 @interface MacOSaiXTile : NSObject
@@ -22,11 +22,11 @@
 	MacOSaiXImageMatch	*uniqueImageMatch,
 						*nonUniqueImageMatch,
 						*userChosenImageMatch;	// will be nil if user has not choosen an image
-	MacOSaiXDocument	*document;				// The document this tile is a part of (non-retained)
+	MacOSaiXMosaic		*mosaic;				// The mosaic this tile is a part of (non-retained)
 }
 
 	// designated initializer
-- (id)initWithOutline:(NSBezierPath *)outline fromDocument:(MacOSaiXDocument *)document;
+- (id)initWithOutline:(NSBezierPath *)outline fromMosaic:(MacOSaiXMosaic *)inMosaic;
 
 - (void)setNeighboringTiles:(NSArray *)neighboringTiles;
 - (NSArray *)neighboringTiles;

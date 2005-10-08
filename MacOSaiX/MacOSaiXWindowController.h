@@ -111,7 +111,7 @@
 	id<MacOSaiXImageSource>				*manualImageSource;
 }
 
-- (MacOSaiXDocument *)document;
+- (MacOSaiXMosaic *)mosaic;
 
 - (void)synchronizeGUIWithDocument;
 

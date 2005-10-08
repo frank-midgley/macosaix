@@ -6,12 +6,12 @@
 @implementation MacOSaiXTile
 
 
-- (id)initWithOutline:(NSBezierPath *)inOutline fromDocument:(MacOSaiXDocument *)inDocument
+- (id)initWithOutline:(NSBezierPath *)inOutline fromMosaic:(MacOSaiXMosaic *)inMosaic
 {
 	if (self = [super init])
 	{
 		outline = [inOutline retain];
-		document = inDocument;	// non-retained, it retains us
+		mosaic = inMosaic;	// non-retained, it retains us
 	}
 	return self;
 }
@@ -52,7 +52,7 @@
 - (void)resetBitmapRepAndMask
 {
 		// TODO: this should not be called from outside.  we should listen for notifications 
-		// that the original image or tile shapes changed for our document and reset at that
+		// that the original image or tile shapes changed for our mosaic and reset at that
 		// point.
     [bitmapRep autorelease];
     bitmapRep = nil;
@@ -66,7 +66,7 @@
 	NS_DURING
 			// Determine the bounds of the tile in the original image and in the workingImage.
 		NSBezierPath	*tileOutline = [self outline];
-		NSImage			*originalImage = [document originalImage];
+		NSImage			*originalImage = [mosaic originalImage];
 		NSRect			origRect = NSMakeRect([tileOutline bounds].origin.x * [originalImage size].width,
 											  [tileOutline bounds].origin.y * [originalImage size].height,
 											  [tileOutline bounds].size.width * [originalImage size].width,
@@ -136,7 +136,7 @@
 - (void)sendNotificationThatImageChangedFrom:(MacOSaiXImageMatch *)previousMatch
 {
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileImageDidChangeNotification
-														object:document 
+														object:mosaic 
 													  userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
 																	self, @"Tile", 
 																	previousMatch, @"Previous Match",

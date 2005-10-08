@@ -1,8 +1,14 @@
+//
+//  MosaicView.m
+//  MacOSaiX
+//
+//  Created by Frank Midgley on Sat Feb 02 2002.
+//  Copyright (c) 2001-2005 Frank M. Midgley.  All rights reserved.
+//
+
 #import "MosaicView.h"
-#import "MacOSaiXDocument.h"
 #import "MacOSaiXWindowController.h"
 #import "MacOSaiXImageCache.h"
-#import "Tiles.h"
 
 
 @interface MosaicView (PrivateMethods)
@@ -31,20 +37,20 @@
 }
 
 
-- (void)setDocument:(MacOSaiXDocument *)inDocument
+- (void)setMosaic:(MacOSaiXMosaic *)inMosaic
 {
-    if (inDocument && document != inDocument)
+    if (inMosaic && mosaic != inMosaic)
 	{
-		document = inDocument;
+		mosaic = inMosaic;
 		
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(originalImageDidChange:) 
 													 name:MacOSaiXOriginalImageDidChangeNotification
-												   object:document];
+												   object:mosaic];
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(tileShapesDidChange:) 
 													 name:MacOSaiXTileShapesDidChangeStateNotification 
-												   object:document];
+												   object:mosaic];
 		
 		[self tileShapesDidChange:nil];
 	}
@@ -59,7 +65,7 @@
 
 - (void)originalImageDidChange:(NSNotification *)notification
 {
-	NSImage	*originalImage = [document originalImage];
+	NSImage	*originalImage = [mosaic originalImage];
 	
 		// Create an NSImage to hold the mosaic image (somewhat arbitrary size)
 	[mosaicImageLock lock];
@@ -93,7 +99,7 @@
 {
 	[tilesOutline removeAllPoints];
 	
-	NSEnumerator	*tileEnumerator = [[document tiles] objectEnumerator];
+	NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
 	MacOSaiXTile	*tile = nil;
 	while (tile = [tileEnumerator nextObject])
 	    [tilesOutline appendBezierPath:[tile outline]];
@@ -240,10 +246,10 @@
 
 - (void)drawRect:(NSRect)theRect
 {
-	[[document originalImage] drawInRect:[self bounds] 
-								fromRect:NSZeroRect 
-							   operation:NSCompositeCopy 
-								fraction:1.0];
+	[[mosaic originalImage] drawInRect:[self bounds] 
+							  fromRect:NSZeroRect 
+							 operation:NSCompositeCopy 
+							  fraction:1.0];
 
 	if (viewFade > 0.0)
 	{
@@ -346,7 +352,7 @@
 
 - (void)createHighlightedImageSourcesOutline
 {
-	NSEnumerator	*tileEnumerator = [[document tiles] objectEnumerator];
+	NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
 	MacOSaiXTile	*tile = nil;
 	while (tile = [tileEnumerator nextObject])
 		if ([highlightedImageSources containsObject:[[tile displayedImageMatch] imageSource]])
@@ -369,7 +375,7 @@
 	[highlightedImageSourcesOutline release];
 	highlightedImageSourcesOutline = nil;
 	
-		// Create a combined path for all tiles of our document that are not
+		// Create a combined path for all tiles of our mosaic that are not
 		// currently displaying an image from any of the sources.
 	if ([imageSources count] > 0)
 		[self createHighlightedImageSourcesOutline];

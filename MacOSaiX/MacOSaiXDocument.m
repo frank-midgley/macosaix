@@ -10,27 +10,13 @@
 #import "MacOSaiXDocument.h"
 
 #import "MacOSaiX.h"
-#import "MacOSaiXImageCache.h"
-#import "MacOSaiXImageMatcher.h"
-#import "MacOSaiXWindowController.h"
+#import "MacOSaiXGoogleKioskController.h"
 #import "Tiles.h"
 #import "NSImage+MacOSaiX.h"
 #import "NSString+MacOSaiX.h"
 
 
-	// The maximum size of the image URL queue
-#define MAXIMAGEURLS 4
-
-
-	// Notifications
-NSString	*MacOSaiXDocumentDidChangeStateNotification = @"MacOSaiXDocumentDidChangeStateNotification";
-NSString	*MacOSaiXDocumentDidSaveNotification = @"MacOSaiXDocumentDidSaveNotification";
-NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDidChangeNotification";
-NSString	*MacOSaiXTileImageDidChangeNotification = @"MacOSaiXTileImageDidChangeNotification";
-NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDidChangeStateNotification";
-
-
-@interface MacOSaiXDocument (PrivateMethods)
+@interface MacOSaiXMosaic (PrivateMethods)
 - (void)addTile:(MacOSaiXTile *)tile;
 - (BOOL)started;
 - (void)lockWhilePaused;
@@ -55,33 +41,11 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 {
     if (self = [super init])
     {
-		NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
-		
 		[self setHasUndoManager:FALSE];	// don't track undo-able changes
 		
-		paused = YES;
 		autoSaveEnabled = YES;
 		
-		imageSources = [[NSMutableArray arrayWithCapacity:0] retain];
 		lastSaved = [[NSDate date] retain];
-
-		pauseLock = [[NSLock alloc] init];
-		[pauseLock lock];
-			
-		// create the image URL queue and its lock
-		imageQueue = [[NSMutableArray arrayWithCapacity:0] retain];
-		imageQueueLock = [[NSLock alloc] init];
-
-		calculateImageMatchesThreadLock = [[NSLock alloc] init];
-		betterMatchesCache = [[NSMutableDictionary dictionary] retain];
-		
-		enumerationThreadCountLock = [[NSLock alloc] init];
-		enumerationCountsLock = [[NSLock alloc] init];
-		enumerationCounts = [[NSMutableDictionary dictionary] retain];
-		
-		[self setImageUseCount:[[defaults objectForKey:@"Image Use Count"] intValue]];
-		[self setImageReuseDistance:[[defaults objectForKey:@"Image Reuse Distance"] intValue]];
-		[self setImageCropLimit:[[defaults objectForKey:@"Image Crop Limit"] intValue]];
 	}
 	
     return self;
@@ -94,10 +58,11 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	{
 		NSString	*defaultShapesClassString = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Chosen Tile Shapes Class"];
 		
-		[self setTileShapes:[[[NSClassFromString(defaultShapesClassString) alloc] init] autorelease]];
+		[mosaic setTileShapes:[[[NSClassFromString(defaultShapesClassString) alloc] init] autorelease]];
 	}
 	
-	mainWindowController = [[[MacOSaiXWindowController alloc] initWithWindow:nil] autorelease];
+	mainWindowController = [[[MacOSaiXGoogleKioskController alloc] initWithWindow:nil] autorelease];
+//	mainWindowController = [[[MacOSaiXWindowController alloc] initWithWindow:nil] autorelease];
 	
 	[self addWindowController:mainWindowController];
 	[mainWindowController showWindow:self];
@@ -106,157 +71,19 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 - (MacOSaiXWindowController *)mainWindowController
 {
-	return mainWindowController;
+	return nil;	//mainWindowController;
 }
 
 
-//- (void)shouldCloseWindowController:(NSWindowController *)windowController 
-//						   delegate:(id)delegate 
-//				shouldCloseSelector:(SEL)callback 
-//						contextInfo:(void *)contextInfo
-//{
-//	if (saving)
-//	{
-//		if (delegate && [delegate respondsToSelector:callback])
-//		{
-//				// ...
-//				// The delegate's selector has the signature:
-//				// - (void)document:(NSDocument *)doc didSave:(BOOL)didSave contextInfo:(void *)contextInfo
-//			NSMethodSignature	*signature = [[delegate class] instanceMethodSignatureForSelector:callback];
-//			NSInvocation		*shouldCloseCallback = [NSInvocation invocationWithMethodSignature:signature];
-//			BOOL				shouldClose = NO;
-//			
-//			[shouldCloseCallback setTarget:delegate];
-//			[shouldCloseCallback setSelector:callback];
-//			[shouldCloseCallback setArgument:&self atIndex:2];
-//			[shouldCloseCallback setArgument:&shouldClose atIndex:3];
-//			[shouldCloseCallback setArgument:&contextInfo atIndex:4];
-//			[shouldCloseCallback invoke];
-//		}
-//	}
-//	else
-//		[super shouldCloseWindowController:windowController 
-//								  delegate:delegate 
-//					   shouldCloseSelector:callback 
-//							   contextInfo:contextInfo];
-//}
-
-
-//- (void)removeWindowController:(NSWindowController *)windowController
-//{
-//	if (saving)
-//		;
-//	else
-//		[super removeWindowController:windowController];
-//}
-
-
-- (void)setOriginalImagePath:(NSString *)path
+- (MacOSaiXMosaic *)mosaic
 {
-	if (![path isEqualToString:originalImagePath])
-	{
-		[originalImagePath release];
-		[originalImage release];
-		
-		originalImagePath = [[NSString stringWithString:path] retain];
-		originalImage = [[NSImage alloc] initWithContentsOfFile:path];
-		[originalImage setCachedSeparately:YES];
-		originalImageAspectRatio = [originalImage size].width / [originalImage size].height;
-
-			// Ignore whatever DPI was set for the image.  We just care about the bitmap.
-		NSImageRep	*originalRep = [[originalImage representations] objectAtIndex:0];
-		[originalRep setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
-		[originalImage setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
-		
-		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXOriginalImageDidChangeNotification object:self];
-	}
+	return mosaic;
 }
 
 
-- (NSString *)originalImagePath
+- (void)mosaicDidChangeState:(NSNotification *)notification
 {
-	return originalImagePath;
-}
-
-
-- (NSImage *)originalImage
-{
-	return [[originalImage retain] autorelease];
-}
-
-
-#pragma mark -
-#pragma mark Pausing/resuming
-
-
-- (BOOL)wasStarted
-{
-	return mosaicStarted;
-}
-
-
-- (BOOL)isPaused
-{
-	return paused;
-}
-
-
-- (void)pause
-{
-	if (!paused)
-	{
-			// Wait for the one-shot startup thread to end.
-//		while ([self isExtractingTileImagesFromOriginal])
-//			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
-
-			// Tell the enumeration threads to stop sending in any new images.
-		[pauseLock lock];
-		
-			// Wait for any queued images to get processed.
-			// TBD: can we condition lock here instead of poll?
-			// TBD: this could block the main thread
-		while ([self isCalculatingImageMatches])
-			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
-		
-		paused = YES;
-		
-		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
-	}
-}
-
-
-- (void)lockWhilePaused
-{
-	[pauseLock lock];
-	[pauseLock unlock];
-}
-
-
-- (void)resume
-{
-	if (paused)
-	{
-//		if (![self wasStarted])
-//		{
-//				// Automatically start the mosaic.
-//				// Show the mosaic image and start extracting the tile images.
-//			[[self mainWindowController] setViewMosaic:self];
-//			[NSApplication detachDrawingThread:@selector(extractTileImagesFromOriginalImage)
-//									  toTarget:self
-//									withObject:nil];
-//		}
-//		else
-		{
-			mosaicStarted = YES;
-			
-				// Start or restart the image sources
-			[pauseLock unlock];
-			
-			paused = NO;
-			
-			[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
-		}
-	}
+	[self updateChangeCount:NSChangeDone];
 }
 
 
@@ -352,14 +179,14 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	
 	[self setIsSaving:YES];
 	
-	BOOL			wasPaused = paused;
+	BOOL			wasPaused = [mosaic isPaused];
 	
 		// Display a sheet while the save is underway
 // TODO:	[[self mainWindowController] setCancelAction:@selector(cancelSave) andTarget:self];
 	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving mosaic project..."];
 	
 		// Pause the mosaic so that it is in a static state while saving.
-	[self pause];
+	[mosaic pause];
 	
 	NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
 											fileName, @"Save Path", 
@@ -386,12 +213,12 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 {
 	[self setIsSaving:YES];
 	
-	BOOL			wasPaused = paused;
+	BOOL			wasPaused = [mosaic isPaused];
 	
 	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving mosaic project..."];
 
 		// Pause the mosaic so that it is in a static state while saving.
-	[self pause];
+	[mosaic pause];
 
 	NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
 											fullDocumentPath, @"Save Path", 
@@ -425,39 +252,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	while (index != 0);
 	
 	return [NSString stringWithCString:++p];
-}
-
-
-- (NSDictionary *)imagesInUse
-{
-	NSMutableDictionary	*imagesInUse = [NSMutableDictionary dictionary];
-	NSEnumerator		*tileEnumerator = [tiles objectEnumerator];
-	MacOSaiXTile		*tile = nil;
-	while (tile = [tileEnumerator nextObject])
-	{
-		NSEnumerator		*matchEnumerator = [[NSArray arrayWithObjects:[tile uniqueImageMatch], [tile userChosenImageMatch], nil] 
-																objectEnumerator];
-		MacOSaiXImageMatch	*match = nil;
-		while (match = [matchEnumerator nextObject])
-		{
-			NSString			*imageSourceID = [self indexAsAlpha:[imageSources indexOfObjectIdenticalTo:[match imageSource]]];
-			NSMutableDictionary	*imageSourceImageDict = [imagesInUse objectForKey:imageSourceID];
-			if (!imageSourceImageDict)
-			{
-				imageSourceImageDict = [NSMutableDictionary dictionary];
-				[imagesInUse setObject:imageSourceImageDict forKey:imageSourceID];
-			}
-			NSString	*identifier = [match imageIdentifier];
-			NSNumber	*imageID= [imageSourceImageDict objectForKey:identifier];
-			if (!imageID)
-			{
-				imageID = [NSNumber numberWithLong:[imageSourceImageDict count]];
-				[imageSourceImageDict setObject:imageID forKey:identifier];
-			}
-		}
-	}
-	
-	return [NSDictionary dictionaryWithDictionary:imagesInUse];
 }
 
 
@@ -515,12 +309,12 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				[fileHandle writeData:[@"<MOSAIC>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 
 					// Write out the path to the original image
-				[fileHandle writeData:[[NSString stringWithFormat:@"<ORIGINAL_IMAGE PATH=\"%@\"/>\n\n", [self originalImagePath]] dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[[NSString stringWithFormat:@"<ORIGINAL_IMAGE PATH=\"%@\"/>\n\n", [mosaic originalImagePath]] dataUsingEncoding:NSUTF8StringEncoding]];
 				
 					// Write out the tile shapes settings
-				NSString		*className = NSStringFromClass([tileShapes class]);
+				NSString		*className = NSStringFromClass([[mosaic tileShapes] class]);
 				NSMutableString	*tileShapesXML = [NSMutableString stringWithString:
-																[[tileShapes settingsAsXMLElement] stringByTrimmingCharactersInSet:
+																[[[mosaic tileShapes] settingsAsXMLElement] stringByTrimmingCharactersInSet:
 																	[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
 				[tileShapesXML replaceOccurrencesOfString:@"\n" withString:@"\n\t" options:0 range:NSMakeRange(0, [tileShapesXML length])];
 				[tileShapesXML insertString:@"\t" atIndex:0];
@@ -530,33 +324,20 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				[fileHandle writeData:[@"</TILE_SHAPES_SETTINGS>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				
 				[fileHandle writeData:[@"<IMAGE_USAGE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-				[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\"/>\n", [self imageUseCount], [self imageReuseDistance]] dataUsingEncoding:NSUTF8StringEncoding]];
-				[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_CROP LIMIT=\"%d\"/>\n", [self imageCropLimit]] dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\"/>\n", [mosaic imageUseCount], [mosaic imageReuseDistance]] dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_CROP LIMIT=\"%d\"/>\n", [mosaic imageCropLimit]] dataUsingEncoding:NSUTF8StringEncoding]];
 				[fileHandle writeData:[@"</IMAGE_USAGE>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
-				
-//				NSDictionary	*imagesInUse = [self imagesInUse];
-				
-					// Write out the cached images
-//				[fileHandle writeData:[[imageCache xmlDataWithImageSources:imageSources] dataUsingEncoding:NSUTF8StringEncoding]];
-//				if (![cachedImagesPath hasPrefix:fileName])
-//				{
-//						// This is the first time this mosaic has been saved so move 
-//						// the image cache directory from /tmp to the new location.
-//					NSString	*savedCachedImagesPath = [fileName stringByAppendingPathComponent:@"Cached Images"];
-//					[fileManager movePath:cachedImagesPath toPath:savedCachedImagesPath handler:nil];
-//					[cachedImagesPath autorelease];
-//					cachedImagesPath = [savedCachedImagesPath retain];
-//				}
 				
 					// Write out the image sources.
 				[fileHandle writeData:[@"<IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-				int	index;
+				NSArray	*imageSources = [mosaic imageSources];
+				int		index;
 				for (index = 0; index < [imageSources count]; index++)
 				{
 					id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:index];
 					NSString				*className = NSStringFromClass([imageSource class]);
 					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\">\n", 
-																	  index, className, [self countOfImagesFromSource:imageSource]] 
+																	  index, className, [mosaic countOfImagesFromSource:imageSource]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
 					
 						// Output the settings for this image source.
@@ -569,17 +350,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					[imageSourceXML appendString:@"\n"];
 					[fileHandle writeData:[imageSourceXML dataUsingEncoding:NSUTF8StringEncoding]];
 					
-						// Output an element for each image ID
-//					[fileHandle writeData:[@"\t\t<IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-//					NSDictionary	*imageSourceImageDict = [imagesInUse objectForKey:imageSourceID];
-//					NSEnumerator	*identifierEnumerator = [imageSourceImageDict keyEnumerator];
-//					NSString		*identifier = nil;
-//					while (identifier = [identifierEnumerator nextObject])
-//						[fileHandle writeData:[[NSString stringWithFormat:@"\t\t\t<IMAGE ID=\"%@\" IDENTIFIER=\"%@\">\n", 
-//																		 [imageSourceImageDict objectForKey:identifier], identifier]
-//													dataUsingEncoding:NSUTF8StringEncoding]];
-//					[fileHandle writeData:[@"\t\t</IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-					
 					[fileHandle writeData:[@"\t</IMAGE_SOURCE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				}
 				[fileHandle writeData:[@"</IMAGE_SOURCES>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
@@ -587,7 +357,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					// Write out the tiles
 				[fileHandle writeData:[@"<TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				NSMutableString	*buffer = [NSMutableString string];
-				NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+				NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
 				MacOSaiXTile	*tile = nil;
 				while (tile = [tileEnumerator nextObject])
 				{
@@ -642,21 +412,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 						[buffer appendString:[NSString stringWithFormat:@"\t\t<USER_CHOSEN_MATCH ID=\"%@\" VALUE=\"%f\"/>\n", 
 																		  [NSString stringByEscapingXMLEntites:[userChosenMatch imageIdentifier]],
 																		  [userChosenMatch matchValue]]];
-//					[fileHandle writeData:[@"\t\t<MATCH_DATA>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-//					NSEnumerator	*matchEnumerator = [[tile matches] objectEnumerator];
-//					MacOSaiXImageMatch		*match = nil;
-//					while (match = [matchEnumerator nextObject])
-//					{
-//						NSString			*imageSourceID = [self indexAsAlpha:[imageSources indexOfObjectIdenticalTo:[match imageSource]]];
-//						NSMutableDictionary	*imageSourceImageDict = [imagesInUse objectForKey:imageSourceID];
-//						NSNumber			*imageID = [imageSourceImageDict objectForKey:[match imageIdentifier]];
-//						
-//						[fileHandle writeData:[[NSString stringWithFormat:@"%@%@\t%d\n", imageSourceID, imageID, [match matchValue] * 100.0]
-//													dataUsingEncoding:NSUTF8StringEncoding]];
-//					}
-//					[fileHandle writeData:[@"\t\t</MATCHDATA>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-					
-					// TODO: (match == [tile userChosenImageMatch] ? @"USER_CHOSEN" : @"")] 
 					
 					[buffer appendString:@"\t</TILE>\n"];
 					
@@ -707,16 +462,11 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		[saveCallback invoke];
 	}
 	
-		// TODO: include @"User Cancelled" key
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidSaveNotification 
-														object:self 
-													  userInfo:nil];
-	
 	if (![(MacOSaiX *)[NSApp delegate] isQuitting])
 	{
 		[self performSelectorOnMainThread:@selector(startAutosaveTimer:) withObject:nil waitUntilDone:NO];
 		if (!wasPaused)
-			[self resume];
+			[mosaic resume];
 	}
 
 	[pool release];
@@ -762,7 +512,7 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 	{
 			// Set up the parser callbacks and context.
 		CFXMLParserCallBacks	callbacks = {0, createStructure, addChild, endStructure, NULL, NULL};	//resolveExternalEntity, handleError};
-		NSMutableArray			*stack = [NSMutableArray arrayWithObject:self],
+		NSMutableArray			*stack = [NSMutableArray arrayWithObjects:self, mosaic, nil],
 								*contextArray = [NSMutableArray arrayWithObjects:stack, 
 																				 [NSNumber numberWithLong:[xmlData length]], 
 																				 [NSNumber numberWithInt:0], 
@@ -810,7 +560,10 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 		[self performSelectorOnMainThread:@selector(presentFailedLoadSheet:) 
 							   withObject:errorMessage 
 						    waitUntilDone:NO];
-	
+	else
+		[[self mainWindowController] performSelectorOnMainThread:@selector(synchronizeGUIWithDocument) 
+													  withObject:nil 
+												   waitUntilDone:NO];
 	[pool release];
 }
 
@@ -822,7 +575,8 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 	
 	NS_DURING
 		NSMutableArray		*stack = [(NSArray *)info objectAtIndex:0];
-		MacOSaiXDocument	*document = (MacOSaiXDocument *)[stack objectAtIndex:0];
+		MacOSaiXDocument	*document = [stack objectAtIndex:0];
+		MacOSaiXMosaic		*mosaic = [stack objectAtIndex:1];
 		
 		switch (CFXMLNodeGetTypeCode(node))
 		{
@@ -833,7 +587,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 				
 				if ([elementType isEqualToString:@"MOSAIC"])
 				{
-					newObject = document;
+					newObject = mosaic;
 				}
 				else if ([elementType isEqualToString:@"ORIGINAL_IMAGE"])
 				{
@@ -847,29 +601,29 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 				}
 				else if ([elementType isEqualToString:@"IMAGE_USAGE"])
 				{
-					newObject = document;
+					newObject = mosaic;
 				}
 				else if ([elementType isEqualToString:@"IMAGE_REUSE"])
 				{
 					NSString	*imageReuseCount = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"COUNT"],
 								*imageReuseDistance = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"DISTANCE"];
 					
-					[document setImageUseCount:[imageReuseCount intValue]];
-					[document setImageReuseDistance:[imageReuseDistance intValue]];
+					[mosaic setImageUseCount:[imageReuseCount intValue]];
+					[mosaic setImageReuseDistance:[imageReuseDistance intValue]];
 					
-					newObject = document;
+					newObject = mosaic;
 				}
 				else if ([elementType isEqualToString:@"IMAGE_CROP"])
 				{
 					NSString	*cropLimitString = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"LIMIT"];
 					
-					[document setImageCropLimit:[cropLimitString intValue]];
+					[mosaic setImageCropLimit:[cropLimitString intValue]];
 					
-					newObject = document;
+					newObject = mosaic;
 				}
 				else if ([elementType isEqualToString:@"IMAGE_SOURCES"])
 				{
-					newObject = document;
+					newObject = mosaic;
 				}
 				else if ([elementType isEqualToString:@"IMAGE_SOURCE"])
 				{
@@ -878,15 +632,15 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					
 					newObject = [[NSClassFromString(className) alloc] init];
 					
-					[document setImageCount:[imageCount intValue] forImageSource:newObject];
+					[mosaic setImageCount:[imageCount intValue] forImageSource:newObject];
 				}
 				else if ([elementType isEqualToString:@"TILES"])
 				{
-					newObject = document;
+					newObject = mosaic;
 				}
 				else if ([elementType isEqualToString:@"TILE"])
 				{
-					newObject = [[MacOSaiXTile alloc] initWithOutline:nil fromDocument:document];
+					newObject = [[MacOSaiXTile alloc] initWithOutline:nil fromMosaic:mosaic];
 				}
 				else if ([elementType isEqualToString:@"OUTLINE"])
 				{
@@ -908,7 +662,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 																	   waitUntilDone:NO];
 					
 					int					sourceIndex = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"SOURCE"] intValue];
-					if (sourceIndex >= 0 && sourceIndex < [[document imageSources] count])
+					if (sourceIndex >= 0 && sourceIndex < [[mosaic imageSources] count])
 					{
 						NSString			*imageIdentifier = [NSString stringByUnescapingXMLEntites:
 																	[(NSDictionary *)nodeInfo->attributes objectForKey:@"ID"]];
@@ -916,7 +670,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						
 						newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
 																forImageIdentifier:imageIdentifier 
-																   fromImageSource:[[document imageSources] objectAtIndex:sourceIndex] 
+																   fromImageSource:[[mosaic imageSources] objectAtIndex:sourceIndex] 
 																		   forTile:nil];
 					}
 					else
@@ -930,7 +684,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					
 					newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
 															forImageIdentifier:imageIdentifier 
-															   fromImageSource:[document handPickedImageSource] 
+															   fromImageSource:[mosaic handPickedImageSource] 
 																	   forTile:nil];
 				}
 				else
@@ -970,12 +724,12 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	NSMutableArray		*stack = [(NSArray *)info objectAtIndex:0];
-	MacOSaiXDocument	*document = (MacOSaiXDocument *)[stack objectAtIndex:0];
+	MacOSaiXMosaic		*mosaic = [stack objectAtIndex:1];
 
-	if (parent == document && [(id)child isKindOfClass:[NSString class]])
+	if (parent == mosaic && [(id)child isKindOfClass:[NSString class]])
 	{
 			// Set the original image path.
-		[document setOriginalImagePath:(NSString *)child];
+		[mosaic setOriginalImagePath:(NSString *)child];
 	}
 	else if ([(id)parent conformsToProtocol:@protocol(MacOSaiXTileShapes)] && [(id)child isKindOfClass:[NSDictionary class]])
 	{
@@ -999,10 +753,10 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 				break;
 			}
 	}
-	else if (parent == document && [(id)child isKindOfClass:[MacOSaiXTile class]])
+	else if (parent == mosaic && [(id)child isKindOfClass:[MacOSaiXTile class]])
 	{
-			// Add a tile to the document.
-		[document addTile:(MacOSaiXTile *)child];
+			// Add a tile to the mosaic.
+		[mosaic addTile:(MacOSaiXTile *)child];
 	}
 	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[NSBezierPath class]])
 	{
@@ -1049,16 +803,17 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	NSMutableArray		*stack = [(NSArray *)info objectAtIndex:0];
-	MacOSaiXDocument	*document = (MacOSaiXDocument *)[stack objectAtIndex:0];
+	MacOSaiXDocument	*document = [stack objectAtIndex:0];
+	MacOSaiXMosaic		*mosaic = [stack objectAtIndex:1];
 
 	if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXTileShapes)])
 	{
-		[document setTileShapes:(id<MacOSaiXTileShapes>)newObject];
+		[mosaic setTileShapes:(id<MacOSaiXTileShapes>)newObject];
 		[(id)newObject release];
 	}
 	else if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXImageSource)])
 	{
-		[document addImageSource:(id<MacOSaiXImageSource>)newObject];
+		[mosaic addImageSource:(id<MacOSaiXImageSource>)newObject];
 		[(id)newObject release];
 	}
 	else if ([(id)newObject isKindOfClass:[MacOSaiXTile class]] || 
@@ -1113,846 +868,6 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 
 #pragma mark -
-#pragma mark Tile management
-
-
-- (void)addTile:(MacOSaiXTile *)tile
-{
-	if (!tiles)
-		tiles = [[NSMutableArray array] retain];
-	
-	[tiles addObject:tile];
-}
-
-
-- (void)setTileShapes:(id<MacOSaiXTileShapes>)inTileShapes
-{
-	[inTileShapes retain];
-	[tileShapes autorelease];
-	tileShapes = inTileShapes;
-	
-	if (!loading)
-	{
-		NSArray	*tileOutlines = [tileShapes shapes];
-		
-			// Discard any tiles created from a previous set of outlines.
-		if (!tiles)
-			tiles = [[NSMutableArray arrayWithCapacity:[tileOutlines count]] retain];
-		else
-			[tiles removeAllObjects];
-
-			// Create a new tile collection from the outlines.
-		NSEnumerator	*tileOutlineEnumerator = [tileOutlines objectEnumerator];
-		NSBezierPath	*tileOutline = nil;
-		while (tileOutline = [tileOutlineEnumerator nextObject])
-			[self addTile:[[[MacOSaiXTile alloc] initWithOutline:tileOutline fromDocument:self] autorelease]];
-		
-			// Indicate that the average tile size needs to be recalculated.
-		averageUnitTileSize = NSZeroSize;
-	}
-	
-		// Let anyone who cares know that our tile shapes (and thus our tiles array) have changed.
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
-														object:self 
-													  userInfo:nil];
-		
-	if (!loading && [imageSources count] > 0 && [[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Start Mosaics"])
-		[self resume];
-}
-
-
-- (id<MacOSaiXTileShapes>)tileShapes
-{
-	return tileShapes;
-}
-
-
-- (NSSize)averageUnitTileSize
-{
-	if (NSEqualSizes(averageUnitTileSize, NSZeroSize) && !loading)
-	{
-			// Calculate the average size of the tiles.
-		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-		MacOSaiXTile	*tile = nil;
-		while (tile = [tileEnumerator nextObject])
-		{
-			averageUnitTileSize.width += NSWidth([[tile outline] bounds]);
-			averageUnitTileSize.height += NSHeight([[tile outline] bounds]);
-		}
-		averageUnitTileSize.width /= [tiles count];
-		averageUnitTileSize.height /= [tiles count];
-	}
-	
-	return averageUnitTileSize;
-}
-
-
-- (int)imageUseCount
-{
-	return imageUseCount;
-}
-
-
-- (void)setImageUseCount:(int)count
-{
-	if (imageUseCount != count)
-	{
-		imageUseCount = count;
-		[[NSUserDefaults standardUserDefaults] setInteger:imageUseCount forKey:@"Image Use Count"];
-		[[self mainWindowController] synchronizeGUIWithDocument];
-	}
-}
-
-
-- (int)imageReuseDistance
-{
-	return imageReuseDistance;
-}
-
-
-- (void)setImageReuseDistance:(int)distance
-{
-	imageReuseDistance = distance;
-	[[NSUserDefaults standardUserDefaults] setInteger:imageReuseDistance forKey:@"Image Reuse Distance"];
-	[[self mainWindowController] synchronizeGUIWithDocument];
-}
-
-
-- (int)imageCropLimit
-{
-	return imageCropLimit;
-}
-
-
-- (void)setImageCropLimit:(int)cropLimit
-{
-	imageCropLimit = cropLimit;
-	[[NSUserDefaults standardUserDefaults] setInteger:imageCropLimit forKey:@"Image Crop Limit"];
-	[[self mainWindowController] synchronizeGUIWithDocument];
-}
-
-
-//- (void)extractTileImagesFromOriginalImage
-//{
-//    if ([tiles count] == 0 || originalImage == nil || documentIsClosing)
-//		return;
-//
-//	createTilesThreadAlive = YES;
-//	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
-//	
-//		// Don't usurp the main thread.
-//	[NSThread setThreadPriority:0.1];
-//	
-//    int					index = 0;
-//    NSAutoreleasePool   *pool = [[NSAutoreleasePool alloc] init];
-//
-//		// create an offscreen window to draw into (it will have a single, empty view the size of the window)
-//    NSWindow			*drawWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(-10000, -10000,
-//																					   [originalImage size].width, 
-//																					   [originalImage size].height)
-//																  styleMask:NSBorderlessWindowMask
-//																    backing:NSBackingStoreBuffered 
-//																	  defer:NO];
-//    
-//	/* Loop through each tile and:
-//		1. Copy out the rect of the original image that this tile covers.
-//		2. Calculate an image mask that indicates which part of the copied rect is contained within the tile's outline.
-//		3. ?
-//	*/
-//	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
-//	MacOSaiXTile	*tile = nil;
-//    while (!documentIsClosing && (tile = [tileEnumerator nextObject]))
-//	{
-//		index++;
-//		
-//			// Lock focus on our 'scratch' window.
-//		while (![[drawWindow contentView] lockFocusIfCanDraw])
-//			[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
-//		
-//		NS_DURING
-//				// Determine the bounds of the tile in the original image and in the scratch window.
-//			NSBezierPath	*tileOutline = [tile outline];
-//			NSRect  origRect = NSMakeRect([tileOutline bounds].origin.x * [originalImage size].width,
-//										  [tileOutline bounds].origin.y * [originalImage size].height,
-//										  [tileOutline bounds].size.width * [originalImage size].width,
-//										  [tileOutline bounds].size.height * [originalImage size].height),
-//					destRect = (origRect.size.width > origRect.size.height) ?
-//								NSMakeRect(0, 0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE * origRect.size.height / origRect.size.width) : 
-//								NSMakeRect(0, 0, TILE_BITMAP_SIZE * origRect.size.width / origRect.size.height, TILE_BITMAP_SIZE);
-//			
-//				// Start with a black image to overwrite any previous scratch contents.
-//			[[NSColor blackColor] set];
-//			[[NSBezierPath bezierPathWithRect:destRect] fill];
-//			
-//				// Copy out the portion of the original image contained by the tile's outline.
-//			[originalImage drawInRect:destRect fromRect:origRect operation:NSCompositeCopy fraction:1.0];
-//			NSBitmapImageRep	*tileRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect] autorelease];
-//			if (tileRep == nil) NSLog(@"Could not create tile bitmap");
-//			#if 0
-//				[[tileRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0] 
-//					writeToFile:[NSString stringWithFormat:@"/tmp/MacOSaiX/%4d.tiff", index] atomically:NO];
-//			#endif
-//		
-//				// Calculate a mask image using the tile's outline that is the same size as the image
-//				// extracted from the original.  The mask will be white for pixels that are inside the 
-//				// tile and black outside.
-//				// (This would work better if we could just replace the previous rep's alpha channel
-//				//  but I haven't figured out an easy way to do that yet.)
-//			[[NSGraphicsContext currentContext] saveGraphicsState];	// so we can undo the clip
-//					// Start with a black background.
-//				[[NSColor blackColor] set];
-//				[[NSBezierPath bezierPathWithRect:destRect] fill];
-//				
-//					// Fill the tile's outline with white.
-//				NSAffineTransform  *transform = [NSAffineTransform transform];
-//				[transform scaleXBy:destRect.size.width / [tileOutline bounds].size.width
-//								yBy:destRect.size.height / [tileOutline bounds].size.height];
-//				[transform translateXBy:[tileOutline bounds].origin.x * -1
-//									yBy:[tileOutline bounds].origin.y * -1];
-//				[[NSColor whiteColor] set];
-//				[[transform transformBezierPath:tileOutline] fill];
-//				
-//					// Copy out the mask image and store it in the tile.
-//					// TO DO: RGB is wasting space, should be grayscale.
-//				NSBitmapImageRep	*maskRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect] autorelease];
-//				[tile setBitmapRep:tileRep withMask:maskRep];
-//				#if 0
-//					[[maskRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0] 
-//						writeToFile:[NSString stringWithFormat:@"/tmp/MacOSaiX/%4dMask.tiff", index] atomically:NO];
-//				#endif
-//			[[NSGraphicsContext currentContext] restoreGraphicsState];
-//		NS_HANDLER
-//			NSLog(@"Exception raised while extracting tile images: %@", [localException name]);
-//		NS_ENDHANDLER
-//		
-//			// Release our lock on the GUI in case the main thread needs it.
-//		[[drawWindow contentView] unlockFocus];
-//		
-//		tileCreationPercentComplete = (int)(index * 100.0 / [tiles count]);
-//		
-//		if (index % 32)
-//		{
-//			if (loading)
-//				[[self mainWindowController] setProgressPercentComplete:[NSNumber numberWithFloat:tileCreationPercentComplete]];
-//			else
-//				[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
-//		}
-//	}
-//	
-//    [drawWindow close];
-//    
-//	mosaicStarted = YES;
-//	
-//		// Start up the mosaic
-//	if (!loading)
-//		[self resume];
-//
-//    [pool release];
-//    
-//    createTilesThreadAlive = NO;
-//	
-//	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
-//}
-//
-//
-//- (BOOL)isExtractingTileImagesFromOriginal
-//{
-//	return createTilesThreadAlive;
-//}
-//
-//
-//- (float)tileCreationPercentComplete
-//{
-//	return tileCreationPercentComplete;
-//}
-
-
-- (NSArray *)tiles
-{
-	return tiles;
-}
-
-
-#pragma mark -
-#pragma mark Image source enumeration
-
-
-- (void)spawnImageSourceThreads
-{
-	NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
-	id<MacOSaiXImageSource>	imageSource;
-	
-	while (imageSource = [imageSourceEnumerator nextObject])
-		[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) toTarget:self withObject:imageSource];
-}
-
-
-- (void)enumerateImageSourceInNewThread:(id<MacOSaiXImageSource>)imageSource
-{
-	[enumerationThreadCountLock lock];
-		enumerationThreadCount++;
-	[enumerationThreadCountLock unlock];
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
-	
-		// Don't usurp the main thread.
-	[NSThread setThreadPriority:0.1];
-	
-		// Check if the source has any images left.
-	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	BOOL				sourceHasMoreImages = [imageSource hasMoreImages];
-	[pool release];
-	
-	while (!documentIsClosing && sourceHasMoreImages)
-	{
-		NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-		NSImage				*image = nil;
-		NSString			*imageIdentifier = nil;
-		BOOL				imageIsValid = NO;
-		
-		[self lockWhilePaused];
-		
-		NS_DURING
-				// Get the next image from the source (and identifier if there is one)
-			image = [imageSource nextImageAndIdentifier:&imageIdentifier];
-			
-				// Set the caching behavior of the image.  We'll be adding bitmap representations of various
-				// sizes to the image so it doesn't need to do any of its own caching.
-			[image setCachedSeparately:YES];
-			[image setCacheMode:NSImageCacheNever];
-			imageIsValid = [image isValid];
-		NS_HANDLER
-			NSLog(@"Exception raised while checking image validity (%@)", localException);
-		NS_ENDHANDLER
-			
-		if (image && imageIsValid)
-		{
-				// Ignore whatever DPI was set for the image.  We just care about the bitmap.
-			NSImageRep	*originalRep = [[image representations] objectAtIndex:0];
-			[originalRep setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
-			[image setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
-			
-			if ([image size].width > 16 && [image size].height > 16)
-			{
-				[imageQueueLock lock];	// this will be locked if the queue is full
-					while (!documentIsClosing && [imageQueue count] > MAXIMAGEURLS)
-					{
-						[imageQueueLock unlock];
-						if (!calculateImageMatchesThreadAlive)
-							[NSApplication detachDrawingThread:@selector(calculateImageMatches:) toTarget:self withObject:nil];
-						[imageQueueLock lock];
-					}
-					
-					// TODO: are we losing an image if documentIsClosing?
-					
-					[imageQueue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-												image, @"Image",
-												imageSource, @"Image Source", 
-												imageIdentifier, @"Image Identifier", // last since it could be nil
-												nil]];
-					
-					[enumerationCountsLock lock];
-						unsigned long	currentCount = [[enumerationCounts objectForKey:[NSValue valueWithPointer:imageSource]] unsignedLongValue];
-						[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:currentCount + 1] 
-											  forKey:[NSValue valueWithPointer:imageSource]];
-					[enumerationCountsLock unlock];
-				[imageQueueLock unlock];
-
-				if (!documentIsClosing && !calculateImageMatchesThreadAlive)
-					[NSApplication detachDrawingThread:@selector(calculateImageMatches:) toTarget:self withObject:nil];
-				
-				[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
-			}
-		}
-		sourceHasMoreImages = [imageSource hasMoreImages];
-		
-		[pool release];
-	}
-	
-	[enumerationThreadCountLock lock];
-		enumerationThreadCount--;
-	[enumerationThreadCountLock unlock];
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
-}
-
-
-- (BOOL)isEnumeratingImageSources
-{
-	return (enumerationThreadCount > 0);
-}
-
-
-- (void)setImageCount:(unsigned long)imageCount forImageSource:(id<MacOSaiXImageSource>)imageSource
-{
-	[enumerationCountsLock lock];
-		[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:imageCount]
-							  forKey:[NSValue valueWithPointer:imageSource]];
-	[enumerationCountsLock unlock];
-}
-
-
-- (unsigned long)countOfImagesFromSource:(id<MacOSaiXImageSource>)imageSource
-{
-	unsigned long	enumerationCount = 0;
-	
-	[enumerationCountsLock lock];
-		enumerationCount = [[enumerationCounts objectForKey:[NSValue valueWithPointer:imageSource]] unsignedLongValue];
-	[enumerationCountsLock unlock];
-	
-	return enumerationCount;
-}
-
-
-- (unsigned long)imagesMatched
-{
-	unsigned long	totalCount = 0;
-	
-	[enumerationCountsLock lock];
-		NSEnumerator	*sourceEnumerator = [enumerationCounts keyEnumerator];
-		NSString		*key = nil;
-		while (key = [sourceEnumerator nextObject])
-			totalCount += [[enumerationCounts objectForKey:key] unsignedLongValue];
-	[enumerationCountsLock unlock];
-	
-	return totalCount;
-}
-
-
-#pragma mark -
-#pragma mark Image matching
-
-
-- (void)calculateImageMatches:(id)dummy
-{
-		// This method is called in a new thread whenever a non-empty image queue is discovered.
-		// It pulls images from the queue and matches them against each tile.  Once the queue
-		// is empty the method will end and the thread is terminated.
-    NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-
-        // Make sure only one copy of this thread runs at any time.
-	[calculateImageMatchesThreadLock lock];
-		if (calculateImageMatchesThreadAlive)
-		{
-                // Another copy is running, just exit.
-			[calculateImageMatchesThreadLock unlock];
-			[pool release];
-			return;
-		}
-		calculateImageMatchesThreadAlive = YES;
-	[calculateImageMatchesThreadLock unlock];
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
-	
-		// Don't usurp the main thread.
-	[NSThread setThreadPriority:0.1];
-	
-	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
-	
-	[imageQueueLock lock];
-	while (!documentIsClosing && [imageQueue count] > 0)
-	{
-		while (!documentIsClosing && [imageQueue count] > 0)
-		{
-				// As long as the image source threads are feeding images into the queue this loop
-				// will continue running so create a pool just for this pass through the loop.
-			NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
-			BOOL				queueLocked = NO;
-			
-				// pull the next image from the queue
-			NSDictionary		*nextImageDict = [[[imageQueue objectAtIndex:0] retain] autorelease];
-			[imageQueue removeObjectAtIndex:0];
-			
-				// let the image source threads add more images if the queue is not full
-			if ([imageQueue count] < MAXIMAGEURLS)
-				[imageQueueLock unlock];
-			else
-				queueLocked = YES;
-			
-			NSImage					*pixletImage = [nextImageDict objectForKey:@"Image"];
-			id<MacOSaiXImageSource>	pixletImageSource = [nextImageDict objectForKey:@"Image Source"];
-			NSString				*pixletImageIdentifier = [nextImageDict objectForKey:@"Image Identifier"];
-			
-			if (pixletImage)
-			{
-					// Add this image to the cache.  If the identifier is nil or zero-length then 
-					// a new identifier will be returned.
-				pixletImageIdentifier = [imageCache cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
-			}
-			
-				// Find the tiles that match this image better than their current image.
-			NSString		*pixletKey = [NSString stringWithFormat:@"%p %@", pixletImageSource, pixletImageIdentifier];
-			NSMutableArray	*betterMatches = [betterMatchesCache objectForKey:pixletKey];
-			if (betterMatches)
-			{
-					// The cache contains the list of tiles which could be improved by using this image.
-					// Remove any tiles from the list that have gotten a better match since the list was cached.
-					// Also remove any tiles that have the exact same match value but for a different image.  This 
-					// avoids infinite loop conditions if you have multiple image that have the exact same match 
-					// value (typically when there are multiple files containing the exact same image).
-				NSEnumerator		*betterMatchEnumerator = [betterMatches objectEnumerator];
-				MacOSaiXImageMatch	*betterMatch = nil;
-				unsigned			currentIndex = 0,
-									indicesToRemove[[betterMatches count]],
-									countOfIndicesToRemove = 0;
-				while ((betterMatch = [betterMatchEnumerator nextObject]) && !documentIsClosing)
-				{
-					MacOSaiXImageMatch	*currentMatch = [[betterMatch tile] uniqueImageMatch];
-					if (currentMatch && ([currentMatch matchValue] < [betterMatch matchValue] || 
-										 ([currentMatch matchValue] == [betterMatch matchValue] && 
-											([currentMatch imageSource] != [betterMatch imageSource] || 
-											 [currentMatch imageIdentifier] != [betterMatch imageIdentifier]))))
-						indicesToRemove[countOfIndicesToRemove++] = currentIndex;
-					currentIndex++;
-				}
-				[betterMatches removeObjectsFromIndices:indicesToRemove numIndices:countOfIndicesToRemove];
-				
-					// If only the dummy entry is left then we need to rematch.
-				if ([betterMatches count] == 1 && ![(MacOSaiXImageMatch *)[betterMatches objectAtIndex:0] tile])
-				{
-	//				NSLog(@"Didn't cache enough matches...");
-					betterMatches = nil;
-				}
-			}
-			
-			if (!betterMatches)
-			{
-					// The better matches for this pixlet are not in the cache so we must calculate them.
-				betterMatches = [NSMutableArray array];
-				
-					// Get the size of the pixlet image.
-				NSSize					pixletSize;
-				if (pixletImage)
-					pixletSize = [pixletImage size];
-				else
-				{
-						// Get the size from the cache.
-					pixletSize = [imageCache nativeSizeOfImageWithIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
-					
-					if (NSEqualSizes(pixletSize, NSZeroSize))
-					{
-							// The image isn't in the cache.  Force it to load and then get its size.
-						pixletSize = [[imageCache imageRepAtSize:NSZeroSize 
-												   forIdentifier:pixletImageIdentifier 
-													  fromSource:pixletImageSource] size];
-					}
-				}
-
-					// Loop through all of the tiles and calculate how well this image matches.
-				MacOSaiXImageMatcher	*matcher = [MacOSaiXImageMatcher sharedMatcher];
-				NSEnumerator			*tileEnumerator = [tiles objectEnumerator];
-				MacOSaiXTile			*tile = nil;
-				while ((tile = [tileEnumerator nextObject]) && !documentIsClosing)
-				{
-					NSAutoreleasePool	*pool3 = [[NSAutoreleasePool alloc] init];
-					NSBitmapImageRep	*tileBitmap = [tile bitmapRep];
-					NSSize				tileSize = [tileBitmap size];
-					float				croppedPercentage;
-					
-						// See if the image will be cropped too much.
-					if ((pixletSize.width / tileSize.width) < (pixletSize.height / tileSize.height))
-						croppedPercentage = (pixletSize.width * (pixletSize.height - pixletSize.width * tileSize.height / tileSize.width)) / 
-											 (pixletSize.width * pixletSize.height) * 100.0;
-					else
-						croppedPercentage = ((pixletSize.width - pixletSize.height * tileSize.width / tileSize.height) * pixletSize.height) / 
-											 (pixletSize.width * pixletSize.height) * 100.0;
-					
-					if (croppedPercentage <= [self imageCropLimit])
-					{
-							// Get a rep for the image scaled to the tile's bitmap size.
-						NSBitmapImageRep	*imageRep = [imageCache imageRepAtSize:tileSize 
-																	 forIdentifier:pixletImageIdentifier 
-																	    fromSource:pixletImageSource];
-				
-						if (imageRep)
-						{
-								// Calculate how well this image matches this tile.
-							float	previousBest = ([tile uniqueImageMatch] ? [[tile uniqueImageMatch] matchValue] : 1.0), 
-									matchValue = [matcher compareImageRep:tileBitmap 
-																 withMask:[tile maskRep] 
-															   toImageRep:imageRep
-															 previousBest:previousBest];
-							
-								// If the tile does not already have a match or 
-								//    this image matches better than the tile's current best or
-								//    this image is the same as the tile's current best
-								// then add it to the list of tile's that might get this image.
-							if (![tile uniqueImageMatch] || 
-								matchValue < [[tile uniqueImageMatch] matchValue] ||
-								([[tile uniqueImageMatch] imageSource] == pixletImageSource && 
-								 [[[tile uniqueImageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier]))
-								[betterMatches addObject:[[[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
-																					  forImageIdentifier:pixletImageIdentifier 
-																						 fromImageSource:pixletImageSource
-																								 forTile:tile] autorelease]];
-						}
-						else
-							;	// anything to do or just lose the chance to match this pixlet to this tile?
-					}
-					
-					[pool3 release];
-				}
-				
-					// Sort the array with the best matches first.
-				[betterMatches sortUsingSelector:@selector(compare:)];
-			}
-			
-			if (betterMatches && [betterMatches count] == 0)
-			{
-	//			NSLog(@"%@ from %@ is no longer needed", pixletImageIdentifier, pixletImageSource);
-				[betterMatchesCache removeObjectForKey:pixletKey];
-				
-				// TBD: Is this the right place to purge images from the disk cache?
-			}
-			else
-			{
-				// Figure out which tiles should be set to use the image based on the user's settings.
-				
-					// A use count of zero means no limit on the number of times this image can be used.
-				int					useCount = [self imageUseCount];
-				if (useCount == 0)
-					useCount = [betterMatches count];
-				
-					// Loop through the list of better matches and pick the first items (up to the use count) 
-					// that aren't too close together.
-				float				minDistanceApart = [self imageReuseDistance] * [self imageReuseDistance] *
-													   ([self averageUnitTileSize].width * [self averageUnitTileSize].width +
-														[self averageUnitTileSize].height * [self averageUnitTileSize].height / 
-														originalImageAspectRatio / originalImageAspectRatio);
-				NSMutableArray		*matchesToUpdate = [NSMutableArray array];
-				NSEnumerator		*betterMatchEnumerator = [betterMatches objectEnumerator];
-				MacOSaiXImageMatch	*betterMatch = nil;
-				while ((betterMatch = [betterMatchEnumerator nextObject]) && [matchesToUpdate count] < useCount)
-				{
-					MacOSaiXTile		*betterMatchTile = [betterMatch tile];
-					NSEnumerator		*matchesToUpdateEnumerator = [matchesToUpdate objectEnumerator];
-					MacOSaiXImageMatch	*matchToUpdate = nil;
-					float				closestDistance = INFINITY;
-					while (matchToUpdate = [matchesToUpdateEnumerator nextObject])
-					{
-						float	widthDiff = NSMidX([[betterMatchTile outline] bounds]) - 
-											NSMidX([[[matchToUpdate tile] outline] bounds]), 
-								heightDiff = (NSMidY([[betterMatchTile outline] bounds]) - 
-											  NSMidY([[[matchToUpdate tile] outline] bounds])) / originalImageAspectRatio, 
-								distanceSquared = widthDiff * widthDiff + heightDiff * heightDiff;
-						
-						closestDistance = MIN(closestDistance, distanceSquared);
-					}
-					
-					if ([matchesToUpdate count] == 0 || closestDistance >= minDistanceApart)
-						[matchesToUpdate addObject:betterMatch];
-				}
-				
-				if ([matchesToUpdate count] == useCount || [(MacOSaiXImageMatch *)[betterMatches lastObject] tile])
-				{
-						// There were enough matches in betterMatches.  Update the winning tiles.
-					NSEnumerator		*matchesToUpdateEnumerator = [matchesToUpdate objectEnumerator];
-					MacOSaiXImageMatch	*matchToUpdate = nil;
-					while (matchToUpdate = [matchesToUpdateEnumerator nextObject])
-					{
-							// Add the tile's current image back to the queue so it can potentially get re-used by other tiles.
-						MacOSaiXImageMatch	*previousMatch = [[matchToUpdate tile] uniqueImageMatch];
-						if (previousMatch && ([previousMatch imageSource] != pixletImageSource || 
-							![[previousMatch imageIdentifier] isEqualToString:pixletImageIdentifier]) &&
-							[self imageUseCount] > 0)
-						{
-							if (!queueLocked)
-							{
-								[imageQueueLock lock];
-								queueLocked = YES;
-							}
-							
-							NSDictionary	*newQueueEntry = [NSDictionary dictionaryWithObjectsAndKeys:
-																[previousMatch imageSource], @"Image Source", 
-																[previousMatch imageIdentifier], @"Image Identifier",
-																nil];
-							if (![imageQueue containsObject:newQueueEntry])
-							{
-		//						NSLog(@"Rechecking %@", [previousMatch imageIdentifier]);
-								[imageQueue addObject:newQueueEntry];
-							}
-						}
-						
-						[[matchToUpdate tile] setUniqueImageMatch:matchToUpdate];
-					}
-					
-					[self updateChangeCount:NSChangeDone];
-					
-						// Only remember a reasonable number of the best matches.
-						// TODO: cache this since it never changes
-					int	roughUpperBound = pow(sqrt([tiles count]) / imageReuseDistance, 2);
-					if ([betterMatches count] > roughUpperBound)
-					{
-						[betterMatches removeObjectsInRange:NSMakeRange(roughUpperBound, [betterMatches count] - roughUpperBound)];
-						
-							// Add a dummy entry with a nil tile on the end so we know that entries were removed.
-						[betterMatches addObject:[[[MacOSaiXImageMatch alloc] init] autorelease]];
-					}
-						
-						// Remember this list so we don't have to do all of the matches again.
-					[betterMatchesCache setObject:betterMatches forKey:pixletKey];
-				}
-				else
-				{
-						// There weren't enough matches in the cache to satisfy the user's prefs 
-						// so we need to re-calculate the matches.
-					[betterMatchesCache removeObjectForKey:pixletKey];
-					betterMatches = nil;	// The betterMatchesCache had the last retain on the array.
-					
-					NSDictionary	*newQueueEntry = [NSDictionary dictionaryWithObjectsAndKeys:
-														pixletImageSource, @"Image Source", 
-														pixletImageIdentifier, @"Image Identifier",
-														nil];
-					if (![imageQueue containsObject:newQueueEntry])
-						[imageQueue addObject:newQueueEntry];
-				}
-			}
-			
-			if (pixletImage)
-				imagesMatched++;
-			
-			if (!queueLocked)
-				[imageQueueLock lock];
-
-			[pool2 release];
-		}
-		
-		[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
-	}
-	[imageQueueLock unlock];
-	
-	[calculateImageMatchesThreadLock lock];
-		calculateImageMatchesThreadAlive = NO;
-	[calculateImageMatchesThreadLock unlock];
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
-
-		// clean up and shutdown this thread
-    [pool release];
-}
-
-- (BOOL)isCalculatingImageMatches
-{
-	return calculateImageMatchesThreadAlive;
-}
-
-
-#pragma mark -
-#pragma mark Images source methods
-
-
-- (NSArray *)imageSources
-{
-	return [NSArray arrayWithArray:imageSources];
-}
-
-
-- (void)addImageSource:(id<MacOSaiXImageSource>)imageSource
-{
-	[imageSources addObject:imageSource];
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
-	
-	[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) 
-							  toTarget:self 
-							withObject:imageSource];
-
-		// Auto start the mosaic if possible and the user wants to.
-	if (!loading && [self tileShapes] && [[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Start Mosaics"])
-		[self resume];
-}
-
-
-- (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource
-{
-		// Remove any images from this source that are waiting to be matched.
-	[imageQueueLock lock];
-		NSEnumerator		*imageQueueDictEnumerator = [[NSArray arrayWithArray:imageQueue] objectEnumerator];
-		NSDictionary		*imageQueueDict = nil;
-		while (imageQueueDict = [imageQueueDictEnumerator nextObject])
-			if ([imageQueueDict objectForKey:@"Image Source"] == imageSource)
-				[imageQueue removeObjectIdenticalTo:imageQueueDict];
-	[imageQueueLock unlock];
-	
-		// Remove any images from this source from the tiles.
-	NSEnumerator		*tileEnumerator = [tiles objectEnumerator];
-	MacOSaiXTile		*tile = nil;
-	while (tile = [tileEnumerator nextObject])
-	{
-		if ([imageSource isKindOfClass:[MacOSaiXHandPickedImageSource class]])
-			[tile setUserChosenImageMatch:nil];
-		else
-		{
-			if ([[tile uniqueImageMatch] imageSource] == imageSource)
-				[tile setUniqueImageMatch:nil];
-		}
-	}
-	
-	[imageSources removeObject:imageSource];
-	[[MacOSaiXImageCache sharedImageCache] removeCachedImageRepsFromSource:imageSource];
-	
-	[self updateChangeCount:NSChangeDone];
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDocumentDidChangeStateNotification object:self];
-}
-
-
-- (MacOSaiXHandPickedImageSource *)handPickedImageSource
-{
-	NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
-	id<MacOSaiXImageSource>	imageSource = nil;
-	while (imageSource = [imageSourceEnumerator nextObject])
-		if ([imageSource isKindOfClass:[MacOSaiXHandPickedImageSource class]])
-			break;
-	
-	if (!imageSource)
-	{
-		imageSource = [[[MacOSaiXHandPickedImageSource alloc] init] autorelease];
-		[imageSources addObject:imageSource];
-	}
-	
-	return imageSource;
-}
-
-
-- (void)setHandPickedImageAtPath:(NSString *)path withMatchValue:(float)matchValue forTile:(MacOSaiXTile *)tile
-{
-	MacOSaiXHandPickedImageSource	*handPickedSource = [self handPickedImageSource];
-	
-	if (![tile userChosenImageMatch])
-	{
-			// Increase the image count for the hand picked source.
-		[enumerationCountsLock lock];
-			unsigned long	currentCount = [[enumerationCounts objectForKey:[NSValue valueWithPointer:handPickedSource]] unsignedLongValue];
-			[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:currentCount + 1] 
-								  forKey:[NSValue valueWithPointer:handPickedSource]];
-		[enumerationCountsLock unlock];
-	}
-	
-	[tile setUserChosenImageMatch:[MacOSaiXImageMatch imageMatchWithValue:matchValue 
-													   forImageIdentifier:path 
-														  fromImageSource:handPickedSource 
-																  forTile:tile]];
-}
-
-
-- (void)removeHandPickedImageForTile:(MacOSaiXTile *)tile
-{
-	if ([tile userChosenImageMatch])
-	{
-			// Decrease the image count for the hand picked source.
-		MacOSaiXHandPickedImageSource	*handPickedSource = [self handPickedImageSource];
-		[enumerationCountsLock lock];
-			unsigned long	currentCount = [[enumerationCounts objectForKey:[NSValue valueWithPointer:handPickedSource]] unsignedLongValue];
-			[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:currentCount - 1] 
-								  forKey:[NSValue valueWithPointer:handPickedSource]];
-		[enumerationCountsLock unlock];
-		
-		[tile setUserChosenImageMatch:nil];
-	}
-}
-
-
-#pragma mark -
 
 
 - (void)canCloseDocumentWithDelegate:(id)delegate 
@@ -1960,8 +875,8 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 						 contextInfo:(void *)contextInfo
 {
 		// pause threads so document dirty state doesn't change
-    if (!paused)
-		[self pause];
+    if (![mosaic isPaused])
+		[mosaic pause];
     
 	if ([self isDocumentEdited])
 	{
@@ -2081,7 +996,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	
 		// Let the helper threads know we are closing and resume so that they can clean up and exit.
 	documentIsClosing = YES;
-	[pauseLock unlock];
+	[mosaic stop];
 	
 	if ([autosaveTimer isValid])
 	{
@@ -2091,7 +1006,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	}
 	
 		// wait for the threads to shut down
-    while ([self isEnumeratingImageSources] || [self isCalculatingImageMatches])	// || [self isExtractingTileImagesFromOriginal]
+    while ([mosaic isEnumeratingImageSources] || [mosaic isCalculatingImageMatches])
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
 	
     [super close];
@@ -2102,24 +1017,6 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (void)dealloc
 {
-	NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
-	id<MacOSaiXImageSource>	imageSource = nil;
-	while (imageSource = [imageSourceEnumerator nextObject])
-		[[MacOSaiXImageCache sharedImageCache] removeCachedImageRepsFromSource:imageSource];
-	[imageSources release];
-	
-    [originalImagePath release];
-    [originalImage release];
-	[pauseLock release];
-    [imageQueueLock release];
-	[enumerationThreadCountLock release];
-	[enumerationCountsLock release];
-	[enumerationCounts release];
-	[betterMatchesCache release];
-	[calculateImageMatchesThreadLock release];
-    [tiles release];
-    [tileShapes release];
-    [imageQueue release];
     [lastSaved release];
 	
     [super dealloc];
