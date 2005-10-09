@@ -10,7 +10,6 @@
 		0120B21F08C7FF8600974680 /* G.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0120B21E08C7FF8600974680 /* G.tiff */; };
 		0127354307CD6EBB0053037A /* Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0127354207CD6EBB0053037A /* Defaults.plist */; };
 		0128323A071B7297004ACF95 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
-		01297701086A63D30095AD36 /* MacOSaiXCrashReporterController.h in Headers */ = {isa = PBXBuildFile; fileRef = 012976FF086A63D30095AD36 /* MacOSaiXCrashReporterController.h */; };
 		01297702086A63D30095AD36 /* MacOSaiXCrashReporterController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01297700086A63D30095AD36 /* MacOSaiXCrashReporterController.m */; };
 		01453D50071B6F7900BCEC7C /* PuzzleTilesSetup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 01453D4E071B6F7900BCEC7C /* PuzzleTilesSetup.nib */; };
 		01453D54071B6F8000BCEC7C /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 01453D51071B6F8000BCEC7C /* Info.plist */; };
@@ -20,9 +19,7 @@
 		016A242308D7C952009A93BF /* ZoomIn.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242208D7C952009A93BF /* ZoomIn.png */; };
 		016A242508D7C975009A93BF /* ZoomOut.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242408D7C975009A93BF /* ZoomOut.png */; };
 		016A248208D7D8E2009A93BF /* HandPicked.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A248108D7D8E2009A93BF /* HandPicked.png */; };
-		016A2C5208CD2611002D56C1 /* MacOSaiXImageMatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 016A2C5008CD2611002D56C1 /* MacOSaiXImageMatch.h */; };
 		016A2C5308CD2611002D56C1 /* MacOSaiXImageMatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */; };
-		016A2CCD08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */; };
 		016A2CCE08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */; };
 		01A1978E071A200E00B11558 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		01AB92EB07DB797300DB4B86 /* NSString+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */; };
@@ -32,10 +29,7 @@
 		01BBDECD0747081400F17A9F /* NSImage+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01BBDECB0747081400F17A9F /* NSImage+MacOSaiX.h */; };
 		01BBDECE0747081400F17A9F /* NSImage+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */; };
 		01FAF1D6084031C2003A2726 /* Crash Reporter.nib in Resources */ = {isa = PBXBuildFile; fileRef = 01FAF1D4084031C2003A2726 /* Crash Reporter.nib */; };
-		01FE977E08E8EC8900E4AC7C /* Google Kiosk.nib in Resources */ = {isa = PBXBuildFile; fileRef = 01FE977C08E8EC8900E4AC7C /* Google Kiosk.nib */; };
-		01FE978D08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.h in Headers */ = {isa = PBXBuildFile; fileRef = 01FE978B08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.h */; };
 		01FE978E08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE978C08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.m */; };
-		01FE981208F365C600E4AC7C /* MacOSaiXMosaic.h in Headers */ = {isa = PBXBuildFile; fileRef = 01FE981008F365C600E4AC7C /* MacOSaiXMosaic.h */; };
 		01FE981308F365C600E4AC7C /* MacOSaiXMosaic.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */; };
 		921607B208E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */; };
 		9216086708E5DC9F0018C4C1 /* DirectoryImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = F540721A023FE6860100010A /* DirectoryImageSource.m */; };
@@ -49,11 +43,6 @@
 		923384DC072180700010BE04 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
 		923384DD072180700010BE04 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
 		925FE5C407EBDAB200B0D002 /* Glyph Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 928489E506611CE6003B3514 /* Glyph Image Source.plugin */; };
-		9284898206611CE5003B3514 /* MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = F5666CC9C5B062B401D943E0 /* MacOSaiX.h */; settings = {ATTRIBUTES = (); }; };
-		9284898306611CE5003B3514 /* PreferencesController.h in Headers */ = {isa = PBXBuildFile; fileRef = F566B485028052CF01000108 /* PreferencesController.h */; settings = {ATTRIBUTES = (); }; };
-		9284898406611CE5003B3514 /* MacOSaiXDocument.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E5856E005F0FA87F000001 /* MacOSaiXDocument.h */; settings = {ATTRIBUTES = (); }; };
-		9284898506611CE5003B3514 /* Tiles.h in Headers */ = {isa = PBXBuildFile; fileRef = 00EAAC6000853DFB7F000001 /* Tiles.h */; settings = {ATTRIBUTES = (); }; };
-		9284898706611CE5003B3514 /* MosaicView.h in Headers */ = {isa = PBXBuildFile; fileRef = F5517EEE020CD88F01000106 /* MosaicView.h */; settings = {ATTRIBUTES = (); }; };
 		9284898B06611CE5003B3514 /* ExportImage.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F594095502469B3101000104 /* ExportImage.tiff */; };
 		9284898C06611CE5003B3514 /* ImageSources.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F5940957024722BA01000104 /* ImageSources.tiff */; };
 		9284898D06611CE5003B3514 /* Blank.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F594095B02472CFD01000104 /* Blank.tiff */; };
@@ -105,9 +94,7 @@
 		9287C13E075A5CC6004C07EF /* MacOSaiXTileShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = 9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */; };
 		9287C155075A5F55004C07EF /* RectangularTileShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = 9287C153075A5F55004C07EF /* RectangularTileShapes.h */; };
 		9287C156075A5F55004C07EF /* RectangularTileShapes.m in Sources */ = {isa = PBXBuildFile; fileRef = 9287C154075A5F55004C07EF /* RectangularTileShapes.m */; };
-		9289DDA7073D713100C88091 /* MacOSaiXImageCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */; };
 		9289DDA8073D713100C88091 /* MacOSaiXImageCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */; };
-		9289DDA9073D713100C88091 /* MacOSaiXWindowController.h in Headers */ = {isa = PBXBuildFile; fileRef = 9289DDA5073D713100C88091 /* MacOSaiXWindowController.h */; };
 		9289DDAA073D713100C88091 /* MacOSaiXWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9289DDA6073D713100C88091 /* MacOSaiXWindowController.m */; };
 		928F72A00661226000873AE2 /* Directory Image Source.nib in Resources */ = {isa = PBXBuildFile; fileRef = 928F72990661226000873AE2 /* Directory Image Source.nib */; };
 		928F72B90661229700873AE2 /* Google Image Source.nib in Resources */ = {isa = PBXBuildFile; fileRef = 928F72910661226000873AE2 /* Google Image Source.nib */; };
@@ -126,11 +113,47 @@
 		92951FEA068A7FDC00366ACB /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 928F725F066121A700873AE2 /* Preferences.nib */; };
 		92951FF1068A7FE600366ACB /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 928F724A0661214000873AE2 /* Info.plist */; };
 		92951FF9068A7FE900366ACB /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 928F726C066121AE00873AE2 /* InfoPlist.strings */; };
-		92B9087B08C25F0500D621F5 /* MacOSaiXImageMatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 92B9087908C25F0500D621F5 /* MacOSaiXImageMatcher.h */; };
 		92B9087C08C25F0600D621F5 /* MacOSaiXImageMatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */; };
 		92BFFEC3079A2DD50052CC4C /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = 92BFFEC1079A2DD50052CC4C /* Credits.html */; };
 		92C8AAF2080870100073045F /* GlyphTableColumn.h in Headers */ = {isa = PBXBuildFile; fileRef = 92C8AAF0080870100073045F /* GlyphTableColumn.h */; };
 		92C8AAF3080870100073045F /* GlyphTableColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92C8AAF1080870100073045F /* GlyphTableColumn.m */; };
+		92DCA4E308F86EDD00B40FA6 /* Application Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = F54167D0024C46CE0100010B /* Application Icon.icns */; };
+		92DCA4F008F86EDD00B40FA6 /* Update Available.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92F00D0607C1B52B004F6D06 /* Update Available.nib */; };
+		92DCA4F208F86EDD00B40FA6 /* Crash Reporter.nib in Resources */ = {isa = PBXBuildFile; fileRef = 01FAF1D4084031C2003A2726 /* Crash Reporter.nib */; };
+		92DCA4F308F86EDD00B40FA6 /* ZoomIn.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242208D7C952009A93BF /* ZoomIn.png */; };
+		92DCA4F408F86EDD00B40FA6 /* ZoomOut.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242408D7C975009A93BF /* ZoomOut.png */; };
+		92DCA4FC08F86EDD00B40FA6 /* Tiles.m in Sources */ = {isa = PBXBuildFile; fileRef = 00EAAC6100853DFB7F000001 /* Tiles.m */; };
+		92DCA4FD08F86EDD00B40FA6 /* MosaicView.m in Sources */ = {isa = PBXBuildFile; fileRef = F5517EEF020CD88F01000106 /* MosaicView.m */; };
+		92DCA4FE08F86EDD00B40FA6 /* MacOSaiXImageCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */; };
+		92DCA50008F86EDD00B40FA6 /* NSImage+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */; };
+		92DCA50108F86EDE00B40FA6 /* MacPADSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F00CCD07C1AA55004F6D06 /* MacPADSocket.m */; };
+		92DCA50208F86EDE00B40FA6 /* MacOSaiXUpdateAvailableController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F00CE307C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m */; };
+		92DCA50308F86EDE00B40FA6 /* NSString+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 01AB92EA07DB797300DB4B86 /* NSString+MacOSaiX.m */; };
+		92DCA50408F86EDE00B40FA6 /* MacOSaiXCrashReporterController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01297700086A63D30095AD36 /* MacOSaiXCrashReporterController.m */; };
+		92DCA50508F86EDE00B40FA6 /* MacOSaiXImageMatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */; };
+		92DCA50608F86EDE00B40FA6 /* MacOSaiXImageMatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */; };
+		92DCA50808F86EDE00B40FA6 /* NSFileManager+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */; };
+		92DCA50908F86EDE00B40FA6 /* MacOSaiXGoogleKioskController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE978C08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.m */; };
+		92DCA50A08F86EDE00B40FA6 /* MacOSaiXMosaic.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */; };
+		92DCA50C08F86EDE00B40FA6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
+		92DCA53808F8715D00B40FA6 /* GoogleImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = F540721E023FE6E00100010A /* GoogleImageSource.m */; };
+		92DCA53B08F8717000B40FA6 /* G.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0120B21E08C7FF8600974680 /* G.tiff */; };
+		92DCA53C08F8717000B40FA6 /* GoogleImageSource.gif in Resources */ = {isa = PBXBuildFile; fileRef = F580657F02456D1901000104 /* GoogleImageSource.gif */; };
+		92DCA53D08F8717000B40FA6 /* GoogleImageSearch.gif in Resources */ = {isa = PBXBuildFile; fileRef = 01AD286D07E3C99A00420875 /* GoogleImageSearch.gif */; };
+		92DCA59B08F8732900B40FA6 /* RectangularTileShapes.m in Sources */ = {isa = PBXBuildFile; fileRef = 9287C154075A5F55004C07EF /* RectangularTileShapes.m */; };
+		92DCA6E608F873C300B40FA6 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA6E308F873C300B40FA6 /* AppDelegate.m */; };
+		92DCA6E708F873C300B40FA6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA6E408F873C300B40FA6 /* main.m */; };
+		92DCA6F008F873EB00B40FA6 /* Google Kiosk.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92DCA6EC08F873EB00B40FA6 /* Google Kiosk.nib */; };
+		92DCA6F108F873EB00B40FA6 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92DCA6EE08F873EB00B40FA6 /* MainMenu.nib */; };
+		92DCA7B408F87D8A00B40FA6 /* Mosaic.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92DCA7B208F87D8A00B40FA6 /* Mosaic.nib */; };
+		92DCA7B708F87DD200B40FA6 /* MacOSaiXMosaicController.h in Headers */ = {isa = PBXBuildFile; fileRef = 92DCA7B508F87DD200B40FA6 /* MacOSaiXMosaicController.h */; };
+		92DCA7B808F87DD200B40FA6 /* MacOSaiXMosaicController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA7B608F87DD200B40FA6 /* MacOSaiXMosaicController.m */; };
+		92DCA7C608F880A500B40FA6 /* Kiosk Setup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92DCA7C408F880A500B40FA6 /* Kiosk Setup.nib */; };
+		92DCA7CA08F8837F00B40FA6 /* Screen Setup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92DCA7C808F8837F00B40FA6 /* Screen Setup.nib */; };
+		92DCA7CD08F8894C00B40FA6 /* MacOSaiXKioskSetupController.h in Headers */ = {isa = PBXBuildFile; fileRef = 92DCA7CB08F8894C00B40FA6 /* MacOSaiXKioskSetupController.h */; };
+		92DCA7CE08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA7CC08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m */; };
+		92DCA87308F89EA400B40FA6 /* MacOSaiXScreenSetupController.h in Headers */ = {isa = PBXBuildFile; fileRef = 92DCA87108F89EA400B40FA6 /* MacOSaiXScreenSetupController.h */; };
+		92DCA87408F89EA400B40FA6 /* MacOSaiXScreenSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA87208F89EA400B40FA6 /* MacOSaiXScreenSetupController.m */; };
 		92E3E15607E7BE8C00E62AB8 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
 		92E3E15E07E7BE8C00E62AB8 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		92E3E17207E7BF0B00E62AB8 /* iPhoto Image Source.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92E3E17007E7BF0B00E62AB8 /* iPhoto Image Source.nib */; };
@@ -142,9 +165,7 @@
 		92E3E1C107E7D04500E62AB8 /* NSString+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */; };
 		92E3E22C07E7E22A00E62AB8 /* iPhoto Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92E3E15F07E7BE8C00E62AB8 /* iPhoto Image Source.plugin */; };
 		92ECCFAE07F0F25600C77375 /* NSString+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */; };
-		92F00CCE07C1AA55004F6D06 /* MacPADSocket.h in Headers */ = {isa = PBXBuildFile; fileRef = 92F00CCC07C1AA55004F6D06 /* MacPADSocket.h */; };
 		92F00CCF07C1AA55004F6D06 /* MacPADSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F00CCD07C1AA55004F6D06 /* MacPADSocket.m */; };
-		92F00CE407C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.h in Headers */ = {isa = PBXBuildFile; fileRef = 92F00CE207C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.h */; };
 		92F00CE507C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F00CE307C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m */; };
 		92F00D0807C1B52B004F6D06 /* Update Available.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92F00D0607C1B52B004F6D06 /* Update Available.nib */; };
 /* End PBXBuildFile section */
@@ -215,6 +236,14 @@
 			);
 		};
 		012976550846A2340095AD36 /* PBXBuildRule */ = {
+			isa = PBXBuildRule;
+			compilerSpec = com.apple.compilers.gcc.3_3;
+			fileType = sourcecode.c;
+			isEditable = 1;
+			outputFiles = (
+			);
+		};
+		92DCA51608F86EDE00B40FA6 /* PBXBuildRule */ = {
 			isa = PBXBuildRule;
 			compilerSpec = com.apple.compilers.gcc.3_3;
 			fileType = sourcecode.c;
@@ -361,9 +390,8 @@
 		01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSImage+MacOSaiX.m"; path = "MacOSaiX/NSImage+MacOSaiX.m"; sourceTree = "<group>"; };
 		01CB07E6071A1F2B00710BCF /* Hexagonal Tiles.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Hexagonal Tiles.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		01FAF1D5084031C2003A2726 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "MacOSaiX/English.lproj/Crash Reporter.nib"; sourceTree = "<group>"; };
-		01FE977D08E8EC8900E4AC7C /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "MacOSaiX/English.lproj/Google Kiosk.nib"; sourceTree = "<group>"; };
-		01FE978B08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXGoogleKioskController.h; path = MacOSaiX/MacOSaiXGoogleKioskController.h; sourceTree = "<group>"; };
-		01FE978C08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXGoogleKioskController.m; path = MacOSaiX/MacOSaiXGoogleKioskController.m; sourceTree = "<group>"; };
+		01FE978B08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXGoogleKioskController.h; sourceTree = "<group>"; };
+		01FE978C08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXGoogleKioskController.m; sourceTree = "<group>"; };
 		01FE981008F365C600E4AC7C /* MacOSaiXMosaic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXMosaic.h; path = MacOSaiX/MacOSaiXMosaic.h; sourceTree = "<group>"; };
 		01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXMosaic.m; path = MacOSaiX/MacOSaiXMosaic.m; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = main.m; path = MacOSaiX/main.m; sourceTree = "<group>"; };
@@ -385,8 +413,8 @@
 		9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXTileShapes.h; path = MacOSaiX/MacOSaiXTileShapes.h; sourceTree = "<group>"; };
 		9287C153075A5F55004C07EF /* RectangularTileShapes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = RectangularTileShapes.h; path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapes.h"; sourceTree = "<group>"; };
 		9287C154075A5F55004C07EF /* RectangularTileShapes.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = RectangularTileShapes.m; path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapes.m"; sourceTree = "<group>"; };
-		9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXImageCache.h; path = MacOSaiX/MacOSaiXImageCache.h; sourceTree = SOURCE_ROOT; };
-		9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXImageCache.m; path = MacOSaiX/MacOSaiXImageCache.m; sourceTree = SOURCE_ROOT; };
+		9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXImageCache.h; path = MacOSaiX/MacOSaiXImageCache.h; sourceTree = "<group>"; };
+		9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXImageCache.m; path = MacOSaiX/MacOSaiXImageCache.m; sourceTree = "<group>"; };
 		9289DDA5073D713100C88091 /* MacOSaiXWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXWindowController.h; path = MacOSaiX/MacOSaiXWindowController.h; sourceTree = "<group>"; };
 		9289DDA6073D713100C88091 /* MacOSaiXWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXWindowController.m; path = MacOSaiX/MacOSaiXWindowController.m; sourceTree = "<group>"; };
 		928F724A0661214000873AE2 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = Info.plist; path = MacOSaiX/Info.plist; sourceTree = "<group>"; };
@@ -415,6 +443,22 @@
 		92BFFEC2079A2DD50052CC4C /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = MacOSaiX/English.lproj/Credits.html; sourceTree = "<group>"; };
 		92C8AAF0080870100073045F /* GlyphTableColumn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlyphTableColumn.h; path = "Standard Plugins/Glyph Image Source/GlyphTableColumn.h"; sourceTree = "<group>"; };
 		92C8AAF1080870100073045F /* GlyphTableColumn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GlyphTableColumn.m; path = "Standard Plugins/Glyph Image Source/GlyphTableColumn.m"; sourceTree = "<group>"; };
+		92DCA51A08F86EDE00B40FA6 /* MacOSaiX Google Kiosk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MacOSaiX Google Kiosk.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		92DCA51C08F86EDE00B40FA6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = Info.plist; path = "/Users/fmidgley/Development/MacOSaiX/Google Kiosk/Info.plist"; sourceTree = "<absolute>"; };
+		92DCA6E208F873C300B40FA6 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		92DCA6E308F873C300B40FA6 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		92DCA6E408F873C300B40FA6 /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		92DCA6ED08F873EB00B40FA6 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Google Kiosk.nib"; sourceTree = "<group>"; };
+		92DCA6EF08F873EB00B40FA6 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
+		92DCA7B308F87D8A00B40FA6 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Mosaic.nib; sourceTree = "<group>"; };
+		92DCA7B508F87DD200B40FA6 /* MacOSaiXMosaicController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXMosaicController.h; sourceTree = "<group>"; };
+		92DCA7B608F87DD200B40FA6 /* MacOSaiXMosaicController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXMosaicController.m; sourceTree = "<group>"; };
+		92DCA7C508F880A500B40FA6 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Kiosk Setup.nib"; sourceTree = "<group>"; };
+		92DCA7C908F8837F00B40FA6 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Screen Setup.nib"; sourceTree = "<group>"; };
+		92DCA7CB08F8894C00B40FA6 /* MacOSaiXKioskSetupController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXKioskSetupController.h; sourceTree = "<group>"; };
+		92DCA7CC08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXKioskSetupController.m; sourceTree = "<group>"; };
+		92DCA87108F89EA400B40FA6 /* MacOSaiXScreenSetupController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXScreenSetupController.h; sourceTree = "<group>"; };
+		92DCA87208F89EA400B40FA6 /* MacOSaiXScreenSetupController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXScreenSetupController.m; sourceTree = "<group>"; };
 		92E3E15F07E7BE8C00E62AB8 /* iPhoto Image Source.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "iPhoto Image Source.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		92E3E17107E7BF0B00E62AB8 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/iPhoto Image Source/English.lproj/iPhoto Image Source.nib"; sourceTree = "<group>"; };
 		92E3E17407E7BF1B00E62AB8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = Info.plist; path = "Standard Plugins/iPhoto Image Source/Info.plist"; sourceTree = "<group>"; };
@@ -528,6 +572,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		92DCA50B08F86EDE00B40FA6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				92DCA50C08F86EDE00B40FA6 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		92E3E15D07E7BE8C00E62AB8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -582,20 +634,6 @@
 			name = Preferences;
 			sourceTree = "<group>";
 		};
-		0165CFCF086DE52B0070D6B5 /* Document/Controller */ = {
-			isa = PBXGroup;
-			children = (
-				00E5856E005F0FA87F000001 /* MacOSaiXDocument.h */,
-				00E5856D005F0FA87F000001 /* MacOSaiXDocument.m */,
-				9289DDA5073D713100C88091 /* MacOSaiXWindowController.h */,
-				9289DDA6073D713100C88091 /* MacOSaiXWindowController.m */,
-				928F725B066121A700873AE2 /* MacOSaiXDocument.nib */,
-				F5517EEE020CD88F01000106 /* MosaicView.h */,
-				F5517EEF020CD88F01000106 /* MosaicView.m */,
-			);
-			name = Document/Controller;
-			sourceTree = "<group>";
-		};
 		0165CFD0086DE5490070D6B5 /* Update Window */ = {
 			isa = PBXGroup;
 			children = (
@@ -631,11 +669,25 @@
 		01FE978A08E8EDDA00E4AC7C /* Google Kiosk */ = {
 			isa = PBXGroup;
 			children = (
+				92DCA6E408F873C300B40FA6 /* main.m */,
+				92DCA6EE08F873EB00B40FA6 /* MainMenu.nib */,
+				92DCA6E208F873C300B40FA6 /* AppDelegate.h */,
+				92DCA6E308F873C300B40FA6 /* AppDelegate.m */,
 				01FE978B08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.h */,
 				01FE978C08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.m */,
-				01FE977C08E8EC8900E4AC7C /* Google Kiosk.nib */,
+				92DCA6EC08F873EB00B40FA6 /* Google Kiosk.nib */,
+				92DCA51C08F86EDE00B40FA6 /* Info.plist */,
+				92DCA7B508F87DD200B40FA6 /* MacOSaiXMosaicController.h */,
+				92DCA7B608F87DD200B40FA6 /* MacOSaiXMosaicController.m */,
+				92DCA7B208F87D8A00B40FA6 /* Mosaic.nib */,
+				92DCA7CB08F8894C00B40FA6 /* MacOSaiXKioskSetupController.h */,
+				92DCA7CC08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m */,
+				92DCA7C408F880A500B40FA6 /* Kiosk Setup.nib */,
+				92DCA87108F89EA400B40FA6 /* MacOSaiXScreenSetupController.h */,
+				92DCA87208F89EA400B40FA6 /* MacOSaiXScreenSetupController.m */,
+				92DCA7C808F8837F00B40FA6 /* Screen Setup.nib */,
 			);
-			name = "Google Kiosk";
+			path = "Google Kiosk";
 			sourceTree = "<group>";
 		};
 		080E96DDFE201D6D7F000001 /* MacOSaiX.app */ = {
@@ -645,32 +697,20 @@
 				928F725D066121A700873AE2 /* MainMenu.nib */,
 				F5666CC9C5B062B401D943E0 /* MacOSaiX.h */,
 				F5666CCAC5B062B401D943E0 /* MacOSaiX.m */,
-				01FE981008F365C600E4AC7C /* MacOSaiXMosaic.h */,
-				01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */,
-				0165CFCF086DE52B0070D6B5 /* Document/Controller */,
-				01FE978A08E8EDDA00E4AC7C /* Google Kiosk */,
-				9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */,
-				9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */,
-				92B9087908C25F0500D621F5 /* MacOSaiXImageMatcher.h */,
-				92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */,
-				00EAAC6000853DFB7F000001 /* Tiles.h */,
-				00EAAC6100853DFB7F000001 /* Tiles.m */,
+				00E5856E005F0FA87F000001 /* MacOSaiXDocument.h */,
+				00E5856D005F0FA87F000001 /* MacOSaiXDocument.m */,
+				928F725B066121A700873AE2 /* MacOSaiXDocument.nib */,
+				9289DDA5073D713100C88091 /* MacOSaiXWindowController.h */,
+				9289DDA6073D713100C88091 /* MacOSaiXWindowController.m */,
+				016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */,
+				016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */,
 				0165CFCE086DE5100070D6B5 /* Preferences */,
-				0165CFD0086DE5490070D6B5 /* Update Window */,
-				928F72460661211600873AE2 /* Crash Reporter */,
-				0165CFD1086DE55E0070D6B5 /* Plug-in API's */,
-				01AB92ED07DB797E00DB4B86 /* Cocoa Extensions */,
 				0127354207CD6EBB0053037A /* Defaults.plist */,
 				928F724A0661214000873AE2 /* Info.plist */,
 				928F726C066121AE00873AE2 /* InfoPlist.strings */,
+				016A2E3108D1459D002D56C1 /* Version.plist */,
 				92BFFEC1079A2DD50052CC4C /* Credits.html */,
-				F57C77BD025E6D6001000102 /* Images */,
-				016A2C5008CD2611002D56C1 /* MacOSaiXImageMatch.h */,
-				016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */,
-				016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */,
-				016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */,
-				016A312108D5276A002D56C1 /* MacOSaiXImageDeallocator.h */,
-				016A312208D5276A002D56C1 /* MacOSaiXImageDeallocator.m */,
+				92DCA56D08F8726300B40FA6 /* Images */,
 			);
 			name = MacOSaiX.app;
 			sourceTree = "<group>";
@@ -679,6 +719,7 @@
 			isa = PBXGroup;
 			children = (
 				928489A306611CE6003B3514 /* MacOSaiX.app */,
+				92DCA51A08F86EDE00B40FA6 /* MacOSaiX Google Kiosk.app */,
 				01CB07E6071A1F2B00710BCF /* Hexagonal Tiles.plugin */,
 				01453D4A071B6F2D00BCEC7C /* Puzzle Tiles.plugin */,
 				928489F306611CE6003B3514 /* Rectangular Tiles.plugin */,
@@ -694,13 +735,12 @@
 		29B97314FDCFA39411CA2CEA /* MacOSaiX */ = {
 			isa = PBXGroup;
 			children = (
-				080E96DDFE201D6D7F000001 /* MacOSaiX.app */,
+				92DCA55D08F871AF00B40FA6 /* Apps */,
 				F5EE25FD03901F9D01705684 /* Standard Plugins */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				92F00CC907C1AA31004F6D06 /* Third Party Code */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 				F54D1108020F41F001000116 /* To Do */,
-				016A2E3108D1459D002D56C1 /* Version.plist */,
 			);
 			name = MacOSaiX;
 			sourceTree = "<group>";
@@ -797,6 +837,55 @@
 			name = Hexagonal;
 			sourceTree = "<group>";
 		};
+		92DCA54D08F871A100B40FA6 /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */,
+				9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */,
+				016A312108D5276A002D56C1 /* MacOSaiXImageDeallocator.h */,
+				016A312208D5276A002D56C1 /* MacOSaiXImageDeallocator.m */,
+				016A2C5008CD2611002D56C1 /* MacOSaiXImageMatch.h */,
+				016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */,
+				92B9087908C25F0500D621F5 /* MacOSaiXImageMatcher.h */,
+				92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */,
+				01FE981008F365C600E4AC7C /* MacOSaiXMosaic.h */,
+				01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */,
+				F5517EEE020CD88F01000106 /* MosaicView.h */,
+				F5517EEF020CD88F01000106 /* MosaicView.m */,
+				00EAAC6000853DFB7F000001 /* Tiles.h */,
+				00EAAC6100853DFB7F000001 /* Tiles.m */,
+				01AB92ED07DB797E00DB4B86 /* Cocoa Extensions */,
+				928F72460661211600873AE2 /* Crash Reporter */,
+				F57C77BD025E6D6001000102 /* Images */,
+				0165CFD0086DE5490070D6B5 /* Update Window */,
+				0165CFD1086DE55E0070D6B5 /* Plug-in API's */,
+			);
+			name = Common;
+			sourceTree = "<group>";
+		};
+		92DCA55D08F871AF00B40FA6 /* Apps */ = {
+			isa = PBXGroup;
+			children = (
+				92DCA54D08F871A100B40FA6 /* Common */,
+				080E96DDFE201D6D7F000001 /* MacOSaiX.app */,
+				01FE978A08E8EDDA00E4AC7C /* Google Kiosk */,
+			);
+			name = Apps;
+			sourceTree = "<group>";
+		};
+		92DCA56D08F8726300B40FA6 /* Images */ = {
+			isa = PBXGroup;
+			children = (
+				F528CBCA0274A44201E37B2D /* Document Icon.icns */,
+				F594095502469B3101000104 /* ExportImage.tiff */,
+				016A248108D7D8E2009A93BF /* HandPicked.png */,
+				F558F295027DBB8D01000103 /* Pause.tiff */,
+				F558F297027DBF1B01000103 /* Resume.tiff */,
+				01AC3A3B07B0997C0025F915 /* Settings.png */,
+			);
+			name = Images;
+			sourceTree = "<group>";
+		};
 		92E3E16E07E7BEE800E62AB8 /* iPhoto */ = {
 			isa = PBXGroup;
 			children = (
@@ -845,16 +934,10 @@
 			isa = PBXGroup;
 			children = (
 				F54167D0024C46CE0100010B /* Application Icon.icns */,
-				F528CBCA0274A44201E37B2D /* Document Icon.icns */,
 				F58E0885028C767C016CFBE9 /* BadgeGreen.tiff */,
 				F58E0883028C71BF016CFBE9 /* BadgeRed.tiff */,
 				F594095B02472CFD01000104 /* Blank.tiff */,
-				F594095502469B3101000104 /* ExportImage.tiff */,
-				016A248108D7D8E2009A93BF /* HandPicked.png */,
 				F5940957024722BA01000104 /* ImageSources.tiff */,
-				F558F295027DBB8D01000103 /* Pause.tiff */,
-				F558F297027DBF1B01000103 /* Resume.tiff */,
-				01AC3A3B07B0997C0025F915 /* Settings.png */,
 				016A242208D7C952009A93BF /* ZoomIn.png */,
 				016A242408D7C975009A93BF /* ZoomOut.png */,
 			);
@@ -896,25 +979,10 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9284898206611CE5003B3514 /* MacOSaiX.h in Headers */,
-				9284898306611CE5003B3514 /* PreferencesController.h in Headers */,
-				9284898406611CE5003B3514 /* MacOSaiXDocument.h in Headers */,
-				9284898506611CE5003B3514 /* Tiles.h in Headers */,
-				9284898706611CE5003B3514 /* MosaicView.h in Headers */,
 				923384DD072180700010BE04 /* MacOSaiXImageSource.h in Headers */,
-				9289DDA7073D713100C88091 /* MacOSaiXImageCache.h in Headers */,
-				9289DDA9073D713100C88091 /* MacOSaiXWindowController.h in Headers */,
 				01BBDECD0747081400F17A9F /* NSImage+MacOSaiX.h in Headers */,
 				9287C13B075A5CC6004C07EF /* MacOSaiXTileShapes.h in Headers */,
-				92F00CCE07C1AA55004F6D06 /* MacPADSocket.h in Headers */,
-				92F00CE407C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.h in Headers */,
 				01AB92EB07DB797300DB4B86 /* NSString+MacOSaiX.h in Headers */,
-				01297701086A63D30095AD36 /* MacOSaiXCrashReporterController.h in Headers */,
-				92B9087B08C25F0500D621F5 /* MacOSaiXImageMatcher.h in Headers */,
-				016A2C5208CD2611002D56C1 /* MacOSaiXImageMatch.h in Headers */,
-				016A2CCD08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h in Headers */,
-				01FE978D08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.h in Headers */,
-				01FE981208F365C600E4AC7C /* MacOSaiXMosaic.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -967,6 +1035,16 @@
 				928489F706611CE6003B3514 /* QuickTimeImageSource.h in Headers */,
 				928489F806611CE6003B3514 /* QuickTimeImageSourceController.h in Headers */,
 				928654D7072AD54200EFC32A /* MacOSaiXImageSource.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		92DCA4CB08F86EDD00B40FA6 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				92DCA7B708F87DD200B40FA6 /* MacOSaiXMosaicController.h in Headers */,
+				92DCA7CD08F8894C00B40FA6 /* MacOSaiXKioskSetupController.h in Headers */,
+				92DCA87308F89EA400B40FA6 /* MacOSaiXScreenSetupController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1315,6 +1393,49 @@
 			productReference = 92848A0406611CE6003B3514 /* QuickTime Image Source.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
+		92DCA4BC08F86EDD00B40FA6 /* MacOSaiX Google Kiosk */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 92DCA51708F86EDE00B40FA6 /* Build configuration list for PBXNativeTarget "MacOSaiX Google Kiosk" */;
+			buildPhases = (
+				92DCA4CB08F86EDD00B40FA6 /* Headers */,
+				92DCA4DF08F86EDD00B40FA6 /* Resources */,
+				92DCA4F708F86EDD00B40FA6 /* Sources */,
+				92DCA50B08F86EDE00B40FA6 /* Frameworks */,
+				92DCA51508F86EDE00B40FA6 /* ShellScript */,
+			);
+			buildRules = (
+				92DCA51608F86EDE00B40FA6 /* PBXBuildRule */,
+			);
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Versions/A/Frameworks",
+					"$(BUILT_PRODUCTS_DIR)",
+					/Users/frank/Development/MacOSaiX/build,
+				);
+				GCC_OPTIMIZATION_LEVEL = 0;
+				HEADER_SEARCH_PATHS = "";
+				INFOPLIST_FILE = MacOSaiX/Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = MacOSaiX;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+			};
+			dependencies = (
+			);
+			name = "MacOSaiX Google Kiosk";
+			productInstallPath = "$(HOME)/Applications";
+			productName = MacOSaiX;
+			productReference = 92DCA51A08F86EDE00B40FA6 /* MacOSaiX Google Kiosk.app */;
+			productType = "com.apple.product-type.application";
+		};
 		92E3E15207E7BE8C00E62AB8 /* iPhoto Image Source Plug-In */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0142D7220895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "iPhoto Image Source Plug-In" */;
@@ -1368,6 +1489,7 @@
 			projectDirPath = "";
 			targets = (
 				9284897106611CE5003B3514 /* MacOSaiX.app */,
+				92DCA4BC08F86EDD00B40FA6 /* MacOSaiX Google Kiosk */,
 				01CB07E5071A1F2B00710BCF /* Hexagonal Tiles Plug-in */,
 				01453D49071B6F2D00BCEC7C /* Puzzle Tiles Setup */,
 				928489E606611CE6003B3514 /* Rectangular Tiles Plug-In */,
@@ -1425,7 +1547,6 @@
 				016A242308D7C952009A93BF /* ZoomIn.png in Resources */,
 				016A242508D7C975009A93BF /* ZoomOut.png in Resources */,
 				016A248208D7D8E2009A93BF /* HandPicked.png in Resources */,
-				01FE977E08E8EC8900E4AC7C /* Google Kiosk.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1478,6 +1599,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		92DCA4DF08F86EDD00B40FA6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				92DCA4E308F86EDD00B40FA6 /* Application Icon.icns in Resources */,
+				92DCA4F008F86EDD00B40FA6 /* Update Available.nib in Resources */,
+				92DCA4F208F86EDD00B40FA6 /* Crash Reporter.nib in Resources */,
+				92DCA4F308F86EDD00B40FA6 /* ZoomIn.png in Resources */,
+				92DCA4F408F86EDD00B40FA6 /* ZoomOut.png in Resources */,
+				92DCA53B08F8717000B40FA6 /* G.tiff in Resources */,
+				92DCA53C08F8717000B40FA6 /* GoogleImageSource.gif in Resources */,
+				92DCA53D08F8717000B40FA6 /* GoogleImageSearch.gif in Resources */,
+				92DCA6F008F873EB00B40FA6 /* Google Kiosk.nib in Resources */,
+				92DCA6F108F873EB00B40FA6 /* MainMenu.nib in Resources */,
+				92DCA7B408F87D8A00B40FA6 /* Mosaic.nib in Resources */,
+				92DCA7C608F880A500B40FA6 /* Kiosk Setup.nib in Resources */,
+				92DCA7CA08F8837F00B40FA6 /* Screen Setup.nib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		92E3E15707E7BE8C00E62AB8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1501,6 +1642,19 @@
 
 /* Begin PBXShellScriptBuildPhase section */
 		92539F2A089C44BE003DA3C0 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd build/Release\n\trm -rf MacOSaiX\n\tmkdir -p MacOSaiX\n\tcp -r MacOSaiX.app MacOSaiX\n\t\n\tosascript\t\t-e\t'tell application \"Finder\"' \\\n\t\t\t\t-e\t\t'if exists disk \"MacOSaiX\" then eject disk \"MacOSaiX\"' \\\n\t\t\t\t-e\t'end tell'\n\trm -f MacOSaiX_working.dmg\n\thdiutil create -srcfolder MacOSaiX -format UDRW -attach MacOSaiX_working.dmg\n\techo \"hdiutil create exited $?\"\n\t\n\tosascript\t\t-e 'tell application \"Finder\"' \\\n\t\t\t\t-e\t\t'activate' \\\n\t\t\t\t-e\t\t'tell container window of disk \"MacOSaiX\"' \\\n\t\t\t\t-e\t\t\t'open' \\\n\t\t\t\t-e\t\t\t'set bounds to {50, 50, 450, 350}' \\\n\t\t\t\t-e\t\t\t'set toolbar visible to false' \\\n\t\t\t\t-e\t\t\t'set toolbar visible to true' \\\n\t\t\t\t-e\t\t\t'set sidebar width to 120' \\\n\t\t\t\t-e\t\t\t'set current view to icon view' \\\n\t\t\t\t-e\t\t\t'tell its icon view options' \\\n\t\t\t\t-e\t\t\t\t'set icon size to 128' \\\n\t\t\t\t-e\t\t\t\t'set text size to 16' \\\n\t\t\t\t-e\t\t\t\t'set background color to {65535, 64352, 52722}' \\\n\t\t\t\t-e\t\t\t'end tell' \\\n\t\t\t\t-e\t\t\t'set position of item 1 of target to {132, 115}' \\\n\t\t\t\t-e\t\t'end tell' \\\n\t\t\t\t-e\t'end tell'\n\techo \"osascript exited $?\"\n\tsleep 5\n\tosascript\t-e 'tell application \"Finder\" to eject disk \"MacOSaiX\"'\n\techo \"osascript exited $?\"\n\t\n\trm -f MacOSaiX.dmg\n\thdiutil convert MacOSaiX_working.dmg -format UDZO -o MacOSaiX.dmg\n\techo \"hdiutil convert exited $?\"\n\t\n\topen MacOSaiX.dmg\nfi";
+		};
+		92DCA51508F86EDE00B40FA6 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1605,6 +1759,33 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		92DCA4F708F86EDD00B40FA6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				92DCA4FC08F86EDD00B40FA6 /* Tiles.m in Sources */,
+				92DCA4FD08F86EDD00B40FA6 /* MosaicView.m in Sources */,
+				92DCA4FE08F86EDD00B40FA6 /* MacOSaiXImageCache.m in Sources */,
+				92DCA50008F86EDD00B40FA6 /* NSImage+MacOSaiX.m in Sources */,
+				92DCA50108F86EDE00B40FA6 /* MacPADSocket.m in Sources */,
+				92DCA50208F86EDE00B40FA6 /* MacOSaiXUpdateAvailableController.m in Sources */,
+				92DCA50308F86EDE00B40FA6 /* NSString+MacOSaiX.m in Sources */,
+				92DCA50408F86EDE00B40FA6 /* MacOSaiXCrashReporterController.m in Sources */,
+				92DCA50508F86EDE00B40FA6 /* MacOSaiXImageMatcher.m in Sources */,
+				92DCA50608F86EDE00B40FA6 /* MacOSaiXImageMatch.m in Sources */,
+				92DCA50808F86EDE00B40FA6 /* NSFileManager+MacOSaiX.m in Sources */,
+				92DCA50908F86EDE00B40FA6 /* MacOSaiXGoogleKioskController.m in Sources */,
+				92DCA50A08F86EDE00B40FA6 /* MacOSaiXMosaic.m in Sources */,
+				92DCA53808F8715D00B40FA6 /* GoogleImageSource.m in Sources */,
+				92DCA59B08F8732900B40FA6 /* RectangularTileShapes.m in Sources */,
+				92DCA6E608F873C300B40FA6 /* AppDelegate.m in Sources */,
+				92DCA6E708F873C300B40FA6 /* main.m in Sources */,
+				92DCA7B808F87DD200B40FA6 /* MacOSaiXMosaicController.m in Sources */,
+				92DCA7CE08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m in Sources */,
+				92DCA87408F89EA400B40FA6 /* MacOSaiXScreenSetupController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		92E3E15A07E7BE8C00E62AB8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1677,14 +1858,6 @@
 				01FAF1D5084031C2003A2726 /* English */,
 			);
 			name = "Crash Reporter.nib";
-			sourceTree = "<group>";
-		};
-		01FE977C08E8EC8900E4AC7C /* Google Kiosk.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				01FE977D08E8EC8900E4AC7C /* English */,
-			);
-			name = "Google Kiosk.nib";
 			sourceTree = "<group>";
 		};
 		9227FD7907E37A340020C5F4 /* HexagonalTileShapes.nib */ = {
@@ -1773,6 +1946,46 @@
 				92BFFEC2079A2DD50052CC4C /* English */,
 			);
 			name = Credits.html;
+			sourceTree = "<group>";
+		};
+		92DCA6EC08F873EB00B40FA6 /* Google Kiosk.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92DCA6ED08F873EB00B40FA6 /* English */,
+			);
+			name = "Google Kiosk.nib";
+			sourceTree = "<group>";
+		};
+		92DCA6EE08F873EB00B40FA6 /* MainMenu.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92DCA6EF08F873EB00B40FA6 /* English */,
+			);
+			name = MainMenu.nib;
+			sourceTree = "<group>";
+		};
+		92DCA7B208F87D8A00B40FA6 /* Mosaic.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92DCA7B308F87D8A00B40FA6 /* English */,
+			);
+			name = Mosaic.nib;
+			sourceTree = "<group>";
+		};
+		92DCA7C408F880A500B40FA6 /* Kiosk Setup.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92DCA7C508F880A500B40FA6 /* English */,
+			);
+			name = "Kiosk Setup.nib";
+			sourceTree = "<group>";
+		};
+		92DCA7C808F8837F00B40FA6 /* Screen Setup.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92DCA7C908F8837F00B40FA6 /* English */,
+			);
+			name = "Screen Setup.nib";
 			sourceTree = "<group>";
 		};
 		92E3E17007E7BF0B00E62AB8 /* iPhoto Image Source.nib */ = {
@@ -1995,6 +2208,28 @@
 			};
 			name = Release;
 		};
+		92DCA51808F86EDE00B40FA6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				INFOPLIST_FILE = "/Users/fmidgley/Development/MacOSaiX/Google Kiosk/Info.plist";
+				INSTALL_PATH = "$(HOME)/Applications";
+				PRODUCT_NAME = "MacOSaiX Google Kiosk";
+				WRAPPER_EXTENSION = app;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		92DCA51908F86EDE00B40FA6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = "/Users/fmidgley/Development/MacOSaiX/Google Kiosk/Info.plist";
+				INSTALL_PATH = "$(HOME)/Applications";
+				PRODUCT_NAME = "MacOSaiX Google Kiosk";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2084,6 +2319,15 @@
 			buildConfigurations = (
 				0142D7370895BF23007F1FD2 /* Debug */,
 				0142D7380895BF23007F1FD2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		92DCA51708F86EDE00B40FA6 /* Build configuration list for PBXNativeTarget "MacOSaiX Google Kiosk" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				92DCA51808F86EDE00B40FA6 /* Debug */,
+				92DCA51908F86EDE00B40FA6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
