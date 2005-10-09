@@ -14,7 +14,7 @@
 
 - (NSString *)windowNibName
 {
-	return @"Mosaic"
+	return @"Mosaic";
 }
 
 
