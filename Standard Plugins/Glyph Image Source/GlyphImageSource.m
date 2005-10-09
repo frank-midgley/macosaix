@@ -28,11 +28,15 @@ static NSImage	*glyphSourceImage = nil;
 
 + (void)load
 {
+	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	
 	NSString	*imagePath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"GlyphImageSource"];
 	glyphSourceImage = [[NSImage alloc] initWithContentsOfFile:imagePath];
 	
 		// Seed the random number generator
 	srandom(time(NULL));
+	
+	[pool release];
 }
 
 

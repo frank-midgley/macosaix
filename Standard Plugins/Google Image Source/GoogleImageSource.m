@@ -39,6 +39,8 @@ NSString *escapedNSString(NSString *string)
 
 + (void)load
 {
+	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	
 	imageCachePath = [[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"] 
 											stringByAppendingPathComponent:@"Caches"]
 											stringByAppendingPathComponent:@"MacOSaiX Google Images"] retain];
@@ -52,6 +54,8 @@ NSString *escapedNSString(NSString *string)
 	
 	iconPath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"GoogleImageSource"];
 	googleIcon = [[NSImage alloc] initWithContentsOfFile:iconPath];
+	
+	[pool release];
 }
 
 
