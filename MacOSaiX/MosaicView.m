@@ -34,6 +34,8 @@
 		[NSBezierPath fillRect:NSMakeRect(0.0, 0.0, 16.0, 16.0)];
 	[blackImage unlockFocus];
 	blackRep = [[blackImage bestRepresentationForDevice:nil] retain];
+	
+	highlightedImageSourcesLock = [[NSLock alloc] init];
 }
 
 
@@ -131,22 +133,24 @@
 	}
 	
 		// Update the highlighted image sources outline if needed.
-	if ([highlightedImageSources containsObject:[previousMatch imageSource]] && 
-		![highlightedImageSources containsObject:[imageMatch imageSource]])
-	{
-			// There's no way to remove the tile's outline from the merged highlight 
-			// outline so we have to rebuild it from scratch.
-		[self createHighlightedImageSourcesOutline];
-		tileNeedsDisplay = YES;
-	}
-	else if ([highlightedImageSources containsObject:[imageMatch imageSource]] && 
-			 ![highlightedImageSources containsObject:[previousMatch imageSource]])
-	{
-		if (!highlightedImageSourcesOutline)
-			highlightedImageSourcesOutline = [[NSBezierPath bezierPath] retain];
-		[highlightedImageSourcesOutline appendBezierPath:[tileToRefresh outline]];
-		tileNeedsDisplay = YES;
-	}
+	[highlightedImageSourcesLock lock];
+		if ([highlightedImageSources containsObject:[previousMatch imageSource]] && 
+			![highlightedImageSources containsObject:[imageMatch imageSource]])
+		{
+				// There's no way to remove the tile's outline from the merged highlight 
+				// outline so we have to rebuild it from scratch.
+			[self createHighlightedImageSourcesOutline];
+			tileNeedsDisplay = YES;
+		}
+		else if ([highlightedImageSources containsObject:[imageMatch imageSource]] && 
+				 ![highlightedImageSources containsObject:[previousMatch imageSource]])
+		{
+				if (!highlightedImageSourcesOutline)
+					highlightedImageSourcesOutline = [[NSBezierPath bezierPath] retain];
+				[highlightedImageSourcesOutline appendBezierPath:[tileToRefresh outline]];
+			tileNeedsDisplay = YES;
+		}
+	[highlightedImageSourcesLock unlock];
 	
 	if (tileNeedsDisplay)
 	{
@@ -274,29 +278,31 @@
 		[[transform transformBezierPath:tilesOutline] stroke];
 	}
 	
-	if (highlightedImageSourcesOutline)
-	{
-		NSSize				boundsSize = [self bounds].size;
-		NSAffineTransform	*transform = [NSAffineTransform transform];
-		[transform translateXBy:0.5 yBy:0.5];
-		[transform scaleXBy:boundsSize.width yBy:boundsSize.height];
-		NSBezierPath		*transformedOutline = [transform transformBezierPath:highlightedImageSourcesOutline];
-		
-			// Lighten the tiles not displaying images from the highlighted image sources.
-		NSBezierPath		*lightenOutline = [NSBezierPath bezierPath];
-		[lightenOutline moveToPoint:NSMakePoint(0, 0)];
-		[lightenOutline lineToPoint:NSMakePoint(0, boundsSize.height)];
-		[lightenOutline lineToPoint:NSMakePoint(boundsSize.width, boundsSize.height)];
-		[lightenOutline lineToPoint:NSMakePoint(boundsSize.width, 0)];
-		[lightenOutline closePath];
-		[lightenOutline appendBezierPath:transformedOutline];
-		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
-		[lightenOutline fill];
-		
-			// Darken the outline of the tile.
-		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
-		[transformedOutline stroke];
-	}
+	[highlightedImageSourcesLock lock];
+		if (highlightedImageSourcesOutline)
+		{
+			NSSize				boundsSize = [self bounds].size;
+			NSAffineTransform	*transform = [NSAffineTransform transform];
+			[transform translateXBy:0.5 yBy:0.5];
+			[transform scaleXBy:boundsSize.width yBy:boundsSize.height];
+			NSBezierPath		*transformedOutline = [transform transformBezierPath:highlightedImageSourcesOutline];
+			
+				// Lighten the tiles not displaying images from the highlighted image sources.
+			NSBezierPath		*lightenOutline = [NSBezierPath bezierPath];
+			[lightenOutline moveToPoint:NSMakePoint(0, 0)];
+			[lightenOutline lineToPoint:NSMakePoint(0, boundsSize.height)];
+			[lightenOutline lineToPoint:NSMakePoint(boundsSize.width, boundsSize.height)];
+			[lightenOutline lineToPoint:NSMakePoint(boundsSize.width, 0)];
+			[lightenOutline closePath];
+			[lightenOutline appendBezierPath:transformedOutline];
+			[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
+			[lightenOutline fill];
+			
+				// Darken the outline of the tile.
+			[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
+			[transformedOutline stroke];
+		}
+	[highlightedImageSourcesLock unlock];
 	
 	if (highlightedTile)
 	{
@@ -366,22 +372,24 @@
 
 - (void)highlightImageSources:(NSArray *)imageSources
 {
-	if (highlightedImageSourcesOutline)
-		[self setNeedsDisplay:YES];
-	
-	[highlightedImageSources release];
-	highlightedImageSources = [imageSources retain];
-	
-	[highlightedImageSourcesOutline release];
-	highlightedImageSourcesOutline = nil;
-	
-		// Create a combined path for all tiles of our mosaic that are not
-		// currently displaying an image from any of the sources.
-	if ([imageSources count] > 0)
-		[self createHighlightedImageSourcesOutline];
-	
-	if (highlightedImageSourcesOutline)
-		[self setNeedsDisplay:YES];
+	[highlightedImageSourcesLock lock];
+		if (highlightedImageSourcesOutline)
+			[self setNeedsDisplay:YES];
+		
+		[highlightedImageSources release];
+		highlightedImageSources = [imageSources retain];
+		
+		[highlightedImageSourcesOutline release];
+		highlightedImageSourcesOutline = nil;
+		
+			// Create a combined path for all tiles of our document that are not
+			// currently displaying an image from any of the sources.
+		if ([imageSources count] > 0)
+			[self createHighlightedImageSourcesOutline];
+		
+		if (highlightedImageSourcesOutline)
+			[self setNeedsDisplay:YES];
+	[highlightedImageSourcesLock unlock];
 }
 
 
@@ -414,6 +422,7 @@
 	[mosaicImageLock release];
 	[mosaicImageTransform release];
 	[highlightedImageSources release];
+	[highlightedImageSourcesLock release];
 	[highlightedImageSourcesOutline release];
 	[tilesNeedingDisplay release];
 	[lastUpdate release];

@@ -26,6 +26,7 @@
 		// Selected tile highlighting
     MacOSaiXTile			*highlightedTile;
 	NSArray					*highlightedImageSources;
+	NSLock					*highlightedImageSourcesLock;
 	NSBezierPath			*highlightedImageSourcesOutline;
     int						phase;
 	
