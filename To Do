@@ -80,3 +80,8 @@ Riemersma metric:
 Ã	Make sure manually chosen image identifiers are XML safe.
 Ã	Calculate match value of user chosen images
 Ã	Add code to support crop limit
+
+2.0a6 (b1?) To Do:
+Ã	Fix iPhoto crasher in -[NSAppleScript dealloc]
+Ã	Fix crash in -[MosaicView createHighlightedImageSourcesOutline]
+¥	Single menu for restricting tile sizes
