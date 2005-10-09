@@ -1,0 +1,20 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {chooseOriginalImage = id; chooseWindowType = id; quit = id; start = id; }; 
+            CLASS = MacOSaiXKioskSetupController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                originalImageMatrix = NSMatrix; 
+                passwordField = NSSecureTextField; 
+                repeatedPasswordField = NSSecureTextField; 
+                startButton = NSButton; 
+                warningField = NSTextField; 
+                windowTypeMatrix = NSMatrix; 
+            }; 
+            SUPERCLASS = NSWindowController; 
+        }
+    ); 
+    IBVersion = 1; 
+}
