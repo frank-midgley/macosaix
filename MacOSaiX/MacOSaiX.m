@@ -1,3 +1,11 @@
+//
+//  MacOSaiX.m
+//  MacOSaiX
+//
+//  Created by Frank Midgley on Thu Feb 21 2002.
+//  Copyright (c) 2001 Frank M. Midgley. All rights reserved.
+//
+
 #import "MacOSaiX.h"
 #import "PreferencesController.h"
 #import "MacOSaiXTileShapes.h"
@@ -6,8 +14,14 @@
 #import "MacPADSocket.h"
 #import "MacOSaiXUpdateAvailableController.h"
 #import "MacOSaiXCrashReporterController.h"
+#import "MacOSaiXGoogleKioskController.h"
+#import "MacOSaiXKioskSetupController.h"
+#import "MacOSaiXScreenSetupController.h"
 
+#import <Carbon/Carbon.h>
 #import <pthread.h>
+#import <mach/mach.h>
+#import <mach/shared_memory_server.h>
 
 
 @implementation MacOSaiX
@@ -28,11 +42,6 @@
 		tileShapesClasses = [[NSMutableArray array] retain];
 		imageSourceClasses = [[NSMutableArray array] retain];
 		loadedPlugInPaths = [[NSMutableArray array] retain];
-		
-//		[[NSNotificationCenter defaultCenter] addObserver:self
-//												 selector:@selector(documentDidFinishSaving:)
-//													 name:MacOSaiXDocumentDidSaveNotification
-//												   object:nil];
 	}
 	return self;
 }
@@ -126,6 +135,23 @@
 {
 		// To provide a service:
     //[NSApp setServicesProvider:[[EncryptoClass alloc] init]];
+	
+	[NSTimer scheduledTimerWithTimeInterval:10.0 
+									 target:self 
+								   selector:@selector(checkFreeMemory:) 
+								   userInfo:nil 
+									repeats:YES];
+}
+
+
+- (void)checkFreeMemory:(NSTimer *)timer
+{
+	struct task_basic_info	taskInfo;
+	mach_msg_type_number_t	count = TASK_BASIC_INFO_COUNT;
+	if (task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t)&taskInfo, &count) == KERN_SUCCESS)
+		NSLog(@"%ld bytes in use", taskInfo.virtual_size - SHARED_TEXT_REGION_SIZE - SHARED_DATA_REGION_SIZE);
+	
+	// MAX = 0xFFFFFFFF - SHARED_TEXT_REGION_SIZE - SHARED_DATA_REGION_SIZE = 3,758,096,383
 }
 
 
@@ -203,64 +229,69 @@
 }
 
 
-//- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
-//{
-//	NSApplicationTerminateReply	reply = NSTerminateNow;
-//	
-//	quitting = YES;
-//	
-//		// If any documents are still saving then we need to wait for them to finish.
-//	NSEnumerator				*documentEnumerator = [[[NSDocumentController sharedDocumentController] 
-//															documents] objectEnumerator];
-//	MacOSaiXDocument			*document = nil;
-//	while (document = [documentEnumerator nextObject])
-//		if ([document isSaving])
-//		{
-//			NSLog(@"Termination delayed");
-//			reply = NSTerminateLater;
-//		}
-//
-//	return reply;
-//}
-
-
 - (BOOL)isQuitting
 {
 	return quitting;
 }
 
 
-//- (void)documentDidFinishSaving:(NSNotification *)notification
-//{
-//	if (!quitting)
-//		return;
-//	
-//		// Only react on the main thread.
-//	if (pthread_main_np())
-//	{
-//		BOOL	wasCancelled = [[[notification userInfo] objectForKey:@"User Cancelled"] boolValue];
-//		
-//		if (wasCancelled)
-//		{
-//			quitting = NO;
-//			[NSApp replyToApplicationShouldTerminate:NO];
-//		}
-//		else
-//		{
-//				// If any other documents are still saving then we need to wait.
-//			NSEnumerator				*documentEnumerator = [[[NSDocumentController sharedDocumentController] 
-//																	documents] objectEnumerator];
-//			MacOSaiXDocument			*document = nil;
-//			while (document = [documentEnumerator nextObject])
-//				if ([document isSaving])
-//					return;
-//			
-//			[NSApp replyToApplicationShouldTerminate:YES];
-//		}
-//	}
-//	else
-//		[self performSelectorOnMainThread:@selector(documentDidFinishSaving:) withObject:notification waitUntilDone:NO];
-//}
+- (IBAction)enterKioskMode:(id)sender
+{
+	// TBD: require no open documents?
+	
+		// Present a screen setup panel on all screens but the menu bar screen.
+	NSEnumerator	*screenEnumerator = [[NSScreen screens] objectEnumerator];
+	NSScreen		*screen = [screenEnumerator nextObject];	// the menu bar screen is always first
+	while (screen = [screenEnumerator nextObject])
+	{
+		MacOSaiXScreenSetupController	*setupController = [[MacOSaiXScreenSetupController alloc] initWithWindow:nil];
+		NSPanel							*nibWindow = (NSPanel *)[setupController window],
+										*borderlessWindow = [[NSPanel alloc] initWithContentRect:[nibWindow frame] 
+																					   styleMask:NSBorderlessWindowMask 
+																						 backing:NSBackingStoreBuffered 
+																						   defer:NO 
+																						  screen:screen];
+		[borderlessWindow setFloatingPanel:YES];
+		[borderlessWindow setWorksWhenModal:YES];
+		[borderlessWindow setFrame:[nibWindow frame] display:NO];
+		[borderlessWindow setContentView:[nibWindow contentView]];
+		[setupController setWindow:borderlessWindow];
+		[borderlessWindow setFrameOrigin:NSMakePoint(NSMidX([screen frame]), NSMidY([screen frame]))];
+		[borderlessWindow center];
+		[borderlessWindow makeKeyAndOrderFront:self];
+	}
+	
+		// Run the main setup window modally on the menu bar screen.
+	MacOSaiXKioskSetupController	*setupController = [[MacOSaiXKioskSetupController alloc] initWithWindow:nil];
+	int								result = [NSApp runModalForWindow:[setupController window]];
+	[setupController release];
+	// TODO: close the other screen windows
+	if (result == NSRunStoppedResponse)
+	{
+		OSStatus	status = SetSystemUIMode(kUIModeAllHidden, 0);
+		if (status == noErr)
+		{
+				// Open the kiosk window on the indicated screen.
+				// TODO: use the indicated screen
+			NSScreen						*menuBarScreen = [[NSScreen screens] objectAtIndex:0];
+			MacOSaiXGoogleKioskController	*kioskController = [[MacOSaiXGoogleKioskController alloc] initWithWindow:nil];
+			NSWindow						*nibWindow = [kioskController window],
+											*borderlessWindow = [[NSWindow alloc] initWithContentRect:[menuBarScreen frame] 
+																							styleMask:NSBorderlessWindowMask 
+																							  backing:NSBackingStoreBuffered 
+																								defer:NO 
+																							   screen:menuBarScreen];
+			[nibWindow setFrame:[menuBarScreen frame] display:NO];
+			[borderlessWindow setContentView:[nibWindow contentView]];
+			[kioskController setWindow:borderlessWindow];
+			[borderlessWindow setDelegate:kioskController];
+			[borderlessWindow makeKeyAndOrderFront:self];
+			[kioskController showWindow:self];
+			
+				// TODO: Open mosaic windows on the other indicated screens
+		}
+	}
+}
 
 
 @end

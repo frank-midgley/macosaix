@@ -24,4 +24,6 @@
 
 - (BOOL)isQuitting;
 
+- (IBAction)enterKioskMode:(id)sender;
+
 @end
