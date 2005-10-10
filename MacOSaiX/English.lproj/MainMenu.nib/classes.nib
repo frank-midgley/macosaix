@@ -20,7 +20,7 @@
             SUPERCLASS = NSObject; 
         }, 
         {
-            ACTIONS = {openPreferences = id; }; 
+            ACTIONS = {enterKioskMode = id; openPreferences = id; }; 
             CLASS = MacOSaiX; 
             LANGUAGE = ObjC; 
             SUPERCLASS = NSObject; 
