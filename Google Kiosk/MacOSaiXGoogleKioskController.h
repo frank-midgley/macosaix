@@ -15,14 +15,16 @@
 @interface MacOSaiXGoogleKioskController : NSWindowController
 {
 	IBOutlet NSMatrix		*originalImageMatrix;
-	IBOutlet NSImageView	*googleImageView;
+	IBOutlet NSImageView	*customImageView;
 	IBOutlet MosaicView		*mosaicView;
+	IBOutlet NSBox			*googleBox;
 	IBOutlet NSTextField	*keywordTextField;
 	IBOutlet NSButton		*addKeywordButton,
 							*removeKeywordButton;
 	IBOutlet NSTableView	*imageSourcesTableView;
 	
 	MacOSaiXMosaic			*mosaic;
+	NSMutableArray			*originalImages;
 }
 
 - (IBAction)setOriginalImage:(id)sender;

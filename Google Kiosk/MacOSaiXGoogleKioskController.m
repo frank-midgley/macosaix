@@ -23,8 +23,9 @@
 - (void)awakeFromNib
 {
 		// Populate the original image buttons
-	NSArray	*originalImagePaths = [[NSUserDefaults standardUserDefaults] arrayForKey:@"Original Image Paths"];
-	int		column = 0;
+	originalImages = [[NSMutableArray arrayWithObjects:[NSNull null], [NSNull null], [NSNull null], [NSNull null], [NSNull null], [NSNull null], nil] retain];
+	NSArray			*originalImagePaths = [[NSUserDefaults standardUserDefaults] arrayForKey:@"Original Image Paths"];
+	int				column = 0;
 	for (column = 0; column < [originalImageMatrix numberOfColumns]; column++)
 	{
 		NSButtonCell	*buttonCell = [originalImageMatrix cellAtRow:0 column:column];
@@ -34,21 +35,10 @@
 		if ([[NSFileManager defaultManager] fileExistsAtPath:imagePath] &&
 			(image = [[NSImage alloc] initWithContentsOfFile:imagePath]))
 		{
-			[image setScalesWhenResized:YES];
-			[image setSize:[originalImageMatrix cellSize]];
+			[originalImages replaceObjectAtIndex:column withObject:image];
 			[buttonCell setTitle:imagePath];
-			[buttonCell setAlternateImage:image];
 			[buttonCell setImagePosition:NSImageOnly];
-			
-			NSImage	*darkenedImage = [image copy];
-			[darkenedImage lockFocus];
-				[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
-				[[NSBezierPath bezierPathWithRect:NSMakeRect(0.0, 0.0, [image size].width, [image size].height)] fill];
-			[darkenedImage unlockFocus];
-			[buttonCell setImage:darkenedImage];
-			
 			[image release];
-			[darkenedImage release];
 		}
 		else
 		{
@@ -91,9 +81,57 @@
 }
 
 
+#pragma mark
+
+
+- (void)windowDidResize:(NSNotification *)notification
+{
+	NSWindow	*window = [notification object];
+	float		matrixWidth = 24.0 * [window frame].size.height / 21.0, 
+				matrixHeight = matrixWidth / 6.0 / 4.0 * 3.0, 
+				settingsWidth = [window frame].size.width - matrixWidth, 
+				mosaicHeight = [window frame].size.height - matrixHeight;
+	
+	[originalImageMatrix setCellSize:NSMakeSize(matrixWidth / 6.0, matrixHeight)];
+	[originalImageMatrix setFrame:NSMakeRect(0.0, mosaicHeight, matrixWidth, matrixHeight)];
+	[customImageView setFrame:NSMakeRect(matrixWidth, mosaicHeight, settingsWidth, matrixHeight)];
+	[mosaicView setFrame:NSMakeRect(0.0, 0.0, matrixWidth, mosaicHeight)];
+	[googleBox setFrame:NSMakeRect(matrixWidth, 0.0, settingsWidth, mosaicHeight)];
+	
+		// Populate the original image buttons now that we know what size they are.
+	int		column = 0;
+	for (column = 0; column < [originalImageMatrix numberOfColumns]; column++)
+	{
+		NSButtonCell	*buttonCell = [originalImageMatrix cellAtRow:0 column:column];
+		
+		if ([buttonCell imagePosition] == NSImageOnly)
+		{
+			NSImage	*image = [[originalImages objectAtIndex:column] copy];
+			
+			[image setScalesWhenResized:YES];
+			[image setSize:[originalImageMatrix cellSize]];
+			[buttonCell setAlternateImage:image];
+			
+			NSImage	*darkenedImage = [image copy];
+			[darkenedImage lockFocus];
+				[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
+				[[NSBezierPath bezierPathWithRect:NSMakeRect(0.0, 0.0, [image size].width, [image size].height)] fill];
+			[darkenedImage unlockFocus];
+			[buttonCell setImage:darkenedImage];
+			
+			[image release];
+			[darkenedImage release];
+		}
+	}
+}
+
+
+#pragma mark
+
+
 - (void)dealloc
 {
-	
+	[originalImages release];
 	
 	[super dealloc];
 }
