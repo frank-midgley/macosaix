@@ -13,6 +13,7 @@
 {
 	IBOutlet NSMatrix			*originalImageMatrix,
 								*windowTypeMatrix;
+	IBOutlet NSButton			*requirePasswordButton;
 	IBOutlet NSSecureTextField	*passwordField,
 								*repeatedPasswordField;
 	IBOutlet NSTextField		*warningField;
@@ -20,7 +21,8 @@
 }
 
 - (IBAction)chooseOriginalImage:(id)sender;
-- (IBAction)chooseWindowType:(id)sender;
+- (IBAction)setWindowType:(id)sender;
+- (IBAction)setPasswordRequired:(id)sender;
 - (IBAction)quit:(id)sender;
 - (IBAction)start:(id)sender;
 

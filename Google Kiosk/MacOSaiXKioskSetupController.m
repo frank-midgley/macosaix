@@ -35,7 +35,7 @@
 	{
 		NSString	*password = [passwordField stringValue];
 		
-		if ([password length] == 0)
+		if ([requirePasswordButton state] == NSOnState && [password length] == 0)
 		{
 			[warningField setStringValue:@"Please enter a password."];
 			[startButton setEnabled:NO];
@@ -44,14 +44,14 @@
 		{
 			NSString	*repeatedPassword = [repeatedPasswordField stringValue];
 			
-			if ([repeatedPassword length] == 0)
+			if ([requirePasswordButton state] == NSOnState && [repeatedPassword length] == 0)
 			{
 				[warningField setStringValue:@"Please enter the repeated password."];
 				[startButton setEnabled:NO];
 			}
 			else
 			{
-				if (![password isEqualToString:repeatedPassword])
+				if ([requirePasswordButton state] == NSOnState && ![password isEqualToString:repeatedPassword])
 				{
 					[warningField setStringValue:@"The passwords do not match."];
 					[startButton setEnabled:NO];
@@ -164,9 +164,28 @@
 }
 
 
-- (IBAction)chooseWindowType:(id)sender
+- (IBAction)setWindowType:(id)sender
 {
 	;	// TODO
+	
+	[self updateWarningField];
+}
+
+
+- (IBAction)setPasswordRequired:(id)sender
+{
+	BOOL	passwordRequired = ([requirePasswordButton state] == NSOnState);
+	
+	[passwordField setEditable:passwordRequired];
+	[repeatedPasswordField setEditable:passwordRequired];
+	
+	if (!passwordRequired)
+	{
+		[passwordField setStringValue:@""];
+		[repeatedPasswordField setStringValue:@""];
+	}
+	
+	// TODO: set app level global
 	
 	[self updateWarningField];
 }
