@@ -9,6 +9,8 @@
 
 @interface MacOSaiXWindowController : NSWindowController 
 {
+	MacOSaiXMosaic						*mosaic;
+	
     IBOutlet MosaicView					*mosaicView;
 	IBOutlet NSScrollView				*mosaicScrollView;
 	

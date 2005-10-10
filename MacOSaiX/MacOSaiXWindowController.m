@@ -23,7 +23,7 @@
 
 
 @interface MacOSaiXWindowController (PrivateMethods)
-- (void)documentDidChangeState:(NSNotification *)notification;
+- (void)mosaicDidChangeState:(NSNotification *)notification;
 - (void)updateTileSizeFields;
 - (void)synchronizeMenus;
 - (void)updateEditor;
@@ -60,23 +60,6 @@
 
 - (void)awakeFromNib
 {
-	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(originalImageDidChange:) 
-												 name:MacOSaiXOriginalImageDidChangeNotification 
-											   object:[self mosaic]];
-	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(mosaicDidChangeState:) 
-												 name:MacOSaiXMosaicDidChangeStateNotification 
-											   object:[self mosaic]];
-	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(tileShapesDidChange:) 
-												 name:MacOSaiXTileShapesDidChangeStateNotification 
-											   object:[self mosaic]];
-	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(tileImageDidChange:) 
-												 name:MacOSaiXTileImageDidChangeNotification 
-											   object:[self mosaic]];
-	
     viewMenu = [[[NSApp mainMenu] itemWithTitle:@"View"] submenu];
     fileMenu = [[[NSApp mainMenu] itemWithTitle:@"File"] submenu];
 
@@ -196,7 +179,7 @@
 		[self performSelector:@selector(chooseOriginalImage:) withObject:self afterDelay:0.0];
 	}
 	
-	[self documentDidChangeState:nil];
+	[self mosaicDidChangeState:nil];
 }
 
 
@@ -330,7 +313,7 @@
 						display:YES
 						animate:YES];
 		
-		[self documentDidChangeState:nil];
+		[self mosaicDidChangeState:nil];
 		
 			// Create the toolbar icons for the View Original/View Mosaic item.  Toolbar item images 
 			// must be 32x32 so we center the thumbnail in an image of the correct size.
@@ -444,9 +427,38 @@
 #pragma mark Miscellaneous
 
 
+- (void)setMosaic:(MacOSaiXMosaic *)inMosaic
+{
+	if (inMosaic != mosaic)
+	{
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:[self mosaic]];
+		
+		[mosaic autorelease];
+		mosaic = [inMosaic retain];
+		
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(originalImageDidChange:) 
+													 name:MacOSaiXOriginalImageDidChangeNotification 
+												   object:[self mosaic]];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(mosaicDidChangeState:) 
+													 name:MacOSaiXMosaicDidChangeStateNotification 
+												   object:[self mosaic]];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(tileShapesDidChange:) 
+													 name:MacOSaiXTileShapesDidChangeStateNotification 
+												   object:[self mosaic]];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(tileImageDidChange:) 
+													 name:MacOSaiXTileImageDidChangeNotification 
+												   object:[self mosaic]];
+	}
+}
+
+
 - (MacOSaiXMosaic *)mosaic
 {
-	return [(MacOSaiXDocument *)[self document] mosaic];
+	return mosaic;
 }
 
 
@@ -705,7 +717,7 @@
 	if (selectedTile)
 		[self selectTileAtPoint:tileSelectionPoint];
 	
-	[self documentDidChangeState:nil];
+	[self mosaicDidChangeState:nil];
 
 	[self updateTileSizeFields];
 }
