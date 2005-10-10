@@ -10,7 +10,6 @@
 #import "MacOSaiXDocument.h"
 
 #import "MacOSaiX.h"
-#import "MacOSaiXGoogleKioskController.h"
 #import "Tiles.h"
 #import "NSImage+MacOSaiX.h"
 #import "NSString+MacOSaiX.h"
@@ -61,8 +60,7 @@
 		[mosaic setTileShapes:[[[NSClassFromString(defaultShapesClassString) alloc] init] autorelease]];
 	}
 	
-	mainWindowController = [[[MacOSaiXGoogleKioskController alloc] initWithWindow:nil] autorelease];
-//	mainWindowController = [[[MacOSaiXWindowController alloc] initWithWindow:nil] autorelease];
+	mainWindowController = [[[MacOSaiXWindowController alloc] initWithWindow:nil] autorelease];
 	
 	[self addWindowController:mainWindowController];
 	[mainWindowController showWindow:self];
@@ -71,7 +69,7 @@
 
 - (MacOSaiXWindowController *)mainWindowController
 {
-	return nil;	//mainWindowController;
+	return mainWindowController;
 }
 
 
