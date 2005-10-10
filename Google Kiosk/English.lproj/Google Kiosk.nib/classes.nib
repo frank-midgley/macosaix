@@ -7,7 +7,8 @@
             LANGUAGE = ObjC; 
             OUTLETS = {
                 addKeywordButton = NSButton; 
-                googleImageView = NSImageView; 
+                customImageView = NSImageView; 
+                googleBox = NSBox; 
                 imageSourcesTableView = NSTableView; 
                 keywordTextField = NSTextField; 
                 mosaicView = MosaicView; 
