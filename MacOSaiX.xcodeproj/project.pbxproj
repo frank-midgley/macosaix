@@ -118,6 +118,13 @@
 		92BFFEC3079A2DD50052CC4C /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = 92BFFEC1079A2DD50052CC4C /* Credits.html */; };
 		92C8AAF2080870100073045F /* GlyphTableColumn.h in Headers */ = {isa = PBXBuildFile; fileRef = 92C8AAF0080870100073045F /* GlyphTableColumn.h */; };
 		92C8AAF3080870100073045F /* GlyphTableColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92C8AAF1080870100073045F /* GlyphTableColumn.m */; };
+		92CC1B3D08F9C165004D0C31 /* Google Kiosk.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92DCA6EC08F873EB00B40FA6 /* Google Kiosk.nib */; };
+		92CC1B3E08F9C168004D0C31 /* MacOSaiXMosaicController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA7B608F87DD200B40FA6 /* MacOSaiXMosaicController.m */; };
+		92CC1B3F08F9C169004D0C31 /* Mosaic.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92DCA7B208F87D8A00B40FA6 /* Mosaic.nib */; };
+		92CC1B4008F9C16A004D0C31 /* MacOSaiXKioskSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA7CC08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m */; };
+		92CC1B4108F9C16B004D0C31 /* Kiosk Setup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92DCA7C408F880A500B40FA6 /* Kiosk Setup.nib */; };
+		92CC1B4208F9C16C004D0C31 /* MacOSaiXScreenSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA87208F89EA400B40FA6 /* MacOSaiXScreenSetupController.m */; };
+		92CC1B4308F9C16D004D0C31 /* Screen Setup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92DCA7C808F8837F00B40FA6 /* Screen Setup.nib */; };
 		92DCA4E308F86EDD00B40FA6 /* Application Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = F54167D0024C46CE0100010B /* Application Icon.icns */; };
 		92DCA4F008F86EDD00B40FA6 /* Update Available.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92F00D0607C1B52B004F6D06 /* Update Available.nib */; };
 		92DCA4F308F86EDD00B40FA6 /* ZoomIn.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242208D7C952009A93BF /* ZoomIn.png */; };
@@ -1540,6 +1547,10 @@
 				016A242308D7C952009A93BF /* ZoomIn.png in Resources */,
 				016A242508D7C975009A93BF /* ZoomOut.png in Resources */,
 				016A248208D7D8E2009A93BF /* HandPicked.png in Resources */,
+				92CC1B3D08F9C165004D0C31 /* Google Kiosk.nib in Resources */,
+				92CC1B3F08F9C169004D0C31 /* Mosaic.nib in Resources */,
+				92CC1B4108F9C16B004D0C31 /* Kiosk Setup.nib in Resources */,
+				92CC1B4308F9C16D004D0C31 /* Screen Setup.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1703,6 +1714,9 @@
 				9216086A08E5DCA70018C4C1 /* NSFileManager+MacOSaiX.m in Sources */,
 				01FE978E08E8EDFE00E4AC7C /* MacOSaiXGoogleKioskController.m in Sources */,
 				01FE981308F365C600E4AC7C /* MacOSaiXMosaic.m in Sources */,
+				92CC1B3E08F9C168004D0C31 /* MacOSaiXMosaicController.m in Sources */,
+				92CC1B4008F9C16A004D0C31 /* MacOSaiXKioskSetupController.m in Sources */,
+				92CC1B4208F9C16C004D0C31 /* MacOSaiXScreenSetupController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
