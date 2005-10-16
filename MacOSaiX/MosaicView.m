@@ -241,10 +241,12 @@
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
-    NSPoint mouseLoc = [self convertPoint:[theEvent locationInWindow] fromView:nil];
+    NSPoint						mouseLoc = [self convertPoint:[theEvent locationInWindow] fromView:nil];
+	MacOSaiXWindowController	*controller = [[self window] delegate];
 	
-	if ([self mouse:mouseLoc inRect:[self bounds]])
-		[(MacOSaiXWindowController *)[[self window] delegate] selectTileAtPoint:mouseLoc];
+	if ([controller isKindOfClass:[MacOSaiXWindowController class]] && 
+		[self mouse:mouseLoc inRect:[self bounds]])
+		[controller selectTileAtPoint:mouseLoc];
 }
 
 
