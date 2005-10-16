@@ -208,18 +208,21 @@
 	if (originalPath)
 	{
 			// Return the currently displayed thumbnail to its menu item.
-		if ([[self mosaic] originalImagePath])
-		{
-			int	previousIndex = [originalImagePopUpButton indexOfItemWithRepresentedObject:[[self mosaic] originalImagePath]];
-			[[originalImagePopUpButton itemAtIndex:previousIndex] setImage:[originalImageThumbView image]];
-		}
-		
-			// Move the newly chosen original's thumbnail to the image view.
-		[originalImageThumbView setImage:[[originalImagePopUpButton selectedItem] image]];
-		[[originalImagePopUpButton selectedItem] setImage:nil];
+// REWORK
+//		if ([[self mosaic] originalImagePath])
+//		{
+//			int	previousIndex = [originalImagePopUpButton indexOfItemWithRepresentedObject:[[self mosaic] originalImagePath]];
+//			[[originalImagePopUpButton itemAtIndex:previousIndex] setImage:[originalImageThumbView image]];
+//		}
+//		
+//			// Move the newly chosen original's thumbnail to the image view.
+//		[originalImageThumbView setImage:[[originalImagePopUpButton selectedItem] image]];
+//		[[originalImagePopUpButton selectedItem] setImage:nil];
 		
 			// Update the mosaic.
-		[[self mosaic] setOriginalImagePath:originalPath];
+		NSImage	*originalImage = [[NSImage alloc] initWithContentsOfFile:originalPath];
+		[[self mosaic] setOriginalImage:originalImage];
+		[originalImage release];
 	}
 	else
 	{
@@ -244,7 +247,11 @@
 						   contextInfo:(void *)context
 {
     if (returnCode == NSOKButton)
-		[[self mosaic] setOriginalImagePath:[[sheet filenames] objectAtIndex:0]];
+	{
+		NSImage	*originalImage = [[NSImage alloc] initWithContentsOfFile:[[sheet filenames] objectAtIndex:0]];
+		[[self mosaic] setOriginalImage:originalImage];
+		[originalImage release];
+	}
 }
 
 
@@ -525,8 +532,6 @@
 		if (refreshTilesThreadCount == 0)
 			[NSApplication detachDrawingThread:@selector(refreshTiles:) toTarget:self withObject:nil];
 	[tileRefreshLock unlock];
-	
-	// TODO: update the editor if this tile is selected (if it still exists...)
 }
 
 
