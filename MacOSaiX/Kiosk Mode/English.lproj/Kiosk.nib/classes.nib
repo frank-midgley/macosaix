@@ -1,0 +1,32 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {addKeyword = id; removeKeyword = id; setOriginalImage = id; }; 
+            CLASS = MacOSaiXKioskController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                addKeywordButton = NSButton; 
+                customTextField = NSTextField; 
+                imageSourcesTableView = NSTableView; 
+                imageSourcesView = NSBox; 
+                keywordTextField = NSTextField; 
+                kioskView = MacOSaiXKioskView; 
+                mosaicView = MosaicView; 
+                originalImageMatrix = NSMatrix; 
+                removeKeywordButton = NSButton; 
+                vanityView = NSBox; 
+            }; 
+            SUPERCLASS = NSWindowController; 
+        }, 
+        {
+            CLASS = MacOSaiXKioskView; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {mosaicView = MosaicView; originalImageMatrix = NSMatrix; }; 
+            SUPERCLASS = NSView; 
+        }, 
+        {CLASS = MacOSaiXKioskWindow; LANGUAGE = ObjC; SUPERCLASS = NSWindow; }, 
+        {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSView; }
+    ); 
+    IBVersion = 1; 
+}
