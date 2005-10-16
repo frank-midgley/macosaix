@@ -14,8 +14,9 @@
 #import "MacPADSocket.h"
 #import "MacOSaiXUpdateAvailableController.h"
 #import "MacOSaiXCrashReporterController.h"
-#import "MacOSaiXGoogleKioskController.h"
+#import "MacOSaiXKioskController.h"
 #import "MacOSaiXKioskSetupController.h"
+#import "MacOSaiXKioskWindow.h"
 #import "MacOSaiXScreenSetupController.h"
 
 #import <Carbon/Carbon.h>
@@ -245,20 +246,20 @@
 	while (screen = [screenEnumerator nextObject])
 	{
 		MacOSaiXScreenSetupController	*setupController = [[MacOSaiXScreenSetupController alloc] initWithWindow:nil];
-		NSPanel							*nibWindow = (NSPanel *)[setupController window],
-										*borderlessWindow = [[NSPanel alloc] initWithContentRect:[nibWindow frame] 
-																					   styleMask:NSBorderlessWindowMask 
-																						 backing:NSBackingStoreBuffered 
-																						   defer:NO 
-																						  screen:screen];
-		[borderlessWindow setFloatingPanel:YES];
-		[borderlessWindow setWorksWhenModal:YES];
-		[borderlessWindow setFrame:[nibWindow frame] display:NO];
-		[borderlessWindow setContentView:[nibWindow contentView]];
-		[setupController setWindow:borderlessWindow];
-		[borderlessWindow setFrameOrigin:NSMakePoint(NSMidX([screen frame]), NSMidY([screen frame]))];
-		[borderlessWindow center];
-		[borderlessWindow makeKeyAndOrderFront:self];
+		NSWindow						*nibWindow = [setupController window];
+		MacOSaiXKioskWindow				*setupWindow = [[MacOSaiXKioskWindow alloc] initWithContentRect:[nibWindow frame] 
+																							  styleMask:NSBorderlessWindowMask 
+																								backing:NSBackingStoreBuffered 
+																								  defer:NO 
+																								 screen:screen];
+//		[setupWindow setFloatingPanel:YES];
+//		[setupWindow setWorksWhenModal:YES];
+		[setupWindow setFrame:[nibWindow frame] display:NO];
+		[setupWindow setContentView:[nibWindow contentView]];
+		[setupController setWindow:setupWindow];
+		[setupWindow setFrameOrigin:NSMakePoint(NSMidX([screen frame]), NSMidY([screen frame]))];
+		[setupWindow center];
+		[setupWindow makeKeyAndOrderFront:self];
 	}
 	
 		// Run the main setup window modally on the menu bar screen.
@@ -273,19 +274,20 @@
 		{
 				// Open the kiosk window on the indicated screen.
 				// TODO: use the indicated screen
-			NSScreen						*menuBarScreen = [[NSScreen screens] objectAtIndex:0];
-			MacOSaiXGoogleKioskController	*kioskController = [[MacOSaiXGoogleKioskController alloc] initWithWindow:nil];
-			NSWindow						*nibWindow = [kioskController window],
-											*borderlessWindow = [[NSWindow alloc] initWithContentRect:[menuBarScreen frame] 
-																							styleMask:NSBorderlessWindowMask 
-																							  backing:NSBackingStoreBuffered 
-																								defer:NO 
-																							   screen:menuBarScreen];
+			NSScreen				*menuBarScreen = [[NSScreen screens] objectAtIndex:0];
+			MacOSaiXKioskController	*kioskController = [[MacOSaiXKioskController alloc] initWithWindow:nil];
+			NSWindow				*nibWindow = [kioskController window];
+			MacOSaiXKioskWindow		*kioskWindow = [[MacOSaiXKioskWindow alloc] initWithContentRect:[menuBarScreen frame] 
+																					styleMask:NSBorderlessWindowMask 
+																					  backing:NSBackingStoreBuffered 
+																						defer:NO 
+																					   screen:menuBarScreen];
 			[nibWindow setFrame:[menuBarScreen frame] display:NO];
-			[borderlessWindow setContentView:[nibWindow contentView]];
-			[kioskController setWindow:borderlessWindow];
-			[borderlessWindow setDelegate:kioskController];
-			[borderlessWindow makeKeyAndOrderFront:self];
+			[kioskWindow setContentView:[nibWindow contentView]];
+			[kioskWindow setInitialFirstResponder:[nibWindow initialFirstResponder]];
+			[kioskController setWindow:kioskWindow];
+			[kioskWindow setDelegate:kioskController];
+			[kioskWindow makeKeyAndOrderFront:self];
 			[kioskController showWindow:self];
 			
 				// TODO: Open mosaic windows on the other indicated screens
