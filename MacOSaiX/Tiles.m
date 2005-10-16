@@ -171,18 +171,21 @@
 
 - (void)setUniqueImageMatch:(MacOSaiXImageMatch *)match
 {
-	MacOSaiXImageMatch	*previousMatch = uniqueImageMatch;
-	
-	[uniqueImageMatch autorelease];
-	uniqueImageMatch = [match retain];
-	
-		// Now that we have a real match we don't need the placeholder anymore.
-		// TBD: or do we?  what if this gets set back to nil?
-	[nonUniqueImageMatch autorelease];
-	nonUniqueImageMatch = nil;
-	
-	if (!userChosenImageMatch)
-		[self sendNotificationThatImageChangedFrom:previousMatch];
+	if (match != uniqueImageMatch)
+	{
+		MacOSaiXImageMatch	*previousMatch = uniqueImageMatch;
+		
+		[uniqueImageMatch autorelease];
+		uniqueImageMatch = [match retain];
+		
+			// Now that we have a real match we don't need the placeholder anymore.
+			// TBD: or do we?  what if this gets set back to nil?
+		[nonUniqueImageMatch autorelease];
+		nonUniqueImageMatch = nil;
+		
+		if (!userChosenImageMatch)
+			[self sendNotificationThatImageChangedFrom:previousMatch];
+	}
 }
 
 
