@@ -26,6 +26,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 @interface MacOSaiXMosaic (PrivateMethods)
 - (void)addTile:(MacOSaiXTile *)tile;
 - (void)lockWhilePaused;
+- (void)setImageCount:(unsigned long)imageCount forImageSource:(id<MacOSaiXImageSource>)imageSource;
 @end
 
 
@@ -69,15 +70,35 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 #pragma mark Original image management
 
 
-- (void)setOriginalImagePath:(NSString *)path
+- (void)setOriginalImage:(NSImage *)image
 {
-	if (![path isEqualToString:originalImagePath])
+	if (![image isEqualTo:originalImage])
 	{
-		[originalImagePath release];
-		[originalImage release];
+		BOOL					wasPaused = [self isPaused];
 		
-		originalImagePath = [[NSString stringWithString:path] retain];
-		originalImage = [[NSImage alloc] initWithContentsOfFile:path];
+		[self pause];
+		
+			// Reset all of the image sources.
+		NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
+		id<MacOSaiXImageSource>	imageSource;
+		while (imageSource = [imageSourceEnumerator nextObject])
+		{
+			[imageSource reset];
+			[self setImageCount:0 forImageSource:imageSource];
+		}
+		
+			// Reset all of the tiles.
+		NSEnumerator			*tileEnumerator = [tiles objectEnumerator];
+		MacOSaiXTile			*tile = nil;
+		while (tile = [tileEnumerator nextObject])
+		{
+			[tile resetBitmapRepAndMask];
+			[tile setUniqueImageMatch:nil];
+		}
+
+		[originalImage release];
+		originalImage = [image retain];
+
 		[originalImage setCachedSeparately:YES];
 		originalImageAspectRatio = [originalImage size].width / [originalImage size].height;
 
@@ -87,13 +108,10 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		[originalImage setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
 		
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXOriginalImageDidChangeNotification object:self];
+		
+		if (wasPaused)
+			[self resume];
 	}
-}
-
-
-- (NSString *)originalImagePath
-{
-	return originalImagePath;
 }
 
 
@@ -136,7 +154,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		NSEnumerator	*tileOutlineEnumerator = [tileOutlines objectEnumerator];
 		NSBezierPath	*tileOutline = nil;
 		while (tileOutline = [tileOutlineEnumerator nextObject])
-			[self addTile:[[[MacOSaiXTile alloc] initWithOutline:tileOutline fromDocument:self] autorelease]];
+			[self addTile:[[[MacOSaiXTile alloc] initWithOutline:tileOutline fromMosaic:self] autorelease]];
 		
 			// Indicate that the average tile size needs to be recalculated.
 		averageUnitTileSize = NSZeroSize;
@@ -887,7 +905,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		[[MacOSaiXImageCache sharedImageCache] removeCachedImageRepsFromSource:imageSource];
 	[imageSources release];
 	
-    [originalImagePath release];
     [originalImage release];
 	[pauseLock release];
     [imageQueueLock release];

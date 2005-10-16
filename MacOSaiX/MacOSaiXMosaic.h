@@ -16,7 +16,6 @@
 
 @interface MacOSaiXMosaic : NSObject
 {
-    NSString						*originalImagePath;
     NSImage							*originalImage;
 	float							originalImageAspectRatio;
     NSMutableArray					*imageSources,
@@ -50,8 +49,7 @@
 									lastDisplayMatch;
 }
 
-- (void)setOriginalImagePath:(NSString *)path;
-- (NSString *)originalImagePath;
+- (void)setOriginalImage:(NSImage *)image;
 - (NSImage *)originalImage;
 
 - (void)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes creatingTiles:(BOOL)createTiles;
