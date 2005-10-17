@@ -93,6 +93,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		while (tile = [tileEnumerator nextObject])
 		{
 			[tile resetBitmapRepAndMask];
+			[tile setNonUniqueImageMatch:nil];
 			[tile setUniqueImageMatch:nil];
 		}
 
