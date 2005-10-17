@@ -77,7 +77,7 @@
 		[mosaicImage setCacheMode:NSImageCacheNever];
 		
 		[mosaicImage lockFocus];
-			[[NSColor blackColor] set];
+			[[NSColor clearColor] set];
 			NSRectFill(NSMakeRect(0.0, 0.0, [mosaicImage size].width, [mosaicImage size].height));
 		[mosaicImage unlockFocus];
 		
