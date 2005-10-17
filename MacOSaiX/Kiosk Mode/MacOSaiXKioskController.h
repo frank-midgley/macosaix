@@ -35,7 +35,8 @@
 	
 	NSMutableArray				*tilesToRefresh;
 	NSLock						*tileRefreshLock;
-	int							refreshTilesThreadCount;
+	NSTimer						*refreshTilesTimer;
+	BOOL						refreshTileThreadRunning;
 }
 
 - (IBAction)setOriginalImage:(id)sender;

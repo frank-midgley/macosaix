@@ -17,6 +17,22 @@
 #define MAX_REFRESH_THREAD_COUNT 1
 
 
+NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *context)
+{
+	MacOSaiXImageMatch	*thisMatch = [[tileDict1 objectForKey:@"Tile"] displayedImageMatch], 
+						*otherMatch = [[tileDict2 objectForKey:@"Tile"] displayedImageMatch];
+	float				thisValue = (thisMatch ? [thisMatch matchValue] : MAXFLOAT), 
+						otherValue = (otherMatch ? [otherMatch matchValue] : MAXFLOAT);
+	
+	if (thisValue == otherValue)
+		return NSOrderedSame;
+	else if (thisValue < otherValue)
+		return NSOrderedAscending;
+	else
+		return NSOrderedDescending;
+}
+
+
 @implementation MacOSaiXKioskController
 
 
@@ -131,30 +147,50 @@
 {
 	[tileRefreshLock lock];
 		if ([tilesToRefresh indexOfObject:[notification userInfo]] == NSNotFound)
+		{
 			[tilesToRefresh addObject:[notification userInfo]];
+			[tilesToRefresh sortUsingFunction:compareDisplayedMatchValue context:nil];
+		}
 		
-		if (refreshTilesThreadCount == 0)
-			[NSApplication detachDrawingThread:@selector(refreshTiles:) toTarget:self withObject:nil];
+		if (!refreshTilesTimer)
+			[self performSelectorOnMainThread:@selector(startTileRefreshTimer) withObject:nil waitUntilDone:NO];
 	[tileRefreshLock unlock];
 }
 
 
-- (void)refreshTiles:(id)dummy
+- (void)startTileRefreshTimer
+{
+	[tileRefreshLock lock];
+		if (!refreshTilesTimer && [tilesToRefresh count] > 0)
+			refreshTilesTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1 
+																  target:self 
+															    selector:@selector(spawnRefreshThread:) 
+															    userInfo:nil 
+																 repeats:NO] retain];
+	[tileRefreshLock unlock];
+}
+
+
+- (void)spawnRefreshThread:(NSTimer *)timer
+{
+	[tileRefreshLock lock];
+			// Spawn a thread to refresh all tiles whose images have changed.
+		if (!refreshTileThreadRunning)
+		{
+			refreshTileThreadRunning = YES;
+			[NSApplication detachDrawingThread:@selector(refreshTiles) toTarget:self withObject:nil];
+		}
+		
+		[refreshTilesTimer autorelease];
+		refreshTilesTimer = nil;
+	[tileRefreshLock unlock];
+}
+
+
+- (void)refreshTiles
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	NSDictionary		*tileToRefresh = nil;
-
-        // Make sure only one copy of this thread runs at any time.
-	[tileRefreshLock lock];
-		if (refreshTilesThreadCount >= MAX_REFRESH_THREAD_COUNT)
-		{
-                // Not allowed to run any more threads, just exit.
-			[tileRefreshLock unlock];
-			[pool release];
-			return;
-		}
-		refreshTilesThreadCount++;
-	[tileRefreshLock unlock];
 	
 	do
 	{
@@ -176,9 +212,7 @@
 		[innerPool release];
 	} while (tileToRefresh);
 	
-	[tileRefreshLock lock];
-		refreshTilesThreadCount--;
-	[tileRefreshLock unlock];
+	refreshTileThreadRunning = NO;
 	
 	[pool release];
 }
