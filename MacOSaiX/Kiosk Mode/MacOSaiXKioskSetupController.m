@@ -20,52 +20,46 @@
 
 - (void)updateWarningField
 {
-		// Check the original images.
-	BOOL	atLeastOneImage = NO;
-	int		column = 0;
-	for (column = 0; column < [originalImageMatrix numberOfColumns]; column++)
-		if ([[originalImageMatrix cellAtRow:0 column:column] imagePosition] == NSImageOnly)
-			atLeastOneImage = YES;
-	if (!atLeastOneImage)
-	{
-		[warningField setStringValue:@"Please choose at least one original image."];
-		[startButton setEnabled:NO];
-	}
+	NSString	*warningString = @"";
+	
+	if (!NSClassFromString(@"MacOSaiXRectangularTileShapes"))
+		warningString = @"The Rectangular Tile Shapes plug-in is missing.";
+	if (!NSClassFromString(@"GoogleImageSource"))
+		warningString = @"The Google Image Source plug-in is missing.";
 	else
 	{
-		NSString	*password = [passwordField stringValue];
-		
-		if ([requirePasswordButton state] == NSOnState && [password length] == 0)
-		{
-			[warningField setStringValue:@"Please enter a password."];
-			[startButton setEnabled:NO];
-		}
+			// Make sure there is at least one original image chosen.
+		BOOL	atLeastOneImage = NO;
+		int		column = 0;
+		for (column = 0; column < [originalImageMatrix numberOfColumns]; column++)
+			if ([[originalImageMatrix cellAtRow:0 column:column] imagePosition] == NSImageOnly)
+				atLeastOneImage = YES;
+		if (!atLeastOneImage)
+			warningString = @"Please choose at least one original image.";
 		else
 		{
-			NSString	*repeatedPassword = [repeatedPasswordField stringValue];
+			NSString	*password = [passwordField stringValue];
 			
-			if ([requirePasswordButton state] == NSOnState && [repeatedPassword length] == 0)
-			{
-				[warningField setStringValue:@"Please enter the repeated password."];
-				[startButton setEnabled:NO];
-			}
+			if ([requirePasswordButton state] == NSOnState && [password length] == 0)
+				warningString = @"Please enter a password.";
 			else
 			{
-				if ([requirePasswordButton state] == NSOnState && ![password isEqualToString:repeatedPassword])
-				{
-					[warningField setStringValue:@"The passwords do not match."];
-					[startButton setEnabled:NO];
-				}
+				NSString	*repeatedPassword = [repeatedPasswordField stringValue];
+				
+				if ([requirePasswordButton state] == NSOnState && [repeatedPassword length] == 0)
+					warningString = @"Please enter the repeated password.";
+				else if ([requirePasswordButton state] == NSOnState && ![password isEqualToString:repeatedPassword])
+					warningString = @"The passwords do not match.";
 				else
 				{
 					// TODO: make sure at least one screen is set to show the kiosk window
-					
-					[warningField setStringValue:@""];
-					[startButton setEnabled:YES];
 				}
 			}
 		}
 	}
+	
+	[warningField setStringValue:warningString];
+	[startButton setEnabled:([warningString length] == 0)];
 }
 
 
