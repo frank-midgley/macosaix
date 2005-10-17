@@ -41,6 +41,9 @@
 - (MacOSaiXImageMatch *)uniqueImageMatch;
 - (void)setUniqueImageMatch:(MacOSaiXImageMatch *)match;
 
+- (MacOSaiXImageMatch *)nonUniqueImageMatch;
+- (void)setNonUniqueImageMatch:(MacOSaiXImageMatch *)match;
+
 - (void)setUserChosenImageMatch:(MacOSaiXImageMatch *)match;
 - (MacOSaiXImageMatch *)userChosenImageMatch;
 

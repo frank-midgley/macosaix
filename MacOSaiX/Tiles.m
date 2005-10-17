@@ -144,31 +144,6 @@
 }
 
 
-	// Match this tile's bitmap against matchRep and return whether the new match is better
-	// than this tile's previous worst.
-/*
-- (float)matchValueForImageRep:(NSBitmapImageRep *)matchRep
-			    withIdentifier:(NSString *)imageIdentifier
-			   fromImageSource:(id<MacOSaiXImageSource>)imageSource
-					  optimize:(BOOL)optimize
-{
-	if (!uniqueImageMatch && (!nonUniqueImageMatch || matchValue < [nonUniqueImageMatch matchValue]))
-	{
-		[nonUniqueImageMatch autorelease];
-		nonUniqueImageMatch = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
-														  forImageIdentifier:imageIdentifier 
-															 fromImageSource:imageSource 
-																	 forTile:self];
-		
-		if (!userChosenImageMatch && NO)	// TODO: check showBestNonUniqueMatch pref
-			[self sendImageChangedNotification];
-	}
-	
-	return matchValue;
-}
-*/
-
-
 - (void)setUniqueImageMatch:(MacOSaiXImageMatch *)match
 {
 	if (match != uniqueImageMatch)
@@ -177,11 +152,6 @@
 		
 		[uniqueImageMatch autorelease];
 		uniqueImageMatch = [match retain];
-		
-			// Now that we have a real match we don't need the placeholder anymore.
-			// TBD: or do we?  what if this gets set back to nil?
-		[nonUniqueImageMatch autorelease];
-		nonUniqueImageMatch = nil;
 		
 		if (!userChosenImageMatch)
 			[self sendNotificationThatImageChangedFrom:previousMatch];
@@ -192,6 +162,27 @@
 - (MacOSaiXImageMatch *)uniqueImageMatch
 {
 	return [[uniqueImageMatch retain] autorelease];
+}
+
+
+- (void)setNonUniqueImageMatch:(MacOSaiXImageMatch *)match
+{
+	if (match != nonUniqueImageMatch)
+	{
+		MacOSaiXImageMatch	*previousMatch = nonUniqueImageMatch;
+		
+		[nonUniqueImageMatch autorelease];
+		nonUniqueImageMatch = [match retain];
+		
+		if (!userChosenImageMatch && !uniqueImageMatch)
+			[self sendNotificationThatImageChangedFrom:previousMatch];
+	}
+}
+
+
+- (MacOSaiXImageMatch *)nonUniqueImageMatch
+{
+	return [[nonUniqueImageMatch retain] autorelease];
 }
 
 
@@ -221,7 +212,7 @@
 		return userChosenImageMatch;
 	else if (uniqueImageMatch)
 		return uniqueImageMatch;
-	else if (NO)	// TODO: check showBestNonUniqueMatch pref
+	else if (nonUniqueImageMatch)	// TODO: check showBestNonUniqueMatch pref
 		return nonUniqueImageMatch;
 	else
 		return nil;
