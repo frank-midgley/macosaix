@@ -22,7 +22,11 @@
         {
             CLASS = MacOSaiXKioskView; 
             LANGUAGE = ObjC; 
-            OUTLETS = {mosaicView = MosaicView; originalImageMatrix = NSMatrix; }; 
+            OUTLETS = {
+                imageSourcesView = NSView; 
+                mosaicView = MosaicView; 
+                originalImageMatrix = NSMatrix; 
+            }; 
             SUPERCLASS = NSView; 
         }, 
         {CLASS = MacOSaiXKioskWindow; LANGUAGE = ObjC; SUPERCLASS = NSWindow; }, 
