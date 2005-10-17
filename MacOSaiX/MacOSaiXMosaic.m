@@ -658,18 +658,23 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 															   toImageRep:imageRep
 															 previousBest:previousBest];
 							
+							MacOSaiXImageMatch	*newMatch = [MacOSaiXImageMatch imageMatchWithValue:matchValue 
+																				 forImageIdentifier:pixletImageIdentifier 
+																					fromImageSource:pixletImageSource
+																							forTile:tile];
 								// If the tile does not already have a match or 
 								//    this image matches better than the tile's current best or
 								//    this image is the same as the tile's current best
 								// then add it to the list of tile's that might get this image.
-							if (![tile uniqueImageMatch] || 
-								matchValue < [[tile uniqueImageMatch] matchValue] ||
+							if (![tile uniqueImageMatch] || matchValue < [[tile uniqueImageMatch] matchValue] ||
 								([[tile uniqueImageMatch] imageSource] == pixletImageSource && 
 								 [[[tile uniqueImageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier]))
-								[betterMatches addObject:[[[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
-																					  forImageIdentifier:pixletImageIdentifier 
-																						 fromImageSource:pixletImageSource
-																								 forTile:tile] autorelease]];
+								[betterMatches addObject:newMatch];
+							
+								// Set the tile's non-unique match if appropriate.
+								// TBD: check pref?
+							if (![tile nonUniqueImageMatch] || matchValue < [[tile nonUniqueImageMatch] matchValue])
+								[tile setNonUniqueImageMatch:newMatch];
 						}
 						else
 							;	// anything to do or just lose the chance to match this pixlet to this tile?
