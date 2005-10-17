@@ -194,17 +194,39 @@
 	float		windowHeight = NSHeight([window frame]), 
 				windowWidth = NSWidth([window frame]), 
 				transitionHeight = 64.0, 
+				transitionWidth = 0.0, 
 				matrixWidth = floorf(24.0 * (windowHeight - transitionHeight) / 21.0 / 6.0) * 6.0, 
 				matrixHeight = floorf(matrixWidth / 6.0 / 4.0 * 3.0 + 0.5), 
 				settingsWidth = windowWidth - matrixWidth, 
 				mosaicHeight = windowHeight - matrixHeight - transitionHeight;
 	
+	if (settingsWidth > 180.0 + 64.0)
+	{
+		transitionWidth = 64.0;
+		settingsWidth -= 64.0;
+	}
+	else if (settingsWidth > 180.0)
+	{
+		transitionWidth = settingsWidth - 180.0;
+		settingsWidth = 180.0;
+	}
+	
+		// Position the original image matrix in the upper left corner of the window.
 	[originalImageMatrix setCellSize:NSMakeSize(matrixWidth / 6.0, matrixHeight)];
 	[originalImageMatrix setFrame:NSMakeRect(0.0, mosaicHeight + transitionHeight, matrixWidth, matrixHeight)];
-	[customTextField setFrame:NSInsetRect(NSMakeRect(matrixWidth, mosaicHeight + transitionHeight, settingsWidth, matrixHeight), 4.0, 4.0)];
-	[mosaicView setFrame:NSMakeRect(0.0, 0.0, matrixWidth, mosaicHeight)];
-	[imageSourcesView setFrame:NSMakeRect(matrixWidth, 0.0, settingsWidth, mosaicHeight)];
 	
+		// Position the custom text field in the upper right corner of the window.
+	[customTextField setFrame:NSMakeRect(matrixWidth + transitionWidth, mosaicHeight + transitionHeight, 
+										 settingsWidth, matrixHeight)];
+	
+		// Position the mosaic view in the lower left corner of the window.
+	[mosaicView setFrame:NSMakeRect(0.0, 0.0, matrixWidth, mosaicHeight)];
+	
+		// Position the image sources view in the lower right corner of the window.
+	[imageSourcesView setFrame:NSMakeRect(matrixWidth + transitionWidth, 0.0, settingsWidth, mosaicHeight)];
+	
+		// Center the vanity view between the custom text field and the image sources view and 
+		// against the right edge of the window.
 	NSSize		vanitySize = [vanityView frame].size;
 	[vanityView setFrameOrigin:NSMakePoint(windowWidth - vanitySize.width - 4.0, 
 										   mosaicHeight + (transitionHeight - vanitySize.height) / 2.0)];
