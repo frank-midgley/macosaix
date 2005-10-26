@@ -162,7 +162,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 {
 	[tileRefreshLock lock];
 		if (!refreshTilesTimer && [tilesToRefresh count] > 0)
-			refreshTilesTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1 
+			refreshTilesTimer = [[NSTimer scheduledTimerWithTimeInterval:0.5 
 																  target:self 
 															    selector:@selector(spawnRefreshThread:) 
 															    userInfo:nil 
