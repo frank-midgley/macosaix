@@ -21,6 +21,8 @@
 	MacOSaiXMosaic				*mosaic;
 	MacOSaiXWindowController	*mainWindowController;
 	
+	NSString					*originalImagePath;
+	
 		// Document state
     BOOL						documentIsClosing,	// flag set to true when document is closing
 								autoSaveEnabled,
@@ -34,6 +36,9 @@
 }
 
 - (MacOSaiXMosaic *)mosaic;
+
+- (void)setOriginalImagePath:(NSString *)path;
+- (NSString *)originalImagePath;
 
 - (BOOL)isSaving;
 - (BOOL)isClosing;

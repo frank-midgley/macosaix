@@ -45,6 +45,8 @@
 		autoSaveEnabled = YES;
 		
 		lastSaved = [[NSDate date] retain];
+		
+		mosaic = [[MacOSaiXMosaic alloc] init];
 	}
 	
     return self;
@@ -57,10 +59,13 @@
 	{
 		NSString	*defaultShapesClassString = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Chosen Tile Shapes Class"];
 		
-		[mosaic setTileShapes:[[[NSClassFromString(defaultShapesClassString) alloc] init] autorelease]];
+		[mosaic setTileShapes:[[[NSClassFromString(defaultShapesClassString) alloc] init] autorelease]
+				creatingTiles:YES];
 	}
 	
 	mainWindowController = [[[MacOSaiXWindowController alloc] initWithWindow:nil] autorelease];
+	
+	[mainWindowController setMosaic:mosaic];
 	
 	[self addWindowController:mainWindowController];
 	[mainWindowController showWindow:self];
@@ -82,6 +87,26 @@
 - (void)mosaicDidChangeState:(NSNotification *)notification
 {
 	[self updateChangeCount:NSChangeDone];
+}
+
+
+#pragma mark -
+#pragma mark Original image path
+
+
+- (void)setOriginalImagePath:(NSString *)path
+{
+	if (![originalImagePath isEqualToString:path])
+	{
+		[originalImagePath release];
+		originalImagePath = [path copy];
+	}
+}
+
+
+- (NSString *)originalImagePath
+{
+	return originalImagePath;
 }
 
 
@@ -307,7 +332,7 @@
 				[fileHandle writeData:[@"<MOSAIC>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 
 					// Write out the path to the original image
-				[fileHandle writeData:[[NSString stringWithFormat:@"<ORIGINAL_IMAGE PATH=\"%@\"/>\n\n", [mosaic originalImagePath]] dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[[NSString stringWithFormat:@"<ORIGINAL_IMAGE PATH=\"%@\"/>\n\n", [self originalImagePath]] dataUsingEncoding:NSUTF8StringEncoding]];
 				
 					// Write out the tile shapes settings
 				NSString		*className = NSStringFromClass([[mosaic tileShapes] class]);
@@ -722,12 +747,13 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	NSMutableArray		*stack = [(NSArray *)info objectAtIndex:0];
+	MacOSaiXDocument	*document = [stack objectAtIndex:0];
 	MacOSaiXMosaic		*mosaic = [stack objectAtIndex:1];
 
 	if (parent == mosaic && [(id)child isKindOfClass:[NSString class]])
 	{
 			// Set the original image path.
-		[mosaic setOriginalImagePath:(NSString *)child];
+		[document setOriginalImagePath:(NSString *)child];
 	}
 	else if ([(id)parent conformsToProtocol:@protocol(MacOSaiXTileShapes)] && [(id)child isKindOfClass:[NSDictionary class]])
 	{
@@ -806,7 +832,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 	if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXTileShapes)])
 	{
-		[mosaic setTileShapes:(id<MacOSaiXTileShapes>)newObject];
+		[mosaic setTileShapes:(id<MacOSaiXTileShapes>)newObject creatingTiles:NO];
 		[(id)newObject release];
 	}
 	else if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXImageSource)])
@@ -1004,7 +1030,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	}
 	
 		// wait for the threads to shut down
-    while ([mosaic isEnumeratingImageSources] || [mosaic isCalculatingImageMatches])
+    while ([mosaic isBusy])
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
 	
     [super close];
