@@ -65,15 +65,16 @@
 
 - (NSArray *)tiles;
 
-- (BOOL)isEnumeratingImageSources;
+- (BOOL)isBusy;
+- (NSString *)status;
 - (unsigned long)countOfImagesFromSource:(id<MacOSaiXImageSource>)imageSource;
-
-- (BOOL)isCalculatingImageMatches;
 - (unsigned long)imagesMatched;
 
 - (NSArray *)imageSources;
 - (void)addImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource;
+
+- (MacOSaiXHandPickedImageSource *)handPickedImageSource;
 - (void)setHandPickedImageAtPath:(NSString *)path withMatchValue:(float)matchValue forTile:(MacOSaiXTile *)tile;
 - (void)removeHandPickedImageForTile:(MacOSaiXTile *)tile;
 

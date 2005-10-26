@@ -463,12 +463,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 }
 
 
-- (BOOL)isEnumeratingImageSources
-{
-	return (enumerationThreadCount > 0);
-}
-
-
 - (void)setImageCount:(unsigned long)imageCount forImageSource:(id<MacOSaiXImageSource>)imageSource
 {
 	[enumerationCountsLock lock];
@@ -820,9 +814,39 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
     [pool release];
 }
 
-- (BOOL)isCalculatingImageMatches
+
+#pragma mark -
+#pragma mark Status
+
+
+- (BOOL)isBusy
 {
-	return calculateImageMatchesThreadAlive;
+	return (enumerationThreadCount > 0 || calculateImageMatchesThreadAlive);
+}
+
+
+- (NSString *)status
+{
+	NSString	*statusKey = nil;
+	
+	if (![self originalImage])
+		statusKey = @"You have not chosen the original image";
+	else if ([[self tiles] count] == 0)
+		statusKey = @"You have not set the tile shapes";
+	else if ([[self imageSources] count] == 0)
+		statusKey = @"You have not added any image sources";
+	else if (![self wasStarted])
+		statusKey = @"Ready to begin.  Click the Start Mosaic button in the toolbar.";
+	else if (calculateImageMatchesThreadAlive)
+		statusKey = [NSString stringWithString:@"Matching images..."];
+	else if ([self isPaused])
+		statusKey = [NSString stringWithString:@"Paused"];
+	else if (enumerationThreadCount > 0)
+		statusKey = [NSString stringWithString:@"Looking for new images..."];
+	else
+		statusKey = [NSString stringWithString:@"Done"];
+	
+	return [[NSBundle mainBundle] localizedStringForKey:statusKey value:@"" table:nil];
 }
 
 
@@ -856,7 +880,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			// Wait for any queued images to get processed.
 			// TBD: can we condition lock here instead of poll?
 			// TBD: this could block the main thread
-		while ([self isCalculatingImageMatches])
+		while ([self isBusy])
 			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 		
 		paused = YES;
