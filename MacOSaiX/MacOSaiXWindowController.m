@@ -208,19 +208,19 @@
 	if (originalPath)
 	{
 			// Return the currently displayed thumbnail to its menu item.
-// REWORK
-//		if ([[self mosaic] originalImagePath])
-//		{
-//			int	previousIndex = [originalImagePopUpButton indexOfItemWithRepresentedObject:[[self mosaic] originalImagePath]];
-//			[[originalImagePopUpButton itemAtIndex:previousIndex] setImage:[originalImageThumbView image]];
-//		}
-//		
-//			// Move the newly chosen original's thumbnail to the image view.
-//		[originalImageThumbView setImage:[[originalImagePopUpButton selectedItem] image]];
-//		[[originalImagePopUpButton selectedItem] setImage:nil];
+		if ([[self document] originalImagePath])
+		{
+			int	previousIndex = [originalImagePopUpButton indexOfItemWithRepresentedObject:[[self document] originalImagePath]];
+			[[originalImagePopUpButton itemAtIndex:previousIndex] setImage:[originalImageThumbView image]];
+		}
+		
+			// Move the newly chosen original's thumbnail to the image view.
+		[originalImageThumbView setImage:[[originalImagePopUpButton selectedItem] image]];
+		[[originalImagePopUpButton selectedItem] setImage:nil];
 		
 			// Update the mosaic.
 		NSImage	*originalImage = [[NSImage alloc] initWithContentsOfFile:originalPath];
+		[[self document] setOriginalImagePath:originalPath];
 		[[self mosaic] setOriginalImage:originalImage];
 		[originalImage release];
 	}
@@ -248,7 +248,10 @@
 {
     if (returnCode == NSOKButton)
 	{
-		NSImage	*originalImage = [[NSImage alloc] initWithContentsOfFile:[[sheet filenames] objectAtIndex:0]];
+		NSString	*originalImagePath = [[sheet filenames] objectAtIndex:0];
+		[[self document] setOriginalImagePath:originalImagePath];
+		
+		NSImage		*originalImage = [[NSImage alloc] initWithContentsOfFile:originalImagePath];
 		[[self mosaic] setOriginalImage:originalImage];
 		[originalImage release];
 	}
@@ -264,7 +267,7 @@
 	else
 	{
 			// Remember this original in the user's defaults so they can easily re-choose it for future mosaics.
-		NSString		*originalImagePath = [[self mosaic] originalImagePath];
+		NSString		*originalImagePath = [[self document] originalImagePath];
 		NSImage			*originalImage = [[self mosaic] originalImage];
 		NSImage			*thumbnailImage = [originalImage copyWithLargestDimension:32.0];
 		NSMutableArray	*originals = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] mutableCopy] autorelease];
@@ -475,33 +478,14 @@
 		[self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
 	else
 	{
-		NSString	*statusMessage = nil;
-		
 			// update the status bar
-		if (![[self mosaic] originalImage])
-			statusMessage = @"You have not chosen the original image";
-		else if ([[[self mosaic] tiles] count] == 0)
-			statusMessage = @"You have not set the tile shapes";
-		else if ([[[self mosaic] imageSources] count] == 0)
-			statusMessage = @"You have not added any image sources";
-		else if (![[self mosaic] wasStarted])
-			statusMessage = @"Ready to begin.  Click the Start Mosaic button in the toolbar.";
-		else if ([[self mosaic] isCalculatingImageMatches])
-			statusMessage = [NSString stringWithString:@"Matching images..."];
-		else if ([[self mosaic] isPaused])
-			statusMessage = [NSString stringWithString:@"Paused"];
-		else if ([[self mosaic] isEnumeratingImageSources])
-			statusMessage = [NSString stringWithString:@"Looking for new images..."];
-		else
-			statusMessage = [NSString stringWithString:@"Done"];
-		
 //		[statusMessageView setStringValue:[NSString stringWithFormat:@"Images: %d     Quality: %2.1f%%     Status: %@",
 //																	 [[self mosaic] imagesMatched], 
 //																	 overallMatch, 
-//																	 statusMessage]];
+//																	 [[self mosaic] status]]];
 		[statusMessageView setStringValue:[NSString stringWithFormat:@"Images: %d     Status: %@",
 																	 [[self mosaic] imagesMatched], 
-																	 statusMessage]];
+																	 [[self mosaic] status]]];
 		
 		[imageSourcesTableView reloadData];
 		[totalTilesField setIntValue:[[[self mosaic] tiles] count]];
