@@ -51,6 +51,7 @@
 		923384DC072180700010BE04 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
 		923384DD072180700010BE04 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
 		925FE5C407EBDAB200B0D002 /* Glyph Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 928489E506611CE6003B3514 /* Glyph Image Source.plugin */; };
+		926612A4090C4F150015BD9E /* Localized.strings in Resources */ = {isa = PBXBuildFile; fileRef = 926612A2090C4F150015BD9E /* Localized.strings */; };
 		9284898B06611CE5003B3514 /* ExportImage.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F594095502469B3101000104 /* ExportImage.tiff */; };
 		9284898C06611CE5003B3514 /* ImageSources.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F5940957024722BA01000104 /* ImageSources.tiff */; };
 		9284898D06611CE5003B3514 /* Blank.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F594095B02472CFD01000104 /* Blank.tiff */; };
@@ -378,6 +379,7 @@
 		9227FD7007E37A240020C5F4 /* HexagonalTileShapesEditor.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = HexagonalTileShapesEditor.m; path = "Standard Plugins/Hexaganol Tiles Setup/HexagonalTileShapesEditor.m"; sourceTree = "<group>"; };
 		9227FD7A07E37A340020C5F4 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Hexaganol Tiles Setup/English.lproj/HexagonalTileShapes.nib"; sourceTree = "<group>"; };
 		923384DB072180700010BE04 /* MacOSaiXImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXImageSource.h; path = MacOSaiX/MacOSaiXImageSource.h; sourceTree = "<group>"; };
+		926612A3090C4F150015BD9E /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = MacOSaiX/English.lproj/Localized.strings; sourceTree = "<group>"; };
 		928489A306611CE6003B3514 /* MacOSaiX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacOSaiX.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		928489C406611CE6003B3514 /* Directory Image Source.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Directory Image Source.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		928489D406611CE6003B3514 /* Google Image Source.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Google Image Source.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -566,6 +568,7 @@
 				0127354207CD6EBB0053037A /* Defaults.plist */,
 				928F724A0661214000873AE2 /* Info.plist */,
 				928F726C066121AE00873AE2 /* InfoPlist.strings */,
+				926612A2090C4F150015BD9E /* Localized.strings */,
 				016A2E3108D1459D002D56C1 /* Version.plist */,
 				92BFFEC1079A2DD50052CC4C /* Credits.html */,
 			);
@@ -650,15 +653,15 @@
 		01FE978A08E8EDDA00E4AC7C /* Kiosk Mode */ = {
 			isa = PBXGroup;
 			children = (
+				92DCA7CB08F8894C00B40FA6 /* MacOSaiXKioskSetupController.h */,
+				92DCA7CC08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m */,
+				010D20980902C01700950013 /* Kiosk Setup.nib */,
 				01FE978B08E8EDFE00E4AC7C /* MacOSaiXKioskController.h */,
 				01FE978C08E8EDFE00E4AC7C /* MacOSaiXKioskController.m */,
 				010D209A0902C01700950013 /* Kiosk.nib */,
 				92DCA7B508F87DD200B40FA6 /* MacOSaiXMosaicController.h */,
 				92DCA7B608F87DD200B40FA6 /* MacOSaiXMosaicController.m */,
 				010D209E0902C01700950013 /* Mosaic.nib */,
-				92DCA7CB08F8894C00B40FA6 /* MacOSaiXKioskSetupController.h */,
-				92DCA7CC08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m */,
-				010D20980902C01700950013 /* Kiosk Setup.nib */,
 				92DCA87108F89EA400B40FA6 /* MacOSaiXScreenSetupController.h */,
 				92DCA87208F89EA400B40FA6 /* MacOSaiXScreenSetupController.m */,
 				010D20A00902C01700950013 /* Screen Setup.nib */,
@@ -1454,6 +1457,7 @@
 				010D20B70902C01700950013 /* Kiosk.nib in Resources */,
 				010D20B90902C01700950013 /* Mosaic.nib in Resources */,
 				010D20BA0902C01700950013 /* Screen Setup.nib in Resources */,
+				926612A4090C4F150015BD9E /* Localized.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1750,6 +1754,14 @@
 				9227FD7A07E37A340020C5F4 /* English */,
 			);
 			name = HexagonalTileShapes.nib;
+			sourceTree = "<group>";
+		};
+		926612A2090C4F150015BD9E /* Localized.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				926612A3090C4F150015BD9E /* English */,
+			);
+			name = Localized.strings;
 			sourceTree = "<group>";
 		};
 		928F725B066121A700873AE2 /* MacOSaiXDocument.nib */ = {
