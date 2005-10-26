@@ -276,6 +276,7 @@ static NSImage	*glyphSourceImage = nil;
 		NSTextStorage	*textStorage = [[NSTextStorage alloc] initWithString:[self letterPool] attributes:attributes];
 		NSTextContainer	*textContainer = [[NSTextContainer alloc] init];
 		
+		[layoutManager setBackgroundLayoutEnabled:NO];
 		[layoutManager addTextContainer:textContainer];
 		[textStorage addLayoutManager:layoutManager];
 		
@@ -285,6 +286,9 @@ static NSImage	*glyphSourceImage = nil;
 		
 		glyphNums = [NSMutableArray arrayWithCapacity:glyphCount];
 		[layoutManager getGlyphs:glyphs range:NSMakeRange(0, glyphCount)];
+		
+		[textStorage removeLayoutManager:layoutManager];
+		[layoutManager removeTextContainer:textContainer];
 		
 		[textContainer release];
 		[textStorage release];
