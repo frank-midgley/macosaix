@@ -48,53 +48,56 @@
 		if (followAliases)
 			fullPath = [[NSFileManager defaultManager] pathByResolvingAliasesInPath:fullPath];
 		
-			// Determine if the item is a file or a directory.
-		NSString	*fileType = [[[NSFileManager defaultManager] fileAttributesAtPath:fullPath traverseLink:YES] fileType];
-		BOOL		itemIsDirectory = [fileType isEqualToString:NSFileTypeDirectory];
-		FSRef		itemRef;
-		if (followAliases && !itemIsDirectory && CFURLGetFSRef((CFURLRef)[NSURL fileURLWithPath:fullPath], &itemRef))
+		if (fullPath)
 		{
-				// Check if the item is an alias.
-			Boolean	resolvesToFolder = NO,
-					wasAlias = NO;
-			OSErr	err = FSResolveAliasFile(&itemRef, true, &resolvesToFolder, &wasAlias);
-			
-			if (err == noErr && wasAlias)
+				// Determine if the item is a file or a directory.
+			NSString	*fileType = [[[NSFileManager defaultManager] fileAttributesAtPath:fullPath traverseLink:YES] fileType];
+			BOOL		itemIsDirectory = [fileType isEqualToString:NSFileTypeDirectory];
+			FSRef		itemRef;
+			if (followAliases && !itemIsDirectory && CFURLGetFSRef((CFURLRef)[NSURL fileURLWithPath:fullPath], &itemRef))
 			{
-				UInt8		path[1024];
-				OSStatus	status = FSRefMakePath(&itemRef, path, 1024);
+					// Check if the item is an alias.
+				Boolean	resolvesToFolder = NO,
+						wasAlias = NO;
+				OSErr	err = FSResolveAliasFile(&itemRef, true, &resolvesToFolder, &wasAlias);
 				
-				if (status == noErr)
+				if (err == noErr && wasAlias)
 				{
-					fullPath = [NSString stringWithCString:path];
-					itemIsDirectory = resolvesToFolder;
+					UInt8		path[1024];
+					OSStatus	status = FSRefMakePath(&itemRef, path, 1024);
 					
-					if (itemIsDirectory)
+					if (status == noErr)
 					{
-							// Check if the directory the alias resolved to was already handled or will be 
-							// handled by another item in the queue.  If so then treat it as a file.
-						NSEnumerator	*visitedRootEnumerator = [visitedRootPaths objectEnumerator];
-						NSString		*visitedRoot = nil;
-						while (itemIsDirectory && (visitedRoot = [visitedRootEnumerator nextObject]))
-							if ([fullPath hasPrefix:visitedRoot])
-								itemIsDirectory = NO;
+						fullPath = [NSString stringWithCString:path];
+						itemIsDirectory = resolvesToFolder;
 						
-							// This is a new directory to enumerate.
 						if (itemIsDirectory)
-							[visitedRootPaths addObject:fullPath];
+						{
+								// Check if the directory the alias resolved to was already handled or will be 
+								// handled by another item in the queue.  If so then treat it as a file.
+							NSEnumerator	*visitedRootEnumerator = [visitedRootPaths objectEnumerator];
+							NSString		*visitedRoot = nil;
+							while (itemIsDirectory && (visitedRoot = [visitedRootEnumerator nextObject]))
+								if ([fullPath hasPrefix:visitedRoot])
+									itemIsDirectory = NO;
+							
+								// This is a new directory to enumerate.
+							if (itemIsDirectory)
+								[visitedRootPaths addObject:fullPath];
+						}
 					}
 				}
 			}
-		}
-		
-		if (itemIsDirectory)
-		{
-				// Add the items in the directory to the queue.
-			NSArray			*subItems = [[NSFileManager defaultManager] directoryContentsAtPath:fullPath];
-			NSEnumerator	*subItemEnumerator = [[subItems sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] reverseObjectEnumerator];
-			NSString		*subItem = nil;
-			while (subItem = [subItemEnumerator nextObject])
-				[subPathQueue addObject:[nextSubPath stringByAppendingPathComponent:subItem]];
+			
+			if (itemIsDirectory)
+			{
+					// Add the items in the directory to the queue.
+				NSArray			*subItems = [[NSFileManager defaultManager] directoryContentsAtPath:fullPath];
+				NSEnumerator	*subItemEnumerator = [[subItems sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] reverseObjectEnumerator];
+				NSString		*subItem = nil;
+				while (subItem = [subItemEnumerator nextObject])
+					[subPathQueue addObject:[nextSubPath stringByAppendingPathComponent:subItem]];
+			}
 		}
 	}
 	
