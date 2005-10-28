@@ -30,8 +30,9 @@
 	IBOutlet NSTableView		*imageSourcesTableView;
 	
 		// Model objects
-	MacOSaiXMosaic				*mosaic;
-	NSMutableArray				*originalImages;
+	MacOSaiXMosaic				*currentMosaic;
+	NSMutableArray				*mosaics,
+								*imageSources;
 	
 	NSMutableArray				*tilesToRefresh;
 	NSLock						*tileRefreshLock;

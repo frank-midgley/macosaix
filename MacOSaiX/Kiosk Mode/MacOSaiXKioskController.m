@@ -36,16 +36,82 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 @implementation MacOSaiXKioskController
 
 
+- (id)initWithWindow:(NSWindow *)window
+{
+	if (self = [super initWithWindow:window])
+	{
+		mosaics = [[NSMutableArray arrayWithObjects:[NSNull null], [NSNull null], [NSNull null], 
+													[NSNull null], [NSNull null], [NSNull null], nil] retain];
+		imageSources = [[NSMutableArray array] retain];
+	}
+	
+	return self;
+}
+
+
 - (NSString *)windowNibName
 {
 	return @"Kiosk";
 }
 
 
+- (void)useMosaicAtIndex:(int)index
+{
+	{
+			// Stop the previous mosaic.
+		[[NSNotificationCenter defaultCenter] removeObserver:self 
+														name:MacOSaiXMosaicDidChangeStateNotification 
+													  object:currentMosaic];
+		[[NSNotificationCenter defaultCenter] removeObserver:self 
+														name:MacOSaiXTileImageDidChangeNotification 
+													  object:currentMosaic];
+		[currentMosaic pause];
+		
+		// TODO: save the mosaic...
+		
+			// Remove all of the image sources.
+		NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
+		id<MacOSaiXImageSource>	imageSource = nil;
+		while (imageSource = [imageSourceEnumerator nextObject])
+			[currentMosaic removeImageSource:imageSource];
+	}
+	
+	{
+			// Switch to the new mosaic
+		currentMosaic = [mosaics objectAtIndex:index];
+		
+			// Reset and add all of the image sources.
+		NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
+		id<MacOSaiXImageSource>	imageSource = nil;
+		while (imageSource = [imageSourceEnumerator nextObject])
+		{
+			[imageSource reset];
+			[currentMosaic addImageSource:imageSource];
+		}
+		
+		[mosaicView setMosaic:currentMosaic];
+		
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(mosaicDidChangeState:) 
+													 name:MacOSaiXMosaicDidChangeStateNotification 
+												   object:currentMosaic];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(tileImageDidChange:) 
+													 name:MacOSaiXTileImageDidChangeNotification 
+												   object:currentMosaic];
+		
+		[currentMosaic resume];
+	}
+}
+
+
 - (void)awakeFromNib
 {
+	MacOSaiXRectangularTileShapes	*tileShapes = [[NSClassFromString(@"MacOSaiXRectangularTileShapes") alloc] init];
+	[tileShapes setTilesAcross:50];
+	[tileShapes setTilesDown:50];
+	
 		// Populate the original image buttons
-	originalImages = [[NSMutableArray arrayWithObjects:[NSNull null], [NSNull null], [NSNull null], [NSNull null], [NSNull null], [NSNull null], nil] retain];
 	NSArray			*originalImagePaths = [[NSUserDefaults standardUserDefaults] arrayForKey:@"Original Image Paths"];
 	int				column = 0;
 	for (column = 0; column < [originalImageMatrix numberOfColumns]; column++)
@@ -57,7 +123,15 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 		if ([[NSFileManager defaultManager] fileExistsAtPath:imagePath] &&
 			(image = [[NSImage alloc] initWithContentsOfFile:imagePath]))
 		{
-			[originalImages replaceObjectAtIndex:column withObject:image];
+			MacOSaiXMosaic	*mosaic = [[MacOSaiXMosaic alloc] init];
+			[mosaic setOriginalImage:image];
+			[mosaic setTileShapes:tileShapes creatingTiles:YES];
+			[mosaic setImageUseCount:0];
+			[mosaic setImageReuseDistance:10];
+			[mosaic setImageCropLimit:25];
+			[mosaics replaceObjectAtIndex:column withObject:mosaic];
+			[mosaic release];
+			
 			[buttonCell setTitle:imagePath];
 			[buttonCell setImagePosition:NSImageOnly];
 			[image release];
@@ -70,38 +144,18 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 		}
 	}
 	
-	MacOSaiXRectangularTileShapes	*tileShapes = [[NSClassFromString(@"MacOSaiXRectangularTileShapes") alloc] init];
-	[tileShapes setTilesAcross:50];
-	[tileShapes setTilesDown:50];
-	
-	mosaic = [[MacOSaiXMosaic alloc] init];
-	[mosaic setOriginalImage:[originalImages objectAtIndex:0]];
-	[mosaic setTileShapes:tileShapes creatingTiles:YES];
-	[mosaic setImageUseCount:0];
-	[mosaic setImageReuseDistance:10];
-	[mosaic setImageCropLimit:25];
-	
-	[mosaicView setMosaic:mosaic];
-	[mosaicView setViewFade:1.0];
-	
-	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(mosaicDidChangeState:) 
-												 name:MacOSaiXMosaicDidChangeStateNotification 
-											   object:mosaic];
-	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(tileImageDidChange:) 
-												 name:MacOSaiXTileImageDidChangeNotification 
-											   object:mosaic];
 	tileRefreshLock = [[NSLock alloc] init];
 	tilesToRefresh = [[NSMutableArray array] retain];
 	
-	[mosaic resume];
+	[mosaicView setViewFade:1.0];
+	
+	[self useMosaicAtIndex:0];
 }
 
 
 - (IBAction)setOriginalImage:(id)sender
 {
-	[mosaic setOriginalImage:[originalImages objectAtIndex:[originalImageMatrix selectedColumn]]];
+	[self useMosaicAtIndex:[originalImageMatrix selectedColumn]];
 	[kioskView setNeedsDisplayInRect:NSMakeRect(NSMinX([mosaicView frame]), 
 														NSMaxY([mosaicView frame]), 
 														NSWidth([mosaicView frame]), 
@@ -113,11 +167,11 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 - (IBAction)addKeyword:(id)sender
 {
 	GoogleImageSource	*newSource = [[NSClassFromString(@"GoogleImageSource") alloc] init];
-	
 	[newSource setAdultContentFiltering:strictFiltering];
 	[newSource setRequiredTerms:[keywordTextField stringValue]];
 	
-	[mosaic addImageSource:newSource];
+	[imageSources addObject:newSource];
+	[currentMosaic addImageSource:newSource];
 	
 	[newSource release];
 }
@@ -273,7 +327,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 		
 		if ([buttonCell imagePosition] == NSImageOnly)
 		{
-			NSImage	*image = [[originalImages objectAtIndex:column] copy];
+			NSImage	*image = [[[mosaics objectAtIndex:column] originalImage] copy];
 			
 			[image setScalesWhenResized:YES];
 			[image setSize:[originalImageMatrix cellSize]];
@@ -300,7 +354,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 - (int)numberOfRowsInTableView:(NSTableView *)tableView
 {
     if (tableView == imageSourcesTableView)
-		return [[mosaic imageSources] count];
+		return [imageSources count];
 	
 	return 0;
 }
@@ -312,10 +366,10 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 	
     if (tableView == imageSourcesTableView)
     {
-		id<MacOSaiXImageSource>	imageSource = [[mosaic imageSources] objectAtIndex:rowIndex];
+		id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:rowIndex];
 		
 		if ([[tableColumn identifier] isEqualToString:@"Count"])
-			return [NSNumber numberWithUnsignedLong:[mosaic countOfImagesFromSource:imageSource]];
+			return [NSNumber numberWithUnsignedLong:[currentMosaic countOfImagesFromSource:imageSource]];
 		else
 			objectValue = [imageSource descriptor];
     }
@@ -334,7 +388,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 		while (selectedRowNumber = [selectedRowNumberEnumerator nextObject])
 		{
 			int	rowIndex = [selectedRowNumber intValue];
-			[selectedImageSources addObject:[[mosaic imageSources] objectAtIndex:rowIndex]];
+			[selectedImageSources addObject:[imageSources objectAtIndex:rowIndex]];
 		}
 		
 		[removeKeywordButton setEnabled:([selectedImageSources count] > 0)];
@@ -352,7 +406,8 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 
 - (void)dealloc
 {
-	[originalImages release];
+	[imageSources release];
+	[mosaics release];
 	
 	[super dealloc];
 }
