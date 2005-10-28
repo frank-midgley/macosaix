@@ -12,6 +12,7 @@
 
 
 @interface MosaicView (PrivateMethods)
+- (void)originalImageDidChange:(NSNotification *)notification;
 - (void)tileShapesDidChange:(NSNotification *)notification;
 - (void)createHighlightedImageSourcesOutline;
 @end
@@ -43,6 +44,13 @@
 {
     if (inMosaic && mosaic != inMosaic)
 	{
+		[[NSNotificationCenter defaultCenter] removeObserver:self 
+														name:MacOSaiXOriginalImageDidChangeNotification
+													  object:mosaic];
+		[[NSNotificationCenter defaultCenter] removeObserver:self 
+													    name:MacOSaiXTileShapesDidChangeStateNotification 
+													  object:mosaic];
+		
 		mosaic = inMosaic;
 		
 		[[NSNotificationCenter defaultCenter] addObserver:self 
@@ -54,6 +62,7 @@
 													 name:MacOSaiXTileShapesDidChangeStateNotification 
 												   object:mosaic];
 		
+		[self originalImageDidChange:nil];
 		[self tileShapesDidChange:nil];
 	}
 }
@@ -128,6 +137,7 @@
 	if (newImageRep)
 	{
 		NSArray	*parameters = [NSArray arrayWithObjects:clipPath, newImageRep, nil];
+//		[self drawTileImage:parameters];
 		[self performSelectorOnMainThread:@selector(drawTileImage:) withObject:parameters waitUntilDone:YES];
 		tileNeedsDisplay = YES;
 	}
