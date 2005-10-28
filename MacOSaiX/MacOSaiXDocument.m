@@ -1020,7 +1020,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	
 		// Let the helper threads know we are closing and resume so that they can clean up and exit.
 	documentIsClosing = YES;
-	[mosaic stop];
+	[mosaic pause];
 	
 	if ([autosaveTimer isValid])
 	{
