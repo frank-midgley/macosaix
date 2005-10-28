@@ -370,7 +370,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	id<MacOSaiXImageSource>	imageSource;
 	
 	while (imageSource = [imageSourceEnumerator nextObject])
-		[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) toTarget:self withObject:imageSource];
+		if ([imageSource hasMoreImages])
+			[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) toTarget:self withObject:imageSource];
+		
 }
 
 
@@ -389,14 +391,12 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	BOOL				sourceHasMoreImages = [imageSource hasMoreImages];
 	[pool release];
 	
-	while (!stopped && sourceHasMoreImages)
+	while (!pausing && sourceHasMoreImages)
 	{
 		NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 		NSImage				*image = nil;
 		NSString			*imageIdentifier = nil;
 		BOOL				imageIsValid = NO;
-		
-		[self lockWhilePaused];
 		
 		NS_DURING
 				// Get the next image from the source (and identifier if there is one)
@@ -418,10 +418,11 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			[originalRep setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
 			[image setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
 			
+				// Only use images that are at least 16 pixels in each dimension.
 			if ([image size].width > 16 && [image size].height > 16)
 			{
 				[imageQueueLock lock];	// this will be locked if the queue is full
-					while (!stopped && [imageQueue count] > MAXIMAGEURLS)
+					while (!pausing && [imageQueue count] > MAXIMAGEURLS)
 					{
 						[imageQueueLock unlock];
 						if (!calculateImageMatchesThreadAlive)
@@ -444,7 +445,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					[enumerationCountsLock unlock];
 				[imageQueueLock unlock];
 
-				if (!stopped && !calculateImageMatchesThreadAlive)
+				if (!pausing && !calculateImageMatchesThreadAlive)
 					[NSApplication detachDrawingThread:@selector(calculateImageMatches:) toTarget:self withObject:nil];
 				
 				[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
@@ -530,9 +531,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
 	
 	[imageQueueLock lock];
-	while (!stopped && [imageQueue count] > 0)
+	while (!pausing && [imageQueue count] > 0)
 	{
-		while (!stopped && [imageQueue count] > 0)
+		while (!pausing && [imageQueue count] > 0)
 		{
 				// As long as the image source threads are feeding images into the queue this loop
 				// will continue running so create a pool just for this pass through the loop.
@@ -575,7 +576,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				unsigned			currentIndex = 0,
 									indicesToRemove[[betterMatches count]],
 									countOfIndicesToRemove = 0;
-				while ((betterMatch = [betterMatchEnumerator nextObject]) && !stopped)
+				while ((betterMatch = [betterMatchEnumerator nextObject]) && !pausing)
 				{
 					MacOSaiXImageMatch	*currentMatch = [[betterMatch tile] uniqueImageMatch];
 					if (currentMatch && ([currentMatch matchValue] < [betterMatch matchValue] || 
@@ -622,7 +623,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				MacOSaiXImageMatcher	*matcher = [MacOSaiXImageMatcher sharedMatcher];
 				NSEnumerator			*tileEnumerator = [tiles objectEnumerator];
 				MacOSaiXTile			*tile = nil;
-				while ((tile = [tileEnumerator nextObject]) && !stopped)
+				while ((tile = [tileEnumerator nextObject]) && !pausing)
 				{
 					NSAutoreleasePool	*pool3 = [[NSAutoreleasePool alloc] init];
 					NSBitmapImageRep	*tileBitmap = [tile bitmapRep];
@@ -870,12 +871,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 {
 	if (!paused)
 	{
-			// Wait for the one-shot startup thread to end.
-//		while ([self isExtractingTileImagesFromOriginal])
-//			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
-
-			// Tell the enumeration threads to stop sending in any new images.
-		[pauseLock lock];
+			// Tell the worker threads to exit.
+		pausing = YES;
 		
 			// Wait for any queued images to get processed.
 			// TBD: can we condition lock here instead of poll?
@@ -890,37 +887,20 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 }
 
 
-- (void)lockWhilePaused
-{
-	[pauseLock lock];
-	[pauseLock unlock];
-}
-
-
 - (void)resume
 {
 	if (paused)
 	{
-//		if (![self wasStarted])
-//		{
-//				// Automatically start the mosaic.
-//				// Show the mosaic image and start extracting the tile images.
-//			[[self mainWindowController] setViewMosaic:self];
-//			[NSApplication detachDrawingThread:@selector(extractTileImagesFromOriginalImage)
-//									  toTarget:self
-//									withObject:nil];
-//		}
-//		else
-		{
-			mosaicStarted = YES;
-			
-				// Start or restart the image sources
-			[pauseLock unlock];
-			
-			paused = NO;
-			
-			[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
-		}
+		mosaicStarted = YES;
+		
+		pausing = NO;
+		
+			// Start or restart the image sources
+		[self spawnImageSourceThreads];
+		
+		paused = NO;
+		
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
 	}
 }
 

@@ -43,7 +43,7 @@
 	
     BOOL							mosaicStarted, 
 									paused, 
-									stopped;
+									pausing;
 	NSLock							*pauseLock;
     float							overallMatch,
 									lastDisplayMatch;
