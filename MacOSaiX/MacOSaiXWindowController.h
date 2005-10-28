@@ -113,6 +113,7 @@
 	id<MacOSaiXImageSource>				*manualImageSource;
 }
 
+- (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
 - (MacOSaiXMosaic *)mosaic;
 
 - (void)synchronizeGUIWithDocument;

@@ -674,7 +674,7 @@
 	[sheet orderOut:self];
 	
 	if (returnCode == NSOKButton)
-		[[self mosaic] setTileShapes:tileShapesBeingEdited];
+		[[self mosaic] setTileShapes:tileShapesBeingEdited creatingTiles:YES];
 	
 	[tileShapesBeingEdited release];
 	tileShapesBeingEdited = nil;
