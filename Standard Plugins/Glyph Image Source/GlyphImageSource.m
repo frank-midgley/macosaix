@@ -288,7 +288,7 @@ static NSImage	*glyphSourceImage = nil;
 		[layoutManager getGlyphs:glyphs range:NSMakeRange(0, glyphCount)];
 		
 		[textStorage removeLayoutManager:layoutManager];
-		[layoutManager removeTextContainer:textContainer];
+		[layoutManager removeTextContainerAtIndex:[[layoutManager textContainers] indexOfObject:textContainer]];
 		
 		[textContainer release];
 		[textStorage release];
