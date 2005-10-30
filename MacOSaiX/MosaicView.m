@@ -78,25 +78,28 @@
 {
 	NSImage	*originalImage = [mosaic originalImage];
 	
-		// Create an NSImage to hold the mosaic image (somewhat arbitrary size)
-	[mosaicImageLock lock];
-		[mosaicImage autorelease];
-		mosaicImage = [[NSImage alloc] initWithSize:NSMakeSize(1600.0, 1600.0 * [originalImage size].height / [originalImage size].width)];
-		[mosaicImage setCachedSeparately:YES];
-		[mosaicImage setCacheMode:NSImageCacheNever];
-		
-		[mosaicImage lockFocus];
-			[[NSColor clearColor] set];
-			NSRectFill(NSMakeRect(0.0, 0.0, [mosaicImage size].width, [mosaicImage size].height));
-		[mosaicImage unlockFocus];
-		
-			// set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined on a unit square)
-		[mosaicImageTransform release];
-		mosaicImageTransform = [[NSAffineTransform transform] retain];
-		[mosaicImageTransform scaleXBy:[mosaicImage size].width yBy:[mosaicImage size].height];
-	[mosaicImageLock unlock];
+	if (originalImage)
+	{
+			// Create an NSImage to hold the mosaic image (somewhat arbitrary size)
+		[mosaicImageLock lock];
+			[mosaicImage autorelease];
+			mosaicImage = [[NSImage alloc] initWithSize:NSMakeSize(1600.0, 1600.0 * [originalImage size].height / [originalImage size].width)];
+			[mosaicImage setCachedSeparately:YES];
+			[mosaicImage setCacheMode:NSImageCacheNever];
+			
+			[mosaicImage lockFocus];
+				[[NSColor clearColor] set];
+				NSRectFill(NSMakeRect(0.0, 0.0, [mosaicImage size].width, [mosaicImage size].height));
+			[mosaicImage unlockFocus];
+			
+				// set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined on a unit square)
+			[mosaicImageTransform release];
+			mosaicImageTransform = [[NSAffineTransform transform] retain];
+			[mosaicImageTransform scaleXBy:[mosaicImage size].width yBy:[mosaicImage size].height];
+		[mosaicImageLock unlock];
 	
-	[self performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:nil waitUntilDone:YES];
+		[self performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:nil waitUntilDone:YES];
+	}
 }
 
 
