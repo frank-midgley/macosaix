@@ -128,7 +128,7 @@
 
 - (BOOL)applicationShouldOpenUntitledFile:(NSApplication *)sender
 {
-	return YES;
+	return NO;
 }
 
 
@@ -142,6 +142,8 @@
 								   selector:@selector(checkFreeMemory:) 
 								   userInfo:nil 
 									repeats:YES];
+	
+	[self enterKioskMode:self];
 }
 
 
@@ -265,7 +267,6 @@
 		// Run the main setup window modally on the menu bar screen.
 	MacOSaiXKioskSetupController	*setupController = [[MacOSaiXKioskSetupController alloc] initWithWindow:nil];
 	int								result = [NSApp runModalForWindow:[setupController window]];
-	[setupController release];
 	// TODO: close the other screen windows
 	if (result == NSRunStoppedResponse)
 	{
@@ -288,11 +289,14 @@
 			[kioskController setWindow:kioskWindow];
 			[kioskWindow setDelegate:kioskController];
 			[kioskWindow makeKeyAndOrderFront:self];
+			[kioskController setMessage:[setupController message]];
+			[kioskController setMessageBackgroundColor:[setupController messageBackgroundColor]];
 			[kioskController showWindow:self];
 			
 				// TODO: Open mosaic windows on the other indicated screens
 		}
 	}
+	[setupController release];
 }
 
 
