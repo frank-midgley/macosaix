@@ -102,15 +102,18 @@
 		message = [NSUnarchiver unarchiveObjectWithData:archivedMessage];
 	if (!message)
 	{
-		NSFont			*font = [[NSFontManager sharedFontManager] fontWithFamily:@"Helvetica" 
-																		   traits:NSItalicFontMask | NSBoldFontMask 
-																		   weight:9 
-																			 size:24.0];
-		NSDictionary	*attributes = [NSDictionary dictionaryWithObjectsAndKeys:
-											font, NSFontAttributeName, 
-											[[NSColor greenColor] shadowWithLevel:0.5], NSForegroundColorAttributeName, 
-											nil];
-		message = [[[NSAttributedString alloc] initWithString:@"Sample Message" attributes:attributes] autorelease];
+		NSFont					*font = [[NSFontManager sharedFontManager] fontWithFamily:@"Helvetica" 
+																				   traits:NSItalicFontMask | NSBoldFontMask 
+																				   weight:9 
+																					 size:24.0];
+		NSMutableParagraphStyle	*style = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
+		[style setAlignment:NSCenterTextAlignment];
+		NSDictionary			*attributes = [NSDictionary dictionaryWithObjectsAndKeys:
+													font, NSFontAttributeName, 
+													[[NSColor greenColor] shadowWithLevel:0.5], NSForegroundColorAttributeName, 
+													style, NSParagraphStyleAttributeName, 
+													nil];
+		message = [[[NSAttributedString alloc] initWithString:@"Sample\nMessage" attributes:attributes] autorelease];
 	}
 	[messageView setMessage:message];
 	
