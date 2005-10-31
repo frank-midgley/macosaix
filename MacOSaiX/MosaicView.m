@@ -78,6 +78,11 @@
 {
 	NSImage	*originalImage = [mosaic originalImage];
 	
+		// De-queue any pending tile refreshes based on the previous original image.
+	[tilesNeedingDisplayLock lock];
+		[tilesNeedingDisplay removeAllObjects];
+	[tilesNeedingDisplayLock unlock];
+	
 	if (originalImage)
 	{
 			// Create an NSImage to hold the mosaic image (somewhat arbitrary size)
@@ -97,7 +102,7 @@
 			mosaicImageTransform = [[NSAffineTransform transform] retain];
 			[mosaicImageTransform scaleXBy:[mosaicImage size].width yBy:[mosaicImage size].height];
 		[mosaicImageLock unlock];
-	
+		
 		[self performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:nil waitUntilDone:YES];
 	}
 }
@@ -265,10 +270,17 @@
 
 - (void)drawRect:(NSRect)theRect
 {
-	[[mosaic originalImage] drawInRect:[self bounds] 
-							  fromRect:NSZeroRect 
-							 operation:NSCompositeCopy 
-							  fraction:1.0];
+	
+	if (viewFade < 1.0)
+		[[mosaic originalImage] drawInRect:[self bounds] 
+								  fromRect:NSZeroRect 
+								 operation:NSCompositeCopy 
+								  fraction:1.0];
+	else
+	{
+		[[NSColor blackColor] set];
+		NSRectFill([self bounds]);
+	}
 
 	if (viewFade > 0.0)
 	{
