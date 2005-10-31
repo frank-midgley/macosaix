@@ -14,7 +14,7 @@
 #if USE_RIEMERSMA
 	#define MAX_COLOR_DIFF (255.0 * 255.0 * 9.0)
 #else
-	#define MAX_COLOR_DIFF sqrtf(255.0 * 255.0 * 3.0)
+	#define MAX_COLOR_DIFF (255.0 * 255.0 * 3.0)
 #endif
 
 static MacOSaiXImageMatcher	*sharedMatcher = nil;
@@ -40,7 +40,7 @@ float colorDifference(pixelColor color1, pixelColor color2)
 			    (2 + (255.0 - redAverage) / 255.0) * blueDiff * blueDiff);
 	#else
 			// Do a direct RGB colorspace calculation.
-		return sqrtf(redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff);
+		return redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff;
 	#endif
 }
 
