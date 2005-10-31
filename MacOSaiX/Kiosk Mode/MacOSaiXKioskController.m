@@ -144,6 +144,8 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 		}
 	}
 	
+	[messageView setEditable:NO];
+	
 	tileRefreshLock = [[NSLock alloc] init];
 	tilesToRefresh = [[NSMutableArray array] retain];
 	
@@ -164,22 +166,60 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 }
 
 
+#pragma mark
+#pragma mark Message view
+
+- (void)setMessage:(NSAttributedString *)message
+{
+	[messageView setMessage:message];
+}
+
+
+- (void)setMessageBackgroundColor:(NSColor *)color
+{
+	[messageView setBackgroundColor:color];
+}
+
+
+#pragma mark
+#pragma mark Keywords
+
+
 - (IBAction)addKeyword:(id)sender
 {
-	GoogleImageSource	*newSource = [[NSClassFromString(@"GoogleImageSource") alloc] init];
-	[newSource setAdultContentFiltering:strictFiltering];
-	[newSource setRequiredTerms:[keywordTextField stringValue]];
+	NSArray			*keywords = [[keywordTextField stringValue] componentsSeparatedByString:@";"];
+	NSEnumerator	*keywordEnumerator = [keywords objectEnumerator];
+	NSString		*keyword = nil;
 	
-	[imageSources addObject:newSource];
-	[currentMosaic addImageSource:newSource];
+	while (keyword = [keywordEnumerator nextObject])
+	{
+		BOOL				imageSourceExists = NO;
+		NSEnumerator		*imageSourceEnumerator = [imageSources objectEnumerator];
+		GoogleImageSource	*imageSource = nil;
+		while (!imageSourceExists && (imageSource = [imageSourceEnumerator nextObject]))
+			imageSourceExists = [[imageSource requiredTerms] isEqualToString:keyword];
+		
+		if (!imageSourceExists)
+		{
+			GoogleImageSource	*newSource = [[NSClassFromString(@"GoogleImageSource") alloc] init];
+			[newSource setAdultContentFiltering:strictFiltering];
+			[newSource setRequiredTerms:keyword];
+			
+			[imageSources addObject:newSource];
+			[currentMosaic addImageSource:newSource];
+			
+			[newSource release];
+		}
+	}
 	
-	[newSource release];
+	[keywordTextField setStringValue:@""];
 }
 
 
 - (IBAction)removeKeyword:(id)sender
 {
 	// TODO
+	// [[MacOSaiXImageCache sharedImageCache] removeCachedImageRepsFromSource:imageSource];
 }
 
 
@@ -200,9 +240,13 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 - (void)tileImageDidChange:(NSNotification *)notification
 {
 	[tileRefreshLock lock];
-		if ([tilesToRefresh indexOfObject:[notification userInfo]] == NSNotFound)
+		NSDictionary	*tileDict = [notification userInfo];
+		MacOSaiXTile	*tile = [tileDict objectForKey:@"Tile"];
+		
+		if ((displayNonUniqueMatches || [tile uniqueImageMatch]) &&
+			[tilesToRefresh indexOfObject:tileDict] == NSNotFound)
 		{
-			[tilesToRefresh addObject:[notification userInfo]];
+			[tilesToRefresh addObject:tileDict];
 			[tilesToRefresh sortUsingFunction:compareDisplayedMatchValue context:nil];
 		}
 		
@@ -303,9 +347,9 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 	[originalImageMatrix setCellSize:NSMakeSize(matrixWidth / 6.0, matrixHeight)];
 	[originalImageMatrix setFrame:NSMakeRect(0.0, mosaicHeight + transitionHeight, matrixWidth, matrixHeight)];
 	
-		// Position the custom text field in the upper right corner of the window.
-	[customTextField setFrame:NSMakeRect(matrixWidth + transitionWidth, mosaicHeight + transitionHeight, 
-										 settingsWidth, matrixHeight)];
+		// Position the message view in the upper right corner of the window.
+	[messageView setFrame:NSMakeRect(matrixWidth + transitionWidth, mosaicHeight + transitionHeight, 
+									 settingsWidth, matrixHeight)];
 	
 		// Position the mosaic view in the lower left corner of the window.
 	[mosaicView setFrame:NSMakeRect(0.0, 0.0, matrixWidth, mosaicHeight)];

@@ -11,37 +11,43 @@
 #import "MacOSaiXKioskView.h"
 #import "MacOSaiXMosaic.h"
 #import "MosaicView.h"
+#import "MacOSaiXKioskMessageView.h"
 
 
 @interface MacOSaiXKioskController : NSWindowController
 {
 		// The six top level views
-	IBOutlet MacOSaiXKioskView	*kioskView;	// content view of the window
-	IBOutlet NSMatrix			*originalImageMatrix;
-	IBOutlet NSTextField		*customTextField;
-	IBOutlet NSBox				*vanityView;
-	IBOutlet MosaicView			*mosaicView;
-	IBOutlet NSBox				*imageSourcesView;
+	IBOutlet MacOSaiXKioskView			*kioskView;	// content view of the window
+	IBOutlet NSMatrix					*originalImageMatrix;
+	IBOutlet MacOSaiXKioskMessageView	*messageView;
+	IBOutlet NSBox						*vanityView;
+	IBOutlet MosaicView					*mosaicView;
+	IBOutlet NSBox						*imageSourcesView;
 	
 		// Views inside the image sources box.
-	IBOutlet NSTextField		*keywordTextField;
-	IBOutlet NSButton			*addKeywordButton,
-								*removeKeywordButton;
-	IBOutlet NSTableView		*imageSourcesTableView;
+	IBOutlet NSTextField				*keywordTextField;
+	IBOutlet NSButton					*addKeywordButton,
+										*removeKeywordButton;
+	IBOutlet NSTableView				*imageSourcesTableView;
 	
 		// Model objects
-	MacOSaiXMosaic				*currentMosaic;
-	NSMutableArray				*mosaics,
-								*imageSources;
+	MacOSaiXMosaic						*currentMosaic;
+	NSMutableArray						*mosaics,
+										*imageSources;
 	
-	NSMutableArray				*tilesToRefresh;
-	NSLock						*tileRefreshLock;
-	NSTimer						*refreshTilesTimer;
-	BOOL						refreshTileThreadRunning;
+		// Tile refresh management
+	NSMutableArray						*tilesToRefresh;
+	NSLock								*tileRefreshLock;
+	NSTimer								*refreshTilesTimer;
+	BOOL								refreshTileThreadRunning, 
+										displayNonUniqueMatches;
 }
 
 - (IBAction)setOriginalImage:(id)sender;
 - (IBAction)addKeyword:(id)sender;
 - (IBAction)removeKeyword:(id)sender;
+
+- (void)setMessage:(NSAttributedString *)message;
+- (void)setMessageBackgroundColor:(NSColor *)color;
 
 @end

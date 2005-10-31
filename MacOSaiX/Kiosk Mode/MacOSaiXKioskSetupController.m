@@ -65,9 +65,13 @@
 
 - (void)awakeFromNib
 {
+	NSDictionary	*kioskSettings = [[NSUserDefaults standardUserDefaults] objectForKey:@"Kiosk Settings"];
+	
 		// Populate the original image buttons
-	NSArray	*originalImagePaths = [[NSUserDefaults standardUserDefaults] arrayForKey:@"Original Image Paths"];
-	int		column = 0;
+	NSArray			*originalImagePaths = [kioskSettings objectForKey:@"Original Image Paths"];
+	if (!originalImagePaths)
+		originalImagePaths = [[NSUserDefaults standardUserDefaults] arrayForKey:@"Original Image Paths"];
+	int				column = 0;
 	for (column = 0; column < [originalImageMatrix numberOfColumns]; column++)
 	{
 		NSButtonCell	*buttonCell = [originalImageMatrix cellAtRow:0 column:column];
@@ -91,6 +95,33 @@
 			[buttonCell setImagePosition:NSNoImage];
 		}
 	}
+	
+	NSAttributedString	*message = nil;
+	NSData				*archivedMessage = [kioskSettings objectForKey:@"Archived Message"];
+	if (archivedMessage)
+		message = [NSUnarchiver unarchiveObjectWithData:archivedMessage];
+	if (!message)
+	{
+		NSFont			*font = [[NSFontManager sharedFontManager] fontWithFamily:@"Helvetica" 
+																		   traits:NSItalicFontMask | NSBoldFontMask 
+																		   weight:9 
+																			 size:24.0];
+		NSDictionary	*attributes = [NSDictionary dictionaryWithObjectsAndKeys:
+											font, NSFontAttributeName, 
+											[[NSColor greenColor] shadowWithLevel:0.5], NSForegroundColorAttributeName, 
+											nil];
+		message = [[[NSAttributedString alloc] initWithString:@"Sample Message" attributes:attributes] autorelease];
+	}
+	[messageView setMessage:message];
+	
+	NSColor				*messageBackgroundColor = nil;
+	NSData				*archivedColor = [kioskSettings objectForKey:@"Archived Message Background Color"];
+	if (archivedColor)
+		messageBackgroundColor = [NSUnarchiver unarchiveObjectWithData:archivedColor];
+	if (!messageBackgroundColor)
+		messageBackgroundColor = [[NSColor yellowColor] highlightWithLevel:0.75];
+	[messageView setBackgroundColor:messageBackgroundColor];
+	[messageBackgroundColorWell setColor:messageBackgroundColor];
 	
 	[self updateWarningField];
 }
@@ -137,13 +168,18 @@
 			[image release];
 			
 				// Update the user defaults.
-			NSMutableArray	*originalImagePaths = [[[[NSUserDefaults standardUserDefaults] arrayForKey:@"Original Image Paths"] mutableCopy] autorelease];
+			NSMutableDictionary	*kioskSettings = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Kiosk Settings"] mutableCopy] autorelease];
+			NSMutableArray		*originalImagePaths = [[[kioskSettings objectForKey:@"Original Image Paths"] mutableCopy] autorelease];
+			
+			if (!originalImagePaths)
+				originalImagePaths = [[[[NSUserDefaults standardUserDefaults] arrayForKey:@"Original Image Paths"] mutableCopy] autorelease];
 			if (!originalImagePaths)
 				originalImagePaths = [NSMutableArray array];
 			while ([originalImagePaths count] < [originalImageMatrix numberOfColumns])
 				[originalImagePaths addObject:@""];
 			[originalImagePaths replaceObjectAtIndex:column withObject:imagePath];
-			[[NSUserDefaults standardUserDefaults] setObject:originalImagePaths forKey:@"Original Image Paths"];
+			[kioskSettings setObject:originalImagePaths forKey:@"Original Image Paths"];
+			[[NSUserDefaults standardUserDefaults] setObject:kioskSettings forKey:@"Kiosk Settings"];
 			[[NSUserDefaults standardUserDefaults] synchronize];
 		}
 		else
@@ -191,6 +227,27 @@
 }
 
 
+- (NSAttributedString *)message
+{
+	return [messageView message];
+}
+
+
+- (IBAction)setMessageBackgroundColor:(id)sender
+{
+	if ([sender isKindOfClass:[NSColor class]])
+		[messageView setBackgroundColor:sender];
+	else if ([sender isKindOfClass:[NSColorWell class]])
+		[messageView setBackgroundColor:[(NSColorWell *)sender color]];
+}
+
+
+- (NSColor *)messageBackgroundColor
+{
+	return [messageView backgroundColor];
+}
+
+
 - (IBAction)quit:(id)sender
 {
 	[NSApp stopModalWithCode:NSCancelButton];
@@ -199,6 +256,12 @@
 
 - (IBAction)start:(id)sender
 {
+	NSData	*archivedMessage = [NSArchiver archivedDataWithRootObject:[messageView message]], 
+			*archivedColor = [NSArchiver archivedDataWithRootObject:[messageView backgroundColor]];
+	NSMutableDictionary	*kioskSettings = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Kiosk Settings"] mutableCopy] autorelease];
+	
+	
+	
 	[NSApp stopModal];
 }
 
