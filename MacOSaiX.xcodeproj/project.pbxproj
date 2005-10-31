@@ -50,6 +50,8 @@
 		9227FD7B07E37A340020C5F4 /* HexagonalTileShapes.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9227FD7907E37A340020C5F4 /* HexagonalTileShapes.nib */; };
 		923384DC072180700010BE04 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
 		923384DD072180700010BE04 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
+		9254088C0915741F00384904 /* MacOSaiXKioskMessageView.h in Headers */ = {isa = PBXBuildFile; fileRef = 9254088A0915741F00384904 /* MacOSaiXKioskMessageView.h */; };
+		9254088D0915741F00384904 /* MacOSaiXKioskMessageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */; };
 		925FE5C407EBDAB200B0D002 /* Glyph Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 928489E506611CE6003B3514 /* Glyph Image Source.plugin */; };
 		926612A4090C4F150015BD9E /* Localized.strings in Resources */ = {isa = PBXBuildFile; fileRef = 926612A2090C4F150015BD9E /* Localized.strings */; };
 		9284898B06611CE5003B3514 /* ExportImage.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F594095502469B3101000104 /* ExportImage.tiff */; };
@@ -379,6 +381,8 @@
 		9227FD7007E37A240020C5F4 /* HexagonalTileShapesEditor.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = HexagonalTileShapesEditor.m; path = "Standard Plugins/Hexaganol Tiles Setup/HexagonalTileShapesEditor.m"; sourceTree = "<group>"; };
 		9227FD7A07E37A340020C5F4 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Hexaganol Tiles Setup/English.lproj/HexagonalTileShapes.nib"; sourceTree = "<group>"; };
 		923384DB072180700010BE04 /* MacOSaiXImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXImageSource.h; path = MacOSaiX/MacOSaiXImageSource.h; sourceTree = "<group>"; };
+		9254088A0915741F00384904 /* MacOSaiXKioskMessageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXKioskMessageView.h; sourceTree = "<group>"; };
+		9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXKioskMessageView.m; sourceTree = "<group>"; };
 		926612A3090C4F150015BD9E /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = MacOSaiX/English.lproj/Localized.strings; sourceTree = "<group>"; };
 		928489A306611CE6003B3514 /* MacOSaiX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacOSaiX.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		928489C406611CE6003B3514 /* Directory Image Source.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Directory Image Source.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -669,6 +673,8 @@
 				01ACC0AD08FCA3960013D213 /* MacOSaiXKioskView.m */,
 				010D1F7408FF5FAD00950013 /* MacOSaiXKioskWindow.h */,
 				010D1F7508FF5FAD00950013 /* MacOSaiXKioskWindow.m */,
+				9254088A0915741F00384904 /* MacOSaiXKioskMessageView.h */,
+				9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */,
 			);
 			name = "Kiosk Mode";
 			path = "MacOSaiX/Kiosk Mode";
@@ -943,6 +949,7 @@
 				9287C13B075A5CC6004C07EF /* MacOSaiXTileShapes.h in Headers */,
 				01AB92EB07DB797300DB4B86 /* NSString+MacOSaiX.h in Headers */,
 				010D1F7608FF5FAD00950013 /* MacOSaiXKioskWindow.h in Headers */,
+				9254088C0915741F00384904 /* MacOSaiXKioskMessageView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1593,6 +1600,7 @@
 				92CC1B4208F9C16C004D0C31 /* MacOSaiXScreenSetupController.m in Sources */,
 				01ACC0B208FCA4530013D213 /* MacOSaiXKioskView.m in Sources */,
 				010D1F7708FF5FAD00950013 /* MacOSaiXKioskWindow.m in Sources */,
+				9254088D0915741F00384904 /* MacOSaiXKioskMessageView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
