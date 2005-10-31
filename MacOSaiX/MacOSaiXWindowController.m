@@ -840,6 +840,7 @@
 		id<MacOSaiXImageSource>	imageSource = [[[self mosaic] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]];
 		
 		[[self mosaic] removeImageSource:imageSource];
+		[[MacOSaiXImageCache sharedImageCache] removeCachedImageRepsFromSource:imageSource];
 	}
 }
 
