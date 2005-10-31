@@ -294,11 +294,15 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		{
 			if ([[tile uniqueImageMatch] imageSource] == imageSource)
 				[tile setUniqueImageMatch:nil];
+			if ([[tile nonUniqueImageMatch] imageSource] == imageSource)
+				[tile setNonUniqueImageMatch:nil];
 		}
 	}
 	
+		// Remove the image count for this source
+	[self setImageCount:0 forImageSource:imageSource];
+	
 	[imageSources removeObject:imageSource];
-	[[MacOSaiXImageCache sharedImageCache] removeCachedImageRepsFromSource:imageSource];
 	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
 }
@@ -428,6 +432,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 						if (!calculateImageMatchesThreadAlive)
 							[NSApplication detachDrawingThread:@selector(calculateImageMatches:) toTarget:self withObject:nil];
 						[imageQueueLock lock];
+						
+						[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.2]];
 					}
 					
 					// TODO: are we losing an image if stopped?
@@ -467,8 +473,11 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 - (void)setImageCount:(unsigned long)imageCount forImageSource:(id<MacOSaiXImageSource>)imageSource
 {
 	[enumerationCountsLock lock];
-		[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:imageCount]
-							  forKey:[NSValue valueWithPointer:imageSource]];
+		if (imageCount > 0)
+			[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:imageCount]
+								  forKey:[NSValue valueWithPointer:imageSource]];
+		else
+			[enumerationCounts removeObjectForKey:[NSValue valueWithPointer:imageSource]];
 	[enumerationCountsLock unlock];
 }
 
