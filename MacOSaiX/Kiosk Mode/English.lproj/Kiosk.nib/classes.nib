@@ -7,11 +7,11 @@
             LANGUAGE = ObjC; 
             OUTLETS = {
                 addKeywordButton = NSButton; 
-                customTextField = NSTextField; 
                 imageSourcesTableView = NSTableView; 
                 imageSourcesView = NSBox; 
                 keywordTextField = NSTextField; 
                 kioskView = MacOSaiXKioskView; 
+                messageView = MacOSaiXKioskMessageView; 
                 mosaicView = MosaicView; 
                 originalImageMatrix = NSMatrix; 
                 removeKeywordButton = NSButton; 
@@ -19,6 +19,7 @@
             }; 
             SUPERCLASS = NSWindowController; 
         }, 
+        {CLASS = MacOSaiXKioskMessageView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
         {
             CLASS = MacOSaiXKioskView; 
             LANGUAGE = ObjC; 

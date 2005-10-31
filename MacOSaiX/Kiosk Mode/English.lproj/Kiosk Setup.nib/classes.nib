@@ -1,10 +1,12 @@
 {
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {CLASS = MacOSaiXKioskMessageView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
         {
             ACTIONS = {
                 chooseOriginalImage = id; 
                 quit = id; 
+                setMessageBackgroundColor = id; 
                 setPasswordRequired = id; 
                 setWindowType = id; 
                 start = id; 
@@ -12,6 +14,8 @@
             CLASS = MacOSaiXKioskSetupController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                messageBackgroundColorWell = NSColorWell; 
+                messageView = MacOSaiXKioskMessageView; 
                 originalImageMatrix = NSMatrix; 
                 passwordField = NSSecureTextField; 
                 repeatedPasswordField = NSSecureTextField; 
