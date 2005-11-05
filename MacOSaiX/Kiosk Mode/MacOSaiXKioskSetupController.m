@@ -70,7 +70,20 @@
 		// Populate the original image buttons
 	NSArray			*originalImagePaths = [kioskSettings objectForKey:@"Original Image Paths"];
 	if (!originalImagePaths)
+	{
 		originalImagePaths = [[NSUserDefaults standardUserDefaults] arrayForKey:@"Original Image Paths"];
+		if (originalImagePaths)
+		{
+				// Move the original paths to the new key path.
+			NSMutableDictionary	*newSettings = [NSMutableDictionary dictionary];
+			if (kioskSettings)
+				[newSettings addEntriesFromDictionary:kioskSettings];
+			[newSettings setObject:originalImagePaths forKey:@"Original Image Paths"];
+			[[NSUserDefaults standardUserDefaults] setObject:newSettings forKey:@"Kiosk Settings"];
+			[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"Original Image Paths"];
+			[[NSUserDefaults standardUserDefaults] synchronize];
+		}
+	}
 	int				column = 0;
 	for (column = 0; column < [originalImageMatrix numberOfColumns]; column++)
 	{
@@ -172,8 +185,9 @@
 			
 				// Update the user defaults.
 			NSMutableDictionary	*kioskSettings = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Kiosk Settings"] mutableCopy] autorelease];
+			if (!kioskSettings)
+				kioskSettings = [NSMutableDictionary dictionary];
 			NSMutableArray		*originalImagePaths = [[[kioskSettings objectForKey:@"Original Image Paths"] mutableCopy] autorelease];
-			
 			if (!originalImagePaths)
 				originalImagePaths = [[[[NSUserDefaults standardUserDefaults] arrayForKey:@"Original Image Paths"] mutableCopy] autorelease];
 			if (!originalImagePaths)
@@ -259,11 +273,19 @@
 
 - (IBAction)start:(id)sender
 {
-	NSData	*archivedMessage = [NSArchiver archivedDataWithRootObject:[messageView message]], 
-			*archivedColor = [NSArchiver archivedDataWithRootObject:[messageView backgroundColor]];
+		// Remember the message for next time.
 	NSMutableDictionary	*kioskSettings = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Kiosk Settings"] mutableCopy] autorelease];
 	
+	if (!kioskSettings)
+		kioskSettings = [NSMutableDictionary dictionary];
 	
+	[kioskSettings setObject:[NSArchiver archivedDataWithRootObject:[messageView message]]
+					  forKey:@"Archived Message"];
+	[kioskSettings setObject:[NSArchiver archivedDataWithRootObject:[messageView backgroundColor]]
+					  forKey:@"Archived Message Background Color"];
+	
+	[[NSUserDefaults standardUserDefaults] setObject:kioskSettings forKey:@"Kiosk Settings"];
+	[[NSUserDefaults standardUserDefaults] synchronize];
 	
 	[NSApp stopModal];
 }
