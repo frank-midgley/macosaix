@@ -112,7 +112,8 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 	[tileShapes setTilesDown:50];
 	
 		// Populate the original image buttons
-	NSArray			*originalImagePaths = [[NSUserDefaults standardUserDefaults] arrayForKey:@"Original Image Paths"];
+	NSArray			*originalImagePaths = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Kiosk Settings"]
+																				  objectForKey:@"Original Image Paths"];
 	int				column = 0;
 	for (column = 0; column < [originalImageMatrix numberOfColumns]; column++)
 	{
