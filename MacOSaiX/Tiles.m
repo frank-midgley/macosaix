@@ -174,7 +174,7 @@
 		[nonUniqueImageMatch autorelease];
 		nonUniqueImageMatch = [match retain];
 		
-		if (!userChosenImageMatch && !uniqueImageMatch)
+		if (!userChosenImageMatch && !uniqueImageMatch && [mosaic displayNonUniqueMatches])
 			[self sendNotificationThatImageChangedFrom:previousMatch];
 	}
 }
@@ -212,11 +212,12 @@
 		return userChosenImageMatch;
 	else if (uniqueImageMatch)
 		return uniqueImageMatch;
-	else if (nonUniqueImageMatch)	// TODO: check showBestNonUniqueMatch pref
+	else if ([mosaic displayNonUniqueMatches] && nonUniqueImageMatch)
 		return nonUniqueImageMatch;
 	else
 		return nil;
 }
+
 
 - (void)dealloc
 {
