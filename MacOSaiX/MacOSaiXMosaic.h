@@ -24,6 +24,8 @@
 	id<MacOSaiXTileShapes>			tileShapes;
 	NSSize							averageUnitTileSize;
 	
+	BOOL							displayNonUniqueMatches;
+	
 	int								imageUseCount,
 									imageReuseDistance,
 									imageCropLimit;
@@ -55,6 +57,9 @@
 - (void)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes creatingTiles:(BOOL)createTiles;
 - (id<MacOSaiXTileShapes>)tileShapes;
 - (NSSize)averageUnitTileSize;
+
+- (void)setDisplayNonUniqueMatches:(BOOL)flag;
+- (BOOL)displayNonUniqueMatches;
 
 - (int)imageUseCount;
 - (void)setImageUseCount:(int)count;
