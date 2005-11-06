@@ -42,7 +42,6 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 	{
 		mosaics = [[NSMutableArray arrayWithObjects:[NSNull null], [NSNull null], [NSNull null], 
 													[NSNull null], [NSNull null], [NSNull null], nil] retain];
-		imageSources = [[NSMutableArray array] retain];
 	}
 	
 	return self;
@@ -59,35 +58,27 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 {
 	{
 			// Stop the previous mosaic.
+		[currentMosaic pause];
+		
+		// TODO: save the mosaic...
+		
+			// Remove all of the image sources.
+		NSEnumerator			*imageSourceEnumerator = [[currentMosaic imageSources] objectEnumerator];
+		id<MacOSaiXImageSource>	imageSource = nil;
+		while (imageSource = [imageSourceEnumerator nextObject])
+			[currentMosaic removeImageSource:imageSource];
+		
 		[[NSNotificationCenter defaultCenter] removeObserver:self 
 														name:MacOSaiXMosaicDidChangeStateNotification 
 													  object:currentMosaic];
 		[[NSNotificationCenter defaultCenter] removeObserver:self 
 														name:MacOSaiXTileImageDidChangeNotification 
 													  object:currentMosaic];
-		[currentMosaic pause];
-		
-		// TODO: save the mosaic...
-		
-			// Remove all of the image sources.
-		NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
-		id<MacOSaiXImageSource>	imageSource = nil;
-		while (imageSource = [imageSourceEnumerator nextObject])
-			[currentMosaic removeImageSource:imageSource];
 	}
 	
 	{
 			// Switch to the new mosaic
 		currentMosaic = [mosaics objectAtIndex:index];
-		
-			// Reset and add all of the image sources.
-		NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
-		id<MacOSaiXImageSource>	imageSource = nil;
-		while (imageSource = [imageSourceEnumerator nextObject])
-		{
-			[imageSource reset];
-			[currentMosaic addImageSource:imageSource];
-		}
 		
 		[mosaicView setMosaic:currentMosaic];
 		
@@ -195,7 +186,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 	while (keyword = [keywordEnumerator nextObject])
 	{
 		BOOL				imageSourceExists = NO;
-		NSEnumerator		*imageSourceEnumerator = [imageSources objectEnumerator];
+		NSEnumerator		*imageSourceEnumerator = [[currentMosaic imageSources] objectEnumerator];
 		GoogleImageSource	*imageSource = nil;
 		while (!imageSourceExists && (imageSource = [imageSourceEnumerator nextObject]))
 			imageSourceExists = [[imageSource requiredTerms] isEqualToString:keyword];
@@ -206,7 +197,6 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 			[newSource setAdultContentFiltering:strictFiltering];
 			[newSource setRequiredTerms:keyword];
 			
-			[imageSources addObject:newSource];
 			[currentMosaic addImageSource:newSource];
 			
 			[newSource release];
@@ -219,8 +209,12 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 
 - (IBAction)removeKeyword:(id)sender
 {
-	// TODO
-	// [[MacOSaiXImageCache sharedImageCache] removeCachedImageRepsFromSource:imageSource];
+	int	selectedRow = [imageSourcesTableView selectedRow];
+	
+	if (selectedRow == -1)
+		NSBeep();
+	else
+		[currentMosaic removeImageSource:[[currentMosaic imageSources] objectAtIndex:selectedRow]];
 }
 
 
@@ -399,7 +393,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 - (int)numberOfRowsInTableView:(NSTableView *)tableView
 {
     if (tableView == imageSourcesTableView)
-		return [imageSources count];
+		return [[currentMosaic imageSources] count];
 	
 	return 0;
 }
@@ -411,7 +405,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 	
     if (tableView == imageSourcesTableView)
     {
-		id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:rowIndex];
+		id<MacOSaiXImageSource>	imageSource = [[currentMosaic imageSources] objectAtIndex:rowIndex];
 		
 		if ([[tableColumn identifier] isEqualToString:@"Count"])
 			return [NSNumber numberWithUnsignedLong:[currentMosaic countOfImagesFromSource:imageSource]];
@@ -433,15 +427,10 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 		while (selectedRowNumber = [selectedRowNumberEnumerator nextObject])
 		{
 			int	rowIndex = [selectedRowNumber intValue];
-			[selectedImageSources addObject:[imageSources objectAtIndex:rowIndex]];
+			[selectedImageSources addObject:[[currentMosaic imageSources] objectAtIndex:rowIndex]];
 		}
 		
 		[removeKeywordButton setEnabled:([selectedImageSources count] > 0)];
-		
-//		if ([[mosaic imageSources] count] > 1)
-//			[mosaicView highlightImageSources:selectedImageSources];
-//		else
-//			[mosaicView highlightImageSources:nil];
 	}
 }
 
@@ -451,7 +440,6 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 
 - (void)dealloc
 {
-	[imageSources release];
 	[mosaics release];
 	
 	[super dealloc];
