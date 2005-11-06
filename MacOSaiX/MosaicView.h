@@ -32,8 +32,8 @@
 	
 		// Queued tile view invalidation
 	NSMutableArray			*tilesNeedingDisplay;
-	NSLock					*tilesNeedingDisplayLock;
-	NSDate					*lastUpdate;
+	NSLock					*tilesNeedDisplayLock;
+	NSTimer					*tilesNeedDisplayTimer;
 	
 	NSImageRep				*blackRep;
 }

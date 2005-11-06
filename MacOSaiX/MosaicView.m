@@ -10,6 +10,8 @@
 #import "MacOSaiXWindowController.h"
 #import "MacOSaiXImageCache.h"
 
+#import <pthread.h>
+
 
 @interface MosaicView (PrivateMethods)
 - (void)originalImageDidChange:(NSNotification *)notification;
@@ -26,8 +28,7 @@
 	mosaicImageLock = [[NSLock alloc] init];
 	tilesOutline = [[NSBezierPath bezierPath] retain];
 	tilesNeedingDisplay = [[NSMutableArray array] retain];
-	tilesNeedingDisplayLock = [[NSLock alloc] init];
-	lastUpdate = [[NSDate date] retain];
+	tilesNeedDisplayLock = [[NSLock alloc] init];
 	
 	NSImage	*blackImage = [[NSImage alloc] initWithSize:NSMakeSize(16.0, 16.0)];
 	[blackImage lockFocus];
@@ -79,9 +80,9 @@
 	NSImage	*originalImage = [mosaic originalImage];
 	
 		// De-queue any pending tile refreshes based on the previous original image.
-	[tilesNeedingDisplayLock lock];
+	[tilesNeedDisplayLock lock];
 		[tilesNeedingDisplay removeAllObjects];
-	[tilesNeedingDisplayLock unlock];
+	[tilesNeedDisplayLock unlock];
 	
 	if (originalImage)
 	{
@@ -130,65 +131,49 @@
 
 - (void)refreshTile:(MacOSaiXTile *)tileToRefresh previousMatch:(MacOSaiXImageMatch *)previousMatch
 {
-	BOOL				tileNeedsDisplay = NO;
 	NSBezierPath		*clipPath = [mosaicImageTransform transformBezierPath:[tileToRefresh outline]];
 	MacOSaiXImageMatch	*imageMatch = [tileToRefresh displayedImageMatch];
 	NSImageRep			*newImageRep = nil;
 	
-	if (imageMatch)
+	if (clipPath && imageMatch)
 		newImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[clipPath bounds].size
 															  forIdentifier:[imageMatch imageIdentifier] 
 															     fromSource:[imageMatch imageSource]];
 	else
 		newImageRep = blackRep;
 	
-	if (newImageRep)
+	if (clipPath && newImageRep)
 	{
-		NSArray	*parameters = [NSArray arrayWithObjects:clipPath, newImageRep, nil];
+		NSArray	*parameters = [NSArray arrayWithObjects:tileToRefresh, clipPath, newImageRep, nil];
 //		[self drawTileImage:parameters];
 		[self performSelectorOnMainThread:@selector(drawTileImage:) withObject:parameters waitUntilDone:YES];
-		tileNeedsDisplay = YES;
 	}
 	
 		// Update the highlighted image sources outline if needed.
-	[highlightedImageSourcesLock lock];
-		if ([highlightedImageSources containsObject:[previousMatch imageSource]] && 
-			![highlightedImageSources containsObject:[imageMatch imageSource]])
-		{
-				// There's no way to remove the tile's outline from the merged highlight 
-				// outline so we have to rebuild it from scratch.
-			[self createHighlightedImageSourcesOutline];
-			tileNeedsDisplay = YES;
-		}
-		else if ([highlightedImageSources containsObject:[imageMatch imageSource]] && 
-				 ![highlightedImageSources containsObject:[previousMatch imageSource]])
-		{
-				if (!highlightedImageSourcesOutline)
-					highlightedImageSourcesOutline = [[NSBezierPath bezierPath] retain];
-				[highlightedImageSourcesOutline appendBezierPath:[tileToRefresh outline]];
-			tileNeedsDisplay = YES;
-		}
-	[highlightedImageSourcesLock unlock];
-	
-	if (tileNeedsDisplay)
-	{
-		BOOL	timeToRefresh = NO;
-		
-		[tilesNeedingDisplayLock lock];
-			[tilesNeedingDisplay addObject:tileToRefresh];
-			timeToRefresh = ([lastUpdate timeIntervalSinceNow] < -0.1);
-		[tilesNeedingDisplayLock unlock];
-		
-		if (timeToRefresh)
-			[self performSelectorOnMainThread:@selector(setTileNeedsDisplay:) withObject:nil waitUntilDone:YES];
-	}
+//	[highlightedImageSourcesLock lock];
+//		if ([highlightedImageSources containsObject:[previousMatch imageSource]] && 
+//			![highlightedImageSources containsObject:[imageMatch imageSource]])
+//		{
+//				// There's no way to remove the tile's outline from the merged highlight 
+//				// outline so we have to rebuild it from scratch.
+//			[self createHighlightedImageSourcesOutline];
+//		}
+//		else if ([highlightedImageSources containsObject:[imageMatch imageSource]] && 
+//				 ![highlightedImageSources containsObject:[previousMatch imageSource]])
+//		{
+//			if (!highlightedImageSourcesOutline)
+//				highlightedImageSourcesOutline = [[NSBezierPath bezierPath] retain];
+//			[highlightedImageSourcesOutline appendBezierPath:[tileToRefresh outline]];
+//		}
+//	[highlightedImageSourcesLock unlock];
 }
 
 
 - (void)drawTileImage:(NSArray *)paramaters
 {
-	NSBezierPath	*clipPath = [paramaters objectAtIndex:0];
-	NSImageRep		*newImageRep = [paramaters objectAtIndex:1];
+	MacOSaiXTile	*tile = [paramaters objectAtIndex:0];
+	NSBezierPath	*clipPath = [paramaters objectAtIndex:1];
+	NSImageRep		*newImageRep = [paramaters objectAtIndex:2];
 	
 	[mosaicImageLock lock];
 		NS_DURING
@@ -200,17 +185,27 @@
 			NSLog(@"Could not lock focus on mosaic image");
 		NS_ENDHANDLER
 	[mosaicImageLock unlock];
+	
+		// Don't force a refresh every time we update the mosaic but make sure 
+		// it gets refreshed at least 5 times a second.
+	[tilesNeedDisplayLock lock];
+		[tilesNeedingDisplay addObject:tile];
+		if (!tilesNeedDisplayTimer)
+			tilesNeedDisplayTimer = [[NSTimer scheduledTimerWithTimeInterval:0.2 
+																	  target:self 
+																	selector:@selector(setTilesNeedDisplay:) 
+																	userInfo:nil 
+																	 repeats:NO] retain];
+	[tilesNeedDisplayLock unlock];
 }
 
 
-- (void)setTileNeedsDisplay:(id)dummy
+- (void)setTilesNeedDisplay:(NSTimer *)timer
 {
-	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	NSAffineTransform	*transform = [NSAffineTransform transform];
+	[transform scaleXBy:([self frame].size.width) yBy:([self frame].size.height)];
 	
-	[tilesNeedingDisplayLock lock];
-		NSAffineTransform	*transform = [NSAffineTransform transform];
-		[transform scaleXBy:([self frame].size.width) yBy:([self frame].size.height)];
-		
+	[tilesNeedDisplayLock lock];
 		NSEnumerator	*tileEnumerator = [tilesNeedingDisplay objectEnumerator];
 		MacOSaiXTile	*tileNeedingDisplay = nil;
 		while (tileNeedingDisplay = [tileEnumerator nextObject])
@@ -218,11 +213,9 @@
 		
 		[tilesNeedingDisplay removeAllObjects];
 		
-		[lastUpdate release];
-		lastUpdate = [[NSDate date] retain];
-	[tilesNeedingDisplayLock unlock];
-	
-	[pool release];
+		[tilesNeedDisplayTimer release];
+		tilesNeedDisplayTimer = nil;
+	[tilesNeedDisplayLock unlock];
 }
 
 
@@ -451,8 +444,10 @@
 	[highlightedImageSources release];
 	[highlightedImageSourcesLock release];
 	[highlightedImageSourcesOutline release];
+	if ([tilesNeedDisplayTimer isValid])
+		[tilesNeedDisplayTimer invalidate];
+	[tilesNeedDisplayTimer release];
 	[tilesNeedingDisplay release];
-	[lastUpdate release];
 	[tilesOutline release];
 	[blackRep release];
 		
