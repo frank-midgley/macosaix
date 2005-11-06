@@ -78,6 +78,13 @@
 }
 
 
+- (void)setMosaic:(MacOSaiXMosaic *)inMosaic
+{
+	[mosaic autorelease];
+	mosaic = [inMosaic retain];
+}
+
+
 - (MacOSaiXMosaic *)mosaic
 {
 	return mosaic;
@@ -332,7 +339,9 @@
 				[fileHandle writeData:[@"<MOSAIC>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 
 					// Write out the path to the original image
-				[fileHandle writeData:[[NSString stringWithFormat:@"<ORIGINAL_IMAGE PATH=\"%@\"/>\n\n", [self originalImagePath]] dataUsingEncoding:NSUTF8StringEncoding]];
+				[fileHandle writeData:[[NSString stringWithFormat:@"<ORIGINAL_IMAGE PATH=\"%@\"/>\n\n", 
+													[NSString stringByEscapingXMLEntites:[self originalImagePath]]] 
+													dataUsingEncoding:NSUTF8StringEncoding]];
 				
 					// Write out the tile shapes settings
 				NSString		*className = NSStringFromClass([[mosaic tileShapes] class]);
@@ -614,7 +623,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 				}
 				else if ([elementType isEqualToString:@"ORIGINAL_IMAGE"])
 				{
-					newObject = [(NSDictionary *)(nodeInfo->attributes) objectForKey:@"PATH"];
+					newObject = [NSString stringByUnescapingXMLEntites:[(NSDictionary *)(nodeInfo->attributes) objectForKey:@"PATH"]];
 				}
 				else if ([elementType isEqualToString:@"TILE_SHAPES_SETTINGS"])
 				{
@@ -754,6 +763,9 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 	{
 			// Set the original image path.
 		[document setOriginalImagePath:(NSString *)child];
+		NSImage		*originalImage = [[NSImage alloc] initWithContentsOfFile:child];
+		[mosaic setOriginalImage:originalImage];
+		[originalImage release];
 	}
 	else if ([(id)parent conformsToProtocol:@protocol(MacOSaiXTileShapes)] && [(id)child isKindOfClass:[NSDictionary class]])
 	{

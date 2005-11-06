@@ -35,6 +35,7 @@
 								loading;
 }
 
+- (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
 - (MacOSaiXMosaic *)mosaic;
 
 - (void)setOriginalImagePath:(NSString *)path;
