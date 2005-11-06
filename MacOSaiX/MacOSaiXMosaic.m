@@ -42,9 +42,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		paused = YES;
 		
 		imageSources = [[NSMutableArray arrayWithCapacity:0] retain];
-
-		pauseLock = [[NSLock alloc] init];
-		[pauseLock lock];
+		imageSourcesLock = [[NSLock alloc] init];
 			
 		// create the image URL queue and its lock
 		imageQueue = [[NSMutableArray arrayWithCapacity:0] retain];
@@ -79,7 +77,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		[self pause];
 		
 			// Reset all of the image sources.
-		NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
+		NSEnumerator			*imageSourceEnumerator = [[self imageSources] objectEnumerator];
 		id<MacOSaiXImageSource>	imageSource;
 		while (imageSource = [imageSourceEnumerator nextObject])
 		{
@@ -166,7 +164,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 														object:self 
 													  userInfo:nil];
 		
-	if ([imageSources count] > 0 && [tiles count] > 0 && 
+	if ([[self imageSources] count] > 0 && [tiles count] > 0 && 
 		[[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Start Mosaics"])
 		[self resume];
 }
@@ -252,13 +250,21 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 - (NSArray *)imageSources
 {
-	return [NSArray arrayWithArray:imageSources];
+	NSArray	*threadSafeCopy = nil;
+	
+	[imageSourcesLock lock];
+		threadSafeCopy = [NSArray arrayWithArray:imageSources];
+	[imageSourcesLock unlock];
+		
+	return threadSafeCopy;
 }
 
 
 - (void)addImageSource:(id<MacOSaiXImageSource>)imageSource
 {
-	[imageSources addObject:imageSource];
+	[imageSourcesLock lock];
+		[imageSources addObject:imageSource];
+	[imageSourcesLock unlock];
 	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
 	
@@ -274,6 +280,12 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource
 {
+	[imageSource retain];
+	
+	[imageSourcesLock lock];
+		[imageSources removeObject:imageSource];
+	[imageSourcesLock unlock];
+	
 		// Remove any images from this source that are waiting to be matched.
 	[imageQueueLock lock];
 		NSEnumerator		*imageQueueDictEnumerator = [[NSArray arrayWithArray:imageQueue] objectEnumerator];
@@ -302,15 +314,15 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		// Remove the image count for this source
 	[self setImageCount:0 forImageSource:imageSource];
 	
-	[imageSources removeObject:imageSource];
-	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
+	
+	[imageSource release];
 }
 
 
 - (MacOSaiXHandPickedImageSource *)handPickedImageSource
 {
-	NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
+	NSEnumerator			*imageSourceEnumerator = [[self imageSources] objectEnumerator];
 	id<MacOSaiXImageSource>	imageSource = nil;
 	while (imageSource = [imageSourceEnumerator nextObject])
 		if ([imageSource isKindOfClass:[MacOSaiXHandPickedImageSource class]])
@@ -319,7 +331,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	if (!imageSource)
 	{
 		imageSource = [[[MacOSaiXHandPickedImageSource alloc] init] autorelease];
-		[imageSources addObject:imageSource];
+		[self addImageSource:imageSource];
 	}
 	
 	return (MacOSaiXHandPickedImageSource *)imageSource;
@@ -370,7 +382,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 - (void)spawnImageSourceThreads
 {
-	NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
+	NSEnumerator			*imageSourceEnumerator = [[self imageSources] objectEnumerator];
 	id<MacOSaiXImageSource>	imageSource;
 	
 	while (imageSource = [imageSourceEnumerator nextObject])
@@ -392,7 +404,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	
 		// Check if the source has any images left.
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	BOOL				sourceHasMoreImages = [imageSource hasMoreImages];
+	BOOL				sourceHasMoreImages = [[self imageSources] containsObject:imageSource] &&
+											  [imageSource hasMoreImages];
+	
 	[pool release];
 	
 	while (!pausing && sourceHasMoreImages)
@@ -426,7 +440,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			if ([image size].width > 16 && [image size].height > 16)
 			{
 				[imageQueueLock lock];	// this will be locked if the queue is full
-					while (!pausing && [imageQueue count] > MAXIMAGEURLS)
+					while (!pausing && [imageQueue count] > MAXIMAGEURLS && [[self imageSources] containsObject:imageSource])
 					{
 						[imageQueueLock unlock];
 						if (!calculateImageMatchesThreadAlive)
@@ -457,7 +471,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
 			}
 		}
-		sourceHasMoreImages = [imageSource hasMoreImages];
+		sourceHasMoreImages = [[self imageSources] containsObject:imageSource] && [imageSource hasMoreImages];
 		
 		[pool release];
 	}
@@ -918,14 +932,17 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 - (void)dealloc
 {
-	NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
-	id<MacOSaiXImageSource>	imageSource = nil;
-	while (imageSource = [imageSourceEnumerator nextObject])
-		[[MacOSaiXImageCache sharedImageCache] removeCachedImageRepsFromSource:imageSource];
-	[imageSources release];
+		// TBD: is this necessary?  Or just let the images be purged from the cache as new ones get added?
+	[imageSourcesLock lock];
+		NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
+		id<MacOSaiXImageSource>	imageSource = nil;
+		while (imageSource = [imageSourceEnumerator nextObject])
+			[[MacOSaiXImageCache sharedImageCache] removeCachedImageRepsFromSource:imageSource];
+		[imageSources release];
+	[imageSourcesLock unlock];
+	[imageSourcesLock release];
 	
     [originalImage release];
-	[pauseLock release];
     [imageQueueLock release];
 	[enumerationThreadCountLock release];
 	[enumerationCountsLock release];

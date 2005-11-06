@@ -20,6 +20,7 @@
 	float							originalImageAspectRatio;
     NSMutableArray					*imageSources,
 									*tiles;
+	NSLock							*imageSourcesLock;
 	id<MacOSaiXTileShapes>			tileShapes;
 	NSSize							averageUnitTileSize;
 	
@@ -44,7 +45,6 @@
     BOOL							mosaicStarted, 
 									paused, 
 									pausing;
-	NSLock							*pauseLock;
     float							overallMatch,
 									lastDisplayMatch;
 }
