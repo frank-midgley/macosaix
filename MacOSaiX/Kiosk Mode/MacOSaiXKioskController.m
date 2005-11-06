@@ -8,6 +8,7 @@
 
 #import "MacOSaiXKioskController.h"
 
+#import "MacOSaiXDocument.h"
 #import "GoogleImageSource.h"
 #import "RectangularTileShapes.h"
 
@@ -31,6 +32,11 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 	else
 		return NSOrderedDescending;
 }
+
+
+@interface MacOSaiXDocument (PrivateMethods)
+- (void)threadedSaveWithParameters:(NSDictionary *)parameters;
+@end
 
 
 @implementation MacOSaiXKioskController
@@ -60,7 +66,25 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 			// Stop the previous mosaic.
 		[currentMosaic pause];
 		
-		// TODO: save the mosaic...
+		if ([[currentMosaic imageSources] count] > 0)
+		{
+				// Save the current mosaic for posterity.
+			NSString			*saveFilePath = [[NSHomeDirectory() stringByAppendingPathComponent:@"Desktop"]
+																	stringByAppendingPathComponent:@"Kiosk Mosaics"];
+			if (![[NSFileManager defaultManager] fileExistsAtPath:saveFilePath])
+				[[NSFileManager defaultManager] createDirectoryAtPath:saveFilePath attributes:nil];
+			saveFilePath = [[saveFilePath stringByAppendingPathComponent:[[NSDate date] description]]
+											stringByAppendingPathExtension:@"mosaic"];
+			MacOSaiXDocument	*tempDocument = [[MacOSaiXDocument alloc] init];
+			[tempDocument setMosaic:currentMosaic];
+			int					currentIndex = [mosaics indexOfObjectIdenticalTo:currentMosaic];
+			[tempDocument setOriginalImagePath:[[originalImageMatrix cellAtRow:0 column:currentIndex] title]];
+			[tempDocument threadedSaveWithParameters:[NSDictionary dictionaryWithObjectsAndKeys:
+														saveFilePath, @"Save Path", 
+														[NSNumber numberWithBool:YES], @"Was Paused", 
+														nil]];
+			[tempDocument release];
+		}
 		
 			// Remove all of the image sources.
 		NSEnumerator			*imageSourceEnumerator = [[currentMosaic imageSources] objectEnumerator];
@@ -236,13 +260,11 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 {
 	[tileRefreshLock lock];
 		NSDictionary	*tileDict = [notification userInfo];
-		MacOSaiXTile	*tile = [tileDict objectForKey:@"Tile"];
 		
-		if ((displayNonUniqueMatches || [tile uniqueImageMatch]) &&
-			[tilesToRefresh indexOfObject:tileDict] == NSNotFound)
+		if ([tilesToRefresh indexOfObject:tileDict] == NSNotFound)
 		{
 			[tilesToRefresh addObject:tileDict];
-			[tilesToRefresh sortUsingFunction:compareDisplayedMatchValue context:nil];
+//			[tilesToRefresh sortUsingFunction:compareDisplayedMatchValue context:nil];
 		}
 		
 		if (!refreshTilesTimer)
