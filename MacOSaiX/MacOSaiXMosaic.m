@@ -196,6 +196,18 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 }
 
 
+- (void)setDisplayNonUniqueMatches:(BOOL)flag
+{
+	displayNonUniqueMatches = flag;
+}
+
+
+- (BOOL)displayNonUniqueMatches
+{
+	return displayNonUniqueMatches;
+}
+
+
 - (int)imageUseCount
 {
 	return imageUseCount;
@@ -286,6 +298,10 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		[imageSources removeObject:imageSource];
 	[imageSourcesLock unlock];
 	
+	BOOL				wasPaused = [self isPaused];
+	if (!wasPaused)
+		[self pause];
+	
 		// Remove any images from this source that are waiting to be matched.
 	[imageQueueLock lock];
 		NSEnumerator		*imageQueueDictEnumerator = [[NSArray arrayWithArray:imageQueue] objectEnumerator];
@@ -313,6 +329,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	
 		// Remove the image count for this source
 	[self setImageCount:0 forImageSource:imageSource];
+	
+	if (!wasPaused)
+		[self resume];
 	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
 	
@@ -826,6 +845,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		
 		[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 	}
+	
+	// TODO: put the image back on the queue if we were paused.
+		
 	[imageQueueLock unlock];
 	
 	[calculateImageMatchesThreadLock lock];
