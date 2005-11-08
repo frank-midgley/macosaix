@@ -292,15 +292,15 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource
 {
+	BOOL				wasPaused = [self isPaused];
+	if (!wasPaused)
+		[self pause];
+	
 	[imageSource retain];
 	
 	[imageSourcesLock lock];
 		[imageSources removeObject:imageSource];
 	[imageSourcesLock unlock];
-	
-	BOOL				wasPaused = [self isPaused];
-	if (!wasPaused)
-		[self pause];
 	
 		// Remove any images from this source that are waiting to be matched.
 	[imageQueueLock lock];
