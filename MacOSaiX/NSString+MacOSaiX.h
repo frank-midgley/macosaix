@@ -11,8 +11,8 @@
 
 @interface NSString(MacOSaiX)
 
-+ (NSString *)stringByEscapingXMLEntites:(NSString *)string;
-+ (NSString *)stringByUnescapingXMLEntites:(NSString *)string;
+- (NSString *)stringByEscapingXMLEntites;
+- (NSString *)stringByUnescapingXMLEntites;
 + (NSString *)stringWithAspectRatio:(float)aspectRatio;
 
 

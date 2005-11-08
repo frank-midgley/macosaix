@@ -3,7 +3,7 @@
 //  MacOSaiX
 //
 //  Created by Frank Midgley on 3/6/05.
-//  Copyright 2005 __MyCompanyName__. All rights reserved.
+//  Copyright 2005 Frank M. Midgley. All rights reserved.
 //
 
 #import "NSString+MacOSaiX.h"
@@ -12,9 +12,9 @@
 @implementation NSString(MacOSaiX)
 
 
-+ (NSString *)stringByEscapingXMLEntites:(NSString *)string
+- (NSString *)stringByEscapingXMLEntites
 {
-	NSMutableString	*escapedString = [NSMutableString stringWithString:(string ? string : @"")];
+	NSMutableString	*escapedString = [NSMutableString stringWithString:self];
 	
 	[escapedString replaceOccurrencesOfString:@"&" withString:@"&amp;" options:0 range:NSMakeRange(0, [escapedString length])];
 	[escapedString replaceOccurrencesOfString:@"<" withString:@"&lt;" options:0 range:NSMakeRange(0, [escapedString length])];
@@ -26,9 +26,9 @@
 }
 
 
-+ (NSString *)stringByUnescapingXMLEntites:(NSString *)string
+- (NSString *)stringByUnescapingXMLEntites
 {
-	NSMutableString	*unescapedString = [NSMutableString stringWithString:(string ? string : @"")];
+	NSMutableString	*unescapedString = [NSMutableString stringWithString:self];
 	
 	[unescapedString replaceOccurrencesOfString:@"&quot;" withString:@"\"" options:0 range:NSMakeRange(0, [unescapedString length])];
 	[unescapedString replaceOccurrencesOfString:@"&apos;" withString:@"'" options:0 range:NSMakeRange(0, [unescapedString length])];
