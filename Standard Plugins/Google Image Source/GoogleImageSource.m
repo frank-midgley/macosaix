@@ -107,9 +107,9 @@ NSString *escapedNSString(NSString *string)
 	NSMutableString	*settingsXML = [NSMutableString string];
 	
 	[settingsXML appendFormat:@"<TERMS REQUIRED=\"%@\"\n       OPTIONAL=\"%@\"\n       EXCLUDED=\"%@\"/>\n", 
-							  [NSString stringByEscapingXMLEntites:[self requiredTerms]],
-							  [NSString stringByEscapingXMLEntites:[self optionalTerms]],
-							  [NSString stringByEscapingXMLEntites:[self excludedTerms]]];
+							  [[self requiredTerms] stringByEscapingXMLEntites],
+							  [[self optionalTerms] stringByEscapingXMLEntites],
+							  [[self excludedTerms] stringByEscapingXMLEntites]];
 	
 	switch ([self colorSpace])
 	{
@@ -124,7 +124,7 @@ NSString *escapedNSString(NSString *string)
 	}
 	
 	if ([self siteString])
-		[settingsXML appendFormat:@"<SITE FILTER=\"%@\"/>\n", [NSString stringByEscapingXMLEntites:[self siteString]]];
+		[settingsXML appendFormat:@"<SITE FILTER=\"%@\"/>\n", [[self siteString] stringByEscapingXMLEntites]];
 	
 	switch ([self adultContentFiltering])
 	{
@@ -153,9 +153,9 @@ NSString *escapedNSString(NSString *string)
 	
 	if ([settingType isEqualToString:@"TERMS"])
 	{
-		[self setRequiredTerms:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"REQUIRED"] description]]];
-		[self setOptionalTerms:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"OPTIONAL"] description]]];
-		[self setExcludedTerms:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"EXCLUDED"] description]]];
+		[self setRequiredTerms:[[[settingDict objectForKey:@"REQUIRED"] description] stringByUnescapingXMLEntites]];
+		[self setOptionalTerms:[[[settingDict objectForKey:@"OPTIONAL"] description] stringByUnescapingXMLEntites]];
+		[self setExcludedTerms:[[[settingDict objectForKey:@"EXCLUDED"] description] stringByUnescapingXMLEntites]];
 	}
 	else if ([settingType isEqualToString:@"COLOR_SPACE"])
 	{
@@ -171,7 +171,7 @@ NSString *escapedNSString(NSString *string)
 			[self setColorSpace:blackAndWhiteColorSpace];
 	}
 	else if ([settingType isEqualToString:@"SITE"])
-		[self setSiteString:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"FILTER"] description]]];
+		[self setSiteString:[[[settingDict objectForKey:@"FILTER"] description] stringByUnescapingXMLEntites]];
 	else if ([settingType isEqualToString:@"ADULT_CONTENT"])
 	{
 		NSString	*filterValue = [[settingDict objectForKey:@"FILTER"] description];

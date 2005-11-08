@@ -111,7 +111,7 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 - (NSString *)settingsAsXMLElement
 {
 	return [NSString stringWithFormat:@"<MOVIE PATH=\"%@\" LAST_USED_TIME=\"%d\"/>", 
-									  [NSString stringByEscapingXMLEntites:[self path]], 
+									  [[self path] stringByEscapingXMLEntites], 
 									  currentTimeValue];
 }
 
@@ -121,7 +121,7 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
 	
 	if ([settingType isEqualToString:@"MOVIE"])
-		[self setPath:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"PATH"] description]]];
+		[self setPath:[[[settingDict objectForKey:@"PATH"] description] stringByUnescapingXMLEntites]];
 	else if ([settingType isEqualToString:@"LAST_USED_TIME"])
 		currentTimeValue = [[[settingDict objectForKey:@"LAST_USED_TIME"] description] intValue];
 }

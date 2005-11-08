@@ -340,7 +340,7 @@
 
 					// Write out the path to the original image
 				[fileHandle writeData:[[NSString stringWithFormat:@"<ORIGINAL_IMAGE PATH=\"%@\"/>\n\n", 
-													[NSString stringByEscapingXMLEntites:[self originalImagePath]]] 
+													[[self originalImagePath] stringByEscapingXMLEntites]] 
 													dataUsingEncoding:NSUTF8StringEncoding]];
 				
 					// Write out the tile shapes settings
@@ -436,13 +436,13 @@
 						if (sourceIndex != NSNotFound)
 							[buffer appendString:[NSString stringWithFormat:@"\t\t<UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%f\"/>\n", 
 																			  sourceIndex,
-																			  [NSString stringByEscapingXMLEntites:[uniqueMatch imageIdentifier]],
+																			  [[uniqueMatch imageIdentifier] stringByEscapingXMLEntites],
 																			  [uniqueMatch matchValue]]];
 					}
 					MacOSaiXImageMatch	*userChosenMatch = [tile userChosenImageMatch];
 					if (userChosenMatch)
 						[buffer appendString:[NSString stringWithFormat:@"\t\t<USER_CHOSEN_MATCH ID=\"%@\" VALUE=\"%f\"/>\n", 
-																		  [NSString stringByEscapingXMLEntites:[userChosenMatch imageIdentifier]],
+																		  [[userChosenMatch imageIdentifier] stringByEscapingXMLEntites],
 																		  [userChosenMatch matchValue]]];
 					
 					[buffer appendString:@"\t</TILE>\n"];
@@ -623,7 +623,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 				}
 				else if ([elementType isEqualToString:@"ORIGINAL_IMAGE"])
 				{
-					newObject = [NSString stringByUnescapingXMLEntites:[(NSDictionary *)(nodeInfo->attributes) objectForKey:@"PATH"]];
+					newObject = [[(NSDictionary *)(nodeInfo->attributes) objectForKey:@"PATH"] stringByUnescapingXMLEntites];
 				}
 				else if ([elementType isEqualToString:@"TILE_SHAPES_SETTINGS"])
 				{
@@ -696,9 +696,8 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					int					sourceIndex = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"SOURCE"] intValue];
 					if (sourceIndex >= 0 && sourceIndex < [[mosaic imageSources] count])
 					{
-						NSString			*imageIdentifier = [NSString stringByUnescapingXMLEntites:
-																	[(NSDictionary *)nodeInfo->attributes objectForKey:@"ID"]];
-						float				matchValue = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"VALUE"] floatValue];
+						NSString	*imageIdentifier = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
+						float		matchValue = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"VALUE"] floatValue];
 						
 						newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
 																forImageIdentifier:imageIdentifier 
@@ -710,8 +709,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 				}
 				else if ([elementType isEqualToString:@"USER_CHOSEN_MATCH"])
 				{
-					NSString	*imageIdentifier = [NSString stringByUnescapingXMLEntites:
-														[(NSDictionary *)nodeInfo->attributes objectForKey:@"ID"]];
+					NSString	*imageIdentifier = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
 					float		matchValue = [[(NSDictionary *)nodeInfo->attributes objectForKey:@"VALUE"] floatValue];
 					
 					newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 

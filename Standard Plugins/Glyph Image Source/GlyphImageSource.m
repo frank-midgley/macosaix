@@ -103,7 +103,7 @@ static NSImage	*glyphSourceImage = nil;
 	NSEnumerator	*fontNameEnumerator = [fontNames objectEnumerator];
 	NSString		*fontName = nil;
 	while (fontName = [fontNameEnumerator nextObject])
-		[settings appendFormat:@"\t<FONT NAME=\"%@\"/>\n", [NSString stringByEscapingXMLEntites:fontName]];
+		[settings appendFormat:@"\t<FONT NAME=\"%@\"/>\n", [fontName stringByEscapingXMLEntites]];
 	[settings appendString:@"</FONTS>\n"];
 	
 	[settings appendString:@"<COLORS>\n"];
@@ -115,13 +115,13 @@ static NSImage	*glyphSourceImage = nil;
 		NSString		*colorListName = nil;
 		while (colorListName = [colorListNameEnumerator nextObject])
 			[settings appendFormat:@"\t<COLOR_LIST CLASS=\"%@\" NAME=\"%@\"/>\n", 
-								   [NSString stringByEscapingXMLEntites:colorListClass],
-								   [NSString stringByEscapingXMLEntites:colorListName]];
+								   [colorListClass stringByEscapingXMLEntites],
+								   [colorListName stringByEscapingXMLEntites]];
 	}
 	[settings appendString:@"</COLORS>\n"];
 	
 	if ([letterPool length] > 0)
-		[settings appendFormat:@"<LETTERS>%@</LETTERS>\n", [NSString stringByEscapingXMLEntites:letterPool]];
+		[settings appendFormat:@"<LETTERS>%@</LETTERS>\n", [letterPool stringByEscapingXMLEntites]];
 	
 	[settings appendFormat:@"<COUNT CURRENT=\"%d\" LIMIT=\"%d\"/>\n", imageCount, imageCountLimit];
 	
@@ -146,10 +146,10 @@ static NSImage	*glyphSourceImage = nil;
 	NSString	*settingType = [childSettingDict objectForKey:kMacOSaiXImageSourceSettingType];
 	
 	if ([settingType isEqualToString:@"FONT"])
-		[self addFontWithName:[NSString stringByUnescapingXMLEntites:[[childSettingDict objectForKey:@"NAME"] description]]];
+		[self addFontWithName:[[[childSettingDict objectForKey:@"NAME"] description] stringByUnescapingXMLEntites]];
 	else if ([settingType isEqualToString:@"COLOR_LIST"])
-		[self addColorList:[NSString stringByUnescapingXMLEntites:[[childSettingDict objectForKey:@"NAME"] description]] 
-				   ofClass:[NSString stringByUnescapingXMLEntites:[[childSettingDict objectForKey:@"CLASS"] description]]];
+		[self addColorList:[[[childSettingDict objectForKey:@"NAME"] description] stringByUnescapingXMLEntites] 
+				   ofClass:[[[childSettingDict objectForKey:@"CLASS"] description] stringByUnescapingXMLEntites]];
 }
 
 
@@ -158,7 +158,7 @@ static NSImage	*glyphSourceImage = nil;
 	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
 	
 	if ([settingType isEqualToString:@"LETTERS"])
-		[self setLetterPool:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:kMacOSaiXImageSourceSettingText] description]]];
+		[self setLetterPool:[[[settingDict objectForKey:kMacOSaiXImageSourceSettingText] description] stringByUnescapingXMLEntites]];
 }
 
 

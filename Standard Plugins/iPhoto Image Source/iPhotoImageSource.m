@@ -90,10 +90,10 @@ static NSImage	*iPhotoImage = nil,
 	
 	if ([self albumName])
 		[settings appendString:[NSString stringWithFormat:@"<ALBUM NAME=\"%@\"/>\n", 
-										  [NSString stringByEscapingXMLEntites:[self albumName]]]];
+										  [[self albumName] stringByEscapingXMLEntites]]];
 	if ([self keywordName])
 		[settings appendString:[NSString stringWithFormat:@"<KEYWORD NAME=\"%@\"/>\n", 
-										  [NSString stringByEscapingXMLEntites:[self keywordName]]]];
+										  [[self keywordName] stringByEscapingXMLEntites]]];
 	
 	[settings appendString:[NSString stringWithFormat:@"<PHOTO_IDS REMAINING=\"%@\"/>", 
 													  [remainingPhotoIDs componentsJoinedByString:@","]]];
@@ -107,9 +107,9 @@ static NSImage	*iPhotoImage = nil,
 	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
 	
 	if ([settingType isEqualToString:@"ALBUM"])
-		[self setAlbumName:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"NAME"] description]]];
+		[self setAlbumName:[[[settingDict objectForKey:@"NAME"] description] stringByUnescapingXMLEntites]];
 	else if ([settingType isEqualToString:@"KEYWORD"])
-		[self setAlbumName:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"NAME"] description]]];
+		[self setAlbumName:[[[settingDict objectForKey:@"NAME"] description] stringByUnescapingXMLEntites]];
 	else if ([settingType isEqualToString:@"PHOTO_IDS"])
 		remainingPhotoIDs = [[[[settingDict objectForKey:@"REMAINING"] description] componentsSeparatedByString:@","] mutableCopy];
 }
