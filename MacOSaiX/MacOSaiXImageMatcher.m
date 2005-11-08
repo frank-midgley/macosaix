@@ -59,10 +59,10 @@ float colorDifference(pixelColor color1, pixelColor color2)
 - (NSData *)adjustedMaskForMaskRep:(NSBitmapImageRep *)maskRep ofImageRep:(NSBitmapImageRep *)imageRep
 {
 	unsigned char	adjustedMask[[maskRep pixelsHigh] * [maskRep pixelsWide]];
-	unsigned char	*imageBytes = [imageRep bitmapData], 
+	unsigned char	//*imageBytes = [imageRep bitmapData], 
 					*maskBytes = [maskRep bitmapData];
-	int				bytesPerPixel = [imageRep hasAlpha] ? 4 : 3, 
-					bytesPerRow = [imageRep bytesPerRow], 
+	int				//bytesPerPixel = [imageRep hasAlpha] ? 4 : 3, 
+					//bytesPerRow = [imageRep bytesPerRow], 
 					maskBytesPerPixel = [maskRep hasAlpha] ? 4 : 3, 
 					maskBytesPerRow = [maskRep bytesPerRow];
 	int				startX, startY, pixelsWide = [imageRep size].width, pixelsHigh = [imageRep size].height;
@@ -70,7 +70,7 @@ float colorDifference(pixelColor color1, pixelColor color2)
 	for (startX = 0; startX < pixelsWide; startX++)
 		for (startY = 0; startY < pixelsHigh; startY++)
 		{
-			unsigned char	*imageOffset = imageBytes + startX * bytesPerPixel + startY * bytesPerRow,
+			unsigned char	//*imageOffset = imageBytes + startX * bytesPerPixel + startY * bytesPerRow,
 							maskByte = *(maskBytes + startX * maskBytesPerPixel + startY * maskBytesPerRow);
 //			pixelColor		startColor = {*imageOffset, *(imageOffset + 1), *(imageOffset + 2)};
 
@@ -185,7 +185,7 @@ float colorDifference(pixelColor color1, pixelColor color2)
 	unsigned char		*bitmap1Bytes = [bitmapRep1 bitmapData], 
 						*bitmap2Bytes = [bitmapRep2 bitmapData], 
 						*maskBytes = [maskRep bitmapData], 
-						*adjustedMaskBytes = [adjustedMask bytes];
+						*adjustedMaskBytes = (unsigned char *)[adjustedMask bytes];
 	
 		// Scale the 0.0<->1.0 value back to our internal scale to make calculation faster.
 	valueToBeat *= MAX_COLOR_DIFF;
