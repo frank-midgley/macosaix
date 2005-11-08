@@ -1075,6 +1075,8 @@
 	[oPanel setCanChooseFiles:YES];
 	[oPanel setCanChooseDirectories:NO];
 	[oPanel setAccessoryView:editorAccessoryView];
+	if ([oPanel respondsToSelector:@selector(setMessage:)])
+		[oPanel setMessage:@"Choose an image to be displayed in this tile:"];
 	[oPanel setPrompt:@"Choose"];
 	[oPanel setDelegate:self];
 	[oPanel beginSheetForDirectory:nil
@@ -1156,6 +1158,9 @@
 										forTile:selectedTile];
 		[imageSourcesTableView reloadData];
 	}
+	
+	if ([sheet respondsToSelector:@selector(setMessage:)])
+		[sheet setMessage:@""];
 }
 
 
