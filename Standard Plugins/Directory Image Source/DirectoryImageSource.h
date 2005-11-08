@@ -21,6 +21,7 @@
 	BOOL					followAliases, 
 							haveMoreImages, 
 							pathsHaveBeenEnumerated;
+	int						imageCount;
 }
 
 - (NSString *)path;

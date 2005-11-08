@@ -57,10 +57,12 @@
 
 - (NSString *)settingsAsXMLElement
 {
-	return [NSString stringWithFormat:@"<DIRECTORY PATH=\"%@\" FOLLOW_ALIASES=\"%@\" LAST_USED_SUB_PATH=\"%@\"/>", 
-									  [NSString stringByEscapingXMLEntites:[self path]],
+	return [NSString stringWithFormat:@"<DIRECTORY PATH=\"%@\" FOLLOW_ALIASES=\"%@\" " \
+									  @"LAST_USED_SUB_PATH=\"%@\" IMAGE_COUNT=\"%d\"/>", 
+									  [[self path] stringByEscapingXMLEntites],
 									  ([self followsAliases] ? @"Y" : @"N"), 
-									  [NSString stringByEscapingXMLEntites:lastEnumeratedPath]];
+									  [lastEnumeratedPath stringByEscapingXMLEntites], 
+									  imageCount];
 }
 
 
@@ -69,11 +71,13 @@
 	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
 	
 	if ([settingType isEqualToString:@"DIRECTORY"])
-		[self setPath:[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"PATH"] description]]];
+		[self setPath:[[[settingDict objectForKey:@"PATH"] description] stringByUnescapingXMLEntites]];
 	else if ([settingType isEqualToString:@"FOLLOW_ALIASES"])
 		[self setFollowsAliases:[[settingDict objectForKey:@"FOLLOW_ALIASES"] isEqualTo:@"Y"]]; 
 	else if ([settingType isEqualToString:@"LAST_USED_SUB_PATH"])
-		lastEnumeratedPath = [[NSString stringByUnescapingXMLEntites:[[settingDict objectForKey:@"LAST_USED_SUB_PATH"] description]] retain];
+		lastEnumeratedPath = [[[[settingDict objectForKey:@"LAST_USED_SUB_PATH"] description] stringByUnescapingXMLEntites] retain];
+	else if ([settingType isEqualToString:@"IMAGE_COUNT"])
+		imageCount = [[[settingDict objectForKey:@"IMAGECOUNT"] description] intValue];
 }
 
 
@@ -109,6 +113,7 @@
     directoryDescriptor = [[[NSFileManager defaultManager] attributedPath:directoryPath] retain];
 	
 	haveMoreImages = YES;
+	imageCount = 0;
 }
 
 
@@ -150,6 +155,39 @@
 - (BOOL)hasMoreImages
 {
 	return haveMoreImages;
+}
+
+
+- (void)updateImageCountInUserDefaults
+{
+	NSMutableDictionary	*plugInDefaults = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] 
+													mutableCopy] autorelease];
+
+	if (plugInDefaults)
+	{
+		NSMutableArray		*folderDicts = [[[plugInDefaults objectForKey:@"Folders"] mutableCopy] autorelease];
+		
+			// Check if this path is already in the list
+		NSEnumerator		*folderEnumerator = [folderDicts objectEnumerator];
+		NSDictionary		*folderDict = nil;
+		while (folderDict = [folderEnumerator nextObject])
+			if ([[folderDict objectForKey:@"Path"] isEqualToString:[self path]])
+				break;
+			
+			// Update the image count if the user hasn't cleared this path from the list.
+		if (folderDict)
+		{
+			NSMutableDictionary	*updatedFolderDict = [NSMutableDictionary dictionaryWithDictionary:folderDict];
+			[updatedFolderDict setObject:[NSString stringWithFormat:@"%d", imageCount] forKey:@"Image Count"];
+			
+			[folderDicts removeObject:folderDict];
+			[folderDicts addObject:updatedFolderDict];
+			
+			[plugInDefaults setObject:folderDicts forKey:@"Folders"];
+			[[NSUserDefaults standardUserDefaults] setObject:plugInDefaults forKey:@"Folder Image Source"];
+			[[NSUserDefaults standardUserDefaults] synchronize];
+		}
+	}
 }
 
 
@@ -210,9 +248,15 @@
 	while (subPath && !image);
 	
 	if (subPath)
+	{
 		*identifier = subPath;
+		imageCount++;
+	}
 	else
+	{
 		haveMoreImages = NO;	// all done
+		[self updateImageCountInUserDefaults];
+	}
 	
     return image;	// This will still be nil unless we found a valid image file.
 }
