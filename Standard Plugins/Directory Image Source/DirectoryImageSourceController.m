@@ -24,6 +24,29 @@
 @implementation DirectoryImageSourceController
 
 
++ (void)initialize
+{
+	if (![[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] objectForKey:@"Folders"])
+	{
+		NSMutableDictionary	*plugInDefaults = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] 
+														mutableCopy] autorelease];
+		NSString			*defaultPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Pictures"];
+		NSArray				*folderDicts = [NSArray arrayWithObject:[NSDictionary dictionaryWithObjectsAndKeys:
+																		defaultPath, @"Path", 
+																		@"", @"Image Count", 
+																		nil]];
+
+		if (plugInDefaults && [plugInDefaults isKindOfClass:[NSDictionary class]])
+			[plugInDefaults setObject:folderDicts forKey:@"Folders"];
+		else
+			plugInDefaults = [NSDictionary dictionaryWithObject:folderDicts forKey:@"Folders"];
+		
+		[[NSUserDefaults standardUserDefaults] setObject:plugInDefaults forKey:@"Folder Image Source"];
+		[[NSUserDefaults standardUserDefaults] synchronize];
+	}
+}
+
+
 - (NSView *)editorView
 {
 	if (!editorView)
@@ -70,51 +93,48 @@
 
 - (void)updateGUI
 {
-	NSArray			*knownFolders = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] 
-																				objectForKey:@"Folders"];
+	NSMutableDictionary	*plugInDefaults = [[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] ;
+	NSArray				*knownFolders = [plugInDefaults objectForKey:@"Folders"];
 	
 	[folderList release];
-	if (knownFolders)
+	if ([knownFolders count] == 0)
+		folderList = [[NSMutableArray array] retain];
+	else
+	{
 		folderList = (NSMutableArray *)CFPropertyListCreateDeepCopy(kCFAllocatorDefault, 
 																	knownFolders, 
 																	kCFPropertyListMutableContainers);
-	else
-	{
-		NSString	*defaultFolder = [NSHomeDirectory() stringByAppendingPathComponent:@"Pictures"];
-		
-		folderList = [[NSMutableArray arrayWithObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:
-														defaultFolder, @"Path", 
-														@"--", @"Image Count", 
-														nil]] retain];
+	
+		NSEnumerator		*folderEnumerator = [[NSArray arrayWithArray:folderList] objectEnumerator];
+		NSMutableDictionary	*folderDict = nil;
+		while (folderDict = [folderEnumerator nextObject])
+		{
+			NSString	*folderPath = [folderDict objectForKey:@"Path"];
+			
+			BOOL		isFolder;
+			if (![[NSFileManager defaultManager] fileExistsAtPath:folderPath isDirectory:&isFolder] || !isFolder)
+				[folderList removeObject:folderDict];
+			else
+				[folderDict setObject:[[NSFileManager defaultManager] attributedPath:folderPath] forKey:@"Attributed Path"];
+		}
 	}
 	
-	NSEnumerator		*folderEnumerator = [[NSArray arrayWithArray:folderList] objectEnumerator];
-	NSMutableDictionary	*folderDict = nil;
 	NSString			*currentPath = [currentImageSource path];
-	while (folderDict = [folderEnumerator nextObject])
-	{
-		NSString	*folderPath = [folderDict objectForKey:@"Path"];
-		
-		BOOL		isFolder;
-		if (![[NSFileManager defaultManager] fileExistsAtPath:folderPath isDirectory:&isFolder] || !isFolder)
-			[folderList removeObject:folderDict];
-		else
-			[folderDict setObject:[[NSFileManager defaultManager] attributedPath:folderPath] forKey:@"Attributed Path"];
-	}
-	
 	if (currentPath && [self rowOfCurrentFolder] == -1)
 	{
 		[folderList addObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:
 									currentPath, @"Path", 
 									[[NSFileManager defaultManager] attributedPath:currentPath], @"Attributed Path", 
-									@"--", @"Image Count", 
+									@"", @"Image Count", 
 									nil]];
 	}
 	
 	[folderList sortUsingSelector:@selector(compareFolderPaths:)];
-	
-	[folderTableView selectRow:[self rowOfCurrentFolder] byExtendingSelection:NO];
 	[folderTableView reloadData];
+	if ([self rowOfCurrentFolder] == -1)
+		[folderTableView deselectAll:self];
+	else
+		[folderTableView selectRow:[self rowOfCurrentFolder] byExtendingSelection:NO];
 	
 	[followsAliasesButton setState:([currentImageSource followsAliases] ? NSOnState : NSOffState)];
 }
@@ -139,7 +159,7 @@
 	{
 			// Default to the last directory chosen by the user.
 		NSString	*lastChosenDirectory = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] 
-																					objectForKey:@"Last Chosen Directory"];
+																					objectForKey:@"Last Chosen Folder"];
 		
 			// Default to the user's home directory if the value from the defaults is not valid.
 		BOOL	isDirectory;
@@ -182,9 +202,29 @@
 			// Remember this path for the next time the user creates a new source.
 		NSMutableDictionary	*plugInDefaults = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] 
 														mutableCopy] autorelease];
+		NSMutableArray		*folderDicts = [[[plugInDefaults objectForKey:@"Folders"] mutableCopy] autorelease];
+
 		if (!plugInDefaults)
 			plugInDefaults = [NSMutableDictionary dictionary];
-		[plugInDefaults setObject:newPath forKey:@"Last Chosen Directory"];
+		if (!folderDicts)
+			folderDicts = [NSMutableArray array];
+
+			// Check if this path is already in the list
+		NSEnumerator		*folderEnumerator = [folderDicts objectEnumerator];
+		NSDictionary		*folderDict = nil;
+		while (folderDict = [folderEnumerator nextObject])
+			if ([[folderDict objectForKey:@"Path"] isEqualToString:newPath])
+				break;
+			
+			// Add the chosen path if it wasn't there.
+		if (!folderDict)
+			[folderDicts addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+										newPath, @"Path", 
+										@"", @"Image Count", 
+										nil]];
+		
+		[plugInDefaults setObject:newPath forKey:@"Last Chosen Folder"];
+		[plugInDefaults setObject:folderDicts forKey:@"Folders"];
 		[[NSUserDefaults standardUserDefaults] setObject:plugInDefaults forKey:@"Folder Image Source"];
 		[[NSUserDefaults standardUserDefaults] synchronize];
 		
@@ -234,7 +274,18 @@
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
-	[okButton setEnabled:([folderTableView selectedRow] != -1)];
+	if ([folderTableView selectedRow] == -1)
+	{
+		[currentImageSource setPath:nil];
+		[okButton setEnabled:NO];
+	}
+	else
+	{
+		NSDictionary	*folderDict = [folderList objectAtIndex:[folderTableView selectedRow]];
+		[currentImageSource setPath:[folderDict objectForKey:@"Path"]];
+		
+		[okButton setEnabled:YES];
+	}
 }
 
 
