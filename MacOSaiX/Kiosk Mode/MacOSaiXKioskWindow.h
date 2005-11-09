@@ -9,7 +9,7 @@
 #import <Cocoa/Cocoa.h>
 
 
-@interface MacOSaiXKioskWindow : NSWindow
+@interface MacOSaiXKioskWindow : NSPanel
 {
 
 }
