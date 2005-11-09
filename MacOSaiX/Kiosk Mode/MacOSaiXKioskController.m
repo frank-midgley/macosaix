@@ -8,8 +8,9 @@
 
 #import "MacOSaiXKioskController.h"
 
-#import "MacOSaiXDocument.h"
 #import "GoogleImageSource.h"
+#import "MacOSaiXDocument.h"
+#import "MacOSaiXMosaicController.h"
 #import "RectangularTileShapes.h"
 
 #import <pthread.h>
@@ -48,6 +49,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 	{
 		mosaics = [[NSMutableArray arrayWithObjects:[NSNull null], [NSNull null], [NSNull null], 
 													[NSNull null], [NSNull null], [NSNull null], nil] retain];
+		mosaicControllers = [[NSMutableArray array] retain];
 	}
 	
 	return self;
@@ -57,6 +59,19 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 - (NSString *)windowNibName
 {
 	return @"Kiosk";
+}
+
+
+- (void)setMosaicControllers:(NSArray *)controllers
+{
+	[mosaicControllers removeAllObjects];
+	[mosaicControllers addObjectsFromArray:controllers];
+	
+		// Tell all of the "mosaic only" windows to show this mosaic.
+	NSEnumerator				*controllerEnumerator = [mosaicControllers objectEnumerator];
+	MacOSaiXMosaicController	*controller = nil;
+	while (controller = [controllerEnumerator nextObject])
+		[controller setMosaic:currentMosaic];
 }
 
 
@@ -115,6 +130,15 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 													 name:MacOSaiXTileImageDidChangeNotification 
 												   object:currentMosaic];
 		
+			// Tell all of the "mosaic only" windows to show this mosaic.
+		NSEnumerator				*controllerEnumerator = [mosaicControllers objectEnumerator];
+		MacOSaiXMosaicController	*controller = nil;
+		while (controller = [controllerEnumerator nextObject])
+			[controller setMosaic:currentMosaic];
+		
+//		[keywordTextField setStringValue:@"mosaic"];
+//		[self addKeyword:self];
+		
 		[currentMosaic resume];
 	}
 }
@@ -122,10 +146,6 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 
 - (void)awakeFromNib
 {
-	MacOSaiXRectangularTileShapes	*tileShapes = [[NSClassFromString(@"MacOSaiXRectangularTileShapes") alloc] init];
-	[tileShapes setTilesAcross:50];
-	[tileShapes setTilesDown:50];
-	
 		// Populate the original image buttons
 	NSArray			*originalImagePaths = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Kiosk Settings"]
 																				  objectForKey:@"Original Image Paths"];
@@ -141,7 +161,6 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 		{
 			MacOSaiXMosaic	*mosaic = [[MacOSaiXMosaic alloc] init];
 			[mosaic setOriginalImage:image];
-			[mosaic setTileShapes:tileShapes creatingTiles:YES];
 			[mosaic setImageUseCount:0];
 			[mosaic setImageReuseDistance:10];
 			[mosaic setImageCropLimit:25];
@@ -179,6 +198,24 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 														NSWidth([mosaicView frame]), 
 														NSMinY([originalImageMatrix frame]) - 
 															NSMaxY([mosaicView frame]))];
+}
+
+
+- (void)setTileCount:(int)count
+{
+	MacOSaiXRectangularTileShapes	*tileShapes = [[NSClassFromString(@"MacOSaiXRectangularTileShapes") alloc] init];
+	[tileShapes setTilesAcross:count];
+	[tileShapes setTilesDown:count];
+	
+	NSEnumerator					*mosaicEnumerator = [mosaics objectEnumerator];
+	MacOSaiXMosaic					*mosaic = nil;
+	while (mosaic = [mosaicEnumerator nextObject])
+		if ([mosaic isKindOfClass:[MacOSaiXMosaic class]])
+			[mosaic setTileShapes:tileShapes creatingTiles:YES];
+
+	[tileShapes release];
+	
+	[kioskView setTileCount:count];
 }
 
 
@@ -463,6 +500,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 - (void)dealloc
 {
 	[mosaics release];
+	[mosaicControllers release];
 	
 	[super dealloc];
 }

@@ -41,13 +41,19 @@
 	NSTimer								*refreshTilesTimer;
 	BOOL								refreshTileThreadRunning, 
 										displayNonUniqueMatches;
+	
+	NSMutableArray						*mosaicControllers;
 }
+
+- (void)setMosaicControllers:(NSArray *)controllers;
+
+- (void)setTileCount:(int)count;
+
+- (void)setMessage:(NSAttributedString *)message;
+- (void)setMessageBackgroundColor:(NSColor *)color;
 
 - (IBAction)setOriginalImage:(id)sender;
 - (IBAction)addKeyword:(id)sender;
 - (IBAction)removeKeyword:(id)sender;
-
-- (void)setMessage:(NSAttributedString *)message;
-- (void)setMessageBackgroundColor:(NSColor *)color;
 
 @end

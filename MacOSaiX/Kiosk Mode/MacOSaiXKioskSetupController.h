@@ -17,15 +17,28 @@
 	IBOutlet NSButton					*requirePasswordButton;
 	IBOutlet NSSecureTextField			*passwordField,
 										*repeatedPasswordField;
+	IBOutlet NSSlider					*tileCountSlider;
+	IBOutlet NSTextField				*tileCountTextField;
 	IBOutlet MacOSaiXKioskMessageView	*messageView;
 	IBOutlet NSColorWell				*messageBackgroundColorWell;
 	IBOutlet NSTextField				*warningField;
 	IBOutlet NSButton					*startButton;
+
+	NSArray								*nonMainSetupControllers;
 }
 
+- (void)setNonMainSetupControllers:(NSArray *)array;
+
 - (IBAction)chooseOriginalImage:(id)sender;
+
 - (IBAction)setWindowType:(id)sender;
+- (BOOL)shouldDisplayMosaicAndSettings;
+- (BOOL)shouldDisplayMosaicOnly;
+
 - (IBAction)setPasswordRequired:(id)sender;
+
+- (IBAction)setTileCount:(id)sender;
+- (int)tileCount;
 
 - (NSAttributedString *)message;
 - (IBAction)setMessageBackgroundColor:(id)sender;

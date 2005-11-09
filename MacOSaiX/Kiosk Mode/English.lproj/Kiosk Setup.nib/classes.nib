@@ -8,6 +8,7 @@
                 quit = id; 
                 setMessageBackgroundColor = id; 
                 setPasswordRequired = id; 
+                setTileCount = id; 
                 setWindowType = id; 
                 start = id; 
             }; 
@@ -21,6 +22,8 @@
                 repeatedPasswordField = NSSecureTextField; 
                 requirePasswordButton = NSButton; 
                 startButton = NSButton; 
+                tileCountSlider = NSSlider; 
+                tileCountTextField = NSTextField; 
                 warningField = NSTextField; 
                 windowTypeMatrix = NSMatrix; 
             }; 

@@ -3,18 +3,24 @@
 //  MacOSaiX
 //
 //  Created by Frank Midgley on Thu Feb 21 2002.
-//  Copyright (c) 2001 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2001 Frank M. Midgley. All rights reserved.
 //
 
 #import <Cocoa/Cocoa.h>
 
+#import "MacOSaiXKioskController.h"
+
 
 @interface MacOSaiX : NSObject
 {
-	NSMutableArray 	*tileShapesClasses,
-					*imageSourceClasses,
-					*loadedPlugInPaths;
-	BOOL			quitting;
+	NSMutableArray			*tileShapesClasses,
+							*imageSourceClasses,
+							*loadedPlugInPaths;
+	BOOL					quitting;
+	
+		// Kiosk
+	MacOSaiXKioskController	*kioskController;
+	NSMutableArray			*kioskMosaicControllers;
 }
 
 - (void)openPreferences:(id)sender;

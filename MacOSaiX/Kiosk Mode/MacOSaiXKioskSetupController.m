@@ -8,6 +8,8 @@
 
 #import "MacOSaiXKioskSetupController.h"
 
+#import "MacOSaiXScreenSetupController.h"
+
 
 @implementation MacOSaiXKioskSetupController
 
@@ -52,7 +54,21 @@
 					warningString = @"The passwords do not match.";
 				else
 				{
-					// TODO: make sure at least one screen is set to show the kiosk window
+						// Make sure one and only one screen is set to show the kiosk window.
+					int								settingsScreensCount = 0;
+					if ([self shouldDisplayMosaicAndSettings])
+						settingsScreensCount++;
+					NSEnumerator					*controllerEnumerator = [nonMainSetupControllers objectEnumerator];
+					MacOSaiXScreenSetupController	*controller = nil;
+					while (controller = [controllerEnumerator nextObject])
+						if ([controller shouldDisplayMosaicAndSettings])
+							settingsScreensCount++;
+					
+					if (settingsScreensCount == 0)
+						warningString = @"One screen must show the settings.";
+					else if (settingsScreensCount > 1)
+						warningString = @"Only one screen can show the settings.";
+					// else we're good to go
 				}
 			}
 		}
@@ -109,6 +125,16 @@
 		}
 	}
 	
+	if ([[NSScreen screens] count] == 1)
+		[[windowTypeMatrix cellAtRow:1 column:0] setEnabled:NO];
+	
+	int				tileCount = [[kioskSettings objectForKey:@"Tile Count"] intValue];
+	if (tileCount > 0)
+	{
+		[tileCountSlider setIntValue:tileCount];
+		[tileCountTextField setStringValue:[NSString stringWithFormat:@"%dx%d", tileCount, tileCount]];
+	}
+	
 	NSAttributedString	*message = nil;
 	NSData				*archivedMessage = [kioskSettings objectForKey:@"Archived Message"];
 	if (archivedMessage)
@@ -139,6 +165,24 @@
 	[messageView setBackgroundColor:messageBackgroundColor];
 	[messageBackgroundColorWell setColor:messageBackgroundColor];
 	
+	[self updateWarningField];
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(screenTypeDidChange:) 
+												 name:MacOSaiXKioskScreenTypeDidChangeNotification 
+											   object:nil];
+}
+
+
+- (void)setNonMainSetupControllers:(NSArray *)array
+{
+	[nonMainSetupControllers autorelease];
+	nonMainSetupControllers = [[NSArray arrayWithArray:array] retain];
+}
+
+
+- (void)screenTypeDidChange:(NSNotification *)notification
+{
 	[self updateWarningField];
 }
 
@@ -219,6 +263,18 @@
 }
 
 
+- (BOOL)shouldDisplayMosaicAndSettings
+{
+	return ([windowTypeMatrix selectedRow] == 0);
+}
+
+
+- (BOOL)shouldDisplayMosaicOnly
+{
+	return ([windowTypeMatrix selectedRow] == 1);
+}
+
+
 - (IBAction)setPasswordRequired:(id)sender
 {
 	BOOL	passwordRequired = ([requirePasswordButton state] == NSOnState);
@@ -241,6 +297,27 @@
 - (void)controlTextDidChange:(NSNotification *)notification
 {
 	[self updateWarningField];
+}
+
+
+- (IBAction)setTileCount:(id)sender
+{
+	int	tileCount = [tileCountSlider intValue];
+	
+	[tileCountTextField setStringValue:[NSString stringWithFormat:@"%dx%d", tileCount, tileCount]];
+
+	NSMutableDictionary	*kioskSettings = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Kiosk Settings"] mutableCopy] autorelease];
+	if (!kioskSettings)
+		kioskSettings = [NSMutableDictionary dictionary];
+	[kioskSettings setObject:[NSNumber numberWithInt:tileCount] forKey:@"Tile Count"];
+	[[NSUserDefaults standardUserDefaults] setObject:kioskSettings forKey:@"Kiosk Settings"];
+	[[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+
+- (int)tileCount
+{
+	return [tileCountSlider intValue];
 }
 
 
@@ -288,6 +365,17 @@
 	[[NSUserDefaults standardUserDefaults] synchronize];
 	
 	[NSApp stopModal];
+}
+
+
+- (void)dealloc
+{
+	[[NSNotificationCenter defaultCenter] removeObserver:self 
+													name:MacOSaiXKioskScreenTypeDidChangeNotification 
+												  object:nil];
+	[nonMainSetupControllers release];
+	
+	[super dealloc];
 }
 
 

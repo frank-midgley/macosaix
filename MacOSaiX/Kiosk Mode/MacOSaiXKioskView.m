@@ -8,6 +8,8 @@
 
 #import "MacOSaiXKioskView.h"
 
+#import "RectangularTileShapes.h"
+
 
 @implementation MacOSaiXKioskView
 
@@ -18,6 +20,12 @@
         // Initialization code here.
     }
     return self;
+}
+
+
+- (void)setTileCount:(int)count
+{
+	tileCount = count;
 }
 
 
@@ -41,9 +49,9 @@
 		
 		NSBezierPath	*transitionPath = [NSBezierPath bezierPath];
 		float			totalWidth = NSWidth(originalTransitionRect), 
-						wideStripeWidth = totalWidth / 50.0, 
+						wideStripeWidth = totalWidth / tileCount, 
 						originalWidth = totalWidth / [originalImageMatrix numberOfColumns], 
-						narrowStripeWidth = originalWidth / 50.0, 
+						narrowStripeWidth = originalWidth / tileCount, 
 						startX = NSMinX(originalTransitionRect) + [originalImageMatrix selectedColumn] * originalWidth, 
 						endX = startX + originalWidth;
 		
@@ -66,7 +74,7 @@
 		int				i = 0;
 		float	narrowX = startX,
 				wideX = NSMinX(originalTransitionRect);
-		for (i = 0; i < 51; i++, narrowX += narrowStripeWidth, wideX += wideStripeWidth)
+		for (i = 0; i < tileCount + 1; i++, narrowX += narrowStripeWidth, wideX += wideStripeWidth)
 		{
 			[transitionPath moveToPoint:NSMakePoint(narrowX, NSMaxY(originalTransitionRect))];
 			[transitionPath curveToPoint:NSMakePoint(wideX, NSMinY(originalTransitionRect)) 
@@ -94,8 +102,9 @@
 													   NSMinY(mosaicFrame), 
 													   NSMinX(imageSourcesFrame) - NSMaxX(mosaicFrame), 
 													   NSHeight(mosaicFrame)); 
-//	if (NSIntersectsRect(rect, sourcesTransitionRect))
+	if (NSIntersectsRect(rect, sourcesTransitionRect))
 	{
+		
 		[[NSGraphicsContext currentContext] saveGraphicsState];
 		
 			// Fill the entire transition path with the background color.
@@ -116,11 +125,11 @@
 		
 		[transitionPath removeAllPoints];
 		int				i = 0;
-		float			mosaicStripeHeight = NSHeight(mosaicFrame) / 50.0, 
-						sourcesStripeHeight = NSHeight(imageSourcesFrame) / 50.0, 
+		float			mosaicStripeHeight = NSHeight(mosaicFrame) / tileCount, 
+						sourcesStripeHeight = NSHeight(imageSourcesFrame) / tileCount, 
 						mosaicY = NSMinY(mosaicFrame),
 						imageSourcesY = NSMinY(imageSourcesFrame);
-		for (i = 0; i < 51; i++, mosaicY += mosaicStripeHeight, imageSourcesY += sourcesStripeHeight)
+		for (i = 0; i < tileCount + 1; i++, mosaicY += mosaicStripeHeight, imageSourcesY += sourcesStripeHeight)
 		{
 			[transitionPath moveToPoint:NSMakePoint(NSMaxX(mosaicFrame), mosaicY)];
 			[transitionPath curveToPoint:NSMakePoint(NSMinX(imageSourcesFrame), imageSourcesY) 

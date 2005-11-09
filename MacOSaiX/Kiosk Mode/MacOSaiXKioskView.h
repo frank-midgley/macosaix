@@ -16,6 +16,10 @@
 	IBOutlet NSMatrix		*originalImageMatrix;
 	IBOutlet MosaicView		*mosaicView;
 	IBOutlet NSView			*imageSourcesView;
+
+	int						tileCount;
 }
+
+- (void)setTileCount:(int)count;
 
 @end

@@ -17,6 +17,7 @@
 #import "MacOSaiXKioskController.h"
 #import "MacOSaiXKioskSetupController.h"
 #import "MacOSaiXKioskWindow.h"
+#import "MacOSaiXMosaicController.h"
 #import "MacOSaiXScreenSetupController.h"
 
 #import <Carbon/Carbon.h>
@@ -43,6 +44,7 @@
 		tileShapesClasses = [[NSMutableArray array] retain];
 		imageSourceClasses = [[NSMutableArray array] retain];
 		loadedPlugInPaths = [[NSMutableArray array] retain];
+		kioskMosaicControllers = [[NSMutableArray array] retain];
 	}
 	return self;
 }
@@ -238,13 +240,63 @@
 }
 
 
+#pragma mark
+#pragma mark Kiosk methods
+
+
+- (void)openKioskSettingsWindowOnScreen:(NSScreen *)screen
+							  tileCount:(int)tileCount
+								message:(NSAttributedString *)message
+				 messageBackgroundColor:(NSColor *)messageBackgroundColor
+{
+	kioskController = [[MacOSaiXKioskController alloc] initWithWindow:nil];
+	
+	NSWindow			*nibWindow = [kioskController window];
+	MacOSaiXKioskWindow	*kioskWindow = [[MacOSaiXKioskWindow alloc] initWithContentRect:[screen frame] 
+																			  styleMask:NSBorderlessWindowMask 
+																				backing:NSBackingStoreBuffered 
+																				  defer:NO 
+																				 screen:screen];
+	[nibWindow setFrame:[screen frame] display:NO];
+	[kioskWindow setContentView:[nibWindow contentView]];
+	[kioskWindow setInitialFirstResponder:[nibWindow initialFirstResponder]];
+	[kioskController setWindow:kioskWindow];
+	[kioskWindow setDelegate:kioskController];
+	[kioskController setTileCount:tileCount];
+	[kioskController setMessage:message];
+	[kioskController setMessageBackgroundColor:messageBackgroundColor];
+	[kioskWindow makeKeyAndOrderFront:self];
+}
+
+
+- (void)openKioskMosaicWindowOnScreen:(NSScreen *)screen
+{
+	MacOSaiXMosaicController	*mosaicController = [[MacOSaiXMosaicController alloc] initWithWindow:nil];
+	NSWindow					*nibWindow = [mosaicController window];
+	MacOSaiXKioskWindow			*mosaicWindow = [[MacOSaiXKioskWindow alloc] initWithContentRect:[screen frame] 
+																					   styleMask:NSBorderlessWindowMask 
+																						 backing:NSBackingStoreBuffered 
+																						   defer:NO 
+																						  screen:screen];
+	[nibWindow setFrame:[screen frame] display:NO];
+	[mosaicWindow setContentView:[nibWindow contentView]];
+	[mosaicWindow setInitialFirstResponder:[nibWindow initialFirstResponder]];
+	[mosaicController setWindow:mosaicWindow];
+	[mosaicWindow setDelegate:mosaicController];
+	[mosaicWindow makeKeyAndOrderFront:self];
+	
+	[kioskMosaicControllers addObject:mosaicController];
+}
+
+
 - (IBAction)enterKioskMode:(id)sender
 {
 	// TBD: require no open documents?
 	
 		// Present a screen setup panel on all screens but the menu bar screen.
+	NSMutableArray	*nonMainSetupControllers = [NSMutableArray array];
 	NSEnumerator	*screenEnumerator = [[NSScreen screens] objectEnumerator];
-	NSScreen		*screen = [screenEnumerator nextObject];	// the menu bar screen is always first
+	NSScreen		*screen = nil;	//[screenEnumerator nextObject];	// the menu bar screen is always first
 	while (screen = [screenEnumerator nextObject])
 	{
 		MacOSaiXScreenSetupController	*setupController = [[MacOSaiXScreenSetupController alloc] initWithWindow:nil];
@@ -254,49 +306,65 @@
 																								backing:NSBackingStoreBuffered 
 																								  defer:NO 
 																								 screen:screen];
-//		[setupWindow setFloatingPanel:YES];
-//		[setupWindow setWorksWhenModal:YES];
+		[setupWindow setFloatingPanel:YES];
+		[setupWindow setWorksWhenModal:YES];
+		[setupWindow setHasShadow:YES];
 		[setupWindow setFrame:[nibWindow frame] display:NO];
 		[setupWindow setContentView:[nibWindow contentView]];
 		[setupController setWindow:setupWindow];
 		[setupWindow setFrameOrigin:NSMakePoint(NSMidX([screen frame]), NSMidY([screen frame]))];
-		[setupWindow center];
+//		[setupWindow center];
 		[setupWindow makeKeyAndOrderFront:self];
+		
+		[nonMainSetupControllers addObject:setupController];
+		[setupController release];
 	}
 	
 		// Run the main setup window modally on the menu bar screen.
-	MacOSaiXKioskSetupController	*setupController = [[MacOSaiXKioskSetupController alloc] initWithWindow:nil];
-	int								result = [NSApp runModalForWindow:[setupController window]];
-	// TODO: close the other screen windows
+	MacOSaiXKioskSetupController	*mainSetupController = [[MacOSaiXKioskSetupController alloc] initWithWindow:nil];
+	[mainSetupController setNonMainSetupControllers:nonMainSetupControllers];
+	int								result = [NSApp runModalForWindow:[mainSetupController window]];
 	if (result == NSRunStoppedResponse)
 	{
 		OSStatus	status = SetSystemUIMode(kUIModeAllHidden, 0);
 		if (status == noErr)
 		{
-				// Open the kiosk window on the indicated screen.
-				// TODO: use the indicated screen
-			NSScreen				*menuBarScreen = [[NSScreen screens] objectAtIndex:0];
-			MacOSaiXKioskController	*kioskController = [[MacOSaiXKioskController alloc] initWithWindow:nil];
-			NSWindow				*nibWindow = [kioskController window];
-			MacOSaiXKioskWindow		*kioskWindow = [[MacOSaiXKioskWindow alloc] initWithContentRect:[menuBarScreen frame] 
-																					styleMask:NSBorderlessWindowMask 
-																					  backing:NSBackingStoreBuffered 
-																						defer:NO 
-																					   screen:menuBarScreen];
-			[nibWindow setFrame:[menuBarScreen frame] display:NO];
-			[kioskWindow setContentView:[nibWindow contentView]];
-			[kioskWindow setInitialFirstResponder:[nibWindow initialFirstResponder]];
-			[kioskController setWindow:kioskWindow];
-			[kioskWindow setDelegate:kioskController];
-			[kioskWindow makeKeyAndOrderFront:self];
-			[kioskController setMessage:[setupController message]];
-			[kioskController setMessageBackgroundColor:[setupController messageBackgroundColor]];
-			[kioskController showWindow:self];
+			NSScreen						*menuBarScreen = [[NSScreen screens] objectAtIndex:0];
 			
-				// TODO: Open mosaic windows on the other indicated screens
+				// Open the kiosk window on the indicated screen.
+			if ([mainSetupController shouldDisplayMosaicAndSettings])
+				[self openKioskSettingsWindowOnScreen:menuBarScreen 
+											tileCount:[mainSetupController tileCount] 
+											  message:[mainSetupController message] 
+							   messageBackgroundColor:[mainSetupController messageBackgroundColor]];
+			else if ([mainSetupController shouldDisplayMosaicOnly])
+				[self openKioskMosaicWindowOnScreen:menuBarScreen];
+		
+				// Open mosaic windows on the other indicated screens
+			NSEnumerator					*controllerEnumerator = [nonMainSetupControllers objectEnumerator];
+			MacOSaiXScreenSetupController	*controller = nil;
+			while (controller = [controllerEnumerator nextObject])
+			{
+				if ([controller shouldDisplayMosaicAndSettings])
+					[self openKioskSettingsWindowOnScreen:[[controller window] screen]
+												tileCount:[mainSetupController tileCount] 
+												  message:[mainSetupController message] 
+								   messageBackgroundColor:[mainSetupController messageBackgroundColor]];
+				else if ([controller shouldDisplayMosaicOnly])
+					[self openKioskMosaicWindowOnScreen:[[controller window] screen]];
+			}
+			
+			[kioskController setMosaicControllers:kioskMosaicControllers];
 		}
 	}
-	[setupController release];
+	
+		// Close all of the screen setup windows.
+	NSEnumerator					*controllerEnumerator = [nonMainSetupControllers objectEnumerator];
+	MacOSaiXScreenSetupController	*controller = nil;
+	while (controller = [controllerEnumerator nextObject])
+		[[controller window] close];
+	
+	[mainSetupController release];
 }
 
 
