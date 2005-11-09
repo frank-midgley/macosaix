@@ -9,11 +9,16 @@
 #import <Cocoa/Cocoa.h>
 
 
+#define MacOSaiXKioskScreenTypeDidChangeNotification	@"MacOSaiXKioskScreenTypeDidChangeNotification"
+
+
 @interface MacOSaiXScreenSetupController : NSWindowController
 {
 	IBOutlet NSMatrix	*screenTypeMatrix;
 }
 
 - (IBAction)setScreenType:(id)sender;
+- (BOOL)shouldDisplayMosaicAndSettings;
+- (BOOL)shouldDisplayMosaicOnly;
 
 @end

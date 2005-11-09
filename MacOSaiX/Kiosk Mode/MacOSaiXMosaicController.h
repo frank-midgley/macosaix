@@ -8,12 +8,21 @@
 
 #import <Cocoa/Cocoa.h>
 
+#import "MacOSaiXMosaic.h"
 #import "MosaicView.h"
 
 
 @interface MacOSaiXMosaicController : NSWindowController
 {
 	IBOutlet MosaicView	*mosaicView;
+	
+		// Tile refresh management
+	NSMutableArray						*tilesToRefresh;
+	NSLock								*tileRefreshLock;
+	NSTimer								*refreshTilesTimer;
+	BOOL								refreshTileThreadRunning;
 }
+
+- (void)setMosaic:(MacOSaiXMosaic *)mosaic;
 
 @end
