@@ -278,11 +278,11 @@
 																						 backing:NSBackingStoreBuffered 
 																						   defer:NO 
 																						  screen:screen];
-	[nibWindow setFrame:[screen frame] display:NO];
 	[mosaicWindow setContentView:[nibWindow contentView]];
 	[mosaicWindow setInitialFirstResponder:[nibWindow initialFirstResponder]];
 	[mosaicController setWindow:mosaicWindow];
 	[mosaicWindow setDelegate:mosaicController];
+	[mosaicWindow setFrame:[screen frame] display:NO];
 	[mosaicWindow makeKeyAndOrderFront:self];
 	
 	[kioskMosaicControllers addObject:mosaicController];
@@ -296,7 +296,7 @@
 		// Present a screen setup panel on all screens but the menu bar screen.
 	NSMutableArray	*nonMainSetupControllers = [NSMutableArray array];
 	NSEnumerator	*screenEnumerator = [[NSScreen screens] objectEnumerator];
-	NSScreen		*screen = nil;	//[screenEnumerator nextObject];	// the menu bar screen is always first
+	NSScreen		*screen = [screenEnumerator nextObject];	// the menu bar screen is always first
 	while (screen = [screenEnumerator nextObject])
 	{
 		MacOSaiXScreenSetupController	*setupController = [[MacOSaiXScreenSetupController alloc] initWithWindow:nil];
@@ -312,8 +312,8 @@
 		[setupWindow setFrame:[nibWindow frame] display:NO];
 		[setupWindow setContentView:[nibWindow contentView]];
 		[setupController setWindow:setupWindow];
-		[setupWindow setFrameOrigin:NSMakePoint(NSMidX([screen frame]), NSMidY([screen frame]))];
-//		[setupWindow center];
+		[setupWindow setFrameOrigin:NSMakePoint(NSMidX([screen frame]) - NSWidth([setupWindow frame]) / 2.0, 
+												NSMidY([screen frame]) - NSHeight([setupWindow frame]) / 2.0)];
 		[setupWindow makeKeyAndOrderFront:self];
 		
 		[nonMainSetupControllers addObject:setupController];
@@ -323,6 +323,11 @@
 		// Run the main setup window modally on the menu bar screen.
 	MacOSaiXKioskSetupController	*mainSetupController = [[MacOSaiXKioskSetupController alloc] initWithWindow:nil];
 	[mainSetupController setNonMainSetupControllers:nonMainSetupControllers];
+	NSWindow						*setupWindow = [mainSetupController window];
+	screen = [[NSScreen screens] objectAtIndex:0];
+	[setupWindow setFrameOrigin:NSMakePoint(NSMidX([screen frame]) - NSWidth([setupWindow frame]) / 2.0, 
+											NSMidY([screen frame]) - NSHeight([setupWindow frame]) / 2.0)];
+	[mainSetupController showWindow:self];
 	int								result = [NSApp runModalForWindow:[mainSetupController window]];
 	if (result == NSRunStoppedResponse)
 	{
