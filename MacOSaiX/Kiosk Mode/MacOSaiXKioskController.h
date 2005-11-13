@@ -36,11 +36,7 @@
 										*imageSources;
 	
 		// Tile refresh management
-	NSMutableArray						*tilesToRefresh;
-	NSLock								*tileRefreshLock;
-	NSTimer								*refreshTilesTimer;
-	BOOL								refreshTileThreadRunning, 
-										displayNonUniqueMatches;
+	BOOL								displayNonUniqueMatches;
 	
 	NSMutableArray						*mosaicControllers;
 }

@@ -30,6 +30,11 @@
 	NSBezierPath			*highlightedImageSourcesOutline;
     int						phase;
 	
+		// Tile refreshing
+	NSMutableArray			*tilesToRefresh;
+	NSLock					*tileRefreshLock;
+	BOOL					refreshingTiles;
+	
 		// Queued tile view invalidation
 	NSMutableArray			*tilesNeedingDisplay;
 	NSLock					*tilesNeedDisplayLock;
@@ -45,8 +50,6 @@
 
 - (void)setViewTileOutlines:(BOOL)inViewTileOutlines;
 - (BOOL)viewTileOutlines;
-
-- (void)refreshTile:(MacOSaiXTile *)tileToRefresh previousMatch:(MacOSaiXImageMatch *)previousMatch;
 
 	// Highlight methods
 - (void)highlightTile:(MacOSaiXTile *)tile;

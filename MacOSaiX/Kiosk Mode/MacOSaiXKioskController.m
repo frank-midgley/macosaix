@@ -110,9 +110,6 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 		[[NSNotificationCenter defaultCenter] removeObserver:self 
 														name:MacOSaiXMosaicDidChangeStateNotification 
 													  object:currentMosaic];
-		[[NSNotificationCenter defaultCenter] removeObserver:self 
-														name:MacOSaiXTileImageDidChangeNotification 
-													  object:currentMosaic];
 	}
 	
 	{
@@ -124,10 +121,6 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(mosaicDidChangeState:) 
 													 name:MacOSaiXMosaicDidChangeStateNotification 
-												   object:currentMosaic];
-		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(tileImageDidChange:) 
-													 name:MacOSaiXTileImageDidChangeNotification 
 												   object:currentMosaic];
 		
 			// Tell all of the "mosaic only" windows to show this mosaic.
@@ -180,9 +173,6 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 	}
 	
 	[messageView setEditable:NO];
-	
-	tileRefreshLock = [[NSLock alloc] init];
-	tilesToRefresh = [[NSMutableArray array] retain];
 	
 	[mosaicView setViewFade:1.0];
 	
@@ -290,83 +280,6 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 	{
 		[imageSourcesTableView reloadData];
 	}
-}
-
-
-- (void)tileImageDidChange:(NSNotification *)notification
-{
-	[tileRefreshLock lock];
-		NSDictionary	*tileDict = [notification userInfo];
-		
-		if ([tilesToRefresh indexOfObject:tileDict] == NSNotFound)
-		{
-			[tilesToRefresh addObject:tileDict];
-//			[tilesToRefresh sortUsingFunction:compareDisplayedMatchValue context:nil];
-		}
-		
-		if (!refreshTilesTimer)
-			[self performSelectorOnMainThread:@selector(startTileRefreshTimer) withObject:nil waitUntilDone:NO];
-	[tileRefreshLock unlock];
-}
-
-
-- (void)startTileRefreshTimer
-{
-	[tileRefreshLock lock];
-		if (!refreshTilesTimer && [tilesToRefresh count] > 0)
-			refreshTilesTimer = [[NSTimer scheduledTimerWithTimeInterval:0.5 
-																  target:self 
-															    selector:@selector(spawnRefreshThread:) 
-															    userInfo:nil 
-																 repeats:NO] retain];
-	[tileRefreshLock unlock];
-}
-
-
-- (void)spawnRefreshThread:(NSTimer *)timer
-{
-	[tileRefreshLock lock];
-			// Spawn a thread to refresh all tiles whose images have changed.
-		if (!refreshTileThreadRunning)
-		{
-			refreshTileThreadRunning = YES;
-			[NSApplication detachDrawingThread:@selector(refreshTiles) toTarget:self withObject:nil];
-		}
-		
-		[refreshTilesTimer autorelease];
-		refreshTilesTimer = nil;
-	[tileRefreshLock unlock];
-}
-
-
-- (void)refreshTiles
-{
-	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	NSDictionary		*tileToRefresh = nil;
-	
-	do
-	{
-		NSAutoreleasePool	*innerPool = [[NSAutoreleasePool alloc] init];
-		
-		tileToRefresh = nil;
-		[tileRefreshLock lock];
-			if ([tilesToRefresh count] > 0)
-			{
-				tileToRefresh = [[[tilesToRefresh objectAtIndex:0] retain] autorelease];
-				[tilesToRefresh removeObjectAtIndex:0];
-			}
-		[tileRefreshLock unlock];
-		
-		if (tileToRefresh)
-			[mosaicView refreshTile:[tileToRefresh objectForKey:@"Tile"] 
-					  previousMatch:[tileToRefresh objectForKey:@"Previous Match"]];
-		
-		[innerPool release];
-	} while (tileToRefresh);
-	
-	refreshTileThreadRunning = NO;
-	
-	[pool release];
 }
 
 

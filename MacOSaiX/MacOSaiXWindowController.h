@@ -85,10 +85,6 @@
 	IBOutlet NSTextField				*exportWidth, *exportHeight;
 	unsigned long						exportProgressTileCount;
 	
-	NSMutableArray						*tilesToRefresh;
-	NSLock								*tileRefreshLock;
-	int									refreshTilesThreadCount;
-	
     NSTimer								*fadeTimer,
 										*animateTileTimer;
     NSMutableArray						*selectedTileImages;

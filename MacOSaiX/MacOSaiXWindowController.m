@@ -43,9 +43,6 @@
     {
 		statusBarShowing = YES;
 		exportFormat = NSJPEGFileType;
-		
-		tileRefreshLock = [[NSLock alloc] init];
-		tilesToRefresh = [[NSMutableArray array] retain];
 	}
 	
     return self;
@@ -509,58 +506,7 @@
 
 - (void)tileImageDidChange:(NSNotification *)notification
 {
-	[tileRefreshLock lock];
-		if ([tilesToRefresh indexOfObject:[notification userInfo]] == NSNotFound)
-			[tilesToRefresh addObject:[notification userInfo]];
-		
-		if (refreshTilesThreadCount == 0)
-			[NSApplication detachDrawingThread:@selector(refreshTiles:) toTarget:self withObject:nil];
-	[tileRefreshLock unlock];
-}
-
-
-- (void)refreshTiles:(id)dummy
-{
-	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	NSDictionary		*tileToRefresh = nil;
-
-        // Make sure only one copy of this thread runs at any time.
-	[tileRefreshLock lock];
-		if (refreshTilesThreadCount >= MAX_REFRESH_THREAD_COUNT)
-		{
-                // Not allowed to run any more threads, just exit.
-			[tileRefreshLock unlock];
-			[pool release];
-			return;
-		}
-		refreshTilesThreadCount++;
-	[tileRefreshLock unlock];
-	
-	do
-	{
-		NSAutoreleasePool	*innerPool = [[NSAutoreleasePool alloc] init];
-		
-		tileToRefresh = nil;
-		[tileRefreshLock lock];
-			if ([tilesToRefresh count] > 0)
-			{
-				tileToRefresh = [[[tilesToRefresh objectAtIndex:0] retain] autorelease];
-				[tilesToRefresh removeObjectAtIndex:0];
-			}
-		[tileRefreshLock unlock];
-		
-		if (tileToRefresh)
-			[mosaicView refreshTile:[tileToRefresh objectForKey:@"Tile"] 
-					  previousMatch:[tileToRefresh objectForKey:@"Previous Match"]];
-		
-		[innerPool release];
-	} while (tileToRefresh);
-	
-	[tileRefreshLock lock];
-		refreshTilesThreadCount--;
-	[tileRefreshLock unlock];
-	
-	[pool release];
+	// TODO: update the "choose image" sheet if it's displaying the changed tile
 }
 
 
@@ -1837,14 +1783,6 @@
 		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXMosaicDidChangeStateNotification object:[self mosaic]];
 		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXTileShapesDidChangeStateNotification object:[self mosaic]];
 		
-		[tileRefreshLock lock];
-			[tilesToRefresh release];
-			tilesToRefresh = nil;
-		[tileRefreshLock unlock];
-		
-		while (refreshTilesThreadCount > 0)
-			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
-		
 		if ([fadeTimer isValid])
 			[fadeTimer invalidate];
 	}
@@ -2078,9 +2016,6 @@
     
 	[tileShapesEditor release];
 	[tileShapesBeingEdited release];
-	
-	[tileRefreshLock release];
-	[tilesToRefresh release];
 	
 	if ([fadeTimer isValid])
 		[fadeTimer invalidate];
