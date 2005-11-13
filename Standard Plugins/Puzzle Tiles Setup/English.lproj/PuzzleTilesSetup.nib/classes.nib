@@ -2,22 +2,28 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            ACTIONS = {setTilesAcross = id; setTilesDown = id; }; 
-            CLASS = PuzzleTilesSetupController; 
+            ACTIONS = {
+                restrictTileSize = id; 
+                setRestrictedXSize = id; 
+                setRestrictedYSize = id; 
+                setTilesAcross = id; 
+                setTilesDown = id; 
+            }; 
+            CLASS = MacOSaiXPuzzleTileShapesEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                editorView = NSView; 
+                restrictTileSizeCheckBox = NSButton; 
+                restrictedXSizePopUpButton = NSPopUpButton; 
+                restrictedYSizePopUpButton = NSPopUpButton; 
+                tileCountTextField = NSTextField; 
+                tileSizeTextField = NSTextField; 
                 tilesAcrossStepper = NSStepper; 
-                tilesAcrossView = NSTextField; 
+                tilesAcrossTextField = NSTextField; 
                 tilesDownStepper = NSStepper; 
-                tilesDownView = NSTextField; 
+                tilesDownTextField = NSTextField; 
             }; 
-            SUPERCLASS = TilesSetupController; 
-        }, 
-        {
-            CLASS = TilesSetupController; 
-            LANGUAGE = ObjC; 
-            OUTLETS = {"_setupView" = NSView; }; 
-            SUPERCLASS = NSWindowController; 
+            SUPERCLASS = NSObject; 
         }
     ); 
     IBVersion = 1; 

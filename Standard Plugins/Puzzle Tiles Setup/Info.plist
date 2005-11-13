@@ -25,6 +25,6 @@
 	<key>CFBundleVersion</key>
 	<string>2.0a6</string>
 	<key>NSPrincipalClass</key>
-	<string>PuzzleTilesSetupController</string>
+	<string>MacOSaiXPuzzleTileShapes</string>
 </dict>
 </plist>
