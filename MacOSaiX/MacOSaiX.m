@@ -130,7 +130,7 @@
 
 - (BOOL)applicationShouldOpenUntitledFile:(NSApplication *)sender
 {
-	return NO;
+	return YES;
 }
 
 
@@ -144,8 +144,6 @@
 								   selector:@selector(checkFreeMemory:) 
 								   userInfo:nil 
 									repeats:YES];
-	
-	[self enterKioskMode:self];
 }
 
 
@@ -181,8 +179,7 @@
 - (void)discoverPlugIns
 {
 	NSString				*plugInsPath = [[NSBundle mainBundle] builtInPlugInsPath];
-	NSDirectoryEnumerator	*pathEnumerator = [[NSFileManager defaultManager]
- enumeratorAtPath:plugInsPath];
+	NSDirectoryEnumerator	*pathEnumerator = [[NSFileManager defaultManager] enumeratorAtPath:plugInsPath];
 	NSString				*plugInSubPath;
 	
 	[tileShapesClasses removeAllObjects];
