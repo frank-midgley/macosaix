@@ -17,10 +17,7 @@
 		0127354307CD6EBB0053037A /* Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0127354207CD6EBB0053037A /* Defaults.plist */; };
 		0128323A071B7297004ACF95 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		01297702086A63D30095AD36 /* MacOSaiXCrashReporterController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01297700086A63D30095AD36 /* MacOSaiXCrashReporterController.m */; };
-		01453D50071B6F7900BCEC7C /* PuzzleTilesSetup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 01453D4E071B6F7900BCEC7C /* PuzzleTilesSetup.nib */; };
 		01453D54071B6F8000BCEC7C /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 01453D51071B6F8000BCEC7C /* Info.plist */; };
-		01453D55071B6F8000BCEC7C /* PuzzleTilesSetupController.h in Headers */ = {isa = PBXBuildFile; fileRef = 01453D52071B6F8000BCEC7C /* PuzzleTilesSetupController.h */; };
-		01453D56071B6F8000BCEC7C /* PuzzleTilesSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01453D53071B6F8000BCEC7C /* PuzzleTilesSetupController.m */; };
 		014DB626071A2C8D00DF68C0 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 014DB625071A2C8D00DF68C0 /* Info.plist */; };
 		016A242308D7C952009A93BF /* ZoomIn.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242208D7C952009A93BF /* ZoomIn.png */; };
 		016A242508D7C975009A93BF /* ZoomOut.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242408D7C975009A93BF /* ZoomOut.png */; };
@@ -42,6 +39,12 @@
 		921607B208E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */; };
 		9216086708E5DC9F0018C4C1 /* DirectoryImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = F540721A023FE6860100010A /* DirectoryImageSource.m */; };
 		9216086A08E5DCA70018C4C1 /* NSFileManager+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */; };
+		9226836309267C1B00BF4EF7 /* PuzzleTileShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = 9226835F09267C1B00BF4EF7 /* PuzzleTileShapes.h */; };
+		9226836409267C1B00BF4EF7 /* PuzzleTileShapes.m in Sources */ = {isa = PBXBuildFile; fileRef = 9226836009267C1B00BF4EF7 /* PuzzleTileShapes.m */; };
+		9226836509267C1B00BF4EF7 /* PuzzleTileShapesEditor.h in Headers */ = {isa = PBXBuildFile; fileRef = 9226836109267C1B00BF4EF7 /* PuzzleTileShapesEditor.h */; };
+		9226836609267C1B00BF4EF7 /* PuzzleTileShapesEditor.m in Sources */ = {isa = PBXBuildFile; fileRef = 9226836209267C1B00BF4EF7 /* PuzzleTileShapesEditor.m */; };
+		9226836909267C2600BF4EF7 /* PuzzleTilesSetup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9226836709267C2600BF4EF7 /* PuzzleTilesSetup.nib */; };
+		922683A8092687A900BF4EF7 /* Puzzle Tiles.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 01453D4A071B6F2D00BCEC7C /* Puzzle Tiles.plugin */; };
 		9227FD5F07E378CC0020C5F4 /* Hexagonal Tiles.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 01CB07E6071A1F2B00710BCF /* Hexagonal Tiles.plugin */; };
 		9227FD7107E37A240020C5F4 /* HexagonalTileShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = 9227FD6D07E37A240020C5F4 /* HexagonalTileShapes.h */; };
 		9227FD7207E37A240020C5F4 /* HexagonalTileShapes.m in Sources */ = {isa = PBXBuildFile; fileRef = 9227FD6E07E37A240020C5F4 /* HexagonalTileShapes.m */; };
@@ -256,6 +259,13 @@
 /* End PBXBuildStyle section */
 
 /* Begin PBXContainerItemProxy section */
+		9226839C0926875400BF4EF7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 01453D49071B6F2D00BCEC7C;
+			remoteInfo = "Puzzle Tiles Setup";
+		};
 		9227FD5907E378AC0020C5F4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
@@ -321,6 +331,7 @@
 				925FE5C407EBDAB200B0D002 /* Glyph Image Source.plugin in CopyFiles */,
 				92E3E22C07E7E22A00E62AB8 /* iPhoto Image Source.plugin in CopyFiles */,
 				92865510072ADBD400EFC32A /* QuickTime Image Source.plugin in CopyFiles */,
+				922683A8092687A900BF4EF7 /* Puzzle Tiles.plugin in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -342,10 +353,7 @@
 		012976FF086A63D30095AD36 /* MacOSaiXCrashReporterController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXCrashReporterController.h; path = MacOSaiX/MacOSaiXCrashReporterController.h; sourceTree = "<group>"; };
 		01297700086A63D30095AD36 /* MacOSaiXCrashReporterController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXCrashReporterController.m; path = MacOSaiX/MacOSaiXCrashReporterController.m; sourceTree = "<group>"; };
 		01453D4A071B6F2D00BCEC7C /* Puzzle Tiles.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Puzzle Tiles.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
-		01453D4F071B6F7900BCEC7C /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Puzzle Tiles Setup/English.lproj/PuzzleTilesSetup.nib"; sourceTree = "<group>"; };
-		01453D51071B6F8000BCEC7C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = Info.plist; path = "Standard Plugins/Puzzle Tiles Setup/Info.plist"; sourceTree = "<group>"; };
-		01453D52071B6F8000BCEC7C /* PuzzleTilesSetupController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PuzzleTilesSetupController.h; path = "Standard Plugins/Puzzle Tiles Setup/PuzzleTilesSetupController.h"; sourceTree = "<group>"; };
-		01453D53071B6F8000BCEC7C /* PuzzleTilesSetupController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = PuzzleTilesSetupController.m; path = "Standard Plugins/Puzzle Tiles Setup/PuzzleTilesSetupController.m"; sourceTree = "<group>"; };
+		01453D51071B6F8000BCEC7C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
 		014DB625071A2C8D00DF68C0 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = Info.plist; path = "Standard Plugins/Hexaganol Tiles Setup/Info.plist"; sourceTree = "<group>"; };
 		016A242208D7C952009A93BF /* ZoomIn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ZoomIn.png; path = Images/ZoomIn.png; sourceTree = "<group>"; };
 		016A242408D7C975009A93BF /* ZoomOut.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ZoomOut.png; path = Images/ZoomOut.png; sourceTree = "<group>"; };
@@ -375,6 +383,11 @@
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSFileManager+MacOSaiX.h"; path = "MacOSaiX/NSFileManager+MacOSaiX.h"; sourceTree = "<group>"; };
 		921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSFileManager+MacOSaiX.m"; path = "MacOSaiX/NSFileManager+MacOSaiX.m"; sourceTree = "<group>"; };
+		9226835F09267C1B00BF4EF7 /* PuzzleTileShapes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PuzzleTileShapes.h; sourceTree = "<group>"; };
+		9226836009267C1B00BF4EF7 /* PuzzleTileShapes.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = PuzzleTileShapes.m; sourceTree = "<group>"; };
+		9226836109267C1B00BF4EF7 /* PuzzleTileShapesEditor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PuzzleTileShapesEditor.h; sourceTree = "<group>"; };
+		9226836209267C1B00BF4EF7 /* PuzzleTileShapesEditor.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = PuzzleTileShapesEditor.m; sourceTree = "<group>"; };
+		9226836809267C2600BF4EF7 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/PuzzleTilesSetup.nib; sourceTree = "<group>"; };
 		9227FD6D07E37A240020C5F4 /* HexagonalTileShapes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = HexagonalTileShapes.h; path = "Standard Plugins/Hexaganol Tiles Setup/HexagonalTileShapes.h"; sourceTree = "<group>"; };
 		9227FD6E07E37A240020C5F4 /* HexagonalTileShapes.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = HexagonalTileShapes.m; path = "Standard Plugins/Hexaganol Tiles Setup/HexagonalTileShapes.m"; sourceTree = "<group>"; };
 		9227FD6F07E37A240020C5F4 /* HexagonalTileShapesEditor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = HexagonalTileShapesEditor.h; path = "Standard Plugins/Hexaganol Tiles Setup/HexagonalTileShapesEditor.h"; sourceTree = "<group>"; };
@@ -596,20 +609,23 @@
 			children = (
 				927FA75B03FA35EE000A0D3F /* Rectangular */,
 				928F72C4066122B000873AE2 /* Hexagonal */,
-				01453D3B071B6F0E00BCEC7C /* Puzzle */,
+				01453D3B071B6F0E00BCEC7C /* Puzzle Tiles Setup */,
 			);
 			name = "Tile Shapes";
 			sourceTree = "<group>";
 		};
-		01453D3B071B6F0E00BCEC7C /* Puzzle */ = {
+		01453D3B071B6F0E00BCEC7C /* Puzzle Tiles Setup */ = {
 			isa = PBXGroup;
 			children = (
-				01453D52071B6F8000BCEC7C /* PuzzleTilesSetupController.h */,
-				01453D53071B6F8000BCEC7C /* PuzzleTilesSetupController.m */,
-				01453D4E071B6F7900BCEC7C /* PuzzleTilesSetup.nib */,
+				9226835F09267C1B00BF4EF7 /* PuzzleTileShapes.h */,
+				9226836009267C1B00BF4EF7 /* PuzzleTileShapes.m */,
+				9226836109267C1B00BF4EF7 /* PuzzleTileShapesEditor.h */,
+				9226836209267C1B00BF4EF7 /* PuzzleTileShapesEditor.m */,
+				9226836709267C2600BF4EF7 /* PuzzleTilesSetup.nib */,
 				01453D51071B6F8000BCEC7C /* Info.plist */,
 			);
-			name = Puzzle;
+			name = "Puzzle Tiles Setup";
+			path = "Standard Plugins/Puzzle Tiles Setup";
 			sourceTree = "<group>";
 		};
 		0165CFCE086DE5100070D6B5 /* Preferences */ = {
@@ -925,8 +941,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				01453D55071B6F8000BCEC7C /* PuzzleTilesSetupController.h in Headers */,
 				9287C13E075A5CC6004C07EF /* MacOSaiXTileShapes.h in Headers */,
+				9226836309267C1B00BF4EF7 /* PuzzleTileShapes.h in Headers */,
+				9226836509267C1B00BF4EF7 /* PuzzleTileShapesEditor.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1167,6 +1184,7 @@
 				928656FF0734508200EFC32A /* PBXTargetDependency */,
 				92E3E1B307E7CF9100E62AB8 /* PBXTargetDependency */,
 				928654A6072AC64400EFC32A /* PBXTargetDependency */,
+				9226839D0926875400BF4EF7 /* PBXTargetDependency */,
 			);
 			name = MacOSaiX.app;
 			productInstallPath = "$(HOME)/Applications";
@@ -1420,8 +1438,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				01453D50071B6F7900BCEC7C /* PuzzleTilesSetup.nib in Resources */,
 				01453D54071B6F8000BCEC7C /* Info.plist in Resources */,
+				9226836909267C2600BF4EF7 /* PuzzleTilesSetup.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1559,7 +1577,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				01453D56071B6F8000BCEC7C /* PuzzleTilesSetupController.m in Sources */,
+				9226836409267C1B00BF4EF7 /* PuzzleTileShapes.m in Sources */,
+				9226836609267C1B00BF4EF7 /* PuzzleTileShapesEditor.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1662,6 +1681,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		9226839D0926875400BF4EF7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 01453D49071B6F2D00BCEC7C /* Puzzle Tiles Setup */;
+			targetProxy = 9226839C0926875400BF4EF7 /* PBXContainerItemProxy */;
+		};
 		9227FD5A07E378AC0020C5F4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 01CB07E5071A1F2B00710BCF /* Hexagonal Tiles Plug-in */;
@@ -1732,14 +1756,6 @@
 			name = "Screen Setup.nib";
 			sourceTree = "<group>";
 		};
-		01453D4E071B6F7900BCEC7C /* PuzzleTilesSetup.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				01453D4F071B6F7900BCEC7C /* English */,
-			);
-			name = PuzzleTilesSetup.nib;
-			sourceTree = "<group>";
-		};
 		01AD286D07E3C99A00420875 /* GoogleImageSearch.gif */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -1754,6 +1770,14 @@
 				01FAF1D5084031C2003A2726 /* English */,
 			);
 			name = "Crash Reporter.nib";
+			sourceTree = "<group>";
+		};
+		9226836709267C2600BF4EF7 /* PuzzleTilesSetup.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9226836809267C2600BF4EF7 /* English */,
+			);
+			name = PuzzleTilesSetup.nib;
 			sourceTree = "<group>";
 		};
 		9227FD7907E37A340020C5F4 /* HexagonalTileShapes.nib */ = {
@@ -2045,6 +2069,7 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
 				MACOSX_DEPLOYMENT_TARGET = 10.2;
 				WARNING_CFLAGS = (
 					"-Wmost",
