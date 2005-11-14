@@ -81,10 +81,12 @@
                 statusMessageView = NSTextField; 
                 tileShapesBeingEdited = id; 
                 tileShapesBox = NSBox; 
+                tileShapesCountField = NSTextField; 
                 tileShapesDescriptionField = NSTextField; 
                 tileShapesEditor = id; 
                 tileShapesPanel = NSPanel; 
                 tileShapesPopUpButton = NSPopUpButton; 
+                tileShapesPreviewImageView = NSImageView; 
                 tileSizeField = NSTextField; 
                 tileSizeLabelField = NSTextField; 
                 totalTilesField = NSTextField; 
@@ -94,7 +96,8 @@
             }; 
             SUPERCLASS = NSWindowController; 
         }, 
-        {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSView; }
+        {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
+        {CLASS = NSWindowController; LANGUAGE = ObjC; SUPERCLASS = NSResponder; }
     ); 
     IBVersion = 1; 
 }
