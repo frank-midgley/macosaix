@@ -48,8 +48,10 @@
 	IBOutlet NSPanel					*tileShapesPanel;
 	IBOutlet NSPopUpButton				*tileShapesPopUpButton;
 	IBOutlet NSBox						*tileShapesBox;
+	IBOutlet NSImageView				*tileShapesPreviewImageView;
 	id<MacOSaiXTileShapesEditor>		tileShapesEditor;
 	id<MacOSaiXTileShapes>				tileShapesBeingEdited;
+	IBOutlet NSTextField				*tileShapesCountField;
 	IBOutlet NSButton					*cancelTileShapesButton,
 										*setTileShapesButton;
 	

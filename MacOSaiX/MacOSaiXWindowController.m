@@ -384,6 +384,12 @@
 }
 
 
+- (NSImage *)originalImage
+{
+	return [mosaic originalImage];
+}
+
+
 #pragma mark
 
 
@@ -551,6 +557,57 @@
 }
 
 
+- (void)updateTileShapesPreview
+{
+	NSBezierPath	*previewPath = [tileShapesEditor previewPath];
+	NSImage			*previewImage = nil;
+	NSRect			previewPathBounds = [previewPath bounds];
+	
+	if (previewPath && NSWidth(previewPathBounds) > 0 && NSHeight(previewPathBounds) > 0)
+	{
+			// Scale the path to the image size.
+		NSSize				previewSize = (NSWidth(previewPathBounds) > NSHeight(previewPathBounds) ? 
+												NSMakeSize(96.0, 96.0 * NSHeight(previewPathBounds) / NSWidth(previewPathBounds)) : 
+												NSMakeSize(96.0 * NSWidth(previewPathBounds) / NSHeight(previewPathBounds), 96.0));
+		NSAffineTransform	*transform = [NSAffineTransform transform];
+		[transform scaleBy:96.0 / MAX(NSWidth(previewPathBounds), NSHeight(previewPathBounds))];
+		[transform translateXBy:-NSMinX(previewPathBounds) yBy:-NSMinY(previewPathBounds)];
+		[previewPath transformUsingAffineTransform:transform];
+		
+		[previewPath setLineWidth:2.0];
+		
+			// Create the preview image
+		previewImage = [[NSImage alloc] initWithSize:NSMakeSize(previewSize.width + 4.0, 
+																previewSize.height + 4.0)];
+		[previewImage lockFocus];
+			[[NSColor clearColor] set];
+			NSRectFill(NSMakeRect(0.0, 0.0, previewSize.width, previewSize.height));
+			
+				// Draw the shadow.
+			[[NSColor grayColor] set];
+			transform = [NSAffineTransform transform];
+			[transform translateXBy:3.0 yBy:1.0];
+			[[transform transformBezierPath:previewPath] stroke];
+			[[NSColor darkGrayColor] set];
+			transform = [NSAffineTransform transform];
+			[transform translateXBy:2.0 yBy:2.0];
+			[[transform transformBezierPath:previewPath] stroke];
+			
+				// Draw the path.
+			transform = [NSAffineTransform transform];
+			[transform translateXBy:1.0 yBy:3.0];
+			[[NSColor whiteColor] set];
+			[[transform transformBezierPath:previewPath] fill];
+			[[NSColor blackColor] set];
+			[[transform transformBezierPath:previewPath] stroke];
+		[previewImage unlockFocus];
+	}
+	
+	[tileShapesPreviewImageView setImage:previewImage];
+	[previewImage release];
+}
+
+
 - (IBAction)setTileShapesPlugIn:(id)sender
 {
 	Class			tileShapesClass = [[tileShapesPopUpButton selectedItem] representedObject],
@@ -560,8 +617,10 @@
 	{
 			// Release any previous editor and create a new one using the selected class.
 		[tileShapesEditor release];
-		tileShapesEditor = [[tileShapesEditorClass alloc] init];
+		tileShapesEditor = [[tileShapesEditorClass alloc] initWithDelegate:self];
 		
+		[self updateTileShapesPreview];
+	
 			// Swap in the view of the new editor.  Make sure the panel is big enough to contain the view's minimum size.
 		float	widthDiff = MAX(0.0, [tileShapesEditor editorViewMinimumSize].width - [[tileShapesBox contentView] frame].size.width),
 				heightDiff = MAX(0.0, [tileShapesEditor editorViewMinimumSize].height - [[tileShapesBox contentView] frame].size.height);
@@ -591,7 +650,7 @@
 		else
 			tileShapesBeingEdited = [[tileShapesClass alloc] init];
 		
-		[tileShapesEditor editTileShapes:tileShapesBeingEdited forOriginalImage:[[self mosaic] originalImage]];
+		[tileShapesEditor editTileShapes:tileShapesBeingEdited];
 	}
 	else
 	{
@@ -600,6 +659,19 @@
 		[errorView setStringValue:@"Could not load the plug-in"];
 		[errorView setEditable:NO];
 	}
+}
+
+
+- (void)tileShapesWereEdited
+{
+	int	tileCount = [tileShapesEditor tileCount];
+	
+	if (tileCount > 0)
+		[tileShapesCountField setIntValue:tileCount];
+	else
+		[tileShapesCountField setStringValue:@"Unknown"];
+	
+	[self updateTileShapesPreview];
 }
 
 
