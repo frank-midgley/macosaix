@@ -1,3 +1,4 @@
+
 //
 //  RectangularTileShapesController.h
 //  MacOSaiX
@@ -14,23 +15,22 @@
 {
 	IBOutlet NSView					*editorView;
     IBOutlet NSTextField			*tilesAcrossTextField,
-									*tilesDownTextField;
-    IBOutlet NSStepper				*tilesAcrossStepper, 
-									*tilesDownStepper;
-	IBOutlet NSTextField			*tileCountTextField, 
+									*tilesDownTextField, 
 									*tileSizeTextField;
-	IBOutlet NSButton				*restrictTileSizeCheckBox;
-	IBOutlet NSPopUpButton			*restrictedXSizePopUpButton,
-									*restrictedYSizePopUpButton;
+	IBOutlet NSSlider				*tilesAcrossSlider,
+									*tilesDownSlider, 
+									*tileSizeSlider;
+	IBOutlet NSButton				*preserveTileSizeCheckBox;
 	
+	id								editorDelegate;
 	NSSize							originalImageSize;
 	MacOSaiXRectangularTileShapes	*currentTileShapes;
 }
 
 - (IBAction)setTilesAcross:(id)sender;
 - (IBAction)setTilesDown:(id)sender;
-- (IBAction)restrictTileSize:(id)sender;
-- (IBAction)setRestrictedXSize:(id)sender;
-- (IBAction)setRestrictedYSize:(id)sender;
+- (IBAction)setTilesSize:(id)sender;
+
+- (IBAction)setTileSizePreserved:(id)sender;
 
 @end

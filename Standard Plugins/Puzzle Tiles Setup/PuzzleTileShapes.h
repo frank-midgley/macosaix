@@ -8,6 +8,12 @@
 
 #import "MacOSaiXTileShapes.h"
 
+typedef enum
+{
+	noTab, 
+	inwardsTab, 
+	outwardsTab
+} PuzzleTabType;
 
 @interface MacOSaiXPuzzleTileShapes : NSObject <MacOSaiXTileShapes>
 {
@@ -20,5 +26,11 @@
 
 - (void)setTilesDown:(unsigned int)count;
 - (unsigned int)tilesDown;
+
+- (NSBezierPath *)puzzlePathWithSize:(NSSize)tileSize
+							  topTab:(PuzzleTabType)topTabType 
+							 leftTab:(PuzzleTabType)leftTabType 
+							rightTab:(PuzzleTabType)rightTabType 
+						   bottomTab:(PuzzleTabType)bottomTabType;
 
 @end
