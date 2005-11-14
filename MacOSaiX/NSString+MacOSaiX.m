@@ -50,16 +50,20 @@
 	for (xInt = 1; xInt < 10; xInt++)
 	{
 		yInt = (xInt / aspectRatio);
+		
 		if (fabsf(aspectRatio - (float)xInt / (float)yInt) > 
 			fabsf(aspectRatio - (float)xInt / (float)(yInt + 1)))
 			yInt++;
 		
-		float	curDiff = fabsf(aspectRatio - (float)xInt / (float)yInt);
-		
-		if (curDiff < minDiff)
+		if (yInt >= 1 && yInt <= 9)
 		{
-			minDiff = curDiff;
-			ratioString = [NSString stringWithFormat:@"%dx%d", xInt, yInt];
+			float	curDiff = fabsf(aspectRatio - (float)xInt / (float)yInt);
+			
+			if (curDiff < minDiff)
+			{
+				minDiff = curDiff;
+				ratioString = [NSString stringWithFormat:@"%d x %d", yInt, xInt];
+			}
 		}
 	}
 	
