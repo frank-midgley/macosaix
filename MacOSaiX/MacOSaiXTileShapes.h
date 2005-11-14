@@ -43,13 +43,23 @@
 
 @protocol MacOSaiXTileShapesEditor <NSObject>
 
+- (id)initWithDelegate:(id)delegate;
+
 	// The view containing the editing controls.
 - (NSView *)editorView;
 - (NSSize)editorViewMinimumSize;
 - (NSResponder *)editorViewFirstResponder;
 
-- (void)editTileShapes:(id<MacOSaiXTileShapes>)tilesSetup forOriginalImage:(NSImage *)originalImage;
+- (void)editTileShapes:(id<MacOSaiXTileShapes>)tilesSetup;
 
+- (int)tileCount;
+- (NSBezierPath *)previewPath;
+
+@end
+
+@interface NSObject (MacOSaiXTileShapesEditorDelegate)
+- (NSImage *)originalImage;
+- (void)tileShapesWereEdited;
 @end
 
 
