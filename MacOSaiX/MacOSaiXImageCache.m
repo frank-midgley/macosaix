@@ -214,6 +214,8 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 						*scalableRep = nil;
 	NSString			*imageKey = [self keyWithImageSource:imageSource identifier:imageIdentifier];
 
+	size = NSMakeSize(roundf(size.width), roundf(size.height));
+	
 	[cacheLock lock];
 		NSValue			*nativeSizeValue = [nativeImageSizeDict objectForKey:imageKey];
 //		NSSize			repSize = NSZeroSize;
