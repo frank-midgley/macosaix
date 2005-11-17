@@ -1,0 +1,13 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {setQueryType = id; visitFlickr = id; }; 
+            CLASS = FlickrImageSourceController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {editorView = NSView; queryField = NSTextField; queryTypeMatrix = NSMatrix; }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}
