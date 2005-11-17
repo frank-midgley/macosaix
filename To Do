@@ -85,3 +85,5 @@ Riemersma metric:
 Ã	Fix iPhoto crasher in -[NSAppleScript dealloc]
 Ã	Fix crash in -[MosaicView createHighlightedImageSourcesOutline]
 ¥	Single menu for restricting tile sizes
+¥	Complete plug-in API (prefs and delegation change)
+¥	Don't loop forever scaling from the cache
