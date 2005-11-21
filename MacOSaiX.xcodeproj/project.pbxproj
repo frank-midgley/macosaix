@@ -30,7 +30,6 @@
 		01722BC309298DBB00290929 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 01722B9109298D3300290929 /* Info.plist */; };
 		01722BD909298DCE00290929 /* Flickr Image Source.nib in Resources */ = {isa = PBXBuildFile; fileRef = 01722BD309298DCE00290929 /* Flickr Image Source.nib */; };
 		01722BF6092991FF00290929 /* flickr.gif in Resources */ = {isa = PBXBuildFile; fileRef = 01722BF4092991FF00290929 /* flickr.gif */; };
-		01722BF7092991FF00290929 /* flickrbuddy.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 01722BF5092991FF00290929 /* flickrbuddy.jpg */; };
 		01722C270929986A00290929 /* f.ico in Resources */ = {isa = PBXBuildFile; fileRef = 01722C260929986A00290929 /* f.ico */; };
 		01A1978E071A200E00B11558 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		01AB92EB07DB797300DB4B86 /* NSString+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */; };
@@ -399,7 +398,6 @@
 		01722BBE09298D3E00290929 /* Info copy.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = "Info copy.plist"; path = "Standard Plugins/Google Image Source/Info copy.plist"; sourceTree = "<group>"; };
 		01722BD409298DCE00290929 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Flickr Image Source.nib"; sourceTree = "<group>"; };
 		01722BF4092991FF00290929 /* flickr.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = flickr.gif; sourceTree = "<group>"; };
-		01722BF5092991FF00290929 /* flickrbuddy.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = flickrbuddy.jpg; sourceTree = "<group>"; };
 		01722C260929986A00290929 /* f.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = f.ico; sourceTree = "<group>"; };
 		01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+MacOSaiX.h"; path = "MacOSaiX/NSString+MacOSaiX.h"; sourceTree = "<group>"; };
 		01AB92EA07DB797300DB4B86 /* NSString+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+MacOSaiX.m"; path = "MacOSaiX/NSString+MacOSaiX.m"; sourceTree = "<group>"; };
@@ -713,7 +711,6 @@
 				01722B9109298D3300290929 /* Info.plist */,
 				01722C260929986A00290929 /* f.ico */,
 				01722BF4092991FF00290929 /* flickr.gif */,
-				01722BF5092991FF00290929 /* flickrbuddy.jpg */,
 			);
 			name = "Flickr Image Source";
 			path = "Standard Plugins/Flickr Image Source";
@@ -1558,7 +1555,6 @@
 				01722BC309298DBB00290929 /* Info.plist in Resources */,
 				01722BD909298DCE00290929 /* Flickr Image Source.nib in Resources */,
 				01722BF6092991FF00290929 /* flickr.gif in Resources */,
-				01722BF7092991FF00290929 /* flickrbuddy.jpg in Resources */,
 				01722C270929986A00290929 /* f.ico in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
