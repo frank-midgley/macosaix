@@ -53,6 +53,7 @@ Riemersma metric:
 ¥	Get rid of lines in exporting
 ¥	Add preferences API for image source plug-ins
 ¥	Add preferences API for tile shapes plug-ins
+¥	Add OS requirement for plug-ins
 ¥	Rework puzzle shapes plug-in to conform with new API
 	Google source:
 ¥		Make sure cache doesn't fill disk
@@ -85,5 +86,5 @@ Riemersma metric:
 Ã	Fix iPhoto crasher in -[NSAppleScript dealloc]
 Ã	Fix crash in -[MosaicView createHighlightedImageSourcesOutline]
 ¥	Single menu for restricting tile sizes
-¥	Complete plug-in API (prefs and delegation change)
+¥	Complete plug-in API (prefs, OS check and delegation change)
 ¥	Don't loop forever scaling from the cache
