@@ -11,12 +11,16 @@
 
 @interface FlickrImageSourceController : NSObject <MacOSaiXImageSourceController>
 {
-	IBOutlet NSView			*editorView;
-	IBOutlet NSTextField	*queryField;
-	IBOutlet NSMatrix		*queryTypeMatrix;
-
-	NSButton				*okButton;
-	FlickrImageSource		*currentImageSource;
+	IBOutlet NSView					*editorView;
+	IBOutlet NSTextField			*queryField;
+	IBOutlet NSMatrix				*queryTypeMatrix;
+	
+	IBOutlet NSTextField			*matchingPhotosCount;
+	IBOutlet NSProgressIndicator	*matchingPhotosIndicator;
+	NSTimer							*matchingPhotosTimer;
+	
+	NSButton						*okButton;
+	FlickrImageSource				*currentImageSource;
 }
 
 - (IBAction)visitFlickr:(id)sender;

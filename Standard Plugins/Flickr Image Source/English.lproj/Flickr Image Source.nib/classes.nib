@@ -5,7 +5,13 @@
             ACTIONS = {setQueryType = id; visitFlickr = id; }; 
             CLASS = FlickrImageSourceController; 
             LANGUAGE = ObjC; 
-            OUTLETS = {editorView = NSView; queryField = NSTextField; queryTypeMatrix = NSMatrix; }; 
+            OUTLETS = {
+                editorView = NSView; 
+                matchingPhotosCount = NSTextField; 
+                matchingPhotosIndicator = NSProgressIndicator; 
+                queryField = NSTextField; 
+                queryTypeMatrix = NSMatrix; 
+            }; 
             SUPERCLASS = NSObject; 
         }
     ); 
