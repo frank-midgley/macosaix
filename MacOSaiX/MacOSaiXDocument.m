@@ -46,7 +46,7 @@
 		
 		lastSaved = [[NSDate date] retain];
 		
-		mosaic = [[MacOSaiXMosaic alloc] init];
+		[self setMosaic:[[MacOSaiXMosaic alloc] init]];
 	}
 	
     return self;
@@ -80,8 +80,16 @@
 
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic
 {
+	if (mosaic)
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:mosaic];
+	
 	[mosaic autorelease];
 	mosaic = [inMosaic retain];
+
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(mosaicDidChangeState:) 
+												 name:MacOSaiXMosaicDidChangeStateNotification 
+											   object:mosaic];
 }
 
 
