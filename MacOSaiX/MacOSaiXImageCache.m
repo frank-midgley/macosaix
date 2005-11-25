@@ -289,21 +289,20 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 			}
 			
 			[[NSGraphicsContext currentContext] saveGraphicsState];
-			[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
-			do
-			{
+				[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
 				NS_DURING
 					[scaledImage lockFocus];
 						[scalableRep drawInRect:scaledRect];
 						imageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0.0, 0.0, size.width, size.height)] autorelease];
 					[scaledImage unlockFocus];
 				NS_HANDLER
-					NSLog(@"Could not lock focus on image to scale.");
+					NSLog(@"Could not scale an image to (%f, %f)", size.width, size.height);
 				NS_ENDHANDLER
-			} while (!imageRep);
 			[[NSGraphicsContext currentContext] restoreGraphicsState];
 			[scaledImage release];
-			[self addImageRep:imageRep toMemoryCacheForKey:imageKey];
+			
+			if (imageRep)
+				[self addImageRep:imageRep toMemoryCacheForKey:imageKey];
 		}
 		
 		if (!imageRep)
