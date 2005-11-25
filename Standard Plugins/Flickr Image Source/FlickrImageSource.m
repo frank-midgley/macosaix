@@ -233,6 +233,7 @@ void	endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 		
 		http://www.flickr.com/services/api/
 		
+		Sorting: interestingness-desc
 	*/
 	WSMethodInvocationRef	flickrInvocation = WSMethodInvocationCreate((CFURLRef)[NSURL URLWithString:@"http://www.flickr.com/services/xmlrpc/"],
 																		CFSTR("flickr.photos.search"),
@@ -241,6 +242,7 @@ void	endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 												@"514c14062bc75c91688dfdeacc6252c7", @"api_key", 
 												[NSNumber numberWithInt:nextPage], @"page", 
 												[NSNumber numberWithInt:100], @"per_page", 
+												@"date-posted-desc", @"sort", 
 												nil];
 	
 	if (queryType == matchAllTags)
@@ -297,7 +299,7 @@ void	endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 			if (pageCount > nextPage)
 				nextPage++;
 			else
-				nextPage = -1;
+				nextPage = 0;
 		}
 		
 		CFRelease(parser);
