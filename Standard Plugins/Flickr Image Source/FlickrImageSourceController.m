@@ -56,14 +56,17 @@
 
 - (void)getCountOfMatchingPhotos
 {
-	if (!matchingPhotosTimer)
+	if (matchingPhotosTimer)
 	{
-		matchingPhotosTimer = [[NSTimer scheduledTimerWithTimeInterval:0.5 
-																target:self 
-															  selector:@selector(getCountOfMatchingPhotos:) 
-															  userInfo:nil 
-															   repeats:NO] retain];
+		[matchingPhotosTimer invalidate];
+		[matchingPhotosTimer release];
 	}
+	
+	matchingPhotosTimer = [[NSTimer scheduledTimerWithTimeInterval:0.5 
+															target:self 
+														  selector:@selector(getCountOfMatchingPhotos:) 
+														  userInfo:nil 
+														   repeats:NO] retain];
 }
 
 
