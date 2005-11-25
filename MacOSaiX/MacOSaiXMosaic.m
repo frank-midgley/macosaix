@@ -18,6 +18,7 @@
 
 	// Notifications
 NSString	*MacOSaiXMosaicDidChangeStateNotification = @"MacOSaiXMosaicDidChangeStateNotification";
+NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChangeBusyStateNotification";
 NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDidChangeNotification";
 NSString	*MacOSaiXTileImageDidChangeNotification = @"MacOSaiXTileImageDidChangeNotification";
 NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDidChangeStateNotification";
@@ -416,7 +417,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	[enumerationThreadCountLock lock];
 		enumerationThreadCount++;
 	[enumerationThreadCountLock unlock];
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
+	
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
+														object:self];
 	
 		// Don't usurp the main thread.
 	[NSThread setThreadPriority:0.1];
@@ -487,7 +490,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				if (!pausing && !calculateImageMatchesThreadAlive)
 					[NSApplication detachDrawingThread:@selector(calculateImageMatches:) toTarget:self withObject:nil];
 				
-				[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
+				[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification 
+																	object:self];
 			}
 		}
 		sourceHasMoreImages = [[self imageSources] containsObject:imageSource] && [imageSource hasMoreImages];
@@ -499,7 +503,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		enumerationThreadCount--;
 	[enumerationThreadCountLock unlock];
 	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
+														object:self];
 }
 
 
@@ -565,7 +570,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		calculateImageMatchesThreadAlive = YES;
 	[calculateImageMatchesThreadLock unlock];
 	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
+														object:self];
 	
 		// Don't usurp the main thread.
 	[NSThread setThreadPriority:0.1];
@@ -854,7 +860,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		calculateImageMatchesThreadAlive = NO;
 	[calculateImageMatchesThreadLock unlock];
 	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
+														object:self];
 
 		// clean up and shutdown this thread
     [pool release];
@@ -927,7 +934,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		
 		paused = YES;
 		
-		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
+															object:self];
 	}
 }
 
@@ -945,7 +953,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		
 		paused = NO;
 		
-		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
+															object:self];
 	}
 }
 
