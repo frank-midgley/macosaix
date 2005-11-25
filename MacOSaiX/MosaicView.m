@@ -101,7 +101,7 @@
 			// Create an NSImage to hold the mosaic image (somewhat arbitrary size)
 		[mosaicImageLock lock];
 			[mosaicImage autorelease];
-			mosaicImage = [[NSImage alloc] initWithSize:NSMakeSize(1600.0, 1600.0 * [originalImage size].height / [originalImage size].width)];
+			mosaicImage = [[NSImage alloc] initWithSize:NSMakeSize(3200.0, 3200.0 * [originalImage size].height / [originalImage size].width)];
 			[mosaicImage setCachedSeparately:YES];
 			[mosaicImage setCacheMode:NSImageCacheNever];
 			
