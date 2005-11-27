@@ -75,7 +75,7 @@
 	if ([preserveTileSizeCheckBox state] == NSOffState)
 	{
 		float	tileAspectRatio = (originalImageSize.width / [tilesAcrossSlider intValue]) / 
-		(originalImageSize.height / [tilesDownSlider intValue]);
+								  (originalImageSize.height / [tilesDownSlider intValue]);
 		[tileSizeTextField setStringValue:[NSString stringWithAspectRatio:tileAspectRatio]];
 		[tileSizeSlider setFloatValue:tileAspectRatio];
 	}
@@ -265,7 +265,10 @@
 
 - (NSBezierPath *)previewPath
 {
-	return [currentTileShapes puzzlePathWithSize:NSMakeSize(1.0, 1.0) 
+	float	tileAspectRatio = (originalImageSize.width / [tilesAcrossSlider intValue]) / 
+							  (originalImageSize.height / [tilesDownSlider intValue]);
+	
+	return [currentTileShapes puzzlePathWithSize:NSMakeSize(1.0, 1.0 / tileAspectRatio) 
 										  topTab:topTabType 
 										 leftTab:leftTabType 
 										rightTab:rightTabType 
