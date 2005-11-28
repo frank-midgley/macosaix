@@ -156,6 +156,7 @@
 		92F00CCF07C1AA55004F6D06 /* MacPADSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F00CCD07C1AA55004F6D06 /* MacPADSocket.m */; };
 		92F00CE507C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F00CE307C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m */; };
 		92F00D0807C1B52B004F6D06 /* Update Available.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92F00D0607C1B52B004F6D06 /* Update Available.nib */; };
+		92FF35C90937AFF9000FF862 /* Lock.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 92FF35C80937AFF8000FF862 /* Lock.tiff */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -279,7 +280,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 01722B9409298D3E00290929 /* Flickr Image Source Plug-In */;
+			remoteGlobalIDString = 01722B9409298D3E00290929;
 			remoteInfo = "Flickr Image Source Plug-In";
 		};
 		9226839C0926875400BF4EF7 /* PBXContainerItemProxy */ = {
@@ -493,6 +494,7 @@
 		92F2B1D5048027510000011E /* QuickTimeImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = QuickTimeImageSourceController.h; path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSourceController.h"; sourceTree = SOURCE_ROOT; };
 		92F2B1D6048027510000011E /* QuickTimeImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = QuickTimeImageSourceController.m; path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSourceController.m"; sourceTree = SOURCE_ROOT; };
 		92F2B1EC048027FA0000011E /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = /System/Library/Frameworks/QuickTime.framework; sourceTree = "<absolute>"; };
+		92FF35C80937AFF8000FF862 /* Lock.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = Lock.tiff; path = "Standard Plugins/Rectangular Tiles Setup/Lock.tiff"; sourceTree = "<group>"; };
 		F514D53C0390266E01B25AF1 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		F514D5A203949AA801B25AF1 /* GoogleImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GoogleImageSourceController.h; path = "Standard Plugins/Google Image Source/GoogleImageSourceController.h"; sourceTree = "<group>"; };
 		F514D5A303949AA801B25AF1 /* GoogleImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = GoogleImageSourceController.m; path = "Standard Plugins/Google Image Source/GoogleImageSourceController.m"; sourceTree = "<group>"; };
@@ -826,6 +828,7 @@
 				92902AEFC5B082BD00F96641 /* RectangularTileShapesEditor.m */,
 				928F72930661226000873AE2 /* RectangularTileShapes.nib */,
 				928F72E80661237300873AE2 /* Info.plist */,
+				92FF35C80937AFF8000FF862 /* Lock.tiff */,
 			);
 			name = Rectangular;
 			sourceTree = "<group>";
@@ -1639,6 +1642,7 @@
 			files = (
 				928F72D3066122D300873AE2 /* RectangularTileShapes.nib in Resources */,
 				928F72E90661237300873AE2 /* Info.plist in Resources */,
+				92FF35C90937AFF9000FF862 /* Lock.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
