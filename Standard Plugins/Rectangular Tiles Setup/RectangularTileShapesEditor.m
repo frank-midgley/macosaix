@@ -26,30 +26,25 @@
 }
 
 
-- (NSView *)editorView
-{
-	if (!editorView)
-	{
-		[NSBundle loadNibNamed:@"RectangularTileShapes" owner:self];
-		[tileSizeSlider setMinValue:1.0/9.0];
-		[tileSizeSlider setMaxValue:9.0/1.0];
-	}
-	
-	return editorView;
-}
-
-
 - (id)initWithDelegate:(id)delegate
 {
 	if (self = [super init])
 	{
 		editorDelegate = delegate;
-		
-		originalImageSize = [[editorDelegate originalImage] size];
 	}
 	
 	return self;
 }
+
+
+- (NSView *)editorView
+{
+	if (!editorView)
+		[NSBundle loadNibNamed:@"RectangularTileShapes" owner:self];
+	
+	return editorView;
+}
+
 
 - (NSSize)editorViewMinimumSize
 {
@@ -69,7 +64,13 @@
 	{
 		float	tileAspectRatio = (originalImageSize.width / [tilesAcrossSlider intValue]) / 
 								  (originalImageSize.height / [tilesDownSlider intValue]);
+
 		[tileSizeTextField setStringValue:[NSString stringWithAspectRatio:tileAspectRatio]];
+		
+		if (tileAspectRatio < 1.0)
+			tileAspectRatio = (tileAspectRatio - minAspectRatio) / (1.0 - minAspectRatio);
+		else if (tileAspectRatio > 1.0)
+			tileAspectRatio = (tileAspectRatio - 1.0) / (maxAspectRatio - 1.0) + 1.0;
 		[tileSizeSlider setFloatValue:tileAspectRatio];
 	}
 }
@@ -98,6 +99,13 @@
 {
 	[self setCurrentTileShapes:tilesSetup];
 	
+	originalImageSize = [[editorDelegate originalImage] size];
+	
+	minAspectRatio = (originalImageSize.width / [tilesAcrossSlider maxValue]) / 
+					 (originalImageSize.height / [tilesDownSlider minValue]);
+	maxAspectRatio = (originalImageSize.width / [tilesAcrossSlider minValue]) / 
+					 (originalImageSize.height / [tilesDownSlider maxValue]);
+	
 		// Constrain the tiles across value to the stepper's range and update the model and view.
 	int	tilesAcross = MIN(MAX([currentTileShapes tilesAcross], [tilesAcrossSlider minValue]), [tilesAcrossSlider maxValue]);
 	[currentTileShapes setTilesAcross:tilesAcross];
@@ -121,11 +129,24 @@
 }
 
 
+- (float)aspectRatio
+{
+	float	aspectRatio = [tileSizeSlider floatValue];
+	
+	if (aspectRatio < 1.0)
+		aspectRatio = minAspectRatio + (1.0 - minAspectRatio) * aspectRatio;
+	else if (aspectRatio > 1.0)
+		aspectRatio = 1.0 + (maxAspectRatio - 1.0) * (aspectRatio - 1.0);
+		
+	return aspectRatio;
+}
+
+
 - (void)setTilesAcrossBasedOnTilesDown
 {
 	int		tilesAcross = [tilesAcrossSlider intValue], 
 			tilesDown = [tilesDownSlider intValue];
-	float	targetAspectRatio = [tileSizeSlider floatValue];
+	float	targetAspectRatio = [self aspectRatio];
 	
 	tilesAcross = originalImageSize.width * (float)tilesDown / originalImageSize.height * targetAspectRatio;
 	
@@ -154,7 +175,7 @@
 {
 	int		tilesAcross = [tilesAcrossSlider intValue], 
 			tilesDown = [tilesDownSlider intValue];
-	float	targetAspectRatio = [tileSizeSlider floatValue];
+	float	targetAspectRatio = [self aspectRatio];
 	
 	tilesDown = originalImageSize.height * (float)tilesAcross / originalImageSize.width * targetAspectRatio;
 	
@@ -217,10 +238,10 @@
 	if ([preserveTileSizeCheckBox state] == NSOnState)
 	{
 		[self setTilesDownBasedOnTilesAcross];
-		[tileSizeSlider setEnabled:YES];
+		[tileSizeSlider setEnabled:NO];
 	}
 	else
-		[tileSizeSlider setEnabled:NO];
+		[tileSizeSlider setEnabled:YES];
 	
 	[self updatePlugInDefaults];
 }
@@ -244,7 +265,7 @@
 
 - (NSBezierPath *)previewPath
 {
-	return [NSBezierPath bezierPathWithRect:NSMakeRect(0.0, 0.0, 100.0, 100.0 / [tileSizeSlider floatValue])];
+	return [NSBezierPath bezierPathWithRect:NSMakeRect(0.0, 0.0, 100.0, 100.0 / [self aspectRatio])];
 }
 
 

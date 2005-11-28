@@ -24,6 +24,8 @@
 	
 	id								editorDelegate;
 	NSSize							originalImageSize;
+	float							minAspectRatio,
+									maxAspectRatio;
 	MacOSaiXRectangularTileShapes	*currentTileShapes;
 }
 
