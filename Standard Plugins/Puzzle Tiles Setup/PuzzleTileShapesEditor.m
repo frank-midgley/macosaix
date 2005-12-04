@@ -60,7 +60,7 @@
 
 - (NSSize)editorViewMinimumSize
 {
-	return NSMakeSize(252.0, 88.0);
+	return NSMakeSize(340.0, 148.0);
 }
 
 
@@ -106,16 +106,26 @@
 	[self setCurrentTileShapes:tilesSetup];
 	
 		// Constrain the tiles across value to the stepper's range and update the model and view.
-	int	tilesAcross = MIN(MAX([currentTileShapes tilesAcross], [tilesAcrossSlider minValue]), [tilesAcrossSlider maxValue]);
+	int				tilesAcross = MIN(MAX([currentTileShapes tilesAcross], [tilesAcrossSlider minValue]), [tilesAcrossSlider maxValue]);
 	[currentTileShapes setTilesAcross:tilesAcross];
 	[tilesAcrossSlider setIntValue:tilesAcross];
 	[tilesAcrossTextField setIntValue:tilesAcross];
 	
 		// Constrain the tiles down value to the stepper's range and update the model and view.
-	int	tilesDown = MIN(MAX([currentTileShapes tilesDown], [tilesDownSlider minValue]), [tilesDownSlider maxValue]);
+	int				tilesDown = MIN(MAX([currentTileShapes tilesDown], [tilesDownSlider minValue]), [tilesDownSlider maxValue]);
 	[currentTileShapes setTilesDown:tilesDown];
 	[tilesDownSlider setIntValue:tilesDown];
 	[tilesDownTextField setIntValue:tilesDown];
+	
+	float			tabbedSidesRatio = MIN(MAX([currentTileShapes tabbedSidesRatio], [tabbedSidesSlider minValue]), [tabbedSidesSlider maxValue]);
+	[currentTileShapes setTabbedSidesRatio:tabbedSidesRatio];
+	[tabbedSidesSlider setFloatValue:tabbedSidesRatio];
+	[tabbedSidesTextField setStringValue:[NSString stringWithFormat:@"%d%%", tabbedSidesRatio * 100.0]];
+	
+	float			curviness = MIN(MAX([currentTileShapes curviness], [curvinessSlider minValue]), [curvinessSlider maxValue]);
+	[currentTileShapes setCurviness:curviness];
+	[curvinessSlider setFloatValue:curviness];
+	[curvinessTextField setStringValue:[NSString stringWithFormat:@"%d%%", curviness * 100.0]];
 	
 	NSDictionary	*lastUsedSettings = [[NSUserDefaults standardUserDefaults] objectForKey:@"Puzzle Tile Shapes"];
 	[preserveTileSizeCheckBox setState:[[lastUsedSettings objectForKey:@"Preserve Tile Size"] boolValue]];
@@ -243,6 +253,28 @@
 }
 
 
+- (IBAction)setTabbedSides:(id)sender
+{
+	[currentTileShapes setTabbedSidesRatio:[tabbedSidesSlider floatValue]];
+	[tabbedSidesTextField setStringValue:[NSString stringWithFormat:@"%d%%", (int)([tabbedSidesSlider floatValue] * 100.0)]];
+	
+	[editorDelegate tileShapesWereEdited];
+	
+	[self updatePlugInDefaults];
+}
+
+
+- (IBAction)setCurviness:(id)sender
+{
+	[currentTileShapes setCurviness:[curvinessSlider floatValue]];
+	[curvinessTextField setStringValue:[NSString stringWithFormat:@"%d%%", (int)([curvinessSlider floatValue] * 100.0)]];
+	
+	[editorDelegate tileShapesWereEdited];
+	
+	[self updatePlugInDefaults];
+}
+
+
 - (int)tileCount
 {
 	return [tilesAcrossSlider intValue] * [tilesDownSlider intValue];
@@ -254,10 +286,21 @@
 		// Pick a new random puzzle piece.
 	int		x = random() % [tilesAcrossSlider intValue],
 			y = random() % [tilesDownSlider intValue];
-	topTabType = (y == [tilesDownSlider intValue] - 1) ? noTab : random() % 2 + 1;
-	leftTabType = (x == 0) ? noTab : random() % 2 + 1;
-	rightTabType = (x == [tilesAcrossSlider intValue] - 1) ? noTab : random() % 2 + 1;
-	bottomTabType = (y == 0) ? noTab : random() % 2 + 1;
+	float	tabbedSidesRatio = [currentTileShapes tabbedSidesRatio],
+			curviness = [currentTileShapes curviness];
+	
+	previewPiece.topTabType = (y == [tilesDownSlider intValue] - 1 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : random() % 2 + 1;
+	previewPiece.leftTabType = (x == 0 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : random() % 2 + 1;
+	previewPiece.rightTabType = (x == [tilesAcrossSlider intValue] - 1 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : random() % 2 + 1;
+	previewPiece.bottomTabType = (y == 0 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : random() % 2 + 1;
+	previewPiece.topLeftHorizontalCurve = (random() % 200 - 100) / 100.0 * curviness;
+	previewPiece.topLeftVerticalCurve = (random() % 200 - 100) / 100.0 * curviness;
+	previewPiece.topRightHorizontalCurve = (random() % 200 - 100) / 100.0 * curviness;
+	previewPiece.topRightVerticalCurve = (random() % 200 - 100) / 100.0 * curviness;
+	previewPiece.bottomLeftHorizontalCurve = (random() % 200 - 100) / 100.0 * curviness;
+	previewPiece.bottomLeftVerticalCurve = (random() % 200 - 100) / 100.0 * curviness;
+	previewPiece.bottomRightHorizontalCurve = (random() % 200 - 100) / 100.0 * curviness;
+	previewPiece.bottomRightVerticalCurve = (random() % 200 - 100) / 100.0 * curviness;
 	
 	[editorDelegate tileShapesWereEdited];
 }
@@ -265,14 +308,10 @@
 
 - (NSBezierPath *)previewPath
 {
-	float	tileAspectRatio = (originalImageSize.width / [tilesAcrossSlider intValue]) / 
-							  (originalImageSize.height / [tilesDownSlider intValue]);
-	
+	float		tileAspectRatio = (originalImageSize.width / [tilesAcrossSlider intValue]) / 
+								  (originalImageSize.height / [tilesDownSlider intValue]);
 	return [currentTileShapes puzzlePathWithSize:NSMakeSize(1.0, 1.0 / tileAspectRatio) 
-										  topTab:topTabType 
-										 leftTab:leftTabType 
-										rightTab:rightTabType 
-									   bottomTab:bottomTabType];
+									  attributes:previewPiece];
 }
 
 

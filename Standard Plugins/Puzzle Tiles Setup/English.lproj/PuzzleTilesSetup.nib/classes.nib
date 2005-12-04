@@ -3,6 +3,8 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
+                setCurviness = id; 
+                setTabbedSides = id; 
                 setTileSizePreserved = id; 
                 setTilesAcross = id; 
                 setTilesDown = id; 
@@ -11,9 +13,13 @@
             CLASS = MacOSaiXPuzzleTileShapesEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                curvinessSlider = NSSlider; 
+                curvinessTextField = NSTextField; 
                 editorDelegate = id; 
                 editorView = NSView; 
                 preserveTileSizeCheckBox = NSButton; 
+                tabbedSidesSlider = NSSlider; 
+                tabbedSidesTextField = NSTextField; 
                 tileSizeSlider = NSSlider; 
                 tileSizeTextField = NSTextField; 
                 tilesAcrossSlider = NSSlider; 

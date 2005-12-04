@@ -45,9 +45,13 @@
 		NSDictionary	*plugInDefaults = [[NSUserDefaults standardUserDefaults] objectForKey:@"Puzzle Tile Shapes"];
 		int				tilesAcrossPref = [[plugInDefaults objectForKey:@"Tiles Across"] intValue],
 						tilesDownPref = [[plugInDefaults objectForKey:@"Tiles Down"] intValue];
-		
-		[self setTilesAcross:(tilesAcrossPref > 0 ? tilesAcrossPref : 40)];
-		[self setTilesDown:(tilesDownPref > 0 ? tilesDownPref : 40)];
+		float			tabbedSidesPref = [[plugInDefaults objectForKey:@"Tabbed Sides"] floatValue],
+						curvinessPref = [[plugInDefaults objectForKey:@"Curviness"] floatValue];
+
+		[self setTilesAcross:MIN(MAX(10, tilesAcrossPref), 200)];
+		[self setTilesDown:MIN(MAX(10, tilesDownPref), 200)];
+		[self setTabbedSidesRatio:MIN(MAX(0.0, tabbedSidesPref), 1.0)];
+		[self setCurviness:MIN(MAX(0.0, curvinessPref), 1.0)];
 	}
 	
 	return self;
@@ -89,9 +93,34 @@
 }
 
 
+- (void)setTabbedSidesRatio:(float)ratio
+{
+	tabbedSidesRatio = ratio;
+}
+
+
+- (float)tabbedSidesRatio
+{
+	return tabbedSidesRatio;
+}
+
+
+- (void)setCurviness:(float)value
+{
+	curviness = value;
+}
+
+
+- (float)curviness
+{
+	return curviness;
+}
+
+
 - (id)briefDescription
 {
-	return [NSString stringWithFormat:@"%d by %d puzzle pieces", tilesAcross, tilesDown];
+	return [NSString stringWithFormat:@"%d by %d puzzle pieces\n%.0f%% tabbed sides\n%.0f%% curviness", 
+									  tilesAcross, tilesDown, tabbedSidesRatio, curviness];
 }
 
 
@@ -126,10 +155,7 @@
 
 
 - (NSBezierPath *)puzzlePathWithSize:(NSSize)tileSize
-							  topTab:(PuzzleTabType)topTabType 
-							 leftTab:(PuzzleTabType)leftTabType 
-							rightTab:(PuzzleTabType)rightTabType 
-						   bottomTab:(PuzzleTabType)bottomTabType
+						  attributes:(PuzzlePiece)attributes
 {
 	NSBezierPath	*tileOutline = [NSBezierPath bezierPath];
 	float			xSize = tileSize.width,
@@ -149,14 +175,22 @@
 	[tileOutline moveToPoint:NSMakePoint(xSize + tabSize, ySize + tabSize)];
 	[tileOutline relativeLineToPoint:NSMakePoint(0.0, 0.0)];
 	
-				// Start the real tile outline at the bottom left corner.
+		// Start the real tile outline at the bottom left corner.
 	[tileOutline moveToPoint:NSMakePoint(0.0, 0.0)];
 	
-				// Add the bottom edge.
-	if (bottomTabType != noTab)
+		// Add the bottom edge.
+	if (attributes.bottomTabType == noTab)
 	{
-		orientation = (bottomTabType == inwardsTab) ? 1 : -1;
-		[tileOutline lineToPoint:NSMakePoint(xSize / 4,			0.0)];
+		[tileOutline curveToPoint:NSMakePoint(xSize, 0.0) 
+					controlPoint1:NSMakePoint(xSize / 3,		tabSize * attributes.bottomLeftHorizontalCurve)
+					controlPoint2:NSMakePoint(xSize * 2 / 3,	tabSize * attributes.bottomRightHorizontalCurve)];
+	}
+	else
+	{
+		orientation = (attributes.bottomTabType == inwardsTab) ? 1 : -1;
+		[tileOutline curveToPoint:NSMakePoint(xSize / 4,		0.0) 
+					controlPoint1:NSMakePoint(xSize / 12,		tabSize * attributes.bottomLeftHorizontalCurve * 0.25)
+					controlPoint2:NSMakePoint(xSize / 6,		0.0)];
 		[tileOutline curveToPoint:NSMakePoint(xSize * 5 / 12,	tabSize / 2.0 * orientation)
 					controlPoint1:NSMakePoint(xSize / 3,		0.0)
 					controlPoint2:NSMakePoint(xSize / 2,		tabSize / 4.0 * orientation)];
@@ -169,13 +203,21 @@
 		[tileOutline curveToPoint:NSMakePoint(xSize * 3 / 4,	0.0)
 					controlPoint1:NSMakePoint(xSize / 2,		tabSize / 4.0 * orientation)
 					controlPoint2:NSMakePoint(xSize * 2 / 3,	0.0)];
+		[tileOutline curveToPoint:NSMakePoint(xSize,			0.0) 
+					controlPoint1:NSMakePoint(xSize * 10 / 12,	0.0)
+					controlPoint2:NSMakePoint(xSize * 11 / 12,	tabSize * attributes.bottomRightHorizontalCurve * 0.25)];
 	}
-	[tileOutline lineToPoint:NSMakePoint(xSize, 0.0)];
 	
 		// Add the right edge.
-	if (rightTabType != noTab)
+	if (attributes.rightTabType == noTab)
 	{
-		orientation = (rightTabType == inwardsTab) ? -1 : 1;
+		[tileOutline curveToPoint:NSMakePoint(xSize, ySize) 
+					controlPoint1:NSMakePoint(xSize + tabSize * attributes.bottomRightVerticalCurve,	ySize / 3)
+					controlPoint2:NSMakePoint(xSize + tabSize * attributes.topRightVerticalCurve,		ySize * 2 / 3)];
+	}
+	else
+	{
+		orientation = (attributes.rightTabType == inwardsTab) ? -1 : 1;
 		[tileOutline lineToPoint:NSMakePoint(xSize,									ySize / 4)];
 		[tileOutline curveToPoint:NSMakePoint(xSize + tabSize / 2.0 * orientation,	ySize * 5 / 12)
 					controlPoint1:NSMakePoint(xSize,								ySize / 3)
@@ -189,13 +231,19 @@
 		[tileOutline curveToPoint:NSMakePoint(xSize,								ySize * 3 / 4)
 					controlPoint1:NSMakePoint(xSize + tabSize / 4.0 * orientation,	ySize / 2)
 					controlPoint2:NSMakePoint(xSize,								ySize * 2 / 3)];
+		[tileOutline lineToPoint:NSMakePoint(xSize, ySize)];
 	}
-	[tileOutline lineToPoint:NSMakePoint(xSize, ySize)];
 	
 		// Add the top edge.
-	if (topTabType != noTab)
+	if (attributes.topTabType == noTab)
 	{
-		orientation = (topTabType == inwardsTab) ? -1 : 1;
+		[tileOutline curveToPoint:NSMakePoint(0.0, ySize) 
+					controlPoint1:NSMakePoint(xSize * 2 / 3,	ySize + tabSize * attributes.topRightHorizontalCurve)
+					controlPoint2:NSMakePoint(xSize / 3,		ySize + tabSize * attributes.topLeftHorizontalCurve)];
+	}
+	else
+	{
+		orientation = (attributes.topTabType == inwardsTab) ? -1 : 1;
 		[tileOutline lineToPoint:NSMakePoint(xSize * 3 / 4,		ySize)];
 		[tileOutline curveToPoint:NSMakePoint(xSize * 7 / 12,	ySize + tabSize / 2.0 * orientation)
 					controlPoint1:NSMakePoint(xSize * 2 / 3,	ySize)
@@ -209,13 +257,19 @@
 		[tileOutline curveToPoint:NSMakePoint(xSize / 4,		ySize)
 					controlPoint1:NSMakePoint(xSize / 2,		ySize + tabSize / 4.0 * orientation)
 					controlPoint2:NSMakePoint(xSize / 3,		ySize)];
+		[tileOutline lineToPoint:NSMakePoint(0.0, ySize)];
 	}
-	[tileOutline lineToPoint:NSMakePoint(0.0, ySize)];
 	
 		// Add the left edge.
-	if (leftTabType != noTab)
+	if (attributes.leftTabType == noTab)
 	{
-		orientation = (bottomTabType == inwardsTab) ? 1 : -1;
+		[tileOutline curveToPoint:NSMakePoint(0.0, 0.0) 
+					controlPoint1:NSMakePoint(tabSize * attributes.topLeftVerticalCurve,	ySize * 2 / 3)
+					controlPoint2:NSMakePoint(tabSize * attributes.bottomLeftVerticalCurve,		ySize / 3)];
+	}
+	else
+	{
+		orientation = (attributes.bottomTabType == inwardsTab) ? 1 : -1;
 		[tileOutline lineToPoint:NSMakePoint(0.0,							ySize * 3 / 4)];
 		[tileOutline curveToPoint:NSMakePoint(tabSize / 2.0 * orientation,	ySize * 7 / 12)
 					controlPoint1:NSMakePoint(0.0,							ySize * 2 / 3)
@@ -229,8 +283,8 @@
 		[tileOutline curveToPoint:NSMakePoint(0.0,							ySize / 4)
 					controlPoint1:NSMakePoint(tabSize / 4.0 * orientation,	ySize / 2)
 					controlPoint2:NSMakePoint(0.0,							ySize / 3)];
+		[tileOutline lineToPoint:NSMakePoint(0.0, 0.0)];
 	}
-	[tileOutline lineToPoint:NSMakePoint(0.0, 0.0)];
 
 	[tileOutline closePath];
 	
@@ -243,166 +297,55 @@
 	NSMutableArray	*tileOutlines = [NSMutableArray arrayWithCapacity:(tilesAcross * tilesDown)];
 
 		// Decide which way all of the tabs will point.
-	BOOL			tabs[tilesAcross * 2 + 1][tilesDown];
+	PuzzleTabType	tabTypes[tilesAcross * 2 + 1][tilesDown];
 	int				x, y;
 	for (x = 0; x < tilesAcross * 2 + 1; x++)
 		for (y = 0; y < tilesDown; y++)
-			tabs[x][y] = (random() % 2 == 0);
-	    
+		{
+			if (random() % 100 >= tabbedSidesRatio * 100.0)
+				tabTypes[x][y] = noTab;
+			else
+				tabTypes[x][y] = (random() % 2 == 0 ? inwardsTab : outwardsTab);
+		}
+	
+		// Decide the curviness of the sides
+	float			horizontalCurviness[tilesAcross + 1][tilesDown + 1],
+					verticalCurviness[tilesAcross + 1][tilesDown + 1];
+	for (x = 0; x < tilesAcross + 1; x++)
+		for (y = 0; y < tilesDown + 1; y++)
+		{
+			horizontalCurviness[x][y] = (x == 0 || x == tilesAcross) ? 0.0 : (random() % 200 - 100) / 100.0;
+			verticalCurviness[x][y] = (y == 0 || y == tilesDown) ? 0.0 : (random() % 200 - 100) / 100.0;
+		}
+	
 		// Add a bezier path for each puzzle piece.
 	float			xSize = 1.0 / tilesAcross, 
-					ySize = 1.0 / tilesDown,
-					tabSize = MIN(xSize, ySize) / 3.0;
+					ySize = 1.0 / tilesDown;
 	for (x = 0; x < tilesAcross; x++)
 		for (y = 0; y < tilesDown; y++)
 		{
-			NSBezierPath	*tileOutline = [NSBezierPath bezierPath];
-			float			originX = xSize * x, 
-							originY = ySize * y;
-			int				orientation;
+				// Set the attributes of this piece.
+			PuzzlePiece			piece;
+			piece.topTabType = (y == tilesDown ? noTab : tabTypes[x * 2][y]);
+			piece.leftTabType = (x == 0 ? noTab : tabTypes[x * 2 - 1][y]);
+			piece.rightTabType = (x == tilesAcross ? noTab : -tabTypes[x * 2 + 1][y]);
+			piece.bottomTabType = (y == 0 ? noTab : -tabTypes[x * 2][y - 1]);
+			piece.topLeftHorizontalCurve = horizontalCurviness[x][y];
+			piece.topLeftVerticalCurve = verticalCurviness[x][y];
+			piece.topRightHorizontalCurve = -horizontalCurviness[x + 1][y];
+			piece.topRightVerticalCurve = verticalCurviness[x + 1][y];
+			piece.bottomLeftHorizontalCurve = horizontalCurviness[x][y + 1];
+			piece.bottomLeftVerticalCurve = -verticalCurviness[x][y + 1];
+			piece.bottomRightHorizontalCurve = -horizontalCurviness[x + 1][y + 1];
+			piece.bottomRightVerticalCurve = -verticalCurviness[x + 1][y + 1];
 			
-				// Add a point at the outward tip of each possible tab so that each tile has 
-				// the exact same size and images in adjacent tiles will be aligned, even if 
-				// all of a tile's tabs are pointing inwards.
-//			[tileOutline moveToPoint:NSMakePoint(originX - tabSize, originY - tabSize)];
-//			[tileOutline relativeLineToPoint:NSMakePoint(0.0, 0.0)];
-//			[tileOutline moveToPoint:NSMakePoint(originX - tabSize, originY + tabSize)];
-//			[tileOutline relativeLineToPoint:NSMakePoint(0.0, 0.0)];
-//			[tileOutline moveToPoint:NSMakePoint(originX + tabSize, originY - tabSize)];
-//			[tileOutline relativeLineToPoint:NSMakePoint(0.0, 0.0)];
-//			[tileOutline moveToPoint:NSMakePoint(originX + tabSize, originY + tabSize)];
-//			[tileOutline relativeLineToPoint:NSMakePoint(0.0, 0.0)];
+				// Create the outline of this piece and move it to the right place.
+			NSBezierPath		*tileOutline = [self puzzlePathWithSize:NSMakeSize(xSize, ySize) attributes:piece];
+			NSAffineTransform	*transform = [NSAffineTransform transform];
+			[transform translateXBy:xSize * x yBy:ySize * y];
+			[tileOutline transformUsingAffineTransform:transform];
 			
-				// Start the real tile outline at the bottom left corner.
-			[tileOutline moveToPoint:NSMakePoint(originX, originY)];
-			
-				// Add the bottom edge.
-			if (y > 0)
-			{
-				orientation = (tabs[x * 2][y - 1] ? 1 : -1);
-				[tileOutline lineToPoint:NSMakePoint(originX + xSize / 4, originY)];
-				[tileOutline curveToPoint:NSMakePoint(originX + xSize * 5 / 12,
-													  originY + tabSize / 2.0 * orientation)
-							controlPoint1:NSMakePoint(originX + xSize / 3,
-													  originY)
-							controlPoint2:NSMakePoint(originX + xSize / 2,
-													  originY + tabSize / 4.0 * orientation)];
-				[tileOutline curveToPoint:NSMakePoint(originX + xSize / 2,
-													  originY + tabSize * orientation)
-							controlPoint1:NSMakePoint(originX + xSize / 3,
-													  originY + tabSize * 0.75 * orientation)
-							controlPoint2:NSMakePoint(originX + xSize * 3 / 8,
-													  originY + tabSize * orientation)];
-				[tileOutline curveToPoint:NSMakePoint(originX + xSize * 7 / 12,
-													  originY + tabSize / 2.0 * orientation)
-							controlPoint1:NSMakePoint(originX + xSize * 15 / 24,
-													  originY + tabSize * orientation)
-							controlPoint2:NSMakePoint(originX + xSize * 2 / 3,
-													  originY + tabSize * 0.75 * orientation)];
-				[tileOutline curveToPoint:NSMakePoint(originX + xSize * 3 / 4,
-													  originY)
-							controlPoint1:NSMakePoint(originX + xSize / 2,
-													  originY + tabSize / 4.0 * orientation)
-							controlPoint2:NSMakePoint(originX + xSize * 2 / 3,
-													  originY)];
-			}
-			[tileOutline lineToPoint:NSMakePoint(originX + xSize, originY)];
-			
-				// Add the right edge.
-			if (x < tilesAcross - 1)
-			{
-				orientation = (tabs[x * 2 + 1][y] ? 1 : -1);
-				[tileOutline lineToPoint:NSMakePoint(originX + xSize, originY + ySize / 4)];
-				[tileOutline curveToPoint:NSMakePoint(originX + xSize + tabSize / 2.0 * orientation,
-													  originY + ySize * 5 / 12)
-							controlPoint1:NSMakePoint(originX + xSize,
-													  originY + ySize / 3)
-							controlPoint2:NSMakePoint(originX + xSize + tabSize / 4.0 * orientation,
-													  originY + ySize / 2)];
-				[tileOutline curveToPoint:NSMakePoint(originX + xSize + tabSize * orientation,
-													  originY + ySize / 2)
-							controlPoint1:NSMakePoint(originX + xSize + tabSize * 0.75 * orientation,
-													  originY + ySize / 3)
-							controlPoint2:NSMakePoint(originX + xSize + tabSize * orientation,
-													  originY + ySize * 3 / 8)];
-				[tileOutline curveToPoint:NSMakePoint(originX + xSize + tabSize / 2.0 * orientation,
-													  originY + ySize * 7 / 12)
-							controlPoint1:NSMakePoint(originX + xSize + tabSize * orientation,
-													  originY + ySize * 15 / 24)
-							controlPoint2:NSMakePoint(originX + xSize + tabSize * 0.75 * orientation,
-													  originY + ySize * 2 / 3)];
-				[tileOutline curveToPoint:NSMakePoint(originX + xSize,
-													  originY + ySize * 3 / 4)
-							controlPoint1:NSMakePoint(originX + xSize + tabSize / 4.0 * orientation,
-													  originY + ySize / 2)
-							controlPoint2:NSMakePoint(originX + xSize,
-													  originY + ySize * 2 / 3)];
-			}
-			[tileOutline lineToPoint:NSMakePoint(originX + xSize, originY + ySize)];
-			
-				// Add the top edge.
-			if (y < tilesDown - 1)
-			{
-				orientation = (tabs[x * 2][y] ? 1 : -1);
-				[tileOutline lineToPoint:NSMakePoint(originX + xSize * 3 / 4, originY + ySize)];
-				[tileOutline curveToPoint:NSMakePoint(originX + xSize * 7 / 12,
-													  originY + ySize + tabSize / 2.0 * orientation)
-							controlPoint1:NSMakePoint(originX + xSize * 2 / 3,
-													  originY + ySize)
-							controlPoint2:NSMakePoint(originX + xSize / 2,
-													  originY + ySize + tabSize / 4.0 * orientation)];
-				[tileOutline curveToPoint:NSMakePoint(originX + xSize / 2,
-													  originY + ySize + tabSize * orientation)
-							controlPoint1:NSMakePoint(originX + xSize * 2 / 3,
-													  originY + ySize + tabSize * 0.75 * orientation)
-							controlPoint2:NSMakePoint(originX + xSize * 15 / 24,
-													  originY + ySize + tabSize * orientation)];
-				[tileOutline curveToPoint:NSMakePoint(originX + xSize * 5 / 12,
-													  originY + ySize + tabSize / 2.0 * orientation)
-							controlPoint1:NSMakePoint(originX + xSize * 3 / 8,
-													  originY + ySize + tabSize * orientation)
-							controlPoint2:NSMakePoint(originX + xSize / 3,
-													  originY + ySize + tabSize * 0.75 * orientation)];
-				[tileOutline curveToPoint:NSMakePoint(originX + xSize / 4,
-													  originY + ySize)
-							controlPoint1:NSMakePoint(originX + xSize / 2,
-													  originY + ySize + tabSize / 4.0 * orientation)
-							controlPoint2:NSMakePoint(originX + xSize / 3,
-													  originY + ySize)];
-			}
-			[tileOutline lineToPoint:NSMakePoint(originX, originY + ySize)];
-			
-				// Add the left edge.
-			if (x > 0)
-			{
-				orientation = (tabs[x * 2 - 1][y] ? 1 : -1);
-				[tileOutline lineToPoint:NSMakePoint(originX, originY + ySize * 3 / 4)];
-				[tileOutline curveToPoint:NSMakePoint(originX + tabSize / 2.0 * orientation,
-													  originY + ySize * 7 / 12)
-							controlPoint1:NSMakePoint(originX,
-													  originY + ySize * 2 / 3)
-							controlPoint2:NSMakePoint(originX + tabSize / 4.0 * orientation,
-													  originY + ySize / 2)];
-				[tileOutline curveToPoint:NSMakePoint(originX + tabSize * orientation,
-													  originY + ySize / 2)
-							controlPoint1:NSMakePoint(originX + tabSize * 0.75 * orientation,
-													  originY + ySize * 2 / 3)
-							controlPoint2:NSMakePoint(originX + tabSize * orientation,
-													  originY + ySize * 15 / 24)];
-				[tileOutline curveToPoint:NSMakePoint(originX + tabSize / 2.0 * orientation,
-													  originY + ySize * 5 / 12)
-							controlPoint1:NSMakePoint(originX + tabSize * orientation,
-													  originY + ySize * 3 / 8)
-							controlPoint2:NSMakePoint(originX + tabSize * 0.75 * orientation,
-													  originY + ySize / 3)];
-				[tileOutline curveToPoint:NSMakePoint(originX,
-													  originY + ySize / 4)
-							controlPoint1:NSMakePoint(originX + tabSize / 4.0 * orientation,
-													  originY + ySize / 2)
-							controlPoint2:NSMakePoint(originX,
-													  originY + ySize / 3)];
-			}
-			[tileOutline closePath];
+				// Add this piece to the list.
 			[tileOutlines addObject:tileOutline];
 		}
 		

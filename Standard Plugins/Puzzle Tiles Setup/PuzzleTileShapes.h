@@ -10,15 +10,34 @@
 
 typedef enum
 {
-	noTab, 
-	inwardsTab, 
-	outwardsTab
+	noTab = 0, 
+	inwardsTab = -1, 
+	outwardsTab = 1
 } PuzzleTabType;
+
+typedef struct _PuzzlePiece
+{
+	PuzzleTabType	topTabType,
+					leftTabType,
+					rightTabType,
+					bottomTabType;
+	float			topLeftHorizontalCurve,
+					topLeftVerticalCurve,
+					topRightHorizontalCurve,
+					topRightVerticalCurve,
+					bottomLeftHorizontalCurve,
+					bottomLeftVerticalCurve,
+					bottomRightHorizontalCurve,
+					bottomRightVerticalCurve;
+} PuzzlePiece;
+
 
 @interface MacOSaiXPuzzleTileShapes : NSObject <MacOSaiXTileShapes>
 {
 	unsigned int	tilesAcross, 
 					tilesDown;
+	float			tabbedSidesRatio, 
+					curviness;
 }
 
 - (void)setTilesAcross:(unsigned int)count;
@@ -27,10 +46,13 @@ typedef enum
 - (void)setTilesDown:(unsigned int)count;
 - (unsigned int)tilesDown;
 
+- (void)setTabbedSidesRatio:(float)ratio;
+- (float)tabbedSidesRatio;
+
+- (void)setCurviness:(float)value;
+- (float)curviness;
+
 - (NSBezierPath *)puzzlePathWithSize:(NSSize)tileSize
-							  topTab:(PuzzleTabType)topTabType 
-							 leftTab:(PuzzleTabType)leftTabType 
-							rightTab:(PuzzleTabType)rightTabType 
-						   bottomTab:(PuzzleTabType)bottomTabType;
+						  attributes:(PuzzlePiece)attributes;
 
 @end

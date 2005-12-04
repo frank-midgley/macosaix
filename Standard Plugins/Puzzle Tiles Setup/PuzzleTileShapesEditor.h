@@ -15,10 +15,14 @@
 	IBOutlet NSView				*editorView;
     IBOutlet NSTextField		*tilesAcrossTextField,
 								*tilesDownTextField, 
-								*tileSizeTextField;
+								*tileSizeTextField,
+								*tabbedSidesTextField, 
+								*curvinessTextField;
 	IBOutlet NSSlider			*tilesAcrossSlider,
 								*tilesDownSlider, 
-								*tileSizeSlider;
+								*tileSizeSlider, 
+								*tabbedSidesSlider, 
+								*curvinessSlider;
 	IBOutlet NSButton			*preserveTileSizeCheckBox;
 	
 	id							editorDelegate;
@@ -26,15 +30,14 @@
 	MacOSaiXPuzzleTileShapes	*currentTileShapes;
 	
 	NSTimer						*previewTimer;
-	PuzzleTabType				topTabType, 
-								leftTabType, 
-								rightTabType, 
-								bottomTabType;
+	PuzzlePiece					previewPiece;
 }
 
 - (IBAction)setTilesAcross:(id)sender;
 - (IBAction)setTilesDown:(id)sender;
 - (IBAction)setTilesSize:(id)sender;
+- (IBAction)setTabbedSides:(id)sender;
+- (IBAction)setCurviness:(id)sender;
 
 - (IBAction)setTileSizePreserved:(id)sender;
 
