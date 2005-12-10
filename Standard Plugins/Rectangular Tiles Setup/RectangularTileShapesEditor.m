@@ -48,7 +48,7 @@
 
 - (NSSize)editorViewMinimumSize
 {
-	return NSMakeSize(252.0, 88.0);
+	return NSMakeSize(339.0, 90.0);
 }
 
 
