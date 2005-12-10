@@ -16,11 +16,9 @@ Ideas for future versions:
 		Icons
 		iSight source
 		iTunes album art
-		flickr
 		Delicious
 	Directory source
 		Option to only use images bigger or smaller than certain dimensions
-		Alias support during enumeration
 	"option to replace ALL instances of one tile with another picture"
 	Button/menu item to not use selected image anywhere.  (probably in editor)
 	AppleScript support
@@ -47,44 +45,41 @@ Riemersma metric:
 
 
 2.0x To Do:
-¥	Allow setup to be changed after mosaic has been started
 ¥	Make sure pixels are being pulled from bitmaps correctly
 ¥	Mosaic quality calculation should take into account each tile's percentage coverage of original image
 ¥	Get rid of lines in exporting
-¥	Add preferences API for image source plug-ins
-¥	Add preferences API for tile shapes plug-ins
-¥	Add OS requirement for plug-ins
-¥	Rework puzzle shapes plug-in to conform with new API
-	Google source:
-¥		Make sure cache doesn't fill disk
 	QuickTime source:
 ¥		Show aspect ratio
 ¥		Scale movie when sheet presented
 ¥		Recent movies
 	Directory source:
-¥		Recent directories
-¥		Show more folder levels (outline view?)
+¥		Drag and drop support
 	Glyphs source:
 ¥		Exception on pasting letters
 ¥		Use each letter once
 ¥		Remember previous choices
-¥	Autosave pref checkbox
 ¥	DOCTYPE plist in XML?
-¥	Window zooming
+?	Window zooming
 ?	Tile refresh leaves black edges
 
-2.0a5 To Do:
-Ã	Resizing when zoomed does not stay centered and draws funky
-Ã	Don't report crashes older than 2.0a4
-Ã	Make sure exporting still works with changes to image caching
-Ã	Editor (saving)
-Ã	Make sure manually chosen image identifiers are XML safe.
-Ã	Calculate match value of user chosen images
-Ã	Add code to support crop limit
 
 2.0a6 (b1?) To Do:
+¥	Allow setup to be changed after mosaic has been started
 Ã	Fix iPhoto crasher in -[NSAppleScript dealloc]
 Ã	Fix crash in -[MosaicView createHighlightedImageSourcesOutline]
+Ã	Kiosk mode
+Ã	Flickr source
+¥	Make sure Google and Flickr caches don't fill disk
+Ã	Rework puzzle shapes plug-in to conform with new API
+Ã	Add recents to folder source
+Ã	Follow aliases in folder source
 ¥	Single menu for restricting tile sizes
-¥	Complete plug-in API (prefs, OS check and delegation change)
-¥	Don't loop forever scaling from the cache
+¥	Complete plug-in API
+¥		OS check
+¥		Add preferences API for image source plug-ins
+¥		Add preferences API for tile shapes plug-ins
+¥		Delegation change for tile shapes (and image sources?)
+Ã	Don't loop forever scaling from the cache
+¥	Auto-start pref not honored
+¥	Start icon not changing to pause when started
+¥	Copy original to doc bundle
