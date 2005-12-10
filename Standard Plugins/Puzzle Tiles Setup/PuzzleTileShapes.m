@@ -120,7 +120,7 @@
 - (id)briefDescription
 {
 	return [NSString stringWithFormat:@"%d by %d puzzle pieces\n%.0f%% tabbed sides\n%.0f%% curviness", 
-									  tilesAcross, tilesDown, tabbedSidesRatio, curviness];
+									  tilesAcross, tilesDown, tabbedSidesRatio * 100.0, curviness * 100.0];
 }
 
 
@@ -190,9 +190,9 @@
 		orientation = (attributes.bottomTabType == inwardsTab) ? 1 : -1;
 		[tileOutline curveToPoint:NSMakePoint(xSize / 4,		0.0) 
 					controlPoint1:NSMakePoint(xSize / 12,		tabSize * attributes.bottomLeftHorizontalCurve * 0.25)
-					controlPoint2:NSMakePoint(xSize / 6,		0.0)];
+					controlPoint2:NSMakePoint(xSize / 6,		tabSize * attributes.bottomLeftHorizontalCurve * 0.25)];
 		[tileOutline curveToPoint:NSMakePoint(xSize * 5 / 12,	tabSize / 2.0 * orientation)
-					controlPoint1:NSMakePoint(xSize / 3,		0.0)
+					controlPoint1:NSMakePoint(xSize / 3,		tabSize * attributes.bottomLeftHorizontalCurve * -0.25)
 					controlPoint2:NSMakePoint(xSize / 2,		tabSize / 4.0 * orientation)];
 		[tileOutline curveToPoint:NSMakePoint(xSize / 2,		tabSize * orientation)
 					controlPoint1:NSMakePoint(xSize / 3,		tabSize * 0.75 * orientation)
@@ -202,9 +202,9 @@
 					controlPoint2:NSMakePoint(xSize * 2 / 3,	tabSize * 0.75 * orientation)];
 		[tileOutline curveToPoint:NSMakePoint(xSize * 3 / 4,	0.0)
 					controlPoint1:NSMakePoint(xSize / 2,		tabSize / 4.0 * orientation)
-					controlPoint2:NSMakePoint(xSize * 2 / 3,	0.0)];
+					controlPoint2:NSMakePoint(xSize * 2 / 3,	tabSize * attributes.bottomRightHorizontalCurve * -0.25)];
 		[tileOutline curveToPoint:NSMakePoint(xSize,			0.0) 
-					controlPoint1:NSMakePoint(xSize * 10 / 12,	0.0)
+					controlPoint1:NSMakePoint(xSize * 10 / 12,	tabSize * attributes.bottomRightHorizontalCurve * 0.25)
 					controlPoint2:NSMakePoint(xSize * 11 / 12,	tabSize * attributes.bottomRightHorizontalCurve * 0.25)];
 	}
 	
@@ -314,8 +314,8 @@
 	for (x = 0; x < tilesAcross + 1; x++)
 		for (y = 0; y < tilesDown + 1; y++)
 		{
-			horizontalCurviness[x][y] = (x == 0 || x == tilesAcross) ? 0.0 : (random() % 200 - 100) / 100.0;
-			verticalCurviness[x][y] = (y == 0 || y == tilesDown) ? 0.0 : (random() % 200 - 100) / 100.0;
+			horizontalCurviness[x][y] = (y == 0 || y == tilesDown) ? 0.0 : (random() % 200 - 100) / 100.0;
+			verticalCurviness[x][y] = (x == 0 || x == tilesAcross) ? 0.0 : (random() % 200 - 100) / 100.0;
 		}
 	
 		// Add a bezier path for each puzzle piece.
@@ -330,14 +330,14 @@
 			piece.leftTabType = (x == 0 ? noTab : tabTypes[x * 2 - 1][y]);
 			piece.rightTabType = (x == tilesAcross ? noTab : -tabTypes[x * 2 + 1][y]);
 			piece.bottomTabType = (y == 0 ? noTab : -tabTypes[x * 2][y - 1]);
-			piece.topLeftHorizontalCurve = horizontalCurviness[x][y];
-			piece.topLeftVerticalCurve = verticalCurviness[x][y];
-			piece.topRightHorizontalCurve = -horizontalCurviness[x + 1][y];
-			piece.topRightVerticalCurve = verticalCurviness[x + 1][y];
-			piece.bottomLeftHorizontalCurve = horizontalCurviness[x][y + 1];
-			piece.bottomLeftVerticalCurve = -verticalCurviness[x][y + 1];
-			piece.bottomRightHorizontalCurve = -horizontalCurviness[x + 1][y + 1];
-			piece.bottomRightVerticalCurve = -verticalCurviness[x + 1][y + 1];
+			piece.topLeftHorizontalCurve = horizontalCurviness[x][y + 1];
+			piece.topLeftVerticalCurve = -verticalCurviness[x][y + 1];
+			piece.topRightHorizontalCurve = -horizontalCurviness[x + 1][y + 1];
+			piece.topRightVerticalCurve = -verticalCurviness[x + 1][y + 1];
+			piece.bottomLeftHorizontalCurve = horizontalCurviness[x][y];
+			piece.bottomLeftVerticalCurve = verticalCurviness[x][y];
+			piece.bottomRightHorizontalCurve = -horizontalCurviness[x + 1][y];
+			piece.bottomRightVerticalCurve = verticalCurviness[x + 1][y];
 			
 				// Create the outline of this piece and move it to the right place.
 			NSBezierPath		*tileOutline = [self puzzlePathWithSize:NSMakeSize(xSize, ySize) attributes:piece];

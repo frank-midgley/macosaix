@@ -289,10 +289,10 @@
 	float	tabbedSidesRatio = [currentTileShapes tabbedSidesRatio],
 			curviness = [currentTileShapes curviness];
 	
-	previewPiece.topTabType = (y == [tilesDownSlider intValue] - 1 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : random() % 2 + 1;
-	previewPiece.leftTabType = (x == 0 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : random() % 2 + 1;
-	previewPiece.rightTabType = (x == [tilesAcrossSlider intValue] - 1 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : random() % 2 + 1;
-	previewPiece.bottomTabType = (y == 0 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : random() % 2 + 1;
+	previewPiece.topTabType = (y == [tilesDownSlider intValue] - 1 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1;
+	previewPiece.leftTabType = (x == 0 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) % 2 - 1;
+	previewPiece.rightTabType = (x == [tilesAcrossSlider intValue] - 1 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1;
+	previewPiece.bottomTabType = (y == 0 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1;
 	previewPiece.topLeftHorizontalCurve = (random() % 200 - 100) / 100.0 * curviness;
 	previewPiece.topLeftVerticalCurve = (random() % 200 - 100) / 100.0 * curviness;
 	previewPiece.topRightHorizontalCurve = (random() % 200 - 100) / 100.0 * curviness;
