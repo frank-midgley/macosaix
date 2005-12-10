@@ -72,11 +72,15 @@
 
 - (void)getCountOfMatchingPhotos:(NSTimer *)timer
 {
-	[matchingPhotosCount setHidden:YES];
-	[matchingPhotosIndicator setHidden:NO];
-	[matchingPhotosIndicator startAnimation:self];
+	if (currentImageSource)
+	{
+		[matchingPhotosCount setHidden:YES];
+		[matchingPhotosIndicator setHidden:NO];
+		[matchingPhotosIndicator startAnimation:self];
+		
+		[NSThread detachNewThreadSelector:@selector(getPhotoCount) toTarget:self withObject:nil];
+	}
 	
-	[NSThread detachNewThreadSelector:@selector(getPhotoCount) toTarget:self withObject:nil];
 	[matchingPhotosTimer release];
 	matchingPhotosTimer = nil;
 }
