@@ -27,33 +27,29 @@
 	IBOutlet NSSlider					*zoomSlider;
     IBOutlet NSMenu						*zoomToolbarSubmenu;
 	
-		// Settings drawer
-    IBOutlet NSDrawer					*settingsDrawer;
-	IBOutlet NSImageView				*originalImageThumbView;
-	IBOutlet NSPopUpButton				*originalImagePopUpButton;
 	IBOutlet NSView						*openOriginalAccessoryView;
-	IBOutlet NSTextField				*tileShapesDescriptionField,
-										*totalTilesField,
-										*tileSizeLabelField,
-										*tileSizeField;
-	IBOutlet NSButton					*changeTileShapesButton;
-	IBOutlet NSPopUpButton				*imageUseCountPopUpButton,
-										*imageReuseDistancePopUpButton,
-										*imageCropLimitPopUpButton;
-	IBOutlet NSPopUpButton				*imageSourcesPopUpButton;
+	IBOutlet NSPopUpButton				*originalImagePopUpButton;
+	
+		// Image Sources
+    IBOutlet NSDrawer					*imageSourcesDrawer;
 	IBOutlet NSTableView				*imageSourcesTableView;
+	IBOutlet NSPopUpButton				*imageSourcesPopUpButton;
 	IBOutlet NSButton					*imageSourcesRemoveButton;
 	
-		// Tile shapes sheet
-	IBOutlet NSPanel					*tileShapesPanel;
+		// Tiles setup
+	IBOutlet NSPanel					*tilesSetupPanel;
 	IBOutlet NSPopUpButton				*tileShapesPopUpButton;
 	IBOutlet NSBox						*tileShapesBox;
 	IBOutlet NSImageView				*tileShapesPreviewImageView;
 	id<MacOSaiXTileShapesEditor>		tileShapesEditor;
 	id<MacOSaiXTileShapes>				tileShapesBeingEdited;
-	IBOutlet NSTextField				*tileShapesCountField;
-	IBOutlet NSButton					*cancelTileShapesButton,
-										*setTileShapesButton;
+	IBOutlet NSTextField				*tileShapesCountField,
+										*tileShapesAverageSizeField;
+	IBOutlet NSPopUpButton				*imageUseCountPopUpButton,
+										*imageReuseDistancePopUpButton,
+										*imageCropLimitPopUpButton;
+	IBOutlet NSButton					*cancelTilesSetupButton,
+										*okTilesSetupButton;
 	
 		// Image source editor
 	IBOutlet NSPanel					*imageSourceEditorPanel;
@@ -62,7 +58,7 @@
 										*imageSourceEditorOKButton;
 	id<MacOSaiXImageSourceController>	imageSourceEditorController;
 		
-		// Selected Tile Editor
+		// Selected tile editor
 	IBOutlet NSView						*editorAccessoryView;
 	IBOutlet NSBox						*editorChosenImageBox;
 	IBOutlet NSImageView				*editorOriginalImageView,
@@ -129,25 +125,23 @@
 - (IBAction)toggleImageSourcesDrawer:(id)sender;
 - (IBAction)togglePause:(id)sender;
 
-	// Settings drawer
-- (IBAction)chooseOriginalImage:(id)sender;
-- (IBAction)changeTileShapes:(id)sender;
-- (IBAction)setImageUseCount:(id)sender;
-- (IBAction)setImageReuseDistance:(id)sender;
-- (IBAction)setImageCropLimit:(id)sender;
+	// Image sources drawer
 - (IBAction)addNewImageSource:(id)sender;
 - (IBAction)removeImageSource:(id)sender;
 
-	// Tile shapes sheet
+	// Tiles setup
 - (IBAction)setTileShapesPlugIn:(id)sender;
-- (IBAction)setTileShapes:(id)sender;
-- (IBAction)cancelChangingTileShapes:(id)sender;
+- (IBAction)setImageUseCount:(id)sender;
+- (IBAction)setImageReuseDistance:(id)sender;
+- (IBAction)setImageCropLimit:(id)sender;
+- (IBAction)cancelTilesSetup:(id)sender;
+- (IBAction)okTilesSetup:(id)sender;
 
-	// Image source editor methods
+	// Image source editor
 - (IBAction)saveImageSource:(id)sender;
 - (IBAction)cancelImageSource:(id)sender;
 
-	// Editor methods
+	// Tile editor
 - (IBAction)selectTileAtPoint:(NSPoint)thePoint;
 - (IBAction)chooseImageForSelectedTile:(id)sender;
 - (IBAction)removeChosenImageForSelectedTile:(id)sender;
