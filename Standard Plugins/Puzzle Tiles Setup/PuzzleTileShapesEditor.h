@@ -24,7 +24,7 @@
 								*tabbedSidesSlider, 
 								*curvinessSlider;
 	IBOutlet NSButton			*preserveTileSizeCheckBox;
-	
+	IBOutlet NSMatrix			*alignImagesMatrix;
 	id							editorDelegate;
 	NSSize						originalImageSize;
 	MacOSaiXPuzzleTileShapes	*currentTileShapes;
@@ -40,5 +40,6 @@
 - (IBAction)setCurviness:(id)sender;
 
 - (IBAction)setTileSizePreserved:(id)sender;
+- (IBAction)setImagesAligned:(id)sender;
 
 @end

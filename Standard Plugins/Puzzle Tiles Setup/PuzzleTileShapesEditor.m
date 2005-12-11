@@ -60,7 +60,7 @@
 
 - (NSSize)editorViewMinimumSize
 {
-	return NSMakeSize(340.0, 148.0);
+	return NSMakeSize(340.0, 198.0);
 }
 
 
@@ -275,6 +275,16 @@
 }
 
 
+- (IBAction)setImagesAligned:(id)sender
+{
+	[currentTileShapes setImagesAligned:[alignImagesMatrix selectedRow] == 1];
+	
+	[editorDelegate tileShapesWereEdited];
+	
+	[self updatePlugInDefaults];
+}
+
+
 - (int)tileCount
 {
 	return [tilesAcrossSlider intValue] * [tilesDownSlider intValue];
@@ -284,15 +294,13 @@
 - (void)updatePreview:(NSTimer *)timer
 {
 		// Pick a new random puzzle piece.
-	int		x = random() % [tilesAcrossSlider intValue],
-			y = random() % [tilesDownSlider intValue];
 	float	tabbedSidesRatio = [currentTileShapes tabbedSidesRatio],
 			curviness = [currentTileShapes curviness];
 	
-	previewPiece.topTabType = (y == [tilesDownSlider intValue] - 1 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1;
-	previewPiece.leftTabType = (x == 0 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) % 2 - 1;
-	previewPiece.rightTabType = (x == [tilesAcrossSlider intValue] - 1 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1;
-	previewPiece.bottomTabType = (y == 0 || random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1;
+	previewPiece.topTabType = (random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1;
+	previewPiece.leftTabType = (random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1;
+	previewPiece.rightTabType = (random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1;
+	previewPiece.bottomTabType = (random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1;
 	previewPiece.topLeftHorizontalCurve = (random() % 200 - 100) / 100.0 * curviness;
 	previewPiece.topLeftVerticalCurve = (random() % 200 - 100) / 100.0 * curviness;
 	previewPiece.topRightHorizontalCurve = (random() % 200 - 100) / 100.0 * curviness;
@@ -301,6 +309,7 @@
 	previewPiece.bottomLeftVerticalCurve = (random() % 200 - 100) / 100.0 * curviness;
 	previewPiece.bottomRightHorizontalCurve = (random() % 200 - 100) / 100.0 * curviness;
 	previewPiece.bottomRightVerticalCurve = (random() % 200 - 100) / 100.0 * curviness;
+	previewPiece.alignImages = ([alignImagesMatrix selectedRow] == 1);
 	
 	[editorDelegate tileShapesWereEdited];
 }

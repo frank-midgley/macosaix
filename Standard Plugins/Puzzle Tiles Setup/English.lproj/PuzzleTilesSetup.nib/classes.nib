@@ -4,6 +4,7 @@
         {
             ACTIONS = {
                 setCurviness = id; 
+                setImagesAligned = id; 
                 setTabbedSides = id; 
                 setTileSizePreserved = id; 
                 setTilesAcross = id; 
@@ -13,6 +14,7 @@
             CLASS = MacOSaiXPuzzleTileShapesEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                alignImagesMatrix = NSMatrix; 
                 curvinessSlider = NSSlider; 
                 curvinessTextField = NSTextField; 
                 editorDelegate = id; 
