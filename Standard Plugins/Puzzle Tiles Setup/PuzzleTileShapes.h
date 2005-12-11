@@ -29,6 +29,7 @@ typedef struct _PuzzlePiece
 					bottomLeftVerticalCurve,
 					bottomRightHorizontalCurve,
 					bottomRightVerticalCurve;
+	BOOL			alignImages;
 } PuzzlePiece;
 
 
@@ -38,6 +39,7 @@ typedef struct _PuzzlePiece
 					tilesDown;
 	float			tabbedSidesRatio, 
 					curviness;
+	BOOL			alignImages;
 }
 
 - (void)setTilesAcross:(unsigned int)count;
@@ -51,6 +53,9 @@ typedef struct _PuzzlePiece
 
 - (void)setCurviness:(float)value;
 - (float)curviness;
+
+- (void)setImagesAligned:(BOOL)flag;
+- (BOOL)imagesAligned;
 
 - (NSBezierPath *)puzzlePathWithSize:(NSSize)tileSize
 						  attributes:(PuzzlePiece)attributes;
