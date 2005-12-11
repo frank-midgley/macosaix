@@ -47,7 +47,7 @@ Riemersma metric:
 2.0x To Do:
 ¥	Make sure pixels are being pulled from bitmaps correctly
 ¥	Mosaic quality calculation should take into account each tile's percentage coverage of original image
-¥	Get rid of lines in exporting
+¥	Get rid of lines on screen and in exported images
 	QuickTime source:
 ¥		Show aspect ratio
 ¥		Scale movie when sheet presented
@@ -61,6 +61,8 @@ Riemersma metric:
 ¥	DOCTYPE plist in XML?
 ?	Window zooming
 ?	Tile refresh leaves black edges
+¥	Document plug-in API's
+¥	Create sample plug-in projects
 
 
 2.0a6 (b1?) To Do:
@@ -68,6 +70,7 @@ Riemersma metric:
 Ã	Fix iPhoto crasher in -[NSAppleScript dealloc]
 Ã	Fix crash in -[MosaicView createHighlightedImageSourcesOutline]
 Ã	Kiosk mode
+¥	Full screen mode
 Ã	Flickr source
 ¥	Make sure Google and Flickr caches don't fill disk
 Ã	Rework puzzle shapes plug-in to conform with new API
@@ -78,8 +81,8 @@ Riemersma metric:
 ¥		OS check
 ¥		Add preferences API for image source plug-ins
 ¥		Add preferences API for tile shapes plug-ins
-¥		Delegation change for tile shapes (and image sources?)
+¥		Delegation change for tile shapes (and image sources?) (hex shapes)
 Ã	Don't loop forever scaling from the cache
 ¥	Auto-start pref not honored
 ¥	Start icon not changing to pause when started
-¥	Copy original to doc bundle
+¥	Copy original image to doc bundle
