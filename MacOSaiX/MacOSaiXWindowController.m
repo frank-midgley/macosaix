@@ -10,6 +10,7 @@
 #import "MacOSaiX.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatcher.h"
+#import "MacOSaiXPopUpImageView.h"
 #import "NSImage+MacOSaiX.h"
 #import "NSString+MacOSaiX.h"
 #import <unistd.h>
@@ -57,15 +58,10 @@
 
 - (void)populateOriginalImagesMenus
 {
-	if (!originalImagePopUpButton)
-	{
-		originalImagePopUpButton = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(0.0, 0.0, 150.0, 20.0) pullsDown:YES];
-		[originalImagePopUpButton setTarget:self];
-		[originalImagePopUpButton setAction:@selector(setOriginalImageFromMenu:)];
-	}
-	else
-		[originalImagePopUpButton removeAllItems];
-	
+	if (!originalImagePopUpView)
+		originalImagePopUpView = [[MacOSaiXPopUpImageView alloc] initWithFrame:NSMakeRect(0.0, 0.0, 32.0, 32.0)];
+
+	NSMenu			*originalsMenu = [[NSMenu alloc] initWithTitle:@"Original Images"];
 	NSEnumerator	*originalEnumerator = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] objectEnumerator];
 	NSDictionary	*originalDict = nil;
 	while (originalDict = [originalEnumerator nextObject])
@@ -77,13 +73,20 @@
 			NSMenuItem	*originalItem = [[[NSMenuItem alloc] init] autorelease];
 			[originalItem setTitle:[originalDict objectForKey:@"Name"]];
 			[originalItem setRepresentedObject:originalImagePath];
+			[originalItem setTarget:self];
+			[originalItem setAction:@selector(setOriginalImageFromMenu:)];
 			NSImage		*thumbnail = [[[NSImage alloc] initWithData:[originalDict objectForKey:@"Thumbnail Data"]] autorelease];
 			[originalItem setImage:thumbnail];
-			[[originalImagePopUpButton menu] insertItem:originalItem atIndex:0];
+			[originalsMenu insertItem:originalItem atIndex:0];
 		}
 	}
+	// TODO: add "choose new" item
+	
+	[originalImagePopUpView setMenu:originalsMenu];
 	
 	// TBD: original images in main menu?
+	
+	[originalsMenu release];
 }
 
 
@@ -161,7 +164,7 @@
 	[self setViewOriginalImage:self];
 	
 		// For some reason IB insists on setting the drawer width to 200.  Have to set the size in code instead.
-//	[imageSourcesDrawer setContentSize:NSMakeSize(350, [imageSourcesDrawer contentSize].height)];
+	[imageSourcesDrawer setContentSize:NSMakeSize(250, [imageSourcesDrawer contentSize].height)];
 	[imageSourcesDrawer open:self];
     
 	[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
@@ -177,13 +180,10 @@
 		
 			// Default to the most recently used original or prompt to choose one
 			// if no previous original was found.
-		if ([originalImagePopUpButton numberOfItems] == 0)
+		if ([[originalImagePopUpView menu] numberOfItems] == 0)
 			[self performSelector:@selector(chooseOriginalImage:) withObject:self afterDelay:0.0];
 		else
-		{
-			[originalImagePopUpButton selectItemAtIndex:0];
-			[self setOriginalImageFromMenu:self];
-		}
+			[self setOriginalImageFromMenu:[[originalImagePopUpView menu] itemAtIndex:0]];
 	}
 	
 	[self mosaicDidChangeState:nil];
@@ -196,7 +196,7 @@
 
 - (IBAction)setOriginalImageFromMenu:(id)sender
 {
-	NSString	*originalImagePath = [[originalImagePopUpButton selectedItem] representedObject];
+	NSString	*originalImagePath = [sender representedObject];
 	[[self document] setOriginalImagePath:originalImagePath];
 	
 	NSImage		*originalImage = [[NSImage alloc] initWithContentsOfFile:originalImagePath];
@@ -273,24 +273,10 @@
 						atIndex:0];
 		[[NSUserDefaults standardUserDefaults] setObject:originals forKey:@"Recent Originals"];
 		[[NSUserDefaults standardUserDefaults] synchronize];
-		
-			// Update the original image pop-up menu.
-//		NSEnumerator	*itemEnumerator = [[[originalImagePopUpButton menu] itemArray] objectEnumerator];
-//		NSMenuItem		*item = nil;
-//		while (item = [itemEnumerator nextObject])
-//			if ([[item representedObject] isEqualToString:originalImagePath])
-//			{
-//				[[originalImagePopUpButton menu] removeItem:item];
-//				break;
-//			}
-//		NSMenuItem	*originalItem = [[[NSMenuItem alloc] init] autorelease];
-//		[originalItem setTitle:[[originalImagePath lastPathComponent] stringByDeletingPathExtension]];
-//		[originalItem setRepresentedObject:originalImagePath];
-//		[originalImageThumbView setImage:thumbnailImage];
-//		[[originalImagePopUpButton menu] insertItem:originalItem atIndex:0];
-//		[originalImagePopUpButton selectItemAtIndex:0];
-		
 		[thumbnailImage release];
+		
+			// Set the image in the toolbar item.
+		[originalImagePopUpView setImage:originalImage];
 		
 			// Set the zoom so that all of the new image is displayed.
 		[zoomSlider setFloatValue:0.0];
@@ -1850,11 +1836,11 @@
     
 	if ([itemIdentifier isEqualToString:@"Original Image"])
     {
-		[toolbarItem setMinSize:[originalImagePopUpButton frame].size];
-		[toolbarItem setMaxSize:[originalImagePopUpButton frame].size];
+		[toolbarItem setMinSize:NSMakeSize(44.0, 32.0)];
+		[toolbarItem setMaxSize:NSMakeSize(44.0, 32.0)];
 		[toolbarItem setLabel:@"Original Image"];
 		[toolbarItem setPaletteLabel:@"Original Image"];
-		[toolbarItem setView:originalImagePopUpButton];
+		[toolbarItem setView:originalImagePopUpView];
 // TODO:		[toolbarItem setMenuFormRepresentation:[originalImagePopUpButton menu]];
     }
 	else if ([itemIdentifier isEqualToString:@"Tiles Setup"])

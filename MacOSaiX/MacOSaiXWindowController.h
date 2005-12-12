@@ -4,6 +4,7 @@
 #import "Tiles.h"
 #import "MacOSaiXImageSource.h"
 #import "MacOSaiXTileShapes.h"
+#import "MacOSaiXPopUpImageView.h"
 #import "MacOSaiXDocument.h"
 
 
@@ -28,7 +29,7 @@
     IBOutlet NSMenu						*zoomToolbarSubmenu;
 	
 	IBOutlet NSView						*openOriginalAccessoryView;
-	IBOutlet NSPopUpButton				*originalImagePopUpButton;
+	MacOSaiXPopUpImageView				*originalImagePopUpView;
 	
 		// Image Sources
     IBOutlet NSDrawer					*imageSourcesDrawer;
@@ -109,8 +110,6 @@
 
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
 - (MacOSaiXMosaic *)mosaic;
-
-- (void)synchronizeGUIWithDocument;
 
 	// View methods
 - (IBAction)setViewOriginalImage:(id)sender;
