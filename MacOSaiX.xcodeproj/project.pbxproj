@@ -116,6 +116,8 @@
 		9287C13E075A5CC6004C07EF /* MacOSaiXTileShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = 9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */; };
 		9287C155075A5F55004C07EF /* RectangularTileShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = 9287C153075A5F55004C07EF /* RectangularTileShapes.h */; };
 		9287C156075A5F55004C07EF /* RectangularTileShapes.m in Sources */ = {isa = PBXBuildFile; fileRef = 9287C154075A5F55004C07EF /* RectangularTileShapes.m */; };
+		92887D9C094CCC83000FA225 /* MacOSaiXPopUpImageView.h in Headers */ = {isa = PBXBuildFile; fileRef = 92887D9A094CCC83000FA225 /* MacOSaiXPopUpImageView.h */; };
+		92887D9D094CCC84000FA225 /* MacOSaiXPopUpImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 92887D9B094CCC83000FA225 /* MacOSaiXPopUpImageView.m */; };
 		9289DDA8073D713100C88091 /* MacOSaiXImageCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */; };
 		9289DDAA073D713100C88091 /* MacOSaiXWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9289DDA6073D713100C88091 /* MacOSaiXWindowController.m */; };
 		928F72A00661226000873AE2 /* Directory Image Source.nib in Resources */ = {isa = PBXBuildFile; fileRef = 928F72990661226000873AE2 /* Directory Image Source.nib */; };
@@ -396,7 +398,6 @@
 		01722B9009298D3300290929 /* FlickrImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = FlickrImageSourceController.m; sourceTree = "<group>"; };
 		01722B9109298D3300290929 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
 		01722BA809298D3E00290929 /* Flickr Image Source.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Flickr Image Source.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
-		01722BBE09298D3E00290929 /* Info copy.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = "Info copy.plist"; path = "Standard Plugins/Google Image Source/Info copy.plist"; sourceTree = "<group>"; };
 		01722BD409298DCE00290929 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Flickr Image Source.nib"; sourceTree = "<group>"; };
 		01722BF4092991FF00290929 /* flickr.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = flickr.gif; sourceTree = "<group>"; };
 		01722C260929986A00290929 /* f.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = f.ico; sourceTree = "<group>"; };
@@ -441,6 +442,8 @@
 		9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXTileShapes.h; path = MacOSaiX/MacOSaiXTileShapes.h; sourceTree = "<group>"; };
 		9287C153075A5F55004C07EF /* RectangularTileShapes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = RectangularTileShapes.h; path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapes.h"; sourceTree = "<group>"; };
 		9287C154075A5F55004C07EF /* RectangularTileShapes.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = RectangularTileShapes.m; path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapes.m"; sourceTree = "<group>"; };
+		92887D9A094CCC83000FA225 /* MacOSaiXPopUpImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXPopUpImageView.h; path = MacOSaiX/MacOSaiXPopUpImageView.h; sourceTree = "<group>"; };
+		92887D9B094CCC83000FA225 /* MacOSaiXPopUpImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXPopUpImageView.m; path = MacOSaiX/MacOSaiXPopUpImageView.m; sourceTree = "<group>"; };
 		9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXImageCache.h; path = MacOSaiX/MacOSaiXImageCache.h; sourceTree = "<group>"; };
 		9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXImageCache.m; path = MacOSaiX/MacOSaiXImageCache.m; sourceTree = "<group>"; };
 		9289DDA5073D713100C88091 /* MacOSaiXWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXWindowController.h; path = MacOSaiX/MacOSaiXWindowController.h; sourceTree = "<group>"; };
@@ -619,6 +622,8 @@
 				928F725B066121A700873AE2 /* MacOSaiXDocument.nib */,
 				9289DDA5073D713100C88091 /* MacOSaiXWindowController.h */,
 				9289DDA6073D713100C88091 /* MacOSaiXWindowController.m */,
+				92887D9A094CCC83000FA225 /* MacOSaiXPopUpImageView.h */,
+				92887D9B094CCC83000FA225 /* MacOSaiXPopUpImageView.m */,
 			);
 			name = Document;
 			sourceTree = "<group>";
@@ -858,7 +863,6 @@
 				928F72910661226000873AE2 /* Google Image Source.nib */,
 				01AD286D07E3C99A00420875 /* GoogleImageSearch.gif */,
 				928F72E00661234700873AE2 /* Info.plist */,
-				01722BBE09298D3E00290929 /* Info copy.plist */,
 			);
 			name = Google;
 			sourceTree = "<group>";
@@ -1038,6 +1042,7 @@
 				01AB92EB07DB797300DB4B86 /* NSString+MacOSaiX.h in Headers */,
 				010D1F7608FF5FAD00950013 /* MacOSaiXKioskWindow.h in Headers */,
 				9254088C0915741F00384904 /* MacOSaiXKioskMessageView.h in Headers */,
+				92887D9C094CCC83000FA225 /* MacOSaiXPopUpImageView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1749,6 +1754,7 @@
 				01ACC0B208FCA4530013D213 /* MacOSaiXKioskView.m in Sources */,
 				010D1F7708FF5FAD00950013 /* MacOSaiXKioskWindow.m in Sources */,
 				9254088D0915741F00384904 /* MacOSaiXKioskMessageView.m in Sources */,
+				92887D9D094CCC84000FA225 /* MacOSaiXPopUpImageView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
