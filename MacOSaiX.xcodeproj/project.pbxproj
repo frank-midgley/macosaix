@@ -154,6 +154,7 @@
 		92E3E17D07E7BF1B00E62AB8 /* iPhotoImageSourceController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92E3E17807E7BF1B00E62AB8 /* iPhotoImageSourceController.m */; };
 		92E3E1C107E7D04500E62AB8 /* NSString+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */; };
 		92E3E22C07E7E22A00E62AB8 /* iPhoto Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92E3E15F07E7BE8C00E62AB8 /* iPhoto Image Source.plugin */; };
+		92EABC240954D25D007A9EB3 /* Tiles Setup.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 92EABC230954D25C007A9EB3 /* Tiles Setup.tiff */; };
 		92ECCFAE07F0F25600C77375 /* NSString+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */; };
 		92F00CCF07C1AA55004F6D06 /* MacPADSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F00CCD07C1AA55004F6D06 /* MacPADSocket.m */; };
 		92F00CE507C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F00CE307C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m */; };
@@ -487,6 +488,7 @@
 		92E3E17607E7BF1B00E62AB8 /* iPhotoImageSource.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = iPhotoImageSource.m; path = "Standard Plugins/iPhoto Image Source/iPhotoImageSource.m"; sourceTree = "<group>"; };
 		92E3E17707E7BF1B00E62AB8 /* iPhotoImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = iPhotoImageSourceController.h; path = "Standard Plugins/iPhoto Image Source/iPhotoImageSourceController.h"; sourceTree = "<group>"; };
 		92E3E17807E7BF1B00E62AB8 /* iPhotoImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = iPhotoImageSourceController.m; path = "Standard Plugins/iPhoto Image Source/iPhotoImageSourceController.m"; sourceTree = "<group>"; };
+		92EABC230954D25C007A9EB3 /* Tiles Setup.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "Tiles Setup.tiff"; path = "Images/Tiles Setup.tiff"; sourceTree = "<group>"; };
 		92F00CCC07C1AA55004F6D06 /* MacPADSocket.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacPADSocket.h; sourceTree = "<group>"; };
 		92F00CCD07C1AA55004F6D06 /* MacPADSocket.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacPADSocket.m; sourceTree = "<group>"; };
 		92F00CE207C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXUpdateAvailableController.h; path = MacOSaiX/MacOSaiXUpdateAvailableController.h; sourceTree = "<group>"; };
@@ -943,6 +945,7 @@
 				F558F295027DBB8D01000103 /* Pause.tiff */,
 				F558F297027DBF1B01000103 /* Resume.tiff */,
 				01AC3A3B07B0997C0025F915 /* Settings.png */,
+				92EABC230954D25C007A9EB3 /* Tiles Setup.tiff */,
 				016A242208D7C952009A93BF /* ZoomIn.png */,
 				016A242408D7C975009A93BF /* ZoomOut.png */,
 			);
@@ -1607,6 +1610,7 @@
 				010D20B90902C01700950013 /* Mosaic.nib in Resources */,
 				010D20BA0902C01700950013 /* Screen Setup.nib in Resources */,
 				926612A4090C4F150015BD9E /* Localized.strings in Resources */,
+				92EABC240954D25D007A9EB3 /* Tiles Setup.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
