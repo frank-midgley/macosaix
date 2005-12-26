@@ -120,12 +120,12 @@
 	float			tabbedSidesRatio = MIN(MAX([currentTileShapes tabbedSidesRatio], [tabbedSidesSlider minValue]), [tabbedSidesSlider maxValue]);
 	[currentTileShapes setTabbedSidesRatio:tabbedSidesRatio];
 	[tabbedSidesSlider setFloatValue:tabbedSidesRatio];
-	[tabbedSidesTextField setStringValue:[NSString stringWithFormat:@"%d%%", tabbedSidesRatio * 100.0]];
+	[tabbedSidesTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", tabbedSidesRatio * 100.0]];
 	
 	float			curviness = MIN(MAX([currentTileShapes curviness], [curvinessSlider minValue]), [curvinessSlider maxValue]);
 	[currentTileShapes setCurviness:curviness];
 	[curvinessSlider setFloatValue:curviness];
-	[curvinessTextField setStringValue:[NSString stringWithFormat:@"%d%%", curviness * 100.0]];
+	[curvinessTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", curviness * 100.0]];
 	
 	NSDictionary	*lastUsedSettings = [[NSUserDefaults standardUserDefaults] objectForKey:@"Puzzle Tile Shapes"];
 	[preserveTileSizeCheckBox setState:[[lastUsedSettings objectForKey:@"Preserve Tile Size"] boolValue]];
@@ -324,12 +324,18 @@
 }
 
 
-- (void)dealloc
+- (void)editingComplete
 {
 	[previewTimer invalidate];
 	[previewTimer release];
-	
+	previewTimer = nil;
+
 	[currentTileShapes release];
+}
+
+
+- (void)dealloc
+{
 	[editorView release];	// we are responsible for releasing any top-level objects in the nib
 	
 	[super dealloc];
