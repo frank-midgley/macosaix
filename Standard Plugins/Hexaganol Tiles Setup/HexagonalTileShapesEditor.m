@@ -47,13 +47,16 @@
 }
 
 
-- (void)updateTileCountAndSizeFields
+- (id)initWithDelegate:(id)delegate
 {
-	[tileCountTextField setIntValue:[tilesAcrossStepper intValue] * [tilesDownStepper intValue]];
+	if (self = [super init])
+	{
+		editorDelegate = delegate;
+		
+		originalImageSize = [[editorDelegate originalImage] size];
+	}
 	
-	float	tileAspectRatio = (originalImageSize.width / [tilesAcrossStepper intValue]) / 
-							  (originalImageSize.height / [tilesDownStepper intValue]);
-	[tileSizeTextField setStringValue:[NSString stringWithAspectRatio:tileAspectRatio]];
+	return self;
 }
 
 
@@ -78,7 +81,7 @@
 }
 
 
-- (void)editTileShapes:(id<MacOSaiXTileShapes>)tilesSetup forOriginalImage:(NSImage *)originalImage
+- (void)editTileShapes:(id<MacOSaiXTileShapes>)tilesSetup
 {
 	[self setCurrentTileShapes:tilesSetup];
 	
@@ -94,8 +97,6 @@
 	[tilesDownStepper setIntValue:tilesDown];
 	[tilesDownTextField setIntValue:tilesDown];
 	
-	originalImageSize = [originalImage size];
-	
 	NSDictionary	*lastUsedSettings = [[NSUserDefaults standardUserDefaults] objectForKey:@"Hexagonal Tile Shapes"];
 	[restrictTileSizeCheckBox setState:[[lastUsedSettings objectForKey:@"Restrict Tile Size"] boolValue]];
 	[restrictedXSizePopUpButton selectItemWithTitle:[lastUsedSettings objectForKey:@"Restrict Tile X Size"]];
@@ -103,8 +104,6 @@
 	
 	if ([restrictTileSizeCheckBox state] == NSOnState)
 		[self setTilesDownBasedOnTilesAcross];
-	
-	[self updateTileCountAndSizeFields];
 }
 
 
@@ -131,7 +130,7 @@
 	else
 		NSBeep();
 	
-	[self updateTileCountAndSizeFields];
+	[editorDelegate tileShapesWereEdited];
 }
 
 
@@ -158,7 +157,7 @@
 	else
 		NSBeep();
 	
-	[self updateTileCountAndSizeFields];
+	[editorDelegate tileShapesWereEdited];
 }
 
 
@@ -178,7 +177,7 @@
 	if ([restrictTileSizeCheckBox state] == NSOnState)
 		[self setTilesDownBasedOnTilesAcross];
 	else
-		[self updateTileCountAndSizeFields];
+		[editorDelegate tileShapesWereEdited];
 	
 	[self updatePlugInDefaults];
 }
@@ -200,7 +199,7 @@
 	if ([restrictTileSizeCheckBox state] == NSOnState)
 		[self setTilesAcrossBasedOnTilesDown];
 	else
-		[self updateTileCountAndSizeFields];
+		[editorDelegate tileShapesWereEdited];
 	
 	[self updatePlugInDefaults];
 }
@@ -233,9 +232,38 @@
 }
 
 
-- (void)dealloc
+- (int)tileCount
+{
+	return [tilesAcrossTextField intValue] * [tilesDownTextField intValue] + [tilesDownTextField intValue] / 2;
+}
+
+
+- (NSBezierPath *)previewPath
+{
+	float			unitHeight = (originalImageSize.height / [tilesDownTextField intValue]) / 
+								 (originalImageSize.width / [tilesAcrossTextField intValue]);
+	NSBezierPath	*previewPath = [NSBezierPath bezierPath];
+	
+	[previewPath moveToPoint:NSMakePoint(1.0 / 3.0, 0.0)];
+	[previewPath lineToPoint:NSMakePoint(1.0, 0.0)];
+	[previewPath lineToPoint:NSMakePoint(4.0 / 3.0, unitHeight / 2.0)];
+	[previewPath lineToPoint:NSMakePoint(1.0, unitHeight)];
+	[previewPath lineToPoint:NSMakePoint(1.0 / 3.0, unitHeight)];
+	[previewPath lineToPoint:NSMakePoint(0.0, unitHeight / 2.0)];
+	[previewPath lineToPoint:NSMakePoint(1.0 / 3.0, 0.0)];
+	
+	return previewPath;
+}
+
+
+- (void)editingComplete
 {
 	[currentTileShapes release];
+}
+
+
+- (void)dealloc
+{
 	[editorView release];	// we are responsible for releasing any top-level objects in the nib
 	
 	[super dealloc];

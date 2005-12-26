@@ -23,8 +23,9 @@
 	IBOutlet NSPopUpButton			*restrictedXSizePopUpButton,
 									*restrictedYSizePopUpButton;
 	
+	id								editorDelegate;
 	NSSize							originalImageSize;
-	MacOSaiXHexagonalTileShapes	*currentTileShapes;
+	MacOSaiXHexagonalTileShapes		*currentTileShapes;
 }
 
 - (IBAction)setTilesAcross:(id)sender;
