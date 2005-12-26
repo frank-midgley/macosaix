@@ -59,7 +59,12 @@
 - (void)populateOriginalImagesMenus
 {
 	if (!originalImagePopUpView)
-		originalImagePopUpView = [[MacOSaiXPopUpImageView alloc] initWithFrame:NSMakeRect(0.0, 0.0, 32.0, 32.0)];
+		originalImagePopUpView = [[MacOSaiXPopUpImageView alloc] initWithFrame:NSMakeRect(0.0, 0.0, 44.0, 32.0)];
+	
+		// Remove the previous original items from the main menu.
+	NSMenu			*mainOriginalsMenu = [(MacOSaiX *)[NSApp delegate] originalImagesMenu];
+	while ([mainOriginalsMenu numberOfItems] > 2)
+		[mainOriginalsMenu removeItemAtIndex:0];
 
 	NSMenu			*originalsMenu = [[NSMenu alloc] initWithTitle:@"Original Images"];
 	NSEnumerator	*originalEnumerator = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] objectEnumerator];
@@ -78,13 +83,12 @@
 			NSImage		*thumbnail = [[[NSImage alloc] initWithData:[originalDict objectForKey:@"Thumbnail Data"]] autorelease];
 			[originalItem setImage:thumbnail];
 			[originalsMenu insertItem:originalItem atIndex:0];
+			[mainOriginalsMenu insertItem:[[originalItem copy] autorelease] atIndex:0];
 		}
 	}
 	// TODO: add "choose new" item
 	
 	[originalImagePopUpView setMenu:originalsMenu];
-	
-	// TBD: original images in main menu?
 	
 	[originalsMenu release];
 }
@@ -550,11 +554,11 @@
 			NSRectFill(NSMakeRect(0.0, 0.0, previewSize.width, previewSize.height));
 			
 				// Draw the shadow.
-			[[NSColor grayColor] set];
+			[[NSColor colorWithCalibratedWhite:0.0 alpha:0.25] set];
 			transform = [NSAffineTransform transform];
 			[transform translateXBy:3.0 yBy:1.0];
 			[[transform transformBezierPath:previewPath] stroke];
-			[[NSColor darkGrayColor] set];
+			[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
 			transform = [NSAffineTransform transform];
 			[transform translateXBy:2.0 yBy:2.0];
 			[[transform transformBezierPath:previewPath] stroke];
@@ -568,6 +572,10 @@
 			[[transform transformBezierPath:previewPath] stroke];
 		[previewImage unlockFocus];
 	}
+	
+//	static			count = 0;
+//	[[previewImage TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0]
+//		writeToFile:[NSString stringWithFormat:@"/Users/fmidgley/Desktop/Puzzle%3d.tiff", count++] atomically:NO];
 	
 	[tileShapesPreviewImageView setImage:previewImage];
 	[previewImage release];
@@ -679,6 +687,8 @@
 
 - (void)tilesSetupDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
+	[tileShapesEditor editingComplete];
+	
 	[sheet orderOut:self];
 	
 	if (returnCode == NSOKButton)
@@ -686,7 +696,7 @@
 	
 	[tileShapesBeingEdited release];
 	tileShapesBeingEdited = nil;
-
+	
 	[tileShapesBox setContentView:[[[NSView alloc] initWithFrame:NSZeroRect] autorelease]];
 }
 
