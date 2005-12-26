@@ -55,7 +55,7 @@
 {
 		// Draw the image as large as possible and centered.
 	NSSize	imageSize = [popUpImage size];
-	NSRect	bounds = [self bounds],
+	NSRect	bounds = NSInsetRect([self bounds], 6.0, 0.0), 
 			destRect;
 	if ((imageSize.width / NSWidth(bounds)) > (imageSize.height / NSHeight(bounds)))
 	{
@@ -67,24 +67,17 @@
 		float	scaledWidth = imageSize.width * NSHeight(bounds) / imageSize.height;
 		destRect = NSMakeRect((NSWidth(bounds) - scaledWidth) / 2.0, NSMinY(bounds), scaledWidth, NSHeight(bounds));
 	}
-	
-	if (popUpMenu)
-	{
-		[[NSGraphicsContext currentContext] saveGraphicsState];
-//		[[NSBezierPath bezierPathWithOvalInRect:NSMakeRect(NSMaxX(destRect) - 8.0, NSMinY(destRect) - 8.0, 16.0, 16.0)] addClip];
-	}
+	destRect = NSIntegralRect(destRect);
 	
 	[popUpImage drawInRect:destRect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
 	
 	if (popUpMenu)
 	{
-		[[NSGraphicsContext currentContext] restoreGraphicsState];
-
 		NSBezierPath	*trianglePath = [NSBezierPath bezierPath];
-		[trianglePath moveToPoint:NSMakePoint(NSMaxX(destRect) - 6.5, NSMinY(destRect) + 4.5)];
-		[trianglePath lineToPoint:NSMakePoint(NSMaxX(destRect) - 0.5, NSMinY(destRect) + 4.5)];
-		[trianglePath lineToPoint:NSMakePoint(NSMaxX(destRect) - 3.5, NSMinY(destRect) + 0.5)];
-		[trianglePath lineToPoint:NSMakePoint(NSMaxX(destRect) - 6.5, NSMinY(destRect) + 4.5)];
+		[trianglePath moveToPoint:NSMakePoint(NSMaxX(destRect) + 1.5, NSMinY(destRect) + 4.0)];
+		[trianglePath lineToPoint:NSMakePoint(NSMaxX(destRect) + 6.5, NSMinY(destRect) + 4.0)];
+		[trianglePath lineToPoint:NSMakePoint(NSMaxX(destRect) + 4.0, NSMinY(destRect) + 0.0)];
+		[trianglePath lineToPoint:NSMakePoint(NSMaxX(destRect) + 1.5, NSMinY(destRect) + 4.0)];
 		[[NSColor blackColor] set];
 		[trianglePath fill];
 	}
