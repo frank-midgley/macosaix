@@ -328,8 +328,16 @@
 					controlPoint1:NSMakePoint(controlAttributes.bottomLeftVerticalCurve,	ySize / 6)
 					controlPoint2:NSMakePoint(controlAttributes.bottomLeftVerticalCurve,	ySize / 12)];
 	}
-
+	
 	[tileOutline closePath];
+	
+	//	Add the bits that make the Tile Shapes toolbar icon.
+//	[tileOutline appendBezierPathWithOvalInRect:NSMakeRect(xSize * 0.15, ySize * 0.2, xSize * 0.2, xSize * 0.2)];
+//	[tileOutline moveToPoint:NSMakePoint(xSize * 0.45, ySize * 0.3)];
+//	[tileOutline lineToPoint:NSMakePoint(xSize * 0.85, ySize * 0.3)];
+//	[tileOutline appendBezierPathWithOvalInRect:NSMakeRect(xSize * 0.15, ySize * 0.6, xSize * 0.2, xSize * 0.2)];
+//	[tileOutline moveToPoint:NSMakePoint(xSize * 0.45, ySize * 0.7)];
+//	[tileOutline lineToPoint:NSMakePoint(xSize * 0.85, ySize * 0.7)];
 	
 	return tileOutline;
 }
@@ -357,8 +365,8 @@
 	for (x = 0; x < tilesAcross + 1; x++)
 		for (y = 0; y < tilesDown + 1; y++)
 		{
-			horizontalCurviness[x][y] = (y == 0 || y == tilesDown) ? 0.0 : (random() % 200 - 100) / 100.0;
-			verticalCurviness[x][y] = (x == 0 || x == tilesAcross) ? 0.0 : (random() % 200 - 100) / 100.0;
+			horizontalCurviness[x][y] = (y == 0 || y == tilesDown) ? 0.0 : (random() % 200 - 100) / 100.0 * curviness;
+			verticalCurviness[x][y] = (x == 0 || x == tilesAcross) ? 0.0 : (random() % 200 - 100) / 100.0 * curviness;
 		}
 	
 		// Add a bezier path for each puzzle piece.
