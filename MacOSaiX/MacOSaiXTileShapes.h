@@ -51,6 +51,7 @@
 - (NSResponder *)editorViewFirstResponder;
 
 - (void)editTileShapes:(id<MacOSaiXTileShapes>)tilesSetup;
+- (void)editingComplete;
 
 - (int)tileCount;
 - (NSBezierPath *)previewPath;
