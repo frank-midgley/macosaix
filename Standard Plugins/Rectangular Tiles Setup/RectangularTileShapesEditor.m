@@ -269,9 +269,14 @@
 }
 
 
-- (void)dealloc
+- (void)editingComplete
 {
 	[currentTileShapes release];
+}
+
+
+- (void)dealloc
+{
 	[editorView release];	// we are responsible for releasing any top-level objects in the nib
 	
 	[super dealloc];
