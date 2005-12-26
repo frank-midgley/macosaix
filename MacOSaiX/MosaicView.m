@@ -443,13 +443,13 @@
 	{
 			// Draw the outline of all of the tiles.
 		NSAffineTransform	*transform = [NSAffineTransform transform];
-		[transform translateXBy:0.5 yBy:-0.5];
+		[transform translateXBy:1.5 yBy:0.5];
 		[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
 		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];	// darken
 		[[transform transformBezierPath:tilesOutline] stroke];
 		
 		transform = [NSAffineTransform transform];
-		[transform translateXBy:-0.5 yBy:0.5];
+		[transform translateXBy:0.5 yBy:1.5];
 		[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
 		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
 		[[transform transformBezierPath:tilesOutline] stroke];
