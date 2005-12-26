@@ -5,10 +5,12 @@
                 beginExportImage = id; 
                 centerViewOnSelectedTile = id; 
                 chooseImageForSelectedTile = id; 
+                chooseOriginalImage = id; 
                 removeChosenImageForSelectedTile = id; 
                 setViewMosaic = id; 
                 setViewOriginalImage = id; 
                 setZoom = id; 
+                setupTiles = id; 
                 toggleImageSourcesDrawer = id; 
                 toggleMinimizeDuplicates = id; 
                 togglePause = id; 
@@ -23,6 +25,7 @@
             ACTIONS = {enterKioskMode = id; openPreferences = id; }; 
             CLASS = MacOSaiX; 
             LANGUAGE = ObjC; 
+            OUTLETS = {originalImagesMenu = NSMenu; }; 
             SUPERCLASS = NSObject; 
         }, 
         {
