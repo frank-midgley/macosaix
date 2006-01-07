@@ -73,16 +73,19 @@ Riemersma metric:
 ¥	Full screen mode
 Ã	Flickr source
 ¥	Make sure Google and Flickr caches don't fill disk
+¥	Page by post date in Flickr source
 Ã	Rework puzzle shapes plug-in to conform with new API
 Ã	Add recents to folder source
 Ã	Follow aliases in folder source
-¥	Single menu for restricting tile sizes
+?	Single menu for restricting tile sizes
 ¥	Complete plug-in API
 ¥		OS check
 ¥		Add preferences API for image source plug-ins
 ¥		Add preferences API for tile shapes plug-ins
 ¥		Delegation change for tile shapes (and image sources?) (hex shapes)
 Ã	Don't loop forever scaling from the cache
-¥	Auto-start pref not honored
+Ã	Auto-start pref not honored
 ¥	Start icon not changing to pause when started
 ¥	Copy original image to doc bundle
+¥	Fix auto-fade
+¥	Enable "Add New Image Source" sub-menu in main menu
