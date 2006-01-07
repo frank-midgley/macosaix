@@ -30,7 +30,7 @@
 }
 
 
-- (NSView *)editorView
+- (NSView *)mainView
 {
 	if (!editorView)
 		[NSBundle loadNibNamed:@"Glyph Image Source" owner:self];
@@ -39,13 +39,13 @@
 }
 
 
-- (NSSize)editorViewMinimumSize
+- (NSSize)minimumSize
 {
 	return NSMakeSize(450.0, 375.0);
 }
 
 
-- (NSResponder *)editorViewFirstResponder
+- (NSResponder *)firstResponder
 {
 	return fontsOutlineView;
 }

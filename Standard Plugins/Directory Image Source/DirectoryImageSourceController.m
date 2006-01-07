@@ -47,7 +47,7 @@
 }
 
 
-- (NSView *)editorView
+- (NSView *)mainView
 {
 	if (!editorView)
 		[NSBundle loadNibNamed:@"Directory Image Source" owner:self];
@@ -56,13 +56,13 @@
 }
 
 
-- (NSSize)editorViewMinimumSize
+- (NSSize)minimumSize
 {
 	return NSMakeSize(367.0, 217.0);
 }
 
 
-- (NSResponder *)editorViewFirstResponder
+- (NSResponder *)firstResponder
 {
 	return folderTableView;
 }

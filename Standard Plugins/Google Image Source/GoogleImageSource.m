@@ -8,6 +8,7 @@
 
 #import "GoogleImageSource.h"
 #import "GoogleImageSourceController.h"
+#import "GooglePreferencesController.h"
 #import "NSString+MacOSaiX.h"
 #import <CoreFoundation/CFURL.h>
 #import <sys/time.h>
@@ -41,11 +42,8 @@ NSString *escapedNSString(NSString *string)
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	
-	imageCachePath = [[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"] 
-											stringByAppendingPathComponent:@"Caches"]
-											stringByAppendingPathComponent:@"MacOSaiX Google Images"] retain];
-	if (![[NSFileManager defaultManager] fileExistsAtPath:imageCachePath])
-		[[NSFileManager defaultManager] createDirectoryAtPath:imageCachePath attributes:nil];
+	if (![[NSFileManager defaultManager] fileExistsAtPath:[self imageCachePath]])
+		[[NSFileManager defaultManager] createDirectoryAtPath:[self imageCachePath] attributes:nil];
 	
 	imageCacheLock = [[NSLock alloc] init];
 	
@@ -56,6 +54,14 @@ NSString *escapedNSString(NSString *string)
 	googleIcon = [[NSImage alloc] initWithContentsOfFile:iconPath];
 	
 	[pool release];
+}
+
+
++ (NSString *)imageCachePath
+{
+	return [[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"] 
+								 stringByAppendingPathComponent:@"Caches"]
+								 stringByAppendingPathComponent:@"MacOSaiX Google Images"] retain];
 }
 
 
@@ -74,6 +80,12 @@ NSString *escapedNSString(NSString *string)
 + (Class)editorClass
 {
 	return [GoogleImageSourceController class];
+}
+
+
++ (Class)preferencesControllerClass
+{
+	return [GooglePreferencesController class];
 }
 
 

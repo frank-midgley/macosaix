@@ -27,6 +27,8 @@ typedef enum { strictFiltering, moderateFiltering, noFiltering } GoogleAdultCont
 	NSMutableArray				*imageURLQueue;
 }
 
++ (NSString *)imageCachePath;
+
 - (void)setRequiredTerms:(NSString *)terms;
 - (NSString *)requiredTerms;
 - (void)setOptionalTerms:(NSString *)terms;

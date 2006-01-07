@@ -13,6 +13,7 @@
 		010D20B70902C01700950013 /* Kiosk.nib in Resources */ = {isa = PBXBuildFile; fileRef = 010D209A0902C01700950013 /* Kiosk.nib */; };
 		010D20B90902C01700950013 /* Mosaic.nib in Resources */ = {isa = PBXBuildFile; fileRef = 010D209E0902C01700950013 /* Mosaic.nib */; };
 		010D20BA0902C01700950013 /* Screen Setup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 010D20A00902C01700950013 /* Screen Setup.nib */; };
+		0111F0B60968728600EE09C1 /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 0111F0B40968728600EE09C1 /* Preferences.nib */; };
 		0120B21F08C7FF8600974680 /* G.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0120B21E08C7FF8600974680 /* G.tiff */; };
 		0127354307CD6EBB0053037A /* Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0127354207CD6EBB0053037A /* Defaults.plist */; };
 		0128323A071B7297004ACF95 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
@@ -31,7 +32,11 @@
 		01722BD909298DCE00290929 /* Flickr Image Source.nib in Resources */ = {isa = PBXBuildFile; fileRef = 01722BD309298DCE00290929 /* Flickr Image Source.nib */; };
 		01722BF6092991FF00290929 /* flickr.gif in Resources */ = {isa = PBXBuildFile; fileRef = 01722BF4092991FF00290929 /* flickr.gif */; };
 		01722C270929986A00290929 /* f.ico in Resources */ = {isa = PBXBuildFile; fileRef = 01722C260929986A00290929 /* f.ico */; };
+		018F9A630964BE2F00CABB48 /* GooglePreferencesController.h in Headers */ = {isa = PBXBuildFile; fileRef = 018F9A610964BE2F00CABB48 /* GooglePreferencesController.h */; };
+		018F9A640964BE2F00CABB48 /* GooglePreferencesController.m in Sources */ = {isa = PBXBuildFile; fileRef = 018F9A620964BE2F00CABB48 /* GooglePreferencesController.m */; };
 		01A1978E071A200E00B11558 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
+		01A94F77097050DB00EF07B6 /* MacOSaiXPreferencesController.h in Headers */ = {isa = PBXBuildFile; fileRef = 01A94F76097050DB00EF07B6 /* MacOSaiXPreferencesController.h */; };
+		01A94F78097050DB00EF07B6 /* MacOSaiXPreferencesController.h in Headers */ = {isa = PBXBuildFile; fileRef = 01A94F76097050DB00EF07B6 /* MacOSaiXPreferencesController.h */; };
 		01AB92EB07DB797300DB4B86 /* NSString+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */; };
 		01AB92EC07DB797300DB4B86 /* NSString+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 01AB92EA07DB797300DB4B86 /* NSString+MacOSaiX.m */; };
 		01AC3A3C07B0997C0025F915 /* Settings.png in Resources */ = {isa = PBXBuildFile; fileRef = 01AC3A3B07B0997C0025F915 /* Settings.png */; };
@@ -376,6 +381,7 @@
 		010D209B0902C01700950013 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Kiosk.nib; sourceTree = "<group>"; };
 		010D209F0902C01700950013 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Mosaic.nib; sourceTree = "<group>"; };
 		010D20A10902C01700950013 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Screen Setup.nib"; sourceTree = "<group>"; };
+		0111F0B50968728600EE09C1 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Google Image Source/English.lproj/Preferences.nib"; sourceTree = "<group>"; };
 		0120B21E08C7FF8600974680 /* G.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = G.tiff; path = "Standard Plugins/Google Image Source/G.tiff"; sourceTree = "<group>"; };
 		0127354207CD6EBB0053037A /* Defaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = Defaults.plist; path = MacOSaiX/Defaults.plist; sourceTree = "<group>"; };
 		012976FF086A63D30095AD36 /* MacOSaiXCrashReporterController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXCrashReporterController.h; path = MacOSaiX/MacOSaiXCrashReporterController.h; sourceTree = "<group>"; };
@@ -402,6 +408,9 @@
 		01722BD409298DCE00290929 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Flickr Image Source.nib"; sourceTree = "<group>"; };
 		01722BF4092991FF00290929 /* flickr.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = flickr.gif; sourceTree = "<group>"; };
 		01722C260929986A00290929 /* f.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = f.ico; sourceTree = "<group>"; };
+		018F9A610964BE2F00CABB48 /* GooglePreferencesController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GooglePreferencesController.h; path = "Standard Plugins/Google Image Source/GooglePreferencesController.h"; sourceTree = "<group>"; };
+		018F9A620964BE2F00CABB48 /* GooglePreferencesController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GooglePreferencesController.m; path = "Standard Plugins/Google Image Source/GooglePreferencesController.m"; sourceTree = "<group>"; };
+		01A94F76097050DB00EF07B6 /* MacOSaiXPreferencesController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXPreferencesController.h; path = MacOSaiX/MacOSaiXPreferencesController.h; sourceTree = "<group>"; };
 		01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+MacOSaiX.h"; path = "MacOSaiX/NSString+MacOSaiX.h"; sourceTree = "<group>"; };
 		01AB92EA07DB797300DB4B86 /* NSString+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+MacOSaiX.m"; path = "MacOSaiX/NSString+MacOSaiX.m"; sourceTree = "<group>"; };
 		01AC3A3B07B0997C0025F915 /* Settings.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Settings.png; path = Images/Settings.png; sourceTree = "<group>"; };
@@ -705,6 +714,7 @@
 			children = (
 				9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */,
 				923384DB072180700010BE04 /* MacOSaiXImageSource.h */,
+				01A94F76097050DB00EF07B6 /* MacOSaiXPreferencesController.h */,
 			);
 			name = "Plug-in API's";
 			sourceTree = "<group>";
@@ -860,11 +870,14 @@
 				F540721E023FE6E00100010A /* GoogleImageSource.m */,
 				F514D5A203949AA801B25AF1 /* GoogleImageSourceController.h */,
 				F514D5A303949AA801B25AF1 /* GoogleImageSourceController.m */,
+				928F72910661226000873AE2 /* Google Image Source.nib */,
+				018F9A610964BE2F00CABB48 /* GooglePreferencesController.h */,
+				018F9A620964BE2F00CABB48 /* GooglePreferencesController.m */,
 				0120B21E08C7FF8600974680 /* G.tiff */,
 				F580657F02456D1901000104 /* GoogleImageSource.gif */,
-				928F72910661226000873AE2 /* Google Image Source.nib */,
 				01AD286D07E3C99A00420875 /* GoogleImageSearch.gif */,
 				928F72E00661234700873AE2 /* Info.plist */,
+				0111F0B40968728600EE09C1 /* Preferences.nib */,
 			);
 			name = Google;
 			sourceTree = "<group>";
@@ -1046,6 +1059,7 @@
 				010D1F7608FF5FAD00950013 /* MacOSaiXKioskWindow.h in Headers */,
 				9254088C0915741F00384904 /* MacOSaiXKioskMessageView.h in Headers */,
 				92887D9C094CCC83000FA225 /* MacOSaiXPopUpImageView.h in Headers */,
+				01A94F78097050DB00EF07B6 /* MacOSaiXPreferencesController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1067,6 +1081,8 @@
 				928489C806611CE6003B3514 /* GoogleImageSource.h in Headers */,
 				928489C906611CE6003B3514 /* GoogleImageSourceController.h in Headers */,
 				9286575A0734584600EFC32A /* MacOSaiXImageSource.h in Headers */,
+				018F9A630964BE2F00CABB48 /* GooglePreferencesController.h in Headers */,
+				01A94F77097050DB00EF07B6 /* MacOSaiXPreferencesController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1632,6 +1648,7 @@
 				928F72E10661234700873AE2 /* Info.plist in Resources */,
 				01AD286F07E3C99B00420875 /* GoogleImageSearch.gif in Resources */,
 				0120B21F08C7FF8600974680 /* G.tiff in Resources */,
+				0111F0B60968728600EE09C1 /* Preferences.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1777,6 +1794,7 @@
 			files = (
 				928489CD06611CE6003B3514 /* GoogleImageSource.m in Sources */,
 				928489CE06611CE6003B3514 /* GoogleImageSourceController.m in Sources */,
+				018F9A640964BE2F00CABB48 /* GooglePreferencesController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1898,6 +1916,14 @@
 				010D20A10902C01700950013 /* English */,
 			);
 			name = "Screen Setup.nib";
+			sourceTree = "<group>";
+		};
+		0111F0B40968728600EE09C1 /* Preferences.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				0111F0B50968728600EE09C1 /* English */,
+			);
+			name = Preferences.nib;
 			sourceTree = "<group>";
 		};
 		01722BD309298DCE00290929 /* Flickr Image Source.nib */ = {

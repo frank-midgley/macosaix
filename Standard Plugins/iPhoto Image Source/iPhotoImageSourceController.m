@@ -13,7 +13,7 @@
 @implementation MacOSaiXiPhotoImageSourceController
 
 
-- (NSView *)editorView
+- (NSView *)mainView
 {
 	if (!editorView)
 		[NSBundle loadNibNamed:@"iPhoto Image Source" owner:self];
@@ -22,13 +22,13 @@
 }
 
 
-- (NSSize)editorViewMinimumSize
+- (NSSize)minimumSize
 {
 	return NSMakeSize(460.0, 66.0);
 }
 
 
-- (NSResponder *)editorViewFirstResponder
+- (NSResponder *)firstResponder
 {
 	return albumsPopUp;
 }

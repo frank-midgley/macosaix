@@ -10,12 +10,22 @@
 
 @interface MacOSaiXPreferencesController : NSWindowController
 {
-    IBOutlet NSTextField	*autosaveFrequencyField;
+	IBOutlet NSTableView	*preferenceTable;
+	IBOutlet NSBox			*preferenceBox;
+	NSView					*mainPreferencesView;
+
+	NSMutableArray			*plugInClasses;
+	NSMutableDictionary		*plugInControllers;
+
+		// MacOSaiX preferences GUI
 	IBOutlet NSButton		*updateCheckBox,
-							*autoStartCheckBox;
+							*autoStartCheckBox,
+							*autoSaveCheckBox;
+    IBOutlet NSTextField	*autoSaveFrequencyField;
 }
 
 - (IBAction)setUpdateCheck:(id)sender;
 - (IBAction)setAutoStart:(id)sender;
+- (IBAction)setAutoSave:(id)sender;
 
 @end

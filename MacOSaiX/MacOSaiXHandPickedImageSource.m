@@ -30,6 +30,12 @@
 }
 
 
++ (Class)preferencesControllerClass
+{
+	return nil;
+}
+
+
 + (BOOL)allowMultipleImageSources
 {
 	return NO;

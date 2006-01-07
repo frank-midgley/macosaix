@@ -73,6 +73,12 @@ NSString *escapedNSString(NSString *string)
 }
 
 
++ (Class)preferencesControllerClass
+{
+	return nil;
+}
+
+
 + (BOOL)allowMultipleImageSources
 {
 	return YES;

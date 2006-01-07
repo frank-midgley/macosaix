@@ -26,6 +26,12 @@
 }
 
 
++ (NSImage *)image
+{
+	return nil;
+}
+
+
 + (Class)editorClass
 {
 	return [MacOSaiXPuzzleTileShapesEditor class];
@@ -66,6 +72,12 @@
 	[copy setTilesDown:[self tilesDown]];
 	
 	return copy;
+}
+
+
+- (NSImage *)image
+{
+	return nil;
 }
 
 

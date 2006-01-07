@@ -8,7 +8,6 @@
 
 #import <Cocoa/Cocoa.h>
 
-
 #define kMacOSaiXTileShapesSettingType @"Element Type"
 
 
@@ -17,6 +16,9 @@
 	// Name to display in pop-up menu
 + (NSString *)name;
 
+	// The image for a generic source of this type.
++ (NSImage *)image;
+
 	// A class whose instances conform to the MacOSaiXTileShapesEditor protocol.
 + (Class)editorClass;
 
@@ -24,6 +26,9 @@
 + (Class)preferencesControllerClass;
 
 // TBD: initWithXML or parser callbacks?
+
+	// The image for this instance of the tile shapes.
+- (NSImage *)image;
 
 	// A human-readable NSString, NSAttributedString or NSImage that briefly describes this instance's settings.
 - (id)briefDescription;
@@ -46,9 +51,9 @@
 - (id)initWithDelegate:(id)delegate;
 
 	// The view containing the editing controls.
-- (NSView *)editorView;
-- (NSSize)editorViewMinimumSize;
-- (NSResponder *)editorViewFirstResponder;
+- (NSView *)mainView;
+- (NSSize)minimumSize;
+- (NSResponder *)firstResponder;
 
 - (void)editTileShapes:(id<MacOSaiXTileShapes>)tilesSetup;
 - (void)editingComplete;
@@ -61,12 +66,4 @@
 @interface NSObject (MacOSaiXTileShapesEditorDelegate)
 - (NSImage *)originalImage;
 - (void)tileShapesWereEdited;
-@end
-
-
-@protocol MacOSaiXTileShapesPreferencesController <NSObject>
-
-	// The view containing the preferences controls.
-- (NSView *)preferencesView;
-
 @end

@@ -37,7 +37,7 @@
 }
 
 
-- (NSView *)editorView
+- (NSView *)mainView
 {
 	if (!editorView)
 		[NSBundle loadNibNamed:@"RectangularTileShapes" owner:self];
@@ -46,13 +46,13 @@
 }
 
 
-- (NSSize)editorViewMinimumSize
+- (NSSize)minimumSize
 {
 	return NSMakeSize(339.0, 90.0);
 }
 
 
-- (NSResponder *)editorViewFirstResponder
+- (NSResponder *)firstResponder
 {
 	return tilesAcrossSlider;
 }

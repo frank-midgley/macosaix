@@ -58,6 +58,12 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
++ (Class)preferencesControllerClass
+{
+	return nil;
+}
+
+
 + (BOOL)allowMultipleImageSources
 {
 	return YES;

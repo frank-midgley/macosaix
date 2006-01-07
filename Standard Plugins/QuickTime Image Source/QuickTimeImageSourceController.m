@@ -13,7 +13,7 @@
 @implementation QuickTimeImageSourceController
 
 
-- (NSView *)editorView
+- (NSView *)mainView
 {
 	if (!editorView)
 		[NSBundle loadNibNamed:@"QuickTime Image Source" owner:self];
@@ -22,13 +22,13 @@
 }
 
 
-- (NSSize)editorViewMinimumSize
+- (NSSize)minimumSize
 {
 	return NSMakeSize(350.0, 220.0);
 }
 
 
-- (NSResponder *)editorViewFirstResponder
+- (NSResponder *)firstResponder
 {
 	return chooseMovieFileButton;
 }

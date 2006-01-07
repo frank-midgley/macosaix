@@ -23,6 +23,8 @@
 
 + (Class)editorClass;
 
++ (Class)preferencesControllerClass;
+
 	// Whether multiple sources of this type can be added (maybe glyphs?)
 + (BOOL)allowMultipleImageSources;
 
@@ -66,9 +68,9 @@
 @protocol MacOSaiXImageSourceController <NSObject>
 
 	// The view to use for editing an image source.
-- (NSView *)editorView;
-- (NSSize)editorViewMinimumSize;
-- (NSResponder *)editorViewFirstResponder;
+- (NSView *)mainView;
+- (NSSize)minimumSize;
+- (NSResponder *)firstResponder;
 
 - (void)setOKButton:(NSButton *)button;
 

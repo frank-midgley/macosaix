@@ -26,7 +26,7 @@
 }
 
 
-- (NSView *)editorView
+- (NSView *)mainView
 {
 	if (!editorView)
 	{
@@ -58,13 +58,13 @@
 }
 
 
-- (NSSize)editorViewMinimumSize
+- (NSSize)minimumSize
 {
 	return NSMakeSize(340.0, 198.0);
 }
 
 
-- (NSResponder *)editorViewFirstResponder
+- (NSResponder *)firstResponder
 {
 	return tilesAcrossTextField;
 }

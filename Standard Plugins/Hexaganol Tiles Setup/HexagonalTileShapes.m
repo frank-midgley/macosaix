@@ -19,6 +19,12 @@
 }
 
 
++ (NSImage *)image
+{
+	return nil;
+}
+
+
 + (Class)editorClass
 {
 	return [MacOSaiXHexagonalTileShapesEditor class];
@@ -55,6 +61,12 @@
 	[copy setTilesDown:[self tilesDown]];
 	
 	return copy;
+}
+
+
+- (NSImage *)image
+{
+	return nil;
 }
 
 

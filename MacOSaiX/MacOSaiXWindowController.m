@@ -455,6 +455,15 @@
 																	 [[self mosaic] status]]];
 		
 		[imageSourcesTableView reloadData];
+		
+		if ([mosaicView fade] == 0.0 && ![[self mosaic] wasStarted])
+		{
+			fadeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.25 
+														  target:self 
+														selector:@selector(fadeToMosaic:) 
+														userInfo:nil 
+														 repeats:YES] retain];
+		}
 	}
 }
 
@@ -596,26 +605,26 @@
 		[self updateTileShapesPreview];
 	
 			// Swap in the view of the new editor.  Make sure the panel is big enough to contain the view's minimum size.
-		float	widthDiff = MAX(0.0, [tileShapesEditor editorViewMinimumSize].width - [[tileShapesBox contentView] frame].size.width),
-				heightDiff = MAX(0.0, [tileShapesEditor editorViewMinimumSize].height - [[tileShapesBox contentView] frame].size.height);
+		float	widthDiff = MAX(0.0, [tileShapesEditor minimumSize].width - [[tileShapesBox contentView] frame].size.width),
+				heightDiff = MAX(0.0, [tileShapesEditor minimumSize].height - [[tileShapesBox contentView] frame].size.height);
 		NSSize	currentPanelSize = [[tilesSetupPanel contentView] frame].size;
 		[tilesSetupPanel setContentSize:NSMakeSize(currentPanelSize.width + widthDiff, currentPanelSize.height + heightDiff)];
-		[[tileShapesEditor editorView] setFrame:[[tileShapesBox contentView] frame]];
-		[[tileShapesEditor editorView] setAutoresizingMask:[[tileShapesBox contentView] autoresizingMask]];
-		[tileShapesBox setContentView:[tileShapesEditor editorView]];
+		[[tileShapesEditor mainView] setFrame:[[tileShapesBox contentView] frame]];
+		[[tileShapesEditor mainView] setAutoresizingMask:[[tileShapesBox contentView] autoresizingMask]];
+		[tileShapesBox setContentView:[tileShapesEditor mainView]];
 		
 			// Re-establish the key view loop:
 			// 1. Focus on the editor view's first responder.
 			// 2. Set the next key view of the last view in the editor's loop to the cancel button.
 			// 3. Set the next key view of the OK button to the first view in the editor's loop.
-		[tilesSetupPanel setInitialFirstResponder:(NSView *)[tileShapesEditor editorViewFirstResponder]];
-		NSView	*lastKeyView = (NSView *)[tileShapesEditor editorViewFirstResponder];
+		[tilesSetupPanel setInitialFirstResponder:(NSView *)[tileShapesEditor firstResponder]];
+		NSView	*lastKeyView = (NSView *)[tileShapesEditor firstResponder];
 		while ([lastKeyView nextKeyView] && 
-				[[lastKeyView nextKeyView] isDescendantOf:[tileShapesEditor editorView]] &&
-				[lastKeyView nextKeyView] != [tileShapesEditor editorViewFirstResponder])
+				[[lastKeyView nextKeyView] isDescendantOf:[tileShapesEditor mainView]] &&
+				[lastKeyView nextKeyView] != [tileShapesEditor firstResponder])
 			lastKeyView = [lastKeyView nextKeyView];
 		[lastKeyView setNextKeyView:cancelTilesSetupButton];
-		[tileShapesPopUpButton setNextKeyView:(NSView *)[tileShapesEditor editorViewFirstResponder]];
+		[tileShapesPopUpButton setNextKeyView:(NSView *)[tileShapesEditor firstResponder]];
 		
 			// Get the existing tile shapes from our mosaic.
 			// If they are not of the class the user just chose then create a new one with default settings.
@@ -729,15 +738,15 @@
 	imageSourceEditorController = [[[[originalImageSource class] editorClass] alloc] init];
 	
 		// Make sure the panel is big enough to contain the view's minimum size.
-	float	widthDiff = MAX(0.0, [imageSourceEditorController editorViewMinimumSize].width - [[imageSourceEditorBox contentView] frame].size.width),
-			heightDiff = MAX(0.0, [imageSourceEditorController editorViewMinimumSize].height - [[imageSourceEditorBox contentView] frame].size.height);
+	float	widthDiff = MAX(0.0, [imageSourceEditorController minimumSize].width - [[imageSourceEditorBox contentView] frame].size.width),
+			heightDiff = MAX(0.0, [imageSourceEditorController minimumSize].height - [[imageSourceEditorBox contentView] frame].size.height);
 	NSSize	currentPanelSize = [[imageSourceEditorPanel contentView] frame].size;
 	[imageSourceEditorPanel setContentSize:NSMakeSize(currentPanelSize.width + widthDiff, currentPanelSize.height + heightDiff)];
-	[[imageSourceEditorController editorView] setFrame:[[imageSourceEditorBox contentView] frame]];
-	[[imageSourceEditorController editorView] setAutoresizingMask:[[imageSourceEditorBox contentView] autoresizingMask]];
+	[[imageSourceEditorController mainView] setFrame:[[imageSourceEditorBox contentView] frame]];
+	[[imageSourceEditorController mainView] setAutoresizingMask:[[imageSourceEditorBox contentView] autoresizingMask]];
 	
 		// Now that the sheet is big enough we can swap in the controller's editor view.
-	[imageSourceEditorBox setContentView:[imageSourceEditorController editorView]];
+	[imageSourceEditorBox setContentView:[imageSourceEditorController mainView]];
 
 	[imageSourceEditorController setOKButton:imageSourceEditorOKButton];	// so the controller can disable it for invalid settings
 	[imageSourceEditorController editImageSource:editableSource];
@@ -746,14 +755,14 @@
 		// 1. Focus on the editor view's first responder.
 		// 2. Set the next key view of the last view in the editor's loop to the cancel button.
 		// 3. Set the next key view of the OK button to the first view in the editor's loop.
-	[imageSourceEditorPanel setInitialFirstResponder:(NSView *)[imageSourceEditorController editorViewFirstResponder]];
-	NSView	*lastKeyView = (NSView *)[imageSourceEditorController editorViewFirstResponder];
+	[imageSourceEditorPanel setInitialFirstResponder:(NSView *)[imageSourceEditorController firstResponder]];
+	NSView	*lastKeyView = (NSView *)[imageSourceEditorController firstResponder];
 	while ([lastKeyView nextKeyView] && 
-			[[lastKeyView nextKeyView] isDescendantOf:[imageSourceEditorController editorView]] &&
-			[lastKeyView nextKeyView] != [imageSourceEditorController editorViewFirstResponder])
+			[[lastKeyView nextKeyView] isDescendantOf:[imageSourceEditorController mainView]] &&
+			[lastKeyView nextKeyView] != [imageSourceEditorController firstResponder])
 		lastKeyView = [lastKeyView nextKeyView];
 	[lastKeyView setNextKeyView:imageSourceEditorCancelButton];
-	[imageSourceEditorOKButton setNextKeyView:(NSView *)[imageSourceEditorController editorViewFirstResponder]];
+	[imageSourceEditorOKButton setNextKeyView:(NSView *)[imageSourceEditorController firstResponder]];
 	
 	[NSApp beginSheet:imageSourceEditorPanel 
 	   modalForWindow:[self window]
@@ -1390,18 +1399,7 @@
 - (void)togglePause:(id)sender
 {
 	if ([[self mosaic] isPaused])
-	{
-		if ([mosaicView fade] == 0.0 && ![[self mosaic] wasStarted])
-		{
-			fadeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.25 
-														  target:self 
-														selector:@selector(fadeToMosaic:) 
-														userInfo:nil 
-														 repeats:YES] retain];
-		}
-		
 		[self resume];
-	}
 	else
 		[self pause];
 }
@@ -1768,8 +1766,8 @@
 	{
 		NSSize	panelSize = [tilesSetupPanel frame].size,
 				editorBoxSize = [[tileShapesBox contentView] frame].size;
-		float	minWidth = (panelSize.width - editorBoxSize.width) + [tileShapesEditor editorViewMinimumSize].width,
-				minHeight = (panelSize.height - editorBoxSize.height) + [tileShapesEditor editorViewMinimumSize].height;
+		float	minWidth = (panelSize.width - editorBoxSize.width) + [tileShapesEditor minimumSize].width,
+				minHeight = (panelSize.height - editorBoxSize.height) + [tileShapesEditor minimumSize].height;
 		
 		proposedFrameSize.width = MAX(proposedFrameSize.width, minWidth);
 		proposedFrameSize.height = MAX(proposedFrameSize.height, minHeight);
@@ -1778,8 +1776,8 @@
 	{
 		NSSize	panelSize = [imageSourceEditorPanel frame].size,
 				editorBoxSize = [[imageSourceEditorBox contentView] frame].size;
-		float	minWidth = (panelSize.width - editorBoxSize.width) + [imageSourceEditorController editorViewMinimumSize].width,
-				minHeight = (panelSize.height - editorBoxSize.height) + [imageSourceEditorController editorViewMinimumSize].height;
+		float	minWidth = (panelSize.width - editorBoxSize.width) + [imageSourceEditorController minimumSize].width,
+				minHeight = (panelSize.height - editorBoxSize.height) + [imageSourceEditorController minimumSize].height;
 		
 		proposedFrameSize.width = MAX(proposedFrameSize.width, minWidth);
 		proposedFrameSize.height = MAX(proposedFrameSize.height, minHeight);
