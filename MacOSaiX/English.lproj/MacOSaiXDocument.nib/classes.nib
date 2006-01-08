@@ -6,9 +6,9 @@
                 addNewImageSource = id; 
                 beginExportImage = id; 
                 cancelImageSource = id; 
-                cancelTilesSetup = id; 
+                cancelSetupTiles = id; 
                 chooseImageForSelectedTile = id; 
-                okTilesSetup = id; 
+                okSetupTiles = id; 
                 removeChosenImageForSelectedTile = id; 
                 removeImageSource = id; 
                 saveImageSource = id; 
@@ -73,6 +73,7 @@
                 progressPanelCancelButton = NSButton; 
                 progressPanelIndicator = NSProgressIndicator; 
                 progressPanelLabel = NSTextField; 
+                setupTilesPanel = NSPanel; 
                 statusBarView = NSView; 
                 statusMessageView = NSTextField; 
                 tileShapesAverageSizeField = NSTextField; 
@@ -82,7 +83,6 @@
                 tileShapesEditor = id; 
                 tileShapesPopUpButton = NSPopUpButton; 
                 tileShapesPreviewImageView = NSImageView; 
-                tilesSetupPanel = NSPanel; 
                 zoomSlider = NSSlider; 
                 zoomToolbarSubmenu = NSMenu; 
                 zoomToolbarView = NSView; 
