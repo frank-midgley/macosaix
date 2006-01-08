@@ -503,10 +503,23 @@
 	[tileShapesPopUpButton removeAllItems];
 	while (tileShapesClass = [enumerator nextObject])
 	{
-		[tileShapesPopUpButton addItemWithTitle:[NSString stringWithFormat:titleFormat, [tileShapesClass name]]];
-		[[tileShapesPopUpButton lastItem] setRepresentedObject:tileShapesClass];
+		NSString		*title = [NSString stringWithFormat:titleFormat, [tileShapesClass name]];
+		NSMenuItem		*newItem = [[[NSMenuItem alloc] initWithTitle:title action:nil keyEquivalent:@""] autorelease];
+		[newItem setRepresentedObject:tileShapesClass];
+		NSImage			*image = [[[tileShapesClass image] copy] autorelease];
+		NSEnumerator	*repEnumerator = [[image representations] objectEnumerator];
+		NSImageRep		*imageRep = nil;
+		BOOL			hasGoodRep = NO;
+		while (imageRep = [repEnumerator nextObject])
+			if ([imageRep size].height == 16.0) 
+				hasGoodRep = YES;
+		if (!hasGoodRep)
+			[image setScalesWhenResized:YES];
+		[image setSize:NSMakeSize(16.0, 16.0)];
+		[newItem setImage:image];
+		[[tileShapesPopUpButton menu] addItem:newItem];
 		
-		[tileShapesPopUpButton selectItemAtIndex:[tileShapesPopUpButton numberOfItems] - 1];
+		[tileShapesPopUpButton selectItem:newItem];
 		[tileShapesPopUpButton sizeToFit];
 		maxWidth = MAX(maxWidth, [tileShapesPopUpButton frame].size.width);
 		
@@ -528,10 +541,10 @@
 	[imageCropLimitPopUpButton selectItemAtIndex:popUpIndex];
 	
 		// Present a sheet to let the user modify the shape settings.
-	[NSApp beginSheet:tilesSetupPanel 
+	[NSApp beginSheet:setupTilesPanel 
 	   modalForWindow:[self window]
 		modalDelegate:self 
-	   didEndSelector:@selector(tilesSetupDidEnd:returnCode:contextInfo:) 
+	   didEndSelector:@selector(setupTilesDidEnd:returnCode:contextInfo:) 
 		  contextInfo:nil];
 }
 
@@ -607,8 +620,8 @@
 			// Swap in the view of the new editor.  Make sure the panel is big enough to contain the view's minimum size.
 		float	widthDiff = MAX(0.0, [tileShapesEditor minimumSize].width - [[tileShapesBox contentView] frame].size.width),
 				heightDiff = MAX(0.0, [tileShapesEditor minimumSize].height - [[tileShapesBox contentView] frame].size.height);
-		NSSize	currentPanelSize = [[tilesSetupPanel contentView] frame].size;
-		[tilesSetupPanel setContentSize:NSMakeSize(currentPanelSize.width + widthDiff, currentPanelSize.height + heightDiff)];
+		NSSize	currentPanelSize = [[setupTilesPanel contentView] frame].size;
+		[setupTilesPanel setContentSize:NSMakeSize(currentPanelSize.width + widthDiff, currentPanelSize.height + heightDiff)];
 		[[tileShapesEditor mainView] setFrame:[[tileShapesBox contentView] frame]];
 		[[tileShapesEditor mainView] setAutoresizingMask:[[tileShapesBox contentView] autoresizingMask]];
 		[tileShapesBox setContentView:[tileShapesEditor mainView]];
@@ -617,7 +630,7 @@
 			// 1. Focus on the editor view's first responder.
 			// 2. Set the next key view of the last view in the editor's loop to the cancel button.
 			// 3. Set the next key view of the OK button to the first view in the editor's loop.
-		[tilesSetupPanel setInitialFirstResponder:(NSView *)[tileShapesEditor firstResponder]];
+		[setupTilesPanel setInitialFirstResponder:(NSView *)[tileShapesEditor firstResponder]];
 		NSView	*lastKeyView = (NSView *)[tileShapesEditor firstResponder];
 		while ([lastKeyView nextKeyView] && 
 				[[lastKeyView nextKeyView] isDescendantOf:[tileShapesEditor mainView]] &&
@@ -682,19 +695,19 @@
 }
 
 
-- (IBAction)cancelTilesSetup:(id)sender
+- (IBAction)cancelSetupTiles:(id)sender
 {
-	[NSApp endSheet:tilesSetupPanel returnCode:NSCancelButton];
+	[NSApp endSheet:setupTilesPanel returnCode:NSCancelButton];
 }
 
 
-- (IBAction)okTilesSetup:(id)sender;
+- (IBAction)okSetupTiles:(id)sender;
 {
-	[NSApp endSheet:tilesSetupPanel returnCode:NSOKButton];
+	[NSApp endSheet:setupTilesPanel returnCode:NSOKButton];
 }
 
 
-- (void)tilesSetupDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+- (void)setupTilesDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
 	[tileShapesEditor editingComplete];
 	
@@ -712,13 +725,8 @@
 
 - (void)tileShapesDidChange:(NSNotification *)notification
 {
-	// TBD: Set toolbar icon's tooltip?  And handle non-string values like awakeFromNib does.
-//	NSString	*tileShapesDescription = [[[self mosaic] tileShapes] briefDescription];
-//	if (tileShapesDescription)
-//		[tileShapesDescriptionField setStringValue:tileShapesDescription];
-//	else
-//		[tileShapesDescriptionField setStringValue:@"No description available"];
-//	[totalTilesField setIntValue:[[[self mosaic] tiles] count]];
+	// TBD: Set toolbar icon's tooltip?  And handle non-string values like awakeFromNib does?
+	[setupTilesToolbarItem setImage:[[[self mosaic] tileShapes] image]];
 	
 	if (selectedTile)
 		[self selectTileAtPoint:tileSelectionPoint];
@@ -1762,9 +1770,9 @@
 		proposedFrameSize.height += diff.height;
 		proposedFrameSize.width += diff.width;
 	}
-	else if (resizingWindow == tilesSetupPanel)
+	else if (resizingWindow == setupTilesPanel)
 	{
-		NSSize	panelSize = [tilesSetupPanel frame].size,
+		NSSize	panelSize = [setupTilesPanel frame].size,
 				editorBoxSize = [[tileShapesBox contentView] frame].size;
 		float	minWidth = (panelSize.width - editorBoxSize.width) + [tileShapesEditor minimumSize].width,
 				minHeight = (panelSize.height - editorBoxSize.height) + [tileShapesEditor minimumSize].height;
@@ -1851,14 +1859,15 @@
 		[toolbarItem setView:originalImagePopUpView];
 // TODO:		[toolbarItem setMenuFormRepresentation:[originalImagePopUpButton menu]];
     }
-	else if ([itemIdentifier isEqualToString:@"Tiles Setup"])
+	else if ([itemIdentifier isEqualToString:@"Setup Tiles"])
     {
-		[toolbarItem setImage:[NSImage imageNamed:@"Tiles Setup"]];
-		[toolbarItem setLabel:@"Tiles Setup"];
-		[toolbarItem setPaletteLabel:@"Tiles Setup"];
+		[toolbarItem setImage:[NSImage imageNamed:@"Setup Tiles"]];
+		[toolbarItem setLabel:@"Setup Tiles"];
+		[toolbarItem setPaletteLabel:@"Setup Tiles"];
 		[toolbarItem setTarget:self];
 		[toolbarItem setAction:@selector(setupTiles:)];
 		[toolbarItem setToolTip:@"Change the tile shapes or image use rules"];
+		setupTilesToolbarItem = toolbarItem;
     }
 	else if ([itemIdentifier isEqualToString:@"Export Image"])
     {
@@ -1923,7 +1932,7 @@
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar;
 {
-    return [NSArray arrayWithObjects:@"Original Image", @"Tiles Setup", @"Fade", @"Zoom", 
+    return [NSArray arrayWithObjects:@"Original Image", @"Setup Tiles", @"Fade", @"Zoom", 
 									 @"Export Image", @"Pause", @"Image Sources", 
 									 NSToolbarCustomizeToolbarItemIdentifier, NSToolbarSpaceItemIdentifier,
 									 NSToolbarFlexibleSpaceItemIdentifier, NSToolbarSeparatorItemIdentifier,
@@ -1933,7 +1942,7 @@
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar;
 {
-    return [NSArray arrayWithObjects:@"Original Image", @"Tiles Setup", @"Fade", @"Zoom", @"Pause", @"Export Image", 
+    return [NSArray arrayWithObjects:@"Original Image", @"Setup Tiles", @"Fade", @"Zoom", @"Pause", @"Export Image", 
 									 NSToolbarFlexibleSpaceItemIdentifier, @"Image Sources", nil];
 }
 

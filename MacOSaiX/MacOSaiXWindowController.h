@@ -38,7 +38,7 @@
 	IBOutlet NSButton					*imageSourcesRemoveButton;
 	
 		// Tiles setup
-	IBOutlet NSPanel					*tilesSetupPanel;
+	IBOutlet NSPanel					*setupTilesPanel;
 	IBOutlet NSPopUpButton				*tileShapesPopUpButton;
 	IBOutlet NSBox						*tileShapesBox;
 	IBOutlet NSImageView				*tileShapesPreviewImageView;
@@ -88,7 +88,9 @@
 										*animateTileTimer;
     NSMutableArray						*selectedTileImages;
     NSMutableDictionary					*toolbarItems;
-    NSToolbarItem						*toggleOriginalToolbarItem, *pauseToolbarItem;
+    NSToolbarItem						*toggleOriginalToolbarItem, 
+										*pauseToolbarItem, 
+										*setupTilesToolbarItem;
 	NSImage								*originalToolbarImage,
 										*mosaicToolbarImage;
     BOOL								statusBarShowing,
@@ -128,13 +130,13 @@
 - (IBAction)addNewImageSource:(id)sender;
 - (IBAction)removeImageSource:(id)sender;
 
-	// Tiles setup
+	// Setup tiles
 - (IBAction)setTileShapesPlugIn:(id)sender;
 - (IBAction)setImageUseCount:(id)sender;
 - (IBAction)setImageReuseDistance:(id)sender;
 - (IBAction)setImageCropLimit:(id)sender;
-- (IBAction)cancelTilesSetup:(id)sender;
-- (IBAction)okTilesSetup:(id)sender;
+- (IBAction)cancelSetupTiles:(id)sender;
+- (IBAction)okSetupTiles:(id)sender;
 
 	// Image source editor
 - (IBAction)saveImageSource:(id)sender;
