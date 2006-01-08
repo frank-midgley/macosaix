@@ -19,9 +19,52 @@
 }
 
 
++ (NSImage *)imageWithSize:(NSSize)size label:(NSString *)label
+{
+	NSImage	*image = [[[NSImage alloc] initWithSize:size] autorelease];
+
+	[image lockFocus];
+		float	height = size.width / 4.0 * 3.0;
+		NSRect	rect = NSMakeRect(0.0, (size.height - height) / 2.0, size.width - 1.0, height);
+		
+		[[NSColor lightGrayColor] set];
+		NSFrameRect(NSOffsetRect(rect, 1.0, -1.0));
+		[[NSColor whiteColor] set];
+		NSRectFill(rect);
+		[[NSColor blackColor] set];
+		NSFrameRect(rect);
+		
+		if ([label length] > 0)
+		{
+			NSDictionary	*attributes = [NSDictionary dictionaryWithObjectsAndKeys:
+												[NSFont systemFontOfSize:8.0], NSFontAttributeName, 
+												nil];
+			NSSize			labelSize = [label sizeWithAttributes:attributes];
+			
+			[label drawInRect:NSMakeRect(NSMinX(rect) + (NSWidth(rect) - labelSize.width) / 2.0,
+										 NSMinY(rect) + (NSHeight(rect) - labelSize.height) / 2.0, 
+										 labelSize.width, labelSize.height)
+			   withAttributes:attributes];
+		}
+	[image unlockFocus];
+	
+	return image;
+}
+
+
 + (NSImage *)image
 {
-	return nil;
+	static	NSImage	*image = nil;
+	
+	if (!image)
+	{
+		NSImage	*smallImage = [self imageWithSize:NSMakeSize(16.0, 16.0) label:nil];
+		
+		image = [[self imageWithSize:NSMakeSize(32.0, 32.0) label:nil] retain];
+		[image addRepresentations:[smallImage representations]];
+	}
+	
+	return image;
 }
 
 
@@ -33,7 +76,7 @@
 
 + (Class)preferencesControllerClass
 {
-	return nil;
+	return self;
 }
 
 
@@ -66,7 +109,10 @@
 
 - (NSImage *)image
 {
-	return nil;
+	NSString	*labelFormat = (tilesAcross < 100 && tilesDown < 100) ? @"%dx%d" : @"%dx\n%d";
+	
+	return [[self class] imageWithSize:NSMakeSize(32.0, 32.0) 
+								 label:[NSString stringWithFormat:labelFormat, tilesAcross, tilesDown]];
 }
 
 
