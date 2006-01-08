@@ -13,10 +13,12 @@
 
 @protocol MacOSaiXTileShapes <NSObject, NSCopying>
 
-	// Name to display in pop-up menu
+	// The name of this type of tile shapes, e.g. "Rectangular" or "Puzzle Piece".
 + (NSString *)name;
 
-	// The image for a generic source of this type.
+	// A generic image for this type of tile shapes.
+	// This image is used for display in the preferences window (32x32), the tiles setup pop-up menu (16x16) 
+	// and the crash reporter window (16x16).
 + (NSImage *)image;
 
 	// A class whose instances conform to the MacOSaiXTileShapesEditor protocol.
@@ -25,9 +27,8 @@
 	// A class whose instances conform to the MacOSaiXTileShapesPreferencesController protocol.
 + (Class)preferencesControllerClass;
 
-// TBD: initWithXML or parser callbacks?
-
-	// The image for this instance of the tile shapes.
+	// An image appropriate for this instance of the tile shapes.
+	// This image is used for the "Tiles Setup" toolbar icon (32x32).
 - (NSImage *)image;
 
 	// A human-readable NSString, NSAttributedString or NSImage that briefly describes this instance's settings.
