@@ -111,8 +111,19 @@
 		if ([[tableColumn identifier] isEqualToString:@"Icon"])
 			object = (row == 0) ? [NSApp applicationIconImage] : [[plugInClasses objectAtIndex:row - 1] image];
 		else
-			object = (row == 0) ? [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"] : 
-								  [[plugInClasses objectAtIndex:row - 1] name];
+		{
+			if (row == 0)
+				object = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"];
+			else
+			{
+				Class	plugInClass = [plugInClasses objectAtIndex:row - 1];
+				
+				if ([plugInClass conformsToProtocol:@protocol(MacOSaiXTileShapes)])
+					object = [NSString stringWithFormat:@"%@ Tile Shapes", [plugInClass name]];
+				else
+					object = [plugInClass name];
+			}
+		}
 	}
 	
 	return object;
