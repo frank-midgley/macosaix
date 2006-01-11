@@ -507,14 +507,7 @@
 		NSMenuItem		*newItem = [[[NSMenuItem alloc] initWithTitle:title action:nil keyEquivalent:@""] autorelease];
 		[newItem setRepresentedObject:tileShapesClass];
 		NSImage			*image = [[[tileShapesClass image] copy] autorelease];
-		NSEnumerator	*repEnumerator = [[image representations] objectEnumerator];
-		NSImageRep		*imageRep = nil;
-		BOOL			hasGoodRep = NO;
-		while (imageRep = [repEnumerator nextObject])
-			if ([imageRep size].height == 16.0) 
-				hasGoodRep = YES;
-		if (!hasGoodRep)
-			[image setScalesWhenResized:YES];
+		[image setScalesWhenResized:YES];
 		[image setSize:NSMakeSize(16.0, 16.0)];
 		[newItem setImage:image];
 		[[tileShapesPopUpButton menu] addItem:newItem];
@@ -714,7 +707,11 @@
 	[sheet orderOut:self];
 	
 	if (returnCode == NSOKButton)
+	{
+		[[NSUserDefaults standardUserDefaults] setObject:NSStringFromClass([tileShapesBeingEdited class])
+												  forKey:@"Last Chosen Tile Shapes Class"];
 		[[self mosaic] setTileShapes:tileShapesBeingEdited creatingTiles:YES];
+	}
 	
 	[tileShapesBeingEdited release];
 	tileShapesBeingEdited = nil;
@@ -726,7 +723,8 @@
 - (void)tileShapesDidChange:(NSNotification *)notification
 {
 	// TBD: Set toolbar icon's tooltip?  And handle non-string values like awakeFromNib does?
-	[setupTilesToolbarItem setImage:[[[self mosaic] tileShapes] image]];
+	NSImage	*shapesImage = [[[self mosaic] tileShapes] image];
+	[setupTilesToolbarItem setImage:(shapesImage ? shapesImage : [NSImage imageNamed:@"Tiles Setup"])];
 	
 	if (selectedTile)
 		[self selectTileAtPoint:tileSelectionPoint];
@@ -1861,7 +1859,8 @@
     }
 	else if ([itemIdentifier isEqualToString:@"Setup Tiles"])
     {
-		[toolbarItem setImage:[NSImage imageNamed:@"Setup Tiles"]];
+		NSImage	*shapesImage = [[[self mosaic] tileShapes] image];
+		[toolbarItem setImage:(shapesImage ? shapesImage : [NSImage imageNamed:@"Tiles Setup"])];
 		[toolbarItem setLabel:@"Setup Tiles"];
 		[toolbarItem setPaletteLabel:@"Setup Tiles"];
 		[toolbarItem setTarget:self];
