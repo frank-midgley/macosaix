@@ -19,49 +19,23 @@
 }
 
 
-+ (NSImage *)imageWithSize:(NSSize)size label:(NSString *)label
-{
-	NSImage	*image = [[[NSImage alloc] initWithSize:size] autorelease];
-
-	[image lockFocus];
-		float	height = size.width / 4.0 * 3.0;
-		NSRect	rect = NSMakeRect(0.0, (size.height - height) / 2.0, size.width - 1.0, height);
-		
-		[[NSColor lightGrayColor] set];
-		NSFrameRect(NSOffsetRect(rect, 1.0, -1.0));
-		[[NSColor whiteColor] set];
-		NSRectFill(rect);
-		[[NSColor blackColor] set];
-		NSFrameRect(rect);
-		
-		if ([label length] > 0)
-		{
-			NSDictionary	*attributes = [NSDictionary dictionaryWithObjectsAndKeys:
-												[NSFont systemFontOfSize:8.0], NSFontAttributeName, 
-												nil];
-			NSSize			labelSize = [label sizeWithAttributes:attributes];
-			
-			[label drawInRect:NSMakeRect(NSMinX(rect) + (NSWidth(rect) - labelSize.width) / 2.0,
-										 NSMinY(rect) + (NSHeight(rect) - labelSize.height) / 2.0, 
-										 labelSize.width, labelSize.height)
-			   withAttributes:attributes];
-		}
-	[image unlockFocus];
-	
-	return image;
-}
-
-
 + (NSImage *)image
 {
 	static	NSImage	*image = nil;
 	
 	if (!image)
 	{
-		NSImage	*smallImage = [self imageWithSize:NSMakeSize(16.0, 16.0) label:nil];
+		NSRect	rect = NSMakeRect(0.0, 4.0, 31.0, 23.0);
 		
-		image = [[self imageWithSize:NSMakeSize(32.0, 32.0) label:nil] retain];
-		[image addRepresentations:[smallImage representations]];
+		image = [[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)];
+		[image lockFocus];
+			[[NSColor lightGrayColor] set];
+			NSFrameRect(NSOffsetRect(rect, 1.0, -1.0));
+			[[NSColor whiteColor] set];
+			NSRectFill(rect);
+			[[NSColor blackColor] set];
+			NSFrameRect(rect);
+		[image unlockFocus];
 	}
 	
 	return image;
@@ -109,10 +83,37 @@
 
 - (NSImage *)image
 {
-	NSString	*labelFormat = (tilesAcross < 100 && tilesDown < 100) ? @"%dx%d" : @"%dx\n%d";
+	NSImage	*image = [[[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)] autorelease];
+	NSRect	rect = NSMakeRect(0.0, 4.0, 31.0, 25.0);
 	
-	return [[self class] imageWithSize:NSMakeSize(32.0, 32.0) 
-								 label:[NSString stringWithFormat:labelFormat, tilesAcross, tilesDown]];
+	[image lockFocus];
+		[[NSColor lightGrayColor] set];
+		NSFrameRect(NSOffsetRect(rect, 1.0, -1.0));
+		[[NSColor whiteColor] set];
+		NSRectFill(rect);
+		[[NSColor blackColor] set];
+		NSFrameRect(rect);
+		
+		NSDictionary	*attributes = [NSDictionary dictionaryWithObjectsAndKeys:
+												[NSFont boldSystemFontOfSize:9.0], NSFontAttributeName, 
+												nil];
+		NSString		*string = [NSString stringWithFormat:@"%d", tilesAcross];
+		NSSize			stringSize = [string sizeWithAttributes:attributes];
+		[string drawAtPoint:NSMakePoint(NSMidX(rect) - stringSize.width / 2.0, 
+										NSMaxY(rect) - stringSize.height + 1.0) 
+			 withAttributes:attributes];
+		string = [NSString stringWithFormat:@"%d", tilesDown];
+		stringSize = [string sizeWithAttributes:attributes];
+		[string drawAtPoint:NSMakePoint(NSMidX(rect) - stringSize.width / 2.0, NSMinY(rect)) 
+			 withAttributes:attributes];
+		
+		[NSBezierPath strokeLineFromPoint:NSMakePoint(NSMidX(rect) - 2.0, NSMidY(rect) - 2.0) 
+								  toPoint:NSMakePoint(NSMidX(rect) + 2.0, NSMidY(rect) + 2.0)];
+		[NSBezierPath strokeLineFromPoint:NSMakePoint(NSMidX(rect) - 2.0, NSMidY(rect) + 2.0) 
+								  toPoint:NSMakePoint(NSMidX(rect) + 2.0, NSMidY(rect) - 2.0)];
+	[image unlockFocus];
+	
+	return image;
 }
 
 

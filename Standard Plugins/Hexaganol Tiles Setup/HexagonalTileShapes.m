@@ -21,7 +21,37 @@
 
 + (NSImage *)image
 {
-	return nil;
+	static	NSImage	*image = nil;
+	
+	if (!image)
+	{
+		NSBezierPath	*path = [NSBezierPath bezierPath];
+		[path moveToPoint:NSMakePoint(1.5, 15.5)];
+		[path lineToPoint:NSMakePoint(9.5, 0.5)];
+		[path lineToPoint:NSMakePoint(23.5, 0.5)];
+		[path lineToPoint:NSMakePoint(31.5, 15.5)];
+		[path lineToPoint:NSMakePoint(23.5, 30.5)];
+		[path lineToPoint:NSMakePoint(9.5, 30.5)];
+		[path lineToPoint:NSMakePoint(1.5, 15.5)];
+		[path closePath];
+		
+		NSAffineTransform	*transform = [NSAffineTransform transform];
+		[transform translateXBy:-1.0 yBy:1.0];
+		
+		image = [[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)];
+		[image lockFocus];
+			[[NSColor lightGrayColor] set];
+			[path fill];
+			
+			path = [transform transformBezierPath:path];
+			[[NSColor whiteColor] set];
+			[path fill];
+			[[NSColor blackColor] set];
+			[path stroke];
+		[image unlockFocus];
+	}
+	
+	return image;
 }
 
 
@@ -66,7 +96,29 @@
 
 - (NSImage *)image
 {
-	return nil;
+	NSImage			*image = [[[[self class] image] copy] autorelease];
+	NSDictionary	*attributes = [NSDictionary dictionaryWithObject:[NSFont boldSystemFontOfSize:9.0] 
+															  forKey:NSFontAttributeName];
+	
+	[image lockFocus];
+		NSRect		rect = NSMakeRect(0.0, 0.0, 32.0, 32.0);
+		NSString	*string = [NSString stringWithFormat:@"%d", tilesAcross];
+		NSSize		stringSize = [string sizeWithAttributes:attributes];
+		[string drawAtPoint:NSMakePoint(NSMidX(rect) - stringSize.width / 2.0, 
+										NSMaxY(rect) - stringSize.height - 2.0) 
+			 withAttributes:attributes];
+		string = [NSString stringWithFormat:@"%d", tilesDown];
+		stringSize = [string sizeWithAttributes:attributes];
+		[string drawAtPoint:NSMakePoint(NSMidX(rect) - stringSize.width / 2.0, NSMinY(rect) + 3.0) 
+			 withAttributes:attributes];
+		
+		[NSBezierPath strokeLineFromPoint:NSMakePoint(NSMidX(rect) - 2.0, NSMidY(rect) - 2.0) 
+								  toPoint:NSMakePoint(NSMidX(rect) + 2.0, NSMidY(rect) + 2.0)];
+		[NSBezierPath strokeLineFromPoint:NSMakePoint(NSMidX(rect) - 2.0, NSMidY(rect) + 2.0) 
+								  toPoint:NSMakePoint(NSMidX(rect) + 2.0, NSMidY(rect) - 2.0)];
+	[image unlockFocus];
+	
+	return image;
 }
 
 
