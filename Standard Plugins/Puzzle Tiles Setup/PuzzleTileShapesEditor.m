@@ -319,8 +319,8 @@
 {
 	float		tileAspectRatio = (originalImageSize.width / [tilesAcrossSlider intValue]) / 
 								  (originalImageSize.height / [tilesDownSlider intValue]);
-	return [currentTileShapes puzzlePathWithSize:NSMakeSize(1.0, 1.0 / tileAspectRatio) 
-									  attributes:previewPiece];
+	return [MacOSaiXPuzzleTileShapes puzzlePathWithSize:NSMakeSize(1.0, 1.0 / tileAspectRatio) 
+											 attributes:previewPiece];
 }
 
 

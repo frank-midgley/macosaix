@@ -26,165 +26,7 @@
 }
 
 
-+ (NSImage *)image
-{
-	return nil;
-}
-
-
-+ (Class)editorClass
-{
-	return [MacOSaiXPuzzleTileShapesEditor class];
-}
-
-
-+ (Class)preferencesControllerClass
-{
-	return nil;
-}
-
-
-- (id)init
-{
-	if (self = [super init])
-	{
-		NSDictionary	*plugInDefaults = [[NSUserDefaults standardUserDefaults] objectForKey:@"Puzzle Tile Shapes"];
-		int				tilesAcrossPref = [[plugInDefaults objectForKey:@"Tiles Across"] intValue],
-						tilesDownPref = [[plugInDefaults objectForKey:@"Tiles Down"] intValue];
-		float			tabbedSidesPref = [[plugInDefaults objectForKey:@"Tabbed Sides"] floatValue],
-						curvinessPref = [[plugInDefaults objectForKey:@"Curviness"] floatValue];
-
-		[self setTilesAcross:MIN(MAX(10, tilesAcrossPref), 200)];
-		[self setTilesDown:MIN(MAX(10, tilesDownPref), 200)];
-		[self setTabbedSidesRatio:MIN(MAX(0.0, tabbedSidesPref), 1.0)];
-		[self setCurviness:MIN(MAX(0.0, curvinessPref), 1.0)];
-	}
-	
-	return self;
-}
-
-
-- (id)copyWithZone:(NSZone *)zone
-{
-	MacOSaiXPuzzleTileShapes	*copy = [[MacOSaiXPuzzleTileShapes allocWithZone:zone] init];
-	
-	[copy setTilesAcross:[self tilesAcross]];
-	[copy setTilesDown:[self tilesDown]];
-	
-	return copy;
-}
-
-
-- (NSImage *)image
-{
-	return nil;
-}
-
-
-- (void)setTilesAcross:(unsigned int)count
-{
-    tilesAcross = count;
-}
-
-
-- (unsigned int)tilesAcross
-{
-	return tilesAcross;
-}
-
-
-- (void)setTilesDown:(unsigned int)count
-{
-    tilesDown = count;
-}
-
-
-- (unsigned int)tilesDown
-{
-	return tilesDown;
-}
-
-
-- (void)setTabbedSidesRatio:(float)ratio
-{
-	tabbedSidesRatio = ratio;
-}
-
-
-- (float)tabbedSidesRatio
-{
-	return tabbedSidesRatio;
-}
-
-
-- (void)setCurviness:(float)value
-{
-	curviness = value;
-}
-
-
-- (float)curviness
-{
-	return curviness;
-}
-
-
-- (void)setImagesAligned:(BOOL)flag
-{
-	alignImages = flag;
-}
-
-
-- (BOOL)imagesAligned
-{
-	return alignImages;
-}
-
-
-- (id)briefDescription
-{
-	return [NSString stringWithFormat:@"%d by %d puzzle pieces\n%.0f%% tabbed sides\n%.0f%% curviness", 
-									  tilesAcross, tilesDown, tabbedSidesRatio * 100.0, curviness * 100.0];
-}
-
-
-- (NSString *)settingsAsXMLElement
-{
-	return [NSString stringWithFormat:@"<DIMENSIONS ACROSS=\"%d\" DOWN=\"%d\"/>\n" \
-									  @"<ATTRIBUTES TABBED_SIDES=\"%.3f\" CURVINESS=\"%.3f\" ALIGN_IMAGES=\"%@\">", 
-									  tilesAcross, tilesDown, tabbedSidesRatio, curviness, (alignImages ? @"YES" : @"NO")];
-}
-
-
-- (void)useSavedSetting:(NSDictionary *)settingDict
-{
-	NSString	*settingType = [settingDict objectForKey:kMacOSaiXTileShapesSettingType];
-	
-	if ([settingType isEqualToString:@"DIMENSIONS"])
-	{
-		[self setTilesAcross:[[[settingDict objectForKey:@"ACROSS"] description] intValue]];
-		[self setTilesDown:[[[settingDict objectForKey:@"DOWN"] description] intValue]];
-	}
-	if ([settingType isEqualToString:@"ATTRIBUTES"])
-	{
-		// TODO
-	}
-}
-
-
-- (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict
-{
-	// not needed
-}
-
-
-- (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict
-{
-	// not needed
-}
-
-
-- (NSBezierPath *)puzzlePathWithSize:(NSSize)tileSize
++ (NSBezierPath *)puzzlePathWithSize:(NSSize)tileSize
 						  attributes:(PuzzlePiece)attributes
 {
 	NSBezierPath	*tileOutline = [NSBezierPath bezierPath];
@@ -344,14 +186,262 @@
 	[tileOutline closePath];
 	
 	//	Add the bits that make the Tile Shapes toolbar icon.
-//	[tileOutline appendBezierPathWithOvalInRect:NSMakeRect(xSize * 0.15, ySize * 0.2, xSize * 0.2, xSize * 0.2)];
-//	[tileOutline moveToPoint:NSMakePoint(xSize * 0.45, ySize * 0.3)];
-//	[tileOutline lineToPoint:NSMakePoint(xSize * 0.85, ySize * 0.3)];
-//	[tileOutline appendBezierPathWithOvalInRect:NSMakeRect(xSize * 0.15, ySize * 0.6, xSize * 0.2, xSize * 0.2)];
-//	[tileOutline moveToPoint:NSMakePoint(xSize * 0.45, ySize * 0.7)];
-//	[tileOutline lineToPoint:NSMakePoint(xSize * 0.85, ySize * 0.7)];
+	//	[tileOutline appendBezierPathWithOvalInRect:NSMakeRect(xSize * 0.15, ySize * 0.2, xSize * 0.2, xSize * 0.2)];
+	//	[tileOutline moveToPoint:NSMakePoint(xSize * 0.45, ySize * 0.3)];
+	//	[tileOutline lineToPoint:NSMakePoint(xSize * 0.85, ySize * 0.3)];
+	//	[tileOutline appendBezierPathWithOvalInRect:NSMakeRect(xSize * 0.15, ySize * 0.6, xSize * 0.2, xSize * 0.2)];
+	//	[tileOutline moveToPoint:NSMakePoint(xSize * 0.45, ySize * 0.7)];
+	//	[tileOutline lineToPoint:NSMakePoint(xSize * 0.85, ySize * 0.7)];
 	
 	return tileOutline;
+}
+
+
++ (NSImage *)image
+{
+	static	NSImage	*image = nil;
+	
+	if (!image)
+	{
+		PuzzlePiece			piece;
+		piece.topTabType = inwardsTab;
+		piece.leftTabType = inwardsTab;
+		piece.rightTabType = outwardsTab;
+		piece.bottomTabType = outwardsTab;
+		piece.topLeftHorizontalCurve = 0.0;
+		piece.topLeftVerticalCurve = 0.0;
+		piece.topRightHorizontalCurve = 0.0;
+		piece.topRightVerticalCurve = 0.0;
+		piece.bottomLeftHorizontalCurve = 0.0;
+		piece.bottomLeftVerticalCurve = 0.0;
+		piece.bottomRightHorizontalCurve = 0.0;
+		piece.bottomRightVerticalCurve = 0.0;
+		piece.alignImages = NO;
+		NSBezierPath		*tileOutline = [self puzzlePathWithSize:NSMakeSize(22.0, 22.0) attributes:piece];
+		
+		NSAffineTransform	*transform = [NSAffineTransform transform];
+		[transform translateXBy:3.0 yBy:7.0];
+		
+		image = [[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)];
+		[image lockFocus];
+			tileOutline = [transform transformBezierPath:tileOutline];
+			[[NSColor lightGrayColor] set];
+			[tileOutline fill];
+			
+			transform = [NSAffineTransform transform];
+			[transform translateXBy:-1.0 yBy:1.0];
+			tileOutline = [transform transformBezierPath:tileOutline];
+			[[NSColor whiteColor] set];
+			[tileOutline fill];
+			[[NSColor blackColor] set];
+			[tileOutline stroke];
+		[image unlockFocus];
+	}
+	
+	return image;
+}
+
+
++ (Class)editorClass
+{
+	return [MacOSaiXPuzzleTileShapesEditor class];
+}
+
+
++ (Class)preferencesControllerClass
+{
+	return nil;
+}
+
+
+- (id)init
+{
+	if (self = [super init])
+	{
+		NSDictionary	*plugInDefaults = [[NSUserDefaults standardUserDefaults] objectForKey:@"Puzzle Tile Shapes"];
+		int				tilesAcrossPref = [[plugInDefaults objectForKey:@"Tiles Across"] intValue],
+						tilesDownPref = [[plugInDefaults objectForKey:@"Tiles Down"] intValue];
+		float			tabbedSidesPref = [[plugInDefaults objectForKey:@"Tabbed Sides"] floatValue],
+						curvinessPref = [[plugInDefaults objectForKey:@"Curviness"] floatValue];
+
+		[self setTilesAcross:MIN(MAX(10, tilesAcrossPref), 200)];
+		[self setTilesDown:MIN(MAX(10, tilesDownPref), 200)];
+		[self setTabbedSidesRatio:MIN(MAX(0.0, tabbedSidesPref), 1.0)];
+		[self setCurviness:MIN(MAX(0.0, curvinessPref), 1.0)];
+	}
+	
+	return self;
+}
+
+
+- (id)copyWithZone:(NSZone *)zone
+{
+	MacOSaiXPuzzleTileShapes	*copy = [[MacOSaiXPuzzleTileShapes allocWithZone:zone] init];
+	
+	[copy setTilesAcross:[self tilesAcross]];
+	[copy setTilesDown:[self tilesDown]];
+	
+	return copy;
+}
+
+
+- (NSImage *)image
+{
+	PuzzlePiece			piece;
+	piece.topTabType = outwardsTab;
+	piece.leftTabType = inwardsTab;
+	piece.rightTabType = inwardsTab;
+	piece.bottomTabType = outwardsTab;
+	piece.topLeftHorizontalCurve = 0.0;
+	piece.topLeftVerticalCurve = 0.0;
+	piece.topRightHorizontalCurve = 0.0;
+	piece.topRightVerticalCurve = 0.0;
+	piece.bottomLeftHorizontalCurve = 0.0;
+	piece.bottomLeftVerticalCurve = 0.0;
+	piece.bottomRightHorizontalCurve = 0.0;
+	piece.bottomRightVerticalCurve = 0.0;
+	piece.alignImages = YES;
+	NSBezierPath		*tileOutline = [[self class] puzzlePathWithSize:NSMakeSize(25.0, 19.0) attributes:piece];
+	
+	NSAffineTransform	*transform = [NSAffineTransform transform];
+	[transform translateXBy:4.5 yBy:5.5];
+	NSImage				*image = [[[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)] autorelease];
+	NSDictionary		*attributes = [NSDictionary dictionaryWithObject:[NSFont boldSystemFontOfSize:7.0] 
+																  forKey:NSFontAttributeName];
+	
+	[image lockFocus];
+		tileOutline = [transform transformBezierPath:tileOutline];
+		[[NSColor lightGrayColor] set];
+		[tileOutline fill];
+		
+		transform = [NSAffineTransform transform];
+		[transform translateXBy:-1.0 yBy:1.0];
+		tileOutline = [transform transformBezierPath:tileOutline];
+		[[NSColor whiteColor] set];
+		[tileOutline fill];
+		[[NSColor blackColor] set];
+		[tileOutline stroke];
+		
+		NSString	*string = [NSString stringWithFormat:@"%d", tilesAcross];
+		NSSize		stringSize = [string sizeWithAttributes:attributes];
+		[string drawAtPoint:NSMakePoint(16.0 - stringSize.width / 2.0, 
+										32.0 - stringSize.height - 6.0) 
+			 withAttributes:attributes];
+		string = [NSString stringWithFormat:@"%d", tilesDown];
+		stringSize = [string sizeWithAttributes:attributes];
+		[string drawAtPoint:NSMakePoint(16.0 - stringSize.width / 2.0, 6.0) 
+			 withAttributes:attributes];
+		
+		[NSBezierPath strokeLineFromPoint:NSMakePoint(16.0 - 2.0, 16.0 - 2.0) 
+								  toPoint:NSMakePoint(16.0 + 2.0, 16.0 + 2.0)];
+		[NSBezierPath strokeLineFromPoint:NSMakePoint(16.0 - 2.0, 16.0 + 2.0) 
+								  toPoint:NSMakePoint(16.0 + 2.0, 16.0 - 2.0)];
+	[image unlockFocus];
+	
+	return image;
+}
+
+
+- (void)setTilesAcross:(unsigned int)count
+{
+    tilesAcross = count;
+}
+
+
+- (unsigned int)tilesAcross
+{
+	return tilesAcross;
+}
+
+
+- (void)setTilesDown:(unsigned int)count
+{
+    tilesDown = count;
+}
+
+
+- (unsigned int)tilesDown
+{
+	return tilesDown;
+}
+
+
+- (void)setTabbedSidesRatio:(float)ratio
+{
+	tabbedSidesRatio = ratio;
+}
+
+
+- (float)tabbedSidesRatio
+{
+	return tabbedSidesRatio;
+}
+
+
+- (void)setCurviness:(float)value
+{
+	curviness = value;
+}
+
+
+- (float)curviness
+{
+	return curviness;
+}
+
+
+- (void)setImagesAligned:(BOOL)flag
+{
+	alignImages = flag;
+}
+
+
+- (BOOL)imagesAligned
+{
+	return alignImages;
+}
+
+
+- (id)briefDescription
+{
+	return [NSString stringWithFormat:@"%d by %d puzzle pieces\n%.0f%% tabbed sides\n%.0f%% curviness", 
+									  tilesAcross, tilesDown, tabbedSidesRatio * 100.0, curviness * 100.0];
+}
+
+
+- (NSString *)settingsAsXMLElement
+{
+	return [NSString stringWithFormat:@"<DIMENSIONS ACROSS=\"%d\" DOWN=\"%d\"/>\n" \
+									  @"<ATTRIBUTES TABBED_SIDES=\"%.3f\" CURVINESS=\"%.3f\" ALIGN_IMAGES=\"%@\">", 
+									  tilesAcross, tilesDown, tabbedSidesRatio, curviness, (alignImages ? @"YES" : @"NO")];
+}
+
+
+- (void)useSavedSetting:(NSDictionary *)settingDict
+{
+	NSString	*settingType = [settingDict objectForKey:kMacOSaiXTileShapesSettingType];
+	
+	if ([settingType isEqualToString:@"DIMENSIONS"])
+	{
+		[self setTilesAcross:[[[settingDict objectForKey:@"ACROSS"] description] intValue]];
+		[self setTilesDown:[[[settingDict objectForKey:@"DOWN"] description] intValue]];
+	}
+	if ([settingType isEqualToString:@"ATTRIBUTES"])
+	{
+		// TODO
+	}
+}
+
+
+- (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict
+{
+	// not needed
+}
+
+
+- (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict
+{
+	// not needed
 }
 
 
@@ -404,7 +494,7 @@
 			piece.alignImages = alignImages;
 			
 				// Create the outline of this piece and move it to the right place.
-			NSBezierPath		*tileOutline = [self puzzlePathWithSize:NSMakeSize(xSize, ySize) attributes:piece];
+			NSBezierPath		*tileOutline = [[self class] puzzlePathWithSize:NSMakeSize(xSize, ySize) attributes:piece];
 			NSAffineTransform	*transform = [NSAffineTransform transform];
 			[transform translateXBy:xSize * x yBy:ySize * y];
 			[tileOutline transformUsingAffineTransform:transform];

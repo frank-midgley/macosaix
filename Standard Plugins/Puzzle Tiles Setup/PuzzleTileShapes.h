@@ -42,6 +42,9 @@ typedef struct _PuzzlePiece
 	BOOL			alignImages;
 }
 
++ (NSBezierPath *)puzzlePathWithSize:(NSSize)tileSize
+						  attributes:(PuzzlePiece)attributes;
+
 - (void)setTilesAcross:(unsigned int)count;
 - (unsigned int)tilesAcross;
 
@@ -56,8 +59,5 @@ typedef struct _PuzzlePiece
 
 - (void)setImagesAligned:(BOOL)flag;
 - (BOOL)imagesAligned;
-
-- (NSBezierPath *)puzzlePathWithSize:(NSSize)tileSize
-						  attributes:(PuzzlePiece)attributes;
 
 @end
