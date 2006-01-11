@@ -164,10 +164,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
 														object:self 
 													  userInfo:nil];
-		
-	if ([[self imageSources] count] > 0 && [tiles count] > 0 && 
-		[[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Start Mosaics"])
-		[self resume];
 }
 
 
