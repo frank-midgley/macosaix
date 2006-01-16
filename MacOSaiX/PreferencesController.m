@@ -11,7 +11,6 @@
 #import "MacOSaiX.h"
 #import "MacOSaiXTileShapes.h"
 #import "MacOSaiXImageSource.h"
-#import "MacOSaiXPreferencesController.h"
 
 
 @implementation MacOSaiXPreferencesController
@@ -22,8 +21,15 @@
 		// Retain the main prefs view so we can swap it out for plug-in's views.
 	mainPreferencesView = [[preferenceBox contentView] retain];
 	
+	mainViewMinSize = [[preferenceBox contentView] frame].size;
+	minSizeBase = [[self window] minSize];
+	minSizeBase.width -= mainViewMinSize.width;
+	minSizeBase.height -= mainViewMinSize.height;
+	
 	NSImageCell		*imageCell = [[[NSImageCell alloc] initImageCell:nil] autorelease];
 	[[preferenceTable tableColumnWithIdentifier:@"Icon"] setDataCell:imageCell];
+	
+	[[[preferenceTable tableColumnWithIdentifier:@"Name"] dataCell] setWraps:YES];
 	
 		// Populate the main prefs view from the user defaults.
     NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
@@ -77,13 +83,6 @@
 }
 
 
-- (void)windowWillClose:(NSNotification *)notification
-{
-	if ([notification object] == [self window])
-		[self autorelease];
-}
-
-
 - (void)controlTextDidChange:(NSNotification *)notification
 {
 	if ([notification object] == autoSaveFrequencyField)
@@ -113,7 +112,7 @@
 		else
 		{
 			if (row == 0)
-				object = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"];
+				object = @"General Preferences";
 			else
 			{
 				Class	plugInClass = [plugInClasses objectAtIndex:row - 1];
@@ -134,27 +133,78 @@
 {
 	// TODO: call -willUnselect and -didUnselect on the current controller
 	
-	int		selectedRow = [preferenceTable selectedRow];
+	int									selectedRow = [preferenceTable selectedRow];
+	id<MacOSaiXPreferencesController>	newController = nil;
 	
+	[currentController willUnselect];
 	if (selectedRow == 0)
 	{
 		if (mainPreferencesView)
+		{
 			[preferenceBox setContentView:mainPreferencesView];
+		
+			[[self window] setMinSize:NSMakeSize(minSizeBase.width + mainViewMinSize.width, 
+												 minSizeBase.height + mainViewMinSize.height)];
+		}
+		// else we're waking up from the nib and the main pref view is already set
 	}
 	else
 	{
-		Class								plugInClass = [plugInClasses objectAtIndex:selectedRow - 1];
-		id<MacOSaiXPreferencesController>	controller = [plugInControllers objectForKey:plugInClass];
-			
-		if (!controller)
+		Class	plugInClass = [plugInClasses objectAtIndex:selectedRow - 1];
+		
+			// Lookup or create the preference controller for this plug-in.
+		newController = [plugInControllers objectForKey:plugInClass];
+		if (!newController)
 		{
-			controller = [[[[plugInClass preferencesControllerClass] alloc] init] autorelease];
-			[plugInControllers setObject:controller forKey:plugInClass];
+				// Create and cache a controller.
+			newController = [[[[plugInClass preferencesControllerClass] alloc] init] autorelease];
+			[plugInControllers setObject:newController forKey:plugInClass];
 		}
 		
-		[controller willSelect];
-		[preferenceBox setContentView:[controller mainView]];
-		[controller didSelect];
+			// Enlarge the window if needed.
+		NSSize	currentViewSize = [[preferenceBox contentView] frame].size, 
+				minViewSize = [newController minimumSize];
+		minViewSize.width = MAX(mainViewMinSize.width, minViewSize.width);
+		minViewSize.height = MAX(mainViewMinSize.height, minViewSize.height);
+		float	widthDiff = MAX(0.0, minViewSize.width - currentViewSize.width), 
+				heightDiff = MAX(0.0, minViewSize.height - currentViewSize.height);
+		if (widthDiff > 0 || heightDiff > 0)
+		{
+			NSRect	currentFrame = [[self window] frame], 
+					newFrame = NSMakeRect(NSMinX(currentFrame), 
+										  NSMinY(currentFrame) - heightDiff, 
+										  NSWidth(currentFrame) + widthDiff, 
+										  NSHeight(currentFrame) + heightDiff);
+			
+			// TODO: make sure the window doesn't grow off the bottom or right of the screen
+			
+			[[self window] setFrame:newFrame display:YES animate:YES];
+		}
+		
+			// Set the minimum window size based on the new view.
+		[[self window] setMinSize:NSMakeSize(minSizeBase.width + minViewSize.width, 
+											 minSizeBase.height + minViewSize.height)];
+			
+			// Swap in the new view.
+		[newController willSelect];
+		[preferenceBox setContentView:[newController mainView]];
+		[newController didSelect];
+	}
+	[currentController didUnselect];
+	
+	currentController = newController;
+}
+
+
+- (void)windowWillClose:(NSNotification *)notification
+{
+	if ([notification object] == [self window])
+	{
+		[currentController willUnselect];
+		[preferenceBox setContentView:mainPreferencesView];
+		[currentController didUnselect];
+		
+		[self autorelease];
 	}
 }
 
@@ -162,6 +212,8 @@
 - (void)dealloc
 {
 	[plugInClasses release];
+	[plugInControllers release];
+	[mainPreferencesView release];
 	
     [super dealloc];
 }

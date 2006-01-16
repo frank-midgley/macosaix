@@ -8,20 +8,28 @@
 
 #import <Cocoa/Cocoa.h>
 
+#import "MacOSaiXPreferencesController.h"
+
+
 @interface MacOSaiXPreferencesController : NSWindowController
 {
-	IBOutlet NSTableView	*preferenceTable;
-	IBOutlet NSBox			*preferenceBox;
-	NSView					*mainPreferencesView;
+	IBOutlet NSTableView				*preferenceTable;
+	IBOutlet NSBox						*preferenceBox;
+	NSView								*mainPreferencesView;
 
-	NSMutableArray			*plugInClasses;
-	NSMutableDictionary		*plugInControllers;
-
+	NSSize								mainViewMinSize, 
+										minSizeBase;
+	
+	NSMutableArray						*plugInClasses;
+	NSMutableDictionary					*plugInControllers;
+	
+	id<MacOSaiXPreferencesController>	currentController;
+	
 		// MacOSaiX preferences GUI
-	IBOutlet NSButton		*updateCheckBox,
-							*autoStartCheckBox,
-							*autoSaveCheckBox;
-    IBOutlet NSTextField	*autoSaveFrequencyField;
+	IBOutlet NSButton					*updateCheckBox,
+										*autoStartCheckBox,
+										*autoSaveCheckBox;
+    IBOutlet NSTextField				*autoSaveFrequencyField;
 }
 
 - (IBAction)setUpdateCheck:(id)sender;
