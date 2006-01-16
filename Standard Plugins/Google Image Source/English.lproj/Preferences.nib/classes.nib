@@ -11,8 +11,8 @@
             LANGUAGE = ObjC; 
             OUTLETS = {
                 mainView = NSView; 
-                maxCachSizePopUp = NSPopUpButton; 
                 maxCacheSizeField = NSTextField; 
+                maxCacheSizePopUp = NSPopUpButton; 
                 minFreeSpaceField = NSTextField; 
                 minFreeSpacePopUp = NSPopUpButton; 
                 volumeImageView = NSImageView; 
