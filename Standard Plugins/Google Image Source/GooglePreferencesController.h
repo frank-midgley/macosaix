@@ -17,7 +17,7 @@
 	
 	IBOutlet NSTextField	*maxCacheSizeField, 
 							*minFreeSpaceField;
-	IBOutlet NSPopUpButton	*maxCachSizePopUp, 
+	IBOutlet NSPopUpButton	*maxCacheSizePopUp, 
 							*minFreeSpacePopUp;
 	IBOutlet NSImageView	*volumeImageView;
 	IBOutlet NSTextField	*volumeNameField;

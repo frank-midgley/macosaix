@@ -8,6 +8,7 @@
 
 #import "GooglePreferencesController.h"
 #import "GoogleImageSource.h"
+#import <sys/mount.h>
 
 
 @implementation GooglePreferencesController
@@ -41,13 +42,42 @@
 		// Make sure the nib is loaded.
 	[self mainView];
 	
-		// Find the root of the volume the cache lives on.
-	NSString	*path = [[GoogleImageSource class] imageCachePath];
-	while (![[NSWorkspace sharedWorkspace] getFileSystemInfoForPath:path isRemovable:NULL isWritable:NULL isUnmountable:NULL description:NULL type:NULL])
-		path = [path stringByDeletingLastPathComponent];
+	unsigned long long	maxCacheSize = [GoogleImageSource maxCacheSize], 
+						minFreeSpace = [GoogleImageSource minFreeSpace];
+
+	NSEnumerator		*magnitudeEnumerator = [[maxCacheSizePopUp itemArray] reverseObjectEnumerator];
+	NSMenuItem			*item = nil;
+	while (item = [magnitudeEnumerator nextObject])
+	{
+		float	magnitude = powf(2.0, [item tag]);
+		
+		if (maxCacheSize >= magnitude)
+		{
+			[maxCacheSizeField setIntValue:maxCacheSize / magnitude];
+			[maxCacheSizePopUp selectItem:item];
+			break;
+		}
+	}
+	magnitudeEnumerator = [[minFreeSpacePopUp itemArray] reverseObjectEnumerator];
+	item = nil;
+	while (item = [magnitudeEnumerator nextObject])
+	{
+		float	magnitude = powf(2.0, [item tag]);
+		
+		if (minFreeSpace >= magnitude)
+		{
+			[minFreeSpaceField setIntValue:minFreeSpace / magnitude];
+			[minFreeSpacePopUp selectItem:item];
+			break;
+		}
+	}
 	
-	[volumeImageView setImage:[[NSWorkspace sharedWorkspace] iconForFile:path]];
-	[volumeNameField setStringValue:[[NSFileManager defaultManager] displayNameAtPath:path]];
+		// Get the name and icon of the volume the cache lives on.
+	struct statfs	fsStruct;
+	statfs([[[GoogleImageSource class] imageCachePath] fileSystemRepresentation], &fsStruct);
+	NSString		*volumeRootPath = [NSString stringWithCString:fsStruct.f_mntonname];
+	[volumeImageView setImage:[[NSWorkspace sharedWorkspace] iconForFile:volumeRootPath]];
+	[volumeNameField setStringValue:[[NSFileManager defaultManager] displayNameAtPath:volumeRootPath]];
 }
 
 
@@ -58,16 +88,28 @@
 
 - (IBAction)setMaxCacheSizeMagnitude:(id)sender
 {
+	[GoogleImageSource setMaxCacheSize:[maxCacheSizeField intValue] * powf(2.0, [[maxCacheSizePopUp selectedItem] tag])];
 }
 
 
 - (IBAction)setMinFreeSpaceMagnitude:(id)sender
 {
+	[GoogleImageSource setMinFreeSpace:[minFreeSpaceField intValue] * powf(2.0, [[minFreeSpacePopUp selectedItem] tag])];
+}
+
+
+- (void)controlTextDidChange:(NSNotification *)notification
+{
+	if ([notification object] == maxCacheSizeField)
+		[GoogleImageSource setMaxCacheSize:[maxCacheSizeField intValue] * powf(2.0, [[maxCacheSizePopUp selectedItem] tag])];
+	else if ([notification object] == minFreeSpaceField)
+		[GoogleImageSource setMinFreeSpace:[minFreeSpaceField intValue] * powf(2.0, [[minFreeSpacePopUp selectedItem] tag])];
 }
 
 
 - (IBAction)deleteCachedImages:(id)sender
 {
+	[GoogleImageSource purgeCache];
 }
 
 
