@@ -50,7 +50,7 @@
 
 + (Class)preferencesControllerClass
 {
-	return self;
+	return nil;
 }
 
 
