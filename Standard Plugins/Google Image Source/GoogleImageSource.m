@@ -12,14 +12,20 @@
 #import "NSString+MacOSaiX.h"
 #import <CoreFoundation/CFURL.h>
 #import <sys/time.h>
+#import <sys/stat.h>
+#import <sys/mount.h>
 
 
 	// The image cache is shared between all instances so we need a class level lock.
-static NSLock	*imageCacheLock = nil;
-static NSString	*imageCachePath = nil;
+static NSLock				*sImageCacheLock = nil;
+static BOOL					sPruningCache = NO, 
+							sPurgeCache = NO;
+static unsigned long long	sCacheSize = 0, 
+							sMaxCacheSize = 128 * 1024 * 1024,
+							sMinFreeSpace = 1024 * 1024 * 1024;
 
-static NSImage	*gIcon = nil,
-				*googleIcon = nil;
+static NSImage				*gIcon = nil,
+							*googleIcon = nil;
 
 
 NSString *escapedNSString(NSString *string)
@@ -30,7 +36,15 @@ NSString *escapedNSString(NSString *string)
 }
 
 
+int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
+{
+	return [(NSNumber *)[dict1 objectForKey:context] compare:(NSNumber *)[dict2 objectForKey:context]];
+}
+
+
 @interface GoogleImageSource (PrivateMethods)
++ (void)pruneCache;
++ (id)preferredValueForKey:(NSString *)key;
 - (void)updateQueryAndDescriptor;
 @end
 
@@ -45,7 +59,7 @@ NSString *escapedNSString(NSString *string)
 	if (![[NSFileManager defaultManager] fileExistsAtPath:[self imageCachePath]])
 		[[NSFileManager defaultManager] createDirectoryAtPath:[self imageCachePath] attributes:nil];
 	
-	imageCacheLock = [[NSLock alloc] init];
+	sImageCacheLock = [[NSLock alloc] init];
 	
 	NSString	*iconPath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"G"];
 	gIcon = [[NSImage alloc] initWithContentsOfFile:iconPath];
@@ -53,15 +67,19 @@ NSString *escapedNSString(NSString *string)
 	iconPath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"GoogleImageSource"];
 	googleIcon = [[NSImage alloc] initWithContentsOfFile:iconPath];
 	
+	NSNumber	*maxCacheSize = [self preferredValueForKey:@"Maximum Cache Size"],
+				*minFreeSpace = [self preferredValueForKey:@"Minimum Free Space On Cache Volume"];
+	
+	if (maxCacheSize)
+		sMaxCacheSize = [maxCacheSize unsignedLongLongValue];
+	if (minFreeSpace)
+		sMinFreeSpace = [minFreeSpace unsignedLongLongValue];
+	
+		// Do an initial prune which also gets the current size of the cache.
+		// No new images can be cached until this completes but images can be read from the cache.
+	[self pruneCache];
+	
 	[pool release];
-}
-
-
-+ (NSString *)imageCachePath
-{
-	return [[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"] 
-								 stringByAppendingPathComponent:@"Caches"]
-								 stringByAppendingPathComponent:@"MacOSaiX Google Images"] retain];
 }
 
 
@@ -83,23 +101,254 @@ NSString *escapedNSString(NSString *string)
 }
 
 
-+ (Class)preferencesControllerClass
-{
-	return [GooglePreferencesController class];
-}
-
-
 + (BOOL)allowMultipleImageSources
 {
 	return YES;
 }
 
 
+#pragma mark
+#pragma mark Image cache
+
+
++ (NSString *)imageCachePath
+{
+	return [[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"] 
+								 stringByAppendingPathComponent:@"Caches"]
+								 stringByAppendingPathComponent:@"MacOSaiX Google Images"] retain];
+}
+
+
++ (void)cacheImageData:(NSData *)imageData withIdentifier:(NSString *)identifier
+{
+	if (!sPruningCache)
+	{
+		NSString	*imageID = [identifier substringWithRange:NSMakeRange(14, 12)],
+					*imageFileName = [NSString stringWithFormat:@"%x%x%x%x%x%x%x%x%x%x%x%x",
+																[imageID characterAtIndex:0], [imageID characterAtIndex:1],
+																[imageID characterAtIndex:2], [imageID characterAtIndex:3],
+																[imageID characterAtIndex:4], [imageID characterAtIndex:5],
+																[imageID characterAtIndex:6], [imageID characterAtIndex:7],
+																[imageID characterAtIndex:8], [imageID characterAtIndex:9],
+																[imageID characterAtIndex:10], [imageID characterAtIndex:11]];
+
+		[sImageCacheLock lock];
+			[imageData writeToFile:[[self imageCachePath] stringByAppendingPathComponent:imageFileName] atomically:NO];
+			
+				// Spawn a cache pruning thread if called for.
+			sCacheSize += [imageData length];
+			unsigned long long	freeSpace = [[[[NSFileManager defaultManager] fileSystemAttributesAtPath:[self imageCachePath]] 
+													objectForKey:NSFileSystemFreeSize] unsignedLongLongValue];
+			if (sCacheSize > sMaxCacheSize || freeSpace < sMinFreeSpace)
+				[self pruneCache];
+		[sImageCacheLock unlock];
+	}
+}
+
+
++ (NSImage *)cachedImageWithIdentifier:(NSString *)identifier
+{
+	NSImage		*cachedImage = nil;
+	NSString	*imageID = [identifier substringWithRange:NSMakeRange(14, 12)],
+				*imageFileName = [NSString stringWithFormat:@"%x%x%x%x%x%x%x%x%x%x%x%x",
+															[imageID characterAtIndex:0], [imageID characterAtIndex:1],
+															[imageID characterAtIndex:2], [imageID characterAtIndex:3],
+															[imageID characterAtIndex:4], [imageID characterAtIndex:5],
+															[imageID characterAtIndex:6], [imageID characterAtIndex:7],
+															[imageID characterAtIndex:8], [imageID characterAtIndex:9],
+															[imageID characterAtIndex:10], [imageID characterAtIndex:11]];
+	NSData		*imageData = nil;
+	
+	imageData = [[NSData alloc] initWithContentsOfFile:[[self imageCachePath] stringByAppendingPathComponent:imageFileName]];
+	if (imageData)
+	{
+		cachedImage = [[[NSImage alloc] initWithData:imageData] autorelease];
+		[imageData release];
+	}
+	
+	if (!sPruningCache)
+	{
+			// Spawn a cache pruning thread if called for.
+		unsigned long long	freeSpace = [[[[NSFileManager defaultManager] fileSystemAttributesAtPath:[self imageCachePath]] 
+												objectForKey:NSFileSystemFreeSize] unsignedLongLongValue];
+		if (freeSpace < sMinFreeSpace)
+			[self pruneCache];
+	}
+	
+	return cachedImage;
+}
+
+
++ (void)pruneCache
+{
+	if (!sPruningCache)
+		[NSThread detachNewThreadSelector:@selector(pruneCacheInThread) toTarget:self withObject:nil];
+}
+
+
++ (void)pruneCacheInThread
+{
+	sPruningCache = YES;
+	
+	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	
+	NSFileManager		*fileManager = [NSFileManager defaultManager];
+	NSString			*cachePath = [self imageCachePath];
+
+	unsigned long long	freeSpace = [[[fileManager fileSystemAttributesAtPath:cachePath] objectForKey:NSFileSystemFreeSize] 
+										unsignedLongLongValue];
+	
+	[sImageCacheLock lock];
+			// Get the size and last access date of every image in the cache.
+		NSEnumerator		*imageNameEnumerator = [[fileManager directoryContentsAtPath:cachePath] objectEnumerator];
+		NSString			*imageName = nil;
+		NSMutableArray		*imageArray = [NSMutableArray array];
+		sCacheSize = 0;
+		while (!sPurgeCache && (imageName = [imageNameEnumerator nextObject]))
+		{
+			NSString	*imagePath = [cachePath stringByAppendingPathComponent:imageName];
+			struct stat	fileStat;
+			if (lstat([imagePath fileSystemRepresentation], &fileStat) == 0)
+			{
+				NSDictionary	*attributes = [NSDictionary dictionaryWithObjectsAndKeys:
+												imagePath, @"Path", 
+												[NSNumber numberWithUnsignedLong:fileStat.st_size], @"Size", 
+												[NSNumber numberWithUnsignedLong:fileStat.st_atimespec.tv_sec], @"Last Access",
+												nil];
+				[imageArray addObject:attributes];
+				sCacheSize += fileStat.st_size;
+			}
+		}
+			
+			// Sort the images by the date/time they were last accessed.
+		if (!sPurgeCache)
+			[imageArray sortUsingFunction:compareWithKey context:@"Last Access"];
+		
+			// Remove the least recently accessed image until we satisfy the user's prefs.
+		unsigned long long	targetSize = sMaxCacheSize * 0.9;
+		while (!sPurgeCache && (sCacheSize > targetSize || freeSpace < sMinFreeSpace) && [imageArray count] > 0)
+		{
+			NSDictionary		*imageToDelete = [imageArray lastObject];
+			unsigned long long	fileSize = [[imageToDelete objectForKey:@"Size"] unsignedLongLongValue];
+			
+			[fileManager removeFileAtPath:[imageToDelete objectForKey:@"Path"] handler:nil];
+			sCacheSize -= fileSize;
+			freeSpace += fileSize;
+			
+			[imageArray removeLastObject];
+		}
+		
+		if (sPurgeCache)
+		{
+			[fileManager removeFileAtPath:cachePath handler:nil];
+			[fileManager createDirectoryAtPath:cachePath attributes:nil];
+			sCacheSize = 0;
+			sPurgeCache = NO;
+		}
+	[sImageCacheLock unlock];
+
+	[pool release];
+	
+	sPruningCache = NO;
+}
+
+
++ (void)purgeCache
+{
+	if (sPruningCache)
+		sPurgeCache = YES;
+	else
+	{
+		[sImageCacheLock lock];
+			NSFileManager	*fileManager = [NSFileManager defaultManager];
+			NSString		*cachePath = [self imageCachePath];
+			
+			[fileManager removeFileAtPath:cachePath handler:nil];
+			[fileManager createDirectoryAtPath:cachePath attributes:nil];
+			
+			sCacheSize = 0;
+		[sImageCacheLock unlock];
+	}
+}
+
+
+#pragma mark
+#pragma mark Preferences
+
+
++ (Class)preferencesControllerClass
+{
+	return [GooglePreferencesController class];
+}
+
+
++ (void)setPreferredValue:(id)value forKey:(NSString *)key
+{
+		// NSUserDefaults is not thread safe.  Make sure we set the default on the main thread.
+	[self performSelectorOnMainThread:@selector(setPreferredValueOnMainThread:) 
+						   withObject:[NSDictionary dictionaryWithObject:value forKey:key] 
+						waitUntilDone:NO];
+}
+
+
++ (void)setPreferredValueOnMainThread:(NSDictionary *)keyValuePair
+{
+		// Save all of the preferences for this plug-in in a dictionary within the main prefs dictionary.
+	NSMutableDictionary	*googlePrefs = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Google Image Source"] mutableCopy] autorelease];
+	if (!googlePrefs)
+		googlePrefs = [NSMutableDictionary dictionary];
+	
+	NSString	*key = [[keyValuePair allKeys] lastObject];
+	[googlePrefs setObject:[keyValuePair objectForKey:key] forKey:key];
+	
+	[[NSUserDefaults standardUserDefaults] setObject:googlePrefs forKey:@"Google Image Source"];
+	[[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+
++ (id)preferredValueForKey:(NSString *)key
+{
+		// This should be done on the main thread, too, but it could deadlock since we would need to wait for return.
+	return [[[NSUserDefaults standardUserDefaults] objectForKey:@"Google Image Source"] objectForKey:key];
+}
+
+
++ (void)setMaxCacheSize:(unsigned long long)maxCacheSize
+{
+	[self setPreferredValue:[NSNumber numberWithUnsignedLongLong:maxCacheSize] 
+					 forKey:@"Maximum Cache Size"];
+	sMaxCacheSize = maxCacheSize;
+}
+
+
++ (unsigned long long)maxCacheSize
+{
+	return sMaxCacheSize;
+}
+
+
++ (void)setMinFreeSpace:(unsigned long long)minFreeSpace
+{
+	[self setPreferredValue:[NSNumber numberWithUnsignedLongLong:minFreeSpace] 
+					 forKey:@"Minimum Free Space On Cache Volume"];
+	sMinFreeSpace = minFreeSpace;
+}
+
+
++ (unsigned long long)minFreeSpace
+{
+	return sMinFreeSpace;
+}
+
+
+#pragma mark
+
+
 - (id)init
 {
 	if (self = [super init])
 	{
-		if ([[NSFileManager defaultManager] fileExistsAtPath:imageCachePath])
+		if ([[NSFileManager defaultManager] fileExistsAtPath:[GoogleImageSource imageCachePath]])
 		{
 			imageURLQueue = [[NSMutableArray array] retain];
 		}
@@ -111,6 +360,21 @@ NSString *escapedNSString(NSString *string)
 	}
 	
 	return self;
+}
+
+
+- (id)copyWithZone:(NSZone *)zone
+{
+	GoogleImageSource	*copy = [[GoogleImageSource allocWithZone:zone] init];
+	
+	[copy setRequiredTerms:requiredTerms];
+	[copy setOptionalTerms:optionalTerms];
+	[copy setExcludedTerms:excludedTerms];
+	[copy setColorSpace:colorSpace];
+	[copy setSiteString:siteString];
+	[copy setAdultContentFiltering:adultContentFiltering];
+	
+	return copy;
 }
 
 
@@ -407,21 +671,6 @@ NSString *escapedNSString(NSString *string)
 }
 
 
-- (id)copyWithZone:(NSZone *)zone
-{
-	GoogleImageSource	*copy = [[GoogleImageSource allocWithZone:zone] init];
-	
-	[copy setRequiredTerms:requiredTerms];
-	[copy setOptionalTerms:optionalTerms];
-	[copy setExcludedTerms:excludedTerms];
-	[copy setColorSpace:colorSpace];
-	[copy setSiteString:siteString];
-	[copy setAdultContentFiltering:adultContentFiltering];
-	
-	return copy;
-}
-
-
 - (void)populateImageQueueFromNextPage
 {
 	while ([imageURLQueue count] == 0 && startIndex >= 0)
@@ -502,43 +751,25 @@ NSString *escapedNSString(NSString *string)
 	
 	if ([identifier length] > 26)
 	{
-		NSString	*imageID = [identifier substringWithRange:NSMakeRange(14, 12)],
-					*imageFileName = [NSString stringWithFormat:@"%x%x%x%x%x%x%x%x%x%x%x%x",
-																[imageID characterAtIndex:0], [imageID characterAtIndex:1],
-																[imageID characterAtIndex:2], [imageID characterAtIndex:3],
-																[imageID characterAtIndex:4], [imageID characterAtIndex:5],
-																[imageID characterAtIndex:6], [imageID characterAtIndex:7],
-																[imageID characterAtIndex:8], [imageID characterAtIndex:9],
-																[imageID characterAtIndex:10], [imageID characterAtIndex:11]],
-					*imagePath = [imageCachePath stringByAppendingPathComponent:imageFileName];
-		NSData		*imageData = nil;
-		
 			// First check if we have this image in the cache.
-		[imageCacheLock lock];
-			if ([[NSFileManager defaultManager] fileExistsAtPath:imagePath])
-			{
-				imageData = [[[NSData alloc] initWithContentsOfFile:imagePath] autorelease];
-				utimes([imageCachePath fileSystemRepresentation], NULL);
-			}
-		[imageCacheLock unlock];
-		if (imageData)
-			image = [[[NSImage alloc] initWithData:imageData] autorelease];
+		image = [GoogleImageSource cachedImageWithIdentifier:identifier];
 		
-			// If it's not in the cache or couldn't be read from the cache then
-			// fetch the image from Google.
+			// If the image couldn't be read from the cache then fetch it from Google.
 		if (!image)
 		{
+				// TODO: Try to get the higher res image from the original site and only fallback 
+				//       to Google's copy if that fails.
 			NSURL	*imageURL = [NSURL URLWithString:[NSString stringWithFormat:@"http://images.google.com%@", identifier]];
+			NSData	*imageData = [[NSData alloc] initWithContentsOfURL:imageURL];
 			
-			imageData = [[[NSData alloc] initWithContentsOfURL:imageURL] autorelease];
 			if (imageData)
 			{
 				image = [[[NSImage alloc] initWithData:imageData] autorelease];
-				[imageCacheLock lock];
-					[imageData writeToFile:imagePath atomically:NO];
 				
-					// TODO: purge oldest image(s) when cache size limit exceeded.
-				[imageCacheLock unlock];
+				if (image)
+					[GoogleImageSource cacheImageData:imageData withIdentifier:identifier];
+				
+				[imageData release];
 			}
 		}
 	}

@@ -28,6 +28,12 @@ typedef enum { strictFiltering, moderateFiltering, noFiltering } GoogleAdultCont
 }
 
 + (NSString *)imageCachePath;
++ (void)purgeCache;
+
++ (void)setMaxCacheSize:(unsigned long long)maxCacheSize;
++ (unsigned long long)maxCacheSize;
++ (void)setMinFreeSpace:(unsigned long long)minFreeSpace;
++ (unsigned long long)minFreeSpace;
 
 - (void)setRequiredTerms:(NSString *)terms;
 - (NSString *)requiredTerms;
