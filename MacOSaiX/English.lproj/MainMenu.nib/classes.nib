@@ -6,6 +6,7 @@
                 centerViewOnSelectedTile = id; 
                 chooseImageForSelectedTile = id; 
                 chooseOriginalImage = id; 
+                clearRecentOriginalImages = id; 
                 removeChosenImageForSelectedTile = id; 
                 setViewMosaic = id; 
                 setViewOriginalImage = id; 
