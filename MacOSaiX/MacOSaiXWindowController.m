@@ -63,11 +63,11 @@
 	
 		// Remove the previous original items from the main menu.
 	NSMenu			*mainOriginalsMenu = [(MacOSaiX *)[NSApp delegate] originalImagesMenu];
-	while ([mainOriginalsMenu numberOfItems] > 2)
-		[mainOriginalsMenu removeItemAtIndex:0];
+	while ([mainOriginalsMenu numberOfItems] > 4)
+		[mainOriginalsMenu removeItemAtIndex:2];
 
 	NSMenu			*originalsMenu = [[NSMenu alloc] initWithTitle:@"Original Images"];
-	NSEnumerator	*originalEnumerator = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] objectEnumerator];
+	NSEnumerator	*originalEnumerator = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] reverseObjectEnumerator];
 	NSDictionary	*originalDict = nil;
 	while (originalDict = [originalEnumerator nextObject])
 	{
@@ -83,7 +83,7 @@
 			NSImage		*thumbnail = [[[NSImage alloc] initWithData:[originalDict objectForKey:@"Thumbnail Data"]] autorelease];
 			[originalItem setImage:thumbnail];
 			[originalsMenu insertItem:originalItem atIndex:0];
-			[mainOriginalsMenu insertItem:[[originalItem copy] autorelease] atIndex:0];
+			[mainOriginalsMenu insertItem:[[originalItem copy] autorelease] atIndex:2];
 		}
 	}
 	// TODO: add "choose new" item
