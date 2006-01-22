@@ -63,6 +63,7 @@ Riemersma metric:
 ?	Tile refresh leaves black edges
 ¥	Document plug-in API's
 ¥	Create sample plug-in projects
+¥	Prompt for password when leaving kiosk mode
 
 
 2.0a6 (b1?) To Do:
@@ -70,7 +71,8 @@ Riemersma metric:
 Ã	Fix iPhoto crasher in -[NSAppleScript dealloc]
 Ã	Fix crash in -[MosaicView createHighlightedImageSourcesOutline]
 Ã	Kiosk mode
-¥	Full screen mode
+Ã	Full screen mode
+¥	Allow showing original image or best non-unique match for tiles without a unique match.
 Ã	Flickr source
 ¥	Make sure Google and Flickr caches don't fill disk
 ¥	Page by post date in Flickr source
@@ -80,8 +82,8 @@ Riemersma metric:
 ?	Single menu for restricting tile sizes
 ¥	Complete plug-in API
 ¥		OS check
-¥		Add preferences API for image source plug-ins
-¥		Add preferences API for tile shapes plug-ins
+Ã		Add preferences API for image source plug-ins
+Ã		Add preferences API for tile shapes plug-ins
 ¥		Delegation change for tile shapes (and image sources?) (hex shapes)
 Ã	Don't loop forever scaling from the cache
 Ã	Auto-start pref not honored
@@ -89,3 +91,5 @@ Riemersma metric:
 ¥	Copy original image to doc bundle
 ¥	Fix auto-fade
 ¥	Enable "Add New Image Source" sub-menu in main menu
+¥	Handle case of no original images
+
