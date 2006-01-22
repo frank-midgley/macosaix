@@ -8,6 +8,7 @@
                 chooseOriginalImage = id; 
                 clearRecentOriginalImages = id; 
                 removeChosenImageForSelectedTile = id; 
+                setNonUniqueTileDisplay = id; 
                 setViewMosaic = id; 
                 setViewOriginalImage = id; 
                 setZoom = id; 
@@ -17,6 +18,7 @@
                 togglePause = id; 
                 toggleStatusBar = id; 
                 toggleTileOutlines = id; 
+                viewFullScreen = id; 
             }; 
             CLASS = FirstResponder; 
             LANGUAGE = ObjC; 

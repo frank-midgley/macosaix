@@ -7,12 +7,16 @@
 */
 
 #import "MacOSaiXWindowController.h"
+
 #import "MacOSaiX.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatcher.h"
+#import "MacOSaiXFullScreenController.h"
 #import "MacOSaiXPopUpImageView.h"
 #import "NSImage+MacOSaiX.h"
 #import "NSString+MacOSaiX.h"
+
+#import <Carbon/Carbon.h>
 #import <unistd.h>
 #import <pthread.h>
 
@@ -1362,6 +1366,69 @@
 }
 
 
+- (IBAction)viewFullScreen:(id)sender
+{
+		// Hide the menu bar and dock if we're on the main screen.
+	NSScreen	*windowScreen = [[self window] screen], 
+				*menuBarScreen = [[NSScreen screens] objectAtIndex:0];
+	if (windowScreen == menuBarScreen)
+	{
+		OSStatus	status = SetSystemUIMode(kUIModeAllHidden, 0);
+		if (status == noErr)
+			NSLog(@"Could not enter full screen mode");
+	}
+	
+		// Open a new borderless window displaying just the mosaic.
+	MacOSaiXFullScreenController	*controller = [(MacOSaiX *)[NSApp delegate] openMosaicWindowOnScreen:windowScreen];
+ 	[controller setMosaicView:mosaicView];
+	[controller setClosesOnKeyPress:YES];
+	[controller retain];
+	[mosaicView retain];
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(fullScreenWindowDidClose:) 
+												 name:NSWindowWillCloseNotification 
+											   object:[controller window]];
+	[[self window] orderOut:self];
+}
+
+
+- (void)fullScreenWindowDidClose:(NSNotification *)notification
+{
+		// Switch back to the document window.
+	[mosaicScrollView setDocumentView:mosaicView];
+	[mosaicView release];
+	[[(NSWindow *)[notification object] windowController] release];
+	[self setZoom:self];
+	[[self window] orderFront:self];
+	
+		// Restore the menu bar and dock if we're on the main screen.
+	NSScreen	*windowScreen = [[self window] screen], 
+				*menuBarScreen = [[NSScreen screens] objectAtIndex:0];
+	if (windowScreen == menuBarScreen)
+		SetSystemUIMode(kUIModeNormal, 0);
+}
+
+
+- (void)setNonUniqueTileDisplayMode:(MacOSaiXNonUniqueTileDisplayMode)mode
+{
+	[mosaicView setNonUniqueTileDisplayMode:mode];
+}
+
+
+- (MacOSaiXNonUniqueTileDisplayMode)nonUniqueTileDisplayMode
+{
+	return [mosaicView nonUniqueTileDisplayMode];
+}
+
+
+- (IBAction)setNonUniqueTileDisplay:(id)sender
+{
+	if ([sender isKindOfClass:[NSMenuItem class]])
+		[mosaicView setNonUniqueTileDisplayMode:[(NSMenuItem *)sender tag]];
+}
+
+
 #pragma mark -
 #pragma mark Utility methods
 
@@ -1379,6 +1446,8 @@
 		valid = (selectedTile != nil && zoom != 0.0);
     else if (actionToValidate == @selector(togglePause:))
 		valid = ([[[self mosaic] imageSources] count] > 0);
+	else if (actionToValidate == @selector(setNonUniqueTileDisplay:))
+		[menuItem setState:([menuItem tag] == [mosaicView nonUniqueTileDisplayMode] ? NSOnState : NSOffState)];
 
 	return valid;
 }
@@ -1833,10 +1902,9 @@
 }
 
 
-// Toolbar delegate methods
-
 #pragma mark -
 #pragma mark Toolbar delegate methods
+
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier
     willBeInsertedIntoToolbar:(BOOL)flag;
@@ -1867,6 +1935,15 @@
 		[toolbarItem setAction:@selector(setupTiles:)];
 		[toolbarItem setToolTip:@"Change the tile shapes or image use rules"];
 		setupTilesToolbarItem = toolbarItem;
+    }
+	else if ([itemIdentifier isEqualToString:@"Full Screen"])
+    {
+		[toolbarItem setImage:[NSImage imageNamed:@"FullScreen"]];
+		[toolbarItem setLabel:@"Full Screen"];
+		[toolbarItem setPaletteLabel:@"Full Screen"];
+		[toolbarItem setTarget:self];
+		[toolbarItem setAction:@selector(viewFullScreen:)];
+		[toolbarItem setToolTip:@"View the mosaic in full screen mode"];
     }
 	else if ([itemIdentifier isEqualToString:@"Export Image"])
     {
@@ -1931,7 +2008,7 @@
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar;
 {
-    return [NSArray arrayWithObjects:@"Original Image", @"Setup Tiles", @"Fade", @"Zoom", 
+    return [NSArray arrayWithObjects:@"Original Image", @"Setup Tiles", @"Full Screen", @"Fade", @"Zoom", 
 									 @"Export Image", @"Pause", @"Image Sources", 
 									 NSToolbarCustomizeToolbarItemIdentifier, NSToolbarSpaceItemIdentifier,
 									 NSToolbarFlexibleSpaceItemIdentifier, NSToolbarSeparatorItemIdentifier,
@@ -1941,8 +2018,8 @@
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar;
 {
-    return [NSArray arrayWithObjects:@"Original Image", @"Setup Tiles", @"Fade", @"Zoom", @"Pause", @"Export Image", 
-									 NSToolbarFlexibleSpaceItemIdentifier, @"Image Sources", nil];
+    return [NSArray arrayWithObjects:@"Original Image", @"Setup Tiles", @"Fade", @"Zoom", @"Pause", 
+									 @"Export Image", NSToolbarFlexibleSpaceItemIdentifier, @"Image Sources", nil];
 }
 
 

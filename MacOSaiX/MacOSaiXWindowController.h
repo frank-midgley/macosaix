@@ -125,6 +125,9 @@
 - (IBAction)toggleStatusBar:(id)sender;
 - (IBAction)toggleImageSourcesDrawer:(id)sender;
 - (IBAction)togglePause:(id)sender;
+- (IBAction)viewFullScreen:(id)sender;
+- (void)setNonUniqueTileDisplayMode:(MacOSaiXNonUniqueTileDisplayMode)mode;
+- (MacOSaiXNonUniqueTileDisplayMode)nonUniqueTileDisplayMode;
 
 	// Image sources drawer
 - (IBAction)addNewImageSource:(id)sender;
