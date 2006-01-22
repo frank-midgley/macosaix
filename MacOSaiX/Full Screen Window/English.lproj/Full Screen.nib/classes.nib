@@ -1,0 +1,13 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            CLASS = MacOSaiXMosaicController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {mosaicView = MosaicView; }; 
+            SUPERCLASS = NSWindowController; 
+        }, 
+        {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSView; }
+    ); 
+    IBVersion = 1; 
+}
