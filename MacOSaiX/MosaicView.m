@@ -62,18 +62,21 @@
 		
 		mosaic = inMosaic;
 		
-		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(originalImageDidChange:) 
-													 name:MacOSaiXOriginalImageDidChangeNotification
-												   object:mosaic];
-		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(tileShapesDidChange:) 
-													 name:MacOSaiXTileShapesDidChangeStateNotification 
-												   object:mosaic];
-		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(tileImageDidChange:) 
-													 name:MacOSaiXTileImageDidChangeNotification 
-												   object:mosaic];
+		if (mosaic)
+		{
+			[[NSNotificationCenter defaultCenter] addObserver:self 
+													 selector:@selector(originalImageDidChange:) 
+														 name:MacOSaiXOriginalImageDidChangeNotification
+													   object:mosaic];
+			[[NSNotificationCenter defaultCenter] addObserver:self 
+													 selector:@selector(tileShapesDidChange:) 
+														 name:MacOSaiXTileShapesDidChangeStateNotification 
+													   object:mosaic];
+			[[NSNotificationCenter defaultCenter] addObserver:self 
+													 selector:@selector(tileImageDidChange:) 
+														 name:MacOSaiXTileImageDidChangeNotification 
+													   object:mosaic];
+		}
 		
 		[self originalImageDidChange:nil];
 		[self tileShapesDidChange:nil];
@@ -141,13 +144,13 @@
 }
 
 
-- (void)tileImageDidChange:(NSNotification *)notification
+- (void)refreshTile:(NSDictionary *)tileDict
 {
 		// Add the tile to the queue of tiles to be refreshed and start the refresh 
 		// thread if it isn't already running.
 	[tileRefreshLock lock];
-		if (![tilesToRefresh containsObject:[notification userInfo]])
-			[tilesToRefresh addObject:[notification userInfo]];
+		if (![tilesToRefresh containsObject:tileDict])
+			[tilesToRefresh addObject:tileDict];
 		
 		if (!refreshingTiles)
 			[NSApplication detachDrawingThread:@selector(fetchTileImages:) toTarget:self withObject:nil];
@@ -155,6 +158,12 @@
 		while (!refreshingTiles)
 			[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 	[tileRefreshLock unlock];
+}
+
+
+- (void)tileImageDidChange:(NSNotification *)notification
+{
+	[self refreshTile:[notification userInfo]];
 }
 
 
@@ -186,18 +195,36 @@
 		{
 			MacOSaiXTile		*tileToRefresh  = [refreshDict objectForKey:@"Tile"];
 			NSBezierPath		*clipPath = [mosaicImageTransform transformBezierPath:[tileToRefresh outline]];
-			MacOSaiXImageMatch	*imageMatch = [tileToRefresh displayedImageMatch], 
-								*previousMatch = [refreshDict objectForKey:@"Previous Match"];
+			MacOSaiXImageMatch	*imageMatch = nil;
 			NSImageRep			*newImageRep = nil;
 			
-				// Get the image rep to draw for this tile.
-				// This step is the primary reason we're in a separate thread.
+				// 
+			imageMatch = [tileToRefresh userChosenImageMatch];
+			if (!imageMatch)
+				imageMatch = [tileToRefresh uniqueImageMatch];
+			if (!imageMatch)
+			{
+					// Display the appropriate rep based on the non-unique mode set by the user.
+				if (nonUniqueTileDisplayMode == showNonUniqueMode)
+					imageMatch = [tileToRefresh nonUniqueImageMatch];
+				else if (nonUniqueTileDisplayMode == showOriginalMode)
+					newImageRep = [tileToRefresh bitmapRep];
+				else
+					newImageRep = blackRep;
+			}
+			
 			if (clipPath && imageMatch)
+			{
+					// Get the image rep to draw for this tile.
+					// This step is the primary reason we're in a separate thread because 
+					// the cache may have to get the image from the source which might have 
+					// to hit the network, etc.
 				newImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[clipPath bounds].size
 																	  forIdentifier:[imageMatch imageIdentifier] 
 																		 fromSource:[imageMatch imageSource]];
-			else
-				newImageRep = blackRep;
+			}
+			
+			// TBD: show a question mark image if !newImageRep?
 			
 			[tileRefreshLock lock];
 				if (newImageRep)
@@ -219,6 +246,7 @@
 			[tileRefreshLock unlock];
 			
 			// Update the highlighted image sources outline if needed.
+			//	MacOSaiXImageSource	*previousMatch = [refreshDict objectForKey:@"Previous Match"];
 			//	[highlightedImageSourcesLock lock];
 			//		if ([highlightedImageSources containsObject:[previousMatch imageSource]] && 
 			//			![highlightedImageSources containsObject:[imageMatch imageSource]])
@@ -261,10 +289,8 @@
 					*imageRepEnumerator = [[parameters objectAtIndex:1] objectEnumerator];
 	MacOSaiXTile	*tile = nil;
 	NSImageRep		*imageRep = nil;
-//	NSDate			*startDate = [NSDate date];
 						
 	while ((tile = [tileEnumerator nextObject]) && (imageRep = [imageRepEnumerator nextObject]))
-//		    && [startDate timeIntervalSinceNow] < 1.0)
 	{
 		NSBezierPath	*clipPath = [mosaicImageTransform transformBezierPath:[tile outline]];
 
@@ -347,6 +373,28 @@
 }
 
 
+- (void)setNonUniqueTileDisplayMode:(MacOSaiXNonUniqueTileDisplayMode)mode
+{
+	if (mode != nonUniqueTileDisplayMode)
+	{
+		nonUniqueTileDisplayMode = mode;
+		
+			// Refresh all of the tiles showing non-unique matches.
+		NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
+		MacOSaiXTile	*tile = nil;
+		while (tile = [tileEnumerator nextObject])
+			if (![tile uniqueImageMatch] && ![tile userChosenImageMatch])
+				[self refreshTile:[NSDictionary dictionaryWithObject:tile forKey:@"Tile"]];
+	}
+}
+
+
+- (MacOSaiXNonUniqueTileDisplayMode)nonUniqueTileDisplayMode
+{
+	return nonUniqueTileDisplayMode;
+}
+
+
 - (void)mouseDown:(NSEvent *)theEvent
 {
     NSPoint						mouseLoc = [self convertPoint:[theEvent locationInWindow] fromView:nil];
@@ -361,16 +409,16 @@
 - (void)drawRect:(NSRect)theRect
 {
 	
-	if (viewFade < 1.0)
+//	if (viewFade < 1.0)
 		[[mosaic originalImage] drawInRect:[self bounds] 
 								  fromRect:NSZeroRect 
 								 operation:NSCompositeCopy 
 								  fraction:1.0];
-	else
-	{
-		[[NSColor blackColor] set];
-		NSRectFill([self bounds]);
-	}
+//	else
+//	{
+//		[[NSColor blackColor] set];
+//		NSRectFill([self bounds]);
+//	}
 
 	if (viewFade > 0.0)
 	{

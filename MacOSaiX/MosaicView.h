@@ -11,6 +11,9 @@
 #import "Tiles.h"
 
 
+typedef enum { showOriginalMode = 0, showNonUniqueMode, showBlackMode } MacOSaiXNonUniqueTileDisplayMode;
+
+
 @interface MosaicView : NSView
 {
 	MacOSaiXMosaic			*mosaic;
@@ -41,6 +44,8 @@
 	NSTimer					*tilesNeedDisplayTimer;
 	
 	NSImageRep				*blackRep;
+	
+	MacOSaiXNonUniqueTileDisplayMode	nonUniqueTileDisplayMode;
 }
 
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
@@ -50,6 +55,9 @@
 
 - (void)setViewTileOutlines:(BOOL)inViewTileOutlines;
 - (BOOL)viewTileOutlines;
+
+- (void)setNonUniqueTileDisplayMode:(MacOSaiXNonUniqueTileDisplayMode)mode;
+- (MacOSaiXNonUniqueTileDisplayMode)nonUniqueTileDisplayMode;
 
 	// Highlight methods
 - (void)highlightTile:(MacOSaiXTile *)tile;
