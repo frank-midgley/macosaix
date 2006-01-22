@@ -174,7 +174,7 @@
 		[nonUniqueImageMatch autorelease];
 		nonUniqueImageMatch = [match retain];
 		
-		if (!userChosenImageMatch && !uniqueImageMatch && [mosaic displayNonUniqueMatches])
+		if (!userChosenImageMatch && !uniqueImageMatch)
 			[self sendNotificationThatImageChangedFrom:previousMatch];
 	}
 }
@@ -212,7 +212,7 @@
 		return userChosenImageMatch;
 	else if (uniqueImageMatch)
 		return uniqueImageMatch;
-	else if ([mosaic displayNonUniqueMatches] && nonUniqueImageMatch)
+	else if (nonUniqueImageMatch)
 		return nonUniqueImageMatch;
 	else
 		return nil;
