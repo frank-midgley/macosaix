@@ -10,7 +10,7 @@
 
 #import "GoogleImageSource.h"
 #import "MacOSaiXDocument.h"
-#import "MacOSaiXMosaicController.h"
+#import "MacOSaiXFullScreenController.h"
 #import "RectangularTileShapes.h"
 
 #import <pthread.h>
@@ -68,8 +68,8 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 	[mosaicControllers addObjectsFromArray:controllers];
 	
 		// Tell all of the "mosaic only" windows to show this mosaic.
-	NSEnumerator				*controllerEnumerator = [mosaicControllers objectEnumerator];
-	MacOSaiXMosaicController	*controller = nil;
+	NSEnumerator					*controllerEnumerator = [mosaicControllers objectEnumerator];
+	MacOSaiXFullScreenController	*controller = nil;
 	while (controller = [controllerEnumerator nextObject])
 		[controller setMosaic:currentMosaic];
 }
@@ -124,8 +124,8 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 												   object:currentMosaic];
 		
 			// Tell all of the "mosaic only" windows to show this mosaic.
-		NSEnumerator				*controllerEnumerator = [mosaicControllers objectEnumerator];
-		MacOSaiXMosaicController	*controller = nil;
+		NSEnumerator					*controllerEnumerator = [mosaicControllers objectEnumerator];
+		MacOSaiXFullScreenController	*controller = nil;
 		while (controller = [controllerEnumerator nextObject])
 			[controller setMosaic:currentMosaic];
 		
