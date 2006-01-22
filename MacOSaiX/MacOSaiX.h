@@ -8,6 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 
+#import "MacOSaiXFullScreenController.h"
 #import "MacOSaiXKioskController.h"
 
 
@@ -33,6 +34,8 @@
 - (NSArray *)imageSourceClasses;
 
 - (BOOL)isQuitting;
+
+- (MacOSaiXFullScreenController *)openMosaicWindowOnScreen:(NSScreen *)screen;
 
 - (IBAction)enterKioskMode:(id)sender;
 
