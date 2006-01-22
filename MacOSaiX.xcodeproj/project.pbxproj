@@ -7,11 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		010D1F7608FF5FAD00950013 /* MacOSaiXKioskWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 010D1F7408FF5FAD00950013 /* MacOSaiXKioskWindow.h */; };
-		010D1F7708FF5FAD00950013 /* MacOSaiXKioskWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 010D1F7508FF5FAD00950013 /* MacOSaiXKioskWindow.m */; };
+		010D1F7608FF5FAD00950013 /* MacOSaiXFullScreenWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 010D1F7408FF5FAD00950013 /* MacOSaiXFullScreenWindow.h */; };
+		010D1F7708FF5FAD00950013 /* MacOSaiXFullScreenWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 010D1F7508FF5FAD00950013 /* MacOSaiXFullScreenWindow.m */; };
 		010D20B60902C01700950013 /* Kiosk Setup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 010D20980902C01700950013 /* Kiosk Setup.nib */; };
 		010D20B70902C01700950013 /* Kiosk.nib in Resources */ = {isa = PBXBuildFile; fileRef = 010D209A0902C01700950013 /* Kiosk.nib */; };
-		010D20B90902C01700950013 /* Mosaic.nib in Resources */ = {isa = PBXBuildFile; fileRef = 010D209E0902C01700950013 /* Mosaic.nib */; };
 		010D20BA0902C01700950013 /* Screen Setup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 010D20A00902C01700950013 /* Screen Setup.nib */; };
 		0111F0B60968728600EE09C1 /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 0111F0B40968728600EE09C1 /* Preferences.nib */; };
 		0120B21F08C7FF8600974680 /* G.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0120B21E08C7FF8600974680 /* G.tiff */; };
@@ -121,6 +120,7 @@
 		9287C13E075A5CC6004C07EF /* MacOSaiXTileShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = 9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */; };
 		9287C155075A5F55004C07EF /* RectangularTileShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = 9287C153075A5F55004C07EF /* RectangularTileShapes.h */; };
 		9287C156075A5F55004C07EF /* RectangularTileShapes.m in Sources */ = {isa = PBXBuildFile; fileRef = 9287C154075A5F55004C07EF /* RectangularTileShapes.m */; };
+		9288242A0982C00E00181817 /* FullScreen.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 928824290982C00E00181817 /* FullScreen.tiff */; };
 		92887D9C094CCC83000FA225 /* MacOSaiXPopUpImageView.h in Headers */ = {isa = PBXBuildFile; fileRef = 92887D9A094CCC83000FA225 /* MacOSaiXPopUpImageView.h */; };
 		92887D9D094CCC84000FA225 /* MacOSaiXPopUpImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 92887D9B094CCC83000FA225 /* MacOSaiXPopUpImageView.m */; };
 		9289DDA8073D713100C88091 /* MacOSaiXImageCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */; };
@@ -142,11 +142,12 @@
 		92951FEA068A7FDC00366ACB /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 928F725F066121A700873AE2 /* Preferences.nib */; };
 		92951FF1068A7FE600366ACB /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 928F724A0661214000873AE2 /* Info.plist */; };
 		92951FF9068A7FE900366ACB /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 928F726C066121AE00873AE2 /* InfoPlist.strings */; };
+		9298FBA30982DB9400E7A096 /* Full Screen.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FBA10982DB9400E7A096 /* Full Screen.nib */; };
 		92B9087C08C25F0600D621F5 /* MacOSaiXImageMatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */; };
 		92BFFEC3079A2DD50052CC4C /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = 92BFFEC1079A2DD50052CC4C /* Credits.html */; };
 		92C8AAF2080870100073045F /* GlyphTableColumn.h in Headers */ = {isa = PBXBuildFile; fileRef = 92C8AAF0080870100073045F /* GlyphTableColumn.h */; };
 		92C8AAF3080870100073045F /* GlyphTableColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92C8AAF1080870100073045F /* GlyphTableColumn.m */; };
-		92CC1B3E08F9C168004D0C31 /* MacOSaiXMosaicController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA7B608F87DD200B40FA6 /* MacOSaiXMosaicController.m */; };
+		92CC1B3E08F9C168004D0C31 /* MacOSaiXFullScreenController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA7B608F87DD200B40FA6 /* MacOSaiXFullScreenController.m */; };
 		92CC1B4008F9C16A004D0C31 /* MacOSaiXKioskSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA7CC08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m */; };
 		92CC1B4208F9C16C004D0C31 /* MacOSaiXScreenSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA87208F89EA400B40FA6 /* MacOSaiXScreenSetupController.m */; };
 		92E3E15607E7BE8C00E62AB8 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
@@ -375,11 +376,10 @@
 		00E5856E005F0FA87F000001 /* MacOSaiXDocument.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXDocument.h; path = MacOSaiX/MacOSaiXDocument.h; sourceTree = "<group>"; };
 		00EAAC6000853DFB7F000001 /* Tiles.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Tiles.h; path = MacOSaiX/Tiles.h; sourceTree = "<group>"; };
 		00EAAC6100853DFB7F000001 /* Tiles.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = Tiles.m; path = MacOSaiX/Tiles.m; sourceTree = "<group>"; };
-		010D1F7408FF5FAD00950013 /* MacOSaiXKioskWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXKioskWindow.h; sourceTree = "<group>"; };
-		010D1F7508FF5FAD00950013 /* MacOSaiXKioskWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXKioskWindow.m; sourceTree = "<group>"; };
+		010D1F7408FF5FAD00950013 /* MacOSaiXFullScreenWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXFullScreenWindow.h; sourceTree = "<group>"; };
+		010D1F7508FF5FAD00950013 /* MacOSaiXFullScreenWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXFullScreenWindow.m; sourceTree = "<group>"; };
 		010D20990902C01700950013 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Kiosk Setup.nib"; sourceTree = "<group>"; };
 		010D209B0902C01700950013 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Kiosk.nib; sourceTree = "<group>"; };
-		010D209F0902C01700950013 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Mosaic.nib; sourceTree = "<group>"; };
 		010D20A10902C01700950013 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Screen Setup.nib"; sourceTree = "<group>"; };
 		0111F0B50968728600EE09C1 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Google Image Source/English.lproj/Preferences.nib"; sourceTree = "<group>"; };
 		0120B21E08C7FF8600974680 /* G.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = G.tiff; path = "Standard Plugins/Google Image Source/G.tiff"; sourceTree = "<group>"; };
@@ -452,6 +452,7 @@
 		9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXTileShapes.h; path = MacOSaiX/MacOSaiXTileShapes.h; sourceTree = "<group>"; };
 		9287C153075A5F55004C07EF /* RectangularTileShapes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = RectangularTileShapes.h; path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapes.h"; sourceTree = "<group>"; };
 		9287C154075A5F55004C07EF /* RectangularTileShapes.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = RectangularTileShapes.m; path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapes.m"; sourceTree = "<group>"; };
+		928824290982C00E00181817 /* FullScreen.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = FullScreen.tiff; path = Images/FullScreen.tiff; sourceTree = "<group>"; };
 		92887D9A094CCC83000FA225 /* MacOSaiXPopUpImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXPopUpImageView.h; path = MacOSaiX/MacOSaiXPopUpImageView.h; sourceTree = "<group>"; };
 		92887D9B094CCC83000FA225 /* MacOSaiXPopUpImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXPopUpImageView.m; path = MacOSaiX/MacOSaiXPopUpImageView.m; sourceTree = "<group>"; };
 		9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXImageCache.h; path = MacOSaiX/MacOSaiXImageCache.h; sourceTree = "<group>"; };
@@ -475,6 +476,7 @@
 		928F72E80661237300873AE2 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = Info.plist; path = "Standard Plugins/Rectangular Tiles Setup/Info.plist"; sourceTree = "<group>"; };
 		92902AEEC5B082BD00F96641 /* RectangularTileShapesEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RectangularTileShapesEditor.h; path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapesEditor.h"; sourceTree = "<group>"; };
 		92902AEFC5B082BD00F96641 /* RectangularTileShapesEditor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RectangularTileShapesEditor.m; path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapesEditor.m"; sourceTree = "<group>"; };
+		9298FBA20982DB9400E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Full Screen.nib"; sourceTree = "<group>"; };
 		92B45F70041A9DF1006867F5 /* DirectoryImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DirectoryImageSourceController.h; path = "Standard Plugins/Directory Image Source/DirectoryImageSourceController.h"; sourceTree = "<group>"; };
 		92B45F71041A9DF1006867F5 /* DirectoryImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DirectoryImageSourceController.m; path = "Standard Plugins/Directory Image Source/DirectoryImageSourceController.m"; sourceTree = "<group>"; };
 		92B45F74041A9E78006867F5 /* GlyphImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlyphImageSourceController.h; path = "Standard Plugins/Glyph Image Source/GlyphImageSourceController.h"; sourceTree = "<group>"; };
@@ -484,8 +486,8 @@
 		92BFFEC2079A2DD50052CC4C /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = MacOSaiX/English.lproj/Credits.html; sourceTree = "<group>"; };
 		92C8AAF0080870100073045F /* GlyphTableColumn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlyphTableColumn.h; path = "Standard Plugins/Glyph Image Source/GlyphTableColumn.h"; sourceTree = "<group>"; };
 		92C8AAF1080870100073045F /* GlyphTableColumn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GlyphTableColumn.m; path = "Standard Plugins/Glyph Image Source/GlyphTableColumn.m"; sourceTree = "<group>"; };
-		92DCA7B508F87DD200B40FA6 /* MacOSaiXMosaicController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXMosaicController.h; sourceTree = "<group>"; };
-		92DCA7B608F87DD200B40FA6 /* MacOSaiXMosaicController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXMosaicController.m; sourceTree = "<group>"; };
+		92DCA7B508F87DD200B40FA6 /* MacOSaiXFullScreenController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXFullScreenController.h; sourceTree = "<group>"; };
+		92DCA7B608F87DD200B40FA6 /* MacOSaiXFullScreenController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXFullScreenController.m; sourceTree = "<group>"; };
 		92DCA7CB08F8894C00B40FA6 /* MacOSaiXKioskSetupController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXKioskSetupController.h; sourceTree = "<group>"; };
 		92DCA7CC08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXKioskSetupController.m; sourceTree = "<group>"; };
 		92DCA87108F89EA400B40FA6 /* MacOSaiXScreenSetupController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXScreenSetupController.h; sourceTree = "<group>"; };
@@ -760,13 +762,8 @@
 				92DCA87108F89EA400B40FA6 /* MacOSaiXScreenSetupController.h */,
 				92DCA87208F89EA400B40FA6 /* MacOSaiXScreenSetupController.m */,
 				010D20A00902C01700950013 /* Screen Setup.nib */,
-				92DCA7B508F87DD200B40FA6 /* MacOSaiXMosaicController.h */,
-				92DCA7B608F87DD200B40FA6 /* MacOSaiXMosaicController.m */,
-				010D209E0902C01700950013 /* Mosaic.nib */,
 				01ACC0AC08FCA3960013D213 /* MacOSaiXKioskView.h */,
 				01ACC0AD08FCA3960013D213 /* MacOSaiXKioskView.m */,
-				010D1F7408FF5FAD00950013 /* MacOSaiXKioskWindow.h */,
-				010D1F7508FF5FAD00950013 /* MacOSaiXKioskWindow.m */,
 				9254088A0915741F00384904 /* MacOSaiXKioskMessageView.h */,
 				9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */,
 			);
@@ -783,6 +780,7 @@
 				F5666CCAC5B062B401D943E0 /* MacOSaiX.m */,
 				010D208D0902BF0600950013 /* Document */,
 				92DCA54D08F871A100B40FA6 /* Common */,
+				928824890982D05400181817 /* Full Screen Window */,
 				01AB92ED07DB797E00DB4B86 /* Cocoa Extensions */,
 				928F72460661211600873AE2 /* Crash Reporter */,
 				0165CFD0086DE5490070D6B5 /* Update Window */,
@@ -898,6 +896,19 @@
 			name = Glyph;
 			sourceTree = "<group>";
 		};
+		928824890982D05400181817 /* Full Screen Window */ = {
+			isa = PBXGroup;
+			children = (
+				92DCA7B508F87DD200B40FA6 /* MacOSaiXFullScreenController.h */,
+				92DCA7B608F87DD200B40FA6 /* MacOSaiXFullScreenController.m */,
+				9298FBA10982DB9400E7A096 /* Full Screen.nib */,
+				010D1F7408FF5FAD00950013 /* MacOSaiXFullScreenWindow.h */,
+				010D1F7508FF5FAD00950013 /* MacOSaiXFullScreenWindow.m */,
+			);
+			name = "Full Screen Window";
+			path = "MacOSaiX/Full Screen Window";
+			sourceTree = "<group>";
+		};
 		928F72460661211600873AE2 /* Crash Reporter */ = {
 			isa = PBXGroup;
 			children = (
@@ -953,6 +964,7 @@
 				F594095B02472CFD01000104 /* Blank.tiff */,
 				F528CBCA0274A44201E37B2D /* Document Icon.icns */,
 				F594095502469B3101000104 /* ExportImage.tiff */,
+				928824290982C00E00181817 /* FullScreen.tiff */,
 				016A248108D7D8E2009A93BF /* HandPicked.png */,
 				F5940957024722BA01000104 /* ImageSources.tiff */,
 				F558F295027DBB8D01000103 /* Pause.tiff */,
@@ -1056,7 +1068,7 @@
 				01BBDECD0747081400F17A9F /* NSImage+MacOSaiX.h in Headers */,
 				9287C13B075A5CC6004C07EF /* MacOSaiXTileShapes.h in Headers */,
 				01AB92EB07DB797300DB4B86 /* NSString+MacOSaiX.h in Headers */,
-				010D1F7608FF5FAD00950013 /* MacOSaiXKioskWindow.h in Headers */,
+				010D1F7608FF5FAD00950013 /* MacOSaiXFullScreenWindow.h in Headers */,
 				9254088C0915741F00384904 /* MacOSaiXKioskMessageView.h in Headers */,
 				92887D9C094CCC83000FA225 /* MacOSaiXPopUpImageView.h in Headers */,
 				01A94F78097050DB00EF07B6 /* MacOSaiXPreferencesController.h in Headers */,
@@ -1623,10 +1635,11 @@
 				016A248208D7D8E2009A93BF /* HandPicked.png in Resources */,
 				010D20B60902C01700950013 /* Kiosk Setup.nib in Resources */,
 				010D20B70902C01700950013 /* Kiosk.nib in Resources */,
-				010D20B90902C01700950013 /* Mosaic.nib in Resources */,
 				010D20BA0902C01700950013 /* Screen Setup.nib in Resources */,
 				926612A4090C4F150015BD9E /* Localized.strings in Resources */,
 				92EABC240954D25D007A9EB3 /* Tiles Setup.tiff in Resources */,
+				9288242A0982C00E00181817 /* FullScreen.tiff in Resources */,
+				9298FBA30982DB9400E7A096 /* Full Screen.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1769,11 +1782,11 @@
 				9216086A08E5DCA70018C4C1 /* NSFileManager+MacOSaiX.m in Sources */,
 				01FE978E08E8EDFE00E4AC7C /* MacOSaiXKioskController.m in Sources */,
 				01FE981308F365C600E4AC7C /* MacOSaiXMosaic.m in Sources */,
-				92CC1B3E08F9C168004D0C31 /* MacOSaiXMosaicController.m in Sources */,
+				92CC1B3E08F9C168004D0C31 /* MacOSaiXFullScreenController.m in Sources */,
 				92CC1B4008F9C16A004D0C31 /* MacOSaiXKioskSetupController.m in Sources */,
 				92CC1B4208F9C16C004D0C31 /* MacOSaiXScreenSetupController.m in Sources */,
 				01ACC0B208FCA4530013D213 /* MacOSaiXKioskView.m in Sources */,
-				010D1F7708FF5FAD00950013 /* MacOSaiXKioskWindow.m in Sources */,
+				010D1F7708FF5FAD00950013 /* MacOSaiXFullScreenWindow.m in Sources */,
 				9254088D0915741F00384904 /* MacOSaiXKioskMessageView.m in Sources */,
 				92887D9D094CCC84000FA225 /* MacOSaiXPopUpImageView.m in Sources */,
 			);
@@ -1900,14 +1913,6 @@
 				010D209B0902C01700950013 /* English */,
 			);
 			name = Kiosk.nib;
-			sourceTree = "<group>";
-		};
-		010D209E0902C01700950013 /* Mosaic.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				010D209F0902C01700950013 /* English */,
-			);
-			name = Mosaic.nib;
 			sourceTree = "<group>";
 		};
 		010D20A00902C01700950013 /* Screen Setup.nib */ = {
@@ -2044,6 +2049,14 @@
 				928F729A0661226000873AE2 /* English */,
 			);
 			name = "Directory Image Source.nib";
+			sourceTree = "<group>";
+		};
+		9298FBA10982DB9400E7A096 /* Full Screen.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9298FBA20982DB9400E7A096 /* English */,
+			);
+			name = "Full Screen.nib";
 			sourceTree = "<group>";
 		};
 		92BFFEC1079A2DD50052CC4C /* Credits.html */ = {
