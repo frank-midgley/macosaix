@@ -16,8 +16,7 @@
 #import "MacOSaiXCrashReporterController.h"
 #import "MacOSaiXKioskController.h"
 #import "MacOSaiXKioskSetupController.h"
-#import "MacOSaiXKioskWindow.h"
-#import "MacOSaiXMosaicController.h"
+#import "MacOSaiXFullScreenWindow.h"
 #import "MacOSaiXScreenSetupController.h"
 
 #import <Carbon/Carbon.h>
@@ -254,12 +253,12 @@
 {
 	kioskController = [[MacOSaiXKioskController alloc] initWithWindow:nil];
 	
-	NSWindow			*nibWindow = [kioskController window];
-	MacOSaiXKioskWindow	*kioskWindow = [[MacOSaiXKioskWindow alloc] initWithContentRect:[screen frame] 
-																			  styleMask:NSBorderlessWindowMask 
-																				backing:NSBackingStoreBuffered 
-																				  defer:NO 
-																				 screen:screen];
+	NSWindow					*nibWindow = [kioskController window];
+	MacOSaiXFullScreenWindow	*kioskWindow = [[MacOSaiXFullScreenWindow alloc] initWithContentRect:[screen frame] 
+																						   styleMask:NSBorderlessWindowMask 
+																							 backing:NSBackingStoreBuffered 
+																							   defer:NO 
+																							  screen:screen];
 	[nibWindow setFrame:[screen frame] display:NO];
 	[kioskWindow setContentView:[nibWindow contentView]];
 	[kioskWindow setInitialFirstResponder:[nibWindow initialFirstResponder]];
@@ -272,15 +271,15 @@
 }
 
 
-- (void)openKioskMosaicWindowOnScreen:(NSScreen *)screen
+- (MacOSaiXFullScreenController *)openMosaicWindowOnScreen:(NSScreen *)screen
 {
-	MacOSaiXMosaicController	*mosaicController = [[MacOSaiXMosaicController alloc] initWithWindow:nil];
-	NSWindow					*nibWindow = [mosaicController window];
-	MacOSaiXKioskWindow			*mosaicWindow = [[MacOSaiXKioskWindow alloc] initWithContentRect:[screen frame] 
-																					   styleMask:NSBorderlessWindowMask 
-																						 backing:NSBackingStoreBuffered 
-																						   defer:NO 
-																						  screen:screen];
+	MacOSaiXFullScreenController	*mosaicController = [[MacOSaiXFullScreenController alloc] initWithWindow:nil];
+	NSWindow						*nibWindow = [mosaicController window];
+	MacOSaiXFullScreenWindow		*mosaicWindow = [[MacOSaiXFullScreenWindow alloc] initWithContentRect:[screen frame] 
+																								styleMask:NSBorderlessWindowMask 
+																								  backing:NSBackingStoreBuffered 
+																									defer:NO 
+																								   screen:screen];
 	[mosaicWindow setContentView:[nibWindow contentView]];
 	[mosaicWindow setInitialFirstResponder:[nibWindow initialFirstResponder]];
 	[mosaicController setWindow:mosaicWindow];
@@ -288,7 +287,7 @@
 	[mosaicWindow setFrame:[screen frame] display:NO];
 	[mosaicWindow makeKeyAndOrderFront:self];
 	
-	[kioskMosaicControllers addObject:mosaicController];
+	return mosaicController;
 }
 
 
@@ -304,11 +303,11 @@
 	{
 		MacOSaiXScreenSetupController	*setupController = [[MacOSaiXScreenSetupController alloc] initWithWindow:nil];
 		NSWindow						*nibWindow = [setupController window];
-		MacOSaiXKioskWindow				*setupWindow = [[MacOSaiXKioskWindow alloc] initWithContentRect:[nibWindow frame] 
-																							  styleMask:NSBorderlessWindowMask 
-																								backing:NSBackingStoreBuffered 
-																								  defer:NO 
-																								 screen:screen];
+		MacOSaiXFullScreenWindow		*setupWindow = [[MacOSaiXFullScreenWindow alloc] initWithContentRect:[nibWindow frame] 
+																								   styleMask:NSBorderlessWindowMask 
+																									 backing:NSBackingStoreBuffered 
+																									   defer:NO 
+																									  screen:screen];
 		[setupWindow setFloatingPanel:YES];
 		[setupWindow setWorksWhenModal:YES];
 		[setupWindow setHasShadow:YES];
@@ -346,7 +345,7 @@
 											  message:[mainSetupController message] 
 							   messageBackgroundColor:[mainSetupController messageBackgroundColor]];
 			else if ([mainSetupController shouldDisplayMosaicOnly])
-				[self openKioskMosaicWindowOnScreen:menuBarScreen];
+				[kioskMosaicControllers addObject:[self openMosaicWindowOnScreen:menuBarScreen]];
 		
 				// Open mosaic windows on the other indicated screens
 			NSEnumerator					*controllerEnumerator = [nonMainSetupControllers objectEnumerator];
@@ -359,7 +358,7 @@
 												  message:[mainSetupController message] 
 								   messageBackgroundColor:[mainSetupController messageBackgroundColor]];
 				else if ([controller shouldDisplayMosaicOnly])
-					[self openKioskMosaicWindowOnScreen:[[controller window] screen]];
+					[kioskMosaicControllers addObject:[self openMosaicWindowOnScreen:[[controller window] screen]]];
 			}
 			
 			[kioskController setMosaicControllers:kioskMosaicControllers];
