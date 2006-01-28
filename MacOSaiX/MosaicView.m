@@ -84,6 +84,27 @@
 }
 
 
+- (NSRect)mosaicBounds
+{
+	NSRect	bounds = [self bounds],
+			mosaicBounds = bounds;
+	NSSize	size = [[mosaic originalImage] size];
+	
+	if ((NSWidth(bounds) / size.width) < (NSHeight(bounds) / size.height))
+	{
+		mosaicBounds.size.height = size.height * NSWidth(bounds) / size.width;
+		mosaicBounds.origin.y = (NSHeight(bounds) - NSHeight(mosaicBounds)) / 2.0;
+	}
+	else
+	{
+		mosaicBounds.size.width = size.width * NSHeight(bounds) / size.height;
+		mosaicBounds.origin.x = (NSWidth(bounds) - NSWidth(mosaicBounds)) / 2.0;
+	}
+	
+	return mosaicBounds;
+}
+
+
 - (BOOL)isOpaque
 {
 	return YES;
@@ -163,7 +184,11 @@
 
 - (void)tileImageDidChange:(NSNotification *)notification
 {
-	[self refreshTile:[notification userInfo]];
+	NSDictionary	*tileDict = [notification userInfo];
+	MacOSaiXTile	*tile = [tileDict objectForKey:@"Tile"];
+	
+	if ([tile userChosenImageMatch] || [tile uniqueImageMatch] || nonUniqueTileDisplayMode == showNonUniqueMode)
+		[self refreshTile:[notification userInfo]];
 }
 
 
@@ -408,9 +433,11 @@
 
 - (void)drawRect:(NSRect)theRect
 {
+	[[NSColor blackColor] set];
+	NSRectFill([self bounds]);
 	
 //	if (viewFade < 1.0)
-		[[mosaic originalImage] drawInRect:[self bounds] 
+		[[mosaic originalImage] drawInRect:[self mosaicBounds] 
 								  fromRect:NSZeroRect 
 								 operation:NSCompositeCopy 
 								  fraction:1.0];
@@ -423,20 +450,20 @@
 	if (viewFade > 0.0)
 	{
 		[mosaicImageLock lock];
-			[mosaicImage drawInRect:[self bounds] fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:viewFade];
+			[mosaicImage drawInRect:[self mosaicBounds] fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:viewFade];
 		[mosaicImageLock unlock];
 	}
 	
 	[highlightedImageSourcesLock lock];
 	if (highlightedImageSourcesOutline)
 	{
-		NSSize				boundsSize = [self bounds].size;
+		NSSize				boundsSize = [self mosaicBounds].size;
 		NSAffineTransform	*transform = [NSAffineTransform transform];
 		[transform translateXBy:0.5 yBy:0.5];
 		[transform scaleXBy:boundsSize.width yBy:boundsSize.height];
 		NSBezierPath		*transformedOutline = [transform transformBezierPath:highlightedImageSourcesOutline];
 		
-		// Lighten the tiles not displaying images from the highlighted image sources.
+			// Lighten the tiles not displaying images from the highlighted image sources.
 		NSBezierPath		*lightenOutline = [NSBezierPath bezierPath];
 		[lightenOutline moveToPoint:NSMakePoint(0, 0)];
 		[lightenOutline lineToPoint:NSMakePoint(0, boundsSize.height)];
@@ -447,7 +474,7 @@
 		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
 		[lightenOutline fill];
 		
-		// Darken the outline of the tile.
+			// Darken the outline of the tile.
 		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
 		[transformedOutline stroke];
 	}
@@ -457,7 +484,7 @@
 	{
 			// Draw the tile's outline with a 4pt thick dashed line.
 		NSAffineTransform	*transform = [NSAffineTransform transform];
-		[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
+		[transform scaleXBy:[self mosaicBounds].size.width yBy:[self mosaicBounds].size.height];
 		NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile outline]];
 		[bezierPath setLineWidth:4];
 		
@@ -475,13 +502,13 @@
 		{
 			transform = [NSAffineTransform transform];
 			[transform translateXBy:0.5 yBy:-0.5];
-			[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
+			[transform scaleXBy:[self mosaicBounds].size.width yBy:[self mosaicBounds].size.height];
 			[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];	// darken
 			[[transform transformBezierPath:[highlightedTile outline]] stroke];
 			
 			transform = [NSAffineTransform transform];
 			[transform translateXBy:-0.5 yBy:0.5];
-			[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
+			[transform scaleXBy:[self mosaicBounds].size.width yBy:[self mosaicBounds].size.height];
 			[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
 			[[transform transformBezierPath:[highlightedTile outline]] stroke];
 		}
@@ -492,13 +519,13 @@
 			// Draw the outline of all of the tiles.
 		NSAffineTransform	*transform = [NSAffineTransform transform];
 		[transform translateXBy:1.5 yBy:0.5];
-		[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
+		[transform scaleXBy:[self mosaicBounds].size.width yBy:[self mosaicBounds].size.height];
 		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];	// darken
 		[[transform transformBezierPath:tilesOutline] stroke];
 		
 		transform = [NSAffineTransform transform];
 		[transform translateXBy:0.5 yBy:1.5];
-		[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
+		[transform scaleXBy:[self mosaicBounds].size.width yBy:[self mosaicBounds].size.height];
 		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
 		[[transform transformBezierPath:tilesOutline] stroke];
 	}
