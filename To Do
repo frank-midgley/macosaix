@@ -92,4 +92,6 @@ Riemersma metric:
 ¥	Fix auto-fade
 ¥	Enable "Add New Image Source" sub-menu in main menu
 ¥	Handle case of no original images
-
+¥	Tile Setup sheet displaced when switching to puzzle pieces
+¥	New UI for tile count/size better than previous?
+¥	Improve "Show Tile Outlines" performance
