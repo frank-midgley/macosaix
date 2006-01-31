@@ -9,7 +9,9 @@
 #import <Foundation/Foundation.h>
 #import "MacOSaiXImageSource.h"
 
+
 typedef enum { matchAllTags, matchAnyTags, matchTitlesTagsOrDescriptions } FlickrQueryType;
+
 
 @interface FlickrImageSource : NSObject <MacOSaiXImageSource>
 {
@@ -19,6 +21,14 @@ typedef enum { matchAllTags, matchAnyTags, matchTitlesTagsOrDescriptions } Flick
 	int						nextPage;
 	NSMutableArray			*identifierQueue;
 }
+
++ (NSString *)imageCachePath;
++ (void)purgeCache;
+
++ (void)setMaxCacheSize:(unsigned long long)maxCacheSize;
++ (unsigned long long)maxCacheSize;
++ (void)setMinFreeSpace:(unsigned long long)minFreeSpace;
++ (unsigned long long)minFreeSpace;
 
 - (void)setQueryString:(NSString *)string;
 - (NSString *)queryString;

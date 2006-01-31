@@ -1,0 +1,25 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {
+                deleteCachedImages = id; 
+                setMaxCacheSizeMagnitude = id; 
+                setMinFreeSpaceMagnitude = id; 
+            }; 
+            CLASS = FlickrPreferencesController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                mainView = NSView; 
+                maxCacheSizeField = NSTextField; 
+                maxCacheSizePopUp = NSPopUpButton; 
+                minFreeSpaceField = NSTextField; 
+                minFreeSpacePopUp = NSPopUpButton; 
+                volumeImageView = NSImageView; 
+                volumeNameField = NSTextField; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}
