@@ -23,9 +23,10 @@
 
 #define kMatchingMenuItemTag	1
 
-
 #define MAX_REFRESH_THREAD_COUNT 1
 
+enum { jpegExportFormat, tiffExportFormat, webPageExportFormat };
+static NSArray	*exportFormatExtensions = nil;
 
 @interface MacOSaiXWindowController (PrivateMethods)
 - (void)populateOriginalImagesMenus;
@@ -42,12 +43,18 @@
 @implementation MacOSaiXWindowController
 
 
++ (void)initialize
+{
+	exportFormatExtensions = [[NSArray arrayWithObjects:@"jpg", @"tiff", @"html", nil] retain];
+}
+
+
 - (id)initWithWindow:(NSWindow *)window
 {
     if (self = [super initWithWindow:window])
     {
 		statusBarShowing = YES;
-		exportFormat = NSJPEGFileType;
+		exportFormat = jpegExportFormat;
 	}
 	
     return self;
@@ -1494,7 +1501,7 @@
     [self pause];
     
 		// Set up the save panel for exporting.
-	NSString	*defaultExtension = (exportFormat == NSJPEGFileType ? @"jpg" : @"tiff"),
+	NSString	*defaultExtension = [exportFormatExtensions objectAtIndex:exportFormat], 
 				*defaultName = [[self document] displayName];
 	if ([defaultName hasSuffix:@".mosaic"])
 		defaultName = [defaultName stringByDeletingPathExtension];
@@ -1552,17 +1559,39 @@
 }
 
 
-- (IBAction)setJPEGExport:(id)sender
+- (IBAction)setExportFormat:(id)sender
 {
-    exportFormat = NSJPEGFileType;
-    [(NSSavePanel *)[sender window] setRequiredFileType:@"jpg"];
+    exportFormat = [exportFormatMatrix selectedRow];
+	
+	if (exportFormat == webPageExportFormat)
+	{
+		[exportUnitsPopUp selectItemWithTag:1];			// pixels
+		[exportUnitsPopUp setEnabled:NO];
+		[exportResolutionPopUp selectItemWithTag:72];	// 72 dpi
+		[exportResolutionPopUp setEnabled:NO];
+	}
+	else
+	{
+		[exportUnitsPopUp setEnabled:YES];
+		[exportResolutionPopUp setEnabled:YES];
+	}
+	
+    [(NSSavePanel *)[sender window] setRequiredFileType:[exportFormatExtensions objectAtIndex:exportFormat]];
 }
 
 
-- (IBAction)setTIFFExport:(id)sender;
+- (IBAction)setExportUnits:(id)sender
 {
-    exportFormat = NSTIFFFileType;
-    [(NSSavePanel *)[sender window] setRequiredFileType:@"tiff"];
+}
+
+
+- (IBAction)setExportResolution:(id)sender
+{
+}
+
+
+- (IBAction)setOpenImageWhenExportComplete:(id)sender
+{
 }
 
 
@@ -1617,6 +1646,22 @@
 	unsigned long		tileCount = [[[self mosaic] tiles] count],
 						tilesExported = 0;
 	
+	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
+	
+	NSMutableString		*exportHTML = [NSMutableString string], 
+						*exportTilesHTML = [NSMutableString string], 
+						*exportAreasHTML = [NSMutableString string];
+	NSString			*tileImagesPath = nil;
+	if (exportFormat == webPageExportFormat)
+	{
+		tileImagesPath = [[exportFilename stringByDeletingLastPathComponent] 
+											stringByAppendingPathComponent:@"TileImages"];
+		[[NSFileManager defaultManager] createDirectoryAtPath:tileImagesPath attributes:nil];
+		
+		NSString	*export1HTML = [[NSBundle mainBundle] pathForResource:@"Export1" ofType:@"html"];
+		[exportHTML appendString:[NSString stringWithContentsOfFile:export1HTML]];
+	}
+	
 	NSEnumerator		*tileEnumerator = [[[self mosaic] tiles] objectEnumerator];
 	MacOSaiXTile		*tile = nil;
 	while (tile = [tileEnumerator nextObject])
@@ -1635,9 +1680,9 @@
 				[clipPath addClip];
 				
 					// Get the image for this tile from the cache.
-				NSImageRep			*pixletImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[clipPath bounds].size 
-																							  forIdentifier:[match imageIdentifier] 
-																								 fromSource:[match imageSource]];
+				NSImageRep			*pixletImageRep = [imageCache imageRepAtSize:[clipPath bounds].size 
+																   forIdentifier:[match imageIdentifier] 
+																	  fromSource:[match imageSource]];
 				
 					// Translate the tile's outline (in unit space) to the size of the exported image.
 				NSRect		drawRect;
@@ -1671,6 +1716,30 @@
 				
 					// Clean up.
 				[NSGraphicsContext restoreGraphicsState];
+				
+				if (exportFormat == webPageExportFormat)
+				{
+					[exportTilesHTML appendFormat:@"\t\ttiles[%d] = new tile('TileImages/%d.jpg', '%@');\n", 
+												  tilesExported + 1, tilesExported + 1, [match imageIdentifier]];
+					[exportAreasHTML appendFormat:@"\t<area shape='rect' coords='%d,%d,%d,%d' nohref " \
+												  @"onmouseover='showTile(%d)' onmouseout='hideTile()'>\n", 
+												  (int)NSMinX(drawRect), (int)([exportHeight intValue] - NSMaxY(drawRect)), 
+												  (int)NSMaxX(drawRect), (int)([exportHeight intValue] - NSMinY(drawRect)), 
+												  tilesExported + 1];
+					
+					NSSize	newSize = [clipPath bounds].size;
+					if (newSize.width > newSize.height)
+						newSize = NSMakeSize(200.0, newSize.height * 200.0 / newSize.width);
+					else
+						newSize = NSMakeSize(newSize.width * 200.0 / newSize.height, 200.0);
+					pixletImageRep = [imageCache imageRepAtSize:newSize 
+												  forIdentifier:[match imageIdentifier] 
+													 fromSource:[match imageSource]];
+					NSData	*bitmapData = [(NSBitmapImageRep *)pixletImageRep representationUsingType:NSJPEGFileType properties:nil];
+					[bitmapData writeToFile:[NSString stringWithFormat:@"%@/%d.jpg", tileImagesPath, tilesExported + 1] 
+								 atomically:NO];
+					
+				}
 			NS_HANDLER
 				NSLog(@"Exception during export: %@", localException);
 				[NSGraphicsContext restoreGraphicsState];
@@ -1682,16 +1751,34 @@
 		[self setProgressPercentComplete:[NSNumber numberWithDouble:((double)++tilesExported / (double)tileCount * 100.0)] ];
     }
 	
+	if (exportFormat == webPageExportFormat)
+	{
+		[exportHTML appendString:exportTilesHTML];
+		NSString	*export2HTML = [[NSBundle mainBundle] pathForResource:@"Export2" ofType:@"html"];
+		[exportHTML appendString:[NSString stringWithContentsOfFile:export2HTML]];
+		[exportHTML appendString:exportAreasHTML];
+		NSString	*export3HTML = [[NSBundle mainBundle] pathForResource:@"Export3" ofType:@"html"];
+		[exportHTML appendString:[NSString stringWithContentsOfFile:export3HTML]];
+	}	
 		// Now convert the image into the desired output format.
     NSBitmapImageRep	*exportRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0, 0, [exportImage size].width, 
 									     [exportImage size].height)];
 	NS_DURING
 		[exportImage unlockFocus];
 
-		NSData		*bitmapData = (exportFormat == NSJPEGFileType) ? 
+		NSData		*bitmapData = (exportFormat == jpegExportFormat || exportFormat == webPageExportFormat) ? 
 										[exportRep representationUsingType:NSJPEGFileType properties:nil] :
 										[exportRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0];
-		[bitmapData writeToFile:exportFilename atomically:YES];
+		
+		if (exportFormat == webPageExportFormat)
+		{
+			[exportHTML writeToFile:exportFilename atomically:YES];
+			[bitmapData writeToFile:[[exportFilename stringByDeletingLastPathComponent] 
+										stringByAppendingPathComponent:@"Mosaic.jpg"] 
+						 atomically:YES];
+		}
+		else
+			[bitmapData writeToFile:exportFilename atomically:YES];
 	NS_HANDLER
 		exportError = [NSString stringWithFormat:@"Could not convert the mosaic to the requested format.  (%@)",
 												 [localException reason]];

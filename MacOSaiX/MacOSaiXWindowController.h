@@ -81,7 +81,11 @@
     IBOutlet NSView						*exportPanelAccessoryView;
 	IBOutlet NSImageView				*exportFadedImageView;
 	IBOutlet NSSlider					*exportFadeSlider;
+	IBOutlet NSMatrix					*exportFormatMatrix;
 	IBOutlet NSTextField				*exportWidth, *exportHeight;
+	IBOutlet NSPopUpButton				*exportUnitsPopUp, 
+										*exportResolutionPopUp;
+	IBOutlet NSButton					*exportOpenWhenCompleteButton;
 	unsigned long						exportProgressTileCount;
 	
     NSTimer								*fadeTimer,
@@ -153,8 +157,10 @@
 	// Export image methods
 - (IBAction)beginExportImage:(id)sender;
 - (IBAction)setExportFade:(id)sender;
-- (IBAction)setJPEGExport:(id)sender;
-- (IBAction)setTIFFExport:(id)sender;
+- (IBAction)setExportFormat:(id)sender;
+- (IBAction)setExportUnits:(id)sender;
+- (IBAction)setExportResolution:(id)sender;
+- (IBAction)setOpenImageWhenExportComplete:(id)sender;
 
 	// Progress panel methods
 - (void)displayProgressPanelWithMessage:(NSString *)message;
