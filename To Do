@@ -74,7 +74,7 @@ Riemersma metric:
 Ã	Full screen mode
 Ã	Allow showing original image or best non-unique match for tiles without a unique match.
 Ã	Flickr source
-¥	Make sure Google and Flickr caches don't fill disk
+Ã	Make sure Google and Flickr caches don't fill disk
 ¥	Page by post date in Flickr source
 Ã	Rework puzzle shapes plug-in to conform with new API
 Ã	Add recents to folder source
@@ -94,5 +94,8 @@ Riemersma metric:
 ¥	Handle case of no original images
 ¥	Tile Setup sheet displaced when switching to puzzle pieces
 ¥	New UI for tile count/size better than previous?
-¥	Improve "Show Tile Outlines" performance
 ¥	Tooltip for tile images.  Add -tooltipForIdentifier: to image source API?
+¥	Tile outlines display performance:
+¥		When viewing tile outline
+¥		Selecting image source with 1000's of images in mosaic
+¥	Make sure all prefs UI is hooked up
