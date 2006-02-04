@@ -1,0 +1,68 @@
+		
+		var timer = null;
+		
+		function showTile(tileNum)
+		{
+			if (timer != null)
+			{
+				clearTimeout(timer);
+				timer = null;
+			}
+			document.detailImg.src = tiles[tileNum].url;
+			detailDiv = document.getElementById("detailDiv");
+			detailDiv.style.left = (event.clientX + 5) + "px";
+			detailDiv.style.top = (event.clientY + 5) + "px";
+			detailDiv.style.visibility = 'visible';
+			detailText = document.getElementById("detailText");
+			detailText.innerHTML = tiles[tileNum].comment;
+			return true;
+		}
+		function hideTile()
+		{
+			timer = setTimeout("reallyHideTile()", 100);
+			return true;
+		}
+		function reallyHideTile()
+		{
+			detailDiv = document.getElementById("detailDiv");
+			detailDiv.style.visibility = 'hidden';
+			return true;
+		}
+	</script>
+	<style type="text/css">
+		div.detail
+		{
+			visibility: hidden;
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			border: solid black thin;
+			padding: 5px;
+			background: white;
+		}
+		p.detailImage
+		{
+			padding: 0px 0px 5px 0px;
+			border: 0px;
+			margin: 0px;
+			text-align: center;
+		}
+		p.detailText
+		{
+			padding: 0px;
+			border: 0px;
+			margin: 0px;
+			text-align: center;
+		}
+		img.detail
+		{
+			border: solid gray thin;
+		}
+	</style>
+</head>
+<body>
+<div id="detailDiv" class="detail">
+	<p class="detailImage"><img name="detailImg" class="detail"></p>
+	<p id="detailText" class="detailText">Hello, there</p>
+</div>
+<map name="mosaic">
