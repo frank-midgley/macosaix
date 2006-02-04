@@ -45,6 +45,9 @@
 		01BBDECD0747081400F17A9F /* NSImage+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01BBDECB0747081400F17A9F /* NSImage+MacOSaiX.h */; };
 		01BBDECE0747081400F17A9F /* NSImage+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */; };
 		01DCB2F5092C2508008345F3 /* Flickr Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 01722BA809298D3E00290929 /* Flickr Image Source.plugin */; };
+		01DDF78709932AAD00A4125E /* Export1.html in Resources */ = {isa = PBXBuildFile; fileRef = 01DDF78109932AAD00A4125E /* Export1.html */; };
+		01DDF78809932AAD00A4125E /* Export2.html in Resources */ = {isa = PBXBuildFile; fileRef = 01DDF78309932AAD00A4125E /* Export2.html */; };
+		01DDF78909932AAD00A4125E /* Export3.html in Resources */ = {isa = PBXBuildFile; fileRef = 01DDF78509932AAD00A4125E /* Export3.html */; };
 		01FAF1D6084031C2003A2726 /* Crash Reporter.nib in Resources */ = {isa = PBXBuildFile; fileRef = 01FAF1D4084031C2003A2726 /* Crash Reporter.nib */; };
 		01FE978E08E8EDFE00E4AC7C /* MacOSaiXKioskController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE978C08E8EDFE00E4AC7C /* MacOSaiXKioskController.m */; };
 		01FE981308F365C600E4AC7C /* MacOSaiXMosaic.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */; };
@@ -423,6 +426,9 @@
 		01BBDECB0747081400F17A9F /* NSImage+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSImage+MacOSaiX.h"; path = "MacOSaiX/NSImage+MacOSaiX.h"; sourceTree = "<group>"; };
 		01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSImage+MacOSaiX.m"; path = "MacOSaiX/NSImage+MacOSaiX.m"; sourceTree = "<group>"; };
 		01CB07E6071A1F2B00710BCF /* Hexagonal Tiles.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Hexagonal Tiles.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
+		01DDF78209932AAD00A4125E /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = MacOSaiX/English.lproj/Export1.html; sourceTree = "<group>"; };
+		01DDF78409932AAD00A4125E /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = MacOSaiX/English.lproj/Export2.html; sourceTree = "<group>"; };
+		01DDF78609932AAD00A4125E /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = MacOSaiX/English.lproj/Export3.html; sourceTree = "<group>"; };
 		01FAF1D5084031C2003A2726 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "MacOSaiX/English.lproj/Crash Reporter.nib"; sourceTree = "<group>"; };
 		01FE978B08E8EDFE00E4AC7C /* MacOSaiXKioskController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXKioskController.h; sourceTree = "<group>"; };
 		01FE978C08E8EDFE00E4AC7C /* MacOSaiXKioskController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXKioskController.m; sourceTree = "<group>"; };
@@ -656,6 +662,9 @@
 				926612A2090C4F150015BD9E /* Localized.strings */,
 				016A2E3108D1459D002D56C1 /* Version.plist */,
 				92BFFEC1079A2DD50052CC4C /* Credits.html */,
+				01DDF78109932AAD00A4125E /* Export1.html */,
+				01DDF78309932AAD00A4125E /* Export2.html */,
+				01DDF78509932AAD00A4125E /* Export3.html */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -1651,6 +1660,9 @@
 				92EABC240954D25D007A9EB3 /* Tiles Setup.tiff in Resources */,
 				9288242A0982C00E00181817 /* FullScreen.tiff in Resources */,
 				9298FBA30982DB9400E7A096 /* Full Screen.nib in Resources */,
+				01DDF78709932AAD00A4125E /* Export1.html in Resources */,
+				01DDF78809932AAD00A4125E /* Export2.html in Resources */,
+				01DDF78909932AAD00A4125E /* Export3.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1957,6 +1969,30 @@
 				01AD286E07E3C99A00420875 /* English */,
 			);
 			name = GoogleImageSearch.gif;
+			sourceTree = "<group>";
+		};
+		01DDF78109932AAD00A4125E /* Export1.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				01DDF78209932AAD00A4125E /* English */,
+			);
+			name = Export1.html;
+			sourceTree = "<group>";
+		};
+		01DDF78309932AAD00A4125E /* Export2.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				01DDF78409932AAD00A4125E /* English */,
+			);
+			name = Export2.html;
+			sourceTree = "<group>";
+		};
+		01DDF78509932AAD00A4125E /* Export3.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				01DDF78609932AAD00A4125E /* English */,
+			);
+			name = Export3.html;
 			sourceTree = "<group>";
 		};
 		01FAF1D4084031C2003A2726 /* Crash Reporter.nib */ = {
