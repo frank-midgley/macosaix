@@ -99,3 +99,4 @@ Riemersma metric:
 ¥		When viewing tile outline
 ¥		Selecting image source with 1000's of images in mosaic
 ¥	Make sure all prefs UI is hooked up
+¥	Add cropping limit checkbox
