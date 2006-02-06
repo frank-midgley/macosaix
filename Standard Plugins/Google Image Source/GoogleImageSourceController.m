@@ -12,7 +12,7 @@
 @implementation GoogleImageSourceController
 
 
-- (NSView *)mainView
+- (NSView *)editorView
 {
 	if (!editorView)
 		[NSBundle loadNibNamed:@"Google Image Source" owner:self];

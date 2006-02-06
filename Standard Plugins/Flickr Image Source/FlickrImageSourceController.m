@@ -12,7 +12,7 @@
 @implementation FlickrImageSourceController
 
 
-- (NSView *)mainView
+- (NSView *)editorView
 {
 	if (!editorView)
 		[NSBundle loadNibNamed:@"Flickr Image Source" owner:self];

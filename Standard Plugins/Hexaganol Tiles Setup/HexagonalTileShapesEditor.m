@@ -26,7 +26,7 @@
 }
 
 
-- (NSView *)mainView
+- (NSView *)editorView
 {
 	if (!editorView)
 		[NSBundle loadNibNamed:@"HexagonalTileShapes" owner:self];

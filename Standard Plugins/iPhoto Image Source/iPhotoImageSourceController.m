@@ -13,7 +13,7 @@
 @implementation MacOSaiXiPhotoImageSourceController
 
 
-- (NSView *)mainView
+- (NSView *)editorView
 {
 	if (!editorView)
 		[NSBundle loadNibNamed:@"iPhoto Image Source" owner:self];

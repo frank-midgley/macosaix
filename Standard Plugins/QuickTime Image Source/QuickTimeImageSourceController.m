@@ -13,7 +13,7 @@
 @implementation QuickTimeImageSourceController
 
 
-- (NSView *)mainView
+- (NSView *)editorView
 {
 	if (!editorView)
 		[NSBundle loadNibNamed:@"QuickTime Image Source" owner:self];

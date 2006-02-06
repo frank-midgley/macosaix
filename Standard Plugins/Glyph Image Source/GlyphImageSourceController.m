@@ -30,7 +30,7 @@
 }
 
 
-- (NSView *)mainView
+- (NSView *)editorView
 {
 	if (!editorView)
 		[NSBundle loadNibNamed:@"Glyph Image Source" owner:self];

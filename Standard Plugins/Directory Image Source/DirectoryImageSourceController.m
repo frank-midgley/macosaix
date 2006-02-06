@@ -47,7 +47,7 @@
 }
 
 
-- (NSView *)mainView
+- (NSView *)editorView
 {
 	if (!editorView)
 		[NSBundle loadNibNamed:@"Directory Image Source" owner:self];
