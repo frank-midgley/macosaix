@@ -527,7 +527,7 @@ void	endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 	CFDictionaryRef			results = WSMethodInvocationInvoke(flickrInvocation);
 	
 	if (WSMethodResultIsFault(results))
-		;	//handle error
+		NSLog(@"Could not talk to flickr");	//handle error
 	else
 	{
 			// Create the parser with the option to skip whitespace.
@@ -672,13 +672,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 		// If it's not in the cache then fetch the image from flickr.
 	if (!image)
 	{
-		NSArray		*identifierComponents = [identifier componentsSeparatedByString:@"\t"];
-		NSString	*serverID = [identifierComponents objectAtIndex:0], 
-					*photoID = [identifierComponents objectAtIndex:1],
-					*secret = [identifierComponents objectAtIndex:2];
-		NSURL		*imageURL = [NSURL URLWithString:[NSString stringWithFormat:@"http://static.flickr.com/%@/%@_%@_m.jpg", 
-																				serverID, photoID, secret]];
-		NSData		*imageData = [[[NSData alloc] initWithContentsOfURL:imageURL] autorelease];
+		NSData		*imageData = [[[NSData alloc] initWithContentsOfURL:[self urlForIdentifier:identifier]] autorelease];
 		
 		if (imageData)
 		{
@@ -690,6 +684,30 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	
     return image;
 }
+
+
+- (NSURL *)urlForIdentifier:(NSString *)identifier
+{
+	NSArray		*identifierComponents = [identifier componentsSeparatedByString:@"\t"];
+	NSString	*serverID = [identifierComponents objectAtIndex:0], 
+				*photoID = [identifierComponents objectAtIndex:1],
+				*secret = [identifierComponents objectAtIndex:2];
+	
+	return [NSURL URLWithString:[NSString stringWithFormat:@"http://static.flickr.com/%@/%@_%@_m.jpg", 
+														   serverID, photoID, secret]];
+}	
+
+
+- (NSURL *)contextURLForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
+
+
+- (NSString *)descriptionForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
 
 
 - (void)dealloc

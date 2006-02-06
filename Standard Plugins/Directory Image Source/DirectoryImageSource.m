@@ -297,6 +297,40 @@
 }
 
 
+- (NSURL *)urlForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
+
+
+- (NSURL *)contextURLForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
+
+
+- (NSString *)descriptionForIdentifier:(NSString *)identifier
+{
+	NSString	*description = nil, 
+				*fullPath = [[NSFileManager defaultManager] pathByResolvingAliasesInPath:
+								[directoryPath stringByAppendingPathComponent:identifier]];
+	
+	if (MDItemCreate)
+	{
+		MDItemRef	itemRef = MDItemCreate(kCFAllocatorDefault, (CFStringRef)fullPath);
+		CFTypeRef	valueRef = MDItemCopyAttribute(itemRef, kMDItemFinderComment);
+		
+		description = [(id)valueRef autorelease];
+		CFRelease(itemRef);
+	}
+	
+	if (!description)
+		description = [[NSFileManager defaultManager] displayNameAtPath:fullPath];
+	
+	return description;
+}	
+
+
 - (void)reset
 {
 	[self setPath:directoryPath];
