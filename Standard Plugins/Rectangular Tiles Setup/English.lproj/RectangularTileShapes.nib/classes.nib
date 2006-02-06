@@ -3,7 +3,7 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
-                setTileSizePreserved = id; 
+                setOtherTilesSize = id; 
                 setTilesAcross = id; 
                 setTilesDown = id; 
                 setTilesSize = id; 
@@ -11,17 +11,20 @@
             CLASS = MacOSaiXRectangularTileShapesEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                editorDelegate = id; 
                 editorView = NSView; 
-                preserveTileSizeCheckBox = NSButton; 
-                tileSizeSlider = NSSlider; 
-                tileSizeTextField = NSTextField; 
                 tilesAcrossSlider = NSSlider; 
                 tilesAcrossTextField = NSTextField; 
+                tilesCountSlider = NSSlider; 
                 tilesDownSlider = NSSlider; 
                 tilesDownTextField = NSTextField; 
+                tilesSizePopUp = NSPopUpButton; 
+                tilesSizeSlider = NSSlider; 
+                tilesSizeTextField = NSTextField; 
             }; 
             SUPERCLASS = NSObject; 
-        }
+        }, 
+        {CLASS = NSSegmentedControl; LANGUAGE = ObjC; SUPERCLASS = NSControl; }
     ); 
     IBVersion = 1; 
 }

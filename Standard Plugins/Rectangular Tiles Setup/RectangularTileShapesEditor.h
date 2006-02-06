@@ -14,13 +14,18 @@
 @interface MacOSaiXRectangularTileShapesEditor : NSObject <MacOSaiXTileShapesEditor>
 {
 	IBOutlet NSView					*editorView;
-    IBOutlet NSTextField			*tilesAcrossTextField,
-									*tilesDownTextField, 
-									*tileSizeTextField;
+	
+		// Freeform tab
 	IBOutlet NSSlider				*tilesAcrossSlider,
-									*tilesDownSlider, 
-									*tileSizeSlider;
-	IBOutlet NSButton				*preserveTileSizeCheckBox;
+									*tilesDownSlider;
+    IBOutlet NSTextField			*tilesAcrossTextField,
+									*tilesDownTextField;
+
+		// Fixed Size tab
+	IBOutlet NSPopUpButton			*tilesSizePopUp;
+	IBOutlet NSSlider				*tilesSizeSlider,
+									*tilesCountSlider;
+    IBOutlet NSTextField			*tilesSizeTextField;
 	
 	id								editorDelegate;
 	NSSize							originalImageSize;
@@ -31,8 +36,8 @@
 
 - (IBAction)setTilesAcross:(id)sender;
 - (IBAction)setTilesDown:(id)sender;
-- (IBAction)setTilesSize:(id)sender;
 
-- (IBAction)setTileSizePreserved:(id)sender;
+- (IBAction)setTilesSize:(id)sender;
+- (IBAction)setOtherTilesSize:(id)sender;
 
 @end
