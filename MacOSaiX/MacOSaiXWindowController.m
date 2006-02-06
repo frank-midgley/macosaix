@@ -11,6 +11,7 @@
 #import "MacOSaiX.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatcher.h"
+#import "MacOSaiXExportController.h"
 #import "MacOSaiXFullScreenController.h"
 #import "MacOSaiXPopUpImageView.h"
 #import "NSImage+MacOSaiX.h"
@@ -23,10 +24,6 @@
 
 #define kMatchingMenuItemTag	1
 
-#define MAX_REFRESH_THREAD_COUNT 1
-
-enum { jpegExportFormat, tiffExportFormat, webPageExportFormat };
-static NSArray	*exportFormatExtensions = nil;
 
 @interface MacOSaiXWindowController (PrivateMethods)
 - (void)populateOriginalImagesMenus;
@@ -36,17 +33,10 @@ static NSArray	*exportFormatExtensions = nil;
 - (BOOL)showTileMatchInEditor:(MacOSaiXImageMatch *)tileMatch selecting:(BOOL)selecting;
 - (void)allowUserToChooseImageOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
     contextInfo:(void *)context;
-- (void)exportImage:(id)exportFilename;
 @end
 
 
 @implementation MacOSaiXWindowController
-
-
-+ (void)initialize
-{
-	exportFormatExtensions = [[NSArray arrayWithObjects:@"jpg", @"tiff", @"html", nil] retain];
-}
 
 
 - (id)initWithWindow:(NSWindow *)window
@@ -54,7 +44,6 @@ static NSArray	*exportFormatExtensions = nil;
     if (self = [super initWithWindow:window])
     {
 		statusBarShowing = YES;
-		exportFormat = jpegExportFormat;
 	}
 	
     return self;
@@ -624,11 +613,15 @@ static NSArray	*exportFormatExtensions = nil;
 			// Swap in the view of the new editor.  Make sure the panel is big enough to contain the view's minimum size.
 		float	widthDiff = MAX(0.0, [tileShapesEditor minimumSize].width - [[tileShapesBox contentView] frame].size.width),
 				heightDiff = MAX(0.0, [tileShapesEditor minimumSize].height - [[tileShapesBox contentView] frame].size.height);
-		NSSize	currentPanelSize = [[setupTilesPanel contentView] frame].size;
-		[setupTilesPanel setContentSize:NSMakeSize(currentPanelSize.width + widthDiff, currentPanelSize.height + heightDiff)];
-		[[tileShapesEditor mainView] setFrame:[[tileShapesBox contentView] frame]];
-		[[tileShapesEditor mainView] setAutoresizingMask:[[tileShapesBox contentView] autoresizingMask]];
-		[tileShapesBox setContentView:[tileShapesEditor mainView]];
+		[[tileShapesEditor editorView] setFrame:[[tileShapesBox contentView] frame]];
+		[[tileShapesEditor editorView] setAutoresizingMask:[[tileShapesBox contentView] autoresizingMask]];
+		[tileShapesBox setContentView:[[[NSView alloc] initWithFrame:NSZeroRect] autorelease]];
+		NSRect	frame = [setupTilesPanel frame];
+		frame.origin.y -= heightDiff;
+		frame.size.width += widthDiff;
+		frame.size.height += heightDiff;
+		[setupTilesPanel setFrame:frame display:YES animate:YES];
+		[tileShapesBox setContentView:[tileShapesEditor editorView]];
 		
 			// Re-establish the key view loop:
 			// 1. Focus on the editor view's first responder.
@@ -637,7 +630,7 @@ static NSArray	*exportFormatExtensions = nil;
 		[setupTilesPanel setInitialFirstResponder:(NSView *)[tileShapesEditor firstResponder]];
 		NSView	*lastKeyView = (NSView *)[tileShapesEditor firstResponder];
 		while ([lastKeyView nextKeyView] && 
-				[[lastKeyView nextKeyView] isDescendantOf:[tileShapesEditor mainView]] &&
+				[[lastKeyView nextKeyView] isDescendantOf:[tileShapesEditor editorView]] &&
 				[lastKeyView nextKeyView] != [tileShapesEditor firstResponder])
 			lastKeyView = [lastKeyView nextKeyView];
 		[lastKeyView setNextKeyView:cancelTilesSetupButton];
@@ -759,11 +752,11 @@ static NSArray	*exportFormatExtensions = nil;
 			heightDiff = MAX(0.0, [imageSourceEditorController minimumSize].height - [[imageSourceEditorBox contentView] frame].size.height);
 	NSSize	currentPanelSize = [[imageSourceEditorPanel contentView] frame].size;
 	[imageSourceEditorPanel setContentSize:NSMakeSize(currentPanelSize.width + widthDiff, currentPanelSize.height + heightDiff)];
-	[[imageSourceEditorController mainView] setFrame:[[imageSourceEditorBox contentView] frame]];
-	[[imageSourceEditorController mainView] setAutoresizingMask:[[imageSourceEditorBox contentView] autoresizingMask]];
+	[[imageSourceEditorController editorView] setFrame:[[imageSourceEditorBox contentView] frame]];
+	[[imageSourceEditorController editorView] setAutoresizingMask:[[imageSourceEditorBox contentView] autoresizingMask]];
 	
 		// Now that the sheet is big enough we can swap in the controller's editor view.
-	[imageSourceEditorBox setContentView:[imageSourceEditorController mainView]];
+	[imageSourceEditorBox setContentView:[imageSourceEditorController editorView]];
 
 	[imageSourceEditorController setOKButton:imageSourceEditorOKButton];	// so the controller can disable it for invalid settings
 	[imageSourceEditorController editImageSource:editableSource];
@@ -775,7 +768,7 @@ static NSArray	*exportFormatExtensions = nil;
 	[imageSourceEditorPanel setInitialFirstResponder:(NSView *)[imageSourceEditorController firstResponder]];
 	NSView	*lastKeyView = (NSView *)[imageSourceEditorController firstResponder];
 	while ([lastKeyView nextKeyView] && 
-			[[lastKeyView nextKeyView] isDescendantOf:[imageSourceEditorController mainView]] &&
+			[[lastKeyView nextKeyView] isDescendantOf:[imageSourceEditorController editorView]] &&
 			[lastKeyView nextKeyView] != [imageSourceEditorController firstResponder])
 		lastKeyView = [lastKeyView nextKeyView];
 	[lastKeyView setNextKeyView:imageSourceEditorCancelButton];
@@ -1488,10 +1481,10 @@ static NSArray	*exportFormatExtensions = nil;
 
 
 #pragma mark -
-#pragma mark Export image methods
+#pragma mark Export methods
 
 
-- (void)beginExportImage:(id)sender
+- (void)exportMosaic:(id)sender
 {
 		// Disable auto saving so it doesn't interfere with exporting.
 	[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:NO];
@@ -1500,311 +1493,59 @@ static NSArray	*exportFormatExtensions = nil;
 	BOOL		wasPaused = [[self mosaic] isPaused];
     [self pause];
     
-		// Set up the save panel for exporting.
-	NSString	*defaultExtension = [exportFormatExtensions objectAtIndex:exportFormat], 
-				*defaultName = [[self document] displayName];
-	if ([defaultName hasSuffix:@".mosaic"])
-		defaultName = [defaultName stringByDeletingPathExtension];
-	defaultName = [[defaultName stringByAppendingString:@" Export"] stringByAppendingPathExtension:defaultExtension];
-    NSSavePanel	*savePanel = [NSSavePanel savePanel];
-	[exportFadeSlider setFloatValue:[mosaicView fade]];
-	[self setExportFade:self];
-    if ([exportWidth intValue] == 0)
-    {
-		NSSize	originalSize = [[[self mosaic] originalImage] size];
-		float	scale = 4.0;
-		
-		if (originalSize.width * scale > 10000.0)
-			scale = 10000.0 / originalSize.width;
-		if (originalSize.height * scale > 10000.0)
-			scale = 10000.0 / originalSize.height;
-			
-        [exportWidth setIntValue:(int)(originalSize.width * scale + 0.5)];
-        [exportHeight setIntValue:(int)(originalSize.height * scale + 0.5)];
-    }
-	[savePanel setCanSelectHiddenExtension:YES];
-    [savePanel setRequiredFileType:defaultExtension];
-    [savePanel setAccessoryView:exportPanelAccessoryView];
-	
-		// Ask the user where to export the image.
-    [savePanel beginSheetForDirectory:NSHomeDirectory()
-				 file:defaultName
-		       modalForWindow:[self window]
-			modalDelegate:self
-		       didEndSelector:@selector(exportImageSavePanelDidEnd:returnCode:contextInfo:)
-			  contextInfo:[NSNumber numberWithBool:wasPaused]];
+	// TODO:
+	// Call up the export controller
+	// Restore pause state
+	// Re-enable auto saving.
+		//[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:YES];
+	NSString					*defaultName = [[[[self document] displayName] lastPathComponent] stringByDeletingPathExtension];
+	MacOSaiXExportController	*exportController = [[MacOSaiXExportController alloc] initWithMosaic:[self mosaic]];
+	[exportController exportMosaicWithName:defaultName 
+									  fade:[mosaicView fade] 
+							modalForWindow:[self window] 
+							 modalDelegate:self 
+						  progressSelector:@selector(exportDidProgress:message:) 
+							didEndSelector:@selector(exportDidComplete:)];
 }
 
 
-- (IBAction)setExportFade:(id)sender
+- (void)exportDidProgress:(NSNumber *)percentComplete message:(NSString *)message
 {
-	if ([exportFadeSlider floatValue] == 0.0)
-		[exportFadedImageView setImage:[[self mosaic] originalImage]];
-	else if ([exportFadeSlider floatValue] == 1.0)
-		[exportFadedImageView setImage:[mosaicView image]];
+	[self performSelectorOnMainThread:@selector(updateExportProgress:) 
+						   withObject:[NSArray arrayWithObjects:percentComplete, message, nil] 
+						waitUntilDone:NO];
+}
+
+
+- (void)updateExportProgress:(NSArray *)parameters
+{
+	if ([[self window] attachedSheet] != progressPanel)
+		[self displayProgressPanelWithMessage:[parameters objectAtIndex:1]];
+	else
+		[self setProgressMessage:[parameters objectAtIndex:1]];
+	
+	[self setProgressPercentComplete:[parameters objectAtIndex:0]];
+}
+
+
+- (void)exportDidComplete:(NSString *)errorString
+{
+	if (!pthread_main_np())
+		[self performSelectorOnMainThread:_cmd withObject:errorString waitUntilDone:NO];
 	else
 	{
-		NSImage	*fadedImage = [[[self mosaic] originalImage] copy];
+		[self closeProgressPanel];
 		
-		[fadedImage lockFocus];
-			[[mosaicView image] drawInRect:NSMakeRect(0.0, 0.0, [fadedImage size].width, [fadedImage size].height) 
-								  fromRect:NSZeroRect 
-								 operation:NSCompositeSourceOver 
-								  fraction:[exportFadeSlider floatValue]];
-		[fadedImage unlockFocus];
-		
-		[exportFadedImageView setImage:fadedImage];
-		[fadedImage release];
-	}
-}
-
-
-- (IBAction)setExportFormat:(id)sender
-{
-    exportFormat = [exportFormatMatrix selectedRow];
-	
-	if (exportFormat == webPageExportFormat)
-	{
-		[exportUnitsPopUp selectItemWithTag:1];			// pixels
-		[exportUnitsPopUp setEnabled:NO];
-		[exportResolutionPopUp selectItemWithTag:72];	// 72 dpi
-		[exportResolutionPopUp setEnabled:NO];
-	}
-	else
-	{
-		[exportUnitsPopUp setEnabled:YES];
-		[exportResolutionPopUp setEnabled:YES];
-	}
-	
-    [(NSSavePanel *)[sender window] setRequiredFileType:[exportFormatExtensions objectAtIndex:exportFormat]];
-}
-
-
-- (IBAction)setExportUnits:(id)sender
-{
-}
-
-
-- (IBAction)setExportResolution:(id)sender
-{
-}
-
-
-- (IBAction)setOpenImageWhenExportComplete:(id)sender
-{
-}
-
-
-- (void)exportImageSavePanelDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
-{
-	[sheet orderOut:self];
-	
-    if (returnCode == NSOKButton)
-    {
-			// Display a progress panel while the export is underway.
-		[self displayProgressPanelWithMessage:@"Exporting mosaic image..."];
-		
-			// Spawn a thread to do the export so the GUI doesn't get tied up.
-		[NSApplication detachDrawingThread:@selector(exportImage:)
-								  toTarget:self 
-								withObject:[(NSSavePanel *)sheet filename]];
-	}
-	else
-			// Re-enable auto saving.
-		[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:YES];
-}
-
-
-- (void)exportImage:(NSString *)exportFilename
-{
-    NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	NSString			*exportError = nil;
-	
-		// Don't usurp the main thread.
-	[NSThread setThreadPriority:0.1];
-
-    NSImage		*exportImage = [[NSImage alloc] initWithSize:NSMakeSize([exportWidth intValue], [exportHeight intValue])];
-	[exportImage setCachedSeparately:YES];
-	[exportImage setCacheMode:NSImageCacheNever];
-	NS_DURING
-		[exportImage lockFocus];
-	NS_HANDLER
-		exportError = [NSString stringWithFormat:@"Could not draw images into the mosaic.  (%@)", [localException reason]];
-	NS_ENDHANDLER
-	
-	NSRect		exportRect = NSMakeRect(0.0, 0.0, [exportWidth intValue], [exportHeight intValue]);
-	
-	[[[self mosaic] originalImage] drawInRect:exportRect 
-									 fromRect:NSZeroRect 
-									operation:NSCompositeCopy 
-									 fraction:1.0];
-	
-	[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
-    NSAffineTransform	*transform = [NSAffineTransform transform];
-    [transform scaleXBy:[exportImage size].width yBy:[exportImage size].height];
-	
-	unsigned long		tileCount = [[[self mosaic] tiles] count],
-						tilesExported = 0;
-	
-	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
-	
-	NSMutableString		*exportHTML = [NSMutableString string], 
-						*exportTilesHTML = [NSMutableString string], 
-						*exportAreasHTML = [NSMutableString string];
-	NSString			*tileImagesPath = nil;
-	if (exportFormat == webPageExportFormat)
-	{
-		tileImagesPath = [[exportFilename stringByDeletingLastPathComponent] 
-											stringByAppendingPathComponent:@"TileImages"];
-		[[NSFileManager defaultManager] createDirectoryAtPath:tileImagesPath attributes:nil];
-		
-		NSString	*export1HTML = [[NSBundle mainBundle] pathForResource:@"Export1" ofType:@"html"];
-		[exportHTML appendString:[NSString stringWithContentsOfFile:export1HTML]];
-	}
-	
-	NSEnumerator		*tileEnumerator = [[[self mosaic] tiles] objectEnumerator];
-	MacOSaiXTile		*tile = nil;
-	while (tile = [tileEnumerator nextObject])
-    {
-        NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
-		
-			// Get the image in use by this tile.
-		MacOSaiXImageMatch	*match = [tile displayedImageMatch];
-		
-		if (match)
-		{
-			NS_DURING
-					// Clip the tile's image to the outline of the tile.
-				NSBezierPath	*clipPath = [transform transformBezierPath:[tile outline]];
-				[NSGraphicsContext saveGraphicsState];
-				[clipPath addClip];
-				
-					// Get the image for this tile from the cache.
-				NSImageRep			*pixletImageRep = [imageCache imageRepAtSize:[clipPath bounds].size 
-																   forIdentifier:[match imageIdentifier] 
-																	  fromSource:[match imageSource]];
-				
-					// Translate the tile's outline (in unit space) to the size of the exported image.
-				NSRect		drawRect;
-				if ([clipPath bounds].size.width / [pixletImageRep size].width <
-					[clipPath bounds].size.height / [pixletImageRep size].height)
-				{
-					drawRect.size = NSMakeSize([clipPath bounds].size.height * [pixletImageRep size].width /
-								[pixletImageRep size].height,
-								[clipPath bounds].size.height);
-					drawRect.origin = NSMakePoint([clipPath bounds].origin.x - 
-									(drawRect.size.width - [clipPath bounds].size.width) / 2.0,
-								[clipPath bounds].origin.y);
-				}
-				else
-				{
-					drawRect.size = NSMakeSize([clipPath bounds].size.width,
-								[clipPath bounds].size.width * [pixletImageRep size].height /
-								[pixletImageRep size].width);
-					drawRect.origin = NSMakePoint([clipPath bounds].origin.x,
-								[clipPath bounds].origin.y - 
-									(drawRect.size.height - [clipPath bounds].size.height) / 2.0);
-				}
-				
-					// Finally, draw the tile's image.
-				NSImage *pixletImage = [[[NSImage alloc] initWithSize:[pixletImageRep size]] autorelease];
-				[pixletImage addRepresentation:pixletImageRep];
-				[pixletImage drawInRect:drawRect 
-							   fromRect:NSZeroRect 
-							  operation:NSCompositeSourceOver 
-							   fraction:[exportFadeSlider floatValue]];
-				
-					// Clean up.
-				[NSGraphicsContext restoreGraphicsState];
-				
-				if (exportFormat == webPageExportFormat)
-				{
-					[exportTilesHTML appendFormat:@"\t\ttiles[%d] = new tile('TileImages/%d.jpg', '%@');\n", 
-												  tilesExported + 1, tilesExported + 1, [match imageIdentifier]];
-					[exportAreasHTML appendFormat:@"\t<area shape='rect' coords='%d,%d,%d,%d' nohref " \
-												  @"onmouseover='showTile(%d)' onmouseout='hideTile()'>\n", 
-												  (int)NSMinX(drawRect), (int)([exportHeight intValue] - NSMaxY(drawRect)), 
-												  (int)NSMaxX(drawRect), (int)([exportHeight intValue] - NSMinY(drawRect)), 
-												  tilesExported + 1];
-					
-					NSSize	newSize = [clipPath bounds].size;
-					if (newSize.width > newSize.height)
-						newSize = NSMakeSize(200.0, newSize.height * 200.0 / newSize.width);
-					else
-						newSize = NSMakeSize(newSize.width * 200.0 / newSize.height, 200.0);
-					pixletImageRep = [imageCache imageRepAtSize:newSize 
-												  forIdentifier:[match imageIdentifier] 
-													 fromSource:[match imageSource]];
-					NSData	*bitmapData = [(NSBitmapImageRep *)pixletImageRep representationUsingType:NSJPEGFileType properties:nil];
-					[bitmapData writeToFile:[NSString stringWithFormat:@"%@/%d.jpg", tileImagesPath, tilesExported + 1] 
-								 atomically:NO];
-					
-				}
-			NS_HANDLER
-				NSLog(@"Exception during export: %@", localException);
-				[NSGraphicsContext restoreGraphicsState];
-			NS_ENDHANDLER
-		}
-		
-        [pool2 release];
-		
-		[self setProgressPercentComplete:[NSNumber numberWithDouble:((double)++tilesExported / (double)tileCount * 100.0)] ];
-    }
-	
-	if (exportFormat == webPageExportFormat)
-	{
-		[exportHTML appendString:exportTilesHTML];
-		NSString	*export2HTML = [[NSBundle mainBundle] pathForResource:@"Export2" ofType:@"html"];
-		[exportHTML appendString:[NSString stringWithContentsOfFile:export2HTML]];
-		[exportHTML appendString:exportAreasHTML];
-		NSString	*export3HTML = [[NSBundle mainBundle] pathForResource:@"Export3" ofType:@"html"];
-		[exportHTML appendString:[NSString stringWithContentsOfFile:export3HTML]];
-	}	
-		// Now convert the image into the desired output format.
-    NSBitmapImageRep	*exportRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0, 0, [exportImage size].width, 
-									     [exportImage size].height)];
-	NS_DURING
-		[exportImage unlockFocus];
-
-		NSData		*bitmapData = (exportFormat == jpegExportFormat || exportFormat == webPageExportFormat) ? 
-										[exportRep representationUsingType:NSJPEGFileType properties:nil] :
-										[exportRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0];
-		
-		if (exportFormat == webPageExportFormat)
-		{
-			[exportHTML writeToFile:exportFilename atomically:YES];
-			[bitmapData writeToFile:[[exportFilename stringByDeletingLastPathComponent] 
-										stringByAppendingPathComponent:@"Mosaic.jpg"] 
-						 atomically:YES];
-		}
+		if (errorString)
+			NSBeginAlertSheet(@"The mosaic could not be exported.", @"OK", nil, nil, [self window], 
+							  self, nil, @selector(errorSheetDidDismiss:), nil, errorString);
 		else
-			[bitmapData writeToFile:exportFilename atomically:YES];
-	NS_HANDLER
-		exportError = [NSString stringWithFormat:@"Could not convert the mosaic to the requested format.  (%@)",
-												 [localException reason]];
-	NS_ENDHANDLER
-	
-    [pool release];
-    [exportRep release];
-    [exportImage release];
-	
-	[self closeProgressPanel];
-	
-	if (exportError)
-		[self performSelectorOnMainThread:@selector(displayExportErrorSheet:) withObject:exportError waitUntilDone:NO];
-	else
-		[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:YES];	// Re-enable auto saving.
+			[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:YES];	// Re-enable auto saving.
+	}
 }
 
 
-- (void)displayExportErrorSheet:(NSString *)errorString
-{
-	NSBeginAlertSheet(@"The mosaic could not be exported.", @"OK", nil, nil, [self window], 
-					  self, nil, @selector(exportErrorSheetDidDismiss:), nil, errorString);
-}
-
-
-- (void)exportErrorSheetDidDismiss:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+- (void)errorSheetDidDismiss:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
 	[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:YES];	// Re-enable auto saving.
 }
@@ -1841,8 +1582,9 @@ static NSArray	*exportFormatExtensions = nil;
 {
 	if (pthread_main_np())
 	{
-		[progressPanelIndicator setIndeterminate:NO];
-		[progressPanelIndicator setDoubleValue:[percentComplete doubleValue]];
+		double	percent = [percentComplete doubleValue];
+		[progressPanelIndicator setIndeterminate:(percent < 0.0 || percent > 100.0)];
+		[progressPanelIndicator setDoubleValue:percent];
 	}
 	else
 		[self performSelectorOnMainThread:@selector(setProgressPercentComplete:) 
@@ -2038,7 +1780,7 @@ static NSArray	*exportFormatExtensions = nil;
 		[toolbarItem setLabel:@"Export Image"];
 		[toolbarItem setPaletteLabel:@"Export Image"];
 		[toolbarItem setTarget:self];
-		[toolbarItem setAction:@selector(beginExportImage:)];
+		[toolbarItem setAction:@selector(exportMosaic:)];
 		[toolbarItem setToolTip:@"Export an image of the mosaic"];
     }
 	else if ([itemIdentifier isEqualToString:@"Pause"])
@@ -2176,57 +1918,6 @@ static NSArray	*exportFormatExtensions = nil;
 		else
 			[mosaicView highlightImageSources:nil];
 	}
-}
-
-
-#pragma mark -
-#pragma mark Text field delegate methods
-
-
-- (NSButton *)bottomRightButtonInWindow:(NSWindow *)window
-{
-	NSButton		*bottomRightButton = nil;
-	NSMutableArray	*viewQueue = [NSMutableArray arrayWithObject:[window contentView]];
-	NSPoint			maxOrigin = {0.0, 0.0};
-	
-	while ([viewQueue count] > 0)
-	{
-		NSView	*nextView = [viewQueue objectAtIndex:0];
-		[viewQueue removeObjectAtIndex:0];
-		if ([nextView isKindOfClass:[NSButton class]])	//&& [nextView frame].origin.y > 0.0)
-		{
-//			NSLog(@"Checking \"%@\" at %f, %f", [(NSButton *)nextView title], [nextView frame].origin.x, [nextView frame].origin.y);
-			if ([nextView frame].origin.x > maxOrigin.x)	//|| [nextView frame].origin.y < maxOrigin.y)
-			{
-				bottomRightButton = (NSButton *)nextView;
-				maxOrigin = [nextView frame].origin;
-			}
-		}
-		else
-			[viewQueue addObjectsFromArray:[nextView subviews]];
-	}
-	
-	return bottomRightButton;
-}
-
-
-- (void)controlTextDidChange:(NSNotification *)notification
-{
-	NSSize	originalImageSize = [[[self mosaic] originalImage] size];
-	
-	if ([notification object] == exportWidth)
-		[exportHeight setIntValue:[exportWidth intValue] / originalImageSize.width * originalImageSize.height + 0.5];
-	else if ([notification object] == exportHeight)
-		[exportWidth setIntValue:[exportHeight intValue] / originalImageSize.height * originalImageSize.width + 0.5];
-	
-	NSButton	*saveButton = [self bottomRightButtonInWindow:[[notification object] window]];
-	if ([exportWidth intValue] > 10000 || [exportHeight intValue] > 10000)
-	{
-		NSBeep();
-		[saveButton setEnabled:NO];
-	}
-	else
-		[saveButton setEnabled:YES];
 }
 
 
