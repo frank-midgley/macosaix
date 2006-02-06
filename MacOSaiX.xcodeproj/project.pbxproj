@@ -45,10 +45,6 @@
 		01BBDECD0747081400F17A9F /* NSImage+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01BBDECB0747081400F17A9F /* NSImage+MacOSaiX.h */; };
 		01BBDECE0747081400F17A9F /* NSImage+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */; };
 		01DCB2F5092C2508008345F3 /* Flickr Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 01722BA809298D3E00290929 /* Flickr Image Source.plugin */; };
-		01DDF78709932AAD00A4125E /* Export1.html in Resources */ = {isa = PBXBuildFile; fileRef = 01DDF78109932AAD00A4125E /* Export1.html */; };
-		01DDF78809932AAD00A4125E /* Export2.html in Resources */ = {isa = PBXBuildFile; fileRef = 01DDF78309932AAD00A4125E /* Export2.html */; };
-		01DDF78909932AAD00A4125E /* Export3.html in Resources */ = {isa = PBXBuildFile; fileRef = 01DDF78509932AAD00A4125E /* Export3.html */; };
-		01FAF1D6084031C2003A2726 /* Crash Reporter.nib in Resources */ = {isa = PBXBuildFile; fileRef = 01FAF1D4084031C2003A2726 /* Crash Reporter.nib */; };
 		01FE978E08E8EDFE00E4AC7C /* MacOSaiXKioskController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE978C08E8EDFE00E4AC7C /* MacOSaiXKioskController.m */; };
 		01FE981308F365C600E4AC7C /* MacOSaiXMosaic.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */; };
 		921607B208E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */; };
@@ -71,12 +67,9 @@
 		9254088C0915741F00384904 /* MacOSaiXKioskMessageView.h in Headers */ = {isa = PBXBuildFile; fileRef = 9254088A0915741F00384904 /* MacOSaiXKioskMessageView.h */; };
 		9254088D0915741F00384904 /* MacOSaiXKioskMessageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */; };
 		925FE5C407EBDAB200B0D002 /* Glyph Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 928489E506611CE6003B3514 /* Glyph Image Source.plugin */; };
-		926612A4090C4F150015BD9E /* Localized.strings in Resources */ = {isa = PBXBuildFile; fileRef = 926612A2090C4F150015BD9E /* Localized.strings */; };
 		9284898B06611CE5003B3514 /* ExportImage.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F594095502469B3101000104 /* ExportImage.tiff */; };
 		9284898C06611CE5003B3514 /* ImageSources.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F5940957024722BA01000104 /* ImageSources.tiff */; };
 		9284898D06611CE5003B3514 /* Blank.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F594095B02472CFD01000104 /* Blank.tiff */; };
-		9284898E06611CE5003B3514 /* Application Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = F54167D0024C46CE0100010B /* Application Icon.icns */; };
-		9284898F06611CE5003B3514 /* Document Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = F528CBCA0274A44201E37B2D /* Document Icon.icns */; };
 		9284899006611CE5003B3514 /* Pause.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F558F295027DBB8D01000103 /* Pause.tiff */; };
 		9284899106611CE5003B3514 /* Resume.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F558F297027DBF1B01000103 /* Resume.tiff */; };
 		9284899206611CE5003B3514 /* BadgeRed.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F58E0883028C71BF016CFBE9 /* BadgeRed.tiff */; };
@@ -140,17 +133,28 @@
 		928F72E10661234700873AE2 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 928F72E00661234700873AE2 /* Info.plist */; };
 		928F72E50661235B00873AE2 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 928F72E40661235B00873AE2 /* Info.plist */; };
 		928F72E90661237300873AE2 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 928F72E80661237300873AE2 /* Info.plist */; };
-		92951FE5068A7FD500366ACB /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 928F725D066121A700873AE2 /* MainMenu.nib */; };
-		92951FE8068A7FD900366ACB /* MacOSaiXDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = 928F725B066121A700873AE2 /* MacOSaiXDocument.nib */; };
-		92951FEA068A7FDC00366ACB /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 928F725F066121A700873AE2 /* Preferences.nib */; };
 		92951FF1068A7FE600366ACB /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 928F724A0661214000873AE2 /* Info.plist */; };
-		92951FF9068A7FE900366ACB /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 928F726C066121AE00873AE2 /* InfoPlist.strings */; };
 		9298FBA30982DB9400E7A096 /* Full Screen.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FBA10982DB9400E7A096 /* Full Screen.nib */; };
 		9298FCC6098C1C3500E7A096 /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FCC4098C1C3500E7A096 /* Preferences.nib */; };
 		9298FCC9098C1C6800E7A096 /* FlickrPreferencesController.h in Headers */ = {isa = PBXBuildFile; fileRef = 9298FCC7098C1C6800E7A096 /* FlickrPreferencesController.h */; };
 		9298FCCA098C1C6800E7A096 /* FlickrPreferencesController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9298FCC8098C1C6800E7A096 /* FlickrPreferencesController.m */; };
+		9298FE030995592300E7A096 /* MacOSaiXExportController.h in Headers */ = {isa = PBXBuildFile; fileRef = 9298FE010995592300E7A096 /* MacOSaiXExportController.h */; };
+		9298FE040995592300E7A096 /* MacOSaiXExportController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9298FE020995592300E7A096 /* MacOSaiXExportController.m */; };
+		9298FE6309955B0E00E7A096 /* Export1.html in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE5D09955B0E00E7A096 /* Export1.html */; };
+		9298FE6409955B0E00E7A096 /* Export2.html in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE5F09955B0E00E7A096 /* Export2.html */; };
+		9298FE6509955B0E00E7A096 /* Export3.html in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE6109955B0E00E7A096 /* Export3.html */; };
+		9298FE6B09955B2A00E7A096 /* MacOSaiXDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE6909955B2A00E7A096 /* MacOSaiXDocument.nib */; };
+		9298FE6F09955B3B00E7A096 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE6D09955B3B00E7A096 /* MainMenu.nib */; };
+		9298FE7309955B6600E7A096 /* Crash Reporter.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE7109955B6600E7A096 /* Crash Reporter.nib */; };
+		9298FE7609955B7D00E7A096 /* Update Available.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE7409955B7D00E7A096 /* Update Available.nib */; };
+		9298FE7909955B9A00E7A096 /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE7709955B9A00E7A096 /* Preferences.nib */; };
+		9298FE8009955BB600E7A096 /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE7A09955BB600E7A096 /* Credits.html */; };
+		9298FE8109955BB600E7A096 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE7C09955BB600E7A096 /* InfoPlist.strings */; };
+		9298FE8209955BB600E7A096 /* Localized.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE7E09955BB600E7A096 /* Localized.strings */; };
+		9298FEF309955C5A00E7A096 /* Application Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9298FEF109955C5A00E7A096 /* Application Icon.icns */; };
+		9298FEF409955C5A00E7A096 /* Document Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9298FEF209955C5A00E7A096 /* Document Icon.icns */; };
+		9298FF1409955E1500E7A096 /* Export.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FF1209955E1500E7A096 /* Export.nib */; };
 		92B9087C08C25F0600D621F5 /* MacOSaiXImageMatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */; };
-		92BFFEC3079A2DD50052CC4C /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = 92BFFEC1079A2DD50052CC4C /* Credits.html */; };
 		92C8AAF2080870100073045F /* GlyphTableColumn.h in Headers */ = {isa = PBXBuildFile; fileRef = 92C8AAF0080870100073045F /* GlyphTableColumn.h */; };
 		92C8AAF3080870100073045F /* GlyphTableColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92C8AAF1080870100073045F /* GlyphTableColumn.m */; };
 		92CC1B3E08F9C168004D0C31 /* MacOSaiXFullScreenController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA7B608F87DD200B40FA6 /* MacOSaiXFullScreenController.m */; };
@@ -170,7 +174,6 @@
 		92ECCFAE07F0F25600C77375 /* NSString+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */; };
 		92F00CCF07C1AA55004F6D06 /* MacPADSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F00CCD07C1AA55004F6D06 /* MacPADSocket.m */; };
 		92F00CE507C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F00CE307C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m */; };
-		92F00D0807C1B52B004F6D06 /* Update Available.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92F00D0607C1B52B004F6D06 /* Update Available.nib */; };
 		92FF35C90937AFF9000FF862 /* Lock.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 92FF35C80937AFF8000FF862 /* Lock.tiff */; };
 /* End PBXBuildFile section */
 
@@ -378,10 +381,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		00E5856D005F0FA87F000001 /* MacOSaiXDocument.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXDocument.m; path = MacOSaiX/MacOSaiXDocument.m; sourceTree = "<group>"; };
-		00E5856E005F0FA87F000001 /* MacOSaiXDocument.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXDocument.h; path = MacOSaiX/MacOSaiXDocument.h; sourceTree = "<group>"; };
-		00EAAC6000853DFB7F000001 /* Tiles.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Tiles.h; path = MacOSaiX/Tiles.h; sourceTree = "<group>"; };
-		00EAAC6100853DFB7F000001 /* Tiles.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = Tiles.m; path = MacOSaiX/Tiles.m; sourceTree = "<group>"; };
+		00E5856D005F0FA87F000001 /* MacOSaiXDocument.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXDocument.m; sourceTree = "<group>"; };
+		00E5856E005F0FA87F000001 /* MacOSaiXDocument.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXDocument.h; sourceTree = "<group>"; };
+		00EAAC6000853DFB7F000001 /* Tiles.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Tiles.h; sourceTree = "<group>"; };
+		00EAAC6100853DFB7F000001 /* Tiles.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = Tiles.m; sourceTree = "<group>"; };
 		010D1F7408FF5FAD00950013 /* MacOSaiXFullScreenWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXFullScreenWindow.h; sourceTree = "<group>"; };
 		010D1F7508FF5FAD00950013 /* MacOSaiXFullScreenWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXFullScreenWindow.m; sourceTree = "<group>"; };
 		010D20990902C01700950013 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Kiosk Setup.nib"; sourceTree = "<group>"; };
@@ -389,22 +392,22 @@
 		010D20A10902C01700950013 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Screen Setup.nib"; sourceTree = "<group>"; };
 		0111F0B50968728600EE09C1 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Google Image Source/English.lproj/Preferences.nib"; sourceTree = "<group>"; };
 		0120B21E08C7FF8600974680 /* G.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = G.tiff; path = "Standard Plugins/Google Image Source/G.tiff"; sourceTree = "<group>"; };
-		0127354207CD6EBB0053037A /* Defaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = Defaults.plist; path = MacOSaiX/Defaults.plist; sourceTree = "<group>"; };
-		012976FF086A63D30095AD36 /* MacOSaiXCrashReporterController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXCrashReporterController.h; path = MacOSaiX/MacOSaiXCrashReporterController.h; sourceTree = "<group>"; };
-		01297700086A63D30095AD36 /* MacOSaiXCrashReporterController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXCrashReporterController.m; path = MacOSaiX/MacOSaiXCrashReporterController.m; sourceTree = "<group>"; };
+		0127354207CD6EBB0053037A /* Defaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Defaults.plist; sourceTree = "<group>"; };
+		012976FF086A63D30095AD36 /* MacOSaiXCrashReporterController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXCrashReporterController.h; sourceTree = "<group>"; };
+		01297700086A63D30095AD36 /* MacOSaiXCrashReporterController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXCrashReporterController.m; sourceTree = "<group>"; };
 		01453D4A071B6F2D00BCEC7C /* Puzzle Tiles.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Puzzle Tiles.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		01453D51071B6F8000BCEC7C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
 		014DB625071A2C8D00DF68C0 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = Info.plist; path = "Standard Plugins/Hexaganol Tiles Setup/Info.plist"; sourceTree = "<group>"; };
-		016A242208D7C952009A93BF /* ZoomIn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ZoomIn.png; path = Images/ZoomIn.png; sourceTree = "<group>"; };
-		016A242408D7C975009A93BF /* ZoomOut.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ZoomOut.png; path = Images/ZoomOut.png; sourceTree = "<group>"; };
-		016A248108D7D8E2009A93BF /* HandPicked.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = HandPicked.png; path = Images/HandPicked.png; sourceTree = "<group>"; };
-		016A2C5008CD2611002D56C1 /* MacOSaiXImageMatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXImageMatch.h; path = MacOSaiX/MacOSaiXImageMatch.h; sourceTree = "<group>"; };
-		016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXImageMatch.m; path = MacOSaiX/MacOSaiXImageMatch.m; sourceTree = "<group>"; };
-		016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXHandPickedImageSource.h; path = MacOSaiX/MacOSaiXHandPickedImageSource.h; sourceTree = "<group>"; };
-		016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXHandPickedImageSource.m; path = MacOSaiX/MacOSaiXHandPickedImageSource.m; sourceTree = "<group>"; };
+		016A242208D7C952009A93BF /* ZoomIn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ZoomIn.png; sourceTree = "<group>"; };
+		016A242408D7C975009A93BF /* ZoomOut.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ZoomOut.png; sourceTree = "<group>"; };
+		016A248108D7D8E2009A93BF /* HandPicked.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = HandPicked.png; sourceTree = "<group>"; };
+		016A2C5008CD2611002D56C1 /* MacOSaiXImageMatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageMatch.h; sourceTree = "<group>"; };
+		016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXImageMatch.m; sourceTree = "<group>"; };
+		016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXHandPickedImageSource.h; sourceTree = "<group>"; };
+		016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXHandPickedImageSource.m; sourceTree = "<group>"; };
 		016A2E3108D1459D002D56C1 /* Version.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Version.plist; sourceTree = "<group>"; };
-		016A312108D5276A002D56C1 /* MacOSaiXImageDeallocator.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXImageDeallocator.h; path = MacOSaiX/MacOSaiXImageDeallocator.h; sourceTree = "<group>"; };
-		016A312208D5276A002D56C1 /* MacOSaiXImageDeallocator.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXImageDeallocator.m; path = MacOSaiX/MacOSaiXImageDeallocator.m; sourceTree = "<group>"; };
+		016A312108D5276A002D56C1 /* MacOSaiXImageDeallocator.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageDeallocator.h; sourceTree = "<group>"; };
+		016A312208D5276A002D56C1 /* MacOSaiXImageDeallocator.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXImageDeallocator.m; sourceTree = "<group>"; };
 		01722B8D09298D3300290929 /* FlickrImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FlickrImageSource.h; sourceTree = "<group>"; };
 		01722B8E09298D3300290929 /* FlickrImageSource.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = FlickrImageSource.m; sourceTree = "<group>"; };
 		01722B8F09298D3300290929 /* FlickrImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FlickrImageSourceController.h; sourceTree = "<group>"; };
@@ -416,28 +419,24 @@
 		01722C260929986A00290929 /* f.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = f.ico; sourceTree = "<group>"; };
 		018F9A610964BE2F00CABB48 /* GooglePreferencesController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GooglePreferencesController.h; path = "Standard Plugins/Google Image Source/GooglePreferencesController.h"; sourceTree = "<group>"; };
 		018F9A620964BE2F00CABB48 /* GooglePreferencesController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GooglePreferencesController.m; path = "Standard Plugins/Google Image Source/GooglePreferencesController.m"; sourceTree = "<group>"; };
-		01A94F76097050DB00EF07B6 /* MacOSaiXPreferencesController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXPreferencesController.h; path = MacOSaiX/MacOSaiXPreferencesController.h; sourceTree = "<group>"; };
-		01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+MacOSaiX.h"; path = "MacOSaiX/NSString+MacOSaiX.h"; sourceTree = "<group>"; };
-		01AB92EA07DB797300DB4B86 /* NSString+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+MacOSaiX.m"; path = "MacOSaiX/NSString+MacOSaiX.m"; sourceTree = "<group>"; };
-		01AC3A3B07B0997C0025F915 /* Settings.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Settings.png; path = Images/Settings.png; sourceTree = "<group>"; };
+		01A94F76097050DB00EF07B6 /* MacOSaiXPreferencesController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXPreferencesController.h; sourceTree = "<group>"; };
+		01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+MacOSaiX.h"; sourceTree = "<group>"; };
+		01AB92EA07DB797300DB4B86 /* NSString+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+MacOSaiX.m"; sourceTree = "<group>"; };
+		01AC3A3B07B0997C0025F915 /* Settings.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Settings.png; sourceTree = "<group>"; };
 		01ACC0AC08FCA3960013D213 /* MacOSaiXKioskView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXKioskView.h; sourceTree = "<group>"; };
 		01ACC0AD08FCA3960013D213 /* MacOSaiXKioskView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXKioskView.m; sourceTree = "<group>"; };
 		01AD286E07E3C99A00420875 /* English */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = English; path = "Standard Plugins/Google Image Source/English.lproj/GoogleImageSearch.gif"; sourceTree = "<group>"; };
-		01BBDECB0747081400F17A9F /* NSImage+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSImage+MacOSaiX.h"; path = "MacOSaiX/NSImage+MacOSaiX.h"; sourceTree = "<group>"; };
-		01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSImage+MacOSaiX.m"; path = "MacOSaiX/NSImage+MacOSaiX.m"; sourceTree = "<group>"; };
+		01BBDECB0747081400F17A9F /* NSImage+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSImage+MacOSaiX.h"; sourceTree = "<group>"; };
+		01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSImage+MacOSaiX.m"; sourceTree = "<group>"; };
 		01CB07E6071A1F2B00710BCF /* Hexagonal Tiles.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Hexagonal Tiles.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
-		01DDF78209932AAD00A4125E /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = MacOSaiX/English.lproj/Export1.html; sourceTree = "<group>"; };
-		01DDF78409932AAD00A4125E /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = MacOSaiX/English.lproj/Export2.html; sourceTree = "<group>"; };
-		01DDF78609932AAD00A4125E /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = MacOSaiX/English.lproj/Export3.html; sourceTree = "<group>"; };
-		01FAF1D5084031C2003A2726 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "MacOSaiX/English.lproj/Crash Reporter.nib"; sourceTree = "<group>"; };
 		01FE978B08E8EDFE00E4AC7C /* MacOSaiXKioskController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXKioskController.h; sourceTree = "<group>"; };
 		01FE978C08E8EDFE00E4AC7C /* MacOSaiXKioskController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXKioskController.m; sourceTree = "<group>"; };
-		01FE981008F365C600E4AC7C /* MacOSaiXMosaic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXMosaic.h; path = MacOSaiX/MacOSaiXMosaic.h; sourceTree = "<group>"; };
-		01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXMosaic.m; path = MacOSaiX/MacOSaiXMosaic.m; sourceTree = "<group>"; };
-		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = main.m; path = MacOSaiX/main.m; sourceTree = "<group>"; };
+		01FE981008F365C600E4AC7C /* MacOSaiXMosaic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXMosaic.h; sourceTree = "<group>"; };
+		01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXMosaic.m; sourceTree = "<group>"; };
+		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
-		921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSFileManager+MacOSaiX.h"; path = "MacOSaiX/NSFileManager+MacOSaiX.h"; sourceTree = "<group>"; };
-		921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSFileManager+MacOSaiX.m"; path = "MacOSaiX/NSFileManager+MacOSaiX.m"; sourceTree = "<group>"; };
+		921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSFileManager+MacOSaiX.h"; sourceTree = "<group>"; };
+		921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSFileManager+MacOSaiX.m"; sourceTree = "<group>"; };
 		9226835F09267C1B00BF4EF7 /* PuzzleTileShapes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PuzzleTileShapes.h; sourceTree = "<group>"; };
 		9226836009267C1B00BF4EF7 /* PuzzleTileShapes.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = PuzzleTileShapes.m; sourceTree = "<group>"; };
 		9226836109267C1B00BF4EF7 /* PuzzleTileShapesEditor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PuzzleTileShapesEditor.h; sourceTree = "<group>"; };
@@ -448,31 +447,26 @@
 		9227FD6F07E37A240020C5F4 /* HexagonalTileShapesEditor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = HexagonalTileShapesEditor.h; path = "Standard Plugins/Hexaganol Tiles Setup/HexagonalTileShapesEditor.h"; sourceTree = "<group>"; };
 		9227FD7007E37A240020C5F4 /* HexagonalTileShapesEditor.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = HexagonalTileShapesEditor.m; path = "Standard Plugins/Hexaganol Tiles Setup/HexagonalTileShapesEditor.m"; sourceTree = "<group>"; };
 		9227FD7A07E37A340020C5F4 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Hexaganol Tiles Setup/English.lproj/HexagonalTileShapes.nib"; sourceTree = "<group>"; };
-		923384DB072180700010BE04 /* MacOSaiXImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXImageSource.h; path = MacOSaiX/MacOSaiXImageSource.h; sourceTree = "<group>"; };
+		923384DB072180700010BE04 /* MacOSaiXImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageSource.h; sourceTree = "<group>"; };
 		9254088A0915741F00384904 /* MacOSaiXKioskMessageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXKioskMessageView.h; sourceTree = "<group>"; };
 		9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXKioskMessageView.m; sourceTree = "<group>"; };
-		926612A3090C4F150015BD9E /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = MacOSaiX/English.lproj/Localized.strings; sourceTree = "<group>"; };
 		928489A306611CE6003B3514 /* MacOSaiX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacOSaiX.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		928489C406611CE6003B3514 /* Directory Image Source.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Directory Image Source.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		928489D406611CE6003B3514 /* Google Image Source.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Google Image Source.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		928489E506611CE6003B3514 /* Glyph Image Source.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Glyph Image Source.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		928489F306611CE6003B3514 /* Rectangular Tiles.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Rectangular Tiles.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		92848A0406611CE6003B3514 /* QuickTime Image Source.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "QuickTime Image Source.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
-		9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXTileShapes.h; path = MacOSaiX/MacOSaiXTileShapes.h; sourceTree = "<group>"; };
+		9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXTileShapes.h; sourceTree = "<group>"; };
 		9287C153075A5F55004C07EF /* RectangularTileShapes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = RectangularTileShapes.h; path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapes.h"; sourceTree = "<group>"; };
 		9287C154075A5F55004C07EF /* RectangularTileShapes.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = RectangularTileShapes.m; path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapes.m"; sourceTree = "<group>"; };
-		928824290982C00E00181817 /* FullScreen.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = FullScreen.tiff; path = Images/FullScreen.tiff; sourceTree = "<group>"; };
-		92887D9A094CCC83000FA225 /* MacOSaiXPopUpImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXPopUpImageView.h; path = MacOSaiX/MacOSaiXPopUpImageView.h; sourceTree = "<group>"; };
-		92887D9B094CCC83000FA225 /* MacOSaiXPopUpImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXPopUpImageView.m; path = MacOSaiX/MacOSaiXPopUpImageView.m; sourceTree = "<group>"; };
-		9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXImageCache.h; path = MacOSaiX/MacOSaiXImageCache.h; sourceTree = "<group>"; };
-		9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXImageCache.m; path = MacOSaiX/MacOSaiXImageCache.m; sourceTree = "<group>"; };
-		9289DDA5073D713100C88091 /* MacOSaiXWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXWindowController.h; path = MacOSaiX/MacOSaiXWindowController.h; sourceTree = "<group>"; };
-		9289DDA6073D713100C88091 /* MacOSaiXWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXWindowController.m; path = MacOSaiX/MacOSaiXWindowController.m; sourceTree = "<group>"; };
-		928F724A0661214000873AE2 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = Info.plist; path = MacOSaiX/Info.plist; sourceTree = "<group>"; };
-		928F725C066121A700873AE2 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = MacOSaiX/English.lproj/MacOSaiXDocument.nib; sourceTree = "<group>"; };
-		928F725E066121A700873AE2 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = MacOSaiX/English.lproj/MainMenu.nib; sourceTree = "<group>"; };
-		928F7260066121A700873AE2 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = MacOSaiX/English.lproj/Preferences.nib; sourceTree = "<group>"; };
-		928F726D066121AE00873AE2 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = MacOSaiX/English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		928824290982C00E00181817 /* FullScreen.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = FullScreen.tiff; sourceTree = "<group>"; };
+		92887D9A094CCC83000FA225 /* MacOSaiXPopUpImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXPopUpImageView.h; sourceTree = "<group>"; };
+		92887D9B094CCC83000FA225 /* MacOSaiXPopUpImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXPopUpImageView.m; sourceTree = "<group>"; };
+		9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageCache.h; sourceTree = "<group>"; };
+		9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXImageCache.m; sourceTree = "<group>"; };
+		9289DDA5073D713100C88091 /* MacOSaiXWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXWindowController.h; sourceTree = "<group>"; };
+		9289DDA6073D713100C88091 /* MacOSaiXWindowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXWindowController.m; sourceTree = "<group>"; };
+		928F724A0661214000873AE2 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
 		928F72900661226000873AE2 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Glyph Image Source/English.lproj/Glyph Image Source.nib"; sourceTree = "<group>"; };
 		928F72920661226000873AE2 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Google Image Source/English.lproj/Google Image Source.nib"; sourceTree = "<group>"; };
 		928F72940661226000873AE2 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Rectangular Tiles Setup/English.lproj/RectangularTileShapes.nib"; sourceTree = "<group>"; };
@@ -489,13 +483,28 @@
 		9298FCC5098C1C3500E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Preferences.nib; sourceTree = "<group>"; };
 		9298FCC7098C1C6800E7A096 /* FlickrPreferencesController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FlickrPreferencesController.h; sourceTree = "<group>"; };
 		9298FCC8098C1C6800E7A096 /* FlickrPreferencesController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = FlickrPreferencesController.m; sourceTree = "<group>"; };
+		9298FE010995592300E7A096 /* MacOSaiXExportController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXExportController.h; sourceTree = "<group>"; };
+		9298FE020995592300E7A096 /* MacOSaiXExportController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXExportController.m; sourceTree = "<group>"; };
+		9298FE5E09955B0E00E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export1.html; sourceTree = "<group>"; };
+		9298FE6009955B0E00E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export2.html; sourceTree = "<group>"; };
+		9298FE6209955B0E00E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export3.html; sourceTree = "<group>"; };
+		9298FE6A09955B2A00E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MacOSaiXDocument.nib; sourceTree = "<group>"; };
+		9298FE6E09955B3B00E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
+		9298FE7209955B6600E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Crash Reporter.nib"; sourceTree = "<group>"; };
+		9298FE7509955B7D00E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Update Available.nib"; sourceTree = "<group>"; };
+		9298FE7809955B9A00E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Preferences.nib; sourceTree = "<group>"; };
+		9298FE7B09955BB600E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Credits.html; sourceTree = "<group>"; };
+		9298FE7D09955BB600E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		9298FE7F09955BB600E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/Localized.strings; sourceTree = "<group>"; };
+		9298FEF109955C5A00E7A096 /* Application Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Application Icon.icns"; path = "../Icon work/Application Icon/Application Icon.icns"; sourceTree = "<group>"; };
+		9298FEF209955C5A00E7A096 /* Document Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Document Icon.icns"; path = "../Icon work/Document Icon/Document Icon.icns"; sourceTree = "<group>"; };
+		9298FF1309955E1500E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = MacOSaiX/Export/English.lproj/Export.nib; sourceTree = "<group>"; };
 		92B45F70041A9DF1006867F5 /* DirectoryImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DirectoryImageSourceController.h; path = "Standard Plugins/Directory Image Source/DirectoryImageSourceController.h"; sourceTree = "<group>"; };
 		92B45F71041A9DF1006867F5 /* DirectoryImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DirectoryImageSourceController.m; path = "Standard Plugins/Directory Image Source/DirectoryImageSourceController.m"; sourceTree = "<group>"; };
 		92B45F74041A9E78006867F5 /* GlyphImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlyphImageSourceController.h; path = "Standard Plugins/Glyph Image Source/GlyphImageSourceController.h"; sourceTree = "<group>"; };
 		92B45F75041A9E78006867F5 /* GlyphImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GlyphImageSourceController.m; path = "Standard Plugins/Glyph Image Source/GlyphImageSourceController.m"; sourceTree = "<group>"; };
-		92B9087908C25F0500D621F5 /* MacOSaiXImageMatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXImageMatcher.h; path = MacOSaiX/MacOSaiXImageMatcher.h; sourceTree = "<group>"; };
-		92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXImageMatcher.m; path = MacOSaiX/MacOSaiXImageMatcher.m; sourceTree = "<group>"; };
-		92BFFEC2079A2DD50052CC4C /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = MacOSaiX/English.lproj/Credits.html; sourceTree = "<group>"; };
+		92B9087908C25F0500D621F5 /* MacOSaiXImageMatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageMatcher.h; sourceTree = "<group>"; };
+		92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXImageMatcher.m; sourceTree = "<group>"; };
 		92C8AAF0080870100073045F /* GlyphTableColumn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlyphTableColumn.h; path = "Standard Plugins/Glyph Image Source/GlyphTableColumn.h"; sourceTree = "<group>"; };
 		92C8AAF1080870100073045F /* GlyphTableColumn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GlyphTableColumn.m; path = "Standard Plugins/Glyph Image Source/GlyphTableColumn.m"; sourceTree = "<group>"; };
 		92DCA7B508F87DD200B40FA6 /* MacOSaiXFullScreenController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXFullScreenController.h; sourceTree = "<group>"; };
@@ -511,12 +520,11 @@
 		92E3E17607E7BF1B00E62AB8 /* iPhotoImageSource.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = iPhotoImageSource.m; path = "Standard Plugins/iPhoto Image Source/iPhotoImageSource.m"; sourceTree = "<group>"; };
 		92E3E17707E7BF1B00E62AB8 /* iPhotoImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = iPhotoImageSourceController.h; path = "Standard Plugins/iPhoto Image Source/iPhotoImageSourceController.h"; sourceTree = "<group>"; };
 		92E3E17807E7BF1B00E62AB8 /* iPhotoImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = iPhotoImageSourceController.m; path = "Standard Plugins/iPhoto Image Source/iPhotoImageSourceController.m"; sourceTree = "<group>"; };
-		92EABC230954D25C007A9EB3 /* Tiles Setup.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "Tiles Setup.tiff"; path = "Images/Tiles Setup.tiff"; sourceTree = "<group>"; };
+		92EABC230954D25C007A9EB3 /* Tiles Setup.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = "Tiles Setup.tiff"; sourceTree = "<group>"; };
 		92F00CCC07C1AA55004F6D06 /* MacPADSocket.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacPADSocket.h; sourceTree = "<group>"; };
 		92F00CCD07C1AA55004F6D06 /* MacPADSocket.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacPADSocket.m; sourceTree = "<group>"; };
-		92F00CE207C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXUpdateAvailableController.h; path = MacOSaiX/MacOSaiXUpdateAvailableController.h; sourceTree = "<group>"; };
-		92F00CE307C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXUpdateAvailableController.m; path = MacOSaiX/MacOSaiXUpdateAvailableController.m; sourceTree = "<group>"; };
-		92F00D0707C1B52B004F6D06 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "MacOSaiX/English.lproj/Update Available.nib"; sourceTree = "<group>"; };
+		92F00CE207C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXUpdateAvailableController.h; sourceTree = "<group>"; };
+		92F00CE307C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXUpdateAvailableController.m; sourceTree = "<group>"; };
 		92F2B1D3048027510000011E /* QuickTimeImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = QuickTimeImageSource.h; path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSource.h"; sourceTree = SOURCE_ROOT; };
 		92F2B1D4048027510000011E /* QuickTimeImageSource.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = QuickTimeImageSource.m; path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSource.m"; sourceTree = SOURCE_ROOT; };
 		92F2B1D5048027510000011E /* QuickTimeImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = QuickTimeImageSourceController.h; path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSourceController.h"; sourceTree = SOURCE_ROOT; };
@@ -526,30 +534,28 @@
 		F514D53C0390266E01B25AF1 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		F514D5A203949AA801B25AF1 /* GoogleImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GoogleImageSourceController.h; path = "Standard Plugins/Google Image Source/GoogleImageSourceController.h"; sourceTree = "<group>"; };
 		F514D5A303949AA801B25AF1 /* GoogleImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = GoogleImageSourceController.m; path = "Standard Plugins/Google Image Source/GoogleImageSourceController.m"; sourceTree = "<group>"; };
-		F528CBCA0274A44201E37B2D /* Document Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Document Icon.icns"; path = "Icon work/Document Icon/Document Icon.icns"; sourceTree = "<group>"; };
 		F5407219023FE6860100010A /* DirectoryImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = DirectoryImageSource.h; path = "Standard Plugins/Directory Image Source/DirectoryImageSource.h"; sourceTree = "<group>"; };
 		F540721A023FE6860100010A /* DirectoryImageSource.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = DirectoryImageSource.m; path = "Standard Plugins/Directory Image Source/DirectoryImageSource.m"; sourceTree = "<group>"; };
 		F540721D023FE6E00100010A /* GoogleImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GoogleImageSource.h; path = "Standard Plugins/Google Image Source/GoogleImageSource.h"; sourceTree = "<group>"; };
 		F540721E023FE6E00100010A /* GoogleImageSource.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = GoogleImageSource.m; path = "Standard Plugins/Google Image Source/GoogleImageSource.m"; sourceTree = "<group>"; };
-		F54167D0024C46CE0100010B /* Application Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Application Icon.icns"; path = "Icon work/Application Icon/Application Icon.icns"; sourceTree = "<group>"; };
 		F54D1108020F41F001000116 /* To Do */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = "To Do"; sourceTree = "<group>"; };
 		F54EF786025F976A01000103 /* GlyphImageSource.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = GlyphImageSource.tiff; path = "Standard Plugins/Glyph Image Source/GlyphImageSource.tiff"; sourceTree = "<group>"; };
-		F5517EEE020CD88F01000106 /* MosaicView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MosaicView.h; path = MacOSaiX/MosaicView.h; sourceTree = "<group>"; };
-		F5517EEF020CD88F01000106 /* MosaicView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = MosaicView.m; path = MacOSaiX/MosaicView.m; sourceTree = "<group>"; };
-		F558F295027DBB8D01000103 /* Pause.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = Pause.tiff; path = Images/Pause.tiff; sourceTree = "<group>"; };
-		F558F297027DBF1B01000103 /* Resume.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = Resume.tiff; path = Images/Resume.tiff; sourceTree = "<group>"; };
-		F5666CC9C5B062B401D943E0 /* MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiX.h; path = MacOSaiX/MacOSaiX.h; sourceTree = "<group>"; };
-		F5666CCAC5B062B401D943E0 /* MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = MacOSaiX.m; path = MacOSaiX/MacOSaiX.m; sourceTree = "<group>"; };
-		F566B485028052CF01000108 /* PreferencesController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PreferencesController.h; path = MacOSaiX/PreferencesController.h; sourceTree = "<group>"; };
-		F566B486028052CF01000108 /* PreferencesController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = PreferencesController.m; path = MacOSaiX/PreferencesController.m; sourceTree = "<group>"; };
+		F5517EEE020CD88F01000106 /* MosaicView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MosaicView.h; sourceTree = "<group>"; };
+		F5517EEF020CD88F01000106 /* MosaicView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MosaicView.m; sourceTree = "<group>"; };
+		F558F295027DBB8D01000103 /* Pause.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Pause.tiff; sourceTree = "<group>"; };
+		F558F297027DBF1B01000103 /* Resume.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Resume.tiff; sourceTree = "<group>"; };
+		F5666CC9C5B062B401D943E0 /* MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiX.h; sourceTree = "<group>"; };
+		F5666CCAC5B062B401D943E0 /* MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiX.m; sourceTree = "<group>"; };
+		F566B485028052CF01000108 /* PreferencesController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PreferencesController.h; sourceTree = "<group>"; };
+		F566B486028052CF01000108 /* PreferencesController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = PreferencesController.m; sourceTree = "<group>"; };
 		F57C77AC025D0CFF01000102 /* GlyphImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GlyphImageSource.h; path = "Standard Plugins/Glyph Image Source/GlyphImageSource.h"; sourceTree = "<group>"; };
 		F57C77AD025D0CFF01000102 /* GlyphImageSource.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = GlyphImageSource.m; path = "Standard Plugins/Glyph Image Source/GlyphImageSource.m"; sourceTree = "<group>"; };
 		F580657F02456D1901000104 /* GoogleImageSource.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = GoogleImageSource.gif; path = "Standard Plugins/Google Image Source/GoogleImageSource.gif"; sourceTree = "<group>"; };
-		F58E0883028C71BF016CFBE9 /* BadgeRed.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = BadgeRed.tiff; path = Images/BadgeRed.tiff; sourceTree = "<group>"; };
-		F58E0885028C767C016CFBE9 /* BadgeGreen.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = BadgeGreen.tiff; path = Images/BadgeGreen.tiff; sourceTree = "<group>"; };
-		F594095502469B3101000104 /* ExportImage.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = ExportImage.tiff; path = Images/ExportImage.tiff; sourceTree = "<group>"; };
-		F5940957024722BA01000104 /* ImageSources.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = ImageSources.tiff; path = Images/ImageSources.tiff; sourceTree = "<group>"; };
-		F594095B02472CFD01000104 /* Blank.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = Blank.tiff; path = Images/Blank.tiff; sourceTree = "<group>"; };
+		F58E0883028C71BF016CFBE9 /* BadgeRed.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = BadgeRed.tiff; sourceTree = "<group>"; };
+		F58E0885028C767C016CFBE9 /* BadgeGreen.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = BadgeGreen.tiff; sourceTree = "<group>"; };
+		F594095502469B3101000104 /* ExportImage.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = ExportImage.tiff; sourceTree = "<group>"; };
+		F5940957024722BA01000104 /* ImageSources.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = ImageSources.tiff; sourceTree = "<group>"; };
+		F594095B02472CFD01000104 /* Blank.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Blank.tiff; sourceTree = "<group>"; };
 		F599E5560266AAD101000103 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
@@ -644,7 +650,7 @@
 			children = (
 				00E5856E005F0FA87F000001 /* MacOSaiXDocument.h */,
 				00E5856D005F0FA87F000001 /* MacOSaiXDocument.m */,
-				928F725B066121A700873AE2 /* MacOSaiXDocument.nib */,
+				9298FE6909955B2A00E7A096 /* MacOSaiXDocument.nib */,
 				9289DDA5073D713100C88091 /* MacOSaiXWindowController.h */,
 				9289DDA6073D713100C88091 /* MacOSaiXWindowController.m */,
 				92887D9A094CCC83000FA225 /* MacOSaiXPopUpImageView.h */,
@@ -658,13 +664,10 @@
 			children = (
 				0127354207CD6EBB0053037A /* Defaults.plist */,
 				928F724A0661214000873AE2 /* Info.plist */,
-				928F726C066121AE00873AE2 /* InfoPlist.strings */,
-				926612A2090C4F150015BD9E /* Localized.strings */,
+				9298FE7C09955BB600E7A096 /* InfoPlist.strings */,
+				9298FE7E09955BB600E7A096 /* Localized.strings */,
+				9298FE7A09955BB600E7A096 /* Credits.html */,
 				016A2E3108D1459D002D56C1 /* Version.plist */,
-				92BFFEC1079A2DD50052CC4C /* Credits.html */,
-				01DDF78109932AAD00A4125E /* Export1.html */,
-				01DDF78309932AAD00A4125E /* Export2.html */,
-				01DDF78509932AAD00A4125E /* Export3.html */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -711,7 +714,7 @@
 			children = (
 				F566B485028052CF01000108 /* PreferencesController.h */,
 				F566B486028052CF01000108 /* PreferencesController.m */,
-				928F725F066121A700873AE2 /* Preferences.nib */,
+				9298FE7709955B9A00E7A096 /* Preferences.nib */,
 			);
 			name = Preferences;
 			sourceTree = "<group>";
@@ -721,7 +724,7 @@
 			children = (
 				92F00CE207C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.h */,
 				92F00CE307C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m */,
-				92F00D0607C1B52B004F6D06 /* Update Available.nib */,
+				9298FE7409955B7D00E7A096 /* Update Available.nib */,
 			);
 			name = "Update Window";
 			sourceTree = "<group>";
@@ -785,19 +788,19 @@
 				9254088A0915741F00384904 /* MacOSaiXKioskMessageView.h */,
 				9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */,
 			);
-			name = "Kiosk Mode";
-			path = "MacOSaiX/Kiosk Mode";
+			path = "Kiosk Mode";
 			sourceTree = "<group>";
 		};
-		080E96DDFE201D6D7F000001 /* MacOSaiX.app */ = {
+		080E96DDFE201D6D7F000001 /* MacOSaiX */ = {
 			isa = PBXGroup;
 			children = (
 				29B97316FDCFA39411CA2CEA /* main.m */,
-				928F725D066121A700873AE2 /* MainMenu.nib */,
+				9298FE6D09955B3B00E7A096 /* MainMenu.nib */,
 				F5666CC9C5B062B401D943E0 /* MacOSaiX.h */,
 				F5666CCAC5B062B401D943E0 /* MacOSaiX.m */,
 				010D208D0902BF0600950013 /* Document */,
 				92DCA54D08F871A100B40FA6 /* Common */,
+				9298FE0A0995594700E7A096 /* Export */,
 				928824890982D05400181817 /* Full Screen Window */,
 				01AB92ED07DB797E00DB4B86 /* Cocoa Extensions */,
 				928F72460661211600873AE2 /* Crash Reporter */,
@@ -808,7 +811,7 @@
 				010D20BB0902C0C700950013 /* Resources */,
 				92DCA56D08F8726300B40FA6 /* Images */,
 			);
-			name = MacOSaiX.app;
+			path = MacOSaiX;
 			sourceTree = "<group>";
 		};
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
@@ -831,12 +834,13 @@
 		29B97314FDCFA39411CA2CEA /* MacOSaiX */ = {
 			isa = PBXGroup;
 			children = (
-				080E96DDFE201D6D7F000001 /* MacOSaiX.app */,
+				080E96DDFE201D6D7F000001 /* MacOSaiX */,
 				F5EE25FD03901F9D01705684 /* Standard Plugins */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				92F00CC907C1AA31004F6D06 /* Third Party Code */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 				F54D1108020F41F001000116 /* To Do */,
+				9298FF1209955E1500E7A096 /* Export.nib */,
 			);
 			name = MacOSaiX;
 			sourceTree = "<group>";
@@ -923,8 +927,7 @@
 				010D1F7408FF5FAD00950013 /* MacOSaiXFullScreenWindow.h */,
 				010D1F7508FF5FAD00950013 /* MacOSaiXFullScreenWindow.m */,
 			);
-			name = "Full Screen Window";
-			path = "MacOSaiX/Full Screen Window";
+			path = "Full Screen Window";
 			sourceTree = "<group>";
 		};
 		928F72460661211600873AE2 /* Crash Reporter */ = {
@@ -932,7 +935,7 @@
 			children = (
 				012976FF086A63D30095AD36 /* MacOSaiXCrashReporterController.h */,
 				01297700086A63D30095AD36 /* MacOSaiXCrashReporterController.m */,
-				01FAF1D4084031C2003A2726 /* Crash Reporter.nib */,
+				9298FE7109955B6600E7A096 /* Crash Reporter.nib */,
 			);
 			name = "Crash Reporter";
 			sourceTree = "<group>";
@@ -948,6 +951,18 @@
 				014DB625071A2C8D00DF68C0 /* Info.plist */,
 			);
 			name = Hexagonal;
+			sourceTree = "<group>";
+		};
+		9298FE0A0995594700E7A096 /* Export */ = {
+			isa = PBXGroup;
+			children = (
+				9298FE010995592300E7A096 /* MacOSaiXExportController.h */,
+				9298FE020995592300E7A096 /* MacOSaiXExportController.m */,
+				9298FE5D09955B0E00E7A096 /* Export1.html */,
+				9298FE5F09955B0E00E7A096 /* Export2.html */,
+				9298FE6109955B0E00E7A096 /* Export3.html */,
+			);
+			path = Export;
 			sourceTree = "<group>";
 		};
 		92DCA54D08F871A100B40FA6 /* Common */ = {
@@ -976,11 +991,11 @@
 		92DCA56D08F8726300B40FA6 /* Images */ = {
 			isa = PBXGroup;
 			children = (
-				F54167D0024C46CE0100010B /* Application Icon.icns */,
+				9298FEF109955C5A00E7A096 /* Application Icon.icns */,
 				F58E0885028C767C016CFBE9 /* BadgeGreen.tiff */,
 				F58E0883028C71BF016CFBE9 /* BadgeRed.tiff */,
 				F594095B02472CFD01000104 /* Blank.tiff */,
-				F528CBCA0274A44201E37B2D /* Document Icon.icns */,
+				9298FEF209955C5A00E7A096 /* Document Icon.icns */,
 				F594095502469B3101000104 /* ExportImage.tiff */,
 				928824290982C00E00181817 /* FullScreen.tiff */,
 				016A248108D7D8E2009A93BF /* HandPicked.png */,
@@ -992,8 +1007,8 @@
 				016A242208D7C952009A93BF /* ZoomIn.png */,
 				016A242408D7C975009A93BF /* ZoomOut.png */,
 			);
-			name = Images;
-			sourceTree = "<group>";
+			path = Images;
+			sourceTree = SOURCE_ROOT;
 		};
 		92E3E16E07E7BEE800E62AB8 /* iPhoto */ = {
 			isa = PBXGroup;
@@ -1091,6 +1106,7 @@
 				9254088C0915741F00384904 /* MacOSaiXKioskMessageView.h in Headers */,
 				92887D9C094CCC83000FA225 /* MacOSaiXPopUpImageView.h in Headers */,
 				01A94F78097050DB00EF07B6 /* MacOSaiXPreferencesController.h in Headers */,
+				9298FE030995592300E7A096 /* MacOSaiXExportController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1634,35 +1650,36 @@
 				9284898B06611CE5003B3514 /* ExportImage.tiff in Resources */,
 				9284898C06611CE5003B3514 /* ImageSources.tiff in Resources */,
 				9284898D06611CE5003B3514 /* Blank.tiff in Resources */,
-				9284898E06611CE5003B3514 /* Application Icon.icns in Resources */,
-				9284898F06611CE5003B3514 /* Document Icon.icns in Resources */,
 				9284899006611CE5003B3514 /* Pause.tiff in Resources */,
 				9284899106611CE5003B3514 /* Resume.tiff in Resources */,
 				9284899206611CE5003B3514 /* BadgeRed.tiff in Resources */,
 				9284899306611CE5003B3514 /* BadgeGreen.tiff in Resources */,
-				92951FE5068A7FD500366ACB /* MainMenu.nib in Resources */,
-				92951FE8068A7FD900366ACB /* MacOSaiXDocument.nib in Resources */,
-				92951FEA068A7FDC00366ACB /* Preferences.nib in Resources */,
 				92951FF1068A7FE600366ACB /* Info.plist in Resources */,
-				92951FF9068A7FE900366ACB /* InfoPlist.strings in Resources */,
-				92BFFEC3079A2DD50052CC4C /* Credits.html in Resources */,
 				01AC3A3C07B0997C0025F915 /* Settings.png in Resources */,
-				92F00D0807C1B52B004F6D06 /* Update Available.nib in Resources */,
 				0127354307CD6EBB0053037A /* Defaults.plist in Resources */,
-				01FAF1D6084031C2003A2726 /* Crash Reporter.nib in Resources */,
 				016A242308D7C952009A93BF /* ZoomIn.png in Resources */,
 				016A242508D7C975009A93BF /* ZoomOut.png in Resources */,
 				016A248208D7D8E2009A93BF /* HandPicked.png in Resources */,
 				010D20B60902C01700950013 /* Kiosk Setup.nib in Resources */,
 				010D20B70902C01700950013 /* Kiosk.nib in Resources */,
 				010D20BA0902C01700950013 /* Screen Setup.nib in Resources */,
-				926612A4090C4F150015BD9E /* Localized.strings in Resources */,
 				92EABC240954D25D007A9EB3 /* Tiles Setup.tiff in Resources */,
 				9288242A0982C00E00181817 /* FullScreen.tiff in Resources */,
 				9298FBA30982DB9400E7A096 /* Full Screen.nib in Resources */,
-				01DDF78709932AAD00A4125E /* Export1.html in Resources */,
-				01DDF78809932AAD00A4125E /* Export2.html in Resources */,
-				01DDF78909932AAD00A4125E /* Export3.html in Resources */,
+				9298FE6309955B0E00E7A096 /* Export1.html in Resources */,
+				9298FE6409955B0E00E7A096 /* Export2.html in Resources */,
+				9298FE6509955B0E00E7A096 /* Export3.html in Resources */,
+				9298FE6B09955B2A00E7A096 /* MacOSaiXDocument.nib in Resources */,
+				9298FE6F09955B3B00E7A096 /* MainMenu.nib in Resources */,
+				9298FE7309955B6600E7A096 /* Crash Reporter.nib in Resources */,
+				9298FE7609955B7D00E7A096 /* Update Available.nib in Resources */,
+				9298FE7909955B9A00E7A096 /* Preferences.nib in Resources */,
+				9298FE8009955BB600E7A096 /* Credits.html in Resources */,
+				9298FE8109955BB600E7A096 /* InfoPlist.strings in Resources */,
+				9298FE8209955BB600E7A096 /* Localized.strings in Resources */,
+				9298FEF309955C5A00E7A096 /* Application Icon.icns in Resources */,
+				9298FEF409955C5A00E7A096 /* Document Icon.icns in Resources */,
+				9298FF1409955E1500E7A096 /* Export.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1813,6 +1830,7 @@
 				010D1F7708FF5FAD00950013 /* MacOSaiXFullScreenWindow.m in Sources */,
 				9254088D0915741F00384904 /* MacOSaiXKioskMessageView.m in Sources */,
 				92887D9D094CCC84000FA225 /* MacOSaiXPopUpImageView.m in Sources */,
+				9298FE040995592300E7A096 /* MacOSaiXExportController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1971,38 +1989,6 @@
 			name = GoogleImageSearch.gif;
 			sourceTree = "<group>";
 		};
-		01DDF78109932AAD00A4125E /* Export1.html */ = {
-			isa = PBXVariantGroup;
-			children = (
-				01DDF78209932AAD00A4125E /* English */,
-			);
-			name = Export1.html;
-			sourceTree = "<group>";
-		};
-		01DDF78309932AAD00A4125E /* Export2.html */ = {
-			isa = PBXVariantGroup;
-			children = (
-				01DDF78409932AAD00A4125E /* English */,
-			);
-			name = Export2.html;
-			sourceTree = "<group>";
-		};
-		01DDF78509932AAD00A4125E /* Export3.html */ = {
-			isa = PBXVariantGroup;
-			children = (
-				01DDF78609932AAD00A4125E /* English */,
-			);
-			name = Export3.html;
-			sourceTree = "<group>";
-		};
-		01FAF1D4084031C2003A2726 /* Crash Reporter.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				01FAF1D5084031C2003A2726 /* English */,
-			);
-			name = "Crash Reporter.nib";
-			sourceTree = "<group>";
-		};
 		9226836709267C2600BF4EF7 /* PuzzleTilesSetup.nib */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -2017,46 +2003,6 @@
 				9227FD7A07E37A340020C5F4 /* English */,
 			);
 			name = HexagonalTileShapes.nib;
-			sourceTree = "<group>";
-		};
-		926612A2090C4F150015BD9E /* Localized.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				926612A3090C4F150015BD9E /* English */,
-			);
-			name = Localized.strings;
-			sourceTree = "<group>";
-		};
-		928F725B066121A700873AE2 /* MacOSaiXDocument.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				928F725C066121A700873AE2 /* English */,
-			);
-			name = MacOSaiXDocument.nib;
-			sourceTree = "<group>";
-		};
-		928F725D066121A700873AE2 /* MainMenu.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				928F725E066121A700873AE2 /* English */,
-			);
-			name = MainMenu.nib;
-			sourceTree = "<group>";
-		};
-		928F725F066121A700873AE2 /* Preferences.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				928F7260066121A700873AE2 /* English */,
-			);
-			name = Preferences.nib;
-			sourceTree = "<group>";
-		};
-		928F726C066121AE00873AE2 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				928F726D066121AE00873AE2 /* English */,
-			);
-			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
 		928F728F0661226000873AE2 /* Glyph Image Source.nib */ = {
@@ -2115,12 +2061,100 @@
 			name = Preferences.nib;
 			sourceTree = "<group>";
 		};
-		92BFFEC1079A2DD50052CC4C /* Credits.html */ = {
+		9298FE5D09955B0E00E7A096 /* Export1.html */ = {
 			isa = PBXVariantGroup;
 			children = (
-				92BFFEC2079A2DD50052CC4C /* English */,
+				9298FE5E09955B0E00E7A096 /* English */,
+			);
+			name = Export1.html;
+			sourceTree = "<group>";
+		};
+		9298FE5F09955B0E00E7A096 /* Export2.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9298FE6009955B0E00E7A096 /* English */,
+			);
+			name = Export2.html;
+			sourceTree = "<group>";
+		};
+		9298FE6109955B0E00E7A096 /* Export3.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9298FE6209955B0E00E7A096 /* English */,
+			);
+			name = Export3.html;
+			sourceTree = "<group>";
+		};
+		9298FE6909955B2A00E7A096 /* MacOSaiXDocument.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9298FE6A09955B2A00E7A096 /* English */,
+			);
+			name = MacOSaiXDocument.nib;
+			sourceTree = "<group>";
+		};
+		9298FE6D09955B3B00E7A096 /* MainMenu.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9298FE6E09955B3B00E7A096 /* English */,
+			);
+			name = MainMenu.nib;
+			sourceTree = "<group>";
+		};
+		9298FE7109955B6600E7A096 /* Crash Reporter.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9298FE7209955B6600E7A096 /* English */,
+			);
+			name = "Crash Reporter.nib";
+			sourceTree = "<group>";
+		};
+		9298FE7409955B7D00E7A096 /* Update Available.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9298FE7509955B7D00E7A096 /* English */,
+			);
+			name = "Update Available.nib";
+			sourceTree = "<group>";
+		};
+		9298FE7709955B9A00E7A096 /* Preferences.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9298FE7809955B9A00E7A096 /* English */,
+			);
+			name = Preferences.nib;
+			sourceTree = "<group>";
+		};
+		9298FE7A09955BB600E7A096 /* Credits.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9298FE7B09955BB600E7A096 /* English */,
 			);
 			name = Credits.html;
+			sourceTree = "<group>";
+		};
+		9298FE7C09955BB600E7A096 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9298FE7D09955BB600E7A096 /* English */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		9298FE7E09955BB600E7A096 /* Localized.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9298FE7F09955BB600E7A096 /* English */,
+			);
+			name = Localized.strings;
+			sourceTree = "<group>";
+		};
+		9298FF1209955E1500E7A096 /* Export.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9298FF1309955E1500E7A096 /* English */,
+			);
+			name = Export.nib;
 			sourceTree = "<group>";
 		};
 		92E3E17007E7BF0B00E62AB8 /* iPhoto Image Source.nib */ = {
@@ -2129,14 +2163,6 @@
 				92E3E17107E7BF0B00E62AB8 /* English */,
 			);
 			name = "iPhoto Image Source.nib";
-			sourceTree = "<group>";
-		};
-		92F00D0607C1B52B004F6D06 /* Update Available.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				92F00D0707C1B52B004F6D06 /* English */,
-			);
-			name = "Update Available.nib";
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
