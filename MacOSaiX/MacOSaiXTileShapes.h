@@ -52,8 +52,12 @@
 - (id)initWithDelegate:(id)delegate;
 
 	// The view containing the editing controls.
-- (NSView *)mainView;
+- (NSView *)editorView;
+
+	// The minimum size of the editor view.
 - (NSSize)minimumSize;
+
+	// The first responder of the editor view.
 - (NSResponder *)firstResponder;
 
 - (void)editTileShapes:(id<MacOSaiXTileShapes>)tilesSetup;
