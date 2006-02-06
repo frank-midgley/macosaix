@@ -36,7 +36,7 @@
 - (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict;
 - (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict;
 
-	// An image representing this specific source (may be the same as +image)
+	// An image representing this specific source (may be the same image returned by +image)
 - (NSImage *)image;
 
 - (id)descriptor;	// either an NSString or an NSAttributedString
@@ -55,25 +55,43 @@
 	// be one of the values returned by a previous call to -nextImageAndIdentifier:.
 - (NSImage *)imageForIdentifier:(NSString *)identifier;
 
+	// This method should return a URL that points to the identified image.
+	// Return nil if there is no appropirate URL.
+- (NSURL *)urlForIdentifier:(NSString *)identifier;
+
+	// This method should return a URL that points to a web page that describes the image.
+	// Return nil if there is no appropriate URL.
+- (NSURL *)contextURLForIdentifier:(NSString *)identifier;
+
+	// This method should return a URL that points to a web page that describes the image.
+	// Return nil if there is no description currently available.
+- (NSString *)descriptionForIdentifier:(NSString *)identifier;
+
 	// This method will be called whenever the user modifies a mosaic's tiles setup or
 	// modifies the settings of this source.  The image source should set the image
 	// count back to zero and, if appropriate, start over.
 - (void)reset;
-
-// TBD: saveXML?
 
 @end
 
 
 @protocol MacOSaiXImageSourceController <NSObject>
 
-	// The view to use for editing an image source.
-- (NSView *)mainView;
+	// This method should return the view used to edit an image source.
+- (NSView *)editorView;
+
+	// This method should return the minimum size of the editor view.
 - (NSSize)minimumSize;
+
+	// This method should return the control of the editor view that should initially receive focus.
 - (NSResponder *)firstResponder;
 
+	// This method is called to allow the controller to disable the OK when appropriate.
 - (void)setOKButton:(NSButton *)button;
 
+	// This method is called whenever an image source is to be edited.  The controller 
+	// should populate its controls with the values from the image source and update the 
+	// source when the user makes changes to the controls.
 - (void)editImageSource:(id<MacOSaiXImageSource>)imageSource;
 
 @end
