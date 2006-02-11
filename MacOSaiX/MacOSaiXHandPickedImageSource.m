@@ -129,4 +129,22 @@
 }
 
 
+- (NSURL *)urlForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
+
+
+- (NSURL *)contextURLForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
+
+
+- (NSString *)descriptionForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
+
+
 @end
