@@ -205,7 +205,9 @@ static NSArray	*formatExtensions = nil;
         NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
 		
 			// Get the image in use by this tile.
-		MacOSaiXImageMatch	*match = [tile displayedImageMatch];
+		MacOSaiXImageMatch	*match = [tile userChosenImageMatch];
+		if (!match)
+			match = [tile uniqueImageMatch];
 		
 		if (match)
 		{
@@ -256,30 +258,30 @@ static NSArray	*formatExtensions = nil;
 				if (format == webPageFormat)
 				{
 					NSArray		*key = [NSArray arrayWithObjects:[match imageSource], [match imageIdentifier], nil];
-					int			tileNum = [tileKeys indexOfObject:key];
+					int			thumbnailNum = [tileKeys indexOfObject:key];
 					
-					if (tileNum == NSNotFound)
+					if (thumbnailNum == NSNotFound)
 					{
 						[tileKeys addObject:key];
-						tileNum = [tileKeys count];
+						thumbnailNum = [tileKeys count];
 						
 							// Use the URL to the image if there is one, otherwise export a medium size thumbnail.
 						NSString	*tileImageURL = [[[match imageSource] urlForIdentifier:[match imageIdentifier]] absoluteString];
 						if (tileImageURL)
 							[exportTilesHTML appendFormat:@"\t\ttiles[%d] = new tile('%@', '%@');\n", 
-								tileNum, tileImageURL, [match imageIdentifier]];
+								thumbnailNum, tileImageURL, [match imageIdentifier]];
 						else
 						{
 							NSString	*description = [[match imageSource] descriptionForIdentifier:[match imageIdentifier]];
 							if (!description)
 								description = @"No description";
-							[exportTilesHTML appendFormat:@"\t\ttiles[%d] = new tile('TileImages/%d.jpg', '%@');\n", 
-								tileNum, tileNum, [match imageIdentifier]];
+							[exportTilesHTML appendFormat:@"\t\ttiles[%d] = new tile('Thumbnails/%d.jpg', '%@');\n", 
+								thumbnailNum, thumbnailNum, description];
 							
 							if (!tileImagesPath)
 							{
 								tileImagesPath = [[[filename stringByDeletingLastPathComponent] 
-																stringByAppendingPathComponent:@"TileImages"] retain];
+																stringByAppendingPathComponent:@"Thumbnails"] retain];
 								[[NSFileManager defaultManager] createDirectoryAtPath:tileImagesPath attributes:nil];
 							}
 							
@@ -292,16 +294,18 @@ static NSArray	*formatExtensions = nil;
 														  forIdentifier:[match imageIdentifier] 
 															 fromSource:[match imageSource]];
 							NSData	*bitmapData = [(NSBitmapImageRep *)pixletImageRep representationUsingType:NSJPEGFileType properties:nil];
-							[bitmapData writeToFile:[NSString stringWithFormat:@"%@/%d.jpg", tileImagesPath, tileNum] 
+							[bitmapData writeToFile:[NSString stringWithFormat:@"%@/%d.jpg", tileImagesPath, thumbnailNum] 
 										 atomically:NO];
 						}
 					}
+					else
+						thumbnailNum++;
 					
 					[exportAreasHTML appendFormat:@"\t<area shape='rect' coords='%d,%d,%d,%d' nohref " \
 												  @"onmouseover='showTile(%d)' onmouseout='hideTile()'>\n", 
 												  (int)NSMinX(drawRect), (int)([heightField intValue] - NSMaxY(drawRect)), 
 												  (int)NSMaxX(drawRect), (int)([heightField intValue] - NSMinY(drawRect)), 
-												  tileNum];
+												  thumbnailNum];
 				}
 			NS_HANDLER
 				NSLog(@"Exception during export: %@", localException);
