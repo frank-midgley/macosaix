@@ -466,7 +466,7 @@ int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
 }
 
 
-- (NSString *)descriptor
+- (id)descriptor
 {
     return queryString;
 }
