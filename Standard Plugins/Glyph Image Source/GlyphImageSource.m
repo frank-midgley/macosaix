@@ -207,7 +207,7 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
-- (NSString *)descriptor
+- (id)descriptor
 {
     return @"Random glyphs";
 }
@@ -380,7 +380,7 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
-- (NSImage *)imageForIdentifier:(id)identifier
+- (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 	NSImage	*image = nil;
 	NSArray	*fontNameAndNumbers = [identifier componentsSeparatedByString:@"\t"];
@@ -621,6 +621,24 @@ static NSImage	*glyphSourceImage = nil;
 {
 	return imageCountLimit;
 }
+
+
+- (NSURL *)urlForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
+
+
+- (NSURL *)contextURLForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
+
+
+- (NSString *)descriptionForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
 
 
 - (void)reset

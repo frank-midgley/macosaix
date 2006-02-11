@@ -252,7 +252,7 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 
 
 	// return the text to be displayed in the list of image sources
-- (NSString *)descriptor
+- (id)descriptor
 {
     return moviePath ? [[moviePath lastPathComponent] stringByDeletingPathExtension] : 
 					   @"No movie has been specified";
@@ -371,6 +371,24 @@ static NSRecursiveLock  *sQuickTimeLock = nil;
 	
 	[[self class] unlockQuickTime];
 }
+
+
+- (NSURL *)urlForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
+
+
+- (NSURL *)contextURLForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
+
+
+- (NSString *)descriptionForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
 
 
 - (void)reset

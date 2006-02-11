@@ -665,7 +665,7 @@ int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
 }
 
 
-- (NSString *)descriptor
+- (id)descriptor
 {
     return descriptor;
 }
@@ -776,6 +776,24 @@ int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
 	
     return image;
 }
+
+
+- (NSURL *)urlForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
+
+
+- (NSURL *)contextURLForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
+
+
+- (NSString *)descriptionForIdentifier:(NSString *)identifier
+{
+	return nil;
+}	
 
 
 - (void)dealloc
