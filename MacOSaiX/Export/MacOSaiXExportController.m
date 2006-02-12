@@ -285,6 +285,19 @@ static NSArray	*formatExtensions = nil;
 								[[NSFileManager defaultManager] createDirectoryAtPath:tileImagesPath attributes:nil];
 							}
 							
+#if 1
+							NSImage	*thumbnailImage = [[match imageSource] imageForIdentifier:[match imageIdentifier]];
+							NSSize	newSize = [thumbnailImage size];
+							if (newSize.width > newSize.height)
+								newSize = NSMakeSize(200.0, newSize.height * 200.0 / newSize.width);
+							else
+								newSize = NSMakeSize(newSize.width * 200.0 / newSize.height, 200.0);
+							[thumbnailImage setScalesWhenResized:YES];
+							[thumbnailImage setSize:newSize];
+							[thumbnailImage lockFocus];
+								pixletImageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0.0, 0.0, newSize.width, newSize.height)] autorelease];
+							[thumbnailImage unlockFocus];
+#else
 							NSSize	newSize = [clipPath bounds].size;
 							if (newSize.width > newSize.height)
 								newSize = NSMakeSize(200.0, newSize.height * 200.0 / newSize.width);
@@ -293,6 +306,7 @@ static NSArray	*formatExtensions = nil;
 							pixletImageRep = [imageCache imageRepAtSize:newSize 
 														  forIdentifier:[match imageIdentifier] 
 															 fromSource:[match imageSource]];
+#endif
 							NSData	*bitmapData = [(NSBitmapImageRep *)pixletImageRep representationUsingType:NSJPEGFileType properties:nil];
 							[bitmapData writeToFile:[NSString stringWithFormat:@"%@/%d.jpg", tileImagesPath, thumbnailNum] 
 										 atomically:NO];
