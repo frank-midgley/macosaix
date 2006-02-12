@@ -1,20 +1,71 @@
 		
 		var timer = null;
 		
-		function showTile(tileNum)
+		function showTile(event, tileNum)
 		{
 			if (timer != null)
 			{
 				clearTimeout(timer);
 				timer = null;
 			}
+			
+				// Populate the pop-up.
 			document.detailImg.src = tiles[tileNum].url;
-			detailDiv = document.getElementById("detailDiv");
-			detailDiv.style.left = (event.clientX + 5) + "px";
-			detailDiv.style.top = (event.clientY + 5) + "px";
-			detailDiv.style.visibility = 'visible';
 			detailText = document.getElementById("detailText");
 			detailText.innerHTML = tiles[tileNum].comment;
+			
+				// Position the pop-up.
+			detailDiv = document.getElementById("detailDiv");
+			var xPos = 0;
+			var yPos = 0;
+			if (event.pageX || event.pageY)
+			{
+				xPos = event.pageX;
+				yPos = event.pageY;
+			}
+			else if (event.clientX || event.clientY)
+			{
+				xPos = event.clientX + document.body.scrollLeft;
+				yPos = event.clientY + document.body.scrollTop;
+			}
+			if (self.innerWidth)
+			{
+				frameWidth = self.innerWidth;
+				frameHeight = self.innerHeight;
+			}
+			else if (document.documentElement && document.documentElement.clientWidth)
+			{
+				frameWidth = document.documentElement.clientWidth;
+				frameHeight = document.documentElement.clientHeight;
+			}
+			else if (document.body)
+			{
+				frameWidth = document.body.clientWidth;
+				frameHeight = document.body.clientHeight;
+			}
+			if (xPos < frameWidth / 2.0)
+			{
+				detailDiv.style.left = (xPos + 10) + 'px';
+				detailDiv.style.right = 'auto';
+			}
+			else
+			{
+				detailDiv.style.left = 'auto';
+				detailDiv.style.right = (frameWidth - xPos + 10) + 'px';
+			}
+			if (yPos < frameHeight / 2.0)
+			{
+				detailDiv.style.top = (yPos + 10) + 'px';
+				detailDiv.style.bottom = 'auto';
+			}
+			else
+			{
+				detailDiv.style.top = 'auto';
+				detailDiv.style.bottom = (frameHeight - yPos + 10) + 'px';
+			}
+			
+				// Show the pop-up.
+			detailDiv.style.visibility = 'visible';
 			return true;
 		}
 		function hideTile()
@@ -26,6 +77,8 @@
 		{
 			detailDiv = document.getElementById("detailDiv");
 			detailDiv.style.visibility = 'hidden';
+			document.detailImg.src = '';
+			detailText.innerHTML = '';
 			return true;
 		}
 	</script>
