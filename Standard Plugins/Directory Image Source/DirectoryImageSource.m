@@ -318,10 +318,13 @@
 	if (MDItemCreate)
 	{
 		MDItemRef	itemRef = MDItemCreate(kCFAllocatorDefault, (CFStringRef)fullPath);
-		CFTypeRef	valueRef = MDItemCopyAttribute(itemRef, kMDItemFinderComment);
-		
-		description = [(id)valueRef autorelease];
-		CFRelease(itemRef);
+		if (itemRef)
+		{
+			CFTypeRef	valueRef = MDItemCopyAttribute(itemRef, kMDItemFinderComment);
+			
+			description = [(id)valueRef autorelease];
+			CFRelease(itemRef);
+		}
 	}
 	
 	if (!description)
