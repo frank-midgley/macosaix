@@ -64,6 +64,9 @@
 		9227FD7B07E37A340020C5F4 /* HexagonalTileShapes.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9227FD7907E37A340020C5F4 /* HexagonalTileShapes.nib */; };
 		923384DC072180700010BE04 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
 		923384DD072180700010BE04 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
+		924E805D099E8C0D006977E3 /* MacOSaiXTilesSetupController.h in Headers */ = {isa = PBXBuildFile; fileRef = 924E805B099E8C0D006977E3 /* MacOSaiXTilesSetupController.h */; };
+		924E805E099E8C0D006977E3 /* MacOSaiXTilesSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 924E805C099E8C0D006977E3 /* MacOSaiXTilesSetupController.m */; };
+		924E807E099E9022006977E3 /* Tiles Setup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 924E807C099E9022006977E3 /* Tiles Setup.nib */; };
 		9254088C0915741F00384904 /* MacOSaiXKioskMessageView.h in Headers */ = {isa = PBXBuildFile; fileRef = 9254088A0915741F00384904 /* MacOSaiXKioskMessageView.h */; };
 		9254088D0915741F00384904 /* MacOSaiXKioskMessageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */; };
 		925FE5C407EBDAB200B0D002 /* Glyph Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 928489E506611CE6003B3514 /* Glyph Image Source.plugin */; };
@@ -448,6 +451,9 @@
 		9227FD7007E37A240020C5F4 /* HexagonalTileShapesEditor.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = HexagonalTileShapesEditor.m; path = "Standard Plugins/Hexaganol Tiles Setup/HexagonalTileShapesEditor.m"; sourceTree = "<group>"; };
 		9227FD7A07E37A340020C5F4 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Hexaganol Tiles Setup/English.lproj/HexagonalTileShapes.nib"; sourceTree = "<group>"; };
 		923384DB072180700010BE04 /* MacOSaiXImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageSource.h; sourceTree = "<group>"; };
+		924E805B099E8C0D006977E3 /* MacOSaiXTilesSetupController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXTilesSetupController.h; sourceTree = "<group>"; };
+		924E805C099E8C0D006977E3 /* MacOSaiXTilesSetupController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXTilesSetupController.m; sourceTree = "<group>"; };
+		924E807D099E9022006977E3 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Tiles Setup.nib"; sourceTree = "<group>"; };
 		9254088A0915741F00384904 /* MacOSaiXKioskMessageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXKioskMessageView.h; sourceTree = "<group>"; };
 		9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXKioskMessageView.m; sourceTree = "<group>"; };
 		928489A306611CE6003B3514 /* MacOSaiX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacOSaiX.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -800,6 +806,7 @@
 				F5666CCAC5B062B401D943E0 /* MacOSaiX.m */,
 				010D208D0902BF0600950013 /* Document */,
 				92DCA54D08F871A100B40FA6 /* Common */,
+				924E8058099E8BD1006977E3 /* Tiles Setup */,
 				9298FE0A0995594700E7A096 /* Export */,
 				928824890982D05400181817 /* Full Screen Window */,
 				01AB92ED07DB797E00DB4B86 /* Cocoa Extensions */,
@@ -840,7 +847,6 @@
 				92F00CC907C1AA31004F6D06 /* Third Party Code */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 				F54D1108020F41F001000116 /* To Do */,
-				9298FF1209955E1500E7A096 /* Export.nib */,
 			);
 			name = MacOSaiX;
 			sourceTree = "<group>";
@@ -854,6 +860,16 @@
 				92F2B1EC048027FA0000011E /* QuickTime.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		924E8058099E8BD1006977E3 /* Tiles Setup */ = {
+			isa = PBXGroup;
+			children = (
+				924E805B099E8C0D006977E3 /* MacOSaiXTilesSetupController.h */,
+				924E805C099E8C0D006977E3 /* MacOSaiXTilesSetupController.m */,
+				924E807C099E9022006977E3 /* Tiles Setup.nib */,
+			);
+			path = "Tiles Setup";
 			sourceTree = "<group>";
 		};
 		927FA75B03FA35EE000A0D3F /* Rectangular */ = {
@@ -958,6 +974,7 @@
 			children = (
 				9298FE010995592300E7A096 /* MacOSaiXExportController.h */,
 				9298FE020995592300E7A096 /* MacOSaiXExportController.m */,
+				9298FF1209955E1500E7A096 /* Export.nib */,
 				9298FE5D09955B0E00E7A096 /* Export1.html */,
 				9298FE5F09955B0E00E7A096 /* Export2.html */,
 				9298FE6109955B0E00E7A096 /* Export3.html */,
@@ -1107,6 +1124,7 @@
 				92887D9C094CCC83000FA225 /* MacOSaiXPopUpImageView.h in Headers */,
 				01A94F78097050DB00EF07B6 /* MacOSaiXPreferencesController.h in Headers */,
 				9298FE030995592300E7A096 /* MacOSaiXExportController.h in Headers */,
+				924E805D099E8C0D006977E3 /* MacOSaiXTilesSetupController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1680,6 +1698,7 @@
 				9298FEF309955C5A00E7A096 /* Application Icon.icns in Resources */,
 				9298FEF409955C5A00E7A096 /* Document Icon.icns in Resources */,
 				9298FF1409955E1500E7A096 /* Export.nib in Resources */,
+				924E807E099E9022006977E3 /* Tiles Setup.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1831,6 +1850,7 @@
 				9254088D0915741F00384904 /* MacOSaiXKioskMessageView.m in Sources */,
 				92887D9D094CCC84000FA225 /* MacOSaiXPopUpImageView.m in Sources */,
 				9298FE040995592300E7A096 /* MacOSaiXExportController.m in Sources */,
+				924E805E099E8C0D006977E3 /* MacOSaiXTilesSetupController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2005,6 +2025,14 @@
 			name = HexagonalTileShapes.nib;
 			sourceTree = "<group>";
 		};
+		924E807C099E9022006977E3 /* Tiles Setup.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				924E807D099E9022006977E3 /* English */,
+			);
+			name = "Tiles Setup.nib";
+			sourceTree = "<group>";
+		};
 		928F728F0661226000873AE2 /* Glyph Image Source.nib */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -2155,6 +2183,7 @@
 				9298FF1309955E1500E7A096 /* English */,
 			);
 			name = Export.nib;
+			path = ../..;
 			sourceTree = "<group>";
 		};
 		92E3E17007E7BF0B00E62AB8 /* iPhoto Image Source.nib */ = {

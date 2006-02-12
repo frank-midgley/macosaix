@@ -162,8 +162,6 @@
 		}
 	}
 	
-	[tileShapesBox setContentViewMargins:NSMakeSize(16.0, 16.0)];
-	
 	[mosaicView setMosaic:[self mosaic]];
 	[self setViewOriginalImage:self];
 	
@@ -493,234 +491,13 @@
 
 - (IBAction)setupTiles:(id)sender
 {
-		// Populate the tile shapes pop-up with the names of the currently available plug-ins.
-	[(MacOSaiX *)[NSApp delegate] discoverPlugIns];
-	NSEnumerator	*enumerator = [[(MacOSaiX *)[NSApp delegate] tileShapesClasses] objectEnumerator];
-	Class			tileShapesClass = nil;
-	int				currentlyUsedClassIndex = -1;
-	float			maxWidth = 0.0;
-	NSString		*titleFormat = @"%@ Tile Shapes";
-	[tileShapesPopUpButton removeAllItems];
-	while (tileShapesClass = [enumerator nextObject])
-	{
-		NSString		*title = [NSString stringWithFormat:titleFormat, [tileShapesClass name]];
-		NSMenuItem		*newItem = [[[NSMenuItem alloc] initWithTitle:title action:nil keyEquivalent:@""] autorelease];
-		[newItem setRepresentedObject:tileShapesClass];
-		NSImage			*image = [[[tileShapesClass image] copy] autorelease];
-		[image setScalesWhenResized:YES];
-		[image setSize:NSMakeSize(16.0, 16.0)];
-		[newItem setImage:image];
-		[[tileShapesPopUpButton menu] addItem:newItem];
-		
-		[tileShapesPopUpButton selectItem:newItem];
-		[tileShapesPopUpButton sizeToFit];
-		maxWidth = MAX(maxWidth, [tileShapesPopUpButton frame].size.width);
-		
-		if ([[[self mosaic] tileShapes] isKindOfClass:tileShapesClass])
-			currentlyUsedClassIndex = [tileShapesPopUpButton numberOfItems] - 1;
-	}
-	[tileShapesPopUpButton setFrameSize:NSMakeSize(maxWidth, [tileShapesPopUpButton frame].size.height)];
-	[tileShapesPopUpButton selectItemAtIndex:currentlyUsedClassIndex];
+	if (!tilesSetupController)
+		tilesSetupController = [[MacOSaiXTilesSetupController alloc] initWithWindow:nil];
 	
-		// Populate the GUI with the current shape settings.
-	[self setTileShapesPlugIn:self];
-	
-		// Set the image use count and reuse distance pop-ups.
-	int				popUpIndex = [imageUseCountPopUpButton indexOfItemWithTag:[[self mosaic] imageUseCount]];
-	[imageUseCountPopUpButton selectItemAtIndex:popUpIndex];
-	popUpIndex = [imageReuseDistancePopUpButton indexOfItemWithTag:[[self mosaic] imageReuseDistance]];
-	[imageReuseDistancePopUpButton selectItemAtIndex:popUpIndex];
-	popUpIndex = [imageCropLimitPopUpButton indexOfItemWithTag:[[self mosaic] imageCropLimit]];
-	[imageCropLimitPopUpButton selectItemAtIndex:popUpIndex];
-	
-		// Present a sheet to let the user modify the shape settings.
-	[NSApp beginSheet:setupTilesPanel 
-	   modalForWindow:[self window]
-		modalDelegate:self 
-	   didEndSelector:@selector(setupTilesDidEnd:returnCode:contextInfo:) 
-		  contextInfo:nil];
-}
-
-
-- (void)updateTileShapesPreview
-{
-	NSBezierPath	*previewPath = [tileShapesEditor previewPath];
-	NSImage			*previewImage = nil;
-	NSRect			previewPathBounds = [previewPath bounds];
-	
-	if (previewPath && NSWidth(previewPathBounds) > 0 && NSHeight(previewPathBounds) > 0)
-	{
-			// Scale the path to the image size.
-		NSSize				previewSize = (NSWidth(previewPathBounds) > NSHeight(previewPathBounds) ? 
-												NSMakeSize(96.0, 96.0 * NSHeight(previewPathBounds) / NSWidth(previewPathBounds)) : 
-												NSMakeSize(96.0 * NSWidth(previewPathBounds) / NSHeight(previewPathBounds), 96.0));
-		NSAffineTransform	*transform = [NSAffineTransform transform];
-		[transform scaleBy:96.0 / MAX(NSWidth(previewPathBounds), NSHeight(previewPathBounds))];
-		[transform translateXBy:-NSMinX(previewPathBounds) yBy:-NSMinY(previewPathBounds)];
-		[previewPath transformUsingAffineTransform:transform];
-		
-		[previewPath setLineWidth:2.0];
-		
-			// Create the preview image
-		previewImage = [[NSImage alloc] initWithSize:NSMakeSize(previewSize.width + 4.0, 
-																previewSize.height + 4.0)];
-		[previewImage lockFocus];
-			[[NSColor clearColor] set];
-			NSRectFill(NSMakeRect(0.0, 0.0, previewSize.width, previewSize.height));
-			
-				// Draw the shadow.
-			[[NSColor colorWithCalibratedWhite:0.0 alpha:0.25] set];
-			transform = [NSAffineTransform transform];
-			[transform translateXBy:3.0 yBy:1.0];
-			[[transform transformBezierPath:previewPath] stroke];
-			[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
-			transform = [NSAffineTransform transform];
-			[transform translateXBy:2.0 yBy:2.0];
-			[[transform transformBezierPath:previewPath] stroke];
-			
-				// Draw the path.
-			transform = [NSAffineTransform transform];
-			[transform translateXBy:1.0 yBy:3.0];
-			[[NSColor whiteColor] set];
-			[[transform transformBezierPath:previewPath] fill];
-			[[NSColor blackColor] set];
-			[[transform transformBezierPath:previewPath] stroke];
-		[previewImage unlockFocus];
-	}
-	
-//	static			count = 0;
-//	[[previewImage TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0]
-//		writeToFile:[NSString stringWithFormat:@"/Users/fmidgley/Desktop/Puzzle%3d.tiff", count++] atomically:NO];
-	
-	[tileShapesPreviewImageView setImage:previewImage];
-	[previewImage release];
-}
-
-
-- (IBAction)setTileShapesPlugIn:(id)sender
-{
-	Class			tileShapesClass = [[tileShapesPopUpButton selectedItem] representedObject],
-					tileShapesEditorClass = [tileShapesClass editorClass];
-	
-	if (tileShapesEditorClass)
-	{
-			// Release any previous editor and create a new one using the selected class.
-		[tileShapesEditor release];
-		tileShapesEditor = [[tileShapesEditorClass alloc] initWithDelegate:self];
-		
-		[self updateTileShapesPreview];
-	
-			// Swap in the view of the new editor.  Make sure the panel is big enough to contain the view's minimum size.
-		float	widthDiff = MAX(0.0, [tileShapesEditor minimumSize].width - [[tileShapesBox contentView] frame].size.width),
-				heightDiff = MAX(0.0, [tileShapesEditor minimumSize].height - [[tileShapesBox contentView] frame].size.height);
-		[[tileShapesEditor editorView] setFrame:[[tileShapesBox contentView] frame]];
-		[[tileShapesEditor editorView] setAutoresizingMask:[[tileShapesBox contentView] autoresizingMask]];
-		[tileShapesBox setContentView:[[[NSView alloc] initWithFrame:NSZeroRect] autorelease]];
-		NSRect	frame = [setupTilesPanel frame];
-		frame.origin.y -= heightDiff;
-		frame.size.width += widthDiff;
-		frame.size.height += heightDiff;
-		[setupTilesPanel setFrame:frame display:YES animate:YES];
-		[tileShapesBox setContentView:[tileShapesEditor editorView]];
-		
-			// Re-establish the key view loop:
-			// 1. Focus on the editor view's first responder.
-			// 2. Set the next key view of the last view in the editor's loop to the cancel button.
-			// 3. Set the next key view of the OK button to the first view in the editor's loop.
-		[setupTilesPanel setInitialFirstResponder:(NSView *)[tileShapesEditor firstResponder]];
-		NSView	*lastKeyView = (NSView *)[tileShapesEditor firstResponder];
-		while ([lastKeyView nextKeyView] && 
-				[[lastKeyView nextKeyView] isDescendantOf:[tileShapesEditor editorView]] &&
-				[lastKeyView nextKeyView] != [tileShapesEditor firstResponder])
-			lastKeyView = [lastKeyView nextKeyView];
-		[lastKeyView setNextKeyView:cancelTilesSetupButton];
-		[tileShapesPopUpButton setNextKeyView:(NSView *)[tileShapesEditor firstResponder]];
-		
-			// Get the existing tile shapes from our mosaic.
-			// If they are not of the class the user just chose then create a new one with default settings.
-		if ([[[self mosaic] tileShapes] class] == tileShapesClass)
-			tileShapesBeingEdited = [[[self mosaic] tileShapes] copyWithZone:[self zone]];
-		else
-			tileShapesBeingEdited = [[tileShapesClass alloc] init];
-		
-		[tileShapesEditor editTileShapes:tileShapesBeingEdited];
-	}
-	else
-	{
-		NSTextField	*errorView = [[[NSTextField alloc] initWithFrame:[[tileShapesBox contentView] frame]] autorelease];
-		
-		[errorView setStringValue:@"Could not load the plug-in"];
-		[errorView setEditable:NO];
-	}
-}
-
-
-- (void)tileShapesWereEdited
-{
-	int		tileCount = [tileShapesEditor tileCount];
-	
-	if (tileCount > 0)
-		[tileShapesCountField setIntValue:tileCount];
-	else
-		[tileShapesCountField setStringValue:@"Unknown"];
-	
-	NSSize	tileUnitSize = [[self mosaic] averageUnitTileSize],
-			originalSize = [[[self mosaic] originalImage] size];
-	float	aspectRatio = (tileUnitSize.width * originalSize.width) / 
-						  (tileUnitSize.height * originalSize.height);
-	[tileShapesAverageSizeField setStringValue:[NSString stringWithAspectRatio:aspectRatio]];
-
-	[self updateTileShapesPreview];
-}
-
-
-- (IBAction)setImageUseCount:(id)sender
-{
-	[[self mosaic] setImageUseCount:[[imageUseCountPopUpButton selectedItem] tag]];
-}
-
-
-- (IBAction)setImageReuseDistance:(id)sender
-{
-	[[self mosaic] setImageReuseDistance:[[imageReuseDistancePopUpButton selectedItem] tag]];
-}
-
-
-- (IBAction)setImageCropLimit:(id)sender
-{
-	[[self mosaic] setImageCropLimit:[[imageCropLimitPopUpButton selectedItem] tag]];
-}
-
-
-- (IBAction)cancelSetupTiles:(id)sender
-{
-	[NSApp endSheet:setupTilesPanel returnCode:NSCancelButton];
-}
-
-
-- (IBAction)okSetupTiles:(id)sender;
-{
-	[NSApp endSheet:setupTilesPanel returnCode:NSOKButton];
-}
-
-
-- (void)setupTilesDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
-{
-	[tileShapesEditor editingComplete];
-	
-	[sheet orderOut:self];
-	
-	if (returnCode == NSOKButton)
-	{
-		[[NSUserDefaults standardUserDefaults] setObject:NSStringFromClass([tileShapesBeingEdited class])
-												  forKey:@"Last Chosen Tile Shapes Class"];
-		[[self mosaic] setTileShapes:tileShapesBeingEdited creatingTiles:YES];
-	}
-	
-	[tileShapesBeingEdited release];
-	tileShapesBeingEdited = nil;
-	
-	[tileShapesBox setContentView:[[[NSView alloc] initWithFrame:NSZeroRect] autorelease]];
+	[tilesSetupController setupTilesForMosaic:[self mosaic] 
+							   modalForWindow:[self window] 
+								modalDelegate:nil 
+							   didEndSelector:nil];
 }
 
 
@@ -1666,16 +1443,6 @@
 		proposedFrameSize.height += diff.height;
 		proposedFrameSize.width += diff.width;
 	}
-	else if (resizingWindow == setupTilesPanel)
-	{
-		NSSize	panelSize = [setupTilesPanel frame].size,
-				editorBoxSize = [[tileShapesBox contentView] frame].size;
-		float	minWidth = (panelSize.width - editorBoxSize.width) + [tileShapesEditor minimumSize].width,
-				minHeight = (panelSize.height - editorBoxSize.height) + [tileShapesEditor minimumSize].height;
-		
-		proposedFrameSize.width = MAX(proposedFrameSize.width, minWidth);
-		proposedFrameSize.height = MAX(proposedFrameSize.height, minHeight);
-	}
 	else if (resizingWindow == imageSourceEditorPanel)
 	{
 		NSSize	panelSize = [imageSourceEditorPanel frame].size,
@@ -1934,15 +1701,11 @@
     [viewToolbarMenuItem release];
     [tileImages release];
     
-	[tileShapesEditor release];
-	[tileShapesBeingEdited release];
+	[tilesSetupController release];
 	
 	if ([fadeTimer isValid])
 		[fadeTimer invalidate];
 	[fadeTimer release];
-	
-		// We are responsible for releasing any top-level objects in the nib file that we opened.
-	// ???
 	
     [super dealloc];
 }

@@ -6,6 +6,7 @@
 #import "MacOSaiXTileShapes.h"
 #import "MacOSaiXPopUpImageView.h"
 #import "MacOSaiXDocument.h"
+#import "MacOSaiXTilesSetupController.h"
 
 
 @interface MacOSaiXWindowController : NSWindowController 
@@ -31,26 +32,13 @@
 	IBOutlet NSView						*openOriginalAccessoryView;
 	MacOSaiXPopUpImageView				*originalImagePopUpView;
 	
+	MacOSaiXTilesSetupController		*tilesSetupController;
+	
 		// Image Sources
     IBOutlet NSDrawer					*imageSourcesDrawer;
 	IBOutlet NSTableView				*imageSourcesTableView;
 	IBOutlet NSPopUpButton				*imageSourcesPopUpButton;
 	IBOutlet NSButton					*imageSourcesRemoveButton;
-	
-		// Tiles setup
-	IBOutlet NSPanel					*setupTilesPanel;
-	IBOutlet NSPopUpButton				*tileShapesPopUpButton;
-	IBOutlet NSBox						*tileShapesBox;
-	IBOutlet NSImageView				*tileShapesPreviewImageView;
-	id<MacOSaiXTileShapesEditor>		tileShapesEditor;
-	id<MacOSaiXTileShapes>				tileShapesBeingEdited;
-	IBOutlet NSTextField				*tileShapesCountField,
-										*tileShapesAverageSizeField;
-	IBOutlet NSPopUpButton				*imageUseCountPopUpButton,
-										*imageReuseDistancePopUpButton,
-										*imageCropLimitPopUpButton;
-	IBOutlet NSButton					*cancelTilesSetupButton,
-										*okTilesSetupButton;
 	
 		// Image source editor
 	IBOutlet NSPanel					*imageSourceEditorPanel;
@@ -124,14 +112,6 @@
 	// Image sources drawer
 - (IBAction)addNewImageSource:(id)sender;
 - (IBAction)removeImageSource:(id)sender;
-
-	// Setup tiles
-- (IBAction)setTileShapesPlugIn:(id)sender;
-- (IBAction)setImageUseCount:(id)sender;
-- (IBAction)setImageReuseDistance:(id)sender;
-- (IBAction)setImageCropLimit:(id)sender;
-- (IBAction)cancelSetupTiles:(id)sender;
-- (IBAction)okSetupTiles:(id)sender;
 
 	// Image source editor
 - (IBAction)saveImageSource:(id)sender;

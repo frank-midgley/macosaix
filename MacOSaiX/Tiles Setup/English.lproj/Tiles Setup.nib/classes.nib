@@ -1,0 +1,36 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {
+                cancel = id; 
+                ok = id; 
+                setImageCropLimit = id; 
+                setImageCropLimitEnabled = id; 
+                setImageReuseDistance = id; 
+                setImageUseCount = id; 
+                setPlugIn = id; 
+            }; 
+            CLASS = MacOSaiXTilesSetupController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                averageSizeField = NSTextField; 
+                cancelButton = NSButton; 
+                countField = NSTextField; 
+                delegate = id; 
+                editor = id; 
+                editorBox = NSBox; 
+                imageCropEnabledButton = NSButton; 
+                imageCropLimitPopUp = NSPopUpButton; 
+                imageReuseDistancePopUp = NSPopUpButton; 
+                imageUseCountPopUp = NSPopUpButton; 
+                okButton = NSButton; 
+                plugInsPopUp = NSPopUpButton; 
+                previewImageView = NSImageView; 
+                tileShapesBeingEdited = id; 
+            }; 
+            SUPERCLASS = NSWindowController; 
+        }
+    ); 
+    IBVersion = 1; 
+}
