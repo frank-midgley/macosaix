@@ -600,9 +600,10 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 				{
 					NSString	*serverID = [nodeAttributes objectForKey:@"server"], 
 								*photoID = [nodeAttributes objectForKey:@"id"], 
-								*secret = [nodeAttributes objectForKey:@"secret"];
+								*secret = [nodeAttributes objectForKey:@"secret"], 
+								*owner = [nodeAttributes objectForKey:@"owner"];
 					
-					newObject = [[NSString stringWithFormat:@"%@\t%@\t%@", serverID, photoID, secret] retain];
+					newObject = [[NSString stringWithFormat:@"%@\t%@\t%@\t%@", serverID, photoID, secret, owner] retain];
 				}
 			}
 				
@@ -700,7 +701,19 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (NSURL *)contextURLForIdentifier:(NSString *)identifier
 {
-	return nil;
+	NSURL		*contextURL = nil;
+	NSArray		*identifierComponents = [identifier componentsSeparatedByString:@"\t"];
+	
+	if ([identifierComponents count] > 3)
+	{
+		NSString	*photoID = [identifierComponents objectAtIndex:1],
+					*owner = [identifierComponents objectAtIndex:3];
+	
+		contextURL = [NSURL URLWithString:[NSString stringWithFormat:@"http://www.flickr.com/photos/%@/%@/", 
+										  owner, photoID]];
+	}
+	
+	return contextURL;
 }	
 
 
