@@ -256,7 +256,7 @@ int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
 + (void)purgeCache
 {
 	if (sPruningCache)
-		sPurgeCache = YES;
+		sPurgeCache = YES;	// let the pruning thread handle the purge
 	else
 	{
 		[sImageCacheLock lock];
@@ -759,7 +759,7 @@ int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
 		{
 				// TODO: Try to get the higher res image from the original site and only fallback 
 				//       to Google's copy if that fails.
-			NSURL	*imageURL = [NSURL URLWithString:[NSString stringWithFormat:@"http://images.google.com%@", identifier]];
+			NSURL	*imageURL = [self urlForIdentifier:identifier];
 			NSData	*imageData = [[NSData alloc] initWithContentsOfURL:imageURL];
 			
 			if (imageData)
@@ -780,7 +780,7 @@ int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
 
 - (NSURL *)urlForIdentifier:(NSString *)identifier
 {
-	return nil;
+	return [NSURL URLWithString:[NSString stringWithFormat:@"http://images.google.com%@", identifier]];
 }	
 
 
