@@ -315,10 +315,12 @@ static NSArray	*formatExtensions = nil;
 					else
 						thumbnailNum++;
 					
-					[exportAreasHTML appendFormat:@"\t<area shape='rect' coords='%d,%d,%d,%d' nohref " \
-												  @"onmouseover='showTile(%d)' onmouseout='hideTile()'>\n", 
+					NSString	*contextURL = [[[match imageSource] contextURLForIdentifier:[match imageIdentifier]] absoluteString];
+					[exportAreasHTML appendFormat:@"\t<area shape='rect' coords='%d,%d,%d,%d' %@ " \
+												  @"onmouseover='showTile(event,%d)' onmouseout='hideTile()'>\n", 
 												  (int)NSMinX(drawRect), (int)([heightField intValue] - NSMaxY(drawRect)), 
 												  (int)NSMaxX(drawRect), (int)([heightField intValue] - NSMinY(drawRect)), 
+												  (contextURL ? [NSString stringWithFormat:@"href='%@'", contextURL] : @""),
 												  thumbnailNum];
 				}
 			NS_HANDLER
