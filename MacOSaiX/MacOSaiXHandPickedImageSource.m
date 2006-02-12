@@ -143,7 +143,24 @@
 
 - (NSString *)descriptionForIdentifier:(NSString *)identifier
 {
-	return nil;
+	NSString	*description = nil;
+	
+	if (MDItemCreate)
+	{
+		MDItemRef	itemRef = MDItemCreate(kCFAllocatorDefault, (CFStringRef)identifier);
+		if (itemRef)
+		{
+			CFTypeRef	valueRef = MDItemCopyAttribute(itemRef, kMDItemFinderComment);
+			
+			description = [(id)valueRef autorelease];
+			CFRelease(itemRef);
+		}
+	}
+	
+	if (!description)
+		description = [[NSFileManager defaultManager] displayNameAtPath:identifier];
+	
+	return description;
 }	
 
 
