@@ -328,7 +328,7 @@
 	}
 	
 	if (!description)
-		description = [[NSFileManager defaultManager] displayNameAtPath:fullPath];
+		description = [[fullPath lastPathComponent] stringByDeletingPathExtension];
 	
 	return description;
 }	
