@@ -9,6 +9,7 @@
 #import "MacOSaiXTilesSetupController.h"
 
 #import "MacOSaiX.h"
+#import "NSString+MacOSaiX.h"
 
 
 @implementation MacOSaiXTilesSetupController
@@ -77,19 +78,19 @@
 	[plugInsPopUp selectItemAtIndex:currentlyUsedClassIndex];
 	
 		// Populate the GUI with the current shape settings.
-	[self setTileShapesPlugIn:self];
+	[self setPlugIn:self];
 	
 		// Set the image use count and reuse distance pop-ups.
-	int				popUpIndex = [imageUseCountPopUpButton indexOfItemWithTag:[[self mosaic] imageUseCount]];
-	[imageUseCountPopUpButton selectItemAtIndex:popUpIndex];
-	popUpIndex = [imageReuseDistancePopUpButton indexOfItemWithTag:[[self mosaic] imageReuseDistance]];
-	[imageReuseDistancePopUpButton selectItemAtIndex:popUpIndex];
-	popUpIndex = [imageCropLimitPopUpButton indexOfItemWithTag:[[self mosaic] imageCropLimit]];
-	[imageCropLimitPopUpButton selectItemAtIndex:popUpIndex];
+	int				popUpIndex = [imageUseCountPopUp indexOfItemWithTag:[[self mosaic] imageUseCount]];
+	[imageUseCountPopUp selectItemAtIndex:popUpIndex];
+	popUpIndex = [imageReuseDistancePopUp indexOfItemWithTag:[[self mosaic] imageReuseDistance]];
+	[imageReuseDistancePopUp selectItemAtIndex:popUpIndex];
+	popUpIndex = [imageCropLimitPopUp indexOfItemWithTag:[[self mosaic] imageCropLimit]];
+	[imageCropLimitPopUp selectItemAtIndex:popUpIndex];
 }
 
 
-- (void)updateTileShapesPreview
+- (void)updatePreview
 {
 	NSBezierPath	*previewPath = [editor previewPath];
 	NSImage			*previewImage = nil;
@@ -180,7 +181,7 @@
 				[[lastKeyView nextKeyView] isDescendantOf:[editor editorView]] &&
 				[lastKeyView nextKeyView] != [editor firstResponder])
 			lastKeyView = [lastKeyView nextKeyView];
-		[lastKeyView setNextKeyView:cancelTilesSetupButton];
+		[lastKeyView setNextKeyView:cancelButton];
 		[plugInsPopUp setNextKeyView:(NSView *)[editor firstResponder]];
 		
 			// Get the existing tile shapes from our mosaic.
@@ -217,35 +218,35 @@
 						  (tileUnitSize.height * originalSize.height);
 	[averageSizeField setStringValue:[NSString stringWithAspectRatio:aspectRatio]];
 
-	[self updateTileShapesPreview];
+	[self updatePreview];
 }
 
 
 - (IBAction)setImageUseCount:(id)sender
 {
-	[[self mosaic] setImageUseCount:[[imageUseCountPopUpButton selectedItem] tag]];
+	[[self mosaic] setImageUseCount:[[imageUseCountPopUp selectedItem] tag]];
 }
 
 
 - (IBAction)setImageReuseDistance:(id)sender
 {
-	[[self mosaic] setImageReuseDistance:[[imageReuseDistancePopUpButton selectedItem] tag]];
+	[[self mosaic] setImageReuseDistance:[[imageReuseDistancePopUp selectedItem] tag]];
 }
 
 
 - (IBAction)setImageCropLimit:(id)sender
 {
-	[[self mosaic] setImageCropLimit:[[imageCropLimitPopUpButton selectedItem] tag]];
+	[[self mosaic] setImageCropLimit:[[imageCropLimitPopUp selectedItem] tag]];
 }
 
 
-- (IBAction)cancelSetupTiles:(id)sender
+- (IBAction)cancel:(id)sender
 {
 	[NSApp endSheet:[self window] returnCode:NSCancelButton];
 }
 
 
-- (IBAction)okSetupTiles:(id)sender;
+- (IBAction)ok:(id)sender;
 {
 	[NSApp endSheet:[self window] returnCode:NSOKButton];
 }
