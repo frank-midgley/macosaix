@@ -11,7 +11,7 @@
 #import "MacOSaiXImageCache.h"
 
 
-enum { jpegFormat, tiffFormat, webPageFormat };
+enum { jpegFormat, pngFormat, tiffFormat };
 static NSArray	*formatExtensions = nil;
 
 @implementation MacOSaiXExportController
@@ -19,7 +19,7 @@ static NSArray	*formatExtensions = nil;
 
 + (void)initialize
 {
-	formatExtensions = [[NSArray arrayWithObjects:@"jpg", @"tiff", @"html", nil] retain];
+	formatExtensions = [[NSArray arrayWithObjects:@"jpg", @"png", @"tiff", nil] retain];
 }
 
 
@@ -59,7 +59,6 @@ static NSArray	*formatExtensions = nil;
 	
 		// Set up the save panel for exporting.
     NSSavePanel	*savePanel = [NSSavePanel savePanel];
-	NSString	*extension = [formatExtensions objectAtIndex:format];
     if ([widthField intValue] == 0)
     {
 		NSSize	originalSize = [[mosaic originalImage] size];
@@ -69,17 +68,25 @@ static NSArray	*formatExtensions = nil;
 			scale = 10000.0 / originalSize.width;
 		if (originalSize.height * scale > 10000.0)
 			scale = 10000.0 / originalSize.height;
-			
-        [widthField setIntValue:(int)(originalSize.width * scale + 0.5)];
-        [heightField setIntValue:(int)(originalSize.height * scale + 0.5)];
+		
+		if ([unitsPopUp selectedTag] == 0)
+		{
+			[widthField setFloatValue:originalSize.width * scale / [resolutionPopUp selectedTag]];
+			[heightField setFloatValue:originalSize.height * scale / [resolutionPopUp selectedTag]];
+		}
+		else
+		{
+			[widthField setIntValue:(int)(originalSize.width * scale + 0.5)];
+			[heightField setIntValue:(int)(originalSize.height * scale + 0.5)];
+		}
     }
 	[savePanel setCanSelectHiddenExtension:YES];
-    [savePanel setRequiredFileType:extension];
+    [savePanel setRequiredFileType:[formatExtensions objectAtIndex:imageFormat]];
     [savePanel setAccessoryView:accessoryView];
 	
 		// Ask the user where to export the image.
-    [savePanel beginSheetForDirectory:NSHomeDirectory()
-								 file:[name stringByAppendingPathExtension:extension]
+    [savePanel beginSheetForDirectory:nil 
+								 file:[name stringByAppendingPathExtension:[formatExtensions objectAtIndex:imageFormat]]
 					   modalForWindow:window
 						modalDelegate:self
 					   didEndSelector:@selector(savePanelDidEnd:returnCode:contextInfo:)
@@ -91,7 +98,7 @@ static NSArray	*formatExtensions = nil;
 {
 	NSImage	*fadedImage = [[mosaic originalImage] copy];
 	
-// TODO:
+// TODO: need the image from the mosaic view...
 //	[fadedImage lockFocus];
 //		[[mosaicView image] drawInRect:NSMakeRect(0.0, 0.0, [fadedImage size].width, [fadedImage size].height) 
 //							  fromRect:NSZeroRect 
@@ -104,29 +111,50 @@ static NSArray	*formatExtensions = nil;
 }
 
 
-- (IBAction)setFormat:(id)sender
+- (IBAction)setImageFormat:(id)sender
 {
-    format = [formatMatrix selectedRow];
+    imageFormat = [formatMatrix selectedRow];
 	
-	if (format == webPageFormat)
+	if (!createWebPage)
+		[(NSSavePanel *)[sender window] setRequiredFileType:[formatExtensions objectAtIndex:imageFormat]];
+}
+
+
+- (IBAction)setCreateWebPage:(id)sender
+{
+	createWebPage = ([createWebPageButton state] == NSOnState);
+	
+	if (createWebPage)
 	{
-		[unitsPopUp selectItemWithTag:1];			// pixels
+		[unitsPopUp selectItemWithTag:1];		// pixels
 		[unitsPopUp setEnabled:NO];
 		[resolutionPopUp selectItemWithTag:72];	// 72 dpi
 		[resolutionPopUp setEnabled:NO];
+		[(NSSavePanel *)[sender window] setRequiredFileType:nil];
 	}
 	else
 	{
 		[unitsPopUp setEnabled:YES];
 		[resolutionPopUp setEnabled:YES];
+		[(NSSavePanel *)[sender window] setRequiredFileType:[formatExtensions objectAtIndex:imageFormat]];
 	}
 	
-    [(NSSavePanel *)[sender window] setRequiredFileType:[formatExtensions objectAtIndex:format]];
+	[self setUnits:self];
 }
 
 
 - (IBAction)setUnits:(id)sender
 {
+	if ([unitsPopUp selectedTag] == 0)
+	{
+		[[widthField formatter] setFormat:@"0.0#"];
+		[[heightField formatter] setFormat:@"0.0#"];
+	}
+	else
+	{
+		[[widthField formatter] setFormat:@"0"];
+		[[heightField formatter] setFormat:@"0"];
+	}
 }
 
 
@@ -160,6 +188,20 @@ static NSArray	*formatExtensions = nil;
 }
 
 
+- (int)exportPixelWidth
+{
+	return ([unitsPopUp selectedTag] == 0 ? [widthField floatValue] * [resolutionPopUp selectedTag] : 
+											[widthField intValue]);
+}
+
+
+- (int)exportPixelHeight
+{
+	return ([unitsPopUp selectedTag] == 0 ? [heightField floatValue] * [resolutionPopUp selectedTag] : 
+											[heightField intValue]);
+}
+
+
 - (void)exportMosaic:(NSString *)filename
 {
     NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
@@ -168,7 +210,7 @@ static NSArray	*formatExtensions = nil;
 		// Don't usurp the main thread.
 	[NSThread setThreadPriority:0.1];
 
-    NSImage		*exportImage = [[NSImage alloc] initWithSize:NSMakeSize([widthField intValue], [heightField intValue])];
+    NSImage		*exportImage = [[NSImage alloc] initWithSize:NSMakeSize([self exportPixelWidth], [self exportPixelHeight])];
 	[exportImage setCachedSeparately:YES];
 	[exportImage setCacheMode:NSImageCacheNever];
 	NS_DURING
@@ -177,7 +219,7 @@ static NSArray	*formatExtensions = nil;
 		error = [NSString stringWithFormat:@"Could not draw images into the mosaic.  (%@)", [localException reason]];
 	NS_ENDHANDLER
 	
-	NSRect		exportRect = NSMakeRect(0.0, 0.0, [widthField intValue], [heightField intValue]);
+	NSRect		exportRect = NSMakeRect(0.0, 0.0, [exportImage size].width, [exportImage size].height);
 	
 	[[mosaic originalImage] drawInRect:exportRect 
 							  fromRect:NSZeroRect 
@@ -196,8 +238,12 @@ static NSArray	*formatExtensions = nil;
 	NSMutableString		*exportTilesHTML = [NSMutableString string], 
 						*exportAreasHTML = [NSMutableString string];
 	NSMutableArray		*tileKeys = [NSMutableArray array];
-	NSString			*tileImagesPath = nil;
-	
+	if (createWebPage)
+	{
+		[[NSFileManager defaultManager] removeFileAtPath:filename handler:nil];
+		[[NSFileManager defaultManager] createDirectoryAtPath:filename attributes:nil];
+	}
+			
 	NSEnumerator		*tileEnumerator = [[mosaic tiles] objectEnumerator];
 	MacOSaiXTile		*tile = nil;
 	while (tile = [tileEnumerator nextObject])
@@ -255,7 +301,7 @@ static NSArray	*formatExtensions = nil;
 					// Clean up.
 				[NSGraphicsContext restoreGraphicsState];
 				
-				if (format == webPageFormat)
+				if (createWebPage)
 				{
 					NSArray		*key = [NSArray arrayWithObjects:[match imageSource], [match imageIdentifier], nil];
 					int			thumbnailNum = [tileKeys indexOfObject:key];
@@ -275,17 +321,9 @@ static NSArray	*formatExtensions = nil;
 							NSString	*description = [[match imageSource] descriptionForIdentifier:[match imageIdentifier]];
 							if (!description)
 								description = @"No description";
-							[exportTilesHTML appendFormat:@"\t\ttiles[%d] = new tile('Thumbnails/%d.jpg', '%@');\n", 
+							[exportTilesHTML appendFormat:@"\t\ttiles[%d] = new tile('%d.jpg', '%@');\n", 
 								thumbnailNum, thumbnailNum, description];
 							
-							if (!tileImagesPath)
-							{
-								tileImagesPath = [[[filename stringByDeletingLastPathComponent] 
-																stringByAppendingPathComponent:@"Thumbnails"] retain];
-								[[NSFileManager defaultManager] createDirectoryAtPath:tileImagesPath attributes:nil];
-							}
-							
-#if 1
 							NSImage	*thumbnailImage = [[match imageSource] imageForIdentifier:[match imageIdentifier]];
 							NSSize	newSize = [thumbnailImage size];
 							if (newSize.width > newSize.height)
@@ -297,18 +335,8 @@ static NSArray	*formatExtensions = nil;
 							[thumbnailImage lockFocus];
 								pixletImageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0.0, 0.0, newSize.width, newSize.height)] autorelease];
 							[thumbnailImage unlockFocus];
-#else
-							NSSize	newSize = [clipPath bounds].size;
-							if (newSize.width > newSize.height)
-								newSize = NSMakeSize(200.0, newSize.height * 200.0 / newSize.width);
-							else
-								newSize = NSMakeSize(newSize.width * 200.0 / newSize.height, 200.0);
-							pixletImageRep = [imageCache imageRepAtSize:newSize 
-														  forIdentifier:[match imageIdentifier] 
-															 fromSource:[match imageSource]];
-#endif
 							NSData	*bitmapData = [(NSBitmapImageRep *)pixletImageRep representationUsingType:NSJPEGFileType properties:nil];
-							[bitmapData writeToFile:[NSString stringWithFormat:@"%@/%d.jpg", tileImagesPath, thumbnailNum] 
+							[bitmapData writeToFile:[NSString stringWithFormat:@"%@/%d.jpg", filename, thumbnailNum] 
 										 atomically:NO];
 						}
 					}
@@ -344,26 +372,51 @@ static NSArray	*formatExtensions = nil;
 									     [exportImage size].height)];
 	NS_DURING
 		[exportImage unlockFocus];
-
-		NSData		*bitmapData = (format == jpegFormat || format == webPageFormat) ? 
-										[exportRep representationUsingType:NSJPEGFileType properties:nil] :
-										[exportRep TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0];
 		
-		if (format == webPageFormat)
+		if ([resolutionPopUp selectedTag] != 72)
 		{
-			NSString		*export1HTML = [[NSBundle mainBundle] pathForResource:@"Export1" ofType:@"html"];
-			NSMutableString	*exportHTML = [NSMutableString stringWithContentsOfFile:export1HTML];
+			NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
+			[exportRep TIFFRepresentation];
+			[pool2 release];
+			
+			float	scale = 72.0 / [resolutionPopUp selectedTag];
+			[exportRep setSize:NSMakeSize([exportImage size].width * scale, [exportImage size].height * scale)];
+		}
+		
+		NSBitmapImageFileType	type;
+		NSMutableDictionary		*properties = [NSMutableDictionary dictionary];
+		if (imageFormat == jpegFormat)
+			type = NSJPEGFileType;
+		else if (imageFormat == pngFormat)
+			type = NSPNGFileType;
+		else if (imageFormat == tiffFormat)
+		{
+			type = NSTIFFFileType;	// TODO: NSTIFFCompressionLZW factor 1.0
+			[properties setObject:[NSNumber numberWithInt:NSTIFFCompressionLZW] forKey:NSImageCompressionMethod];
+		}
+		
+		NSData					*bitmapData = [exportRep representationUsingType:type properties:properties];
+		
+		if (createWebPage)
+		{
+			[bitmapData writeToFile:[[filename stringByAppendingPathComponent:@"Mosaic"] 
+												stringByAppendingPathExtension:[formatExtensions objectAtIndex:imageFormat]] 
+						 atomically:NO];
+			
+			NSString		*export1HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export1" ofType:@"html"];
+			NSMutableString	*exportHTML = [NSMutableString stringWithContentsOfFile:export1HTMLPath];
 			[exportHTML appendString:exportTilesHTML];
-			NSString		*export2HTML = [[NSBundle mainBundle] pathForResource:@"Export2" ofType:@"html"];
-			[exportHTML appendString:[NSString stringWithContentsOfFile:export2HTML]];
+			NSString		*export2HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export2" ofType:@"html"];
+			NSMutableString	*export2HTML = [NSMutableString stringWithContentsOfFile:export2HTMLPath];
+			[export2HTML replaceOccurrencesOfString:@"$(FORMAT_EXTENSION)" 
+										 withString:[formatExtensions objectAtIndex:imageFormat] 
+											options:NSLiteralSearch 
+											  range:NSMakeRange(0, [export2HTML length])];
+			[exportHTML appendString:export2HTML];
 			[exportHTML appendString:exportAreasHTML];
-			NSString		*export3HTML = [[NSBundle mainBundle] pathForResource:@"Export3" ofType:@"html"];
-			[exportHTML appendString:[NSString stringWithContentsOfFile:export3HTML]];
-			[exportHTML writeToFile:filename atomically:YES];
-			[bitmapData writeToFile:[[filename stringByDeletingLastPathComponent] 
-										stringByAppendingPathComponent:@"Mosaic.jpg"] 
-						 atomically:YES];
-			[tileImagesPath release];
+			NSString		*export3HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export3" ofType:@"html"];
+			[exportHTML appendString:[NSString stringWithContentsOfFile:export3HTMLPath]];
+			[exportHTML writeToFile:[filename stringByAppendingPathComponent:@"index.html"] atomically:NO];
 		}
 		else
 			[bitmapData writeToFile:filename atomically:YES];
@@ -372,15 +425,15 @@ static NSArray	*formatExtensions = nil;
 												 [localException reason]];
 	NS_ENDHANDLER
 	
-    [pool release];
-    [exportRep release];
-    [exportImage release];
-	
 	if (!error && openImageWhenComplete)
-		[[NSWorkspace sharedWorkspace] openFile:filename];
+		[[NSWorkspace sharedWorkspace] openFile:[filename stringByAppendingPathComponent:@"index.html"]];
 	
 	if (didEndSelector)
 		[delegate performSelector:didEndSelector withObject:error];
+	
+    [pool release];
+    [exportRep release];
+    [exportImage release];
 }
 
 
@@ -418,19 +471,43 @@ static NSArray	*formatExtensions = nil;
 - (void)controlTextDidChange:(NSNotification *)notification
 {
 	NSSize	originalImageSize = [[mosaic originalImage] size];
+	float	originalAspectRatio = originalImageSize.width / originalImageSize.height, 
+			width = 0.0, 
+			height = 0.0;
 	
 	if ([notification object] == widthField)
-		[heightField setFloatValue:[widthField intValue] / originalImageSize.width * originalImageSize.height];
-	else if ([notification object] == heightField)
-		[widthField setFloatValue:[heightField intValue] / originalImageSize.height * originalImageSize.width];
+	{
+		NSString	*widthString = [[[notification userInfo] objectForKey:@"NSFieldEditor"] string];
+		if ([[widthField formatter] isPartialStringValid:widthString newEditingString:nil errorDescription:nil])
+		{
+			width = [widthString floatValue];
+			[heightField setFloatValue:width / originalAspectRatio];
+		}
+	}
+	else
+		width = [widthField floatValue];
+	
+	if ([notification object] == heightField)
+	{
+		NSString	*heightString = [[[notification userInfo] objectForKey:@"NSFieldEditor"] string];
+		if ([[heightField formatter] isPartialStringValid:heightString newEditingString:nil errorDescription:nil])
+		{
+			height = [heightString floatValue];
+			[widthField setFloatValue:height * originalAspectRatio];
+		}
+	}
+	else
+		height = [heightField floatValue];
+	
+	if ([unitsPopUp selectedTag] == 0)
+	{
+		width *= [resolutionPopUp selectedTag];
+		height *= [resolutionPopUp selectedTag];
+	}
 	
 	NSButton	*saveButton = [self bottomRightButtonInWindow:[[notification object] window]];
-	float		maxBitmapSize = ([unitsPopUp indexOfSelectedItem] == 0) ? 10000.0 / [resolutionPopUp selectedTag] : 10000.0;
-	if ([widthField floatValue] > maxBitmapSize || [heightField floatValue] > maxBitmapSize)
-	{
-		NSBeep();
+	if (width <= 0.0 || width > 10000.0 || height <= 0.0 || height >= 10000.0)
 		[saveButton setEnabled:NO];
-	}
 	else
 		[saveButton setEnabled:YES];
 }
