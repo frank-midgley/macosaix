@@ -3,8 +3,9 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
+                setCreateWebPage = id; 
                 setFade = id; 
-                setFormat = id; 
+                setImageFormat = id; 
                 setOpenImageWhenComplete = id; 
                 setResolution = id; 
                 setUnits = id; 
@@ -13,6 +14,8 @@
             LANGUAGE = ObjC; 
             OUTLETS = {
                 accessoryView = NSView; 
+                createWebPageButton = NSButton; 
+                delegate = id; 
                 fadeSlider = NSSlider; 
                 fadedImageView = NSImageView; 
                 formatMatrix = NSMatrix; 
