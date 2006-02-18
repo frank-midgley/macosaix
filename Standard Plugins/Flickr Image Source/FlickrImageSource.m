@@ -527,7 +527,7 @@ void	endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 	CFDictionaryRef			results = WSMethodInvocationInvoke(flickrInvocation);
 	
 	if (WSMethodResultIsFault(results))
-		NSLog(@"Could not talk to flickr");	//handle error
+		NSLog(@"Could not talk to flickr: %@ (Error %@)", [results objectForKey:kWSFaultString], [results objectForKey:kWSFaultCode]);	//handle error
 	else
 	{
 			// Create the parser with the option to skip whitespace.
