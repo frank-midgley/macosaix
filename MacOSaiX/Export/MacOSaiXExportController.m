@@ -311,19 +311,22 @@ static NSArray	*formatExtensions = nil;
 						[tileKeys addObject:key];
 						thumbnailNum = [tileKeys count];
 						
+						NSString	*description = [[match imageSource] descriptionForIdentifier:[match imageIdentifier]];
+						if (description)
+						{
+							description = [[description mutableCopy] autorelease];
+							[(NSMutableString *)description replaceOccurrencesOfString:@"'"
+																			withString:@"\'" 
+																			   options:NSLiteralSearch 
+																				 range:NSMakeRange(0, [description length])];
+						}
+						else
+							description = @"";
+						
 							// Use the URL to the image if there is one, otherwise export a medium size thumbnail.
 						NSString	*tileImageURL = [[[match imageSource] urlForIdentifier:[match imageIdentifier]] absoluteString];
-						if (tileImageURL)
-							[exportTilesHTML appendFormat:@"\t\ttiles[%d] = new tile('%@', '%@');\n", 
-								thumbnailNum, tileImageURL, [match imageIdentifier]];
-						else
+						if (!tileImageURL)
 						{
-							NSString	*description = [[match imageSource] descriptionForIdentifier:[match imageIdentifier]];
-							if (!description)
-								description = @"No description";
-							[exportTilesHTML appendFormat:@"\t\ttiles[%d] = new tile('%d.jpg', '%@');\n", 
-								thumbnailNum, thumbnailNum, description];
-							
 							NSImage	*thumbnailImage = [[match imageSource] imageForIdentifier:[match imageIdentifier]];
 							NSSize	newSize = [thumbnailImage size];
 							if (newSize.width > newSize.height)
@@ -338,7 +341,11 @@ static NSArray	*formatExtensions = nil;
 							NSData	*bitmapData = [(NSBitmapImageRep *)pixletImageRep representationUsingType:NSJPEGFileType properties:nil];
 							[bitmapData writeToFile:[NSString stringWithFormat:@"%@/%d.jpg", filename, thumbnailNum] 
 										 atomically:NO];
+							
+							tileImageURL = [NSString stringWithFormat:@"%d.jpg", thumbnailNum];
 						}
+						[exportTilesHTML appendFormat:@"tiles[%d] = new tile('%@', '%@');\n", 
+													  thumbnailNum, tileImageURL, description];
 					}
 					else
 						thumbnailNum++;
