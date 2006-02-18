@@ -1544,8 +1544,8 @@
 	else if ([itemIdentifier isEqualToString:@"Export Image"])
     {
 		[toolbarItem setImage:[NSImage imageNamed:@"ExportImage"]];
-		[toolbarItem setLabel:@"Export Image"];
-		[toolbarItem setPaletteLabel:@"Export Image"];
+		[toolbarItem setLabel:@"Export"];
+		[toolbarItem setPaletteLabel:@"Export"];
 		[toolbarItem setTarget:self];
 		[toolbarItem setAction:@selector(exportMosaic:)];
 		[toolbarItem setToolTip:@"Export an image of the mosaic"];
