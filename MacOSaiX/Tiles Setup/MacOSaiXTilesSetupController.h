@@ -30,8 +30,8 @@
 	
 		// Image rules
 	IBOutlet NSPopUpButton			*imageUseCountPopUp,
-									*imageReuseDistancePopUp,
-									*imageCropLimitPopUp;
+									*imageReuseDistancePopUp;
+	IBOutlet NSSlider				*imageCropLimitSlider;
 	IBOutlet NSButton				*cancelButton,
 									*okButton;
 }

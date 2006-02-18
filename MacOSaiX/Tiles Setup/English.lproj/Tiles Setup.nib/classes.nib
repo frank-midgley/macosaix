@@ -6,7 +6,6 @@
                 cancel = id; 
                 ok = id; 
                 setImageCropLimit = id; 
-                setImageCropLimitEnabled = id; 
                 setImageReuseDistance = id; 
                 setImageUseCount = id; 
                 setPlugIn = id; 
@@ -20,8 +19,7 @@
                 delegate = id; 
                 editor = id; 
                 editorBox = NSBox; 
-                imageCropEnabledButton = NSButton; 
-                imageCropLimitPopUp = NSPopUpButton; 
+                imageCropLimitSlider = NSSlider; 
                 imageReuseDistancePopUp = NSPopUpButton; 
                 imageUseCountPopUp = NSPopUpButton; 
                 okButton = NSButton; 

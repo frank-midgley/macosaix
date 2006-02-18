@@ -44,6 +44,12 @@
 }
 
 
+- (NSImage *)originalImage
+{
+	return [mosaic originalImage];
+}
+
+
 - (void)awakeFromNib
 {
 	[editorBox setContentViewMargins:NSMakeSize(16.0, 16.0)];
@@ -80,13 +86,12 @@
 		// Populate the GUI with the current shape settings.
 	[self setPlugIn:self];
 	
-		// Set the image use count and reuse distance pop-ups.
+		// Set the image rules controls.
 	int				popUpIndex = [imageUseCountPopUp indexOfItemWithTag:[[self mosaic] imageUseCount]];
 	[imageUseCountPopUp selectItemAtIndex:popUpIndex];
 	popUpIndex = [imageReuseDistancePopUp indexOfItemWithTag:[[self mosaic] imageReuseDistance]];
 	[imageReuseDistancePopUp selectItemAtIndex:popUpIndex];
-	popUpIndex = [imageCropLimitPopUp indexOfItemWithTag:[[self mosaic] imageCropLimit]];
-	[imageCropLimitPopUp selectItemAtIndex:popUpIndex];
+	[imageCropLimitSlider setIntValue:[[self mosaic] imageCropLimit]];
 }
 
 
@@ -236,7 +241,7 @@
 
 - (IBAction)setImageCropLimit:(id)sender
 {
-	[[self mosaic] setImageCropLimit:[[imageCropLimitPopUp selectedItem] tag]];
+	[[self mosaic] setImageCropLimit:[imageCropLimitSlider intValue]];
 }
 
 
@@ -252,7 +257,7 @@
 }
 
 
-- (void)setupTilesDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+- (void)tilesSetupDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
 		// Let the editor free up whatever resources it was using.
 	[editor editingComplete];
