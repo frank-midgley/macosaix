@@ -11,11 +11,19 @@
 			
 				// Populate the pop-up.
 			document.detailImg.src = tiles[tileNum].url;
-			detailText = document.getElementById("detailText");
+			var detailText = null;
+			if (document.getElementById)
+				detailText = document.getElementById('detailText');
+			else if (document.all)
+				detailText = document.all['detailText'];
 			detailText.innerHTML = tiles[tileNum].comment;
 			
 				// Position the pop-up.
-			detailDiv = document.getElementById("detailDiv");
+			var detailDiv = null;
+			if (document.getElementById != null)
+				detailDiv = document.getElementById('detailDiv');
+			if (detailDiv == null && document.all)
+				detailDiv = document.all['detailDiv'];
 			var xPos = 0;
 			var yPos = 0;
 			if (event.pageX || event.pageY)
@@ -46,7 +54,10 @@
 			if (xPos < frameWidth / 2.0)
 			{
 				detailDiv.style.left = (xPos + 10) + 'px';
-				detailDiv.style.right = 'auto';
+				if (macIE52)
+					detailDiv.style.width = '300px';
+				else
+					detailDiv.style.right = 'auto';
 			}
 			else
 			{
@@ -70,14 +81,23 @@
 		}
 		function hideTile()
 		{
-			timer = setTimeout("reallyHideTile()", 100);
+			timer = setTimeout('reallyHideTile()', 100);
 			return true;
 		}
 		function reallyHideTile()
 		{
-			detailDiv = document.getElementById("detailDiv");
+			var detailDiv = null;
+			if (document.getElementById)
+				detailDiv = document.getElementById('detailDiv');
+			else if (document.all)
+				detailDiv = document.all['detailDiv'];
 			detailDiv.style.visibility = 'hidden';
 			document.detailImg.src = '';
+			var detailText = null;
+			if (document.getElementById)
+				detailText = document.getElementById('detailText');
+			else if (document.all)
+				detailText = document.all['detailText'];
 			detailText.innerHTML = '';
 			return true;
 		}
@@ -118,5 +138,3 @@
 	<p class="detailImage"><img name="detailImg" class="detail"></p>
 	<p id="detailText" class="detailText"></p>
 </div>
-<p><img name="mosaic" src="Mosaic.$(FORMAT_EXTENSION)" usemap="#mosaic"></p>
-<map name="mosaic">
