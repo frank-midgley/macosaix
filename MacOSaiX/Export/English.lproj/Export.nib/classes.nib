@@ -6,6 +6,7 @@
                 setCreateWebPage = id; 
                 setFade = id; 
                 setImageFormat = id; 
+                setIncludeOriginalImage = id; 
                 setOpenImageWhenComplete = id; 
                 setResolution = id; 
                 setUnits = id; 
@@ -20,6 +21,7 @@
                 fadedImageView = NSImageView; 
                 formatMatrix = NSMatrix; 
                 heightField = NSTextField; 
+                includeOriginalButton = NSButton; 
                 openWhenCompleteButton = NSButton; 
                 resolutionPopUp = NSPopUpButton; 
                 unitsPopUp = NSPopUpButton; 
