@@ -62,6 +62,10 @@
 		9227FD7307E37A240020C5F4 /* HexagonalTileShapesEditor.h in Headers */ = {isa = PBXBuildFile; fileRef = 9227FD6F07E37A240020C5F4 /* HexagonalTileShapesEditor.h */; };
 		9227FD7407E37A240020C5F4 /* HexagonalTileShapesEditor.m in Sources */ = {isa = PBXBuildFile; fileRef = 9227FD7007E37A240020C5F4 /* HexagonalTileShapesEditor.m */; };
 		9227FD7B07E37A340020C5F4 /* HexagonalTileShapes.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9227FD7907E37A340020C5F4 /* HexagonalTileShapes.nib */; };
+		92319C8F09A7D5F9007CA9CD /* Export4.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319C8D09A7D5F9007CA9CD /* Export4.html */; };
+		92319CA309A7D656007CA9CD /* Export5.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319CA109A7D656007CA9CD /* Export5.html */; };
+		92319CA809A7D6AA007CA9CD /* Export3+Original.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319CA609A7D6AA007CA9CD /* Export3+Original.html */; };
+		92319CAB09A7D6C5007CA9CD /* Export3.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319CA909A7D6C5007CA9CD /* Export3.html */; };
 		923384DC072180700010BE04 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
 		923384DD072180700010BE04 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
 		924E805D099E8C0D006977E3 /* MacOSaiXTilesSetupController.h in Headers */ = {isa = PBXBuildFile; fileRef = 924E805B099E8C0D006977E3 /* MacOSaiXTilesSetupController.h */; };
@@ -145,7 +149,6 @@
 		9298FE040995592300E7A096 /* MacOSaiXExportController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9298FE020995592300E7A096 /* MacOSaiXExportController.m */; };
 		9298FE6309955B0E00E7A096 /* Export1.html in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE5D09955B0E00E7A096 /* Export1.html */; };
 		9298FE6409955B0E00E7A096 /* Export2.html in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE5F09955B0E00E7A096 /* Export2.html */; };
-		9298FE6509955B0E00E7A096 /* Export3.html in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE6109955B0E00E7A096 /* Export3.html */; };
 		9298FE6B09955B2A00E7A096 /* MacOSaiXDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE6909955B2A00E7A096 /* MacOSaiXDocument.nib */; };
 		9298FE6F09955B3B00E7A096 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE6D09955B3B00E7A096 /* MainMenu.nib */; };
 		9298FE7309955B6600E7A096 /* Crash Reporter.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE7109955B6600E7A096 /* Crash Reporter.nib */; };
@@ -450,6 +453,10 @@
 		9227FD6F07E37A240020C5F4 /* HexagonalTileShapesEditor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = HexagonalTileShapesEditor.h; path = "Standard Plugins/Hexaganol Tiles Setup/HexagonalTileShapesEditor.h"; sourceTree = "<group>"; };
 		9227FD7007E37A240020C5F4 /* HexagonalTileShapesEditor.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = HexagonalTileShapesEditor.m; path = "Standard Plugins/Hexaganol Tiles Setup/HexagonalTileShapesEditor.m"; sourceTree = "<group>"; };
 		9227FD7A07E37A340020C5F4 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Hexaganol Tiles Setup/English.lproj/HexagonalTileShapes.nib"; sourceTree = "<group>"; };
+		92319C8E09A7D5F9007CA9CD /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export4.html; sourceTree = "<group>"; };
+		92319CA209A7D656007CA9CD /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export5.html; sourceTree = "<group>"; };
+		92319CA709A7D6AA007CA9CD /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = "English.lproj/Export3+Original.html"; sourceTree = "<group>"; };
+		92319CAA09A7D6C5007CA9CD /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export3.html; sourceTree = "<group>"; };
 		923384DB072180700010BE04 /* MacOSaiXImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageSource.h; sourceTree = "<group>"; };
 		924E805B099E8C0D006977E3 /* MacOSaiXTilesSetupController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXTilesSetupController.h; sourceTree = "<group>"; };
 		924E805C099E8C0D006977E3 /* MacOSaiXTilesSetupController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXTilesSetupController.m; sourceTree = "<group>"; };
@@ -493,7 +500,6 @@
 		9298FE020995592300E7A096 /* MacOSaiXExportController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXExportController.m; sourceTree = "<group>"; };
 		9298FE5E09955B0E00E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export1.html; sourceTree = "<group>"; };
 		9298FE6009955B0E00E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export2.html; sourceTree = "<group>"; };
-		9298FE6209955B0E00E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export3.html; sourceTree = "<group>"; };
 		9298FE6A09955B2A00E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MacOSaiXDocument.nib; sourceTree = "<group>"; };
 		9298FE6E09955B3B00E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
 		9298FE7209955B6600E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Crash Reporter.nib"; sourceTree = "<group>"; };
@@ -977,7 +983,10 @@
 				9298FF1209955E1500E7A096 /* Export.nib */,
 				9298FE5D09955B0E00E7A096 /* Export1.html */,
 				9298FE5F09955B0E00E7A096 /* Export2.html */,
-				9298FE6109955B0E00E7A096 /* Export3.html */,
+				92319CA909A7D6C5007CA9CD /* Export3.html */,
+				92319CA609A7D6AA007CA9CD /* Export3+Original.html */,
+				92319C8D09A7D5F9007CA9CD /* Export4.html */,
+				92319CA109A7D656007CA9CD /* Export5.html */,
 			);
 			path = Export;
 			sourceTree = "<group>";
@@ -1686,7 +1695,6 @@
 				9298FBA30982DB9400E7A096 /* Full Screen.nib in Resources */,
 				9298FE6309955B0E00E7A096 /* Export1.html in Resources */,
 				9298FE6409955B0E00E7A096 /* Export2.html in Resources */,
-				9298FE6509955B0E00E7A096 /* Export3.html in Resources */,
 				9298FE6B09955B2A00E7A096 /* MacOSaiXDocument.nib in Resources */,
 				9298FE6F09955B3B00E7A096 /* MainMenu.nib in Resources */,
 				9298FE7309955B6600E7A096 /* Crash Reporter.nib in Resources */,
@@ -1699,6 +1707,10 @@
 				9298FEF409955C5A00E7A096 /* Document Icon.icns in Resources */,
 				9298FF1409955E1500E7A096 /* Export.nib in Resources */,
 				924E807E099E9022006977E3 /* Tiles Setup.nib in Resources */,
+				92319C8F09A7D5F9007CA9CD /* Export4.html in Resources */,
+				92319CA309A7D656007CA9CD /* Export5.html in Resources */,
+				92319CA809A7D6AA007CA9CD /* Export3+Original.html in Resources */,
+				92319CAB09A7D6C5007CA9CD /* Export3.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2025,6 +2037,38 @@
 			name = HexagonalTileShapes.nib;
 			sourceTree = "<group>";
 		};
+		92319C8D09A7D5F9007CA9CD /* Export4.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92319C8E09A7D5F9007CA9CD /* English */,
+			);
+			name = Export4.html;
+			sourceTree = "<group>";
+		};
+		92319CA109A7D656007CA9CD /* Export5.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92319CA209A7D656007CA9CD /* English */,
+			);
+			name = Export5.html;
+			sourceTree = "<group>";
+		};
+		92319CA609A7D6AA007CA9CD /* Export3+Original.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92319CA709A7D6AA007CA9CD /* English */,
+			);
+			name = "Export3+Original.html";
+			sourceTree = "<group>";
+		};
+		92319CA909A7D6C5007CA9CD /* Export3.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92319CAA09A7D6C5007CA9CD /* English */,
+			);
+			name = Export3.html;
+			sourceTree = "<group>";
+		};
 		924E807C099E9022006977E3 /* Tiles Setup.nib */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -2103,14 +2147,6 @@
 				9298FE6009955B0E00E7A096 /* English */,
 			);
 			name = Export2.html;
-			sourceTree = "<group>";
-		};
-		9298FE6109955B0E00E7A096 /* Export3.html */ = {
-			isa = PBXVariantGroup;
-			children = (
-				9298FE6209955B0E00E7A096 /* English */,
-			);
-			name = Export3.html;
 			sourceTree = "<group>";
 		};
 		9298FE6909955B2A00E7A096 /* MacOSaiXDocument.nib */ = {
