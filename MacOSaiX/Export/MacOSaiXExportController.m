@@ -143,6 +143,12 @@ static NSArray	*formatExtensions = nil;
 }
 
 
+- (IBAction)setIncludeOriginalImage:(id)sender
+{
+	includeOriginalImage = ([includeOriginalButton state] == NSOnState);
+}
+
+
 - (IBAction)setUnits:(id)sender
 {
 	if ([unitsPopUp selectedTag] == 0)
@@ -204,13 +210,28 @@ static NSArray	*formatExtensions = nil;
 
 - (void)exportMosaic:(NSString *)filename
 {
-    NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	NSString			*error = nil;
+    NSAutoreleasePool		*pool = [[NSAutoreleasePool alloc] init];
+	NSString				*error = nil;
 	
 		// Don't usurp the main thread.
 	[NSThread setThreadPriority:0.1];
 
-    NSImage		*exportImage = [[NSImage alloc] initWithSize:NSMakeSize([self exportPixelWidth], [self exportPixelHeight])];
+	NSString				*exportExtension = [formatExtensions objectAtIndex:imageFormat];
+	NSBitmapImageFileType	exportImageType = jpegFormat;
+	NSMutableDictionary		*properties = [NSMutableDictionary dictionary];
+	if (imageFormat == jpegFormat)
+		exportImageType = NSJPEGFileType;
+	else if (imageFormat == pngFormat)
+		exportImageType = NSPNGFileType;
+	else if (imageFormat == tiffFormat)
+	{
+		exportImageType = NSTIFFFileType;	// TODO: NSTIFFCompressionLZW factor 1.0
+		[properties setObject:[NSNumber numberWithInt:NSTIFFCompressionLZW] forKey:NSImageCompressionMethod];
+	}
+	
+	NSRect					exportRect = NSMakeRect(0.0, 0.0, [self exportPixelWidth], [self exportPixelHeight]);
+	
+    NSImage					*exportImage = [[NSImage alloc] initWithSize:exportRect.size];
 	[exportImage setCachedSeparately:YES];
 	[exportImage setCacheMode:NSImageCacheNever];
 	NS_DURING
@@ -219,14 +240,14 @@ static NSArray	*formatExtensions = nil;
 		error = [NSString stringWithFormat:@"Could not draw images into the mosaic.  (%@)", [localException reason]];
 	NS_ENDHANDLER
 	
-	NSRect		exportRect = NSMakeRect(0.0, 0.0, [exportImage size].width, [exportImage size].height);
+	[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
 	
 	[[mosaic originalImage] drawInRect:exportRect 
 							  fromRect:NSZeroRect 
 							 operation:NSCompositeCopy 
 							  fraction:1.0];
 	
-	[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
+	
     NSAffineTransform	*transform = [NSAffineTransform transform];
     [transform scaleXBy:[exportImage size].width yBy:[exportImage size].height];
 	
@@ -235,15 +256,31 @@ static NSArray	*formatExtensions = nil;
 	
 	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
 	
+		// Set up data for web exporting
 	NSMutableString		*exportTilesHTML = [NSMutableString string], 
 						*exportAreasHTML = [NSMutableString string];
-	NSMutableArray		*tileKeys = [NSMutableArray array];
+	NSMutableDictionary	*thumbnailKeyArrays = [NSMutableDictionary dictionary],
+						*thumbnailNumArrays = [NSMutableDictionary dictionary];
+	int					tileNum = 0;
+	BOOL				hasMultipleSources = ([[mosaic imageSources] count] > 1);
 	if (createWebPage)
 	{
 		[[NSFileManager defaultManager] removeFileAtPath:filename handler:nil];
 		[[NSFileManager defaultManager] createDirectoryAtPath:filename attributes:nil];
-	}
+		
+		if (includeOriginalImage)
+		{
+			NSBitmapImageRep	*originalRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:exportRect];
+			NSData				*originalData = [originalRep representationUsingType:exportImageType properties:properties];
 			
+			[originalData writeToFile:[[filename stringByAppendingPathComponent:@"Original"] 
+														stringByAppendingPathExtension:exportExtension] 
+						   atomically:NO];
+			[originalRep release];
+		}
+	}
+	
+		// Add each tile to the image and optionally to the web page.
 	NSEnumerator		*tileEnumerator = [[mosaic tiles] objectEnumerator];
 	MacOSaiXTile		*tile = nil;
 	while (tile = [tileEnumerator nextObject])
@@ -264,9 +301,12 @@ static NSArray	*formatExtensions = nil;
 				[clipPath addClip];
 				
 					// Get the image for this tile from the cache.
-				NSImageRep			*pixletImageRep = [imageCache imageRepAtSize:[clipPath bounds].size 
-																   forIdentifier:[match imageIdentifier] 
-																	  fromSource:[match imageSource]];
+				id<MacOSaiXImageSource>	imageSource = [match imageSource];
+				int						imageSourceNum = [[mosaic imageSources] indexOfObjectIdenticalTo:imageSource] + 1;
+				NSString				*imageIdentifier = [match imageIdentifier];
+				NSImageRep				*pixletImageRep = [imageCache imageRepAtSize:[clipPath bounds].size 
+																	   forIdentifier:imageIdentifier 
+																		  fromSource:imageSource];
 				
 					// Translate the tile's outline (in unit space) to the size of the exported image.
 				NSRect		drawRect;
@@ -303,20 +343,40 @@ static NSArray	*formatExtensions = nil;
 				
 				if (createWebPage)
 				{
-					NSArray		*key = [NSArray arrayWithObjects:[match imageSource], [match imageIdentifier], nil];
-					int			thumbnailNum = [tileKeys indexOfObject:key];
+					NSValue			*sourceKey = [NSValue valueWithPointer:imageSource];
+					NSMutableArray	*thumbnailKeys = [thumbnailKeyArrays objectForKey:sourceKey], 
+									*thumbnailNums = [thumbnailNumArrays objectForKey:sourceKey];
+					int				thumbnailNum = 0;
 					
-					if (thumbnailNum == NSNotFound)
+					if (!thumbnailKeys)
 					{
-						[tileKeys addObject:key];
-						thumbnailNum = [tileKeys count];
+						thumbnailKeys = [NSMutableArray array];
+						[thumbnailKeyArrays setObject:thumbnailKeys forKey:sourceKey];
+						thumbnailNums = [NSMutableArray array];
+						[thumbnailNumArrays setObject:thumbnailNums forKey:sourceKey];
+					}
+					
+					int				thumbnailIndex = [thumbnailKeys indexOfObject:imageIdentifier];
+					NSString		*thumbnailName = nil;
+					
+					if (thumbnailIndex == NSNotFound)
+					{
+						thumbnailNum = tileNum++;
+						[thumbnailKeys addObject:imageIdentifier];
+						[thumbnailNums addObject:[NSNumber numberWithInt:thumbnailNum]];
+						if (hasMultipleSources)
+							thumbnailName = [NSString stringWithFormat:@"%d-%d", imageSourceNum, [thumbnailKeys count]];
+						else
+							thumbnailName = [NSString stringWithFormat:@"%d", thumbnailNum + 1];
 						
-						NSString	*description = [[match imageSource] descriptionForIdentifier:[match imageIdentifier]];
+						NSString	*description = [imageSource descriptionForIdentifier:imageIdentifier];
 						if (description)
 						{
 							description = [[description mutableCopy] autorelease];
+							if ([description rangeOfString:@"'"].location != NSNotFound)
+								NSLog(@"gotcha");
 							[(NSMutableString *)description replaceOccurrencesOfString:@"'"
-																			withString:@"\'" 
+																			withString:@"\\'" 
 																			   options:NSLiteralSearch 
 																				 range:NSMakeRange(0, [description length])];
 						}
@@ -324,11 +384,11 @@ static NSArray	*formatExtensions = nil;
 							description = @"";
 						
 							// Use the URL to the image if there is one, otherwise export a medium size thumbnail.
-						NSString	*tileImageURL = [[[match imageSource] urlForIdentifier:[match imageIdentifier]] absoluteString];
+						NSString	*tileImageURL = [[imageSource urlForIdentifier:imageIdentifier] absoluteString];
 						if (!tileImageURL)
 						{
-							NSImage	*thumbnailImage = [[match imageSource] imageForIdentifier:[match imageIdentifier]];
-							NSSize	newSize = [thumbnailImage size];
+							NSImage		*thumbnailImage = [imageSource imageForIdentifier:imageIdentifier];
+							NSSize		newSize = [thumbnailImage size];
 							if (newSize.width > newSize.height)
 								newSize = NSMakeSize(200.0, newSize.height * 200.0 / newSize.width);
 							else
@@ -338,19 +398,18 @@ static NSArray	*formatExtensions = nil;
 							[thumbnailImage lockFocus];
 								pixletImageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0.0, 0.0, newSize.width, newSize.height)] autorelease];
 							[thumbnailImage unlockFocus];
-							NSData	*bitmapData = [(NSBitmapImageRep *)pixletImageRep representationUsingType:NSJPEGFileType properties:nil];
-							[bitmapData writeToFile:[NSString stringWithFormat:@"%@/%d.jpg", filename, thumbnailNum] 
+							NSData		*bitmapData = [(NSBitmapImageRep *)pixletImageRep representationUsingType:NSJPEGFileType properties:nil];
+							[bitmapData writeToFile:[NSString stringWithFormat:@"%@/%@.jpg", filename, thumbnailName] 
 										 atomically:NO];
-							
-							tileImageURL = [NSString stringWithFormat:@"%d.jpg", thumbnailNum];
+							tileImageURL = [NSString stringWithFormat:@"%@.jpg", thumbnailName];
 						}
 						[exportTilesHTML appendFormat:@"tiles[%d] = new tile('%@', '%@');\n", 
 													  thumbnailNum, tileImageURL, description];
 					}
 					else
-						thumbnailNum++;
+						thumbnailNum = [[thumbnailNums objectAtIndex:thumbnailIndex] intValue];
 					
-					NSString	*contextURL = [[[match imageSource] contextURLForIdentifier:[match imageIdentifier]] absoluteString];
+					NSString	*contextURL = [[imageSource contextURLForIdentifier:imageIdentifier] absoluteString];
 					[exportAreasHTML appendFormat:@"\t<area shape='rect' coords='%d,%d,%d,%d' %@ " \
 												  @"onmouseover='showTile(event,%d)' onmouseout='hideTile()'>\n", 
 												  (int)NSMinX(drawRect), (int)([heightField intValue] - NSMaxY(drawRect)), 
@@ -375,8 +434,7 @@ static NSArray	*formatExtensions = nil;
     }
 	
 		// Now convert the image into the desired output format.
-    NSBitmapImageRep	*exportRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0, 0, [exportImage size].width, 
-									     [exportImage size].height)];
+    NSBitmapImageRep	*exportRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:exportRect];
 	NS_DURING
 		[exportImage unlockFocus];
 		
@@ -390,39 +448,35 @@ static NSArray	*formatExtensions = nil;
 			[exportRep setSize:NSMakeSize([exportImage size].width * scale, [exportImage size].height * scale)];
 		}
 		
-		NSBitmapImageFileType	type;
-		NSMutableDictionary		*properties = [NSMutableDictionary dictionary];
-		if (imageFormat == jpegFormat)
-			type = NSJPEGFileType;
-		else if (imageFormat == pngFormat)
-			type = NSPNGFileType;
-		else if (imageFormat == tiffFormat)
-		{
-			type = NSTIFFFileType;	// TODO: NSTIFFCompressionLZW factor 1.0
-			[properties setObject:[NSNumber numberWithInt:NSTIFFCompressionLZW] forKey:NSImageCompressionMethod];
-		}
-		
-		NSData					*bitmapData = [exportRep representationUsingType:type properties:properties];
+		NSData					*bitmapData = [exportRep representationUsingType:exportImageType properties:properties];
 		
 		if (createWebPage)
 		{
 			[bitmapData writeToFile:[[filename stringByAppendingPathComponent:@"Mosaic"] 
-												stringByAppendingPathExtension:[formatExtensions objectAtIndex:imageFormat]] 
+												stringByAppendingPathExtension:exportExtension] 
 						 atomically:NO];
 			
 			NSString		*export1HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export1" ofType:@"html"];
 			NSMutableString	*exportHTML = [NSMutableString stringWithContentsOfFile:export1HTMLPath];
 			[exportHTML appendString:exportTilesHTML];
 			NSString		*export2HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export2" ofType:@"html"];
-			NSMutableString	*export2HTML = [NSMutableString stringWithContentsOfFile:export2HTMLPath];
-			[export2HTML replaceOccurrencesOfString:@"$(FORMAT_EXTENSION)" 
-										 withString:[formatExtensions objectAtIndex:imageFormat] 
+			[exportHTML appendString:[NSString stringWithContentsOfFile:export2HTMLPath]];
+			NSString		*export3HTMLPath = nil;
+			if (includeOriginalImage)
+				export3HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export3+Original" ofType:@"html"];
+			else
+				export3HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export3" ofType:@"html"];
+			NSMutableString	*export3HTML = [NSMutableString stringWithContentsOfFile:export3HTMLPath];
+			[export3HTML replaceOccurrencesOfString:@"$(FORMAT_EXTENSION)" 
+										 withString:exportExtension 
 											options:NSLiteralSearch 
-											  range:NSMakeRange(0, [export2HTML length])];
-			[exportHTML appendString:export2HTML];
+											  range:NSMakeRange(0, [export3HTML length])];
+			[exportHTML appendString:export3HTML];
+			NSString		*export4HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export4" ofType:@"html"];
+			[exportHTML appendString:[NSString stringWithContentsOfFile:export4HTMLPath]];
 			[exportHTML appendString:exportAreasHTML];
-			NSString		*export3HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export3" ofType:@"html"];
-			[exportHTML appendString:[NSString stringWithContentsOfFile:export3HTMLPath]];
+			NSString		*export5HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export5" ofType:@"html"];
+			[exportHTML appendString:[NSString stringWithContentsOfFile:export5HTMLPath]];
 			[exportHTML writeToFile:[filename stringByAppendingPathComponent:@"index.html"] atomically:NO];
 		}
 		else

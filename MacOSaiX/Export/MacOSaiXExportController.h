@@ -17,7 +17,8 @@
 	IBOutlet NSImageView	*fadedImageView;
 	IBOutlet NSSlider		*fadeSlider;
 	IBOutlet NSMatrix		*formatMatrix;
-	IBOutlet NSButton		*createWebPageButton;
+	IBOutlet NSButton		*createWebPageButton, 
+							*includeOriginalButton;
 	IBOutlet NSTextField	*widthField, 
 							*heightField;
 	IBOutlet NSPopUpButton	*unitsPopUp, 
@@ -30,7 +31,8 @@
 							didEndSelector;
 	
     int						imageFormat;
-	BOOL					createWebPage;
+	BOOL					createWebPage, 
+							includeOriginalImage;
 	BOOL					openImageWhenComplete;
 }
 
@@ -46,6 +48,7 @@
 - (IBAction)setFade:(id)sender;
 - (IBAction)setImageFormat:(id)sender;
 - (IBAction)setCreateWebPage:(id)sender;
+- (IBAction)setIncludeOriginalImage:(id)sender;
 - (IBAction)setUnits:(id)sender;
 - (IBAction)setResolution:(id)sender;
 - (IBAction)setOpenImageWhenComplete:(id)sender;
