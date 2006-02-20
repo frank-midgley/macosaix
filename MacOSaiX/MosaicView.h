@@ -11,14 +11,16 @@
 #import "Tiles.h"
 
 
-typedef enum { showOriginalMode = 0, showNonUniqueMode, showBlackMode } MacOSaiXNonUniqueTileDisplayMode;
+typedef enum { originalMode = 0, nonUniqueMode, blackMode, clearMode } MacOSaiXBackgroundMode;
 
 
 @interface MosaicView : NSView
 {
 	MacOSaiXMosaic			*mosaic;
-	NSImage					*mosaicImage;
-	NSLock					*mosaicImageLock;
+	NSImage					*mosaicImage, 
+							*nonUniqueImage;
+	NSLock					*mosaicImageLock, 
+							*nonUniqueImageLock;
 	NSAffineTransform		*mosaicImageTransform;
 	float					viewFade;
 	
@@ -45,19 +47,24 @@ typedef enum { showOriginalMode = 0, showNonUniqueMode, showBlackMode } MacOSaiX
 	
 	NSImageRep				*blackRep;
 	
-	MacOSaiXNonUniqueTileDisplayMode	nonUniqueTileDisplayMode;
+	MacOSaiXBackgroundMode	backgroundMode;
 }
 
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
 
-- (void)setViewFade:(float)fade;
+- (void)setMosaicImage:(NSImage *)image;
+- (NSImage *)mosaicImage;
+- (void)setNonUniqueImage:(NSImage *)image;
+- (NSImage *)nonUniqueImage;
+
+- (void)setFade:(float)fade;
 - (float)fade;
 
 - (void)setViewTileOutlines:(BOOL)inViewTileOutlines;
 - (BOOL)viewTileOutlines;
 
-- (void)setNonUniqueTileDisplayMode:(MacOSaiXNonUniqueTileDisplayMode)mode;
-- (MacOSaiXNonUniqueTileDisplayMode)nonUniqueTileDisplayMode;
+- (void)setBackgroundMode:(MacOSaiXBackgroundMode)mode;
+- (MacOSaiXBackgroundMode)backgroundMode;
 
 	// Highlight methods
 - (void)highlightTile:(MacOSaiXTile *)tile;
