@@ -8,7 +8,7 @@
                 chooseOriginalImage = id; 
                 clearRecentOriginalImages = id; 
                 removeChosenImageForSelectedTile = id; 
-                setNonUniqueTileDisplay = id; 
+                setBackground = id; 
                 setViewMosaic = id; 
                 setViewOriginalImage = id; 
                 setZoom = id; 
