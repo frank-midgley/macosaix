@@ -41,7 +41,7 @@ static NSArray	*formatExtensions = nil;
 
 
 - (void)exportMosaicWithName:(NSString *)name 
-						fade:(float)defaultFade 
+				  mosaicView:(MosaicView *)inMosaicView 
 			  modalForWindow:(NSWindow *)window 
 			   modalDelegate:(id)inDelegate
 			progressSelector:(SEL)inProgressSelector
@@ -50,8 +50,10 @@ static NSArray	*formatExtensions = nil;
 	if (!accessoryView)
 		[self window];
 	
-	[fadeSlider setFloatValue:defaultFade];
-	[self setFade:self];
+	[mosaicView setMosaicImage:[inMosaicView mosaicImage]];
+	[mosaicView setNonUniqueImage:[inMosaicView nonUniqueImage]];
+	[mosaicView setFade:[inMosaicView fade]];
+	[fadeSlider setFloatValue:[mosaicView fade]];
 	
 	delegate = inDelegate;
 	progressSelector = ([delegate respondsToSelector:inProgressSelector] ? inProgressSelector : nil);
@@ -94,20 +96,15 @@ static NSArray	*formatExtensions = nil;
 }
 
 
+- (IBAction)setBackground:(id)sender
+{
+	[mosaicView setBackgroundMode:[sender tag]];
+}
+
+
 - (IBAction)setFade:(id)sender
 {
-	NSImage	*fadedImage = [[mosaic originalImage] copy];
-	
-// TODO: need the image from the mosaic view...
-//	[fadedImage lockFocus];
-//		[[mosaicView image] drawInRect:NSMakeRect(0.0, 0.0, [fadedImage size].width, [fadedImage size].height) 
-//							  fromRect:NSZeroRect 
-//							 operation:NSCompositeSourceOver 
-//							  fraction:[fadeSlider floatValue]];
-//	[fadedImage unlockFocus];
-	
-	[fadedImageView setImage:fadedImage];
-	[fadedImage release];
+	[mosaicView setFade:[fadeSlider floatValue]];
 }
 
 
