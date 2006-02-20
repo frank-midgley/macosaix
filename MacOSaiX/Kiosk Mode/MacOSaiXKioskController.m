@@ -174,7 +174,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 	
 	[messageView setEditable:NO];
 	
-	[mosaicView setViewFade:1.0];
+	[mosaicView setFade:1.0];
 	
 	[self useMosaicAtIndex:0];
 }

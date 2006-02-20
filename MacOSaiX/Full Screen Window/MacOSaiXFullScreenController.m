@@ -20,7 +20,7 @@
 
 - (void)awakeFromNib
 {
-	[mosaicView setViewFade:1.0];
+	[mosaicView setFade:1.0];
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self 
 											 selector:@selector(scrollFrameDidChange:) 

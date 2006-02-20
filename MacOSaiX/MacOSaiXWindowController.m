@@ -162,6 +162,8 @@
 		}
 	}
 	
+	[mosaicScrollView setDrawsBackground:NO];
+	[[mosaicScrollView contentView] setDrawsBackground:NO];
 	[mosaicView setMosaic:[self mosaic]];
 	[self setViewOriginalImage:self];
 	
@@ -959,7 +961,7 @@
 
 - (IBAction)setViewOriginalImage:(id)sender
 {
-	[mosaicView setViewFade:0.0];
+	[mosaicView setFade:0.0];
 	[fadeSlider setFloatValue:0.0];
 	
 	[[viewMenu itemWithTag:0] setState:NSOnState];
@@ -969,7 +971,7 @@
 
 - (IBAction)setViewMosaic:(id)sender
 {
-	[mosaicView setViewFade:1.0];
+	[mosaicView setFade:1.0];
 	[fadeSlider setFloatValue:1.0];
 	
 	[[viewMenu itemWithTag:0] setState:NSOffState];
@@ -983,7 +985,7 @@
 	[fadeTimer release];
 	fadeTimer = nil;
 	
-	[mosaicView setViewFade:[fadeSlider floatValue]];
+	[mosaicView setFade:[fadeSlider floatValue]];
 }
 
 
@@ -1187,22 +1189,22 @@
 }
 
 
-- (void)setNonUniqueTileDisplayMode:(MacOSaiXNonUniqueTileDisplayMode)mode
+- (void)setBackgroundMode:(MacOSaiXBackgroundMode)mode
 {
-	[mosaicView setNonUniqueTileDisplayMode:mode];
+	[mosaicView setBackgroundMode:mode];
 }
 
 
-- (MacOSaiXNonUniqueTileDisplayMode)nonUniqueTileDisplayMode
+- (MacOSaiXBackgroundMode)backgroundMode
 {
-	return [mosaicView nonUniqueTileDisplayMode];
+	return [mosaicView backgroundMode];
 }
 
 
-- (IBAction)setNonUniqueTileDisplay:(id)sender
+- (IBAction)setBackground:(id)sender
 {
 	if ([sender isKindOfClass:[NSMenuItem class]])
-		[mosaicView setNonUniqueTileDisplayMode:[(NSMenuItem *)sender tag]];
+		[mosaicView setBackgroundMode:[(NSMenuItem *)sender tag]];
 }
 
 
@@ -1223,8 +1225,8 @@
 		valid = (selectedTile != nil && zoom != 0.0);
     else if (actionToValidate == @selector(togglePause:))
 		valid = ([[[self mosaic] imageSources] count] > 0);
-	else if (actionToValidate == @selector(setNonUniqueTileDisplay:))
-		[menuItem setState:([menuItem tag] == [mosaicView nonUniqueTileDisplayMode] ? NSOnState : NSOffState)];
+	else if (actionToValidate == @selector(setBackground:))
+		[menuItem setState:([menuItem tag] == [mosaicView backgroundMode] ? NSOnState : NSOffState)];
 
 	return valid;
 }
@@ -1236,7 +1238,7 @@
 	
 	if (currentFade < 1.0)
 	{
-		[mosaicView setViewFade:MIN(currentFade + 0.01, 1.0)];
+		[mosaicView setFade:MIN(currentFade + 0.01, 1.0)];
 		[fadeSlider setFloatValue:[mosaicView fade]];
 	}
 	else
@@ -1278,7 +1280,7 @@
 	NSString					*defaultName = [[[[self document] displayName] lastPathComponent] stringByDeletingPathExtension];
 	MacOSaiXExportController	*exportController = [[MacOSaiXExportController alloc] initWithMosaic:[self mosaic]];
 	[exportController exportMosaicWithName:defaultName 
-									  fade:[mosaicView fade] 
+								mosaicView:mosaicView 
 							modalForWindow:[self window] 
 							 modalDelegate:self 
 						  progressSelector:@selector(exportDidProgress:message:) 
