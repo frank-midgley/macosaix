@@ -3,6 +3,7 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
+                setBackground = id; 
                 setCreateWebPage = id; 
                 setFade = id; 
                 setImageFormat = id; 
@@ -15,20 +16,22 @@
             LANGUAGE = ObjC; 
             OUTLETS = {
                 accessoryView = NSView; 
+                backgroundPopUp = NSPopUpButton; 
                 createWebPageButton = NSButton; 
                 delegate = id; 
                 fadeSlider = NSSlider; 
-                fadedImageView = NSImageView; 
                 formatMatrix = NSMatrix; 
                 heightField = NSTextField; 
                 includeOriginalButton = NSButton; 
+                mosaicView = MosaicView; 
                 openWhenCompleteButton = NSButton; 
                 resolutionPopUp = NSPopUpButton; 
                 unitsPopUp = NSPopUpButton; 
                 widthField = NSTextField; 
             }; 
             SUPERCLASS = NSWindowController; 
-        }
+        }, 
+        {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSView; }
     ); 
     IBVersion = 1; 
 }
