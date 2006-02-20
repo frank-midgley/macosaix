@@ -92,11 +92,21 @@ Riemersma metric:
 ¥	Fix auto-fade
 ¥	Enable "Add New Image Source" sub-menu in main menu
 ¥	Handle case of no original images
-¥	Tile Setup sheet displaced when switching to puzzle pieces
+Ã	Tile Setup sheet displaced when switching to puzzle pieces
 ¥	New UI for tile count/size better than previous?
 ¥	Tooltip for tile images.  Add -tooltipForIdentifier: to image source API?
 ¥	Tile outlines display performance:
 ¥		When viewing tile outline
 ¥		Selecting image source with 1000's of images in mosaic
-¥	Make sure all prefs UI is hooked up
-¥	Add cropping limit checkbox
+¥	Make sure all prefs UI is functional
+Ã	Add cropping limit checkbox (now a slider)
+¥	Deal with 10000 pixel limit when exporting
+¥	Web export
+¥		Fade display
+¥		Cancelling
+¥		Initial units
+¥		Remember defaults
+¥		Background option
+¥	Tiles not clearing when source removed
+¥	Make Fade and Zoom toolbar items narrower
+¥	Resume on open?
