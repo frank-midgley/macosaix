@@ -46,6 +46,12 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 			imageKeyRecencyArray = [[NSMutableArray array] retain];
 			
 			maxMemoryCacheSize = NSRealMemoryAvailable() / 3;
+			
+			scalingWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0.0, 0.0, 256.0, 256.0) 
+														styleMask:NSBorderlessWindowMask 
+														  backing:NSBackingStoreBuffered 
+															defer:NO];
+			[scalingWindow orderOut:self];
 		}
 		else
 		{
@@ -258,7 +264,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 					[imageKeyRecencyArray insertObject:imageKey atIndex:0];
 					break;
 				}
-				else if (NSEqualSizes(cachedRepSize, nativeSize))
+				else if (NSEqualSizes(cachedRepSize, nativeSize) && size.width < 256.0 && size.height < 256.0)
 					scalableRep = cachedRep;	// this is the original, OK to scale from it
 //				else if (repSize.width <= nativeSize.width &&	// not looking for a rep bigger than the original image and...
 //						 cachedRepSize.width >= repSize.width * 2.0 &&	// the cached rep is big enough to scale down and...
@@ -272,9 +278,6 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		{
 				// Scale and crop a copy of the closest rep to the desired size.
 			scalableHitCount++;
-			NSImage		*scaledImage = [[NSImage alloc] initWithSize:size];
-			[scaledImage setCachedSeparately:YES];
-			[scaledImage setCacheMode:NSImageCacheNever];
 			
 			NSRect		scaledRect;
 			if (([scalableRep pixelsWide] / size.width) < ([scalableRep pixelsHigh] / size.height))
@@ -288,18 +291,19 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 				scaledRect = NSMakeRect((size.width - scaledWidth) / 2.0, 0.0, scaledWidth, size.height);
 			}
 			
-			[[NSGraphicsContext currentContext] saveGraphicsState];
+			BOOL	gotFocus = NO;
+			NS_DURING
+				[[scalingWindow contentView] lockFocus];
+				gotFocus = YES;
 				[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
-				NS_DURING
-					[scaledImage lockFocus];
-						[scalableRep drawInRect:scaledRect];
-						imageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0.0, 0.0, size.width, size.height)] autorelease];
-					[scaledImage unlockFocus];
-				NS_HANDLER
-					NSLog(@"Could not scale an image to (%f, %f)", size.width, size.height);
-				NS_ENDHANDLER
-			[[NSGraphicsContext currentContext] restoreGraphicsState];
-			[scaledImage release];
+				[scalableRep drawInRect:scaledRect];
+				imageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0.0, 0.0, size.width, size.height)] autorelease];
+			NS_HANDLER
+				NSLog(@"Could not scale an image to (%f, %f)", size.width, size.height);
+			NS_ENDHANDLER
+			
+			if (gotFocus)
+				[[scalingWindow contentView] unlockFocus];
 			
 			if (imageRep)
 				[self addImageRep:imageRep toMemoryCacheForKey:imageKey];
@@ -411,7 +415,9 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 	[memoryCache release];
 	[imageRepRecencyArray release];
 	[imageKeyRecencyArray release];
-    
+    [scalingWindow close];
+	[scalingWindow release];
+	
     [super dealloc];
 }
 

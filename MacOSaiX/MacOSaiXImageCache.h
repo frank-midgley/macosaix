@@ -26,6 +26,7 @@
 								missCount;
 	unsigned long long			maxMemoryCacheSize,
 								currentMemoryCacheSize;
+	NSWindow					*scalingWindow;
 }
 
 
