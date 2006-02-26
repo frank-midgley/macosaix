@@ -122,7 +122,7 @@ static NSArray	*formatExtensions = nil;
 
 - (IBAction)setBackground:(id)sender
 {
-	[mosaicView setBackgroundMode:[sender tag]];
+	[mosaicView setBackgroundMode:[sender selectedTag]];
 }
 
 
@@ -275,6 +275,28 @@ static NSArray	*formatExtensions = nil;
 	
 	[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
 	
+	if (createWebPage)
+	{
+		[[NSFileManager defaultManager] removeFileAtPath:filename handler:nil];
+		[[NSFileManager defaultManager] createDirectoryAtPath:filename attributes:nil];
+		
+		if (includeOriginalImage)
+		{
+			[[mosaic originalImage] drawInRect:exportRect 
+									  fromRect:NSZeroRect 
+									 operation:NSCompositeCopy 
+									  fraction:1.0];
+			
+			NSBitmapImageRep	*originalRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:exportRect];
+			NSData				*originalData = [originalRep representationUsingType:exportImageType properties:properties];
+			
+			[originalData writeToFile:[[filename stringByAppendingPathComponent:@"Original"] 
+														stringByAppendingPathExtension:exportExtension] 
+						   atomically:NO];
+			[originalRep release];
+		}
+	}
+	
 	[[NSColor clearColor] set];
 	NSRectFill(exportRect);
 	if ([mosaicView backgroundMode] == originalMode || [mosaicView fade] < 1.0)
@@ -305,22 +327,6 @@ static NSArray	*formatExtensions = nil;
 						*thumbnailNumArrays = [NSMutableDictionary dictionary];
 	int					tileNum = 0;
 	BOOL				hasMultipleSources = ([[mosaic imageSources] count] > 1);
-	if (createWebPage)
-	{
-		[[NSFileManager defaultManager] removeFileAtPath:filename handler:nil];
-		[[NSFileManager defaultManager] createDirectoryAtPath:filename attributes:nil];
-		
-		if (includeOriginalImage)
-		{
-			NSBitmapImageRep	*originalRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:exportRect];
-			NSData				*originalData = [originalRep representationUsingType:exportImageType properties:properties];
-			
-			[originalData writeToFile:[[filename stringByAppendingPathComponent:@"Original"] 
-														stringByAppendingPathExtension:exportExtension] 
-						   atomically:NO];
-			[originalRep release];
-		}
-	}
 	
 		// Add each tile to the image and optionally to the web page.
 	NSEnumerator		*tileEnumerator = [[mosaic tiles] objectEnumerator];
@@ -333,6 +339,8 @@ static NSArray	*formatExtensions = nil;
 		MacOSaiXImageMatch	*match = [tile userChosenImageMatch];
 		if (!match)
 			match = [tile uniqueImageMatch];
+		if (!match && [mosaicView backgroundMode] == nonUniqueMode)
+			match = [tile nonUniqueImageMatch];
 		
 		if (match)
 		{
