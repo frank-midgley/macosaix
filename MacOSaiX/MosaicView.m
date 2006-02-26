@@ -211,39 +211,35 @@
 }
 
 
-- (void)refreshTile:(NSDictionary *)tileDict
+- (void)refreshTile:(MacOSaiXTile *)tile
 {
 		// Add the tile to the queue of tiles to be refreshed and start the refresh 
 		// thread if it isn't already running.
 	[tileRefreshLock lock];
-		if (![tilesToRefresh containsObject:tileDict])
-			[tilesToRefresh addObject:tileDict];
+		unsigned	index= [tilesToRefresh indexOfObject:tile];
+		if (index != NSNotFound)
+			[tilesToRefresh removeObjectAtIndex:index];
+		[tilesToRefresh addObject:tile];
 		
 		if (!refreshingTiles)
+		{
+			refreshingTiles = YES;
 			[NSApplication detachDrawingThread:@selector(fetchTileImages:) toTarget:self withObject:nil];
-		
-		while (!refreshingTiles)
-			[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+		}
 	[tileRefreshLock unlock];
 }
 
 
 - (void)tileImageDidChange:(NSNotification *)notification
 {
-//	NSDictionary	*tileDict = [notification userInfo];
-//	MacOSaiXTile	*tile = [tileDict objectForKey:@"Tile"];
-//	
-//	if ([tile userChosenImageMatch] || [tile uniqueImageMatch] || backgroundMode == nonUniqueMode)
-		[self refreshTile:[notification userInfo]];
+	[self refreshTile:[[notification userInfo] objectForKey:@"Tile"]];
 }
 
 
 - (void)fetchTileImages:(id)dummy
 {
-	refreshingTiles = YES;
-	
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	NSDictionary		*refreshDict = nil;
+	MacOSaiXTile		*tileToRefresh = nil;
 	NSDate				*lastRedraw = [NSDate date];
 	NSMutableArray		*tilesToRedraw = [NSMutableArray array];
 	
@@ -254,17 +250,16 @@
 			// Get the next tile from the queue, if there is one.
 		[tileRefreshLock lock];
 			if ([tilesToRefresh count] == 0)
-				refreshDict = nil;
+				tileToRefresh = nil;
 			else
 			{
-				refreshDict = [[[tilesToRefresh objectAtIndex:0] retain] autorelease];
-				[tilesToRefresh removeObjectAtIndex:0];
+				tileToRefresh = [[[tilesToRefresh lastObject] retain] autorelease];
+				[tilesToRefresh removeLastObject];
 			}
 		[tileRefreshLock unlock];
 		
-		if (refreshDict)
+		if (tileToRefresh)
 		{
-			MacOSaiXTile		*tileToRefresh  = [refreshDict objectForKey:@"Tile"];
 			NSBezierPath		*clipPath = [mosaicImageTransform transformBezierPath:[tileToRefresh outline]];
 			MacOSaiXImageMatch	*imageMatch = nil;
 			NSImageRep			*newImageRep = nil;
@@ -329,7 +324,7 @@
 		}
 		
 		[innerPool release];
-	} while (refreshDict);
+	} while (tileToRefresh);
 	
 	[tileRefreshLock lock];
 		if ([tilesToRedraw count] > 0)
