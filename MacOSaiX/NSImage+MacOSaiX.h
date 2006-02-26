@@ -11,6 +11,6 @@
 
 @interface NSImage (MacOSaiX)
 
-- (NSImage *)copyWithLargestDimension:(float)size;
+- (NSImage *)copyWithLargestDimension:(int)size;
 
 @end
