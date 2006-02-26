@@ -286,7 +286,7 @@
 					// This step is the primary reason we're in a separate thread because 
 					// the cache may have to get the image from the source which might have 
 					// to hit the network, etc.
-				newImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[clipPath bounds].size
+				newImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:NSIntegralRect([clipPath bounds]).size
 																	  forIdentifier:[imageMatch imageIdentifier] 
 																		 fromSource:[imageMatch imageSource]];
 			}
@@ -333,7 +333,9 @@
 	
 	[tileRefreshLock lock];
 		if ([tilesToRedraw count] > 0)
-			[self performSelectorOnMainThread:@selector(redrawTiles:) withObject:tilesToRedraw waitUntilDone:NO];
+			[self performSelectorOnMainThread:@selector(redrawTiles:) 
+								   withObject:[NSArray arrayWithArray:tilesToRedraw] 
+								waitUntilDone:NO];
 		refreshingTiles = NO;
 	[tileRefreshLock unlock];
 	
