@@ -66,7 +66,7 @@ Riemersma metric:
 ¥	Prompt for password when leaving kiosk mode
 
 
-2.0a6 (b1?) To Do:
+2.0a6 To Do:
 ¥	Allow setup to be changed after mosaic has been started
 Ã	Fix iPhoto crasher in -[NSAppleScript dealloc]
 Ã	Fix crash in -[MosaicView createHighlightedImageSourcesOutline]
@@ -108,5 +108,7 @@ Riemersma metric:
 ¥		Remember defaults
 ¥		Background option
 ¥	Tiles not clearing when source removed
-¥	Make Fade and Zoom toolbar items narrower
+Ã	Make Fade and Zoom toolbar items narrower
 ¥	Resume on open?
+¥	Save&restore background mode
+¥	Save&restore pause state
