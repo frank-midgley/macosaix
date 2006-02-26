@@ -2,6 +2,7 @@
 #import "MosaicView.h"
 #import "OriginalView.h"
 #import "Tiles.h"
+#import "MacOSaiXExportController.h"
 #import "MacOSaiXImageSource.h"
 #import "MacOSaiXTileShapes.h"
 #import "MacOSaiXPopUpImageView.h"
@@ -65,6 +66,7 @@
 	IBOutlet NSProgressIndicator		*progressPanelIndicator;
 	IBOutlet NSButton					*progressPanelCancelButton;
 	
+	MacOSaiXExportController			*exportController;
     NSTimer								*fadeTimer,
 										*animateTileTimer;
     NSMutableArray						*selectedTileImages;

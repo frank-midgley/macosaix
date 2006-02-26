@@ -11,7 +11,6 @@
 #import "MacOSaiX.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatcher.h"
-#import "MacOSaiXExportController.h"
 #import "MacOSaiXFullScreenController.h"
 #import "MacOSaiXPopUpImageView.h"
 #import "NSImage+MacOSaiX.h"
@@ -456,14 +455,14 @@
 		
 		[imageSourcesTableView reloadData];
 		
-		if ([mosaicView fade] == 0.0 && ![[self mosaic] wasStarted])
-		{
-			fadeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.25 
-														  target:self 
-														selector:@selector(fadeToMosaic:) 
-														userInfo:nil 
-														 repeats:YES] retain];
-		}
+//		if ([mosaicView fade] == 0.0 && ![[self mosaic] wasStarted])
+//		{
+//			fadeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.25 
+//														  target:self 
+//														selector:@selector(fadeToMosaic:) 
+//														userInfo:nil 
+//														 repeats:YES] retain];
+//		}
 	}
 }
 
@@ -1267,24 +1266,17 @@
 {
 		// Disable auto saving so it doesn't interfere with exporting.
 	[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:NO];
+
+	if (!exportController)
+		exportController = [[MacOSaiXExportController alloc] init];
 	
-		// Pause the mosaic so we don't have a moving target.
-	BOOL		wasPaused = [[self mosaic] isPaused];
-    [self pause];
-    
-	// TODO:
-	// Call up the export controller
-	// Restore pause state
-	// Re-enable auto saving.
-		//[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:YES];
-	NSString					*defaultName = [[[[self document] displayName] lastPathComponent] stringByDeletingPathExtension];
-	MacOSaiXExportController	*exportController = [[MacOSaiXExportController alloc] initWithMosaic:[self mosaic]];
-	[exportController exportMosaicWithName:defaultName 
-								mosaicView:mosaicView 
-							modalForWindow:[self window] 
-							 modalDelegate:self 
-						  progressSelector:@selector(exportDidProgress:message:) 
-							didEndSelector:@selector(exportDidComplete:)];
+	[exportController exportMosaic:[self mosaic]
+						  withName:[[[[self document] displayName] lastPathComponent] stringByDeletingPathExtension] 
+						mosaicView:mosaicView 
+					modalForWindow:[self window] 
+					 modalDelegate:self 
+				  progressSelector:@selector(exportDidProgress:message:) 
+					didEndSelector:@selector(exportDidComplete:)];
 }
 
 
@@ -1581,8 +1573,8 @@
     }
     else if ([itemIdentifier isEqualToString:@"Zoom"])
     {
-		[toolbarItem setMinSize:NSMakeSize(70, 32)];
-		[toolbarItem setMaxSize:NSMakeSize(70, 32)];
+		[toolbarItem setMinSize:[zoomToolbarView frame].size];
+		[toolbarItem setMaxSize:[zoomToolbarView frame].size];
 		[toolbarItem setLabel:@"Zoom"];
 		[toolbarItem setPaletteLabel:@"Zoom"];
 		[toolbarItem setView:zoomToolbarView];
@@ -1704,6 +1696,7 @@
     [tileImages release];
     
 	[tilesSetupController release];
+	[exportController release];
 	
 	if ([fadeTimer isValid])
 		[fadeTimer invalidate];
