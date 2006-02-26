@@ -39,17 +39,16 @@
     int						imageFormat;
 	BOOL					createWebPage, 
 							includeOriginalImage;
-	BOOL					openImageWhenComplete;
+	BOOL					openWhenComplete;
 }
 
-- (id)initWithMosaic:(MacOSaiXMosaic *)mosaic;
-
-- (void)exportMosaicWithName:(NSString *)name 
-				  mosaicView:(MosaicView *)mosaicView 
-			  modalForWindow:(NSWindow *)window 
-			   modalDelegate:(id)delegate
-			progressSelector:(SEL)progressSelector
-			  didEndSelector:(SEL)didEndSelector;
+- (void)exportMosaic:(MacOSaiXMosaic *)mosaic
+			withName:(NSString *)name 
+		  mosaicView:(MosaicView *)inMosaicView 
+	  modalForWindow:(NSWindow *)window 
+	   modalDelegate:(id)inDelegate
+	progressSelector:(SEL)inProgressSelector
+	  didEndSelector:(SEL)inDidEndSelector;
 
 - (IBAction)setBackground:(id)sender;
 - (IBAction)setFade:(id)sender;

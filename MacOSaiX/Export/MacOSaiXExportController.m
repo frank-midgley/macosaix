@@ -19,18 +19,8 @@ static NSArray	*formatExtensions = nil;
 
 + (void)initialize
 {
+		// This array must be in sync with the enum above.
 	formatExtensions = [[NSArray arrayWithObjects:@"jpg", @"png", @"tiff", nil] retain];
-}
-
-
-- (id)initWithMosaic:(MacOSaiXMosaic *)inMosaic
-{
-	if (self = [super initWithWindow:nil])
-	{
-		mosaic = inMosaic;
-	}
-	
-	return self;
 }
 
 
@@ -40,16 +30,44 @@ static NSArray	*formatExtensions = nil;
 }
 
 
-- (void)exportMosaicWithName:(NSString *)name 
-				  mosaicView:(MosaicView *)inMosaicView 
-			  modalForWindow:(NSWindow *)window 
-			   modalDelegate:(id)inDelegate
-			progressSelector:(SEL)inProgressSelector
-			  didEndSelector:(SEL)inDidEndSelector
+- (void)awakeFromNib
+{
+	NSDictionary	*exportDefaults = [[NSUserDefaults standardUserDefaults] objectForKey:@"Export Defaults"];
+	NSNumber		*unitsTag = [exportDefaults objectForKey:@"Units"], 
+					*resolutionTag = [exportDefaults objectForKey:@"Resolution"], 
+					*createWebPageBool = [exportDefaults objectForKey:@"Wrap in Web Page"], 
+					*includeOriginalBool = [exportDefaults objectForKey:@"Include Original in Web Page"], 
+					*openWhenCompleteBool = [exportDefaults objectForKey:@"Open When Complete"];
+	NSString		*formatExtension = [exportDefaults objectForKey:@"Image Format"];
+	
+	if (unitsTag && [unitsPopUp indexOfItemWithTag:[unitsTag intValue]])
+		[unitsPopUp selectItemWithTag:[unitsTag intValue]];
+	if (resolutionTag && [resolutionPopUp indexOfItemWithTag:[resolutionTag intValue]])
+		[resolutionPopUp selectItemWithTag:[resolutionTag intValue]];
+	if (createWebPageBool)
+		[createWebPageButton setState:((createWebPage = [createWebPageBool boolValue]) ? NSOnState : NSOffState)];
+	if (includeOriginalBool)
+		[includeOriginalButton setState:((includeOriginalImage = [includeOriginalBool boolValue]) ? NSOnState : NSOffState)];
+	if (openWhenCompleteBool)
+		[openWhenCompleteButton setState:((openWhenComplete = [openWhenCompleteBool boolValue]) ? NSOnState : NSOffState)];
+	if (formatExtension && [formatExtensions containsObject:formatExtension])
+		[formatMatrix selectCellAtRow:(imageFormat = [formatExtensions indexOfObject:formatExtension])
+							   column:0];
+}
+
+
+- (void)exportMosaic:(MacOSaiXMosaic *)inMosaic
+			withName:(NSString *)name 
+		  mosaicView:(MosaicView *)inMosaicView 
+	  modalForWindow:(NSWindow *)window 
+	   modalDelegate:(id)inDelegate
+	progressSelector:(SEL)inProgressSelector
+	  didEndSelector:(SEL)inDidEndSelector
 {
 	if (!accessoryView)
 		[self window];
 	
+	mosaic = inMosaic;
 	[mosaicView setMosaicImage:[inMosaicView mosaicImage]];
 	[mosaicView setNonUniqueImage:[inMosaicView nonUniqueImage]];
 	[mosaicView setFade:[inMosaicView fade]];
@@ -58,6 +76,12 @@ static NSArray	*formatExtensions = nil;
 	delegate = inDelegate;
 	progressSelector = ([delegate respondsToSelector:inProgressSelector] ? inProgressSelector : nil);
 	didEndSelector = ([delegate respondsToSelector:inDidEndSelector] ? inDidEndSelector : nil);
+	
+		// Pause the mosaic so we don't have a moving target.
+//	BOOL		wasPaused = [mosaic isPaused];
+    [mosaic pause];
+	// TODO:
+	//     Restore pause state:		if (wasPaused) [mosaic resume];
 	
 		// Set up the save panel for exporting.
     NSSavePanel	*savePanel = [NSSavePanel savePanel];
@@ -83,7 +107,7 @@ static NSArray	*formatExtensions = nil;
 		}
     }
 	[savePanel setCanSelectHiddenExtension:YES];
-    [savePanel setRequiredFileType:[formatExtensions objectAtIndex:imageFormat]];
+    [savePanel setRequiredFileType:(createWebPage ? nil : [formatExtensions objectAtIndex:imageFormat])];
     [savePanel setAccessoryView:accessoryView];
 	
 		// Ask the user where to export the image.
@@ -168,7 +192,7 @@ static NSArray	*formatExtensions = nil;
 
 - (IBAction)setOpenImageWhenComplete:(id)sender
 {
-	openImageWhenComplete = ([openWhenCompleteButton state] == NSOnState);
+	openWhenComplete = ([openWhenCompleteButton state] == NSOnState);
 }
 
 
@@ -178,6 +202,18 @@ static NSArray	*formatExtensions = nil;
 	
     if (returnCode == NSOKButton)
     {
+			// Save the current settings as the defaults for future exports.
+		NSDictionary	*exportDefaults = [NSDictionary dictionaryWithObjectsAndKeys:
+												[NSNumber numberWithInt:[unitsPopUp selectedTag]], @"Units", 
+												[NSNumber numberWithInt:[resolutionPopUp selectedTag]], @"Resolution", 
+												[formatExtensions objectAtIndex:imageFormat], @"Image Format", 
+												[NSNumber numberWithBool:createWebPage], @"Wrap in Web Page", 
+												[NSNumber numberWithBool:includeOriginalImage], @"Include Original in Web Page", 
+												[NSNumber numberWithBool:openWhenComplete], @"Open When Complete", 
+												nil];
+		[[NSUserDefaults standardUserDefaults] setObject:exportDefaults forKey:@"Export Defaults"];
+		[[NSUserDefaults standardUserDefaults] synchronize];
+		
 		if (progressSelector)
 			[delegate performSelector:progressSelector 
 						   withObject:[NSNumber numberWithInt:0] 
@@ -239,10 +275,19 @@ static NSArray	*formatExtensions = nil;
 	
 	[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
 	
-	[[mosaic originalImage] drawInRect:exportRect 
-							  fromRect:NSZeroRect 
-							 operation:NSCompositeCopy 
-							  fraction:1.0];
+	[[NSColor clearColor] set];
+	NSRectFill(exportRect);
+	if ([mosaicView backgroundMode] == originalMode || [mosaicView fade] < 1.0)
+		[[mosaic originalImage] drawInRect:exportRect 
+								  fromRect:NSZeroRect 
+								 operation:NSCompositeCopy 
+								  fraction:1.0];
+	if ([mosaicView backgroundMode] == blackMode)
+	{
+		[[NSColor colorWithDeviceWhite:0.0 alpha:[mosaicView fade]] set];
+		NSRectFillUsingOperation(exportRect, NSCompositeSourceOver);
+	}
+	// TODO: draw a user specified solid color...
 	
 	
     NSAffineTransform	*transform = [NSAffineTransform transform];
@@ -333,7 +378,7 @@ static NSArray	*formatExtensions = nil;
 				[pixletImage drawInRect:drawRect 
 							   fromRect:NSZeroRect 
 							  operation:NSCompositeSourceOver 
-							   fraction:[fadeSlider floatValue]];
+							   fraction:[mosaicView fade]];
 				
 					// Clean up.
 				[NSGraphicsContext restoreGraphicsState];
@@ -483,7 +528,7 @@ static NSArray	*formatExtensions = nil;
 												 [localException reason]];
 	NS_ENDHANDLER
 	
-	if (!error && openImageWhenComplete)
+	if (!error && openWhenComplete)
 		[[NSWorkspace sharedWorkspace] openFile:[filename stringByAppendingPathComponent:@"index.html"]];
 	
 	if (didEndSelector)
