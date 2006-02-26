@@ -360,7 +360,7 @@
 				NS_DURING
 					[nonUniqueImage lockFocus];
 						[clipPath setClip];
-						[imageRep drawInRect:[clipPath bounds]];
+						[imageRep drawAtPoint:[clipPath bounds].origin];
 					[nonUniqueImage unlockFocus];
 				NS_HANDLER
 					NSLog(@"Could not lock focus on non-unique image");
@@ -373,7 +373,7 @@
 			NS_DURING
 				[mosaicImage lockFocus];
 					[clipPath setClip];
-					[imageRep drawInRect:[clipPath bounds]];
+					[imageRep drawAtPoint:[clipPath bounds].origin];
 				[mosaicImage unlockFocus];
 			NS_HANDLER
 				NSLog(@"Could not lock focus on mosaic image");
