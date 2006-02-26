@@ -63,22 +63,23 @@
 
 - (void)createBitmapRep
 {
+		// Determine the bounds of the tile in the original image and in the workingImage.
+	NSBezierPath	*tileOutline = [self outline];
+	NSImage			*originalImage = [mosaic originalImage];
+	NSRect			origRect = NSMakeRect([tileOutline bounds].origin.x * [originalImage size].width,
+										  [tileOutline bounds].origin.y * [originalImage size].height,
+										  [tileOutline bounds].size.width * [originalImage size].width,
+										  [tileOutline bounds].size.height * [originalImage size].height),
+					destRect = (origRect.size.width > origRect.size.height) ?
+								NSMakeRect(0, 0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE * origRect.size.height / origRect.size.width) : 
+								NSMakeRect(0, 0, TILE_BITMAP_SIZE * origRect.size.width / origRect.size.height, TILE_BITMAP_SIZE);
+	
+	NSImage	*workingImage = [[NSImage alloc] initWithSize:destRect.size];
+	BOOL	focusLocked = NO;
+	
 	NS_DURING
-			// Determine the bounds of the tile in the original image and in the workingImage.
-		NSBezierPath	*tileOutline = [self outline];
-		NSImage			*originalImage = [mosaic originalImage];
-		NSRect			origRect = NSMakeRect([tileOutline bounds].origin.x * [originalImage size].width,
-											  [tileOutline bounds].origin.y * [originalImage size].height,
-											  [tileOutline bounds].size.width * [originalImage size].width,
-											  [tileOutline bounds].size.height * [originalImage size].height),
-						destRect = (origRect.size.width > origRect.size.height) ?
-									NSMakeRect(0, 0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE * origRect.size.height / origRect.size.width) : 
-									NSMakeRect(0, 0, TILE_BITMAP_SIZE * origRect.size.width / origRect.size.height, TILE_BITMAP_SIZE);
-		
-		NSImage	*workingImage = [[[NSImage alloc] initWithSize:destRect.size] autorelease];
-		[workingImage setCachedSeparately:YES];
-		[workingImage setCacheMode:NSImageCacheNever];
 		[workingImage lockFocus];
+		focusLocked = YES;
 		
 			// Start with a black image to overwrite any previous scratch contents.
 		[[NSColor blackColor] set];
@@ -116,6 +117,11 @@
 	NS_HANDLER
 		NSLog(@"Exception raised while extracting tile images: %@", [localException name]);
 	NS_ENDHANDLER
+	
+	if (focusLocked)
+		[workingImage unlockFocus];
+	
+	[workingImage release];
 }
 
 - (NSBitmapImageRep *)bitmapRep
