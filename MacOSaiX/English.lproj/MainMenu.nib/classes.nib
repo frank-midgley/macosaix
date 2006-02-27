@@ -28,7 +28,7 @@
             ACTIONS = {enterKioskMode = id; openPreferences = id; }; 
             CLASS = MacOSaiX; 
             LANGUAGE = ObjC; 
-            OUTLETS = {originalImagesMenu = NSMenu; }; 
+            OUTLETS = {mosaicMenu = NSMenu; viewMenu = NSMenu; }; 
             SUPERCLASS = NSObject; 
         }, 
         {
