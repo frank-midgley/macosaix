@@ -544,7 +544,7 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 	while ([[self windowControllers] count] == 0)
 		[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 	
-	[[self mainWindowController] displayProgressPanelWithMessage:@"Loading the mosaic..."];
+	[[self mainWindowController] displayProgressPanelWithMessage:@"Loading the mosaic project..."];
 	
 	NSData	*xmlData = [NSData dataWithContentsOfFile:[fileName stringByAppendingPathComponent:@"Mosaic.xml"]];
 	
@@ -600,10 +600,10 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 		[self performSelectorOnMainThread:@selector(presentFailedLoadSheet:) 
 							   withObject:errorMessage 
 						    waitUntilDone:NO];
-	else
-		[[self mainWindowController] performSelectorOnMainThread:@selector(synchronizeGUIWithDocument) 
-													  withObject:nil 
-												   waitUntilDone:NO];
+//	else
+//		[[self mainWindowController] performSelectorOnMainThread:@selector(synchronizeGUIWithDocument) 
+//													  withObject:nil 
+//												   waitUntilDone:NO];
 	[pool release];
 }
 
