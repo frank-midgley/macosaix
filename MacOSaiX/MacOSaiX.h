@@ -14,7 +14,8 @@
 
 @interface MacOSaiX : NSObject
 {
-	IBOutlet NSMenu			*originalImagesMenu;
+	IBOutlet NSMenu			*mosaicMenu, 
+							*viewMenu;
 	
 	NSMutableArray			*tileShapesClasses,
 							*imageSourceClasses,
@@ -25,8 +26,6 @@
 	MacOSaiXKioskController	*kioskController;
 	NSMutableArray			*kioskMosaicControllers;
 }
-
-- (NSMenu *)originalImagesMenu;
 
 - (void)openPreferences:(id)sender;
 - (void)discoverPlugIns;

@@ -161,12 +161,6 @@
 //{
 //}
 
-	
-- (NSMenu *)originalImagesMenu
-{
-	return originalImagesMenu;
-}
-
 
 - (void)openPreferences:(id)sender
 {
