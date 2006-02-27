@@ -476,41 +476,42 @@
 
 - (void)drawRect:(NSRect)theRect
 {
-		// Start with an entirely transparent canvas.
-	[[NSColor clearColor] set];
-	NSRectFill(theRect);
-	
 		// Draw the user selected background.
-	if (backgroundMode == originalMode || viewFade < 1.0)
+	if (backgroundMode == originalMode)
 		[[mosaic originalImage] drawInRect:[self mosaicBounds] 
 								  fromRect:NSZeroRect 
 								 operation:NSCompositeSourceOver 
 								  fraction:1.0];
-	if (backgroundMode == nonUniqueMode)
+	else if (backgroundMode == nonUniqueMode)
 	{
 		[nonUniqueImageLock lock];
 			[nonUniqueImage drawInRect:[self mosaicBounds] 
 							  fromRect:NSZeroRect 
 							 operation:NSCompositeSourceOver 
-							  fraction:viewFade];
+							  fraction:1.0];
 		[nonUniqueImageLock unlock];
 	}
 	else if (backgroundMode == blackMode)
 	{
 		[[NSColor colorWithDeviceWhite:0.0 alpha:viewFade] set];
-		NSRectFillUsingOperation(theRect, NSCompositeSourceOver);
+		NSRectFill(theRect);
 	}
 	// TODO: draw a user specified solid color...
 	
-	if (viewFade > 0.0)
-	{
-		[mosaicImageLock lock];
-			[mosaicImage drawInRect:[self mosaicBounds] 
-						   fromRect:NSZeroRect 
-						  operation:NSCompositeSourceOver 
-						   fraction:viewFade];
-		[mosaicImageLock unlock];
-	}
+		// Draw the mosaic itself.
+	[mosaicImageLock lock];
+		[mosaicImage drawInRect:[self mosaicBounds] 
+					   fromRect:NSZeroRect 
+					  operation:NSCompositeSourceOver 
+					   fraction:viewFade];
+	[mosaicImageLock unlock];
+	
+		// Overlay the faded original if appropriate and if it's not already there.
+	if (viewFade < 1.0 && backgroundMode != originalMode)
+		[[mosaic originalImage] drawInRect:[self mosaicBounds] 
+								  fromRect:NSZeroRect 
+								 operation:NSCompositeSourceOver 
+								  fraction:1.0 - viewFade];
 	
 		// Highlight the selected image sources.
 	[highlightedImageSourcesLock lock];
