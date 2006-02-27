@@ -40,8 +40,6 @@ Riemersma metric:
 ¥	Streaming QT source
 	Image cache
 ¥		purge unused images in disk cache on save
-	Preferences:
-¥		What to display for non-unique tiles
 
 
 2.0x To Do:
@@ -58,6 +56,10 @@ Riemersma metric:
 ¥		Exception on pasting letters
 ¥		Use each letter once
 ¥		Remember previous choices
+	Flickr source:
+¥		Page by post date
+¥		Other options?  (pix by specific user, etc.)
+¥		Log in?
 ¥	DOCTYPE plist in XML?
 ?	Window zooming
 ?	Tile refresh leaves black edges
@@ -75,7 +77,6 @@ Riemersma metric:
 Ã	Allow showing original image or best non-unique match for tiles without a unique match.
 Ã	Flickr source
 Ã	Make sure Google and Flickr caches don't fill disk
-¥	Page by post date in Flickr source
 Ã	Rework puzzle shapes plug-in to conform with new API
 Ã	Add recents to folder source
 Ã	Follow aliases in folder source
@@ -90,7 +91,7 @@ Riemersma metric:
 ¥	Start icon not changing to pause when started
 ¥	Copy original image to doc bundle
 ¥	Fix auto-fade
-¥	Enable "Add New Image Source" sub-menu in main menu
+¥	Enable "Add New Image Source" sub-menu in Mosaic menu
 ¥	Handle case of no original images
 Ã	Tile Setup sheet displaced when switching to puzzle pieces
 ¥	New UI for tile count/size better than previous?
@@ -109,6 +110,7 @@ Riemersma metric:
 Ã		Background option
 ¥	Tiles not clearing when source removed
 Ã	Make Fade and Zoom toolbar items narrower
-¥	Resume on open?
 ¥	Save&restore background mode
 ¥	Save&restore pause state
+¥	Enable "Clear Menu" in originals menu
+¥	Add "other" and "clear" items to toolbar originals menu
