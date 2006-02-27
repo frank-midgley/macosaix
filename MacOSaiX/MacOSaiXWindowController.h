@@ -73,7 +73,8 @@
     NSMutableDictionary					*toolbarItems;
     NSToolbarItem						*toggleOriginalToolbarItem, 
 										*pauseToolbarItem, 
-										*setupTilesToolbarItem;
+										*setupTilesToolbarItem, 
+										*saveAsToolbarItem;
 	NSImage								*originalToolbarImage,
 										*mosaicToolbarImage;
     BOOL								statusBarShowing,

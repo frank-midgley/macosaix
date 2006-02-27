@@ -1259,12 +1259,12 @@
 
 
 #pragma mark -
-#pragma mark Export methods
+#pragma mark Save As methods
 
 
-- (void)exportMosaic:(id)sender
+- (void)saveMosaicAs:(id)sender
 {
-		// Disable auto saving so it doesn't interfere with exporting.
+		// Disable auto saving so it doesn't interfere with saving.
 	[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:NO];
 
 	if (!exportController)
@@ -1275,20 +1275,20 @@
 						mosaicView:mosaicView 
 					modalForWindow:[self window] 
 					 modalDelegate:self 
-				  progressSelector:@selector(exportDidProgress:message:) 
-					didEndSelector:@selector(exportDidComplete:)];
+				  progressSelector:@selector(saveAsDidProgress:message:) 
+					didEndSelector:@selector(saveAsDidComplete:)];
 }
 
 
-- (void)exportDidProgress:(NSNumber *)percentComplete message:(NSString *)message
+- (void)saveAsDidProgress:(NSNumber *)percentComplete message:(NSString *)message
 {
-	[self performSelectorOnMainThread:@selector(updateExportProgress:) 
+	[self performSelectorOnMainThread:@selector(updateSaveAsProgress:) 
 						   withObject:[NSArray arrayWithObjects:percentComplete, message, nil] 
 						waitUntilDone:NO];
 }
 
 
-- (void)updateExportProgress:(NSArray *)parameters
+- (void)updateSaveAsProgress:(NSArray *)parameters
 {
 	if ([[self window] attachedSheet] != progressPanel)
 		[self displayProgressPanelWithMessage:[parameters objectAtIndex:1]];
@@ -1299,16 +1299,21 @@
 }
 
 
-- (void)exportDidComplete:(NSString *)errorString
+- (void)saveAsDidComplete:(NSString *)errorString
 {
 	if (!pthread_main_np())
 		[self performSelectorOnMainThread:_cmd withObject:errorString waitUntilDone:NO];
 	else
 	{
+		NSString	*exportFormat = [exportController exportFormat];
+		if (!exportFormat)
+			exportFormat = @"html";
+		[saveAsToolbarItem setImage:[[NSWorkspace sharedWorkspace] iconForFileType:exportFormat]];
+		
 		[self closeProgressPanel];
 		
 		if (errorString)
-			NSBeginAlertSheet(@"The mosaic could not be exported.", @"OK", nil, nil, [self window], 
+			NSBeginAlertSheet(@"The mosaic could not be saved.", @"OK", nil, nil, [self window], 
 							  self, nil, @selector(errorSheetDidDismiss:), nil, errorString);
 		else
 			[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:YES];	// Re-enable auto saving.
@@ -1535,14 +1540,15 @@
 		[toolbarItem setAction:@selector(viewFullScreen:)];
 		[toolbarItem setToolTip:@"View the mosaic in full screen mode"];
     }
-	else if ([itemIdentifier isEqualToString:@"Export Image"])
+	else if ([itemIdentifier isEqualToString:@"Save As"])
     {
-		[toolbarItem setImage:[NSImage imageNamed:@"ExportImage"]];
-		[toolbarItem setLabel:@"Export"];
-		[toolbarItem setPaletteLabel:@"Export"];
+		[toolbarItem setImage:[[NSWorkspace sharedWorkspace] iconForFileType:@"jpg"]];
+		[toolbarItem setLabel:@"Save As"];
+		[toolbarItem setPaletteLabel:@"Save As"];
 		[toolbarItem setTarget:self];
-		[toolbarItem setAction:@selector(exportMosaic:)];
-		[toolbarItem setToolTip:@"Export an image of the mosaic"];
+		[toolbarItem setAction:@selector(saveMosaicAs:)];
+		[toolbarItem setToolTip:@"Save the mosaic as an image or web page"];
+		saveAsToolbarItem = toolbarItem;
     }
 	else if ([itemIdentifier isEqualToString:@"Pause"])
     {
@@ -1599,7 +1605,7 @@
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar;
 {
     return [NSArray arrayWithObjects:@"Original Image", @"Setup Tiles", @"Full Screen", @"Fade", @"Zoom", 
-									 @"Export Image", @"Pause", @"Image Sources", 
+									 @"Save As", @"Pause", @"Image Sources", 
 									 NSToolbarCustomizeToolbarItemIdentifier, NSToolbarSpaceItemIdentifier,
 									 NSToolbarFlexibleSpaceItemIdentifier, NSToolbarSeparatorItemIdentifier,
 									 nil];
@@ -1609,7 +1615,7 @@
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar;
 {
     return [NSArray arrayWithObjects:@"Original Image", @"Setup Tiles", @"Fade", @"Zoom", @"Pause", 
-									 @"Export Image", NSToolbarFlexibleSpaceItemIdentifier, @"Image Sources", nil];
+									 NSToolbarFlexibleSpaceItemIdentifier, @"Image Sources", nil];
 }
 
 
