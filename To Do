@@ -80,7 +80,7 @@ Riemersma metric:
 Ã	Add recents to folder source
 Ã	Follow aliases in folder source
 ?	Single menu for restricting tile sizes
-¥	Complete plug-in API
+	Complete plug-in API
 ¥		OS check
 Ã		Add preferences API for image source plug-ins
 Ã		Add preferences API for tile shapes plug-ins
@@ -94,19 +94,19 @@ Riemersma metric:
 ¥	Handle case of no original images
 Ã	Tile Setup sheet displaced when switching to puzzle pieces
 ¥	New UI for tile count/size better than previous?
-¥	Tooltip for tile images.  Add -tooltipForIdentifier: to image source API?
-¥	Tile outlines display performance:
+¥	Tooltip for tile images
+	Tile outlines display performance:
 ¥		When viewing tile outline
 ¥		Selecting image source with 1000's of images in mosaic
 ¥	Make sure all prefs UI is functional
 Ã	Add cropping limit checkbox (now a slider)
-¥	Deal with 10000 pixel limit when exporting
-¥	Web export
-¥		Fade display
+	Exporting
+¥		Re-enforce 10000 pixel limit
+Ã		Fade display
 ¥		Cancelling
 ¥		Initial units
-¥		Remember defaults
-¥		Background option
+Ã		Remember defaults
+Ã		Background option
 ¥	Tiles not clearing when source removed
 Ã	Make Fade and Zoom toolbar items narrower
 ¥	Resume on open?
