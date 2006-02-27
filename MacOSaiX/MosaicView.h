@@ -11,7 +11,7 @@
 #import "Tiles.h"
 
 
-typedef enum { blackMode = 0, originalMode, nonUniqueMode, clearMode } MacOSaiXBackgroundMode;
+typedef enum { clearMode = 0, blackMode, originalMode, nonUniqueMode } MacOSaiXBackgroundMode;
 
 
 @interface MosaicView : NSView
