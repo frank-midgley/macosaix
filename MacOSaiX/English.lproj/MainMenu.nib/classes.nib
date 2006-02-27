@@ -2,12 +2,12 @@
     IBClasses = (
         {
             ACTIONS = {
-                beginExportImage = id; 
                 centerViewOnSelectedTile = id; 
                 chooseImageForSelectedTile = id; 
                 chooseOriginalImage = id; 
                 clearRecentOriginalImages = id; 
                 removeChosenImageForSelectedTile = id; 
+                saveMosaicAs = id; 
                 setBackground = id; 
                 setViewMosaic = id; 
                 setViewOriginalImage = id; 
