@@ -62,4 +62,6 @@
 
 - (IBAction)setOpenImageWhenComplete:(id)sender;
 
+- (NSString *)exportFormat;
+
 @end

@@ -68,6 +68,8 @@ static NSArray	*formatExtensions = nil;
 		[self window];
 	
 	mosaic = inMosaic;
+
+	[mosaicView setMosaic:mosaic];
 	[mosaicView setMosaicImage:[inMosaicView mosaicImage]];
 	[mosaicView setNonUniqueImage:[inMosaicView nonUniqueImage]];
 	[mosaicView setFade:[inMosaicView fade]];
@@ -107,12 +109,14 @@ static NSArray	*formatExtensions = nil;
 		}
     }
 	[savePanel setCanSelectHiddenExtension:YES];
-    [savePanel setRequiredFileType:(createWebPage ? nil : [formatExtensions objectAtIndex:imageFormat])];
     [savePanel setAccessoryView:accessoryView];
+	
+	NSString	*exportFormat = [self exportFormat];
+    [savePanel setRequiredFileType:exportFormat];
 	
 		// Ask the user where to export the image.
     [savePanel beginSheetForDirectory:nil 
-								 file:[name stringByAppendingPathExtension:[formatExtensions objectAtIndex:imageFormat]]
+								 file:(exportFormat ? [name stringByAppendingPathExtension:exportFormat] : name)
 					   modalForWindow:window
 						modalDelegate:self
 					   didEndSelector:@selector(savePanelDidEnd:returnCode:contextInfo:)
@@ -161,6 +165,12 @@ static NSArray	*formatExtensions = nil;
 	}
 	
 	[self setUnits:self];
+}
+
+
+- (NSString *)exportFormat
+{
+	return (createWebPage ? nil : [formatExtensions objectAtIndex:imageFormat]);
 }
 
 
