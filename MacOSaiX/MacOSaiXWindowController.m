@@ -21,7 +21,9 @@
 #import <pthread.h>
 
 
-#define kMatchingMenuItemTag	1
+#define	kMatchingMenuItemTag	1
+#define kOriginalImageItemTag	2
+#define kAddImageSourceItemTag	3
 
 
 @interface MacOSaiXWindowController (PrivateMethods)
@@ -61,7 +63,7 @@
 		originalImagePopUpView = [[MacOSaiXPopUpImageView alloc] initWithFrame:NSMakeRect(0.0, 0.0, 44.0, 32.0)];
 	
 		// Remove the previous original items from the main menu.
-	NSMenu			*mainOriginalsMenu = [(MacOSaiX *)[NSApp delegate] originalImagesMenu];
+	NSMenu			*mainOriginalsMenu = [[mosaicMenu itemWithTag:kOriginalImageItemTag] submenu];
 	while ([mainOriginalsMenu numberOfItems] > 4)
 		[mainOriginalsMenu removeItemAtIndex:2];
 
@@ -95,8 +97,8 @@
 
 - (void)awakeFromNib
 {
-    viewMenu = [[[NSApp mainMenu] itemWithTitle:@"View"] submenu];
-    fileMenu = [[[NSApp mainMenu] itemWithTitle:@"File"] submenu];
+    viewMenu = [[NSApp delegate] valueForKey:@"viewMenu"];
+    mosaicMenu = [[NSApp delegate] valueForKey:@"mosaicMenu"];
 
 		// set up the toolbar
 	[self populateOriginalImagesMenus];
@@ -174,12 +176,12 @@
 	if ([[self document] fileName])
 	{
 		[pauseToolbarItem setLabel:@"Resume"];
-		[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Resume Matching"];
+		[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Resume Matching"];
 	}
 	else
 	{
 		[pauseToolbarItem setLabel:@"Start Mosaic"];
-		[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Start Mosaic"];
+		[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Start Mosaic"];
 		
 			// Default to the most recently used original or prompt to choose one
 			// if no previous original was found.
@@ -378,7 +380,7 @@
 		[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
 		
 			// Update the menu bar.
-		[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Resume Matching"];
+		[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Resume Matching"];
 	}
 }
 
@@ -394,7 +396,7 @@
 		[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
 		
 			// Update the menu bar
-		[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Pause Matching"];
+		[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Pause Matching"];
 	}
 }
 
@@ -470,7 +472,7 @@
 
 - (void)synchronizeMenus
 {
-	[[fileMenu itemWithTag:kMatchingMenuItemTag] setTitle:([[self mosaic] isPaused] ? @"Resume Matching" : @"Pause Matching")];
+	[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:([[self mosaic] isPaused] ? @"Resume Matching" : @"Pause Matching")];
 
 	[[viewMenu itemWithTag:0] setState:([mosaicView fade] == 0.0 ? NSOnState : NSOffState)];
 	[[viewMenu itemWithTag:1] setState:([mosaicView fade] == 1.0 ? NSOnState : NSOffState)];
@@ -1523,7 +1525,8 @@
 	else if ([itemIdentifier isEqualToString:@"Setup Tiles"])
     {
 		NSImage	*shapesImage = [[[self mosaic] tileShapes] image];
-		[toolbarItem setImage:(shapesImage ? shapesImage : [NSImage imageNamed:@"Tiles Setup"])];
+		if (shapesImage)
+			[toolbarItem setImage:shapesImage];
 		[toolbarItem setLabel:@"Setup Tiles"];
 		[toolbarItem setPaletteLabel:@"Setup Tiles"];
 		[toolbarItem setTarget:self];

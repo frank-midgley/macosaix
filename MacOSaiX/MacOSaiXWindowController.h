@@ -83,12 +83,17 @@
 										finishLoading;	// flag to indicate doc was not new,
 														// so perform second phase of initializing
     NSArray								*removedSubviews;
-    NSMenu								*viewMenu, *fileMenu;
-    float								overallMatch, lastDisplayMatch, zoom;
+    NSMenu								*mosaicMenu, 
+										*viewMenu;
+    float								overallMatch, 
+										lastDisplayMatch, 
+										zoom;
     MacOSaiXTile						*selectedTile;
 	NSPoint								tileSelectionPoint;
-    NSWindow							*mainWindow, *mosaicImageDrawWindow;
-    NSMenuItem							*zoomToolbarMenuItem, *viewToolbarMenuItem;
+    NSWindow							*mainWindow, 
+										*mosaicImageDrawWindow;
+    NSMenuItem							*zoomToolbarMenuItem, 
+										*viewToolbarMenuItem;
     NSMutableArray						*tileImages;
 	id<MacOSaiXImageSource>				*manualImageSource;
 }
@@ -126,7 +131,7 @@
 - (IBAction)removeChosenImageForSelectedTile:(id)sender;
 
 	// Export image methods
-- (IBAction)exportMosaic:(id)sender;
+- (IBAction)saveMosaicAs:(id)sender;
 
 	// Progress panel methods
 - (void)displayProgressPanelWithMessage:(NSString *)message;
