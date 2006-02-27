@@ -298,7 +298,9 @@
 				
 				if ([tilesToRedraw count] > 0 && [lastRedraw timeIntervalSinceNow] < -0.2)
 				{
-					[self performSelectorOnMainThread:@selector(redrawTiles:) withObject:tilesToRedraw waitUntilDone:NO];
+					[self performSelectorOnMainThread:@selector(redrawTiles:) 
+										   withObject:[NSArray arrayWithArray:tilesToRedraw] 
+										waitUntilDone:NO];
 					[tilesToRedraw removeAllObjects];
 				}
 			[tileRefreshLock unlock];
