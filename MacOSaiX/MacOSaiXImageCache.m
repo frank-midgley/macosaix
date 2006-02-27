@@ -47,7 +47,10 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 			
 			maxMemoryCacheSize = NSRealMemoryAvailable() / 3;
 			
-			scalingWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0.0, 0.0, 256.0, 256.0) 
+				// Create a window that we can use to scale down images.  Ideally we'd just 
+				// lock focus on an image but currently that uses a cached window that has 
+				// threading issues.  Using this window avoids the crashes.
+			scalingWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0.0, 0.0, 512.0, 512.0) 
 														styleMask:NSBorderlessWindowMask 
 														  backing:NSBackingStoreBuffered 
 															defer:NO];
@@ -264,7 +267,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 					[imageKeyRecencyArray insertObject:imageKey atIndex:0];
 					break;
 				}
-				else if (NSEqualSizes(cachedRepSize, nativeSize) && size.width < 256.0 && size.height < 256.0)
+				else if (NSEqualSizes(cachedRepSize, nativeSize))
 					scalableRep = cachedRep;	// this is the original, OK to scale from it
 //				else if (repSize.width <= nativeSize.width &&	// not looking for a rep bigger than the original image and...
 //						 cachedRepSize.width >= repSize.width * 2.0 &&	// the cached rep is big enough to scale down and...
@@ -291,9 +294,14 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 				scaledRect = NSMakeRect((size.width - scaledWidth) / 2.0, 0.0, scaledWidth, size.height);
 			}
 			
+				// Use the scaling window if possible, else locking focus on an image and risk a crash.
+			id			scalingContainer = [scalingWindow contentView];
+			if (size.width > NSWidth([scalingContainer frame]) || size.height > NSHeight([scalingContainer frame]))
+				scalingContainer = [[[NSImage alloc] initWithSize:size] autorelease];
+			
 			BOOL	gotFocus = NO;
 			NS_DURING
-				[[scalingWindow contentView] lockFocus];
+				[scalingContainer lockFocus];
 				gotFocus = YES;
 				[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
 				[scalableRep drawInRect:scaledRect];
@@ -303,7 +311,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 			NS_ENDHANDLER
 			
 			if (gotFocus)
-				[[scalingWindow contentView] unlockFocus];
+				[scalingContainer unlockFocus];
 			
 			if (imageRep)
 				[self addImageRep:imageRep toMemoryCacheForKey:imageKey];
