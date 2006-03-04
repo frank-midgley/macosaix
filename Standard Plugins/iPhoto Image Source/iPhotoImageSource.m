@@ -37,12 +37,6 @@ static NSImage	*iPhotoImage = nil,
 }
 
 
-+ (NSString *)name
-{
-	return @"iPhoto";
-}
-
-
 + (NSImage *)image;
 {
 	return iPhotoImage;

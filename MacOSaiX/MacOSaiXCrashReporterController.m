@@ -136,19 +136,21 @@
 	Class			plugInClass = nil;
 	while ((plugInClass = [plugInClassEnumerator nextObject]))
 	{
-		NSString	*version = [[NSBundle bundleForClass:plugInClass] objectForInfoDictionaryKey:@"CFBundleVersion"];
+		NSBundle	*plugInBundle = [NSBundle bundleForClass:plugInClass];
+		NSString	*plugInName = [plugInBundle objectForInfoDictionaryKey:@"CFBundleName"], 
+					*plugInVersion = [plugInBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
 		
 		if ([plugInClass conformsToProtocol:@protocol(MacOSaiXTileShapes)])
 			[plugIns addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 												@"Tile Shapes", @"Type", 
-												[plugInClass name], @"Name", 
-												version, @"Version", 
+												plugInName, @"Name", 
+												plugInVersion, @"Version", 
 												nil]];
 		else if ([plugInClass conformsToProtocol:@protocol(MacOSaiXImageSource)])
 			[plugIns addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 												@"Image Source", @"Type", 
-												[plugInClass name], @"Name", 
-												version, @"Version", 
+												plugInName, @"Name", 
+												plugInVersion, @"Version", 
 												nil]];
 	}
 	[plugInsTable reloadData];

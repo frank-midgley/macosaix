@@ -14,12 +14,6 @@
 @implementation DirectoryImageSource
 
 
-+ (NSString *)name
-{
-	return @"Folder";
-}
-
-
 + (NSImage *)image
 {
 	NSImage	*image = [[NSWorkspace sharedWorkspace] iconForFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Pictures"]];

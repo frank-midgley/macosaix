@@ -83,12 +83,6 @@ int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
 }
 
 
-+ (NSString *)name
-{
-	return @"Google Image Search";
-}
-
-
 + (NSImage *)image;
 {
     return gIcon;

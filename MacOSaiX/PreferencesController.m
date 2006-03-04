@@ -115,12 +115,13 @@
 				object = @"General Preferences";
 			else
 			{
-				Class	plugInClass = [plugInClasses objectAtIndex:row - 1];
+				Class		plugInClass = [plugInClasses objectAtIndex:row - 1];
+				NSBundle	*plugInBundle = [NSBundle bundleForClass:plugInClass];
+				
+				object = [plugInBundle objectForInfoDictionaryKey:@"CFBundleName"];
 				
 				if ([plugInClass conformsToProtocol:@protocol(MacOSaiXTileShapes)])
-					object = [NSString stringWithFormat:@"%@ Tile Shapes", [plugInClass name]];
-				else
-					object = [plugInClass name];
+					object = [NSString stringWithFormat:@"%@ Tile Shapes", object];
 			}
 		}
 	}

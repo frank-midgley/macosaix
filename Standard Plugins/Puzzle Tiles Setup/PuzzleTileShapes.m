@@ -20,12 +20,6 @@
 }
 
 
-+ (NSString *)name
-{
-	return @"Puzzle Pieces";
-}
-
-
 + (NSBezierPath *)puzzlePathWithSize:(NSSize)tileSize
 						  attributes:(PuzzlePiece)attributes
 {

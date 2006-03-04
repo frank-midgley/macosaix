@@ -15,9 +15,6 @@
 
 @protocol MacOSaiXImageSource <NSObject, NSCopying>
 
-	// Name to display in image source pop-up menu
-+ (NSString *)name;
-
 	// The image for a generic source of this type.
 + (NSImage *)image;
 

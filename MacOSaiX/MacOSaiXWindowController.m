@@ -148,7 +148,9 @@
 		[imageSourcesPopUpButton addItemWithTitle:@"Add New Source..."];
 		while (imageSourceClass = [enumerator nextObject])
 		{
-			[imageSourcesPopUpButton addItemWithTitle:[NSString stringWithFormat:@"%@...", [imageSourceClass name]]];
+			NSBundle		*plugInBundle = [NSBundle bundleForClass:imageSourceClass];
+			NSString		*plugInName = [plugInBundle objectForInfoDictionaryKey:@"CFBundleName"];
+			[imageSourcesPopUpButton addItemWithTitle:[NSString stringWithFormat:@"%@...", plugInName]];
 			[[imageSourcesPopUpButton lastItem] setRepresentedObject:imageSourceClass];
 			
 			NSImage	*image = [[[imageSourceClass image] copy] autorelease];

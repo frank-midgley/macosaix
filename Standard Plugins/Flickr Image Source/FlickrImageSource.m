@@ -87,12 +87,6 @@ int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
 }
 
 
-+ (NSString *)name
-{
-	return @"flickr";
-}
-
-
 + (NSImage *)image;
 {
     return fIcon;
@@ -527,7 +521,8 @@ void	endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 	CFDictionaryRef			results = WSMethodInvocationInvoke(flickrInvocation);
 	
 	if (WSMethodResultIsFault(results))
-		NSLog(@"Could not talk to flickr: %@ (Error %@)", [results objectForKey:kWSFaultString], [results objectForKey:kWSFaultCode]);	//handle error
+		NSLog(@"Could not talk to flickr: %@ (Error %@)", [(NSDictionary *)results objectForKey:(id)kWSFaultString], 
+														  [(NSDictionary *)results objectForKey:(id)kWSFaultCode]);	// TODO: handle error
 	else
 	{
 			// Create the parser with the option to skip whitespace.

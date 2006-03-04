@@ -40,12 +40,6 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
-+ (NSString *)name
-{
-	return @"Glyphs";
-}
-
-
 + (NSImage *)image
 {
 	return glyphSourceImage;

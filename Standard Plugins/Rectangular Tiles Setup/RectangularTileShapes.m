@@ -13,12 +13,6 @@
 @implementation MacOSaiXRectangularTileShapes
 
 
-+ (NSString *)name
-{
-	return @"Rectangular";
-}
-
-
 + (NSImage *)image
 {
 	static	NSImage	*image = nil;

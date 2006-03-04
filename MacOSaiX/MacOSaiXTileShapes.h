@@ -13,9 +13,6 @@
 
 @protocol MacOSaiXTileShapes <NSObject, NSCopying>
 
-	// The name of this type of tile shapes, e.g. "Rectangular" or "Puzzle Piece".
-+ (NSString *)name;
-
 	// A generic image for this type of tile shapes.
 	// This image is used for display in the preferences window (32x32), the tiles setup pop-up menu (16x16) 
 	// and the crash reporter window (16x16).

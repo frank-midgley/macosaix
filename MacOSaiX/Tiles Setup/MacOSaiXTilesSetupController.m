@@ -64,7 +64,9 @@
 	[plugInsPopUp removeAllItems];
 	while (tileShapesClass = [enumerator nextObject])
 	{
-		NSString		*title = [NSString stringWithFormat:titleFormat, [tileShapesClass name]];
+		NSBundle		*plugInBundle = [NSBundle bundleForClass:tileShapesClass];
+		NSString		*plugInName = [plugInBundle objectForInfoDictionaryKey:@"CFBundleName"];
+		NSString		*title = [NSString stringWithFormat:titleFormat, plugInName];
 		NSMenuItem		*newItem = [[[NSMenuItem alloc] initWithTitle:title action:nil keyEquivalent:@""] autorelease];
 		[newItem setRepresentedObject:tileShapesClass];
 		NSImage			*image = [[[tileShapesClass image] copy] autorelease];

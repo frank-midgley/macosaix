@@ -13,12 +13,6 @@
 @implementation MacOSaiXHexagonalTileShapes
 
 
-+ (NSString *)name
-{
-	return @"Hexagonal";
-}
-
-
 + (NSImage *)image
 {
 	static	NSImage	*image = nil;
