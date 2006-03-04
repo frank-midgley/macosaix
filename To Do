@@ -40,6 +40,7 @@ Riemersma metric:
 ¥	Streaming QT source
 	Image cache
 ¥		purge unused images in disk cache on save
+¥	Save a low-res version of the mosaic
 
 
 2.0x To Do:
@@ -58,7 +59,7 @@ Riemersma metric:
 ¥		Remember previous choices
 	Flickr source:
 ¥		Page by post date
-¥		Other options?  (pix by specific user, etc.)
+¥		Other options?  (pix by specific user, license, etc.)
 ¥		Log in?
 ¥	DOCTYPE plist in XML?
 ?	Window zooming
@@ -114,3 +115,4 @@ Riemersma metric:
 ¥	Save&restore pause state
 ¥	Enable "Clear Menu" in originals menu
 ¥	Add "other" and "clear" items to toolbar originals menu
+Ã	Get rid of +[plugInClass name] and read from Info.plist instead (simplifies and localizes)
