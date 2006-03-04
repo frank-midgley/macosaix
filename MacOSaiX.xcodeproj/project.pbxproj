@@ -17,8 +17,6 @@
 		0127354307CD6EBB0053037A /* Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0127354207CD6EBB0053037A /* Defaults.plist */; };
 		0128323A071B7297004ACF95 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		01297702086A63D30095AD36 /* MacOSaiXCrashReporterController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01297700086A63D30095AD36 /* MacOSaiXCrashReporterController.m */; };
-		01453D54071B6F8000BCEC7C /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 01453D51071B6F8000BCEC7C /* Info.plist */; };
-		014DB626071A2C8D00DF68C0 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 014DB625071A2C8D00DF68C0 /* Info.plist */; };
 		016A242308D7C952009A93BF /* ZoomIn.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242208D7C952009A93BF /* ZoomIn.png */; };
 		016A242508D7C975009A93BF /* ZoomOut.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242408D7C975009A93BF /* ZoomOut.png */; };
 		016A248208D7D8E2009A93BF /* HandPicked.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A248108D7D8E2009A93BF /* HandPicked.png */; };
@@ -27,7 +25,6 @@
 		01722BA309298D3E00290929 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		01722BC109298DB700290929 /* FlickrImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 01722B8E09298D3300290929 /* FlickrImageSource.m */; };
 		01722BC209298DB700290929 /* FlickrImageSourceController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01722B9009298D3300290929 /* FlickrImageSourceController.m */; };
-		01722BC309298DBB00290929 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 01722B9109298D3300290929 /* Info.plist */; };
 		01722BD909298DCE00290929 /* Flickr Image Source.nib in Resources */ = {isa = PBXBuildFile; fileRef = 01722BD309298DCE00290929 /* Flickr Image Source.nib */; };
 		01722BF6092991FF00290929 /* flickr.gif in Resources */ = {isa = PBXBuildFile; fileRef = 01722BF4092991FF00290929 /* flickr.gif */; };
 		01722C270929986A00290929 /* f.ico in Resources */ = {isa = PBXBuildFile; fileRef = 01722C260929986A00290929 /* f.ico */; };
@@ -135,11 +132,6 @@
 		928F72CD066122CD00873AE2 /* GlyphImageSource.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F54EF786025F976A01000103 /* GlyphImageSource.tiff */; };
 		928F72D3066122D300873AE2 /* RectangularTileShapes.nib in Resources */ = {isa = PBXBuildFile; fileRef = 928F72930661226000873AE2 /* RectangularTileShapes.nib */; };
 		928F72D5066122D800873AE2 /* QuickTime Image Source.nib in Resources */ = {isa = PBXBuildFile; fileRef = 928F72970661226000873AE2 /* QuickTime Image Source.nib */; };
-		928F72D90661230700873AE2 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 928F72D80661230700873AE2 /* Info.plist */; };
-		928F72DD0661231B00873AE2 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 928F72DC0661231B00873AE2 /* Info.plist */; };
-		928F72E10661234700873AE2 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 928F72E00661234700873AE2 /* Info.plist */; };
-		928F72E50661235B00873AE2 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 928F72E40661235B00873AE2 /* Info.plist */; };
-		928F72E90661237300873AE2 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 928F72E80661237300873AE2 /* Info.plist */; };
 		92951FF1068A7FE600366ACB /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 928F724A0661214000873AE2 /* Info.plist */; };
 		9298FBA30982DB9400E7A096 /* Full Screen.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FBA10982DB9400E7A096 /* Full Screen.nib */; };
 		9298FCC6098C1C3500E7A096 /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FCC4098C1C3500E7A096 /* Preferences.nib */; };
@@ -169,7 +161,6 @@
 		92E3E15607E7BE8C00E62AB8 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
 		92E3E15E07E7BE8C00E62AB8 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		92E3E17207E7BF0B00E62AB8 /* iPhoto Image Source.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92E3E17007E7BF0B00E62AB8 /* iPhoto Image Source.nib */; };
-		92E3E17907E7BF1B00E62AB8 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 92E3E17407E7BF1B00E62AB8 /* Info.plist */; };
 		92E3E17A07E7BF1B00E62AB8 /* iPhotoImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 92E3E17507E7BF1B00E62AB8 /* iPhotoImageSource.h */; };
 		92E3E17B07E7BF1B00E62AB8 /* iPhotoImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 92E3E17607E7BF1B00E62AB8 /* iPhotoImageSource.m */; };
 		92E3E17C07E7BF1B00E62AB8 /* iPhotoImageSourceController.h in Headers */ = {isa = PBXBuildFile; fileRef = 92E3E17707E7BF1B00E62AB8 /* iPhotoImageSourceController.h */; };
@@ -1644,7 +1635,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				01453D54071B6F8000BCEC7C /* Info.plist in Resources */,
 				9226836909267C2600BF4EF7 /* PuzzleTilesSetup.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1653,7 +1643,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				01722BC309298DBB00290929 /* Info.plist in Resources */,
 				01722BD909298DCE00290929 /* Flickr Image Source.nib in Resources */,
 				01722BF6092991FF00290929 /* flickr.gif in Resources */,
 				01722C270929986A00290929 /* f.ico in Resources */,
@@ -1665,7 +1654,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				014DB626071A2C8D00DF68C0 /* Info.plist in Resources */,
 				9227FD7B07E37A340020C5F4 /* HexagonalTileShapes.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1719,7 +1707,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				928F72A00661226000873AE2 /* Directory Image Source.nib in Resources */,
-				928F72D90661230700873AE2 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1729,7 +1716,6 @@
 			files = (
 				928F72B90661229700873AE2 /* Google Image Source.nib in Resources */,
 				928F72C00661229F00873AE2 /* GoogleImageSource.gif in Resources */,
-				928F72E10661234700873AE2 /* Info.plist in Resources */,
 				01AD286F07E3C99B00420875 /* GoogleImageSearch.gif in Resources */,
 				0120B21F08C7FF8600974680 /* G.tiff in Resources */,
 				0111F0B60968728600EE09C1 /* Preferences.nib in Resources */,
@@ -1742,7 +1728,6 @@
 			files = (
 				928F72CB066122CC00873AE2 /* Glyph Image Source.nib in Resources */,
 				928F72CD066122CD00873AE2 /* GlyphImageSource.tiff in Resources */,
-				928F72DD0661231B00873AE2 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1751,7 +1736,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				928F72D3066122D300873AE2 /* RectangularTileShapes.nib in Resources */,
-				928F72E90661237300873AE2 /* Info.plist in Resources */,
 				92FF35C90937AFF9000FF862 /* Lock.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1761,7 +1745,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				928F72D5066122D800873AE2 /* QuickTime Image Source.nib in Resources */,
-				928F72E50661235B00873AE2 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1770,7 +1753,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				92E3E17207E7BF0B00E62AB8 /* iPhoto Image Source.nib in Resources */,
-				92E3E17907E7BF1B00E62AB8 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
