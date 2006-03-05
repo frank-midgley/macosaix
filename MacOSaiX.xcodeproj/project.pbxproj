@@ -2327,6 +2327,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				INFOPLIST_FILE = "Standard Plugins/QuickTime Image Source/Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
+				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				PRODUCT_NAME = "QuickTime Image Source";
 				WRAPPER_EXTENSION = plugin;
 			};
@@ -2336,6 +2339,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				INFOPLIST_FILE = "Standard Plugins/QuickTime Image Source/Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
+				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				PRODUCT_NAME = "QuickTime Image Source";
 				WRAPPER_EXTENSION = plugin;
 			};
