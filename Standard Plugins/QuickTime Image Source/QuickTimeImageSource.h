@@ -16,18 +16,19 @@
 {
     NSString	*moviePath;
 	NSMovie		*movie;
+	NSLock		*movieLock;
+	BOOL		movieIsThreadSafe;
+	NSImage		*currentImage;
 	float		aspectRatio;
 	TimeValue	minIncrement,
                 currentTimeValue, 
                 duration;
-	NSLock		*currentImageLock;
-	NSImage		*currentImage;
+	TimeScale	timeScale;
 }
 
 - (NSString *)path;
 - (void)setPath:(NSString *)path;
 
-- (NSMovie *)movie;
 - (float)aspectRatio;
 
 @end
