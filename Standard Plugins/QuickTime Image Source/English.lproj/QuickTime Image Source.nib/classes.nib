@@ -2,15 +2,17 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            ACTIONS = {chooseMovie = id; }; 
+            ACTIONS = {chooseAnotherMovie = id; clearMovieList = id; }; 
             CLASS = QuickTimeImageSourceController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                chooseMovieFileButton = NSButton; 
+                chooseAnotherMovieButton = NSButton; 
+                clearMovieListButton = NSButton; 
                 editorView = NSView; 
+                movieBox = NSBox; 
                 movieNameTextField = NSTextField; 
                 movieView = NSMovieView; 
-                recentMoviesPopUpButton = NSPopUpButton; 
+                moviesController = NSArrayController; 
             }; 
             SUPERCLASS = NSObject; 
         }
