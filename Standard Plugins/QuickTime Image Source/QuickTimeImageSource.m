@@ -302,7 +302,7 @@ static NSImage			*sQuickTimeImage = nil;
 	{
 		NSMutableDictionary	*parameters = [NSMutableDictionary dictionary];
 		
-		[self performSelectorOnMainThread:@selector(nextImageIdentifierOnMainThread:) 
+		[self performSelectorOnMainThread:@selector(nextImageAndIdentifierOnMainThread:) 
 							   withObject:parameters
 							waitUntilDone:YES];
 		
