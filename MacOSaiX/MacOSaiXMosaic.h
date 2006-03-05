@@ -93,6 +93,7 @@
 
 	// Notifications
 extern NSString	*MacOSaiXMosaicDidChangeStateNotification;
+extern NSString	*MacOSaiXMosaicDidChangeBusyStateNotification;
 extern NSString	*MacOSaiXOriginalImageDidChangeNotification;
 extern NSString *MacOSaiXTileImageDidChangeNotification;
 extern NSString *MacOSaiXTileShapesDidChangeStateNotification;
