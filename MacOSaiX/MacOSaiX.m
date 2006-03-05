@@ -138,14 +138,17 @@
 		// To provide a service:
     //[NSApp setServicesProvider:[[EncryptoClass alloc] init]];
 	
-	[NSTimer scheduledTimerWithTimeInterval:10.0 
-									 target:self 
-								   selector:@selector(checkFreeMemory:) 
-								   userInfo:nil 
-									repeats:YES];
+	#ifdef DEBUG
+		[NSTimer scheduledTimerWithTimeInterval:10.0 
+										 target:self 
+									   selector:@selector(checkFreeMemory:) 
+									   userInfo:nil 
+										repeats:YES];
+	#endif
 }
 
 
+#ifdef DEBUG
 - (void)checkFreeMemory:(NSTimer *)timer
 {
 	struct task_basic_info	taskInfo;
@@ -155,6 +158,7 @@
 	
 	// MAX = 0xFFFFFFFF - SHARED_TEXT_REGION_SIZE - SHARED_DATA_REGION_SIZE = 3,758,096,383
 }
+#endif
 
 
 //- (void)newMacOSaiXWithPasteboard:(NSPasteboard *)pBoard userObject:(id)userObj error:(NSString **)error
