@@ -425,6 +425,10 @@
 													 name:MacOSaiXMosaicDidChangeStateNotification 
 												   object:[self mosaic]];
 		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(mosaicDidChangeState:) 
+													 name:MacOSaiXMosaicDidChangeBusyStateNotification 
+												   object:[self mosaic]];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(tileShapesDidChange:) 
 													 name:MacOSaiXTileShapesDidChangeStateNotification 
 												   object:[self mosaic]];
