@@ -67,6 +67,9 @@ Riemersma metric:
 ¥	Document plug-in API's
 ¥	Create sample plug-in projects
 ¥	Prompt for password when leaving kiosk mode
+¥	Get rid of all NSLog's
+¥	Enable cancelling of document load
+¥	Clean up about box
 
 
 2.0a6 To Do:
@@ -116,3 +119,7 @@ Riemersma metric:
 ¥	Enable "Clear Menu" in originals menu
 ¥	Add "other" and "clear" items to toolbar originals menu
 Ã	Get rid of +[plugInClass name] and read from Info.plist instead (simplifies and localizes)
+¥	Default background mode
+¥	Save background mode with mosaic
+¥	Document being corrupted when saved during quit?
+¥	Disable "tiles apart" pop-up when images can only appear in one tile
