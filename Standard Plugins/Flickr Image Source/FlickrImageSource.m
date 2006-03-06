@@ -223,7 +223,9 @@ int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
 			NSDictionary		*imageToDelete = [imageArray lastObject];
 			unsigned long long	fileSize = [[imageToDelete objectForKey:@"Size"] unsignedLongLongValue];
 			
-			NSLog(@"Purging %@", [imageToDelete objectForKey:@"Path"]);
+			#ifdef DEBUG
+				NSLog(@"Purging %@", [imageToDelete objectForKey:@"Path"]);
+			#endif
 			[fileManager removeFileAtPath:[imageToDelete objectForKey:@"Path"] handler:nil];
 			sCacheSize -= fileSize;
 			freeSpace += fileSize;
@@ -521,8 +523,12 @@ void	endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 	CFDictionaryRef			results = WSMethodInvocationInvoke(flickrInvocation);
 	
 	if (WSMethodResultIsFault(results))
-		NSLog(@"Could not talk to flickr: %@ (Error %@)", [(NSDictionary *)results objectForKey:(id)kWSFaultString], 
-														  [(NSDictionary *)results objectForKey:(id)kWSFaultCode]);	// TODO: handle error
+	{
+		#ifdef DEBUG
+			NSLog(@"Could not talk to flickr: %@ (Error %@)", [(NSDictionary *)results objectForKey:(id)kWSFaultString], 
+															  [(NSDictionary *)results objectForKey:(id)kWSFaultCode]);	// TODO: handle error
+		#endif
+	}
 	else
 	{
 			// Create the parser with the option to skip whitespace.
@@ -657,6 +663,12 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	} while (!image && [self hasMoreImages]);
 	
 	return image;
+}
+
+
+- (BOOL)canRefetchImages
+{
+	return YES;
 }
 
 
