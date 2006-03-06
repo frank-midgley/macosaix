@@ -15,7 +15,8 @@
 {
 	NSMutableDictionary			*diskCache,
 								*memoryCache,
-								*nativeImageSizeDict;
+								*nativeImageSizeDict, 
+								*sourceCacheDirectories;
 	NSString					*cachedImagesPath;
     NSRecursiveLock				*cacheLock;
     NSMutableArray				*imageRepRecencyArray,
@@ -32,9 +33,11 @@
 
 + (MacOSaiXImageCache *)sharedImageCache;
 
-- (NSString *)cacheImage:(NSImage *)image 
-		  withIdentifier:(NSString *)imageIdentifier 
-			  fromSource:(id<MacOSaiXImageSource>)imageSource;
+- (void)setCacheDirectory:(NSString *)directoryPath forSource:(id<MacOSaiXImageSource>)imageSource;
+
+- (void)cacheImage:(NSImage *)image 
+	withIdentifier:(NSString *)imageIdentifier 
+		fromSource:(id<MacOSaiXImageSource>)imageSource;
 
 - (NSSize)nativeSizeOfImageWithIdentifier:(NSString *)imageIdentifier 
 							   fromSource:(id<MacOSaiXImageSource>)imageSource;
@@ -43,7 +46,10 @@
 					   forIdentifier:(NSString *)imageIdentifier 
 						  fromSource:(id<MacOSaiXImageSource>)imageSource;
 
-- (void)removeCachedImageRepsFromSource:(id<MacOSaiXImageSource>)imageSource;
+- (void)removeCachedImagesWithIdentifiers:(NSArray *)imageIdentifiers 
+							   fromSource:(id<MacOSaiXImageSource>)imageSource;
+
+- (void)removeCachedImagesFromSource:(id<MacOSaiXImageSource>)imageSource;
 
 - (NSString *)xmlDataWithImageSources:(NSArray *)imageSources;
 

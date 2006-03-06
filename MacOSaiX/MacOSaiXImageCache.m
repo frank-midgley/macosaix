@@ -31,45 +31,41 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 {
     if (self = [super init])
     {
-		NSString	*tempPathTemplate = [NSTemporaryDirectory() stringByAppendingPathComponent:@"MacOSaiX Cached Images XXXXXX"];
-		char		*tempPath = mkdtemp((char *)[tempPathTemplate fileSystemRepresentation]);
+		cacheLock = [[NSRecursiveLock alloc] init];
+		diskCache = [[NSMutableDictionary alloc] init];
+		memoryCache = [[NSMutableDictionary alloc] init];
+		nativeImageSizeDict = [[NSMutableDictionary alloc] init];
+		sourceCacheDirectories = [[NSMutableDictionary alloc] init];
 		
-		if (tempPath)
-		{
-			cachedImagesPath = [[NSString stringWithCString:tempPath] retain];
-			cacheLock = [[NSRecursiveLock alloc] init];
-			diskCache = [[NSMutableDictionary dictionary] retain];
-			memoryCache = [[NSMutableDictionary dictionary] retain];
-			nativeImageSizeDict = [[NSMutableDictionary dictionary] retain];
-			
-			imageRepRecencyArray = [[NSMutableArray array] retain];
-			imageKeyRecencyArray = [[NSMutableArray array] retain];
-			
-			maxMemoryCacheSize = NSRealMemoryAvailable() / 3;
-			
-				// Create a window that we can use to scale down images.  Ideally we'd just 
-				// lock focus on an image but currently that uses a cached window that has 
-				// threading issues.  Using this window avoids the crashes.
-			scalingWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0.0, 0.0, 512.0, 512.0) 
-														styleMask:NSBorderlessWindowMask 
-														  backing:NSBackingStoreBuffered 
-															defer:NO];
-			[scalingWindow orderOut:self];
-		}
-		else
-		{
-			[self autorelease];
-			self = nil;
-		}
+		imageRepRecencyArray = [[NSMutableArray array] retain];
+		imageKeyRecencyArray = [[NSMutableArray array] retain];
+		
+		maxMemoryCacheSize = NSRealMemoryAvailable() / 3;
+		
+			// Create a window that we can use to scale down images.  Ideally we'd just 
+			// lock focus on an image but currently that uses a cached window that has 
+			// threading issues.  Using this window avoids the crashes.
+		scalingWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0.0, 0.0, 512.0, 512.0) 
+													styleMask:NSBorderlessWindowMask 
+													  backing:NSBackingStoreBuffered 
+														defer:NO];
+		[scalingWindow orderOut:self];
 	}
 	
     return self;
 }
 
 
-- (NSString *)filePathForCachedImageID:(long)imageID
+- (NSString *)escapedImageIdentifier:(NSString *)imageIdentifier
 {
-	return [cachedImagesPath stringByAppendingPathComponent:[NSString stringWithFormat:@"Image %u.jpg", imageID]];
+	NSMutableString	*escapedIdentifier = [NSMutableString stringWithString:imageIdentifier];
+	
+	[escapedIdentifier replaceOccurrencesOfString:@"/" 
+									   withString:@"#slash#" 
+										  options:NSLiteralSearch 
+											range:NSMakeRange(0, [escapedIdentifier length])];
+
+	return escapedIdentifier;
 }
 
 
@@ -144,26 +140,20 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 }
 
 
-- (NSString *)cacheImage:(NSImage *)image 
-		  withIdentifier:(NSString *)imageIdentifier 
-			  fromSource:(id<MacOSaiXImageSource>)imageSource
+- (void)setCacheDirectory:(NSString *)directoryPath forSource:(id<MacOSaiXImageSource>)imageSource
 {
 	[cacheLock lock];
-		NSString		*imageKey = nil;
-		
-		if ([imageIdentifier length] == 0)
-		{
-				// This image source cannot refetch images.  Create a unique identifier 
-				// within the context of our document and store the image to disk.
-			unsigned long	uniqueID = cachedImageCount++;
-			
-			imageIdentifier = [NSString stringWithFormat:@"%u", uniqueID];
-			imageKey = [self keyWithImageSource:imageSource identifier:imageIdentifier];
-			[[image TIFFRepresentation] writeToFile:[self filePathForCachedImageID:uniqueID] atomically:NO];
-			[diskCache setObject:[NSNumber numberWithLong:uniqueID] forKey:imageKey];
-		}
-		else
-			imageKey = [self keyWithImageSource:imageSource identifier:imageIdentifier];
+		[sourceCacheDirectories setObject:directoryPath forKey:[NSValue valueWithPointer:imageSource]];
+	[cacheLock unlock];
+}
+
+
+- (void)cacheImage:(NSImage *)image 
+	withIdentifier:(NSString *)imageIdentifier 
+		fromSource:(id<MacOSaiXImageSource>)imageSource
+{
+	[cacheLock lock];
+		NSString			*imageKey = [self keyWithImageSource:imageSource identifier:imageIdentifier];
 			
 			// Get a bitmap image rep at the full size of the image.
 		NSBitmapImageRep	*fullSizeRep = nil;
@@ -192,12 +182,20 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 
 			// Cache the image in memory for efficient retrieval.
 		[self addImageRep:fullSizeRep toMemoryCacheForKey:imageKey];
-//		NSLog(@"Native size of %@ is %f by %f", imageIdentifier, [fullSizeRep size].width, [fullSizeRep size].height);
 		[nativeImageSizeDict setObject:[NSValue valueWithSize:[fullSizeRep size]] forKey:imageKey];
 		
+		if (![imageSource canRefetchImages])
+		{
+			NSString	*diskCachePath = [sourceCacheDirectories objectForKey:[NSValue valueWithPointer:imageSource]];
+			if (diskCachePath)
+			{
+					// Save a copy of this image to disk.
+				NSString	*imagePath = [diskCachePath stringByAppendingPathComponent:
+												[self escapedImageIdentifier:imageIdentifier]];
+				[[NSArchiver archivedDataWithRootObject:image] writeToFile:imagePath atomically:NO];
+			}
+		}
 	[cacheLock unlock];
-	
-	return imageIdentifier;
 }
 
 
@@ -320,19 +318,27 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		if (!imageRep)
 		{
 				// There is no rep we can use in the memory cache.
-				// See if we have the image in our disk cache, otherwise re-request it from the source.
 			missCount++;
 //			NSLog(@"Cache miss rate: %.3f%%", missCount * 100.0 / (perfectHitCount + scalableHitCount + missCount));
 			
+				// Re-request the image from the source or pull it from the source's disk cache.
 			NSImage		*image = nil;
-			NSNumber	*imageID = [diskCache objectForKey:imageKey];
-			if (imageID)
-				image = [[[NSImage alloc] initWithContentsOfFile:[self filePathForCachedImageID:[imageID unsignedLongValue]]] autorelease];
-            else
-			{
-					// This image is not in the disk cache so get the image from its source.
-//				NSLog(@"Requesting %@ from %@@%p", imageIdentifier, [imageSource class], imageSource);
+			if ([imageSource canRefetchImages])
 				image = [imageSource imageForIdentifier:imageIdentifier];
+			else
+			{
+				NSString	*diskCachePath = [sourceCacheDirectories objectForKey:[NSValue valueWithPointer:imageSource]];
+				if (diskCachePath)
+				{
+					NSString	*imagePath = [diskCachePath stringByAppendingPathComponent:
+												[self escapedImageIdentifier:imageIdentifier]];
+					image = [NSUnarchiver unarchiveObjectWithFile:imagePath];
+					
+					#ifdef DEBUG
+						if (!image)
+							NSLog(@"Crap!  Lost an image!");
+					#endif
+				}
 			}
 			
             if ([image isValid])
@@ -365,7 +371,27 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 }
 
 
-- (void)removeCachedImageRepsFromSource:(id<MacOSaiXImageSource>)imageSource
+- (void)removeCachedImagesWithIdentifiers:(NSArray *)imageIdentifiers 
+							   fromSource:(id<MacOSaiXImageSource>)imageSource
+{
+	[cacheLock lock];
+		NSString	*diskCachePath = [sourceCacheDirectories objectForKey:[NSValue valueWithPointer:imageSource]];
+		if (diskCachePath)
+		{
+			NSEnumerator	*identifierEnumerator = [imageIdentifiers objectEnumerator];
+			NSString		*identifier = nil;
+			while (identifier = [identifierEnumerator nextObject])
+			{
+				NSString	*imagePath = [diskCachePath stringByAppendingPathComponent:
+											[self escapedImageIdentifier:identifier]];
+				[[NSFileManager defaultManager] removeFileAtPath:imagePath handler:nil];
+			}
+		}
+	[cacheLock unlock];
+}
+
+
+- (void)removeCachedImagesFromSource:(id<MacOSaiXImageSource>)imageSource
 {
 	[cacheLock lock];
 		NSEnumerator	*keyEnumerator = [[memoryCache allKeys] objectEnumerator];
@@ -386,6 +412,8 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 					keyIndex = [imageKeyRecencyArray indexOfObject:key];
 				}
 			}
+				
+		[sourceCacheDirectories removeObjectForKey:[NSValue valueWithPointer:imageSource]];
 	[cacheLock unlock];
 }
 
