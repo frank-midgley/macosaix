@@ -73,6 +73,23 @@
 }
 
 
+- (void)saveSettings
+{
+	NSMutableDictionary	*settings = [NSMutableDictionary dictionary];
+	
+		// Remember the current movie paths.
+	NSMutableArray		*moviePaths = [NSMutableArray array];
+	NSEnumerator		*movieDictEnumerator = [[moviesController arrangedObjects] objectEnumerator];
+	NSDictionary		*movieDict = nil;
+	while (movieDict = [movieDictEnumerator nextObject])
+		[moviePaths addObject:[movieDict objectForKey:@"path"]];
+	[settings setObject:moviePaths forKey:@"Movie Paths"];
+	
+	[[NSUserDefaults standardUserDefaults] setObject:settings forKey:@"QuickTime Image Source"];
+	[[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+
 - (void)awakeFromNib
 {
 	NSDictionary	*settings = [[NSUserDefaults standardUserDefaults] objectForKey:@"QuickTime Image Source"];
@@ -88,7 +105,7 @@
 			CFURLRef		moviesURLRef = CFURLCreateFromFSRef(kCFAllocatorDefault, &moviesRef);
 			if (moviesURLRef)
 			{
-				NSString		*moviesPath = (NSString *)CFURLCopyPath(moviesURLRef);
+				NSString		*moviesPath = [(NSURL *)moviesURLRef path];
 				NSFileManager	*fileManager = [NSFileManager defaultManager];
 				NSWorkspace		*workspace = [NSWorkspace sharedWorkspace];
 				NSEnumerator	*moviePathEnumerator = [fileManager enumeratorAtPath:moviesPath];
@@ -121,7 +138,11 @@
 			[movies addObject:movieDict];
 	}
 	
+	NSSortDescriptor	*sortDescriptor  = [[[NSSortDescriptor alloc] initWithKey:@"title" ascending:YES] autorelease];
+	[moviesController setSortDescriptors:[NSArray arrayWithObject:sortDescriptor]];
 	[moviesController setContent:movies];
+	
+	[self saveSettings];
 }
 
 
@@ -136,7 +157,7 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(504.0, 209.0);
+	return NSMakeSize(500.0, 200.0);
 }
 
 
@@ -167,8 +188,15 @@
 	
 	NSDictionary	*movieDict = [self dictionaryForMovieAtPath:[(QuickTimeImageSource *)imageSource path]];
 	if (movieDict)
+	{
+		if (![[moviesController arrangedObjects] containsObject:movieDict])
+		{
+			[moviesController addObject:movieDict];
+			[self saveSettings];
+		}
 		[moviesController setSelectedObjects:[NSArray arrayWithObject:movieDict]];
-	else
+	}
+	else if ([[moviesController selectedObjects] count] > 0)
 		[currentImageSource setPath:[[moviesController selection] valueForKey:@"path"]];
 }
 
@@ -182,7 +210,7 @@
     [oPanel beginSheetForDirectory:nil
 							  file:nil
 							 types:nil	//[NSMovie movieUnfilteredFileTypes]
-					modalForWindow:nil
+					modalForWindow:[editorView window] 
 					 modalDelegate:self
 					didEndSelector:@selector(chooseAnotherMovieDidEnd:returnCode:contextInfo:)
 					   contextInfo:nil];
@@ -197,7 +225,11 @@
 		NSDictionary	*movieDict = [self dictionaryForMovieAtPath:moviePath];
 		if (movieDict)
 		{
-			[moviesController addObject:movieDict];
+			if (![[moviesController arrangedObjects] containsObject:movieDict])
+			{
+				[moviesController addObject:movieDict];
+				[self saveSettings];
+			}
 			[moviesController setSelectedObjects:[NSArray arrayWithObject:movieDict]];
 		}
 		else
@@ -210,9 +242,9 @@
 {
 	[moviesController removeObjects:[moviesController arrangedObjects]];
 	
-//	[currentImageSource setPath:nil];	TBD: this should be handled by the selection change...
+	[currentImageSource setPath:nil];
 	
-	// TODO: update the prefs
+	[self saveSettings];
 }
 
 
