@@ -119,8 +119,6 @@
 						([fileManager fileExistsAtPath:moviePath isDirectory:&isDirectory] && !isDirectory))
 						[defaultMoviePaths addObject:moviePath];
 				}
-				
-				[moviesPath release];
 			}
 		}
 		
