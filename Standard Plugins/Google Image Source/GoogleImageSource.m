@@ -739,6 +739,12 @@ int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
 }
 
 
+- (BOOL)canRefetchImages
+{
+	return YES;
+}
+
+
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 	NSImage		*image = nil;

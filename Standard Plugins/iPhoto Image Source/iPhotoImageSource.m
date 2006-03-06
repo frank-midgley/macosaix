@@ -302,6 +302,12 @@ static NSImage	*iPhotoImage = nil,
 }
 
 
+- (BOOL)canRefetchImages
+{
+	return YES;
+}
+
+
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 	NSImage		*image = nil;
