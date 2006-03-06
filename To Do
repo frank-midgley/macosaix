@@ -119,7 +119,8 @@ Riemersma metric:
 ¥	Enable "Clear Menu" in originals menu
 ¥	Add "other" and "clear" items to toolbar originals menu
 Ã	Get rid of +[plugInClass name] and read from Info.plist instead (simplifies and localizes)
-¥	Default background mode
+¥	Add a default background mode pref
 ¥	Save background mode with mosaic
 ¥	Document being corrupted when saved during quit?
 ¥	Disable "tiles apart" pop-up when images can only appear in one tile
+¥	Google cache limit not sticking
