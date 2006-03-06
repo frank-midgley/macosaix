@@ -433,8 +433,6 @@ static NSArray	*formatExtensions = nil;
 						if (description)
 						{
 							description = [[description mutableCopy] autorelease];
-							if ([description rangeOfString:@"'"].location != NSNotFound)
-								NSLog(@"gotcha");
 							[(NSMutableString *)description replaceOccurrencesOfString:@"'"
 																			withString:@"\\'" 
 																			   options:NSLiteralSearch 
