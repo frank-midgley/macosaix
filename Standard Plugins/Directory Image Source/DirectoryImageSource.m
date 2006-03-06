@@ -262,6 +262,12 @@
 }
 
 
+- (BOOL)canRefetchImages
+{
+	return YES;
+}
+
+
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 	NSImage		*image = nil;
@@ -309,7 +315,9 @@
 				*fullPath = [[NSFileManager defaultManager] pathByResolvingAliasesInPath:
 								[directoryPath stringByAppendingPathComponent:identifier]];
 	
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
 	if (MDItemCreate)
+#endif
 	{
 		MDItemRef	itemRef = MDItemCreate(kCFAllocatorDefault, (CFStringRef)fullPath);
 		if (itemRef)
