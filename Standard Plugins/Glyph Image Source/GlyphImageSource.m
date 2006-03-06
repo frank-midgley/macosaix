@@ -374,6 +374,12 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
+- (BOOL)canRefetchImages
+{
+	return YES;
+}
+
+
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 	NSImage	*image = nil;
@@ -411,9 +417,6 @@ static NSImage	*glyphSourceImage = nil;
 			// Make sure it's non-empty.
 		if (glyphRect.size.width > 0 && glyphRect.size.height > 0)
 		{
-			if (glyphNum == 180)
-				NSLog(@"");
-			
 				// Scale up the glyph so that it's largest dimension is 128 pixels.
 			if (glyphsBounds.size.width / glyphRect.size.width < glyphsBounds.size.height / glyphRect.size.height)
 			{
