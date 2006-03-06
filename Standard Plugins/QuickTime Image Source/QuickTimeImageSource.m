@@ -141,33 +141,44 @@ static NSImage			*sQuickTimeImage = nil;
 	
 	if (path)
 	{
+		TimeValue	posterFrameTimeValue = 0;
+		
 		movie = [[NSMovie alloc] initWithURL:[NSURL fileURLWithPath:path] byReference:YES];
-		Movie		qtMovie = [movie QTMovie];
 		
-			// Get the movie's aspect ratio and move its origin to {0, 0}.
-		Rect		movieBounds;
-		GetMovieBox(qtMovie, &movieBounds);
-		aspectRatio = (float)(movieBounds.right - movieBounds.left) / (float)(movieBounds.bottom - movieBounds.top);
-		OffsetRect(&movieBounds, -movieBounds.left, -movieBounds.top);
-		SetMovieBox(qtMovie, &movieBounds);
-		
-			// Get the frame rate and duration of the movie.
-		timeScale = GetMovieTimeScale(qtMovie);
-		duration = GetMovieDuration(qtMovie);
+		if (movie)
+		{
+			Movie		qtMovie = [movie QTMovie];
 			
-			// The smallest step to take even if GetNextInterestingTime() returns a smaller value.
-		minIncrement = timeScale / 5;   // equals 5 fps
+				// Get the movie's aspect ratio and move its origin to {0, 0}.
+			Rect		movieBounds;
+			GetMovieBox(qtMovie, &movieBounds);
+			aspectRatio = (float)(movieBounds.right - movieBounds.left) / (float)(movieBounds.bottom - movieBounds.top);
+			OffsetRect(&movieBounds, -movieBounds.left, -movieBounds.top);
+			SetMovieBox(qtMovie, &movieBounds);
+			
+				// Get the frame rate and duration of the movie.
+			timeScale = GetMovieTimeScale(qtMovie);
+			duration = GetMovieDuration(qtMovie);
+				
+				// The smallest step to take even if GetNextInterestingTime() returns a smaller value.
+			minIncrement = timeScale / 5;   // equals 5 fps
 
-			// Get the identifier for the movie's poster frame.
-		TimeValue	posterFrameTimeValue = GetMoviePosterTime(qtMovie);
-		
-			// Determine if the movie is thread safe.
-		movieIsThreadSafe = YES;
-		OSErr	err = DetachMovieFromCurrentThread(qtMovie);
-		if (err == componentNotThreadSafeErr)
-			movieIsThreadSafe = NO;
-		else if (err != noErr)
-			NSLog(@"Could not detach from movie (%d)", err);
+			posterFrameTimeValue = GetMoviePosterTime(qtMovie);
+			
+				// Determine if the movie is thread safe.
+			movieIsThreadSafe = YES;
+			OSErr	err = DetachMovieFromCurrentThread(qtMovie);
+			if (err == componentNotThreadSafeErr)
+				movieIsThreadSafe = NO;
+			else if (err != noErr)
+				NSLog(@"Could not detach from movie (%d)", err);
+		}
+		else
+		{
+			aspectRatio = 1.0;
+			timeScale = 15;
+			duration = 0;
+		}
 		
 			// Set the initial image displayed in the sources table to the poster frame.
 		NSString	*identifier = [NSString stringWithFormat:@"%ld", (currentTimeValue > 0 && currentTimeValue < duration ? currentTimeValue : posterFrameTimeValue)];
@@ -349,6 +360,12 @@ static NSImage			*sQuickTimeImage = nil;
 }
 
 
+- (BOOL)canRefetchImages
+{
+	return NO;
+}
+
+
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 	NSImage	*imageAtTimeValue = nil;
@@ -377,7 +394,13 @@ static NSImage			*sQuickTimeImage = nil;
 						NSPICTImageRep	*imageRep = [NSPICTImageRep imageRepWithData:[NSData dataWithBytes:*picHandle 
 																									length:GetHandleSize((Handle)picHandle)]];
 						imageAtTimeValue = [[[NSImage alloc] initWithSize:[imageRep size]] autorelease];
-						[imageAtTimeValue addRepresentation:imageRep];
+						@try
+						{
+							[imageAtTimeValue lockFocus];
+								[imageRep drawAtPoint:NSMakePoint(0.0, 0.0)];
+							[imageAtTimeValue unlockFocus];
+						}
+						@finally {}
 						
 						KillPicture(picHandle);
 					}
@@ -421,7 +444,13 @@ static NSImage			*sQuickTimeImage = nil;
 																						length:GetHandleSize((Handle)picHandle)]];
 			NSImage			*imageAtTimeValue = [parameters objectAtIndex:1];
 			[imageAtTimeValue setSize:[imageRep size]];
-			[imageAtTimeValue addRepresentation:imageRep];
+			@try
+			{
+				[imageAtTimeValue lockFocus];
+				[imageRep drawAtPoint:NSMakePoint(0.0, 0.0)];
+				[imageAtTimeValue unlockFocus];
+			}
+			@finally {}
 			
 			KillPicture(picHandle);
 		}
@@ -457,6 +486,9 @@ static NSImage			*sQuickTimeImage = nil;
 
 - (void)reset
 {
+	if (!movie)
+		return;
+	
 	currentTimeValue = 0;
 	
 	if (movieIsThreadSafe)
@@ -477,7 +509,7 @@ static NSImage			*sQuickTimeImage = nil;
 					[self setCurrentImage:[self imageForIdentifier:posterFrameIdentifier]];
 				}
 				else
-					[self setCurrentImage:nil];	// TBD: return QT icon?  should this even be possible?
+					[self setCurrentImage:nil];
 				
 				DetachMovieFromCurrentThread(qtMovie);
 			}
@@ -499,7 +531,7 @@ static NSImage			*sQuickTimeImage = nil;
 			[self setCurrentImage:[self imageForIdentifier:posterFrameIdentifier]];
 		}
 		else
-			[self setCurrentImage:nil];	// TBD: return QT icon?  should this even be possible?
+			[self setCurrentImage:nil];
 	}
 }
 
