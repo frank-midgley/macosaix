@@ -96,6 +96,12 @@
 }
 
 
+- (BOOL)canRefetchImages
+{
+	return YES;
+}
+
+
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 		// The identifier is a full path to an image file.
@@ -145,7 +151,9 @@
 {
 	NSString	*description = nil;
 	
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
 	if (MDItemCreate)
+#endif
 	{
 		MDItemRef	itemRef = MDItemCreate(kCFAllocatorDefault, (CFStringRef)identifier);
 		if (itemRef)
