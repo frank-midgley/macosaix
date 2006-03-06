@@ -42,14 +42,20 @@
 	// TBD: is this needed or is nil from -nextImageAndIdentifier: enough?
 - (BOOL)hasMoreImages;
 
-	// This method should return the next image along with an identifier if images can be refetched
-	// using -imageForIdentifier:.  The identifier should uniquely identify the image by storing a
-	// path, URL, time index, etc. in the string.  If images cannot be refetched then identifier
-	// should be set to nil.
+	// This method should return the next image along with a string that uniquely identifies the image, 
+	// e.g. a path, URL, time index, etc.  If -canRefetchImages returns YES then the identifier will be 
+	// passed to -imageForIdentifier: at a later time and must be able to return the same image.
 - (NSImage *)nextImageAndIdentifier:(NSString **)identifier;
 
+	// This method should return YES if -imageForIdentifier: can be called for strings returned by 
+	// -nextImageAndIdentifier:.  If this method returns NO then the images returned by 
+	// -nextImageAndIdentifier will be saved with the mosaic document.
+- (BOOL)canRefetchImages;
+
 	// This method should return the image specified by the identifier.  The identifier will always
-	// be one of the values returned by a previous call to -nextImageAndIdentifier:.
+	// be one of the values returned by a previous call to -nextImageAndIdentifier:.  The image does 
+	// not need to be the exact same instance returned by -nextImageAndIdentifier but should contain  
+	// the same image data.
 - (NSImage *)imageForIdentifier:(NSString *)identifier;
 
 	// This method should return a URL that points to the identified image.
