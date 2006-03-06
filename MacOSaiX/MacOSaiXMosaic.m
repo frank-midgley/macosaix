@@ -38,24 +38,24 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 {
     if (self = [super init])
     {
-		NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
-		
 		paused = YES;
 		
-		imageSources = [[NSMutableArray arrayWithCapacity:0] retain];
+		imageSources = [[NSMutableArray alloc] init];
 		imageSourcesLock = [[NSLock alloc] init];
-			
-		// create the image URL queue and its lock
-		imageQueue = [[NSMutableArray arrayWithCapacity:0] retain];
+		diskCacheSubPaths = [[NSMutableDictionary alloc] init];
+		
+			// This queue is populated by the enumeration threads and accessed by the matching thread.
+		imageQueue = [[NSMutableArray alloc] init];
 		imageQueueLock = [[NSLock alloc] init];
 
 		calculateImageMatchesThreadLock = [[NSLock alloc] init];
-		betterMatchesCache = [[NSMutableDictionary dictionary] retain];
+		betterMatchesCache = [[NSMutableDictionary alloc] init];
 		
 		enumerationThreadCountLock = [[NSLock alloc] init];
 		enumerationCountsLock = [[NSLock alloc] init];
-		enumerationCounts = [[NSMutableDictionary dictionary] retain];
+		enumerationCounts = [[NSMutableDictionary alloc] init];
 		
+		NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
 		[self setImageUseCount:[[defaults objectForKey:@"Image Use Count"] intValue]];
 		[self setImageReuseDistance:[[defaults objectForKey:@"Image Reuse Distance"] intValue]];
 		[self setImageCropLimit:[[defaults objectForKey:@"Image Crop Limit"] intValue]];
@@ -109,7 +109,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXOriginalImageDidChangeNotification object:self];
 		
-		if (wasPaused)
+		if (!wasPaused)
 			[self resume];
 	}
 }
@@ -275,11 +275,19 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		[imageSources addObject:imageSource];
 	[imageSourcesLock unlock];
 	
+	if (![imageSource canRefetchImages])
+	{
+		NSString	*sourceCachePath = [[self diskCachePath] stringByAppendingPathComponent:
+												[self diskCacheSubPathForImageSource:imageSource]];
+		[[MacOSaiXImageCache sharedImageCache] setCacheDirectory:sourceCachePath forSource:imageSource];
+	}
+	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
 	
-	[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) 
-							  toTarget:self 
-							withObject:imageSource];
+	if (![self isPaused])
+		[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) 
+								  toTarget:self 
+								withObject:imageSource];
 
 		// Auto start the mosaic if possible and the user wants to.
 	if ([self tileShapes] && [tiles count] > 0 && [[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Start Mosaics"])
@@ -322,6 +330,13 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			if ([[tile nonUniqueImageMatch] imageSource] == imageSource)
 				[tile setNonUniqueImageMatch:nil];
 		}
+	}
+	
+	if (![imageSource canRefetchImages])
+	{
+		NSString	*sourceCachePath = [[self diskCachePath] stringByAppendingPathComponent:
+												[self diskCacheSubPathForImageSource:imageSource]];
+		[[NSFileManager defaultManager] removeFileAtPath:sourceCachePath handler:nil];
 	}
 	
 		// Remove the image count for this source
@@ -392,6 +407,60 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 }
 
 
+- (NSString *)diskCacheSubPathForImageSource:(id<MacOSaiXImageSource>)imageSource
+{
+	NSValue		*sourceKey = [NSValue valueWithPointer:imageSource];
+	NSString	*subPath = [diskCacheSubPaths objectForKey:sourceKey];
+	
+	if (!subPath)
+	{
+		int			index = 1;
+		NSString	*sourceCachePath = nil;
+		do
+		{
+			subPath = [NSString stringWithFormat:@"Images From Source %d", index++];
+			sourceCachePath = [[self diskCachePath] stringByAppendingPathComponent:subPath];
+		}
+		while ([[NSFileManager defaultManager] fileExistsAtPath:sourceCachePath]);
+		
+		[[NSFileManager defaultManager] createDirectoryAtPath:sourceCachePath attributes:nil];
+		
+		[diskCacheSubPaths setObject:subPath forKey:sourceKey];
+	}
+	
+	return subPath;
+}
+
+
+- (void)setDiskCacheSubPath:(NSString *)path forImageSource:(id<MacOSaiXImageSource>)imageSource
+{
+	[diskCacheSubPaths setObject:path forKey:[NSValue valueWithPointer:imageSource]];
+}
+
+
+- (NSString *)diskCachePath
+{
+	return diskCachePath;
+}
+
+
+- (void)setDiskCachePath:(NSString *)path
+{
+	[diskCachePath autorelease];
+	diskCachePath = [path copy];
+	
+	NSEnumerator			*imageSourceEnumerator = [[self imageSources] objectEnumerator];
+	id<MacOSaiXImageSource>	imageSource = nil;
+	while (imageSource = [imageSourceEnumerator nextObject])
+		if (![imageSource canRefetchImages])
+		{
+			NSString	*sourceCachePath = [diskCachePath stringByAppendingPathComponent:
+												[self diskCacheSubPathForImageSource:imageSource]];
+			[[MacOSaiXImageCache sharedImageCache] setCacheDirectory:sourceCachePath forSource:imageSource];
+		}
+}
+
+
 #pragma mark -
 #pragma mark Image source enumeration
 
@@ -444,7 +513,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			[image setCacheMode:NSImageCacheNever];
 			imageIsValid = [image isValid];
 		NS_HANDLER
-			NSLog(@"Exception raised while checking image validity (%@)", localException);
+			NSLog(@"Exception raised while getting the next image (%@)", localException);
 		NS_ENDHANDLER
 			
 		if (image && imageIsValid)
@@ -597,12 +666,13 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			NSImage					*pixletImage = [nextImageDict objectForKey:@"Image"];
 			id<MacOSaiXImageSource>	pixletImageSource = [nextImageDict objectForKey:@"Image Source"];
 			NSString				*pixletImageIdentifier = [nextImageDict objectForKey:@"Image Identifier"];
+			BOOL					pixletImageInUse = NO;
 			
 			if (pixletImage)
 			{
-					// Add this image to the cache.  If the identifier is nil or zero-length then 
-					// a new identifier will be returned.
-				pixletImageIdentifier = [imageCache cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
+					// Add this image to the in-memory cache.  If the image source does not support refetching 
+					// images then the image will be also be saved into this mosaic's document.
+				[imageCache cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
 			}
 			
 				// Find the tiles that match this image better than their current image.
@@ -706,15 +776,20 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 								//    this image matches better than the tile's current best or
 								//    this image is the same as the tile's current best
 								// then add it to the list of tile's that might get this image.
-							if (![tile uniqueImageMatch] || matchValue < [[tile uniqueImageMatch] matchValue] ||
+							if (![tile uniqueImageMatch] || 
+								matchValue < [[tile uniqueImageMatch] matchValue] ||
 								([[tile uniqueImageMatch] imageSource] == pixletImageSource && 
 								 [[[tile uniqueImageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier]))
+							{
 								[betterMatches addObject:newMatch];
+							}
 							
 								// Set the tile's non-unique match if appropriate.
 								// TBD: check pref?
 							if (![tile nonUniqueImageMatch] || matchValue < [[tile nonUniqueImageMatch] matchValue])
+							{
 								[tile setNonUniqueImageMatch:newMatch];
+							}
 						}
 						else
 							;	// anything to do or just lose the chance to match this pixlet to this tile?
@@ -727,12 +802,10 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				[betterMatches sortUsingSelector:@selector(compare:)];
 			}
 			
-			if (betterMatches && [betterMatches count] == 0)
+			if ([betterMatches count] == 0)
 			{
 	//			NSLog(@"%@ from %@ is no longer needed", pixletImageIdentifier, pixletImageSource);
 				[betterMatchesCache removeObjectForKey:pixletKey];
-				
-				// TBD: Is this the right place to purge images from the disk cache?
 			}
 			else
 			{
@@ -819,6 +892,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 						
 						// Remember this list so we don't have to do all of the matches again.
 					[betterMatchesCache setObject:betterMatches forKey:pixletKey];
+					
+					pixletImageInUse = YES;
 				}
 				else
 				{
@@ -833,8 +908,28 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 														nil];
 					if (![imageQueue containsObject:newQueueEntry])
 						[imageQueue addObject:newQueueEntry];
+					
+					pixletImageInUse = YES;
 				}
 			}
+			
+			if (!pixletImageInUse && ![pixletImageSource canRefetchImages])
+			{
+					// Check if the image is in use as a non-unique match.
+				NSEnumerator			*tileEnumerator = [tiles objectEnumerator];
+				MacOSaiXTile			*tile = nil;
+				while ((tile = [tileEnumerator nextObject]))
+					if ([[tile nonUniqueImageMatch] imageSource] == pixletImageSource && 
+						[[[tile nonUniqueImageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier])
+					{
+						pixletImageInUse = YES;
+						break;
+					}
+			}
+				
+			if (!pixletImageInUse && ![pixletImageSource canRefetchImages])
+				[imageCache removeCachedImagesWithIdentifiers:[NSArray arrayWithObject:pixletImageIdentifier] 
+												   fromSource:pixletImageSource];
 			
 			if (pixletImage)
 				imagesMatched++;
@@ -886,10 +981,10 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		statusKey = @"You have not added any image sources";
 	else if (![self wasStarted])
 		statusKey = @"Ready to begin.  Click the Start Mosaic button in the toolbar.";
-	else if (calculateImageMatchesThreadAlive)
-		statusKey = [NSString stringWithString:@"Matching images..."];
 	else if ([self isPaused])
 		statusKey = [NSString stringWithString:@"Paused"];
+	else if (calculateImageMatchesThreadAlive)
+		statusKey = [NSString stringWithString:@"Matching images..."];
 	else if (enumerationThreadCount > 0)
 		statusKey = [NSString stringWithString:@"Looking for new images..."];
 	else
@@ -964,10 +1059,11 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
 		id<MacOSaiXImageSource>	imageSource = nil;
 		while (imageSource = [imageSourceEnumerator nextObject])
-			[[MacOSaiXImageCache sharedImageCache] removeCachedImageRepsFromSource:imageSource];
+			[[MacOSaiXImageCache sharedImageCache] removeCachedImagesFromSource:imageSource];
 		[imageSources release];
 	[imageSourcesLock unlock];
 	[imageSourcesLock release];
+	[diskCacheSubPaths release];
 	
     [originalImage release];
     [imageQueueLock release];

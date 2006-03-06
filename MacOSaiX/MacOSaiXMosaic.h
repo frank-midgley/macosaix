@@ -30,6 +30,9 @@
 									imageReuseDistance,
 									imageCropLimit;
 	
+	NSString						*diskCachePath;
+	NSMutableDictionary				*diskCacheSubPaths;
+	
 		// Image source enumeration
     NSLock							*enumerationThreadCountLock;
 	int								enumerationThreadCount;
@@ -78,6 +81,11 @@
 - (NSArray *)imageSources;
 - (void)addImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource;
+
+- (NSString *)diskCachePath;
+- (void)setDiskCachePath:(NSString *)path;
+- (NSString *)diskCacheSubPathForImageSource:(id<MacOSaiXImageSource>)imageSource;
+- (void)setDiskCacheSubPath:(NSString *)path forImageSource:(id<MacOSaiXImageSource>)imageSource;
 
 - (MacOSaiXHandPickedImageSource *)handPickedImageSource;
 - (void)setHandPickedImageAtPath:(NSString *)path withMatchValue:(float)matchValue forTile:(MacOSaiXTile *)tile;
