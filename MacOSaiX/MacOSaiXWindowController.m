@@ -27,6 +27,7 @@
 
 
 @interface MacOSaiXWindowController (PrivateMethods)
+- (IBAction)setOriginalImageFromMenu:(id)sender;
 - (void)populateOriginalImagesMenus;
 - (void)mosaicDidChangeState:(NSNotification *)notification;
 - (void)synchronizeMenus;
@@ -633,7 +634,7 @@
 		id<MacOSaiXImageSource>	imageSource = [[[self mosaic] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]];
 		
 		[[self mosaic] removeImageSource:imageSource];
-		[[MacOSaiXImageCache sharedImageCache] removeCachedImageRepsFromSource:imageSource];
+		[[MacOSaiXImageCache sharedImageCache] removeCachedImagesFromSource:imageSource];
 	}
 }
 
@@ -1421,7 +1422,7 @@
 	{
 		float	aspectRatio = [[[self mosaic] originalImage] size].width / [[[self mosaic] originalImage] size].height,
 				windowTop = NSMaxY([resizingWindow frame]), 
-				minHeight = 413;	// TODO: get this from nib setting
+				minHeight = 200;	// TODO: get this from nib setting
 		NSSize	diff;
 		NSRect	screenFrame = [[resizingWindow screen] frame];
 		
