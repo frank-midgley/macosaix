@@ -139,7 +139,7 @@
     //[NSApp setServicesProvider:[[EncryptoClass alloc] init]];
 	
 	#ifdef DEBUG
-		[NSTimer scheduledTimerWithTimeInterval:10.0 
+		[NSTimer scheduledTimerWithTimeInterval:15.0 
 										 target:self 
 									   selector:@selector(checkFreeMemory:) 
 									   userInfo:nil 
