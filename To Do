@@ -117,10 +117,17 @@ Riemersma metric:
 ¥	Save&restore background mode
 ¥	Save&restore pause state
 ¥	Enable "Clear Menu" in originals menu
-¥	Add "other" and "clear" items to toolbar originals menu
+¥	Add "other" and "clear" items to toolbar originals menu and make clear work in both menus
 Ã	Get rid of +[plugInClass name] and read from Info.plist instead (simplifies and localizes)
 ¥	Add a default background mode pref
 ¥	Save background mode with mosaic
 ¥	Document being corrupted when saved during quit?
 ¥	Disable "tiles apart" pop-up when images can only appear in one tile
 ¥	Google cache limit not sticking
+¥   Make QuickTime image caching a user option
+¥	Add "Report Crashes" option
+¥	Selected tile highlight cropped when zoomed
+¥	Exported image blurry?  Only web page?
+¥	"You have not set the tile shapes" after loading a mosaic
+¥	"Loading..." image in web page pop-up
+¥	Remove image cache purging on source removal?
