@@ -468,15 +468,15 @@
 					switch ([[tile outline] elementAtIndex:index associatedPoints:points])
 					{
 						case NSMoveToBezierPathElement:
-							[buffer appendString:[NSString stringWithFormat:@"\t\t\t<MOVE_TO X=\"%0.6f\" Y=\"%0.6f\"/>\n", 
+							[buffer appendString:[NSString stringWithFormat:@"\t\t\t<MOVE_TO X=\"%g\" Y=\"%g\"/>\n", 
 																			points[0].x, points[0].y]];
 							break;
 						case NSLineToBezierPathElement:
-							[buffer appendString:[NSString stringWithFormat:@"\t\t\t<LINE_TO X=\"%0.6f\" Y=\"%0.6f\"/>\n", 
+							[buffer appendString:[NSString stringWithFormat:@"\t\t\t<LINE_TO X=\"%g\" Y=\"%g\"/>\n", 
 																			points[0].x, points[0].y]];
 							break;
 						case NSCurveToBezierPathElement:
-							[buffer appendString:[NSString stringWithFormat:@"\t\t\t<CURVE_TO X=\"%0.6f\" Y=\"%0.6f\" C1X=\"%0.6f\" C1Y=\"%0.6f\" C2X=\"%0.6f\" C2Y=\"%0.6f\"/>\n", 
+							[buffer appendString:[NSString stringWithFormat:@"\t\t\t<CURVE_TO X=\"%g\" Y=\"%g\" C1X=\"%g\" C1Y=\"%g\" C2X=\"%g\" C2Y=\"%g\"/>\n", 
 																			points[2].x, points[2].y, 
 																			points[0].x, points[0].y, 
 																			points[1].x, points[1].y]];
@@ -489,6 +489,11 @@
 				[buffer appendString:@"\t\t</OUTLINE>\n"];
 				
 					// Now write out the tile's matches.
+				MacOSaiXImageMatch	*userChosenMatch = [tile userChosenImageMatch];
+				if (userChosenMatch)
+					[buffer appendString:[NSString stringWithFormat:@"\t\t<USER_CHOSEN_MATCH ID=\"%@\" VALUE=\"%g\"/>\n", 
+																	  [[userChosenMatch imageIdentifier] stringByEscapingXMLEntites],
+																	  [userChosenMatch matchValue]]];
 				MacOSaiXImageMatch	*uniqueMatch = [tile uniqueImageMatch];
 				if (uniqueMatch)
 				{
@@ -496,16 +501,27 @@
 						// Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
 						// fully working.
 					if (sourceIndex != NSNotFound)
-						[buffer appendString:[NSString stringWithFormat:@"\t\t<UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%f\"/>\n", 
+						[buffer appendString:[NSString stringWithFormat:@"\t\t<UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%g\"/>\n", 
 																		  sourceIndex,
 																		  [[uniqueMatch imageIdentifier] stringByEscapingXMLEntites],
 																		  [uniqueMatch matchValue]]];
+					else
+						NSLog(@"oops");
 				}
-				MacOSaiXImageMatch	*userChosenMatch = [tile userChosenImageMatch];
-				if (userChosenMatch)
-					[buffer appendString:[NSString stringWithFormat:@"\t\t<USER_CHOSEN_MATCH ID=\"%@\" VALUE=\"%f\"/>\n", 
-																	  [[userChosenMatch imageIdentifier] stringByEscapingXMLEntites],
-																	  [userChosenMatch matchValue]]];
+				MacOSaiXImageMatch	*nonUniqueMatch = [tile nonUniqueImageMatch];
+				if (nonUniqueMatch)
+				{
+					int	sourceIndex = [imageSources indexOfObjectIdenticalTo:[nonUniqueMatch imageSource]];
+						// Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
+						// fully working.
+					if (sourceIndex != NSNotFound)
+						[buffer appendString:[NSString stringWithFormat:@"\t\t<NON_UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%g\"/>\n", 
+																		  sourceIndex,
+																		  [[nonUniqueMatch imageIdentifier] stringByEscapingXMLEntites],
+																		  [nonUniqueMatch matchValue]]];
+					else
+						NSLog(@"oops");
+				}
 				
 				[buffer appendString:@"\t</TILE>\n"];
 				
