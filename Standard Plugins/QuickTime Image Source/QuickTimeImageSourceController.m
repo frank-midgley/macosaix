@@ -205,6 +205,7 @@
     
     [oPanel setCanChooseFiles:YES];
     [oPanel setCanChooseDirectories:NO];
+    [oPanel setAllowsMultipleSelection:YES];
     [oPanel beginSheetForDirectory:nil
 							  file:nil
 							 types:nil	//[NSMovie movieUnfilteredFileTypes]
@@ -219,19 +220,34 @@
 {
     if (returnCode == NSOKButton)
 	{
-		NSString		*moviePath = [sheet filename];
-		NSDictionary	*movieDict = [self dictionaryForMovieAtPath:moviePath];
-		if (movieDict)
-		{
-			if (![[moviesController arrangedObjects] containsObject:movieDict])
-			{
-				[moviesController addObject:movieDict];
-				[self saveSettings];
-			}
-			[moviesController setSelectedObjects:[NSArray arrayWithObject:movieDict]];
-		}
-		else
+        NSEnumerator    *moviePathEnumerator = [[sheet filenames] objectEnumerator];
+		NSString		*moviePath = nil;
+        NSDictionary    *lastValidMovieDict = nil;
+        BOOL            settingsChanged = NO;
+        
+        while (moviePath = [moviePathEnumerator nextObject])
+        {
+            NSDictionary	*movieDict = [self dictionaryForMovieAtPath:moviePath];
+            if (movieDict)
+            {
+                lastValidMovieDict = movieDict;
+                
+                if (![[moviesController arrangedObjects] containsObject:movieDict])
+                {
+                    [moviesController addObject:movieDict];
+                    settingsChanged = YES;
+                }
+            }
+        }
+		
+        if (!lastValidMovieDict)
 			NSRunAlertPanel(@"The file you chose does not contain a movie.", nil, @"OK", nil, nil);
+        else
+        {
+            [moviesController setSelectedObjects:[NSArray arrayWithObject:lastValidMovieDict]];
+            if (settingsChanged)
+                [self saveSettings];
+        }
 	}
 }
 
