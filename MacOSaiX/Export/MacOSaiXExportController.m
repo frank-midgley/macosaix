@@ -41,9 +41,9 @@ static NSArray	*formatExtensions = nil;
 	NSString		*formatExtension = [exportDefaults objectForKey:@"Image Format"];
 	
 	if (unitsTag && [unitsPopUp indexOfItemWithTag:[unitsTag intValue]])
-		[unitsPopUp selectItemWithTag:[unitsTag intValue]];
+		[unitsPopUp selectItemAtIndex:[unitsPopUp indexOfItemWithTag:[unitsTag intValue]]];
 	if (resolutionTag && [resolutionPopUp indexOfItemWithTag:[resolutionTag intValue]])
-		[resolutionPopUp selectItemWithTag:[resolutionTag intValue]];
+		[resolutionPopUp selectItemAtIndex:[resolutionPopUp indexOfItemWithTag:[resolutionTag intValue]]];
 	if (createWebPageBool)
 		[createWebPageButton setState:((createWebPage = [createWebPageBool boolValue]) ? NSOnState : NSOffState)];
 	if (includeOriginalBool)
@@ -151,9 +151,9 @@ static NSArray	*formatExtensions = nil;
 	
 	if (createWebPage)
 	{
-		[unitsPopUp selectItemWithTag:1];		// pixels
+		[unitsPopUp selectItemAtIndex:[unitsPopUp indexOfItemWithTag:1]];		// pixels
 		[unitsPopUp setEnabled:NO];
-		[resolutionPopUp selectItemWithTag:72];	// 72 dpi
+		[resolutionPopUp selectItemAtIndex:[resolutionPopUp indexOfItemWithTag:72]];	// 72 dpi
 		[resolutionPopUp setEnabled:NO];
 		[(NSSavePanel *)[sender window] setRequiredFileType:nil];
 	}
