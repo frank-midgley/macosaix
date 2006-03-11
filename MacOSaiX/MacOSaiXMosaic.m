@@ -273,14 +273,14 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 {
 	[imageSourcesLock lock];
 		[imageSources addObject:imageSource];
+		
+		if (![imageSource canRefetchImages])
+		{
+			NSString	*sourceCachePath = [[self diskCachePath] stringByAppendingPathComponent:
+													[self diskCacheSubPathForImageSource:imageSource]];
+			[[MacOSaiXImageCache sharedImageCache] setCacheDirectory:sourceCachePath forSource:imageSource];
+		}
 	[imageSourcesLock unlock];
-	
-	if (![imageSource canRefetchImages])
-	{
-		NSString	*sourceCachePath = [[self diskCachePath] stringByAppendingPathComponent:
-												[self diskCacheSubPathForImageSource:imageSource]];
-		[[MacOSaiXImageCache sharedImageCache] setCacheDirectory:sourceCachePath forSource:imageSource];
-	}
 	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
 	
@@ -297,55 +297,63 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource
 {
-	BOOL				wasPaused = [self isPaused];
+	BOOL	wasPaused = [self isPaused];
 	if (!wasPaused)
 		[self pause];
 	
 	[imageSource retain];
 	
+	BOOL	sourceRemoved = NO;
 	[imageSourcesLock lock];
-		[imageSources removeObject:imageSource];
+		if ([imageSources containsObject:imageSource])
+		{
+			[imageSources removeObject:imageSource];
+			sourceRemoved = YES;
+		}
 	[imageSourcesLock unlock];
 	
-		// Remove any images from this source that are waiting to be matched.
-	[imageQueueLock lock];
-		NSEnumerator		*imageQueueDictEnumerator = [[NSArray arrayWithArray:imageQueue] objectEnumerator];
-		NSDictionary		*imageQueueDict = nil;
-		while (imageQueueDict = [imageQueueDictEnumerator nextObject])
-			if ([imageQueueDict objectForKey:@"Image Source"] == imageSource)
-				[imageQueue removeObjectIdenticalTo:imageQueueDict];
-	[imageQueueLock unlock];
-	
-		// Remove any images from this source from the tiles.
-	NSEnumerator		*tileEnumerator = [tiles objectEnumerator];
-	MacOSaiXTile		*tile = nil;
-	while (tile = [tileEnumerator nextObject])
+	if (sourceRemoved)
 	{
-		if ([imageSource isKindOfClass:[MacOSaiXHandPickedImageSource class]])
-			[tile setUserChosenImageMatch:nil];
-		else
+			// Remove any images from this source that are waiting to be matched.
+		[imageQueueLock lock];
+			NSEnumerator		*imageQueueDictEnumerator = [[NSArray arrayWithArray:imageQueue] objectEnumerator];
+			NSDictionary		*imageQueueDict = nil;
+			while (imageQueueDict = [imageQueueDictEnumerator nextObject])
+				if ([imageQueueDict objectForKey:@"Image Source"] == imageSource)
+					[imageQueue removeObjectIdenticalTo:imageQueueDict];
+		[imageQueueLock unlock];
+		
+			// Remove any images from this source from the tiles.
+		NSEnumerator		*tileEnumerator = [tiles objectEnumerator];
+		MacOSaiXTile		*tile = nil;
+		while (tile = [tileEnumerator nextObject])
 		{
-			if ([[tile uniqueImageMatch] imageSource] == imageSource)
-				[tile setUniqueImageMatch:nil];
-			if ([[tile nonUniqueImageMatch] imageSource] == imageSource)
-				[tile setNonUniqueImageMatch:nil];
+			if ([imageSource isKindOfClass:[MacOSaiXHandPickedImageSource class]])
+				[tile setUserChosenImageMatch:nil];
+			else
+			{
+				if ([[tile uniqueImageMatch] imageSource] == imageSource)
+					[tile setUniqueImageMatch:nil];
+				if ([[tile nonUniqueImageMatch] imageSource] == imageSource)
+					[tile setNonUniqueImageMatch:nil];
+			}
 		}
+		
+		if (![imageSource canRefetchImages])
+		{
+			NSString	*sourceCachePath = [[self diskCachePath] stringByAppendingPathComponent:
+													[self diskCacheSubPathForImageSource:imageSource]];
+			[[NSFileManager defaultManager] removeFileAtPath:sourceCachePath handler:nil];
+		}
+		
+			// Remove the image count for this source
+		[self setImageCount:0 forImageSource:imageSource];
+		
+		if (!wasPaused)
+			[self resume];
+		
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
 	}
-	
-	if (![imageSource canRefetchImages])
-	{
-		NSString	*sourceCachePath = [[self diskCachePath] stringByAppendingPathComponent:
-												[self diskCacheSubPathForImageSource:imageSource]];
-		[[NSFileManager defaultManager] removeFileAtPath:sourceCachePath handler:nil];
-	}
-	
-		// Remove the image count for this source
-	[self setImageCount:0 forImageSource:imageSource];
-	
-	if (!wasPaused)
-		[self resume];
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification object:self];
 	
 	[imageSource release];
 }
@@ -432,9 +440,13 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 }
 
 
-- (void)setDiskCacheSubPath:(NSString *)path forImageSource:(id<MacOSaiXImageSource>)imageSource
+- (void)setDiskCacheSubPath:(NSString *)subPath forImageSource:(id<MacOSaiXImageSource>)imageSource
 {
-	[diskCacheSubPaths setObject:path forKey:[NSValue valueWithPointer:imageSource]];
+		// Make sure the directory exists.
+	NSString	*fullPath = [[self diskCachePath] stringByAppendingPathComponent:subPath];
+	[[NSFileManager defaultManager] createDirectoryAtPath:fullPath attributes:nil];
+	
+	[diskCacheSubPaths setObject:subPath forKey:[NSValue valueWithPointer:imageSource]];
 }
 
 
@@ -537,7 +549,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 						[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.2]];
 					}
 					
-					// TODO: are we losing an image if stopped?
+					// TODO: are we losing an image if paused?
 					
 					[imageQueue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 												image, @"Image",
