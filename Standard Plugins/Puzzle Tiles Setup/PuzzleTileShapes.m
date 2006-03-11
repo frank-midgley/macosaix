@@ -406,7 +406,7 @@
 - (NSString *)settingsAsXMLElement
 {
 	return [NSString stringWithFormat:@"<DIMENSIONS ACROSS=\"%d\" DOWN=\"%d\"/>\n" \
-									  @"<ATTRIBUTES TABBED_SIDES=\"%.3f\" CURVINESS=\"%.3f\" ALIGN_IMAGES=\"%@\">", 
+									  @"<ATTRIBUTES TABBED_SIDES=\"%.3f\" CURVINESS=\"%.3f\" ALIGN_IMAGES=\"%@\"/>", 
 									  tilesAcross, tilesDown, tabbedSidesRatio, curviness, (alignImages ? @"YES" : @"NO")];
 }
 
