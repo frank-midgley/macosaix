@@ -88,54 +88,61 @@
 
 - (void)getPhotoCount
 {
-	NSAutoreleasePool		*pool = [[NSAutoreleasePool alloc] init];
-	WSMethodInvocationRef	flickrInvocation = WSMethodInvocationCreate((CFURLRef)[NSURL URLWithString:@"http://www.flickr.com/services/xmlrpc/"],
-																		CFSTR("flickr.photos.search"),
-																		kWSXMLRPCProtocol);
-	NSMutableDictionary		*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-												@"514c14062bc75c91688dfdeacc6252c7", @"api_key", 
-												[NSNumber numberWithInt:1], @"page", 
-												[NSNumber numberWithInt:1], @"per_page", 
-												nil];
+	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	NSString			*queryString = [currentImageSource queryString], 
+						*photoCount = @"unknown";
 	
-	if ([currentImageSource queryType] == matchAllTags)
+	if ([queryString length] > 0)
 	{
-		[parameters setObject:[currentImageSource queryString] forKey:@"tags"];
-		[parameters setObject:@"all" forKey:@"tagmode"];
-	}
-	else if ([currentImageSource queryType] == matchAnyTags)
-	{
-		[parameters setObject:[currentImageSource queryString] forKey:@"tags"];
-		[parameters setObject:@"any" forKey:@"tagmode"];
-	}
-	else
-		[parameters setObject:[currentImageSource queryString] forKey:@"text"];
-	
-	NSDictionary			*wrappedParameters = [NSDictionary dictionaryWithObject:parameters forKey:@"foo"];
-	WSMethodInvocationSetParameters(flickrInvocation, (CFDictionaryRef)wrappedParameters, nil);
-	CFDictionaryRef			results = WSMethodInvocationInvoke(flickrInvocation);
-	
-	NSString				*photoCount = @"unknown";
-	if (!WSMethodResultIsFault(results))
-	{
-			// Extract the count of photos from the XML response.
-		NSString	*xmlString = [(NSDictionary *)results objectForKey:(NSString *)kWSMethodInvocationResult];
-		NSScanner	*xmlScanner = [NSScanner scannerWithString:xmlString];
+		WSMethodInvocationRef	flickrInvocation = WSMethodInvocationCreate((CFURLRef)[NSURL URLWithString:@"http://www.flickr.com/services/xmlrpc/"],
+																			CFSTR("flickr.photos.search"),
+																			kWSXMLRPCProtocol);
+		NSMutableDictionary		*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+													@"514c14062bc75c91688dfdeacc6252c7", @"api_key", 
+													[NSNumber numberWithInt:1], @"page", 
+													[NSNumber numberWithInt:1], @"per_page", 
+													nil];
 		
-		if ([xmlScanner scanUpToString:@"total=\"" intoString:nil] &&
-			[xmlScanner scanString:@"total=\"" intoString:nil])
-			[xmlScanner scanUpToString:@"\"" intoString:&photoCount];
+		if ([currentImageSource queryType] == matchAllTags)
+		{
+			[parameters setObject:queryString forKey:@"tags"];
+			[parameters setObject:@"all" forKey:@"tagmode"];
+		}
+		else if ([currentImageSource queryType] == matchAnyTags)
+		{
+			[parameters setObject:queryString forKey:@"tags"];
+			[parameters setObject:@"any" forKey:@"tagmode"];
+		}
+		else
+			[parameters setObject:queryString forKey:@"text"];
+		
+		NSDictionary			*wrappedParameters = [NSDictionary dictionaryWithObject:parameters forKey:@"foo"];
+		WSMethodInvocationSetParameters(flickrInvocation, (CFDictionaryRef)wrappedParameters, nil);
+		CFDictionaryRef			results = WSMethodInvocationInvoke(flickrInvocation);
+		
+		if (!WSMethodResultIsFault(results))
+		{
+				// Extract the count of photos from the XML response.
+			NSString	*xmlString = [(NSDictionary *)results objectForKey:(NSString *)kWSMethodInvocationResult];
+			NSScanner	*xmlScanner = [NSScanner scannerWithString:xmlString];
+			
+			if ([xmlScanner scanUpToString:@"total=\"" intoString:nil] &&
+				[xmlScanner scanString:@"total=\"" intoString:nil])
+				[xmlScanner scanUpToString:@"\"" intoString:&photoCount];
+		}
+		
+		CFRelease(results);
 	}
+	
 	[self performSelectorOnMainThread:@selector(displayMatchingPhotoCount:) withObject:photoCount waitUntilDone:NO];
 	
-	CFRelease(results);
 	[pool release];
 }
 
 
 - (void)displayMatchingPhotoCount:(NSString *)photoCount
 {
-	[matchingPhotosIndicator startAnimation:self];
+	[matchingPhotosIndicator stopAnimation:self];
 	[matchingPhotosIndicator setHidden:YES];
 	[matchingPhotosCount setStringValue:photoCount];
 	[matchingPhotosCount setHidden:NO];
