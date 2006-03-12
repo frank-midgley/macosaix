@@ -169,7 +169,7 @@
 	[mosaicScrollView setDrawsBackground:NO];
 	[[mosaicScrollView contentView] setDrawsBackground:NO];
 	[mosaicView setMosaic:[self mosaic]];
-	[mosaicView setOriginalFadeTime:1.0];
+	[mosaicView setOriginalFadeTime:0.5];
 	[self setViewOriginalImage:self];
 	
 		// For some reason IB insists on setting the drawer width to 200.  Have to set the size in code instead.
@@ -353,12 +353,12 @@
 		[fadeMosaicButton setImage:mosaicToolbarImage];
 		
 			// Resize the window to respect the original image's aspect ratio
-		NSRect	curFrame = [[self window] frame];
-		NSSize	newSize = [self windowWillResize:[self window] toSize:curFrame.size];
-		windowSizeStep = 0;
-		windowSizeIncrement = NSMakeSize((newSize.width - NSWidth(curFrame)) / 10.0, 
-										 (newSize.height - NSHeight(curFrame)) / 10.0);
-		[NSTimer scheduledTimerWithTimeInterval:0.05 
+		NSSize		currentWindowSize = [[self window] frame].size;
+		windowResizeTargetSize = [self windowWillResize:[self window] toSize:currentWindowSize];
+		windowResizeStartTime = [[NSDate date] retain];
+		windowResizeDifference = NSMakeSize(windowResizeTargetSize.width - currentWindowSize.width,
+											windowResizeTargetSize.height - currentWindowSize.height);
+		[NSTimer scheduledTimerWithTimeInterval:0.01 
 										 target:self 
 									   selector:@selector(animateWindowResize:) 
 									   userInfo:nil 
@@ -369,25 +369,26 @@
 
 - (void)animateWindowResize:(NSTimer *)timer
 {
-	NSRect	curFrame = [[self window] frame];
+	float	resizePhase = [[NSDate date] timeIntervalSinceDate:windowResizeStartTime] * 2.0;
+	if (resizePhase > 1.0)
+		resizePhase = 1.0;
 	
-	if (++windowSizeStep < 10)
-		[[self window] setFrame:NSMakeRect(NSMinX(curFrame), 
-										   NSMinY(curFrame) - windowSizeIncrement.height, 
-										   NSWidth(curFrame) + windowSizeIncrement.width, 
-										   NSHeight(curFrame) + windowSizeIncrement.height)
-						display:YES
-						animate:NO];
-	else
+	NSSize	newSize = NSMakeSize(windowResizeTargetSize.width - windowResizeDifference.width * (1.0 - resizePhase), 
+								 windowResizeTargetSize.height - windowResizeDifference.height * (1.0 - resizePhase));
+	NSRect	currentFrame = [[self window] frame];
+	
+	[[self window] setFrame:NSMakeRect(NSMinX(currentFrame), 
+									   NSMinY(currentFrame) + NSHeight(currentFrame) - newSize.height, 
+									   newSize.width, 
+									   newSize.height)
+					display:YES
+					animate:NO];
+	
+	if (resizePhase == 1.0)
 	{
-		NSSize	newSize = [self windowWillResize:[self window] toSize:curFrame.size];
-		[[self window] setFrame:NSMakeRect(NSMinX(curFrame), 
-										   NSMinY(curFrame) + NSHeight(curFrame) - newSize.height, 
-										   newSize.width, 
-										   newSize.height)
-						display:YES
-						animate:NO];
 		[timer invalidate];
+		[windowResizeStartTime release];
+		windowResizeStartTime = nil;
 	}
 }
 

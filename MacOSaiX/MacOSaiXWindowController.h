@@ -97,8 +97,9 @@
     NSMutableArray						*tileImages;
 	id<MacOSaiXImageSource>				*manualImageSource;
 	
-	int									windowSizeStep;
-	NSSize								windowSizeIncrement;
+	NSDate								*windowResizeStartTime;
+	NSSize								windowResizeTargetSize, 
+										windowResizeDifference;
 }
 
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
