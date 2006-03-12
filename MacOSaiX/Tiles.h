@@ -20,7 +20,7 @@
 	NSBitmapImageRep	*bitmapRep,				// The portion of the original image that is in this tile
 						*maskRep;
 	MacOSaiXImageMatch	*uniqueImageMatch,
-						*nonUniqueImageMatch,
+						*bestImageMatch,
 						*userChosenImageMatch;	// will be nil if user has not choosen an image
 	MacOSaiXMosaic		*mosaic;				// The mosaic this tile is a part of (non-retained)
 }
@@ -41,8 +41,8 @@
 - (MacOSaiXImageMatch *)uniqueImageMatch;
 - (void)setUniqueImageMatch:(MacOSaiXImageMatch *)match;
 
-- (MacOSaiXImageMatch *)nonUniqueImageMatch;
-- (void)setNonUniqueImageMatch:(MacOSaiXImageMatch *)match;
+- (MacOSaiXImageMatch *)bestImageMatch;
+- (void)setBestImageMatch:(MacOSaiXImageMatch *)match;
 
 - (void)setUserChosenImageMatch:(MacOSaiXImageMatch *)match;
 - (MacOSaiXImageMatch *)userChosenImageMatch;

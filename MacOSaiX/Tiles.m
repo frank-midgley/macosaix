@@ -139,12 +139,13 @@
 }
 
 
-- (void)sendNotificationThatImageChangedFrom:(MacOSaiXImageMatch *)previousMatch
+- (void)sendNotificationThatImageMatch:(NSString *)matchType changedFrom:(MacOSaiXImageMatch *)previousMatch
 {
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileImageDidChangeNotification
 														object:mosaic 
 													  userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
 																	self, @"Tile", 
+																	matchType, @"Match Type", 
 																	previousMatch, @"Previous Match",
 																	nil]];
 }
@@ -159,8 +160,7 @@
 		[uniqueImageMatch autorelease];
 		uniqueImageMatch = [match retain];
 		
-		if (!userChosenImageMatch)
-			[self sendNotificationThatImageChangedFrom:previousMatch];
+		[self sendNotificationThatImageMatch:@"Unique" changedFrom:previousMatch];
 	}
 }
 
@@ -171,24 +171,23 @@
 }
 
 
-- (void)setNonUniqueImageMatch:(MacOSaiXImageMatch *)match
+- (void)setBestImageMatch:(MacOSaiXImageMatch *)match
 {
-	if (match != nonUniqueImageMatch)
+	if (match != bestImageMatch)
 	{
-		MacOSaiXImageMatch	*previousMatch = nonUniqueImageMatch;
+		MacOSaiXImageMatch	*previousMatch = bestImageMatch;
 		
-		[nonUniqueImageMatch autorelease];
-		nonUniqueImageMatch = [match retain];
+		[bestImageMatch autorelease];
+		bestImageMatch = [match retain];
 		
-		if (!userChosenImageMatch && !uniqueImageMatch)
-			[self sendNotificationThatImageChangedFrom:previousMatch];
+		[self sendNotificationThatImageMatch:@"Best" changedFrom:previousMatch];
 	}
 }
 
 
-- (MacOSaiXImageMatch *)nonUniqueImageMatch
+- (MacOSaiXImageMatch *)bestImageMatch
 {
-	return [[nonUniqueImageMatch retain] autorelease];
+	return [[bestImageMatch retain] autorelease];
 }
 
 
@@ -201,7 +200,7 @@
 		[userChosenImageMatch autorelease];
 		userChosenImageMatch = [match retain];
 		
-		[self sendNotificationThatImageChangedFrom:previousMatch];
+		[self sendNotificationThatImageMatch:@"User Chosen" changedFrom:previousMatch];
 	}
 }
 
@@ -218,8 +217,8 @@
 		return userChosenImageMatch;
 	else if (uniqueImageMatch)
 		return uniqueImageMatch;
-	else if (nonUniqueImageMatch)
-		return nonUniqueImageMatch;
+	else if (bestImageMatch)
+		return bestImageMatch;
 	else
 		return nil;
 }
@@ -233,7 +232,7 @@
 	[maskRep release];
 	[uniqueImageMatch release];
     [userChosenImageMatch release];
-	[nonUniqueImageMatch release];
+	[bestImageMatch release];
 	
     [super dealloc];
 }
