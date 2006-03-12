@@ -218,20 +218,22 @@ int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
 		
 			// Remove the least recently accessed image until we satisfy the user's prefs.
 		unsigned long long	targetSize = sMaxCacheSize * 0.9;
+		int					purgeCount = 0;
 		while (!sPurgeCache && (sCacheSize > targetSize || freeSpace < sMinFreeSpace) && [imageArray count] > 0)
 		{
 			NSDictionary		*imageToDelete = [imageArray lastObject];
 			unsigned long long	fileSize = [[imageToDelete objectForKey:@"Size"] unsignedLongLongValue];
 			
-			#ifdef DEBUG
-				NSLog(@"Purging %@", [imageToDelete objectForKey:@"Path"]);
-			#endif
 			[fileManager removeFileAtPath:[imageToDelete objectForKey:@"Path"] handler:nil];
 			sCacheSize -= fileSize;
 			freeSpace += fileSize;
 			
 			[imageArray removeLastObject];
+			purgeCount++;
 		}
+		#ifdef DEBUG
+			NSLog(@"Purged %@ images from the flickr cache.", purgeCount);
+		#endif
 		
 		if (sPurgeCache)
 		{
