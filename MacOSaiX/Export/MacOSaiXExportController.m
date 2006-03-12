@@ -70,8 +70,8 @@ static NSArray	*formatExtensions = nil;
 	mosaic = inMosaic;
 
 	[mosaicView setMosaic:mosaic];
-	[mosaicView setMosaicImage:[inMosaicView mosaicImage]];
-	[mosaicView setNonUniqueImage:[inMosaicView nonUniqueImage]];
+	[mosaicView setMainImage:[inMosaicView mainImage]];
+	[mosaicView setBackgroundImage:[inMosaicView backgroundImage]];
 	[mosaicView setFade:[inMosaicView fade]];
 	[fadeSlider setFloatValue:[mosaicView fade]];
 	
@@ -345,12 +345,12 @@ static NSArray	*formatExtensions = nil;
     {
         NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
 		
-			// Get the image in use by this tile.
+			// Get the image to show in this tile.
 		MacOSaiXImageMatch	*match = [tile userChosenImageMatch];
 		if (!match)
 			match = [tile uniqueImageMatch];
-		if (!match && [mosaicView backgroundMode] == nonUniqueMode)
-			match = [tile nonUniqueImageMatch];
+		if (!match && [mosaicView backgroundMode] == bestMatchMode)
+			match = [tile bestImageMatch];
 		
 		if (match)
 		{
