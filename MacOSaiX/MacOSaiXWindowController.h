@@ -96,6 +96,9 @@
 										*viewToolbarMenuItem;
     NSMutableArray						*tileImages;
 	id<MacOSaiXImageSource>				*manualImageSource;
+	
+	int									windowSizeStep;
+	NSSize								windowSizeIncrement;
 }
 
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic;

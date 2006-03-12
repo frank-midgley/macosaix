@@ -169,6 +169,7 @@
 	[mosaicScrollView setDrawsBackground:NO];
 	[[mosaicScrollView contentView] setDrawsBackground:NO];
 	[mosaicView setMosaic:[self mosaic]];
+	[mosaicView setOriginalFadeTime:1.0];
 	[self setViewOriginalImage:self];
 	
 		// For some reason IB insists on setting the drawer width to 200.  Have to set the size in code instead.
@@ -290,13 +291,6 @@
 		[zoomSlider setFloatValue:0.0];
 		[self setZoom:self];
 		
-			// Resize the window to respect the original's aspect ratio
-		NSRect	curFrame = [[self window] frame];
-		NSSize	newSize = [self windowWillResize:[self window] toSize:curFrame.size];
-		[[self window] setFrame:NSMakeRect(NSMinX(curFrame), NSMaxY(curFrame) - newSize.height, newSize.width, newSize.height)
-						display:YES
-						animate:YES];
-		
 		[self mosaicDidChangeState:nil];
 		
 			// Create the toolbar icons for the View Original/View Mosaic item.  Toolbar item images 
@@ -357,6 +351,43 @@
 			// Update the toolbar item.
 		[fadeOriginalButton setImage:originalToolbarImage];
 		[fadeMosaicButton setImage:mosaicToolbarImage];
+		
+			// Resize the window to respect the original image's aspect ratio
+		NSRect	curFrame = [[self window] frame];
+		NSSize	newSize = [self windowWillResize:[self window] toSize:curFrame.size];
+		windowSizeStep = 0;
+		windowSizeIncrement = NSMakeSize((newSize.width - NSWidth(curFrame)) / 10.0, 
+										 (newSize.height - NSHeight(curFrame)) / 10.0);
+		[NSTimer scheduledTimerWithTimeInterval:0.05 
+										 target:self 
+									   selector:@selector(animateWindowResize:) 
+									   userInfo:nil 
+										repeats:YES];
+	}
+}
+
+
+- (void)animateWindowResize:(NSTimer *)timer
+{
+	NSRect	curFrame = [[self window] frame];
+	
+	if (++windowSizeStep < 10)
+		[[self window] setFrame:NSMakeRect(NSMinX(curFrame), 
+										   NSMinY(curFrame) - windowSizeIncrement.height, 
+										   NSWidth(curFrame) + windowSizeIncrement.width, 
+										   NSHeight(curFrame) + windowSizeIncrement.height)
+						display:YES
+						animate:NO];
+	else
+	{
+		NSSize	newSize = [self windowWillResize:[self window] toSize:curFrame.size];
+		[[self window] setFrame:NSMakeRect(NSMinX(curFrame), 
+										   NSMinY(curFrame) + NSHeight(curFrame) - newSize.height, 
+										   newSize.width, 
+										   newSize.height)
+						display:YES
+						animate:NO];
+		[timer invalidate];
 	}
 }
 
@@ -1024,7 +1055,8 @@
 		if ([[sender title] isEqualToString:@"Medium"]) zoom = ([zoomSlider maxValue] - [zoomSlider minValue]) / 2.0;
 		if ([[sender title] isEqualToString:@"Maximum"]) zoom = [zoomSlider maxValue];
     }
-    else zoom = [zoomSlider floatValue];
+    else
+		zoom = [zoomSlider floatValue];
     
 		// Sync the slider with the current zoom setting.
     [zoomSlider setFloatValue:zoom];
@@ -1041,7 +1073,7 @@
 	centerPoint.y *= zoom;
 	[mosaicView scrollPoint:NSMakePoint(centerPoint.x - NSWidth(visibleRect) / 2.0, 
 										centerPoint.y - NSHeight(visibleRect) / 2.0)];
-	[mosaicView setNeedsDisplay:YES];
+	[mosaicView setInLiveRedraw:[NSNumber numberWithBool:YES]];
 }
 
 
@@ -1446,20 +1478,18 @@
 		// add height of scroll bar and status bar (if showing)
 		proposedFrameSize.height += 16 + (statusBarShowing ? [statusBarView frame].size.height : 0);
 		
-		[self setZoom:self];
-		
 		proposedFrameSize.height += diff.height;
 		proposedFrameSize.width += diff.width;
 	}
 	else if (resizingWindow == imageSourceEditorPanel)
 	{
-		NSSize	panelSize = [imageSourceEditorPanel frame].size,
-				editorBoxSize = [[imageSourceEditorBox contentView] frame].size;
-		float	minWidth = (panelSize.width - editorBoxSize.width) + [imageSourceEditorController minimumSize].width,
-				minHeight = (panelSize.height - editorBoxSize.height) + [imageSourceEditorController minimumSize].height;
-		
-		proposedFrameSize.width = MAX(proposedFrameSize.width, minWidth);
-		proposedFrameSize.height = MAX(proposedFrameSize.height, minHeight);
+//		NSSize	panelSize = [imageSourceEditorPanel frame].size,
+//				editorBoxSize = [[imageSourceEditorBox contentView] frame].size;
+//		float	minWidth = (panelSize.width - editorBoxSize.width) + [imageSourceEditorController minimumSize].width,
+//				minHeight = (panelSize.height - editorBoxSize.height) + [imageSourceEditorController minimumSize].height;
+//		
+//		proposedFrameSize.width = MAX(proposedFrameSize.width, minWidth);
+//		proposedFrameSize.height = MAX(proposedFrameSize.height, minHeight);
 	}
 
     return proposedFrameSize;
@@ -1486,7 +1516,6 @@
 {
 	if ([notification object] == [self window])
 	{
-			// this method is called during animated window resizing, not windowWillResize
 		[self setZoom:self];
 	}
 }
