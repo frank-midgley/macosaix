@@ -785,7 +785,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
 																forImageIdentifier:imageIdentifier 
 																   fromImageSource:[[mosaic imageSources] objectAtIndex:sourceIndex] 
-																		   forTile:nil];
+																		   forTile:(MacOSaiXTile *)@"Best"];
 					}
 					else
 						CFXMLParserAbort(parser,kCFXMLErrorMalformedStartTag, CFSTR("Tile is using an image from an unknown source."));
@@ -806,7 +806,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
 																forImageIdentifier:imageIdentifier 
 																   fromImageSource:[[mosaic imageSources] objectAtIndex:sourceIndex] 
-																		   forTile:nil];
+																		   forTile:(MacOSaiXTile *)@"Unique"];
 					}
 					else
 						CFXMLParserAbort(parser,kCFXMLErrorMalformedStartTag, CFSTR("Tile is using an image from an unknown source."));
@@ -819,7 +819,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
 															forImageIdentifier:imageIdentifier 
 															   fromImageSource:[mosaic handPickedImageSource] 
-																	   forTile:nil];
+																	   forTile:(MacOSaiXTile *)@"User Chosen"];
 				}
 				else
 				{
@@ -922,13 +922,14 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[MacOSaiXImageMatch class]])
 	{
 		MacOSaiXImageMatch	*match = child;
+		NSString			*matchType = (NSString *)[match tile];
 		
-		if ([[match imageSource] isKindOfClass:[MacOSaiXHandPickedImageSource class]])
-			[(MacOSaiXTile *)parent setUserChosenImageMatch:match];
-		else
+		if ([matchType isEqualToString:@"Best"])
+			[(MacOSaiXTile *)parent setBestImageMatch:match];
+		else if ([matchType isEqualToString:@"Unique"])
 			[(MacOSaiXTile *)parent setUniqueImageMatch:match];
-		
-		// TODO: need to figure out how to differentiate unique and best matches
+		else if ([matchType isEqualToString:@"User Chosen"])
+			[(MacOSaiXTile *)parent setUserChosenImageMatch:match];
 		
 		[(MacOSaiXImageMatch *)child setTile:(MacOSaiXTile *)parent];
 	}
