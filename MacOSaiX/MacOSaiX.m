@@ -200,18 +200,39 @@
 			
 			if (plugInBundle) // then the path is a valid bundle
 			{
-				Class	plugInPrincipalClass = [plugInBundle principalClass];
-				
-				if (plugInPrincipalClass && [plugInPrincipalClass conformsToProtocol:@protocol(MacOSaiXTileShapes)])
+					// Check if this plug-in can run on this system.
+				BOOL		plugInCompatible = YES;
+				NSString	*minOSXString = [plugInBundle objectForInfoDictionaryKey:@"LSMinimumSystemVersion"];
+				if (minOSXString)
 				{
-					[tileShapesClasses addObject:plugInPrincipalClass];
-					[loadedPlugInPaths addObject:plugInsPath];
+					NSArray		*versionComponents = [minOSXString componentsSeparatedByString:@"."];
+					SInt32		minOSX = 0x0600 + [[versionComponents objectAtIndex:0] intValue] * 0x0100;
+					if ([versionComponents count] > 1)
+						minOSX += [[versionComponents objectAtIndex:1] intValue] * 0x010;
+					if ([versionComponents count] > 2)
+						minOSX += [[versionComponents objectAtIndex:2] intValue] * 0x001;
+					
+					SInt32		curOSX;
+					plugInCompatible = (Gestalt(gestaltSystemVersion, &curOSX) == noErr && curOSX >= minOSX);
+					
+					// TBD: also check for conflicting class names?
 				}
-
-				if (plugInPrincipalClass && [plugInPrincipalClass conformsToProtocol:@protocol(MacOSaiXImageSource)])
+				
+				if (plugInCompatible)
 				{
-					[imageSourceClasses addObject:plugInPrincipalClass];
-					[loadedPlugInPaths addObject:plugInsPath];
+					Class	plugInPrincipalClass = [plugInBundle principalClass];
+					
+					if (plugInPrincipalClass && [plugInPrincipalClass conformsToProtocol:@protocol(MacOSaiXTileShapes)])
+					{
+						[tileShapesClasses addObject:plugInPrincipalClass];
+						[loadedPlugInPaths addObject:plugInsPath];
+					}
+
+					if (plugInPrincipalClass && [plugInPrincipalClass conformsToProtocol:@protocol(MacOSaiXImageSource)])
+					{
+						[imageSourceClasses addObject:plugInPrincipalClass];
+						[loadedPlugInPaths addObject:plugInsPath];
+					}
 				}
 
 					// don't look inside this bundle for other bundles
