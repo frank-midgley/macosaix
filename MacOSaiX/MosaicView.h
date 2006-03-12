@@ -24,11 +24,10 @@ typedef enum { clearMode = 0, blackMode, originalMode, bestMatchMode } MacOSaiXB
 							*backgroundImageLock;
 	NSAffineTransform		*mainImageTransform;
 	float					viewFade, 
-							originalFade, 
-							originalFadeIncrement, 
-							lastDrawnOriginalFade;
+							originalFadeTime;
 	BOOL					inLiveRedraw;
 	NSImage					*previousOriginalImage;
+	NSDate					*originalFadeStartTime;
 	
 		// Tile outlines display
 	BOOL					viewTileOutlines;

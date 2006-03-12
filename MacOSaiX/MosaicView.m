@@ -79,27 +79,6 @@
 }
 
 
-- (NSRect)boundsForOriginalImage:(NSImage *)originalImage
-{
-	NSRect	bounds = [self bounds],
-			mosaicBounds = bounds;
-	NSSize	imageSize = [originalImage size];
-	
-	if ((NSWidth(bounds) / imageSize.width) < (NSHeight(bounds) / imageSize.height))
-	{
-		mosaicBounds.size.height = imageSize.height * NSWidth(bounds) / imageSize.width;
-		mosaicBounds.origin.y = (NSHeight(bounds) - NSHeight(mosaicBounds)) / 2.0;
-	}
-	else
-	{
-		mosaicBounds.size.width = imageSize.width * NSHeight(bounds) / imageSize.height;
-		mosaicBounds.origin.x = (NSWidth(bounds) - NSWidth(mosaicBounds)) / 2.0;
-	}
-	
-	return mosaicBounds;
-}
-
-
 - (BOOL)isOpaque
 {
 	return NO;
@@ -112,17 +91,12 @@
 	
 	if (originalImage != previousOriginalImage)
 	{
-		if (previousOriginalImage)
-		{
-			originalFade = 0.0;
-			[NSTimer scheduledTimerWithTimeInterval:0.05 
-											 target:self 
-										   selector:@selector(fadeToNewOriginalImage:) 
-										   userInfo:nil 
-											repeats:YES];
-		}
-		else
-			originalFade = 1.0;
+		originalFadeStartTime = [[NSDate alloc] init];
+		[NSTimer scheduledTimerWithTimeInterval:0.1 
+										 target:self 
+									   selector:@selector(completeFadeToNewOriginalImage:) 
+									   userInfo:nil 
+										repeats:YES];
 		
 			// De-queue any pending tile refreshes based on the previous original image.
 		[tilesNeedDisplayLock lock];
@@ -160,21 +134,17 @@
 
 - (void)setOriginalFadeTime:(float)seconds
 {
-	originalFadeIncrement = seconds / 10.0;
+	originalFadeTime = seconds;
 }
 
 
-- (void)fadeToNewOriginalImage:(NSTimer *)timer
+- (void)completeFadeToNewOriginalImage:(NSTimer *)timer
 {
-	if (originalFade < 1.0)
+	if ([[NSDate date] timeIntervalSinceDate:originalFadeStartTime] > originalFadeTime)
 	{
-		if (originalFade == lastDrawnOriginalFade)
-			[self setNeedsDisplay:YES];
-		
-		lastDrawnOriginalFade = originalFade;
-	}
-	else
 		[timer invalidate];
+		[self setNeedsDisplay:YES];
+	}
 }
 
 
@@ -416,9 +386,10 @@
 	
 	[tileRefreshLock lock];
 		if ([tilesToRedraw count] > 0)
-			[self performSelectorOnMainThread:@selector(redrawTiles:) 
-								   withObject:[NSArray arrayWithArray:tilesToRedraw] 
-								waitUntilDone:NO];
+			[self performSelector:@selector(redrawTiles:) withObject:[NSArray arrayWithArray:tilesToRedraw]];
+//			[self performSelectorOnMainThread:@selector(redrawTiles:) 
+//								   withObject:[NSArray arrayWithArray:tilesToRedraw] 
+//								waitUntilDone:NO];
 		refreshingTiles = NO;
 	[tileRefreshLock unlock];
 	
@@ -491,6 +462,15 @@
 	
 		// Don't force a refresh every time we update the mosaic but make sure 
 		// it gets refreshed at least 5 times a second.
+	[tilesNeedDisplayLock lock];
+		if (!tilesNeedDisplayTimer)
+			[self performSelectorOnMainThread:@selector(startNeedsDisplayTimer) withObject:nil waitUntilDone:NO];
+	[tilesNeedDisplayLock unlock];
+}
+
+
+- (void)startNeedsDisplayTimer
+{
 	[tilesNeedDisplayLock lock];
 		if (!tilesNeedDisplayTimer)
 			tilesNeedDisplayTimer = [[NSTimer scheduledTimerWithTimeInterval:0.2 
@@ -582,20 +562,42 @@
 }
 
 
+- (NSRect)boundsForOriginalImage:(NSImage *)originalImage
+{
+	NSRect	viewBounds = [self bounds],
+	mosaicBounds = viewBounds;
+	NSSize	imageSize = [originalImage size];
+	
+	if ((NSWidth(viewBounds) / imageSize.width) < (NSHeight(viewBounds) / imageSize.height))
+	{
+		mosaicBounds.size.height = imageSize.height * NSWidth(viewBounds) / imageSize.width;
+		mosaicBounds.origin.y = (NSHeight(viewBounds) - NSHeight(mosaicBounds)) / 2.0;
+	}
+	else
+	{
+		mosaicBounds.size.width = imageSize.width * NSHeight(viewBounds) / imageSize.height;
+		mosaicBounds.origin.x = (NSWidth(viewBounds) - NSWidth(mosaicBounds)) / 2.0;
+	}
+	
+	return mosaicBounds;
+}
+
+
 - (void)drawRect:(NSRect)theRect
 {
-	NSLog(@"drawRect");
-	
-	if (originalFade < 1.0)
+	float	originalFade = 1.0;
+	if (originalFadeStartTime)
 	{
-		originalFade += originalFadeIncrement;
-		if (originalFade >= 1.0)
-		{
+		originalFade = ([[NSDate date] timeIntervalSinceDate:originalFadeStartTime] / originalFadeTime);
+		if (originalFade > 1.0)
 			originalFade = 1.0;
-			
-			[previousOriginalImage release];
-			previousOriginalImage = [[mosaic originalImage] retain];
-		}
+	}
+	if (originalFade == 1.0)
+	{
+		[previousOriginalImage release];
+		previousOriginalImage = [[mosaic originalImage] retain];
+		[originalFadeStartTime release];
+		originalFadeStartTime = nil;
 	}
 	
 	BOOL	drawLoRes = ([self inLiveResize] || inLiveRedraw || originalFade < 1.0);
@@ -606,10 +608,10 @@
 	if (NO)	//[self respondsToSelector:@selector(getRectsBeingDrawn:count:)])
 		[self getRectsBeingDrawn:(const NSRect **)&drawRects count:&drawRectCount];
 	
-	NSRect	previousMosaicBounds = (originalFade < 1.0) ? [self boundsForOriginalImage:previousOriginalImage] : NSZeroRect;
 	
 	NSImage	*originalImage = [mosaic originalImage];
-	NSRect	mosaicBounds = [self boundsForOriginalImage:originalImage];
+	NSRect	mosaicBounds = [self boundsForOriginalImage:originalImage], 
+			previousMosaicBounds = (originalFade < 1.0) ? [self boundsForOriginalImage:previousOriginalImage] : NSZeroRect;
 	int		index = 0;
 	for (; index < drawRectCount; index++)
 	{
@@ -622,10 +624,10 @@
 										  NSMinY(drawUnitRect) * [originalImage size].height, 
 										  NSWidth(drawUnitRect) * [originalImage size].width,
 										  NSHeight(drawUnitRect) * [originalImage size].height), 
-				mainImageRect = NSMakeRect(NSMinX(drawUnitRect) * [originalImage size].width, 
-										   NSMinY(drawUnitRect) * [originalImage size].height, 
-										   NSWidth(drawUnitRect) * [originalImage size].width,
-										   NSHeight(drawUnitRect) * [originalImage size].height), 
+				mainImageRect = NSMakeRect(NSMinX(drawUnitRect) * mainImageSize.width, 
+										   NSMinY(drawUnitRect) * mainImageSize.height, 
+										   NSWidth(drawUnitRect) * mainImageSize.width,
+										   NSHeight(drawUnitRect) * mainImageSize.height), 
 				previousDrawRect = NSIntersectionRect(drawRects[index], previousMosaicBounds), 
 				previousDrawUnitRect = NSMakeRect((NSMinX(previousDrawRect) - NSMinX(previousMosaicBounds)) / NSWidth(previousMosaicBounds), 
 												  (NSMinY(previousDrawRect) - NSMinY(previousMosaicBounds)) / NSHeight(previousMosaicBounds), 
@@ -774,8 +776,7 @@
 	else if (inLiveRedraw && ![flag boolValue])
 	{
 		inLiveRedraw = NO;
-		if (originalFade == 1.0)
-			[self setNeedsDisplay:YES];
+		[self setNeedsDisplay:YES];
 	}
 }
 
