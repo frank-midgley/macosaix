@@ -26,5 +26,7 @@
 	<string>2.0a6</string>
 	<key>NSPrincipalClass</key>
 	<string>QuickTimeImageSource</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>10.3.0</string>
 </dict>
 </plist>
