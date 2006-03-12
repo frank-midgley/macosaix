@@ -27,7 +27,8 @@
 {
 	if (self = [super initWithFrame:frameRect])
 	{
-		tilesToRefresh = [[NSMutableArray array] retain];
+		tilesToRefresh = [[NSMutableArray alloc] init];
+		tileMatchTypesToRefresh = [[NSMutableArray alloc] init];
 		tileRefreshLock = [[NSLock alloc] init];
 	}
 	
@@ -37,18 +38,11 @@
 
 - (void)awakeFromNib
 {
-	mosaicImageLock = [[NSLock alloc] init];
-	nonUniqueImageLock = [[NSLock alloc] init];
-	tilesOutline = [[NSBezierPath bezierPath] retain];
-	tilesNeedingDisplay = [[NSMutableArray array] retain];
+	mainImageLock = [[NSLock alloc] init];
+	backgroundImageLock = [[NSLock alloc] init];
+	tilesOutline = [[NSBezierPath alloc] init];
+	tilesNeedingDisplay = [[NSMutableArray alloc] init];
 	tilesNeedDisplayLock = [[NSLock alloc] init];
-	
-	NSImage	*blackImage = [[NSImage alloc] initWithSize:NSMakeSize(16.0, 16.0)];
-	[blackImage lockFocus];
-		[[NSColor blackColor] set];
-		[NSBezierPath fillRect:NSMakeRect(0.0, 0.0, 16.0, 16.0)];
-	[blackImage unlockFocus];
-	blackRep = [[blackImage bestRepresentationForDevice:nil] retain];
 	
 	highlightedImageSourcesLock = [[NSLock alloc] init];
 }
@@ -85,20 +79,20 @@
 }
 
 
-- (NSRect)mosaicBounds
+- (NSRect)boundsForOriginalImage:(NSImage *)originalImage
 {
 	NSRect	bounds = [self bounds],
 			mosaicBounds = bounds;
-	NSSize	size = [mosaicImage size];
+	NSSize	imageSize = [originalImage size];
 	
-	if ((NSWidth(bounds) / size.width) < (NSHeight(bounds) / size.height))
+	if ((NSWidth(bounds) / imageSize.width) < (NSHeight(bounds) / imageSize.height))
 	{
-		mosaicBounds.size.height = size.height * NSWidth(bounds) / size.width;
+		mosaicBounds.size.height = imageSize.height * NSWidth(bounds) / imageSize.width;
 		mosaicBounds.origin.y = (NSHeight(bounds) - NSHeight(mosaicBounds)) / 2.0;
 	}
 	else
 	{
-		mosaicBounds.size.width = size.width * NSHeight(bounds) / size.height;
+		mosaicBounds.size.width = imageSize.width * NSHeight(bounds) / imageSize.height;
 		mosaicBounds.origin.x = (NSWidth(bounds) - NSWidth(mosaicBounds)) / 2.0;
 	}
 	
@@ -116,84 +110,103 @@
 {
 	NSImage	*originalImage = [mosaic originalImage];
 	
-		// De-queue any pending tile refreshes based on the previous original image.
-	[tilesNeedDisplayLock lock];
-		[tilesNeedingDisplay removeAllObjects];
-	[tilesNeedDisplayLock unlock];
-	
-	if (originalImage)
+	if (originalImage != previousOriginalImage)
 	{
-			// Create an image to hold the mosaic (somewhat arbitrary size, large enough for decent zooming)
-		[mosaicImageLock lock];
-			[mosaicImage autorelease];
-			mosaicImage = [[NSImage alloc] initWithSize:NSMakeSize(3200.0, 3200.0 * [originalImage size].height / [originalImage size].width)];
-			[mosaicImage setCachedSeparately:YES];
-			[mosaicImage setCacheMode:NSImageCacheNever];
-			
-			[mosaicImage lockFocus];
-				[[NSColor clearColor] set];
-				NSRectFill(NSMakeRect(0.0, 0.0, [mosaicImage size].width, [mosaicImage size].height));
-			[mosaicImage unlockFocus];
-			
-				// set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined on a unit square)
-			[mosaicImageTransform release];
-			mosaicImageTransform = [[NSAffineTransform transform] retain];
-			[mosaicImageTransform scaleXBy:[mosaicImage size].width yBy:[mosaicImage size].height];
-		[mosaicImageLock unlock];
+		if (previousOriginalImage)
+		{
+			originalFade = 0.0;
+			[NSTimer scheduledTimerWithTimeInterval:0.05 
+											 target:self 
+										   selector:@selector(fadeToNewOriginalImage:) 
+										   userInfo:nil 
+											repeats:YES];
+		}
+		else
+			originalFade = 1.0;
 		
-			// Create an image to hold the non-unique matches (same size as mosaic image)
-		[nonUniqueImageLock lock];
-			[nonUniqueImage autorelease];
-			nonUniqueImage = [[NSImage alloc] initWithSize:[mosaicImage size]];
-			[nonUniqueImage setCachedSeparately:YES];
-			[nonUniqueImage setCacheMode:NSImageCacheNever];
-			
-			[nonUniqueImage lockFocus];
-				[[NSColor clearColor] set];
-				NSRectFill(NSMakeRect(0.0, 0.0, [nonUniqueImage size].width, [nonUniqueImage size].height));
-			[nonUniqueImage unlockFocus];
-		[nonUniqueImageLock unlock];
+			// De-queue any pending tile refreshes based on the previous original image.
+		[tilesNeedDisplayLock lock];
+			[tilesNeedingDisplay removeAllObjects];
+		[tilesNeedDisplayLock unlock];
 		
-		[self performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:nil waitUntilDone:YES];
+		if (originalImage)
+		{
+				// Pick a size for the main and background images.
+				// (somewhat arbitrary but large enough for decent zooming)
+			float	aspectRatio = [originalImage size].width / [originalImage size].height;
+			mainImageSize = (aspectRatio > 1.0 ? NSMakeSize(3200.0, 3200.0 / aspectRatio) : 
+												 NSMakeSize(3200.0 * aspectRatio, 3200.0));
+			
+			[mainImageLock lock];
+					// Release the current main image.  A new one will be created later off the main thread.
+				[mainImage autorelease];
+				mainImage = nil;
+				
+					// Set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined on a unit square)
+				[mainImageTransform autorelease];
+				mainImageTransform = [[NSAffineTransform alloc] init];
+				[mainImageTransform scaleXBy:mainImageSize.width yBy:mainImageSize.height];
+			[mainImageLock unlock];
+			
+				// Release the current background image.  A new one will be created later if needed off the main thread.
+			[backgroundImageLock lock];
+					[backgroundImage autorelease];
+					backgroundImage = nil;
+			[backgroundImageLock unlock];
+		}
 	}
 }
 
 
-- (void)setNeedsDisplay
+- (void)setOriginalFadeTime:(float)seconds
 {
-	[self setNeedsDisplay:YES];
+	originalFadeIncrement = seconds / 10.0;
 }
 
 
-- (void)setMosaicImage:(NSImage *)image
+- (void)fadeToNewOriginalImage:(NSTimer *)timer
 {
-	if (image != mosaicImage)
+	if (originalFade < 1.0)
 	{
-		[mosaicImage autorelease];
-		mosaicImage = [image retain];
+		if (originalFade == lastDrawnOriginalFade)
+			[self setNeedsDisplay:YES];
+		
+		lastDrawnOriginalFade = originalFade;
 	}
+	else
+		[timer invalidate];
 }
 
 
-- (NSImage *)mosaicImage
+- (void)setMainImage:(NSImage *)image
 {
-	return mosaicImage;
-}
-
-
-- (void)setNonUniqueImage:(NSImage *)image
-{
-	if (image != nonUniqueImage)
+	if (image != mainImage)
 	{
-		[nonUniqueImage autorelease];
-		nonUniqueImage = [image retain];
+		[mainImage autorelease];
+		mainImage = [image retain];
 	}
 }
 
 
-- (NSImage *)nonUniqueImage
+- (NSImage *)mainImage
 {
-	return nonUniqueImage;
+	return mainImage;
+}
+
+
+- (void)setBackgroundImage:(NSImage *)image
+{
+	if (image != backgroundImage)
+	{
+		[backgroundImage autorelease];
+		backgroundImage = [image retain];
+	}
+}
+
+
+- (NSImage *)backgroundImage
+{
+	return backgroundImage;
 }
 
 
@@ -211,15 +224,34 @@
 }
 
 
-- (void)refreshTile:(MacOSaiXTile *)tile
+- (void)refreshTile:(NSDictionary *)tileDict
 {
 		// Add the tile to the queue of tiles to be refreshed and start the refresh 
 		// thread if it isn't already running.
+	MacOSaiXTile		*tile = [tileDict objectForKey:@"Tile"];
+	NSString			*matchType = [tileDict objectForKey:@"Match Type"];
+//	MacOSaiXImageMatch	*previousMatch = [tileDict objectForKey:@"Previous Match"];
+	
 	[tileRefreshLock lock];
 		unsigned	index= [tilesToRefresh indexOfObject:tile];
 		if (index != NSNotFound)
+		{
+				// Add the match type for the tile.
+			NSMutableSet	*matchTypesToRefresh = [[[tileMatchTypesToRefresh objectAtIndex:index] retain] autorelease];
+			[matchTypesToRefresh addObject:matchType];
+			
+				// Move the tile to the head of the refresh queue.
 			[tilesToRefresh removeObjectAtIndex:index];
-		[tilesToRefresh addObject:tile];
+			[tilesToRefresh addObject:tile];
+			[tileMatchTypesToRefresh removeObjectAtIndex:index];
+			[tileMatchTypesToRefresh addObject:matchTypesToRefresh];
+		}
+		else
+		{
+				// Add the tile to the head of the refresh queue.
+			[tilesToRefresh addObject:tile];
+			[tileMatchTypesToRefresh addObject:[NSMutableSet setWithObject:matchType]];
+		}
 		
 		if (!refreshingTiles)
 		{
@@ -232,7 +264,7 @@
 
 - (void)tileImageDidChange:(NSNotification *)notification
 {
-	[self refreshTile:[[notification userInfo] objectForKey:@"Tile"]];
+	[self refreshTile:[notification userInfo]];
 }
 
 
@@ -240,8 +272,10 @@
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	MacOSaiXTile		*tileToRefresh = nil;
+	NSMutableSet		*matchTypesToRefresh = nil;
 	NSDate				*lastRedraw = [NSDate date];
 	NSMutableArray		*tilesToRedraw = [NSMutableArray array];
+	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
 	
 	do
 	{
@@ -255,74 +289,126 @@
 			{
 				tileToRefresh = [[[tilesToRefresh lastObject] retain] autorelease];
 				[tilesToRefresh removeLastObject];
+				matchTypesToRefresh = [[[tileMatchTypesToRefresh lastObject] retain] autorelease];
+				[tileMatchTypesToRefresh removeLastObject];
 			}
 		[tileRefreshLock unlock];
 		
 		if (tileToRefresh)
 		{
-			NSBezierPath		*clipPath = [mosaicImageTransform transformBezierPath:[tileToRefresh outline]];
-			MacOSaiXImageMatch	*imageMatch = nil;
-			NSImageRep			*newImageRep = nil;
-			BOOL				nonUnique = NO;
-			
-				// Figure out which match to show.
-			imageMatch = [tileToRefresh userChosenImageMatch];
-			if (!imageMatch)
-				imageMatch = [tileToRefresh uniqueImageMatch];
-			if (!imageMatch)
+			NSBezierPath		*clipPath = [mainImageTransform transformBezierPath:[tileToRefresh outline]];
+			if (clipPath)
 			{
-				nonUnique = YES;
-				imageMatch = [tileToRefresh nonUniqueImageMatch];
-			}
-			
-			if (clipPath && imageMatch)
-			{
-					// Get the image rep to draw for this tile.
-					// This step is the primary reason we're in a separate thread because 
-					// the cache may have to get the image from the source which might have 
-					// to hit the network, etc.
-				newImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:NSIntegralRect([clipPath bounds]).size
-																	  forIdentifier:[imageMatch imageIdentifier] 
-																		 fromSource:[imageMatch imageSource]];
-			}
-			
-			// TBD: show a question mark image if !newImageRep?
-			
-			[tileRefreshLock lock];
-				if (newImageRep)
-					[tilesToRedraw addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-																tileToRefresh, @"Tile", 
-																newImageRep, @"Image Rep", 
-																[NSNumber numberWithBool:nonUnique], @"Non-Unique", 
-																nil]];
+				MacOSaiXImageMatch	*mainImageMatch = ([tileToRefresh userChosenImageMatch] ? [tileToRefresh userChosenImageMatch] :
+																							  [tileToRefresh uniqueImageMatch]), 
+									*backgroundImageMatch = [tileToRefresh bestImageMatch];
+				NSImageRep			*mainImageRep = nil,
+									*backgroundImageRep = nil;
+				BOOL				redrawMain = ([matchTypesToRefresh containsObject:@"User Chosen"] || 
+												  [matchTypesToRefresh containsObject:@"Unique"]), 
+									redrawBackground = [matchTypesToRefresh containsObject:@"Best"];
 				
-				if ([tilesToRedraw count] > 0 && [lastRedraw timeIntervalSinceNow] < -0.2)
+					// Get the image rep(s) to draw for this tile.
+					// These steps are the primary reason we're in a separate thread because 
+					// the cache may have to get the images from the sources which might have 
+					// to hit the network, etc.
+				if (redrawMain && mainImageMatch)
 				{
-					[self performSelectorOnMainThread:@selector(redrawTiles:) 
-										   withObject:[NSArray arrayWithArray:tilesToRedraw] 
-										waitUntilDone:NO];
-					[tilesToRedraw removeAllObjects];
+						// The tile in main will draw over it so there's no need to redraw the background.
+						// TBD: But what if the image rep isn't opaque?
+					redrawBackground = NO;
+					
+					mainImageRep = [imageCache imageRepAtSize:NSIntegralRect([clipPath bounds]).size
+												forIdentifier:[mainImageMatch imageIdentifier] 
+												   fromSource:[mainImageMatch imageSource]];
 				}
-			[tileRefreshLock unlock];
-			
-			// Update the highlighted image sources outline if needed.
-			//	MacOSaiXImageSource	*previousMatch = [refreshDict objectForKey:@"Previous Match"];
-			//	[highlightedImageSourcesLock lock];
-			//		if ([highlightedImageSources containsObject:[previousMatch imageSource]] && 
-			//			![highlightedImageSources containsObject:[imageMatch imageSource]])
-			//		{
-			//				// There's no way to remove the tile's outline from the merged highlight 
-			//				// outline so we have to rebuild it from scratch.
-			//			[self createHighlightedImageSourcesOutline];
-			//		}
-			//		else if ([highlightedImageSources containsObject:[imageMatch imageSource]] && 
-			//				 ![highlightedImageSources containsObject:[previousMatch imageSource]])
-			//		{
-			//			if (!highlightedImageSourcesOutline)
-			//				highlightedImageSourcesOutline = [[NSBezierPath bezierPath] retain];
-			//			[highlightedImageSourcesOutline appendBezierPath:[tileToRefresh outline]];
-			//		}
-			//	[highlightedImageSourcesLock unlock];
+				
+					// If no image will be displayed for the tile in the main layer then 
+					// the background layer may need to be redrawn.
+				if (redrawMain && !mainImageMatch)
+					redrawBackground = YES;
+				
+					// TODO: background should not be redrawn if all tiles have a unique match.
+				if (backgroundMode == bestMatchMode && redrawBackground && backgroundImageMatch)
+					backgroundImageRep = [imageCache imageRepAtSize:NSIntegralRect([clipPath bounds]).size
+													  forIdentifier:[backgroundImageMatch imageIdentifier] 
+														 fromSource:[backgroundImageMatch imageSource]];
+				
+				[tileRefreshLock lock];
+					if (redrawMain)
+					{
+						[tilesToRedraw addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+														@"Main", @"Layer", 
+														tileToRefresh, @"Tile", 
+														mainImageRep, @"Image Rep", // could be nil
+														nil]];
+						
+							// Create an image to hold the mosaic if needed.
+						[mainImageLock lock];
+							if (!mainImage)
+							{
+								mainImage = [[NSImage alloc] initWithSize:mainImageSize];
+								[mainImage setCachedSeparately:YES];
+								
+								[mainImage lockFocus];
+									[[NSColor clearColor] set];
+									NSRectFill(NSMakeRect(0.0, 0.0, mainImageSize.width, mainImageSize.height));
+								[mainImage unlockFocus];
+							}
+						[mainImageLock unlock];
+					}
+					
+					if (redrawBackground)
+					{
+						[tilesToRedraw addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+														@"Background", @"Layer", 
+														tileToRefresh, @"Tile", 
+														backgroundImageRep, @"Image Rep",  // could be nil
+														nil]];
+						
+						
+							// Create a new background image if needed.
+						[backgroundImageLock lock];
+							if (!backgroundImage)
+							{
+								backgroundImage = [[NSImage alloc] initWithSize:mainImageSize];
+								[backgroundImage setCachedSeparately:YES];
+								[backgroundImage lockFocus];
+									[[NSColor clearColor] set];
+									NSRectFill(NSMakeRect(0.0, 0.0, [backgroundImage size].width, [backgroundImage size].height));
+								[backgroundImage unlockFocus];
+							}
+						[backgroundImageLock unlock];
+					}
+					
+					if ([tilesToRedraw count] > 0 && [lastRedraw timeIntervalSinceNow] < -0.2)
+					{
+						[self performSelectorOnMainThread:@selector(redrawTiles:) 
+											   withObject:[NSArray arrayWithArray:tilesToRedraw] 
+											waitUntilDone:NO];
+						[tilesToRedraw removeAllObjects];
+					}
+				[tileRefreshLock unlock];
+				
+				// Update the highlighted image sources outline if needed.
+				//	MacOSaiXImageSource	*previousMatch = [refreshDict objectForKey:@"Previous Match"];
+				//	[highlightedImageSourcesLock lock];
+				//		if ([highlightedImageSources containsObject:[previousMatch imageSource]] && 
+				//			![highlightedImageSources containsObject:[imageMatch imageSource]])
+				//		{
+				//				// There's no way to remove the tile's outline from the merged highlight 
+				//				// outline so we have to rebuild it from scratch.
+				//			[self createHighlightedImageSourcesOutline];
+				//		}
+				//		else if ([highlightedImageSources containsObject:[imageMatch imageSource]] && 
+				//				 ![highlightedImageSources containsObject:[previousMatch imageSource]])
+				//		{
+				//			if (!highlightedImageSourcesOutline)
+				//				highlightedImageSourcesOutline = [[NSBezierPath bezierPath] retain];
+				//			[highlightedImageSourcesOutline appendBezierPath:[tileToRefresh outline]];
+				//		}
+				//	[highlightedImageSourcesLock unlock];
+			}
 		}
 		
 		[innerPool release];
@@ -350,34 +436,52 @@
 	{
 		MacOSaiXTile	*tile = [tileDict objectForKey:@"Tile"];
 		NSImageRep		*imageRep = [tileDict objectForKey:@"Image Rep"];
-		BOOL			nonUnique = [[tileDict objectForKey:@"Non-Unique"] boolValue];
-		NSBezierPath	*clipPath = [mosaicImageTransform transformBezierPath:[tile outline]];
+		BOOL			redrawMain = [[tileDict objectForKey:@"Layer"] isEqualToString:@"Main"];
+		NSBezierPath	*clipPath = [mainImageTransform transformBezierPath:[tile outline]];
 		
-		if (nonUnique)
+		if (redrawMain)
 		{
-			[nonUniqueImageLock lock];
-				NS_DURING
-					[nonUniqueImage lockFocus];
-						[clipPath setClip];
-						[imageRep drawAtPoint:[clipPath bounds].origin];
-					[nonUniqueImage unlockFocus];
-				NS_HANDLER
-					NSLog(@"Could not lock focus on non-unique image");
-				NS_ENDHANDLER
-			[nonUniqueImageLock unlock];
+			[mainImageLock lock];
+				if (mainImage)
+				{
+					NS_DURING
+						[mainImage lockFocus];
+							[clipPath setClip];
+							if (imageRep)
+								[imageRep drawAtPoint:[clipPath bounds].origin];
+							else
+							{
+								[[NSColor clearColor] set];
+								NSRectFill([clipPath bounds]);
+							}
+						[mainImage unlockFocus];
+					NS_HANDLER
+						NSLog(@"Could not lock focus on mosaic image");
+					NS_ENDHANDLER
+				}
+			[mainImageLock unlock];
 		}
 		else
 		{
-			[mosaicImageLock lock];
-			NS_DURING
-				[mosaicImage lockFocus];
-					[clipPath setClip];
-					[imageRep drawAtPoint:[clipPath bounds].origin];
-				[mosaicImage unlockFocus];
-			NS_HANDLER
-				NSLog(@"Could not lock focus on mosaic image");
-			NS_ENDHANDLER
-			[mosaicImageLock unlock];
+			[backgroundImageLock lock];
+				if (backgroundImage)
+				{
+					NS_DURING
+						[backgroundImage lockFocus];
+							[clipPath setClip];
+							if (imageRep)
+								[imageRep drawAtPoint:[clipPath bounds].origin];
+							else
+							{
+								[[NSColor clearColor] set];
+								NSRectFill([clipPath bounds]);
+							}
+						[backgroundImage unlockFocus];
+					NS_HANDLER
+						NSLog(@"Could not lock focus on non-unique image");
+					NS_ENDHANDLER
+				}
+			[backgroundImageLock unlock];
 		}
 		
 		[tilesNeedDisplayLock lock];
@@ -422,7 +526,10 @@
 	if (viewFade != fade)
 	{
 		viewFade = fade;
+		
 		[self setNeedsDisplay:YES];
+		
+		[self setInLiveRedraw:[NSNumber numberWithBool:YES]];
 	}
 }
 
@@ -470,56 +577,117 @@
     NSPoint						mouseLoc = [self convertPoint:[theEvent locationInWindow] fromView:nil];
 	MacOSaiXWindowController	*controller = [[self window] delegate];
 	
-	if ([controller isKindOfClass:[MacOSaiXWindowController class]] && 
-		[self mouse:mouseLoc inRect:[self bounds]])
+	if ([controller isKindOfClass:[MacOSaiXWindowController class]] && [self mouse:mouseLoc inRect:[self bounds]])
 		[controller selectTileAtPoint:mouseLoc];
 }
 
 
 - (void)drawRect:(NSRect)theRect
 {
-		// Draw the user selected background.
-	if (backgroundMode == originalMode)
-		[[mosaic originalImage] drawInRect:[self mosaicBounds] 
-								  fromRect:NSZeroRect 
-								 operation:NSCompositeSourceOver 
-								  fraction:1.0];
-	else if (backgroundMode == nonUniqueMode)
-	{
-		[nonUniqueImageLock lock];
-			[nonUniqueImage drawInRect:[self mosaicBounds] 
-							  fromRect:NSZeroRect 
-							 operation:NSCompositeSourceOver 
-							  fraction:1.0];
-		[nonUniqueImageLock unlock];
-	}
-	else if (backgroundMode == blackMode)
-	{
-		[[NSColor colorWithDeviceWhite:0.0 alpha:viewFade] set];
-		NSRectFill(theRect);
-	}
-	// TODO: draw a user specified solid color...
+	NSLog(@"drawRect");
 	
-		// Draw the mosaic itself.
-	[mosaicImageLock lock];
-		[mosaicImage drawInRect:[self mosaicBounds] 
-					   fromRect:NSZeroRect 
-					  operation:NSCompositeSourceOver 
-					   fraction:viewFade];
-	[mosaicImageLock unlock];
+	if (originalFade < 1.0)
+	{
+		originalFade += originalFadeIncrement;
+		if (originalFade >= 1.0)
+		{
+			originalFade = 1.0;
+			
+			[previousOriginalImage release];
+			previousOriginalImage = [[mosaic originalImage] retain];
+		}
+	}
 	
-		// Overlay the faded original if appropriate and if it's not already there.
-	if (viewFade < 1.0 && backgroundMode != originalMode)
-		[[mosaic originalImage] drawInRect:[self mosaicBounds] 
-								  fromRect:NSZeroRect 
-								 operation:NSCompositeSourceOver 
-								  fraction:1.0 - viewFade];
+	BOOL	drawLoRes = ([self inLiveResize] || inLiveRedraw || originalFade < 1.0);
+	[[NSGraphicsContext currentContext] setImageInterpolation:drawLoRes ? NSImageInterpolationNone : NSImageInterpolationHigh];
+	
+	NSRect	drawRects[1] = {theRect};
+	int		drawRectCount = 1;
+	if (NO)	//[self respondsToSelector:@selector(getRectsBeingDrawn:count:)])
+		[self getRectsBeingDrawn:(const NSRect **)&drawRects count:&drawRectCount];
+	
+	NSRect	previousMosaicBounds = (originalFade < 1.0) ? [self boundsForOriginalImage:previousOriginalImage] : NSZeroRect;
+	
+	NSImage	*originalImage = [mosaic originalImage];
+	NSRect	mosaicBounds = [self boundsForOriginalImage:originalImage];
+	int		index = 0;
+	for (; index < drawRectCount; index++)
+	{
+		NSRect	drawRect = NSIntersectionRect(drawRects[index], mosaicBounds), 
+				drawUnitRect = NSMakeRect((NSMinX(drawRect) - NSMinX(mosaicBounds)) / NSWidth(mosaicBounds), 
+										   (NSMinY(drawRect) - NSMinY(mosaicBounds)) / NSHeight(mosaicBounds), 
+										   NSWidth(drawRect) / NSWidth(mosaicBounds), 
+										   NSHeight(drawRect) / NSHeight(mosaicBounds)), 
+				originalRect = NSMakeRect(NSMinX(drawUnitRect) * [originalImage size].width, 
+										  NSMinY(drawUnitRect) * [originalImage size].height, 
+										  NSWidth(drawUnitRect) * [originalImage size].width,
+										  NSHeight(drawUnitRect) * [originalImage size].height), 
+				mainImageRect = NSMakeRect(NSMinX(drawUnitRect) * [originalImage size].width, 
+										   NSMinY(drawUnitRect) * [originalImage size].height, 
+										   NSWidth(drawUnitRect) * [originalImage size].width,
+										   NSHeight(drawUnitRect) * [originalImage size].height), 
+				previousDrawRect = NSIntersectionRect(drawRects[index], previousMosaicBounds), 
+				previousDrawUnitRect = NSMakeRect((NSMinX(previousDrawRect) - NSMinX(previousMosaicBounds)) / NSWidth(previousMosaicBounds), 
+												  (NSMinY(previousDrawRect) - NSMinY(previousMosaicBounds)) / NSHeight(previousMosaicBounds), 
+												  NSWidth(previousDrawRect) / NSWidth(previousMosaicBounds), 
+												  NSHeight(previousDrawRect) / NSHeight(previousMosaicBounds)), 
+				previousOriginalRect = NSMakeRect(NSMinX(previousDrawUnitRect) * [previousOriginalImage size].width, 
+												  NSMinY(previousDrawUnitRect) * [previousOriginalImage size].height, 
+												  NSWidth(previousDrawUnitRect) * [previousOriginalImage size].width,
+												  NSHeight(previousDrawUnitRect) * [previousOriginalImage size].height);
+		
+			// Draw the user selected background.
+		switch (backgroundMode)
+		{
+			case originalMode:
+				[originalImage drawInRect:drawRect 
+								 fromRect:originalRect 
+								operation:NSCompositeSourceOver 
+								 fraction:viewFade];
+				break;
+			case bestMatchMode:
+				[backgroundImageLock lock];
+					[backgroundImage drawInRect:drawRect 
+									   fromRect:mainImageRect 
+									  operation:NSCompositeSourceOver 
+									   fraction:viewFade];
+				[backgroundImageLock unlock];
+				break;
+			case blackMode:
+				[[NSColor colorWithDeviceWhite:0.0 alpha:viewFade] set];
+				NSRectFill(drawRect);
+				break;
+			default:
+				;	// TODO: draw a user specified solid color...
+		}
+		
+			// Draw the mosaic itself.
+		[mainImageLock lock];
+			[mainImage drawInRect:drawRect 
+						 fromRect:mainImageRect 
+						operation:NSCompositeSourceOver 
+						 fraction:viewFade];
+		[mainImageLock unlock];
+		
+			// Overlay the faded original if appropriate and if it's not already there.
+		if (viewFade < 1.0 && backgroundMode != originalMode)
+		{
+			[previousOriginalImage drawInRect:previousDrawRect 
+									 fromRect:previousOriginalRect 
+									operation:NSCompositeSourceOver 
+									 fraction:(1.0 - viewFade) * (1.0 - originalFade)];
+			[[mosaic originalImage] drawInRect:drawRect 
+									  fromRect:originalRect 
+									 operation:NSCompositeSourceOver 
+									  fraction:(1.0 - viewFade) * originalFade];
+		}
+	}
 	
 		// Highlight the selected image sources.
 	[highlightedImageSourcesLock lock];
 	if (highlightedImageSourcesOutline)
 	{
-		NSSize				boundsSize = [self mosaicBounds].size;
+		NSSize				boundsSize = mosaicBounds.size;
 		NSAffineTransform	*transform = [NSAffineTransform transform];
 		[transform translateXBy:0.5 yBy:0.5];
 		[transform scaleXBy:boundsSize.width yBy:boundsSize.height];
@@ -547,7 +715,7 @@
 	{
 			// Draw the tile's outline with a 4pt thick dashed line.
 		NSAffineTransform	*transform = [NSAffineTransform transform];
-		[transform scaleXBy:[self mosaicBounds].size.width yBy:[self mosaicBounds].size.height];
+		[transform scaleXBy:mosaicBounds.size.width yBy:mosaicBounds.size.height];
 		NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile outline]];
 		[bezierPath setLineWidth:4];
 		
@@ -565,13 +733,13 @@
 		{
 			transform = [NSAffineTransform transform];
 			[transform translateXBy:0.5 yBy:-0.5];
-			[transform scaleXBy:[self mosaicBounds].size.width yBy:[self mosaicBounds].size.height];
+			[transform scaleXBy:mosaicBounds.size.width yBy:mosaicBounds.size.height];
 			[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];	// darken
 			[[transform transformBezierPath:[highlightedTile outline]] stroke];
 			
 			transform = [NSAffineTransform transform];
 			[transform translateXBy:-0.5 yBy:0.5];
-			[transform scaleXBy:[self mosaicBounds].size.width yBy:[self mosaicBounds].size.height];
+			[transform scaleXBy:mosaicBounds.size.width yBy:mosaicBounds.size.height];
 			[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
 			[[transform transformBezierPath:[highlightedTile outline]] stroke];
 		}
@@ -583,16 +751,38 @@
 			// TODO: make this faster.  This is excruciating for large tile sets.
 		NSAffineTransform	*transform = [NSAffineTransform transform];
 		[transform translateXBy:1.5 yBy:0.5];
-		[transform scaleXBy:[self mosaicBounds].size.width yBy:[self mosaicBounds].size.height];
+		[transform scaleXBy:mosaicBounds.size.width yBy:mosaicBounds.size.height];
 		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];	// darken
 		[[transform transformBezierPath:tilesOutline] stroke];
 		
 		transform = [NSAffineTransform transform];
 		[transform translateXBy:0.5 yBy:1.5];
-		[transform scaleXBy:[self mosaicBounds].size.width yBy:[self mosaicBounds].size.height];
+		[transform scaleXBy:mosaicBounds.size.width yBy:mosaicBounds.size.height];
 		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
 		[[transform transformBezierPath:tilesOutline] stroke];
 	}
+}
+
+
+- (void)setInLiveRedraw:(NSNumber *)flag
+{
+	if (!inLiveRedraw && [flag boolValue])
+	{
+		inLiveRedraw = YES;
+		[self performSelector:_cmd withObject:[NSNumber numberWithBool:NO] afterDelay:0.0];
+	}
+	else if (inLiveRedraw && ![flag boolValue])
+	{
+		inLiveRedraw = NO;
+		if (originalFade == 1.0)
+			[self setNeedsDisplay:YES];
+	}
+}
+
+
+- (void)viewDidEndLiveResize
+{
+	[self setNeedsDisplay:YES];
 }
 
 
@@ -683,7 +873,7 @@
 
 - (NSImage *)image
 {
-	return mosaicImage;
+	return mainImage;
 }
 
 
@@ -691,9 +881,9 @@
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	
-	[mosaicImage release];
-	[mosaicImageLock release];
-	[mosaicImageTransform release];
+	[mainImage release];
+	[mainImageLock release];
+	[mainImageTransform release];
 	[highlightedImageSources release];
 	[highlightedImageSourcesLock release];
 	[highlightedImageSourcesOutline release];
@@ -702,8 +892,9 @@
 	[tilesNeedDisplayTimer release];
 	[tilesNeedingDisplay release];
 	[tilesOutline release];
-	[blackRep release];
 	[tilesToRefresh release];
+	[tileMatchTypesToRefresh release];
+	[previousOriginalImage release];
 	
 	[super dealloc];
 }

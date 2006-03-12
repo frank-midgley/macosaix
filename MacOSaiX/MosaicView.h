@@ -11,18 +11,24 @@
 #import "Tiles.h"
 
 
-typedef enum { clearMode = 0, blackMode, originalMode, nonUniqueMode } MacOSaiXBackgroundMode;
+typedef enum { clearMode = 0, blackMode, originalMode, bestMatchMode } MacOSaiXBackgroundMode;
 
 
 @interface MosaicView : NSView
 {
 	MacOSaiXMosaic			*mosaic;
-	NSImage					*mosaicImage, 
-							*nonUniqueImage;
-	NSLock					*mosaicImageLock, 
-							*nonUniqueImageLock;
-	NSAffineTransform		*mosaicImageTransform;
-	float					viewFade;
+	NSImage					*mainImage, 
+							*backgroundImage;
+	NSSize					mainImageSize;
+	NSLock					*mainImageLock, 
+							*backgroundImageLock;
+	NSAffineTransform		*mainImageTransform;
+	float					viewFade, 
+							originalFade, 
+							originalFadeIncrement, 
+							lastDrawnOriginalFade;
+	BOOL					inLiveRedraw;
+	NSImage					*previousOriginalImage;
 	
 		// Tile outlines display
 	BOOL					viewTileOutlines;
@@ -36,7 +42,8 @@ typedef enum { clearMode = 0, blackMode, originalMode, nonUniqueMode } MacOSaiXB
     int						phase;
 	
 		// Tile refreshing
-	NSMutableArray			*tilesToRefresh;
+	NSMutableArray			*tilesToRefresh, 
+							*tileMatchTypesToRefresh;
 	NSLock					*tileRefreshLock;
 	BOOL					refreshingTiles;
 	
@@ -45,20 +52,22 @@ typedef enum { clearMode = 0, blackMode, originalMode, nonUniqueMode } MacOSaiXB
 	NSLock					*tilesNeedDisplayLock;
 	NSTimer					*tilesNeedDisplayTimer;
 	
-	NSImageRep				*blackRep;
-	
 	MacOSaiXBackgroundMode	backgroundMode;
 }
 
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
 
-- (void)setMosaicImage:(NSImage *)image;
-- (NSImage *)mosaicImage;
-- (void)setNonUniqueImage:(NSImage *)image;
-- (NSImage *)nonUniqueImage;
+- (void)setMainImage:(NSImage *)image;
+- (NSImage *)mainImage;
+- (void)setBackgroundImage:(NSImage *)image;
+- (NSImage *)backgroundImage;
 
 - (void)setFade:(float)fade;
 - (float)fade;
+
+- (void)setOriginalFadeTime:(float)seconds;
+
+- (void)setInLiveRedraw:(NSNumber *)flag;
 
 - (void)setViewTileOutlines:(BOOL)inViewTileOutlines;
 - (BOOL)viewTileOutlines;
