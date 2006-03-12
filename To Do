@@ -86,7 +86,7 @@ Riemersma metric:
 Ã	Follow aliases in folder source
 ?	Single menu for restricting tile sizes
 	Complete plug-in API
-¥		OS check
+Ã		OS check
 Ã		Add preferences API for image source plug-ins
 Ã		Add preferences API for tile shapes plug-ins
 ¥		Delegation change for tile shapes (and image sources?) (hex shapes)
@@ -97,6 +97,7 @@ Riemersma metric:
 ¥	Fix auto-fade
 ¥	Enable "Add New Image Source" sub-menu in Mosaic menu
 ¥	Handle case of no original images
+¥	Make sure everything works on virgin system
 Ã	Tile Setup sheet displaced when switching to puzzle pieces
 ¥	New UI for tile count/size better than previous?
 ¥	Tooltip for tile images
@@ -131,3 +132,8 @@ Riemersma metric:
 ¥	"You have not set the tile shapes" after loading a mosaic
 ¥	"Loading..." image in web page pop-up
 ¥	Remove image cache purging on source removal?
+¥	Disable background options when all tiles have a unique match
+¥	Clear selected source when drawer closed
+¥	Disable drawer controls when a sheet is dropped.
+¥	Queue tiles for refresh when background set to best match mode
+¥	Figure out how to differentiate between unique and best matches when loading.
