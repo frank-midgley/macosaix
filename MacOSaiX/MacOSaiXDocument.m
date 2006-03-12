@@ -508,17 +508,17 @@
 					else
 						NSLog(@"oops");
 				}
-				MacOSaiXImageMatch	*nonUniqueMatch = [tile nonUniqueImageMatch];
-				if (nonUniqueMatch)
+				MacOSaiXImageMatch	*bestMatch = [tile bestImageMatch];
+				if (bestMatch)
 				{
-					int	sourceIndex = [imageSources indexOfObjectIdenticalTo:[nonUniqueMatch imageSource]];
+					int	sourceIndex = [imageSources indexOfObjectIdenticalTo:[bestMatch imageSource]];
 						// Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
 						// fully working.
 					if (sourceIndex != NSNotFound)
-						[buffer appendString:[NSString stringWithFormat:@"\t\t<NON_UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%g\"/>\n", 
+						[buffer appendString:[NSString stringWithFormat:@"\t\t<BEST_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%g\"/>\n", 
 																		  sourceIndex,
-																		  [[nonUniqueMatch imageIdentifier] stringByEscapingXMLEntites],
-																		  [nonUniqueMatch matchValue]]];
+																		  [[bestMatch imageIdentifier] stringByEscapingXMLEntites],
+																		  [bestMatch matchValue]]];
 					else
 						NSLog(@"oops");
 				}
@@ -769,6 +769,27 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					newObject = [[NSMutableDictionary dictionaryWithDictionary:nodeAttributes] retain];
 					[(NSMutableDictionary *)newObject setObject:elementType forKey:@"Element Type"];
 				}
+				else if ([elementType isEqualToString:@"BEST_MATCH"])
+				{
+					if ([[document mainWindowController] viewingOriginal])
+						[[document mainWindowController] performSelectorOnMainThread:@selector(setViewMosaic:) 
+																		  withObject:nil 
+																	   waitUntilDone:NO];
+					
+					int					sourceIndex = [[nodeAttributes objectForKey:@"SOURCE"] intValue];
+					if (sourceIndex >= 0 && sourceIndex < [[mosaic imageSources] count])
+					{
+						NSString	*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
+						float		matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
+						
+						newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
+																forImageIdentifier:imageIdentifier 
+																   fromImageSource:[[mosaic imageSources] objectAtIndex:sourceIndex] 
+																		   forTile:nil];
+					}
+					else
+						CFXMLParserAbort(parser,kCFXMLErrorMalformedStartTag, CFSTR("Tile is using an image from an unknown source."));
+				}
 				else if ([elementType isEqualToString:@"UNIQUE_MATCH"])
 				{
 					if ([[document mainWindowController] viewingOriginal])
@@ -906,6 +927,8 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 			[(MacOSaiXTile *)parent setUserChosenImageMatch:match];
 		else
 			[(MacOSaiXTile *)parent setUniqueImageMatch:match];
+		
+		// TODO: need to figure out how to differentiate unique and best matches
 		
 		[(MacOSaiXImageMatch *)child setTile:(MacOSaiXTile *)parent];
 	}

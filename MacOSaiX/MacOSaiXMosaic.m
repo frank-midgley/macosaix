@@ -92,7 +92,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		while (tile = [tileEnumerator nextObject])
 		{
 			[tile resetBitmapRepAndMask];
-			[tile setNonUniqueImageMatch:nil];
+			[tile setBestImageMatch:nil];
 			[tile setUniqueImageMatch:nil];
 		}
 
@@ -328,15 +328,12 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		MacOSaiXTile		*tile = nil;
 		while (tile = [tileEnumerator nextObject])
 		{
-			if ([imageSource isKindOfClass:[MacOSaiXHandPickedImageSource class]])
+			if ([[tile userChosenImageMatch] imageSource] == imageSource)
 				[tile setUserChosenImageMatch:nil];
-			else
-			{
-				if ([[tile uniqueImageMatch] imageSource] == imageSource)
-					[tile setUniqueImageMatch:nil];
-				if ([[tile nonUniqueImageMatch] imageSource] == imageSource)
-					[tile setNonUniqueImageMatch:nil];
-			}
+			if ([[tile uniqueImageMatch] imageSource] == imageSource)
+				[tile setUniqueImageMatch:nil];
+			if ([[tile bestImageMatch] imageSource] == imageSource)
+				[tile setBestImageMatch:nil];
 		}
 		
 		if (![imageSource canRefetchImages])
@@ -796,12 +793,10 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 								[betterMatches addObject:newMatch];
 							}
 							
-								// Set the tile's non-unique match if appropriate.
+								// Set the tile's best match if appropriate.
 								// TBD: check pref?
-							if (![tile nonUniqueImageMatch] || matchValue < [[tile nonUniqueImageMatch] matchValue])
-							{
-								[tile setNonUniqueImageMatch:newMatch];
-							}
+							if (![tile bestImageMatch] || matchValue < [[tile bestImageMatch] matchValue])
+								[tile setBestImageMatch:newMatch];
 						}
 						else
 							;	// anything to do or just lose the chance to match this pixlet to this tile?
@@ -927,12 +922,12 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			
 			if (!pixletImageInUse && ![pixletImageSource canRefetchImages])
 			{
-					// Check if the image is in use as a non-unique match.
+					// Check if the image is the best match for any tile.
 				NSEnumerator			*tileEnumerator = [tiles objectEnumerator];
 				MacOSaiXTile			*tile = nil;
-				while ((tile = [tileEnumerator nextObject]))
-					if ([[tile nonUniqueImageMatch] imageSource] == pixletImageSource && 
-						[[[tile nonUniqueImageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier])
+				while (!pixletImageInUse && (tile = [tileEnumerator nextObject]))
+					if ([[tile bestImageMatch] imageSource] == pixletImageSource && 
+						[[[tile bestImageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier])
 					{
 						pixletImageInUse = YES;
 						break;
