@@ -328,7 +328,7 @@
 						[mainImageLock unlock];
 					}
 					
-					if (redrawBackground)
+					if (backgroundMode == bestMatchMode && redrawBackground)
 					{
 						[tilesToRedraw addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 														@"Background", @"Layer", 
@@ -541,6 +541,29 @@
 	{
 		backgroundMode = mode;
 		
+		if (mode == bestMatchMode)
+		{
+				// Queue the refresh of all tiles that don't have an image in the main layer.
+			NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
+			MacOSaiXTile	*tile = nil;
+			while (tile = [tileEnumerator nextObject])
+				if (![tile userChosenImageMatch] && ![tile uniqueImageMatch])
+					[self refreshTile:[NSDictionary dictionaryWithObjectsAndKeys:
+											tile, @"Tile", 
+											@"Best", @"Match Type", 
+											nil]];
+		}
+		else if (backgroundImage)
+		{
+				// Get rid of the memory consuming background image since it's no longer needed.
+				// A new one will be created if the mode is switched back to best match.
+				// TODO: do this after a 10-15 second delay in case the user switches back.
+			[backgroundImageLock lock];
+				[backgroundImage autorelease];
+				backgroundImage = nil;
+			[backgroundImageLock unlock];
+		}
+		
 		[self setNeedsDisplay:YES];
 	}
 }
@@ -603,11 +626,18 @@
 	BOOL	drawLoRes = ([self inLiveResize] || inLiveRedraw || originalFade < 1.0);
 	[[NSGraphicsContext currentContext] setImageInterpolation:drawLoRes ? NSImageInterpolationNone : NSImageInterpolationHigh];
 	
-	NSRect	drawRects[1] = {theRect};
-	int		drawRectCount = 1;
-	if (NO)	//[self respondsToSelector:@selector(getRectsBeingDrawn:count:)])
-		[self getRectsBeingDrawn:(const NSRect **)&drawRects count:&drawRectCount];
-	
+		// Get the list of rectangles that need to be redrawn.
+		// Especially when !drawLoRes the image rendering is expensive so the less done the better.
+	NSRect			fallbackDrawRects[1] = { theRect };
+	const NSRect	*drawRects = nil;
+	int				drawRectCount = 0;
+	if ([self respondsToSelector:@selector(getRectsBeingDrawn:count:)])
+		[self getRectsBeingDrawn:&drawRects count:&drawRectCount];
+	else
+	{
+		drawRects = fallbackDrawRects;
+		drawRectCount = 1;
+	}
 	
 	NSImage	*originalImage = [mosaic originalImage];
 	NSRect	mosaicBounds = [self boundsForOriginalImage:originalImage], 
