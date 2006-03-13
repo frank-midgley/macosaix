@@ -70,6 +70,9 @@ Riemersma metric:
 ¥	Get rid of all NSLog's
 ¥	Enable cancelling of document load
 ¥	Clean up about box
+¥	Kiosk dialogs on secondary monitors not ordering out
+¥	Cancel button not working in kiosk setup?
+¥	Folder sources restarting after load?
 
 
 2.0a6 To Do:
@@ -113,7 +116,7 @@ Riemersma metric:
 ¥		Initial units
 Ã		Remember defaults
 Ã		Background option
-¥	Tiles not clearing when source removed
+Ã	Tiles not clearing when source removed
 Ã	Make Fade and Zoom toolbar items narrower
 ¥	Save&restore background mode
 ¥	Save&restore pause state
@@ -128,12 +131,11 @@ Riemersma metric:
 ¥   Make QuickTime image caching a user option
 ¥	Add "Report Crashes" option
 ¥	Selected tile highlight cropped when zoomed
-¥	Exported image blurry?  Only web page?
 ¥	"You have not set the tile shapes" after loading a mosaic
 ¥	"Loading..." image in web page pop-up
 ¥	Remove image cache purging on source removal?
 ¥	Disable background options when all tiles have a unique match
 ¥	Clear selected source when drawer closed
 ¥	Disable drawer controls when a sheet is dropped.
-¥	Queue tiles for refresh when background set to best match mode
-¥	Figure out how to differentiate between unique and best matches when loading.
+Ã	Queue tiles for refresh when background set to best match mode
+Ã	Figure out how to differentiate between unique and best matches when loading.
