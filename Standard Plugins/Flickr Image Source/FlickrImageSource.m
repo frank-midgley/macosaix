@@ -232,7 +232,8 @@ int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
 			purgeCount++;
 		}
 		#ifdef DEBUG
-			NSLog(@"Purged %@ images from the flickr cache.", purgeCount);
+			if (purgeCount > 0)
+				NSLog(@"Purged %d images from the flickr cache.", purgeCount);
 		#endif
 		
 		if (sPurgeCache)
