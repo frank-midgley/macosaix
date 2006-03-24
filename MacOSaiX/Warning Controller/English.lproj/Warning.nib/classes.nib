@@ -1,0 +1,20 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {setWarningIsEnabled = id; }; 
+            CLASS = MacOSaiXWarningController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                alternateButton = NSButton; 
+                defaultButton = NSButton; 
+                dontShowAgainButton = NSButton; 
+                messageField = NSTextField; 
+                otherButton = NSButton; 
+                titleField = NSTextField; 
+            }; 
+            SUPERCLASS = NSWindowController; 
+        }
+    ); 
+    IBVersion = 1; 
+}
