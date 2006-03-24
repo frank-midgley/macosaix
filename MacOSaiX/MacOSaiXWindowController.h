@@ -78,7 +78,7 @@
 	NSImage								*originalToolbarImage,
 										*mosaicToolbarImage;
     BOOL								statusBarShowing,
-										updateTilesFlag, 
+										fadeWasAdjusted, 
 										windowFinishedLoading,	// flag to indicate nib was loaded
 										finishLoading;	// flag to indicate doc was not new,
 														// so perform second phase of initializing

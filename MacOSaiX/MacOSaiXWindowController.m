@@ -13,6 +13,7 @@
 #import "MacOSaiXImageMatcher.h"
 #import "MacOSaiXFullScreenController.h"
 #import "MacOSaiXPopUpImageView.h"
+#import "MacOSaiXWarningController.h"
 #import "NSImage+MacOSaiX.h"
 #import "NSString+MacOSaiX.h"
 
@@ -205,12 +206,13 @@
 
 - (IBAction)setOriginalImageFromMenu:(id)sender
 {
-	if (![[self mosaic] originalImage] || 
-		[[self mosaic] imagesMatched] == 0 || 
-		![[NSUserDefaults standardUserDefaults] boolForKey:@"Warn When Changing Original Image"] ||
-		NSRunAlertPanel(@"Do you wish to change the original image?", 
-						@"All work in the current mosaic will be lost.", 
-						@"Change", @"Cancel", nil) == NSAlertDefaultReturn)
+	if (![[self mosaic] originalImage] ||
+		![[self mosaic] wasStarted] || 
+		![MacOSaiXWarningController warningIsEnabled:@"Changing Original Image"] || 
+		[MacOSaiXWarningController runAlertForWarning:@"Changing Original Image" 
+												title:@"Do you wish to change the original image?" 
+											  message:@"All work in the current mosaic will be lost." 
+										 buttonTitles:[NSArray arrayWithObjects:@"Change", @"Cancel", nil]] == 0)
 	{
 		NSString	*originalImagePath = [sender representedObject];
 		[[self document] setOriginalImagePath:originalImagePath];
@@ -407,43 +409,6 @@
 }
 
 
-#pragma mark
-
-
-- (void)pause
-{
-	if (![[self mosaic] isPaused])
-	{
-		[self displayProgressPanelWithMessage:@"Pausing..."];
-		[[self mosaic] pause];
-		[self closeProgressPanel];
-		
-			// Update the toolbar.
-		[pauseToolbarItem setLabel:@"Resume"];
-		[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
-		
-			// Update the menu bar.
-		[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Resume Matching"];
-	}
-}
-
-
-- (void)resume
-{
-	if ([[self mosaic] isPaused])
-	{
-		[[self mosaic] resume];
-		
-			// Update the toolbar
-		[pauseToolbarItem setLabel:@"Pause"];
-		[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
-		
-			// Update the menu bar
-		[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Pause Matching"];
-	}
-}
-
-
 #pragma mark -
 #pragma mark Miscellaneous
 
@@ -499,19 +464,36 @@
 //																	 overallMatch, 
 //																	 [[self mosaic] status]]];
 		[statusMessageView setStringValue:[NSString stringWithFormat:@"Images: %d     Status: %@",
-																	 [[self mosaic] imagesMatched], 
+																	 [[self mosaic] imagesFound], 
 																	 [[self mosaic] status]]];
 		
 		[imageSourcesTableView reloadData];
 		
-//		if ([mosaicView fade] == 0.0 && ![[self mosaic] wasStarted])
-//		{
-//			fadeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.25 
-//														  target:self 
-//														selector:@selector(fadeToMosaic:) 
-//														userInfo:nil 
-//														 repeats:YES] retain];
-//		}
+		[self synchronizeMenus];
+		
+			// Update the toolbar.
+		if (![[self mosaic] wasStarted])
+		{
+			[pauseToolbarItem setLabel:@"Start Mosaic"];
+			[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
+		}
+		else if ([[self mosaic] isPaused])
+		{
+			[pauseToolbarItem setLabel:@"Resume"];
+			[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
+		}
+		else
+		{
+			[pauseToolbarItem setLabel:@"Pause"];
+			[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
+		}
+		
+		if (!fadeTimer && !fadeWasAdjusted && [[self mosaic] allTilesHaveExtractedBitmaps])
+			fadeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1 
+														  target:self 
+														selector:@selector(fadeToMosaic:) 
+														userInfo:[NSDate date] 
+														 repeats:YES] retain];
 	}
 }
 
@@ -541,13 +523,21 @@
 
 - (IBAction)setupTiles:(id)sender
 {
-	if (!tilesSetupController)
-		tilesSetupController = [[MacOSaiXTilesSetupController alloc] initWithWindow:nil];
-	
-	[tilesSetupController setupTilesForMosaic:[self mosaic] 
-							   modalForWindow:[self window] 
-								modalDelegate:nil 
-							   didEndSelector:nil];
+	if (![[self mosaic] wasStarted] || 
+		![MacOSaiXWarningController warningIsEnabled:@"Changing Tiles Setup"] || 
+		[MacOSaiXWarningController runAlertForWarning:@"Changing Tiles Setup" 
+												title:@"Do you wish to change the tiles setup?" 
+											  message:@"All work in the current mosaic will be lost." 
+										 buttonTitles:[NSArray arrayWithObjects:@"Change", @"Cancel", nil]] == 0)
+	{
+		if (!tilesSetupController)
+			tilesSetupController = [[MacOSaiXTilesSetupController alloc] initWithWindow:nil];
+		
+		[tilesSetupController setupTilesForMosaic:[self mosaic] 
+								   modalForWindow:[self window] 
+									modalDelegate:nil 
+								   didEndSelector:nil];
+	}
 }
 
 
@@ -667,9 +657,11 @@
 
 - (IBAction)removeImageSource:(id)sender
 {
-	if (NSRunAlertPanel(@"Are you sure you wish to remove the selected image source?", 
-						@"All tiles that were using images from this source will be changed to black.", 
-						@"Remove", @"Cancel", nil) == NSAlertDefaultReturn)
+	if (![MacOSaiXWarningController warningIsEnabled:@"Removing Image Source"] || 
+		[MacOSaiXWarningController runAlertForWarning:@"Removing Image Source" 
+												title:@"Are you sure you wish to remove the selected image source?" 
+											  message:@"Tiles that were displaying images from this source may no longer have an image." 
+										 buttonTitles:[NSArray arrayWithObjects:@"Remove", @"Cancel", nil]] == 0)
 	{
 		id<MacOSaiXImageSource>	imageSource = [[[self mosaic] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]];
 		
@@ -1029,6 +1021,8 @@
 
 - (IBAction)setViewFade:(id)sender
 {
+	fadeWasAdjusted = YES;
+	
 	[fadeTimer invalidate];
 	[fadeTimer release];
 	fadeTimer = nil;
@@ -1283,17 +1277,16 @@
 
 - (void)fadeToMosaic:(NSTimer *)timer
 {
-	float	currentFade = [mosaicView fade];
+	float	fade = ([[NSDate date] timeIntervalSinceDate:[timer userInfo]] / 10.0);
+	[mosaicView setFade:MIN(fade, 1.0)];
+	[fadeSlider setFloatValue:[mosaicView fade]];
 	
-	if (currentFade < 1.0)
+	fadeWasAdjusted = YES;
+	
+	if ([mosaicView fade] == 1.0)
 	{
-		[mosaicView setFade:MIN(currentFade + 0.01, 1.0)];
-		[fadeSlider setFloatValue:[mosaicView fade]];
-	}
-	else
-	{
-		[timer invalidate];
-		[timer release];
+		[fadeTimer invalidate];
+		[fadeTimer release];
 		fadeTimer = nil;
 	}
 }
@@ -1302,9 +1295,9 @@
 - (void)togglePause:(id)sender
 {
 	if ([[self mosaic] isPaused])
-		[self resume];
+		[[self mosaic] resume];
 	else
-		[self pause];
+		[[self mosaic] pause];
 }
 
 
