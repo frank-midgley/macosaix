@@ -205,18 +205,26 @@
 
 - (IBAction)setOriginalImageFromMenu:(id)sender
 {
-	NSString	*originalImagePath = [sender representedObject];
-	[[self document] setOriginalImagePath:originalImagePath];
-	
-	NSImage		*originalImage = [[NSImage alloc] initWithContentsOfFile:originalImagePath];
-	[[self mosaic] setOriginalImage:originalImage];
-	[originalImage release];
+	if (![[self mosaic] originalImage] || 
+		[[self mosaic] imagesMatched] == 0 || 
+		![[NSUserDefaults standardUserDefaults] boolForKey:@"Warn When Changing Original Image"] ||
+		NSRunAlertPanel(@"Do you wish to change the original image?", 
+						@"All work in the current mosaic will be lost.", 
+						@"Change", @"Cancel", nil) == NSAlertDefaultReturn)
+	{
+		NSString	*originalImagePath = [sender representedObject];
+		[[self document] setOriginalImagePath:originalImagePath];
+		
+		NSImage		*originalImage = [[NSImage alloc] initWithContentsOfFile:originalImagePath];
+		[[self mosaic] setOriginalImage:originalImage];
+		[originalImage release];
+	}
 }
 
 
 - (IBAction)chooseOriginalImage:(id)sender
 {
-		// Prompt the user to choose the image from which to make a mosaic.
+		// Prompt the user to choose an image from which to make a mosaic.
 	NSOpenPanel	*oPanel = [NSOpenPanel openPanel];
 	[oPanel setCanChooseFiles:YES];
 	[oPanel setCanChooseDirectories:NO];
