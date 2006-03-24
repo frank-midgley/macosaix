@@ -35,5 +35,6 @@
 - (IBAction)setUpdateCheck:(id)sender;
 - (IBAction)setAutoStart:(id)sender;
 - (IBAction)setAutoSave:(id)sender;
+- (IBAction)resetWarnings:(id)sender;
 
 @end

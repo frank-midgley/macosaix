@@ -11,6 +11,7 @@
 #import "MacOSaiX.h"
 #import "MacOSaiXTileShapes.h"
 #import "MacOSaiXImageSource.h"
+#import "MacOSaiXWarningController.h"
 
 
 @implementation MacOSaiXPreferencesController
@@ -80,6 +81,12 @@
 	
 	[defaults setBool:([autoSaveCheckBox state] == NSOnState) forKey:@"Automatically Save Mosaics"];
     [defaults synchronize];
+}
+
+
+- (IBAction)resetWarnings:(id)sender
+{
+	[MacOSaiXWarningController enableAllWarnings];
 }
 
 
