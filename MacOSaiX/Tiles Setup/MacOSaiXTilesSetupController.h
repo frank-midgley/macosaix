@@ -43,10 +43,6 @@
 
 - (IBAction)setPlugIn:(id)sender;
 
-- (IBAction)setImageUseCount:(id)sender;
-- (IBAction)setImageReuseDistance:(id)sender;
-- (IBAction)setImageCropLimit:(id)sender;
-
 - (IBAction)cancel:(id)sender;
 - (IBAction)ok:(id)sender;
 

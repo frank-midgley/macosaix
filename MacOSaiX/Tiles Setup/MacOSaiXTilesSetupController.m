@@ -229,24 +229,6 @@
 }
 
 
-- (IBAction)setImageUseCount:(id)sender
-{
-	[[self mosaic] setImageUseCount:[[imageUseCountPopUp selectedItem] tag]];
-}
-
-
-- (IBAction)setImageReuseDistance:(id)sender
-{
-	[[self mosaic] setImageReuseDistance:[[imageReuseDistancePopUp selectedItem] tag]];
-}
-
-
-- (IBAction)setImageCropLimit:(id)sender
-{
-	[[self mosaic] setImageCropLimit:[imageCropLimitSlider intValue]];
-}
-
-
 - (IBAction)cancel:(id)sender
 {
 	[NSApp endSheet:[self window] returnCode:NSCancelButton];
@@ -255,6 +237,10 @@
 
 - (IBAction)ok:(id)sender;
 {
+	[[self mosaic] setImageUseCount:[[imageUseCountPopUp selectedItem] tag]];
+	[[self mosaic] setImageReuseDistance:[[imageReuseDistancePopUp selectedItem] tag]];
+	[[self mosaic] setImageCropLimit:[imageCropLimitSlider intValue]];
+	
 	[NSApp endSheet:[self window] returnCode:NSOKButton];
 }
 
