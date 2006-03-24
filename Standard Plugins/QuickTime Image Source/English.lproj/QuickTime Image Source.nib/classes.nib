@@ -13,6 +13,7 @@
                 movieNameTextField = NSTextField; 
                 movieView = NSMovieView; 
                 moviesController = NSArrayController; 
+                moviesTable = NSTableView; 
             }; 
             SUPERCLASS = NSObject; 
         }

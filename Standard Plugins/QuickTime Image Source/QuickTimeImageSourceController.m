@@ -43,7 +43,7 @@
 			Rect				movieBounds;
 			GetMovieBox(qtMovie, &movieBounds);
 			float				aspectRatio = (float)(movieBounds.right - movieBounds.left) / 
-				(float)(movieBounds.bottom - movieBounds.top);
+											  (float)(movieBounds.bottom - movieBounds.top);
 			[movieDict setObject:[NSNumber numberWithFloat:aspectRatio] forKey:@"aspectRatio"];
 			
 				// Get the length of the movie in seconds.
@@ -87,6 +87,39 @@
 	
 	[[NSUserDefaults standardUserDefaults] setObject:settings forKey:@"QuickTime Image Source"];
 	[[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+
+- (void)sizeMovieView
+{
+	if ([[moviesController selectedObjects] count] == 1)
+	{
+		[[movieView superview] setNeedsDisplayInRect:[movieView frame]];
+		
+		NSSize	maxSize = NSMakeSize(NSWidth([[movieView superview] frame]) - 3.0 - 3.0, 
+									 NSHeight([[movieView superview] frame]) - 3.0 - 36.0 - 16.0);
+		
+		float	aspectRatio = [[[[moviesController selectedObjects] lastObject] objectForKey:@"aspectRatio"] floatValue];
+		
+		if (maxSize.width > maxSize.height * aspectRatio)
+		{
+			float	scaledWidth = maxSize.height * aspectRatio, 
+					halfWidthDiff = (maxSize.width - scaledWidth) / 2.0;
+			[movieView setFrame:NSMakeRect(3.0 + halfWidthDiff, 33.0, scaledWidth, maxSize.height + 16.0)];
+		}
+		else
+		{
+			float	scaledHeight = maxSize.width / aspectRatio, 
+					halfHeightDiff = (maxSize.height - scaledHeight) / 2.0;
+			[movieView setFrame:NSMakeRect(3.0, 33.0 + halfHeightDiff, maxSize.width, scaledHeight + 16.0)];
+		}
+	}
+}
+
+
+- (void)movieSuperViewDidChangeFrame:(NSNotification *)notification
+{
+	[self sizeMovieView];
 }
 
 
@@ -140,7 +173,7 @@
 	[moviesController setSortDescriptors:[NSArray arrayWithObject:sortDescriptor]];
 	[moviesController setContent:movies];
 	
-	[self saveSettings];
+	[self saveSettings];	// must be done after setting the content of the controller
 }
 
 
@@ -161,7 +194,7 @@
 
 - (NSResponder *)firstResponder
 {
-	return chooseAnotherMovieButton;
+	return moviesTable;
 }
 
 
@@ -171,11 +204,11 @@
 	
 		// Set up to get notified when the window changes size so that we can adjust the
 		// width of the movie view in a way that preserves the movie's aspect ratio.
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResizeNotification object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(windowDidResize:) 
-												 name:NSWindowDidResizeNotification 
-											   object:[okButton window]];
+											 selector:@selector(movieSuperViewDidChangeFrame:) 
+												 name:NSViewFrameDidChangeNotification 
+											   object:[movieView superview]];
 }
 
 
@@ -196,6 +229,12 @@
 	}
 	else if ([[moviesController selectedObjects] count] > 0)
 		[currentImageSource setPath:[[moviesController selection] valueForKey:@"path"]];
+}
+
+
+- (void)editingComplete
+{
+	[movieView setMovie:nil];
 }
 
 
@@ -272,6 +311,7 @@
 	
 	if ([selectedMovieDicts count] == 1)
 	{
+		[self sizeMovieView];
 		[currentImageSource setPath:[[selectedMovieDicts lastObject] valueForKey:@"path"]];
 		[okButton setEnabled:YES];
 	}
@@ -280,24 +320,6 @@
 		[currentImageSource setPath:nil];
 		[okButton setEnabled:NO];
 	}
-}
-
-
-#pragma mark -
-#pragma mark Window delegate methods
-
-
-- (void)windowDidResize:(NSNotification *)notification
-{
-//	if ([currentImageSource path])
-//	{
-//		NSRect	movieFrame = [movieView frame];
-//		int		newMovieWidth = (movieFrame.size.height - 16.0) * [currentImageSource aspectRatio];
-//		
-//		movieFrame.size.width = newMovieWidth;
-//		movieFrame.origin.x = ([[movieView superview] frame].size.width - movieFrame.size.width) / 2.0;
-//		[movieView setFrame:movieFrame];
-//	}
 }
 
 
@@ -329,7 +351,7 @@
 - (void)dealloc
 {
 	[currentImageSource release];
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResizeNotification object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:nil];
 	
 	[super dealloc];
 }

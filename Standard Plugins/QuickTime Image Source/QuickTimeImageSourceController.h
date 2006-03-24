@@ -16,6 +16,7 @@
 	IBOutlet NSView				*editorView;
 	
 	IBOutlet NSArrayController	*moviesController;
+	IBOutlet NSTableView		*moviesTable;
 	IBOutlet NSButton			*chooseAnotherMovieButton, 
 								*clearMovieListButton;
 	
