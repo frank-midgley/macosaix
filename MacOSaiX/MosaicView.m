@@ -189,6 +189,26 @@
 	while (tile = [tileEnumerator nextObject])
 	    [tilesOutline appendBezierPath:[tile outline]];
 	
+	[mainImageLock lock];
+		if (mainImage)
+		{
+			[mainImage lockFocus];
+				[[NSColor clearColor] set];
+				NSRectFill(NSMakeRect(0.0, 0.0, [mainImage size].width, [mainImage size].height));
+			[mainImage unlockFocus];
+		}
+	[mainImageLock unlock];
+	
+	[backgroundImageLock lock];
+		if (backgroundImage)
+		{
+			[backgroundImage lockFocus];
+				[[NSColor clearColor] set];
+				NSRectFill(NSMakeRect(0.0, 0.0, [backgroundImage size].width, [backgroundImage size].height));
+			[backgroundImage unlockFocus];
+		}
+	[backgroundImageLock unlock];
+	
 		// TODO: main thread?
 	[self setNeedsDisplay:YES];
 }
@@ -854,12 +874,20 @@
 	NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
 	MacOSaiXTile	*tile = nil;
 	while (tile = [tileEnumerator nextObject])
-		if ([highlightedImageSources containsObject:[[tile displayedImageMatch] imageSource]])
+	{
+		id<MacOSaiXImageSource>	displayedSource = [[tile userChosenImageMatch] imageSource];
+		if (!displayedSource)
+			displayedSource = [[tile uniqueImageMatch] imageSource];
+		if (!displayedSource && backgroundMode == bestMatchMode)
+			displayedSource = [[tile bestImageMatch] imageSource];
+		
+		if (displayedSource && [highlightedImageSources containsObject:displayedSource])
 		{
 			if (!highlightedImageSourcesOutline)
 				highlightedImageSourcesOutline = [[NSBezierPath bezierPath] retain];
 			[highlightedImageSourcesOutline appendBezierPath:[tile outline]];
 		}
+	}
 }
 
 
