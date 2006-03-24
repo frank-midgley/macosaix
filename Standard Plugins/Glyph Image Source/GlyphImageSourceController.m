@@ -172,6 +172,11 @@
 }
 
 
+- (void)editingComplete
+{
+}
+
+
 #pragma mark Fonts tab
 
 

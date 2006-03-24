@@ -52,6 +52,11 @@
 }
 
 
+- (void)editingComplete
+{
+}
+
+
 - (void)controlTextDidChange:(NSNotification *)notification
 {
 	if ([notification object] == requiredTermsTextField)

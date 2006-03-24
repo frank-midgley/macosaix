@@ -48,6 +48,11 @@
 }
 
 
+- (void)editingComplete
+{
+}
+
+
 - (IBAction)visitFlickr:(id)sender
 {
 	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"http://www.flickr.com"]];

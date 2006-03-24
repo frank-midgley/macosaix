@@ -119,6 +119,11 @@
 }
 
 
+- (void)editingComplete
+{
+}
+
+
 - (IBAction)setSourceType:(id)sender
 {
 	if ([matrix selectedRow] == 0)

@@ -175,6 +175,11 @@
 }
 
 
+- (void)editingComplete
+{
+}
+
+
 - (IBAction)chooseFolder:(id)sender
 {
 	NSWindow		*window = [editorView window];
