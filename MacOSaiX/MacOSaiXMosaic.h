@@ -24,11 +24,11 @@
 	id<MacOSaiXTileShapes>			tileShapes;
 	NSSize							averageUnitTileSize;
 	
-	BOOL							displayNonUniqueMatches;
-	
 	int								imageUseCount,
 									imageReuseDistance,
 									imageCropLimit;
+	
+	NSMutableArray					*tilesWithoutBitmaps;
 	
 	NSString						*diskCachePath;
 	NSMutableDictionary				*diskCacheSubPaths;
@@ -44,7 +44,6 @@
 		// Image matching
     NSLock							*calculateImageMatchesThreadLock;
 	BOOL							calculateImageMatchesThreadAlive;
-    long							imagesMatched;
 	NSMutableDictionary				*betterMatchesCache;
 	
     BOOL							mosaicStarted, 
@@ -61,9 +60,6 @@
 - (id<MacOSaiXTileShapes>)tileShapes;
 - (NSSize)averageUnitTileSize;
 
-- (void)setDisplayNonUniqueMatches:(BOOL)flag;
-- (BOOL)displayNonUniqueMatches;
-
 - (int)imageUseCount;
 - (void)setImageUseCount:(int)count;
 - (int)imageReuseDistance;
@@ -76,7 +72,8 @@
 - (BOOL)isBusy;
 - (NSString *)status;
 - (unsigned long)countOfImagesFromSource:(id<MacOSaiXImageSource>)imageSource;
-- (unsigned long)imagesMatched;
+- (unsigned long)imagesFound;
+- (BOOL)allTilesHaveExtractedBitmaps;
 
 - (NSArray *)imageSources;
 - (void)addImageSource:(id<MacOSaiXImageSource>)imageSource;

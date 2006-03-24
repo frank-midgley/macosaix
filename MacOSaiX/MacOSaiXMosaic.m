@@ -42,6 +42,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		
 		imageSources = [[NSMutableArray alloc] init];
 		imageSourcesLock = [[NSLock alloc] init];
+		tilesWithoutBitmaps = [[NSMutableArray alloc] init];
 		diskCacheSubPaths = [[NSMutableDictionary alloc] init];
 		
 			// This queue is populated by the enumeration threads and accessed by the matching thread.
@@ -65,37 +66,46 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 }
 
 
+- (void)reset
+{
+		// Stop any worker threads.
+	[self pause];
+	
+		// Reset all of the image sources.
+	NSEnumerator			*imageSourceEnumerator = [[self imageSources] objectEnumerator];
+	id<MacOSaiXImageSource>	imageSource;
+	while (imageSource = [imageSourceEnumerator nextObject])
+	{
+		[imageSource reset];
+		[self setImageCount:0 forImageSource:imageSource];
+	}
+	
+		// Reset all of the tiles.
+	NSEnumerator			*tileEnumerator = [tiles objectEnumerator];
+	MacOSaiXTile			*tile = nil;
+	while (tile = [tileEnumerator nextObject])
+	{
+		[tile resetBitmapRepAndMask];
+		[tile setBestImageMatch:nil];
+		[tile setUniqueImageMatch:nil];
+	}
+	[tilesWithoutBitmaps removeAllObjects];
+	[tilesWithoutBitmaps addObjectsFromArray:tiles];
+	
+	mosaicStarted = NO;
+}
+
+
 #pragma mark -
 #pragma mark Original image management
 
 
 - (void)setOriginalImage:(NSImage *)image
 {
-	if (![image isEqualTo:originalImage])
+	if (image != originalImage)
 	{
-		BOOL					wasPaused = [self isPaused];
+		[self reset];
 		
-		[self pause];
-		
-			// Reset all of the image sources.
-		NSEnumerator			*imageSourceEnumerator = [[self imageSources] objectEnumerator];
-		id<MacOSaiXImageSource>	imageSource;
-		while (imageSource = [imageSourceEnumerator nextObject])
-		{
-			[imageSource reset];
-			[self setImageCount:0 forImageSource:imageSource];
-		}
-		
-			// Reset all of the tiles.
-		NSEnumerator			*tileEnumerator = [tiles objectEnumerator];
-		MacOSaiXTile			*tile = nil;
-		while (tile = [tileEnumerator nextObject])
-		{
-			[tile resetBitmapRepAndMask];
-			[tile setBestImageMatch:nil];
-			[tile setUniqueImageMatch:nil];
-		}
-
 		[originalImage release];
 		originalImage = [image retain];
 
@@ -108,9 +118,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		[originalImage setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
 		
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXOriginalImageDidChangeNotification object:self];
-		
-		if (!wasPaused)
-			[self resume];
 	}
 }
 
@@ -136,9 +143,10 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 - (void)setTileShapes:(id<MacOSaiXTileShapes>)inTileShapes creatingTiles:(BOOL)createTiles
 {
-	[inTileShapes retain];
+	[self pause];
+	
 	[tileShapes autorelease];
-	tileShapes = inTileShapes;
+	tileShapes = [inTileShapes retain];
 	
 	if (createTiles)
 	{
@@ -159,6 +167,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			// Indicate that the average tile size needs to be recalculated.
 		averageUnitTileSize = NSZeroSize;
 	}
+	
+	[self reset];
 	
 		// Let anyone who cares know that our tile shapes (and thus our tiles array) have changed.
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
@@ -193,18 +203,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 }
 
 
-- (void)setDisplayNonUniqueMatches:(BOOL)flag
-{
-	displayNonUniqueMatches = flag;
-}
-
-
-- (BOOL)displayNonUniqueMatches
-{
-	return displayNonUniqueMatches;
-}
-
-
 - (int)imageUseCount
 {
 	return imageUseCount;
@@ -217,6 +215,15 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	{
 		imageUseCount = count;
 		[[NSUserDefaults standardUserDefaults] setInteger:imageUseCount forKey:@"Image Use Count"];
+		
+		if ([self wasStarted])
+		{
+			[self reset];
+			
+			[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
+																object:self 
+															  userInfo:nil];
+		}
 	}
 }
 
@@ -229,8 +236,20 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 - (void)setImageReuseDistance:(int)distance
 {
-	imageReuseDistance = distance;
-	[[NSUserDefaults standardUserDefaults] setInteger:imageReuseDistance forKey:@"Image Reuse Distance"];
+	if (imageReuseDistance != distance)
+	{
+		imageReuseDistance = distance;
+		[[NSUserDefaults standardUserDefaults] setInteger:imageReuseDistance forKey:@"Image Reuse Distance"];
+		
+		if ([self wasStarted])
+		{
+			[self reset];
+			
+			[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
+																object:self 
+															  userInfo:nil];
+		}
+	}
 }
 
 
@@ -242,14 +261,42 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 - (void)setImageCropLimit:(int)cropLimit
 {
-	imageCropLimit = cropLimit;
-	[[NSUserDefaults standardUserDefaults] setInteger:imageCropLimit forKey:@"Image Crop Limit"];
+	if (imageCropLimit != cropLimit)
+	{
+		imageCropLimit = cropLimit;
+		[[NSUserDefaults standardUserDefaults] setInteger:imageCropLimit forKey:@"Image Crop Limit"];
+		
+		if ([self wasStarted])
+		{
+			[self reset];
+			
+			[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
+																object:self 
+															  userInfo:nil];
+		}
+	}
 }
 
 
 - (NSArray *)tiles
 {
 	return tiles;
+}
+
+
+- (void)tileDidExtractBitmap:(MacOSaiXTile *)tile
+{
+	[tilesWithoutBitmaps removeObjectIdenticalTo:tile];
+	
+	if ([tilesWithoutBitmaps count] == 0)
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification 
+															object:self];
+}
+
+
+- (BOOL)allTilesHaveExtractedBitmaps
+{
+	return ([self wasStarted] && [tilesWithoutBitmaps count] == 0);
 }
 
 
@@ -606,7 +653,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 }
 
 
-- (unsigned long)imagesMatched
+- (unsigned long)imagesFound
 {
 	unsigned long	totalCount = 0;
 	
@@ -781,12 +828,10 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 																				 forImageIdentifier:pixletImageIdentifier 
 																					fromImageSource:pixletImageSource
 																							forTile:tile];
-								// If the tile does not already have a match or 
-								//    this image matches better than the tile's current best or
+								// If this image matches better than the tile's current best or
 								//    this image is the same as the tile's current best
 								// then add it to the list of tile's that might get this image.
-							if (![tile uniqueImageMatch] || 
-								matchValue < [[tile uniqueImageMatch] matchValue] ||
+							if (matchValue < previousBest ||
 								([[tile uniqueImageMatch] imageSource] == pixletImageSource && 
 								 [[[tile uniqueImageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier]))
 							{
@@ -938,9 +983,6 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				[imageCache removeCachedImagesWithIdentifiers:[NSArray arrayWithObject:pixletImageIdentifier] 
 												   fromSource:pixletImageSource];
 			
-			if (pixletImage)
-				imagesMatched++;
-			
 			if (!queueLocked)
 				[imageQueueLock lock];
 
@@ -989,13 +1031,15 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	else if (![self wasStarted])
 		statusKey = @"Ready to begin.  Click the Start Mosaic button in the toolbar.";
 	else if ([self isPaused])
-		statusKey = [NSString stringWithString:@"Paused"];
+		statusKey = @"Paused";
+	else if ([tilesWithoutBitmaps count] > 0)
+		statusKey = @"Extracting tile images...";	// TODO: include the % complete
 	else if (calculateImageMatchesThreadAlive)
-		statusKey = [NSString stringWithString:@"Matching images..."];
+		statusKey = @"Matching images...";
 	else if (enumerationThreadCount > 0)
-		statusKey = [NSString stringWithString:@"Looking for new images..."];
+		statusKey = @"Looking for new images...";
 	else
-		statusKey = [NSString stringWithString:@"Done"];
+		statusKey = @"Done";
 	
 	return [[NSBundle mainBundle] localizedStringForKey:statusKey value:@"" table:nil];
 }
@@ -1080,6 +1124,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	[betterMatchesCache release];
 	[calculateImageMatchesThreadLock release];
     [tiles release];
+	[tilesWithoutBitmaps release];
     [tileShapes release];
     [imageQueue release];
 	
