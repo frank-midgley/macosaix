@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0109CA3F09D385DF008290BE /* MacOSaiXWarningController.h in Headers */ = {isa = PBXBuildFile; fileRef = 0109CA3D09D385DF008290BE /* MacOSaiXWarningController.h */; };
+		0109CA4009D385DF008290BE /* MacOSaiXWarningController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0109CA3E09D385DF008290BE /* MacOSaiXWarningController.m */; };
+		0109CA4709D385E5008290BE /* Warning.nib in Resources */ = {isa = PBXBuildFile; fileRef = 0109CA4109D385E5008290BE /* Warning.nib */; };
 		010D1F7608FF5FAD00950013 /* MacOSaiXFullScreenWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 010D1F7408FF5FAD00950013 /* MacOSaiXFullScreenWindow.h */; };
 		010D1F7708FF5FAD00950013 /* MacOSaiXFullScreenWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 010D1F7508FF5FAD00950013 /* MacOSaiXFullScreenWindow.m */; };
 		010D20B60902C01700950013 /* Kiosk Setup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 010D20980902C01700950013 /* Kiosk Setup.nib */; };
@@ -382,6 +385,9 @@
 		00E5856E005F0FA87F000001 /* MacOSaiXDocument.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXDocument.h; sourceTree = "<group>"; };
 		00EAAC6000853DFB7F000001 /* Tiles.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Tiles.h; sourceTree = "<group>"; };
 		00EAAC6100853DFB7F000001 /* Tiles.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = Tiles.m; sourceTree = "<group>"; };
+		0109CA3D09D385DF008290BE /* MacOSaiXWarningController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXWarningController.h; sourceTree = "<group>"; };
+		0109CA3E09D385DF008290BE /* MacOSaiXWarningController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXWarningController.m; sourceTree = "<group>"; };
+		0109CA4209D385E5008290BE /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Warning.nib; sourceTree = "<group>"; };
 		010D1F7408FF5FAD00950013 /* MacOSaiXFullScreenWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXFullScreenWindow.h; sourceTree = "<group>"; };
 		010D1F7508FF5FAD00950013 /* MacOSaiXFullScreenWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXFullScreenWindow.m; sourceTree = "<group>"; };
 		010D20990902C01700950013 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Kiosk Setup.nib"; sourceTree = "<group>"; };
@@ -648,6 +654,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0109CA3609D385A5008290BE /* Warning Controller */ = {
+			isa = PBXGroup;
+			children = (
+				0109CA3D09D385DF008290BE /* MacOSaiXWarningController.h */,
+				0109CA3E09D385DF008290BE /* MacOSaiXWarningController.m */,
+				0109CA4109D385E5008290BE /* Warning.nib */,
+			);
+			path = "Warning Controller";
+			sourceTree = "<group>";
+		};
 		010D208D0902BF0600950013 /* Document */ = {
 			isa = PBXGroup;
 			children = (
@@ -805,6 +821,7 @@
 				92DCA54D08F871A100B40FA6 /* Common */,
 				924E8058099E8BD1006977E3 /* Tiles Setup */,
 				9298FE0A0995594700E7A096 /* Export */,
+				0109CA3609D385A5008290BE /* Warning Controller */,
 				928824890982D05400181817 /* Full Screen Window */,
 				01AB92ED07DB797E00DB4B86 /* Cocoa Extensions */,
 				928F72460661211600873AE2 /* Crash Reporter */,
@@ -1125,6 +1142,7 @@
 				01A94F78097050DB00EF07B6 /* MacOSaiXPreferencesController.h in Headers */,
 				9298FE030995592300E7A096 /* MacOSaiXExportController.h in Headers */,
 				924E805D099E8C0D006977E3 /* MacOSaiXTilesSetupController.h in Headers */,
+				0109CA3F09D385DF008290BE /* MacOSaiXWarningController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1699,6 +1717,7 @@
 				92319CA309A7D656007CA9CD /* Export5.html in Resources */,
 				92319CA809A7D6AA007CA9CD /* Export3+Original.html in Resources */,
 				92319CAB09A7D6C5007CA9CD /* Export3.html in Resources */,
+				0109CA4709D385E5008290BE /* Warning.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1845,6 +1864,7 @@
 				92887D9D094CCC84000FA225 /* MacOSaiXPopUpImageView.m in Sources */,
 				9298FE040995592300E7A096 /* MacOSaiXExportController.m in Sources */,
 				924E805E099E8C0D006977E3 /* MacOSaiXTilesSetupController.m in Sources */,
+				0109CA4009D385DF008290BE /* MacOSaiXWarningController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1955,6 +1975,14 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		0109CA4109D385E5008290BE /* Warning.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				0109CA4209D385E5008290BE /* English */,
+			);
+			name = Warning.nib;
+			sourceTree = "<group>";
+		};
 		010D20980902C01700950013 /* Kiosk Setup.nib */ = {
 			isa = PBXVariantGroup;
 			children = (
