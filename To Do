@@ -38,9 +38,7 @@ Riemersma metric:
 ¥	New mosaic from image on clipboard
 ¥	Mosaic image source.  (use images from an existing mosaic) (Mark Everdell)
 ¥	Streaming QT source
-	Image cache
-¥		purge unused images in disk cache on save
-¥	Save a low-res version of the mosaic
+¥	Save a low-res version of the mosaic image
 
 
 2.0x To Do:
@@ -49,8 +47,6 @@ Riemersma metric:
 ¥	Get rid of lines on screen and in exported images
 	QuickTime source:
 ¥		Show aspect ratio
-¥		Scale movie when sheet presented
-¥		Recent movies
 	Directory source:
 ¥		Drag and drop support
 	Glyphs source:
@@ -62,10 +58,11 @@ Riemersma metric:
 ¥		Other options?  (pix by specific user, license, etc.)
 ¥		Log in?
 ¥	DOCTYPE plist in XML?
-?	Window zooming
-?	Tile refresh leaves black edges
-¥	Document plug-in API's
-¥	Create sample plug-in projects
+¥	Window zooming
+Ã	Tile refresh leaves black edges
+	Plug-in API's
+¥		Create documentation
+¥		Create sample plug-in projects
 ¥	Prompt for password when leaving kiosk mode
 ¥	Get rid of all NSLog's
 ¥	Enable cancelling of document load
@@ -76,7 +73,7 @@ Riemersma metric:
 
 
 2.0a6 To Do:
-¥	Allow setup to be changed after mosaic has been started
+Ã	Allow setup to be changed after mosaic has been started
 Ã	Fix iPhoto crasher in -[NSAppleScript dealloc]
 Ã	Fix crash in -[MosaicView createHighlightedImageSourcesOutline]
 Ã	Kiosk mode
@@ -95,9 +92,9 @@ Riemersma metric:
 ¥		Delegation change for tile shapes (and image sources?) (hex shapes)
 Ã	Don't loop forever scaling from the cache
 Ã	Auto-start pref not honored
-¥	Start icon not changing to pause when started
+Ã	Start icon not changing to pause when started
 ¥	Copy original image to doc bundle? or open mosaic read-only if original missing?
-¥	Fix auto-fade
+¥	Mosaic view needs to draw lo-res during auto-fade
 ¥	Enable "Add New Image Source" sub-menu in Mosaic menu
 ¥	Handle case of no original images
 ¥	Make sure everything works on virgin system
@@ -124,7 +121,6 @@ Riemersma metric:
 ¥	Add "other" and "clear" items to toolbar originals menu and make clear work in both menus
 Ã	Get rid of +[plugInClass name] and read from Info.plist instead (simplifies and localizes)
 ¥	Add a default background mode pref
-¥	Save background mode with mosaic
 ¥	Document being corrupted when saved during quit?
 ¥	Disable "tiles apart" pop-up when images can only appear in one tile
 ¥	Google cache limit not sticking
@@ -136,6 +132,9 @@ Riemersma metric:
 ¥	Remove image cache purging on source removal?
 ¥	Disable background options when all tiles have a unique match
 ¥	Clear selected source when drawer closed
-¥	Disable drawer controls when a sheet is dropped.
+¥	Disable drawer controls whenever a sheet is dropped.
 Ã	Queue tiles for refresh when background set to best match mode
 Ã	Figure out how to differentiate between unique and best matches when loading.
+	QuickTime source:
+Ã		Scale movie when sheet presented
+Ã		Recent movies
