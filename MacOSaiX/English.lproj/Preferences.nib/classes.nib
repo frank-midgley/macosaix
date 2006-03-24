@@ -2,13 +2,19 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            ACTIONS = {setAutoSave = id; setAutoStart = id; setUpdateCheck = id; }; 
+            ACTIONS = {
+                resetWarnings = id; 
+                setAutoSave = id; 
+                setAutoStart = id; 
+                setUpdateCheck = id; 
+            }; 
             CLASS = MacOSaiXPreferencesController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 autoSaveCheckBox = NSButton; 
                 autoSaveFrequencyField = NSTextField; 
                 autoStartCheckBox = NSButton; 
+                currentController = id; 
                 preferenceBox = NSBox; 
                 preferenceTable = NSTableView; 
                 updateCheckBox = NSButton; 
