@@ -3,6 +3,11 @@
 #import "MacOSaiXDocument.h"
 
 
+@interface MacOSaiXMosaic (TilePrivate)
+- (void)tileDidExtractBitmap:(MacOSaiXTile *)tile;
+@end
+
+
 @implementation MacOSaiXTile
 
 
@@ -127,7 +132,11 @@
 - (NSBitmapImageRep *)bitmapRep
 {
 	if (!bitmapRep)
+	{
 		[self performSelectorOnMainThread:@selector(createBitmapRep) withObject:nil waitUntilDone:YES];
+		
+		[mosaic tileDidExtractBitmap:self];
+	}
 	
     return bitmapRep;
 }
