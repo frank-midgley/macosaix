@@ -96,7 +96,7 @@ Riemersma metric:
 Ã	Don't loop forever scaling from the cache
 Ã	Auto-start pref not honored
 ¥	Start icon not changing to pause when started
-¥	Copy original image to doc bundle
+¥	Copy original image to doc bundle? or open mosaic read-only if original missing?
 ¥	Fix auto-fade
 ¥	Enable "Add New Image Source" sub-menu in Mosaic menu
 ¥	Handle case of no original images
