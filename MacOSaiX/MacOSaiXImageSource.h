@@ -96,5 +96,6 @@
 	// should populate its controls with the values from the image source and update the 
 	// source when the user makes changes to the controls.
 - (void)editImageSource:(id<MacOSaiXImageSource>)imageSource;
+- (void)editingComplete;
 
 @end
