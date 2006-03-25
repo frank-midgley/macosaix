@@ -70,6 +70,9 @@ Riemersma metric:
 ¥	Kiosk dialogs on secondary monitors not ordering out
 ¥	Cancel button not working in kiosk setup?
 ¥	Folder sources restarting after load?
+¥	Mosaic view needs to draw lo-res during auto-fade
+¥	Copy original image to doc bundle? or open mosaic read-only if original missing?
+¥	Tooltip for tile images
 
 
 2.0a6 To Do:
@@ -93,14 +96,13 @@ Riemersma metric:
 Ã	Don't loop forever scaling from the cache
 Ã	Auto-start pref not honored
 Ã	Start icon not changing to pause when started
-¥	Copy original image to doc bundle? or open mosaic read-only if original missing?
-¥	Mosaic view needs to draw lo-res during auto-fade
 ¥	Enable "Add New Image Source" sub-menu in Mosaic menu
+¥	Enable "Clear Menu" in originals menu
+¥	Add "other" and "clear" items to toolbar originals menu and make clear work in both menus
 ¥	Handle case of no original images
 ¥	Make sure everything works on virgin system
 Ã	Tile Setup sheet displaced when switching to puzzle pieces
 ¥	New UI for tile count/size better than previous?
-¥	Tooltip for tile images
 	Tile outlines display performance:
 ¥		When viewing tile outline
 ¥		Selecting image source with 1000's of images in mosaic
@@ -117,11 +119,9 @@ Riemersma metric:
 Ã	Make Fade and Zoom toolbar items narrower
 ¥	Save&restore background mode
 ¥	Save&restore pause state
-¥	Enable "Clear Menu" in originals menu
-¥	Add "other" and "clear" items to toolbar originals menu and make clear work in both menus
+¥	Document being corrupted when saved during quit?
 Ã	Get rid of +[plugInClass name] and read from Info.plist instead (simplifies and localizes)
 ¥	Add a default background mode pref
-¥	Document being corrupted when saved during quit?
 ¥	Disable "tiles apart" pop-up when images can only appear in one tile
 ¥	Google cache limit not sticking
 ¥   Make QuickTime image caching a user option
