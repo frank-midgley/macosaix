@@ -56,19 +56,6 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 }
 
 
-- (NSString *)escapedImageIdentifier:(NSString *)imageIdentifier
-{
-	NSMutableString	*escapedIdentifier = [NSMutableString stringWithString:imageIdentifier];
-	
-	[escapedIdentifier replaceOccurrencesOfString:@"/" 
-									   withString:@"#slash#" 
-										  options:NSLiteralSearch 
-											range:NSMakeRange(0, [escapedIdentifier length])];
-
-	return escapedIdentifier;
-}
-
-
 - (NSString *)keyWithImageSource:(id<MacOSaiXImageSource>)imageSource identifier:(NSString *)imageIdentifier
 {
 	return [NSString stringWithFormat:@"%p\t%@", imageSource, imageIdentifier];
@@ -148,6 +135,20 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 }
 
 
+- (NSString *)cachePathForIdentifier:(NSString *)imageIdentifier forSource:(id<MacOSaiXImageSource>)imageSource
+{
+	NSString		*diskCachePath = [sourceCacheDirectories objectForKey:[NSValue valueWithPointer:imageSource]];
+	NSMutableString	*escapedIdentifier = [NSMutableString stringWithString:imageIdentifier];
+	[escapedIdentifier replaceOccurrencesOfString:@"/" 
+									   withString:@"#slash#" 
+										  options:NSLiteralSearch 
+											range:NSMakeRange(0, [escapedIdentifier length])];
+	
+	return [[diskCachePath stringByAppendingPathComponent:escapedIdentifier]
+						   stringByAppendingPathExtension:@"tiff"];
+}
+
+
 - (void)cacheImage:(NSImage *)image 
 	withIdentifier:(NSString *)imageIdentifier 
 		fromSource:(id<MacOSaiXImageSource>)imageSource
@@ -186,14 +187,10 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		
 		if (![imageSource canRefetchImages])
 		{
-			NSString	*diskCachePath = [sourceCacheDirectories objectForKey:[NSValue valueWithPointer:imageSource]];
-			if (diskCachePath)
-			{
-					// Save a copy of this image to disk.
-				NSString	*imagePath = [diskCachePath stringByAppendingPathComponent:
-												[self escapedImageIdentifier:imageIdentifier]];
-				[[NSArchiver archivedDataWithRootObject:image] writeToFile:imagePath atomically:NO];
-			}
+			NSString	*imagePath = [self cachePathForIdentifier:imageIdentifier forSource:imageSource];
+			if (imagePath)
+				[[image TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0] 
+											   writeToFile:imagePath atomically:NO];
 		}
 	[cacheLock unlock];
 }
@@ -327,12 +324,10 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 				image = [imageSource imageForIdentifier:imageIdentifier];
 			else
 			{
-				NSString	*diskCachePath = [sourceCacheDirectories objectForKey:[NSValue valueWithPointer:imageSource]];
-				if (diskCachePath)
+				NSString	*imagePath = [self cachePathForIdentifier:imageIdentifier forSource:imageSource];
+				if (imagePath)
 				{
-					NSString	*imagePath = [diskCachePath stringByAppendingPathComponent:
-												[self escapedImageIdentifier:imageIdentifier]];
-					image = [NSUnarchiver unarchiveObjectWithFile:imagePath];
+					image = [[[NSImage alloc] initWithContentsOfFile:imagePath] autorelease];
 					
 					#ifdef DEBUG
 						if (!image)
@@ -375,17 +370,12 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 							   fromSource:(id<MacOSaiXImageSource>)imageSource
 {
 	[cacheLock lock];
-		NSString	*diskCachePath = [sourceCacheDirectories objectForKey:[NSValue valueWithPointer:imageSource]];
-		if (diskCachePath)
+		NSEnumerator	*identifierEnumerator = [imageIdentifiers objectEnumerator];
+		NSString		*identifier = nil;
+		while (identifier = [identifierEnumerator nextObject])
 		{
-			NSEnumerator	*identifierEnumerator = [imageIdentifiers objectEnumerator];
-			NSString		*identifier = nil;
-			while (identifier = [identifierEnumerator nextObject])
-			{
-				NSString	*imagePath = [diskCachePath stringByAppendingPathComponent:
-											[self escapedImageIdentifier:identifier]];
-				[[NSFileManager defaultManager] removeFileAtPath:imagePath handler:nil];
-			}
+			NSString	*imagePath = [self cachePathForIdentifier:identifier forSource:imageSource];
+			[[NSFileManager defaultManager] removeFileAtPath:imagePath handler:nil];
 		}
 	[cacheLock unlock];
 }
