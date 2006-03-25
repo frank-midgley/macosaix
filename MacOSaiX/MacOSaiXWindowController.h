@@ -17,9 +17,10 @@
     IBOutlet MosaicView					*mosaicView;
 	IBOutlet NSScrollView				*mosaicScrollView;
 	
-	IBOutlet NSTextField				*statusMessageView;
-	
     IBOutlet NSView						*statusBarView;
+	IBOutlet NSTextField				*imagesFoundField, 
+										*statusField;
+	IBOutlet NSProgressIndicator		*statusProgressIndicator;
 	
 	IBOutlet NSView						*fadeToolbarView;
 	IBOutlet NSButton					*fadeOriginalButton,

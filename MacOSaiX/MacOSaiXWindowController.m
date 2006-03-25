@@ -171,7 +171,6 @@
 	[[mosaicScrollView contentView] setDrawsBackground:NO];
 	[mosaicView setMosaic:[self mosaic]];
 	[mosaicView setOriginalFadeTime:0.5];
-	[self setViewOriginalImage:self];
 	
 		// For some reason IB insists on setting the drawer width to 200.  Have to set the size in code instead.
 	[imageSourcesDrawer setContentSize:NSMakeSize(250, [imageSourcesDrawer contentSize].height)];
@@ -458,17 +457,19 @@
 		[self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
 	else
 	{
-			// update the status bar
-//		[statusMessageView setStringValue:[NSString stringWithFormat:@"Images: %d     Quality: %2.1f%%     Status: %@",
-//																	 [[self mosaic] imagesMatched], 
-//																	 overallMatch, 
-//																	 [[self mosaic] status]]];
-		[statusMessageView setStringValue:[NSString stringWithFormat:@"Images: %d     Status: %@",
-																	 [[self mosaic] imagesFound], 
-																	 [[self mosaic] status]]];
+			// Update the status bar.
+		[imagesFoundField setIntValue:[[self mosaic] imagesFound]];
+		[statusField setStringValue:[[self mosaic] status]];
+		if ([[self mosaic] isBusy])
+			[statusProgressIndicator startAnimation:self];
+		else
+			[statusProgressIndicator stopAnimation:self];
 		
-		[imageSourcesTableView reloadData];
+			// Update the image sources drawer.
+		if ([imageSourcesDrawer state] != NSDrawerClosedState)
+			[imageSourcesTableView reloadData];
 		
+			// Update the menus.
 		[self synchronizeMenus];
 		
 			// Update the toolbar.
@@ -488,6 +489,7 @@
 			[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
 		}
 		
+			// Start the automatic fade to the mosaic if appropriate.
 		if (!fadeTimer && !fadeWasAdjusted && [[self mosaic] allTilesHaveExtractedBitmaps])
 			fadeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1 
 														  target:self 
@@ -1004,6 +1006,12 @@
 	[mosaicView setFade:0.0];
 	[fadeSlider setFloatValue:0.0];
 	
+	fadeWasAdjusted = YES;
+	
+	[fadeTimer invalidate];
+	[fadeTimer release];
+	fadeTimer = nil;
+	
 	[[viewMenu itemWithTag:0] setState:NSOnState];
 	[[viewMenu itemWithTag:1] setState:NSOffState];
 }
@@ -1013,6 +1021,12 @@
 {
 	[mosaicView setFade:1.0];
 	[fadeSlider setFloatValue:1.0];
+	
+	fadeWasAdjusted = YES;
+	
+	[fadeTimer invalidate];
+	[fadeTimer release];
+	fadeTimer = nil;
 	
 	[[viewMenu itemWithTag:0] setState:NSOffState];
 	[[viewMenu itemWithTag:1] setState:NSOnState];
