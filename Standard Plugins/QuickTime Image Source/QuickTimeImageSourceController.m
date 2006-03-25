@@ -75,7 +75,7 @@
 
 - (void)saveSettings
 {
-	NSMutableDictionary	*settings = [NSMutableDictionary dictionary];
+	NSMutableDictionary	*settings = [[[NSUserDefaults standardUserDefaults] objectForKey:@"QuickTime Image Source"] mutableCopy];
 	
 		// Remember the current movie paths.
 	NSMutableArray		*moviePaths = [NSMutableArray array];
@@ -85,8 +85,14 @@
 		[moviePaths addObject:[movieDict objectForKey:@"path"]];
 	[settings setObject:moviePaths forKey:@"Movie Paths"];
 	
+	if (currentImageSource)
+		[settings setObject:[NSNumber numberWithBool:![currentImageSource canRefetchImages]] 
+					 forKey:@"Save Frames"];
+	
 	[[NSUserDefaults standardUserDefaults] setObject:settings forKey:@"QuickTime Image Source"];
 	[[NSUserDefaults standardUserDefaults] synchronize];
+	
+	[settings release];
 }
 
 
@@ -229,6 +235,8 @@
 	}
 	else if ([[moviesController selectedObjects] count] > 0)
 		[currentImageSource setPath:[[moviesController selection] valueForKey:@"path"]];
+	
+	[saveFramesCheckBox setState:([currentImageSource canRefetchImages] ? NSOffState : NSOnState)];
 }
 
 
@@ -296,6 +304,14 @@
 	[moviesController removeObjects:[moviesController arrangedObjects]];
 	
 	[currentImageSource setPath:nil];
+	
+	[self saveSettings];
+}
+
+
+- (IBAction)setSaveFrames:(id)sender
+{
+	[currentImageSource setCanRefetchImages:([saveFramesCheckBox state] == NSOffState)];
 	
 	[self saveSettings];
 }

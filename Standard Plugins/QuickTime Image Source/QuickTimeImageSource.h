@@ -24,10 +24,13 @@
                 currentTimeValue, 
                 duration;
 	TimeScale	timeScale;
+	BOOL		canRefetchImages;
 }
 
 - (NSString *)path;
 - (void)setPath:(NSString *)path;
+
+- (void)setCanRefetchImages:(BOOL)flag;
 
 - (float)aspectRatio;
 

@@ -63,6 +63,10 @@ static NSImage			*sQuickTimeImage = nil;
 	if (self = [super init])
 	{
 		movieLock = [[NSLock alloc] init];
+		
+		NSNumber	*saveFramesPref = [[[NSUserDefaults standardUserDefaults] objectForKey:@"QuickTime Image Source"]
+											objectForKey:@"Save Frames"];
+		canRefetchImages = (saveFramesPref ? ![saveFramesPref boolValue] : YES);
 	}
 
     return self;
@@ -82,9 +86,10 @@ static NSImage			*sQuickTimeImage = nil;
 
 - (NSString *)settingsAsXMLElement
 {
-	return [NSString stringWithFormat:@"<MOVIE PATH=\"%@\" LAST_USED_TIME=\"%d\"/>", 
+	return [NSString stringWithFormat:@"<MOVIE PATH=\"%@\" LAST_USED_TIME=\"%d\" SAVE_FRAMES=\"%@\"/>", 
 									  [[self path] stringByEscapingXMLEntites], 
-									  currentTimeValue];
+									  currentTimeValue,
+									  (canRefetchImages ? @"NO" : @"YES")];
 }
 
 
@@ -96,6 +101,10 @@ static NSImage			*sQuickTimeImage = nil;
 	{
 		currentTimeValue = [[[settingDict objectForKey:@"LAST_USED_TIME"] description] intValue];
 		[self setPath:[[[settingDict objectForKey:@"PATH"] description] stringByUnescapingXMLEntites]];
+		
+		NSString	*saveFrames = [[settingDict objectForKey:@"SAVE_FRAMES"] description];
+		if ([saveFrames isEqualToString:@"YES"])
+			[self setCanRefetchImages:NO];
 	}
 }
 
@@ -360,9 +369,18 @@ static NSImage			*sQuickTimeImage = nil;
 }
 
 
+- (void)setCanRefetchImages:(BOOL)flag
+{
+	if (canRefetchImages != flag)
+	{
+		canRefetchImages = flag;
+	}
+}
+
+
 - (BOOL)canRefetchImages
 {
-	return NO;
+	return canRefetchImages;
 }
 
 

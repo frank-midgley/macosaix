@@ -18,7 +18,8 @@
 	IBOutlet NSArrayController	*moviesController;
 	IBOutlet NSTableView		*moviesTable;
 	IBOutlet NSButton			*chooseAnotherMovieButton, 
-								*clearMovieListButton;
+								*clearMovieListButton, 
+								*saveFramesCheckBox;
 	
 	IBOutlet NSBox				*movieBox;
 	IBOutlet NSMovieView		*movieView;
@@ -31,5 +32,6 @@
 
 - (IBAction)chooseAnotherMovie:(id)sender;
 - (IBAction)clearMovieList:(id)sender;
+- (IBAction)setSaveFrames:(id)sender;
 
 @end
