@@ -88,6 +88,7 @@
 - (void)setHandPickedImageAtPath:(NSString *)path withMatchValue:(float)matchValue forTile:(MacOSaiXTile *)tile;
 - (void)removeHandPickedImageForTile:(MacOSaiXTile *)tile;
 
+- (void)setWasStarted:(BOOL)wasStarted;
 - (BOOL)wasStarted;
 - (BOOL)isPaused;
 - (void)pause;

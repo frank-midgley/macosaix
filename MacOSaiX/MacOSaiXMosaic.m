@@ -517,6 +517,20 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 }
 
 
+- (BOOL)imageSourcesExhausted
+{
+	BOOL					exhausted = YES;
+	
+	NSEnumerator			*imageSourceEnumerator = [[self imageSources] objectEnumerator];
+	id<MacOSaiXImageSource>	imageSource = nil;
+	while (imageSource = [imageSourceEnumerator nextObject])
+		if ([imageSource hasMoreImages])
+			exhausted = NO;
+	
+	return exhausted;
+}
+
+
 #pragma mark -
 #pragma mark Image source enumeration
 
@@ -1028,16 +1042,16 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		statusKey = @"You have not set the tile shapes";
 	else if ([[self imageSources] count] == 0)
 		statusKey = @"You have not added any image sources";
-	else if (![self wasStarted])
+	else if (![self wasStarted] && ![self imageSourcesExhausted])
 		statusKey = @"Ready to begin.  Click the Start Mosaic button in the toolbar.";
 	else if ([self isPaused])
 		statusKey = @"Paused";
 	else if ([tilesWithoutBitmaps count] > 0)
-		statusKey = @"Extracting tile images...";	// TODO: include the % complete
+		statusKey = @"Extracting tile images";	// TODO: include the % complete
 	else if (calculateImageMatchesThreadAlive)
-		statusKey = @"Matching images...";
+		statusKey = @"Matching images";
 	else if (enumerationThreadCount > 0)
-		statusKey = @"Looking for new images...";
+		statusKey = @"Looking for new images";
 	else
 		statusKey = @"Done";
 	
@@ -1045,14 +1059,25 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 }
 
 
-#pragma mark -
-#pragma mark Pausing/resuming
+- (void)setWasStarted:(BOOL)wasStarted
+{
+	if (wasStarted != mosaicStarted)
+	{
+		mosaicStarted = wasStarted;
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification
+															object:self];
+	}
+}
 
 
 - (BOOL)wasStarted
 {
 	return mosaicStarted;
 }
+
+
+#pragma mark -
+#pragma mark Pausing/resuming
 
 
 - (BOOL)isPaused
