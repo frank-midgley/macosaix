@@ -27,7 +27,7 @@
 	NSMutableArray			*kioskMosaicControllers;
 }
 
-- (void)openPreferences:(id)sender;
+- (IBAction)openPreferences:(id)sender;
 - (void)discoverPlugIns;
 - (NSArray *)tileShapesClasses;
 - (NSArray *)imageSourceClasses;

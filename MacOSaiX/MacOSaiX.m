@@ -166,7 +166,7 @@
 //}
 
 
-- (void)openPreferences:(id)sender
+- (IBAction)openPreferences:(id)sender
 {
     MacOSaiXPreferencesController	*windowController;
     
@@ -184,6 +184,7 @@
 	NSString				*plugInsPath = [[NSBundle mainBundle] builtInPlugInsPath];
 	NSDirectoryEnumerator	*pathEnumerator = [[NSFileManager defaultManager] enumeratorAtPath:plugInsPath];
 	NSString				*plugInSubPath;
+	BOOL					newPlugInWasDiscovered = NO;
 	
 	[tileShapesClasses removeAllObjects];
 	[imageSourceClasses removeAllObjects];
@@ -233,11 +234,46 @@
 						[imageSourceClasses addObject:plugInPrincipalClass];
 						[loadedPlugInPaths addObject:plugInsPath];
 					}
+					
+					newPlugInWasDiscovered = YES;
 				}
 
 					// don't look inside this bundle for other bundles
 				[pathEnumerator skipDescendents];
 			}
+		}
+	}
+	
+	if (newPlugInWasDiscovered)
+	{
+			// Populate the "Add New Source..." pop-up menu with the names of the image sources.
+			// The represented object of each menu item will be the image source's class.
+		NSMenu			*addImageSourceMenu = [[[self valueForKey:@"mosaicMenu"] itemWithTag:3] submenu];
+		while ([addImageSourceMenu numberOfItems] > 0)
+			[addImageSourceMenu removeItemAtIndex:0];
+		
+		NSEnumerator	*enumerator = [imageSourceClasses objectEnumerator];
+		Class			imageSourceClass = nil;
+		while (imageSourceClass = [enumerator nextObject])
+		{
+			NSBundle		*plugInBundle = [NSBundle bundleForClass:imageSourceClass];
+			NSString		*plugInName = [plugInBundle objectForInfoDictionaryKey:@"CFBundleName"];
+			NSMenuItem		*menuItem = [[[NSMenuItem alloc] initWithTitle:[NSString stringWithFormat:@"%@...", plugInName] 
+																	action:@selector(addNewImageSource:) 
+															 keyEquivalent:@""] autorelease];
+			[menuItem setRepresentedObject:imageSourceClass];
+			
+			NSImage	*image = [[[imageSourceClass image] copy] autorelease];
+			[image setScalesWhenResized:YES];
+			if ([image size].width > [image size].height)
+				[image setSize:NSMakeSize(16.0, 16.0 * [image size].height / [image size].width)];
+			else
+				[image setSize:NSMakeSize(16.0 * [image size].width / [image size].height, 16.0)];
+			[image lockFocus];	// force the image to be scaled
+			[image unlockFocus];
+			[menuItem setImage:image];
+			
+			[addImageSourceMenu addItem:menuItem];
 		}
 	}
 }
