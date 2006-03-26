@@ -71,6 +71,7 @@
 		924E805D099E8C0D006977E3 /* MacOSaiXTilesSetupController.h in Headers */ = {isa = PBXBuildFile; fileRef = 924E805B099E8C0D006977E3 /* MacOSaiXTilesSetupController.h */; };
 		924E805E099E8C0D006977E3 /* MacOSaiXTilesSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 924E805C099E8C0D006977E3 /* MacOSaiXTilesSetupController.m */; };
 		924E807E099E9022006977E3 /* Tiles Setup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 924E807C099E9022006977E3 /* Tiles Setup.nib */; };
+		9253016509D611EF001E27F3 /* NoOriginal.png in Resources */ = {isa = PBXBuildFile; fileRef = 9253016409D611EF001E27F3 /* NoOriginal.png */; };
 		9254088C0915741F00384904 /* MacOSaiXKioskMessageView.h in Headers */ = {isa = PBXBuildFile; fileRef = 9254088A0915741F00384904 /* MacOSaiXKioskMessageView.h */; };
 		9254088D0915741F00384904 /* MacOSaiXKioskMessageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */; };
 		925FE5C407EBDAB200B0D002 /* Glyph Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 928489E506611CE6003B3514 /* Glyph Image Source.plugin */; };
@@ -458,6 +459,7 @@
 		924E805B099E8C0D006977E3 /* MacOSaiXTilesSetupController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXTilesSetupController.h; sourceTree = "<group>"; };
 		924E805C099E8C0D006977E3 /* MacOSaiXTilesSetupController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXTilesSetupController.m; sourceTree = "<group>"; };
 		924E807D099E9022006977E3 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Tiles Setup.nib"; sourceTree = "<group>"; };
+		9253016409D611EF001E27F3 /* NoOriginal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = NoOriginal.png; sourceTree = "<group>"; };
 		9254088A0915741F00384904 /* MacOSaiXKioskMessageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXKioskMessageView.h; sourceTree = "<group>"; };
 		9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXKioskMessageView.m; sourceTree = "<group>"; };
 		928489A306611CE6003B3514 /* MacOSaiX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacOSaiX.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1034,6 +1036,7 @@
 				928824290982C00E00181817 /* FullScreen.tiff */,
 				016A248108D7D8E2009A93BF /* HandPicked.png */,
 				F5940957024722BA01000104 /* ImageSources.tiff */,
+				9253016409D611EF001E27F3 /* NoOriginal.png */,
 				F558F295027DBB8D01000103 /* Pause.tiff */,
 				F558F297027DBF1B01000103 /* Resume.tiff */,
 				01AC3A3B07B0997C0025F915 /* Settings.png */,
@@ -1718,6 +1721,7 @@
 				92319CA809A7D6AA007CA9CD /* Export3+Original.html in Resources */,
 				92319CAB09A7D6C5007CA9CD /* Export3.html in Resources */,
 				0109CA4709D385E5008290BE /* Warning.nib in Resources */,
+				9253016509D611EF001E27F3 /* NoOriginal.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
