@@ -6,6 +6,8 @@
                 addNewImageSource = id; 
                 cancelImageSource = id; 
                 chooseImageForSelectedTile = id; 
+                chooseOriginalImage = id; 
+                clearRecentOriginalImages = id; 
                 removeChosenImageForSelectedTile = id; 
                 removeImageSource = id; 
                 saveImageSource = id; 
@@ -55,6 +57,7 @@
                 progressPanelCancelButton = NSButton; 
                 progressPanelIndicator = NSProgressIndicator; 
                 progressPanelLabel = NSTextField; 
+                recentOriginalsMenu = NSMenu; 
                 statusBarView = NSView; 
                 statusField = NSTextField; 
                 statusProgressIndicator = NSProgressIndicator; 
