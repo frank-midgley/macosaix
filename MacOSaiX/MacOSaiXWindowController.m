@@ -27,9 +27,12 @@
 #define kAddImageSourceItemTag	3
 
 
+static NSString	*MacOSaiXRecentOriginalImagesDidChangeNotification = @"MacOSaiXRecentOriginalImagesDidChangeNotification";
+
+
 @interface MacOSaiXWindowController (PrivateMethods)
 - (IBAction)setOriginalImageFromMenu:(id)sender;
-- (void)populateOriginalImagesMenus;
+- (void)updateRecentOriginalImages;
 - (void)mosaicDidChangeState:(NSNotification *)notification;
 - (void)synchronizeMenus;
 - (void)updateEditor;
@@ -59,51 +62,16 @@
 }
 
 
-- (void)populateOriginalImagesMenus
-{
-	if (!originalImagePopUpView)
-		originalImagePopUpView = [[MacOSaiXPopUpImageView alloc] initWithFrame:NSMakeRect(0.0, 0.0, 44.0, 32.0)];
-	
-		// Remove the previous original items from the main menu.
-	NSMenu			*mainOriginalsMenu = [[mosaicMenu itemWithTag:kOriginalImageItemTag] submenu];
-	while ([mainOriginalsMenu numberOfItems] > 4)
-		[mainOriginalsMenu removeItemAtIndex:2];
-
-	NSMenu			*originalsMenu = [[NSMenu alloc] initWithTitle:@"Original Images"];
-	NSEnumerator	*originalEnumerator = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] reverseObjectEnumerator];
-	NSDictionary	*originalDict = nil;
-	while (originalDict = [originalEnumerator nextObject])
-	{
-		NSString	*originalImagePath = [originalDict objectForKey:@"Path"];
-		
-		if ([[NSFileManager defaultManager] fileExistsAtPath:originalImagePath])
-		{
-			NSMenuItem	*originalItem = [[[NSMenuItem alloc] init] autorelease];
-			[originalItem setTitle:[originalDict objectForKey:@"Name"]];
-			[originalItem setRepresentedObject:originalImagePath];
-			[originalItem setTarget:self];
-			[originalItem setAction:@selector(setOriginalImageFromMenu:)];
-			NSImage		*thumbnail = [[[NSImage alloc] initWithData:[originalDict objectForKey:@"Thumbnail Data"]] autorelease];
-			[originalItem setImage:thumbnail];
-			[originalsMenu insertItem:originalItem atIndex:0];
-			[mainOriginalsMenu insertItem:[[originalItem copy] autorelease] atIndex:2];
-		}
-	}
-	// TODO: add "choose new" item
-	
-	[originalImagePopUpView setMenu:originalsMenu];
-	
-	[originalsMenu release];
-}
-
-
 - (void)awakeFromNib
 {
     viewMenu = [[NSApp delegate] valueForKey:@"viewMenu"];
     mosaicMenu = [[NSApp delegate] valueForKey:@"mosaicMenu"];
 
 		// set up the toolbar
-	[self populateOriginalImagesMenus];
+	originalImagePopUpView = [[MacOSaiXPopUpImageView alloc] initWithFrame:NSMakeRect(0.0, 0.0, 44.0, 32.0)];
+	[originalImagePopUpView setMenu:recentOriginalsMenu];
+	[originalImagePopUpView setImage:[NSImage imageNamed:@"NoOriginal"]];
+	[self updateRecentOriginalImages];
     zoomToolbarMenuItem = [[NSMenuItem alloc] initWithTitle:@"Zoom" action:nil keyEquivalent:@""];
     [zoomToolbarMenuItem setSubmenu:zoomToolbarSubmenu];
     toolbarItems = [[NSMutableDictionary dictionary] retain];
@@ -116,10 +84,6 @@
 	[[NSApp delegate] discoverPlugIns];
 
 	{
-		// Set up the settings drawer
-		
-//		[[self mosaic] setTileShapes:[[[NSClassFromString(@"MacOSaiXRectangularTileShapes") alloc] init] autorelease]];
-		
 			// Fill in the description of the current tile shapes.
 			// TBD: move description to toolbar icon's tooltip?
 //		id	tileShapesDescription = [[[self mosaic] tileShapes] briefDescription];
@@ -136,9 +100,8 @@
 //		else
 //			[tileShapesDescriptionField setStringValue:@"No description available"];
 		
-			// Set up the "Image Sources" 
+			// Set up the "Image Sources" table
 		[imageSourcesTableView setDoubleAction:@selector(editImageSource:)];
-
 		[[imageSourcesTableView tableColumnWithIdentifier:@"Image Source Type"]
 			setDataCell:[[[NSImageCell alloc] init] autorelease]];
 	
@@ -189,11 +152,16 @@
 		
 			// Default to the most recently used original or prompt to choose one
 			// if no previous original was found.
-		if ([[originalImagePopUpView menu] numberOfItems] == 0)
+		if ([[originalImagePopUpView menu] numberOfItems] == 4)
 			[self performSelector:@selector(chooseOriginalImage:) withObject:self afterDelay:0.0];
 		else
-			[self setOriginalImageFromMenu:[[originalImagePopUpView menu] itemAtIndex:0]];
+			[self setOriginalImageFromMenu:[[originalImagePopUpView menu] itemAtIndex:2]];
 	}
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(recentOriginalImagesDidChange:) 
+												 name:MacOSaiXRecentOriginalImagesDidChangeNotification 
+											   object:nil];
 	
 	[self mosaicDidChangeState:nil];
 }
@@ -267,7 +235,18 @@
 			// Remember this original in the user's defaults so they can easily re-choose it for future mosaics.
 		NSString		*originalImagePath = [[self document] originalImagePath];
 		NSImage			*originalImage = [[self mosaic] originalImage];
-		NSImage			*thumbnailImage = [originalImage copyWithLargestDimension:32.0];
+		NSImage			*thumbnailImage = [[[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)] autorelease], 
+						*scaledImage = [originalImage copyWithLargestDimension:32.0];
+		[thumbnailImage lockFocus];
+			if ([scaledImage size].width > [scaledImage size].height)
+				[scaledImage compositeToPoint:NSMakePoint(0.0, 16.0 - [scaledImage size].height / 2.0) 
+									operation:NSCompositeCopy];
+			else
+				[scaledImage compositeToPoint:NSMakePoint(16.0 - [scaledImage size].width / 2.0, 0.0) 
+									operation:NSCompositeCopy];
+		[thumbnailImage unlockFocus];
+		[scaledImage release];
+		
 		NSMutableArray	*originals = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] mutableCopy] autorelease];
 		if (originals)
 		{
@@ -291,7 +270,8 @@
 						atIndex:0];
 		[[NSUserDefaults standardUserDefaults] setObject:originals forKey:@"Recent Originals"];
 		[[NSUserDefaults standardUserDefaults] synchronize];
-		[thumbnailImage release];
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXRecentOriginalImagesDidChangeNotification
+															object:nil];
 		
 			// Set the image in the toolbar item.
 		[originalImagePopUpView setImage:originalImage];
@@ -405,6 +385,59 @@
 - (NSImage *)originalImage
 {
 	return [mosaic originalImage];
+}
+
+
+- (void)removeRecentOriginalImages
+{
+	NSMenu	*mainOriginalsMenu = [[mosaicMenu itemWithTag:kOriginalImageItemTag] submenu];
+	while ([mainOriginalsMenu numberOfItems] > 4)
+	{
+		[mainOriginalsMenu removeItemAtIndex:2];
+		[[originalImagePopUpView menu] removeItemAtIndex:2];
+	}
+}
+
+
+- (IBAction)clearRecentOriginalImages:(id)sender
+{
+	[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"Recent Originals"];
+	
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXRecentOriginalImagesDidChangeNotification
+														object:nil];
+}
+
+
+- (void)updateRecentOriginalImages
+{
+	[self removeRecentOriginalImages];
+	
+	NSMenu			*mainRecentOriginalsMenu = [[mosaicMenu itemWithTag:kOriginalImageItemTag] submenu];
+	NSEnumerator	*originalEnumerator = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] reverseObjectEnumerator];
+	NSDictionary	*originalDict = nil;
+	while (originalDict = [originalEnumerator nextObject])
+	{
+		NSString	*originalImagePath = [originalDict objectForKey:@"Path"];
+		
+		if ([[NSFileManager defaultManager] fileExistsAtPath:originalImagePath])
+		{
+			NSMenuItem	*originalItem = [[[NSMenuItem alloc] initWithTitle:[originalDict objectForKey:@"Name"] 
+																	action:@selector(setOriginalImageFromMenu:) 
+															 keyEquivalent:@""] autorelease];
+			[originalItem setRepresentedObject:originalImagePath];
+			[originalItem setTarget:self];
+			NSImage		*thumbnail = [[[NSImage alloc] initWithData:[originalDict objectForKey:@"Thumbnail Data"]] autorelease];
+			[originalItem setImage:thumbnail];
+			[recentOriginalsMenu insertItem:originalItem atIndex:2];
+			[mainRecentOriginalsMenu insertItem:[[originalItem copy] autorelease] atIndex:2];
+		}
+	}
+}
+
+
+- (void)recentOriginalImagesDidChange:(NSNotification *)notification
+{
+	[self updateRecentOriginalImages];
 }
 
 
@@ -601,14 +634,17 @@
 }
 
 
-- (void)addNewImageSource:(id)sender
+- (IBAction)addNewImageSource:(id)sender
 {
-	if ([imageSourcesPopUpButton indexOfSelectedItem] > 0)
-	{
-		Class	imageSourceClass = [[imageSourcesPopUpButton selectedItem] representedObject];
-		
+	Class	imageSourceClass = nil;
+	
+	if ([sender isKindOfClass:[NSMenuItem class]])
+		imageSourceClass = [sender representedObject];
+	else if ([sender isKindOfClass:[NSPopUpButton class]])
+		imageSourceClass = [[sender selectedItem] representedObject];
+	
+	if ([imageSourceClass conformsToProtocol:@protocol(MacOSaiXImageSource)])
 		[self editImageSourceInSheet:[[[imageSourceClass alloc] init] autorelease]];
-	}
 }
 
 
@@ -1466,7 +1502,7 @@
 
 - (NSSize)windowWillResize:(NSWindow *)resizingWindow toSize:(NSSize)proposedFrameSize
 {
-	if (resizingWindow == [self window])
+	if (resizingWindow == [self window] && [[self mosaic] originalImage])
 	{
 		float	aspectRatio = [[[self mosaic] originalImage] size].width / [[[self mosaic] originalImage] size].height,
 				windowTop = NSMaxY([resizingWindow frame]), 
@@ -1579,8 +1615,8 @@
 		NSImage	*shapesImage = [[[self mosaic] tileShapes] image];
 		if (shapesImage)
 			[toolbarItem setImage:shapesImage];
-		[toolbarItem setLabel:@"Setup Tiles"];
-		[toolbarItem setPaletteLabel:@"Setup Tiles"];
+		[toolbarItem setLabel:@"Tiles Setup"];
+		[toolbarItem setPaletteLabel:@"Tiles Setup"];
 		[toolbarItem setTarget:self];
 		[toolbarItem setAction:@selector(setupTiles:)];
 		[toolbarItem setToolTip:@"Change the tile shapes or image use rules"];
@@ -1748,6 +1784,8 @@
 
 - (void)dealloc
 {
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXRecentOriginalImagesDidChangeNotification object:nil];
+	
 	[selectedTile release];
     [selectedTileImages release];
     [toolbarItems release];

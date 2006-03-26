@@ -22,6 +22,8 @@
 										*statusField;
 	IBOutlet NSProgressIndicator		*statusProgressIndicator;
 	
+	IBOutlet NSMenu						*recentOriginalsMenu;
+	
 	IBOutlet NSView						*fadeToolbarView;
 	IBOutlet NSButton					*fadeOriginalButton,
 										*fadeMosaicButton;
@@ -106,6 +108,10 @@
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
 - (MacOSaiXMosaic *)mosaic;
 
+	// Original image methods
+- (IBAction)chooseOriginalImage:(id)sender;
+- (IBAction)clearRecentOriginalImages:(id)sender;
+
 	// View methods
 - (IBAction)setViewOriginalImage:(id)sender;
 - (IBAction)setViewMosaic:(id)sender;
@@ -135,7 +141,7 @@
 - (IBAction)chooseImageForSelectedTile:(id)sender;
 - (IBAction)removeChosenImageForSelectedTile:(id)sender;
 
-	// Export image methods
+	// Save As methods
 - (IBAction)saveMosaicAs:(id)sender;
 
 	// Progress panel methods
@@ -145,3 +151,6 @@
 - (void)closeProgressPanel;
 
 @end
+
+
+extern NSString	*MacOSaiXRecentOriginalImagesDidChangeNotification;
