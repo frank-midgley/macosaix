@@ -96,10 +96,10 @@ Riemersma metric:
 Ã	Don't loop forever scaling from the cache
 Ã	Auto-start pref not honored
 Ã	Start icon not changing to pause when started
-¥	Enable "Add New Image Source" sub-menu in Mosaic menu
+Ã	Enable "Add New Image Source" sub-menu in Mosaic menu
 ¥	Enable "Clear Menu" in originals menu
 ¥	Add "other" and "clear" items to toolbar originals menu and make clear work in both menus
-¥	Handle case of no original images
+Ã	Handle case of no original images
 ¥	Make sure everything works on virgin system
 Ã	Tile Setup sheet displaced when switching to puzzle pieces
 ¥	New UI for tile count/size better than previous?
