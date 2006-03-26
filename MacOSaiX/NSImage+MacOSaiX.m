@@ -33,7 +33,9 @@
 			[copy lockFocus];
 			haveFocus = YES;
 		NS_HANDLER
-			NSLog(@"Couldn't lock focus on image copy: %@", localException);
+			#ifdef DEBUG
+				NSLog(@"Couldn't lock focus on image copy: %@", localException);
+			#endif
 		NS_ENDHANDLER
 	}
 	
