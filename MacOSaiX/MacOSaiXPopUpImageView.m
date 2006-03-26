@@ -23,6 +23,12 @@
 }
 
 
+- (BOOL)isOpaque
+{
+	return NO;
+}
+
+
 - (void)setImage:(NSImage *)image
 {
 	[popUpImage autorelease];
@@ -69,7 +75,7 @@
 	}
 	destRect = NSIntegralRect(destRect);
 	
-	[popUpImage drawInRect:destRect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
+	[popUpImage drawInRect:destRect fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0];
 	
 	if (popUpMenu)
 	{
