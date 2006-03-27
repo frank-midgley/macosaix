@@ -31,7 +31,7 @@ typedef enum { clearMode = 0, blackMode, originalMode, bestMatchMode } MacOSaiXB
 	
 		// Tile outlines display
 	BOOL					viewTileOutlines;
-	NSBezierPath			*tilesOutline;
+	NSImage					*tileOutlinesImage;
 					
 		// Selected tile highlighting
     MacOSaiXTile			*highlightedTile;

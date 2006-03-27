@@ -16,6 +16,7 @@
 @interface MosaicView (PrivateMethods)
 - (void)originalImageDidChange:(NSNotification *)notification;
 - (void)tileShapesDidChange:(NSNotification *)notification;
+- (void)updateTileOutlinesImage;
 - (void)createHighlightedImageSourcesOutline;
 @end
 
@@ -40,7 +41,6 @@
 {
 	mainImageLock = [[NSLock alloc] init];
 	backgroundImageLock = [[NSLock alloc] init];
-	tilesOutline = [[NSBezierPath alloc] init];
 	tilesNeedingDisplay = [[NSMutableArray alloc] init];
 	tilesNeedDisplayLock = [[NSLock alloc] init];
 	
@@ -127,6 +127,9 @@
 					[backgroundImage autorelease];
 					backgroundImage = nil;
 			[backgroundImageLock unlock];
+			
+			if (viewTileOutlines)
+				[self updateTileOutlinesImage];
 		}
 	}
 }
@@ -182,13 +185,6 @@
 
 - (void)tileShapesDidChange:(NSNotification *)notification
 {
-	[tilesOutline removeAllPoints];
-	
-	NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
-	MacOSaiXTile	*tile = nil;
-	while (tile = [tileEnumerator nextObject])
-	    [tilesOutline appendBezierPath:[tile outline]];
-	
 	[mainImageLock lock];
 		if (mainImage)
 		{
@@ -208,6 +204,9 @@
 			[backgroundImage unlockFocus];
 		}
 	[backgroundImageLock unlock];
+	
+	if (viewTileOutlines)
+		[self updateTileOutlinesImage];
 	
 		// TODO: main thread?
 	[self setNeedsDisplay:YES];
@@ -540,12 +539,51 @@
 }
 
 
+- (void)updateTileOutlinesImage
+{
+	NSEnumerator		*tileEnumerator = nil;
+	MacOSaiXTile		*tile = nil;
+	NSAffineTransform	*darkenTransform = [NSAffineTransform transform], 
+		*lightenTransform = [NSAffineTransform transform];
+	
+	[darkenTransform translateXBy:1.5 yBy:0.5];
+	[darkenTransform scaleXBy:mainImageSize.width yBy:mainImageSize.height];
+	[lightenTransform translateXBy:0.5 yBy:1.5];
+	[lightenTransform scaleXBy:mainImageSize.width yBy:mainImageSize.height];
+	
+	[tileOutlinesImage release];
+	tileOutlinesImage = [[NSImage alloc] initWithSize:mainImageSize];
+	[tileOutlinesImage lockFocus];
+		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];	// darken
+		tileEnumerator = [[mosaic tiles] objectEnumerator];
+		while (tile = [tileEnumerator nextObject])
+			[[darkenTransform transformBezierPath:[tile outline]] stroke];
+		
+		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
+		tileEnumerator = [[mosaic tiles] objectEnumerator];
+		while (tile = [tileEnumerator nextObject])
+			[[lightenTransform transformBezierPath:[tile outline]] stroke];
+	[tileOutlinesImage unlockFocus];
+}
+
+
 - (void)setViewTileOutlines:(BOOL)inViewTileOutlines
 {
 	if (inViewTileOutlines != viewTileOutlines)
+	{
+		viewTileOutlines = inViewTileOutlines;
+		
+		if (viewTileOutlines)
+			[self updateTileOutlinesImage];
+		else
+		{
+			[tileOutlinesImage release];
+			tileOutlinesImage = nil;
+		}
+		
 		[self setNeedsDisplay:YES];
+	}
 	
-	viewTileOutlines = inViewTileOutlines;
 }
 
 	
@@ -733,6 +771,13 @@
 									 operation:NSCompositeSourceOver 
 									  fraction:(1.0 - viewFade) * originalFade];
 		}
+		
+		if (viewTileOutlines && !drawLoRes)
+			[tileOutlinesImage drawInRect:drawRect 
+								 fromRect:mainImageRect 
+								operation:NSCompositeSourceOver 
+								 fraction:1.0];
+		
 	}
 	
 		// Highlight the selected image sources.
@@ -795,23 +840,6 @@
 			[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
 			[[transform transformBezierPath:[highlightedTile outline]] stroke];
 		}
-	}
-	
-	if (tilesOutline && viewTileOutlines)
-	{
-			// Draw the outline of all of the tiles.
-			// TODO: make this faster.  This is excruciating for large tile sets.
-		NSAffineTransform	*transform = [NSAffineTransform transform];
-		[transform translateXBy:1.5 yBy:0.5];
-		[transform scaleXBy:mosaicBounds.size.width yBy:mosaicBounds.size.height];
-		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];	// darken
-		[[transform transformBezierPath:tilesOutline] stroke];
-		
-		transform = [NSAffineTransform transform];
-		[transform translateXBy:0.5 yBy:1.5];
-		[transform scaleXBy:mosaicBounds.size.width yBy:mosaicBounds.size.height];
-		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
-		[[transform transformBezierPath:tilesOutline] stroke];
 	}
 }
 
@@ -943,6 +971,9 @@
 	[mainImage release];
 	[mainImageLock release];
 	[mainImageTransform release];
+	[backgroundImage release];
+	[backgroundImageLock release];
+	[tileOutlinesImage release];
 	[highlightedImageSources release];
 	[highlightedImageSourcesLock release];
 	[highlightedImageSourcesOutline release];
@@ -950,7 +981,6 @@
 		[tilesNeedDisplayTimer invalidate];
 	[tilesNeedDisplayTimer release];
 	[tilesNeedingDisplay release];
-	[tilesOutline release];
 	[tilesToRefresh release];
 	[tileMatchTypesToRefresh release];
 	[previousOriginalImage release];
