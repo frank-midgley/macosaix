@@ -97,8 +97,8 @@ Riemersma metric:
 Ã	Auto-start pref not honored
 Ã	Start icon not changing to pause when started
 Ã	Enable "Add New Image Source" sub-menu in Mosaic menu
-¥	Enable "Clear Menu" in originals menu
-¥	Add "other" and "clear" items to toolbar originals menu and make clear work in both menus
+Ã	Enable "Clear Menu" in originals menu
+Ã	Add "other" and "clear" items to toolbar originals menu and make clear work in both menus
 Ã	Handle case of no original images
 ¥	Make sure everything works on virgin system
 Ã	Tile Setup sheet displaced when switching to puzzle pieces
@@ -124,7 +124,7 @@ Riemersma metric:
 ¥	Add a default background mode pref
 ¥	Disable "tiles apart" pop-up when images can only appear in one tile
 ¥	Google cache limit not sticking
-¥   Make QuickTime image caching a user option
+Ã   Make QuickTime image caching a user option
 ¥	Add "Report Crashes" option
 ¥	Selected tile highlight cropped when zoomed
 ¥	"You have not set the tile shapes" after loading a mosaic
