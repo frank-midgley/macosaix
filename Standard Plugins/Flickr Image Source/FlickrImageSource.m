@@ -38,7 +38,7 @@ NSString *escapedNSString(NSString *string)
 }
 
 
-int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
+static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
 {
 	return [(NSNumber *)[dict1 objectForKey:context] compare:(NSNumber *)[dict2 objectForKey:context]];
 }
