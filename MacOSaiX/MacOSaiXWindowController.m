@@ -27,7 +27,19 @@
 #define kAddImageSourceItemTag	3
 
 
-static NSString	*MacOSaiXRecentOriginalImagesDidChangeNotification = @"MacOSaiXRecentOriginalImagesDidChangeNotification";
+NSString	*MacOSaiXRecentOriginalImagesDidChangeNotification = @"MacOSaiXRecentOriginalImagesDidChangeNotification";
+
+
+static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict2, void *context)
+{
+	id	value1 = [dict1 objectForKey:context], 
+		value2 = [dict2 objectForKey:context];
+	
+	if ([value1 isKindOfClass:[NSString class]] && [value2 isKindOfClass:[NSString class]])
+		return [(NSString *)value1 caseInsensitiveCompare:value2];
+	else
+		return [(NSNumber *)value1 compare:(NSNumber *)value2];
+}
 
 
 @interface MacOSaiXWindowController (PrivateMethods)
@@ -152,10 +164,21 @@ static NSString	*MacOSaiXRecentOriginalImagesDidChangeNotification = @"MacOSaiXR
 		
 			// Default to the most recently used original or prompt to choose one
 			// if no previous original was found.
-		if ([[originalImagePopUpView menu] numberOfItems] == 4)
-			[self performSelector:@selector(chooseOriginalImage:) withObject:self afterDelay:0.0];
-		else
+		NSString	*lastPath = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Chosen Original Image Path"];
+		NSImage		*lastImage = [[NSImage alloc] initWithContentsOfFile:lastPath];
+		if (lastImage)
+		{
+			[[self document] setOriginalImagePath:lastPath];
+			[[self mosaic] setOriginalImage:lastImage];
+			[lastImage release];
+		}
+		else if ([[originalImagePopUpView menu] numberOfItems] > 4)
+		{
+				// The last chosen image is not available, pick the first recent original in the list.
 			[self setOriginalImageFromMenu:[[originalImagePopUpView menu] itemAtIndex:2]];
+		}
+		else
+			[self performSelector:@selector(chooseOriginalImage:) withObject:self afterDelay:0.0];
 	}
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self 
@@ -183,6 +206,8 @@ static NSString	*MacOSaiXRecentOriginalImagesDidChangeNotification = @"MacOSaiXR
 	{
 		NSString	*originalImagePath = [sender representedObject];
 		[[self document] setOriginalImagePath:originalImagePath];
+		
+		[[NSUserDefaults standardUserDefaults] setObject:originalImagePath forKey:@"Last Chosen Original Image Path"];
 		
 		NSImage		*originalImage = [[NSImage alloc] initWithContentsOfFile:originalImagePath];
 		[[self mosaic] setOriginalImage:originalImage];
@@ -392,10 +417,9 @@ static NSString	*MacOSaiXRecentOriginalImagesDidChangeNotification = @"MacOSaiXR
 {
 	NSMenu	*mainOriginalsMenu = [[mosaicMenu itemWithTag:kOriginalImageItemTag] submenu];
 	while ([mainOriginalsMenu numberOfItems] > 4)
-	{
 		[mainOriginalsMenu removeItemAtIndex:2];
-		[[originalImagePopUpView menu] removeItemAtIndex:2];
-	}
+	while ([recentOriginalsMenu numberOfItems] > 4)
+		[recentOriginalsMenu removeItemAtIndex:2];
 }
 
 
@@ -413,7 +437,9 @@ static NSString	*MacOSaiXRecentOriginalImagesDidChangeNotification = @"MacOSaiXR
 	[self removeRecentOriginalImages];
 	
 	NSMenu			*mainRecentOriginalsMenu = [[mosaicMenu itemWithTag:kOriginalImageItemTag] submenu];
-	NSEnumerator	*originalEnumerator = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] reverseObjectEnumerator];
+	NSArray			*recentOriginalDicts = [[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"], 
+					*sortedRecents = [recentOriginalDicts sortedArrayUsingFunction:compareWithKey context:@"Name"];
+	NSEnumerator	*originalEnumerator = [sortedRecents reverseObjectEnumerator];
 	NSDictionary	*originalDict = nil;
 	while (originalDict = [originalEnumerator nextObject])
 	{
