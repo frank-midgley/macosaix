@@ -6,7 +6,6 @@
             CLASS = MacOSaiXTilesSetupController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                averageSizeField = NSTextField; 
                 cancelButton = NSButton; 
                 countField = NSTextField; 
                 delegate = id; 
@@ -19,6 +18,7 @@
                 plugInsPopUp = NSPopUpButton; 
                 previewImageView = NSImageView; 
                 tileShapesBeingEdited = id; 
+                tileSizeField = NSTextField; 
             }; 
             SUPERCLASS = NSWindowController; 
         }

@@ -26,7 +26,7 @@
 	
 	IBOutlet NSImageView			*previewImageView;
 	IBOutlet NSTextField			*countField,
-									*averageSizeField;
+									*tileSizeField;
 	
 		// Image rules
 	IBOutlet NSPopUpButton			*imageUseCountPopUp,

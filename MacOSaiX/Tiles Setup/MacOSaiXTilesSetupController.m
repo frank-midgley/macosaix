@@ -141,7 +141,12 @@
 			[[NSColor blackColor] set];
 			[[transform transformBezierPath:previewPath] stroke];
 		[previewImage unlockFocus];
+		
+		float	tileAspectRatio = NSWidth(previewPathBounds) / NSHeight(previewPathBounds);
+		[tileSizeField setStringValue:[NSString stringWithAspectRatio:tileAspectRatio]];
 	}
+	else
+		[tileSizeField setStringValue:@"--"];
 	
 //	static			count = 0;
 //	[[previewImage TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0]
@@ -219,12 +224,6 @@
 	else
 		[countField setStringValue:@"Unknown"];
 	
-	NSSize	tileUnitSize = [[self mosaic] averageUnitTileSize],
-			originalSize = [[[self mosaic] originalImage] size];
-	float	aspectRatio = (tileUnitSize.width * originalSize.width) / 
-						  (tileUnitSize.height * originalSize.height);
-	[averageSizeField setStringValue:[NSString stringWithAspectRatio:aspectRatio]];
-
 	[self updatePreview];
 }
 
