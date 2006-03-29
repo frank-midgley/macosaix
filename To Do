@@ -73,6 +73,8 @@ Riemersma metric:
 ¥	Mosaic view needs to draw lo-res during auto-fade
 ¥	Copy original image to doc bundle? or open mosaic read-only if original missing?
 ¥	Tooltip for tile images
+¥	Add a default background mode pref
+¥	Preserve mosaic area (w*h) when changing original
 
 
 2.0a6 To Do:
@@ -104,8 +106,8 @@ Riemersma metric:
 Ã	Tile Setup sheet displaced when switching to puzzle pieces
 ¥	New UI for tile count/size better than previous?
 	Tile outlines display performance:
-¥		When viewing tile outline
-¥		Selecting image source with 1000's of images in mosaic
+Ã		When viewing tile outline
+Ã		Selecting image source with 1000's of images in mosaic
 ¥	Make sure all prefs UI is functional
 Ã	Add cropping limit checkbox (now a slider)
 	Exporting
@@ -121,7 +123,6 @@ Riemersma metric:
 ¥	Save&restore pause state
 ¥	Document being corrupted when saved during quit?
 Ã	Get rid of +[plugInClass name] and read from Info.plist instead (simplifies and localizes)
-¥	Add a default background mode pref
 ¥	Disable "tiles apart" pop-up when images can only appear in one tile
 ¥	Google cache limit not sticking
 Ã   Make QuickTime image caching a user option
@@ -138,3 +139,5 @@ Riemersma metric:
 	QuickTime source:
 Ã		Scale movie when sheet presented
 Ã		Recent movies
+¥	Tiles setup panel coming up blank the second time
+¥	Average tile size wrong in Tiles Setup
