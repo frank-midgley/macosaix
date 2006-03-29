@@ -62,7 +62,7 @@
 			if (curDiff < minDiff)
 			{
 				minDiff = curDiff;
-				ratioString = [NSString stringWithFormat:@"%d x %d", yInt, xInt];
+				ratioString = [NSString stringWithFormat:@"%d x %d", xInt, yInt];
 			}
 		}
 	}
