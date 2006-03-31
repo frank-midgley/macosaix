@@ -20,12 +20,16 @@
 									*tilesDownSlider;
     IBOutlet NSTextField			*tilesAcrossTextField,
 									*tilesDownTextField;
+	IBOutlet NSStepper				*tilesAcrossStepper, 
+									*tilesDownStepper;
 
 		// Fixed Size tab
 	IBOutlet NSPopUpButton			*tilesSizePopUp;
 	IBOutlet NSSlider				*tilesSizeSlider,
 									*tilesCountSlider;
-    IBOutlet NSTextField			*tilesSizeTextField;
+    IBOutlet NSTextField			*tilesSizeTextField, 
+									*widerLabel, 
+									*tallerLabel;
 	
 	id								editorDelegate;
 	NSSize							originalImageSize;
@@ -39,5 +43,6 @@
 
 - (IBAction)setTilesSize:(id)sender;
 - (IBAction)setOtherTilesSize:(id)sender;
+- (IBAction)setTilesCount:(id)sender;
 
 @end

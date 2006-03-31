@@ -17,6 +17,7 @@ enum { tilesSizeOther, tilesSize1x1, tilesSize3x4, tilesSize4x3 };
 @interface MacOSaiXRectangularTileShapesEditor (PrivateMethods)
 - (void)setTilesAcrossBasedOnTilesDown;
 - (void)setTilesDownBasedOnTilesAcross;
+- (void)setFixedSizeControlsBasedOnFreeformControls;
 @end
 
 
@@ -51,7 +52,7 @@ enum { tilesSizeOther, tilesSize1x1, tilesSize3x4, tilesSize4x3 };
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(339.0, 90.0);
+	return NSMakeSize(345.0, 167.0);
 }
 
 
@@ -95,18 +96,16 @@ enum { tilesSizeOther, tilesSize1x1, tilesSize3x4, tilesSize4x3 };
 	[currentTileShapes setTilesAcross:tilesAcross];
 	[tilesAcrossSlider setIntValue:tilesAcross];
 	[tilesAcrossTextField setIntValue:tilesAcross];
+	[tilesAcrossStepper setIntValue:tilesAcross];
 	
 		// Constrain the tiles down value to the stepper's range and update the model and view.
 	int	tilesDown = MIN(MAX([currentTileShapes tilesDown], [tilesDownSlider minValue]), [tilesDownSlider maxValue]);
 	[currentTileShapes setTilesDown:tilesDown];
 	[tilesDownSlider setIntValue:tilesDown];
 	[tilesDownTextField setIntValue:tilesDown];
+	[tilesDownStepper setIntValue:tilesDown];
 	
-//	NSDictionary	*lastUsedSettings = [[NSUserDefaults standardUserDefaults] objectForKey:@"Rectangular Tile Shapes"];
-//	[preserveTileSizeCheckBox setState:[[lastUsedSettings objectForKey:@"Freeform or Fixed Size"] boolValue]];
-//	
-//	if ([preserveTileSizeCheckBox state] == NSOnState)
-//		[self setTilesDownBasedOnTilesAcross];
+	[self setFixedSizeControlsBasedOnFreeformControls];
 	
 	[editorDelegate tileShapesWereEdited];
 }
@@ -128,35 +127,39 @@ enum { tilesSizeOther, tilesSize1x1, tilesSize3x4, tilesSize4x3 };
 - (void)setFreeFormControlsBasedOnFixedSizeControls
 {
 	float	aspectRatio = [self aspectRatio], 
-			tileCount = [tilesCountSlider floatValue];
+			targetTileCount = [tilesCountSlider floatValue];
 	
 	int		minX = [tilesAcrossSlider minValue], 
 			minY = [tilesDownSlider minValue], 
 			maxX = [tilesAcrossSlider maxValue], 
 			maxY = [tilesDownSlider maxValue];
-	if (originalImageSize.height * minX / aspectRatio / originalImageSize.width < minY)
-		minX = originalImageSize.width * minY * aspectRatio / originalImageSize.height;
-	if (originalImageSize.width * minY * aspectRatio / originalImageSize.height < minX)
-		minY = minX * originalImageSize.height / aspectRatio / originalImageSize.width;
-	if (originalImageSize.height * maxX / aspectRatio / originalImageSize.width > maxY)
-		maxX = originalImageSize.width * maxY * aspectRatio / originalImageSize.height;
-	if (originalImageSize.width * maxY * aspectRatio / originalImageSize.height > maxX)
-		maxY = maxX * originalImageSize.height / aspectRatio / originalImageSize.width;
+	if (originalImageSize.height * minX * aspectRatio / originalImageSize.width < minY)
+		minX = originalImageSize.width * minY / aspectRatio / originalImageSize.height;
+	if (originalImageSize.width * minY / aspectRatio / originalImageSize.height < minX)
+		minY = minX * originalImageSize.height * aspectRatio / originalImageSize.width;
+	if (originalImageSize.height * maxX * aspectRatio / originalImageSize.width > maxY)
+		maxX = originalImageSize.width * maxY / aspectRatio / originalImageSize.height;
+	if (originalImageSize.width * maxY / aspectRatio / originalImageSize.height > maxX)
+		maxY = maxX * originalImageSize.height * aspectRatio / originalImageSize.width;
 	
-	int		tilesAcross = minX + (maxX - minX) * tileCount, 
-			tilesDown = minY + (maxY - minY) * tileCount;
+	int		tilesAcross = minX + (maxX - minX) * targetTileCount, 
+			tilesDown = minY + (maxY - minY) * targetTileCount;
 	
 	[tilesAcrossSlider setIntValue:tilesAcross];
 	[tilesAcrossTextField setIntValue:tilesAcross];
+	[tilesAcrossStepper setIntValue:tilesAcross];
 	[tilesDownSlider setIntValue:tilesDown];
 	[tilesDownTextField setIntValue:tilesDown];
+	[tilesDownStepper setIntValue:tilesDown];
 }
 
 
 - (void)setFixedSizeControlsBasedOnFreeformControls
 {
-	float	tileAspectRatio = (originalImageSize.width / [tilesAcrossSlider intValue]) / 
-	(originalImageSize.height / [tilesDownSlider intValue]);
+	int		tilesAcross = [tilesAcrossSlider intValue], 
+			tilesDown = [tilesDownSlider intValue];
+	float	tileAspectRatio = (originalImageSize.width / tilesAcross) / 
+							  (originalImageSize.height / tilesDown);
 	
 	[tilesSizeTextField setStringValue:[NSString stringWithAspectRatio:tileAspectRatio]];
 	
@@ -166,38 +169,33 @@ enum { tilesSizeOther, tilesSize1x1, tilesSize3x4, tilesSize4x3 };
 		tileAspectRatio = (tileAspectRatio - 1.0) / (maxAspectRatio - 1.0) + 1.0;
 	[tilesSizeSlider setFloatValue:tileAspectRatio];
 	
-//	int		tilesAcross = [tilesAcrossSlider intValue], 
-//			tilesDown = [tilesDownSlider intValue];
-//	float	targetAspectRatio = [self aspectRatio];
-//	
-//	tilesDown = originalImageSize.height * (float)tilesAcross / originalImageSize.width * targetAspectRatio;
-//	
-//	if (fabsf((originalImageSize.height / tilesDown) / (originalImageSize.width / tilesAcross) - targetAspectRatio) > 
-//		fabsf((originalImageSize.height / (tilesDown + 1)) / (originalImageSize.width / tilesAcross) - targetAspectRatio))
-//		tilesDown++;
-//	
-//	if (tilesDown >= [tilesDownSlider minValue] && tilesDown <= [tilesDownSlider maxValue])
-//	{
-//		[currentTileShapes setTilesDown:tilesDown];
-//		[tilesDownSlider setIntValue:tilesDown];
-//		[tilesDownTextField setIntValue:tilesDown];
-//		[self updatePlugInDefaults];
-//		[self updateTileCountAndSizeFields];
-//	}
-//	else if (tilesAcross > [tilesAcrossSlider minValue])
-//	{
-//		[tilesAcrossSlider setIntValue:tilesAcross - 1];
-//		[tilesAcrossTextField setIntValue:tilesAcross - 1];
-//		[self setTilesDownBasedOnTilesAcross];
-//	}
+	int		minX = [tilesAcrossSlider minValue], 
+			minY = [tilesDownSlider minValue], 
+			maxX = [tilesAcrossSlider maxValue], 
+			maxY = [tilesDownSlider maxValue], 
+			minTileCount = 0,
+			maxTileCount = 0;
+	if (originalImageSize.height * minX * tileAspectRatio / originalImageSize.width < minY)
+		minTileCount = minX * minX / tileAspectRatio;
+	else
+		minTileCount = minY * minY * tileAspectRatio;
+	if (originalImageSize.height * maxX * tileAspectRatio / originalImageSize.width < maxY)
+		maxTileCount = maxX * maxX / tileAspectRatio;
+	else
+		maxTileCount = maxY * maxY * tileAspectRatio;
+	[tilesCountSlider setFloatValue:(float)(tilesAcross * tilesDown - minTileCount) / (maxTileCount - minTileCount)];
 }
 
 
 - (IBAction)setTilesAcross:(id)sender
 {
-    [currentTileShapes setTilesAcross:[tilesAcrossSlider intValue]];
-    [tilesAcrossTextField setIntValue:[tilesAcrossSlider intValue]];
-	
+    [currentTileShapes setTilesAcross:[sender intValue]];
+    [tilesAcrossTextField setIntValue:[sender intValue]];
+	if (sender == tilesAcrossSlider)
+		[tilesAcrossStepper setIntValue:[sender intValue]];
+	else
+		[tilesAcrossSlider setIntValue:[sender intValue]];
+		
 	[self setFixedSizeControlsBasedOnFreeformControls];
 	
 	[self updatePlugInDefaults];
@@ -208,8 +206,12 @@ enum { tilesSizeOther, tilesSize1x1, tilesSize3x4, tilesSize4x3 };
 
 - (IBAction)setTilesDown:(id)sender
 {
-    [currentTileShapes setTilesDown:[tilesDownSlider intValue]];
-    [tilesDownTextField setIntValue:[tilesDownSlider intValue]];
+    [currentTileShapes setTilesDown:[sender intValue]];
+    [tilesDownTextField setIntValue:[sender intValue]];
+	if (sender == tilesDownSlider)
+		[tilesDownStepper setIntValue:[sender intValue]];
+	else
+		[tilesDownSlider setIntValue:[sender intValue]];
 	
 	[self setFixedSizeControlsBasedOnFreeformControls];
 	
@@ -229,6 +231,8 @@ enum { tilesSizeOther, tilesSize1x1, tilesSize3x4, tilesSize4x3 };
 		{
 			[tilesSizeSlider setHidden:NO];
 			[tilesSizeTextField setHidden:NO];
+			[widerLabel setHidden:NO];
+			[tallerLabel setHidden:NO];
 		}
 		[tilesSizeSlider setEnabled:YES];
 		[tilesSizeTextField setEnabled:YES];
@@ -240,6 +244,8 @@ enum { tilesSizeOther, tilesSize1x1, tilesSize3x4, tilesSize4x3 };
 		{
 			[tilesSizeSlider setHidden:YES];
 			[tilesSizeTextField setHidden:YES];
+			[widerLabel setHidden:YES];
+			[tallerLabel setHidden:YES];
 		}
 		[tilesSizeSlider setEnabled:NO];
 		[tilesSizeTextField setEnabled:NO];
@@ -248,9 +254,9 @@ enum { tilesSizeOther, tilesSize1x1, tilesSize3x4, tilesSize4x3 };
 			// Use a preset ratio.
 		float	tileAspectRatio = 1.0;
 		if (tilesSize == tilesSize3x4)
-			tileAspectRatio = 4.0 / 3.0;
-		else if (tilesSize == tilesSize4x3)
 			tileAspectRatio = 3.0 / 4.0;
+		else if (tilesSize == tilesSize4x3)
+			tileAspectRatio = 4.0 / 3.0;
 		
 			// Map the ratio to the slider position.
 		if (tileAspectRatio < 1.0)
@@ -272,6 +278,20 @@ enum { tilesSizeOther, tilesSize1x1, tilesSize3x4, tilesSize4x3 };
 
 
 - (IBAction)setOtherTilesSize:(id)sender
+{
+	[self setFreeFormControlsBasedOnFixedSizeControls];
+	[tilesSizeTextField setStringValue:[NSString stringWithAspectRatio:[self aspectRatio]]];
+	
+	[currentTileShapes setTilesAcross:[tilesAcrossSlider intValue]];
+	[currentTileShapes setTilesDown:[tilesDownSlider intValue]];
+	
+	[self updatePlugInDefaults];
+	
+	[editorDelegate tileShapesWereEdited];
+}
+
+
+- (IBAction)setTilesCount:(id)sender
 {
 	[self setFreeFormControlsBasedOnFixedSizeControls];
 	

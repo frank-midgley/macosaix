@@ -5,6 +5,7 @@
             ACTIONS = {
                 setOtherTilesSize = id; 
                 setTilesAcross = id; 
+                setTilesCount = id; 
                 setTilesDown = id; 
                 setTilesSize = id; 
             }; 
@@ -13,14 +14,18 @@
             OUTLETS = {
                 editorDelegate = id; 
                 editorView = NSView; 
+                tallerLabel = NSTextField; 
                 tilesAcrossSlider = NSSlider; 
+                tilesAcrossStepper = NSStepper; 
                 tilesAcrossTextField = NSTextField; 
                 tilesCountSlider = NSSlider; 
                 tilesDownSlider = NSSlider; 
+                tilesDownStepper = NSStepper; 
                 tilesDownTextField = NSTextField; 
                 tilesSizePopUp = NSPopUpButton; 
                 tilesSizeSlider = NSSlider; 
                 tilesSizeTextField = NSTextField; 
+                widerLabel = NSTextField; 
             }; 
             SUPERCLASS = NSObject; 
         }, 
