@@ -75,6 +75,16 @@ Riemersma metric:
 ¥	Tooltip for tile images
 ¥	Add a default background mode pref
 ¥	Preserve mosaic area (w*h) when changing original
+¥	Save&restore background mode
+¥	Save&restore pause state
+¥	Disable "tiles apart" pop-up when images can only appear in one tile
+¥	Add "Report Crashes" option
+¥	Selected tile highlight cropped when zoomed
+¥	Disable background options when all tiles have a unique match
+¥	Clear selected source when drawer closed
+¥	"Loading..." image in web page pop-up
+¥	Fade too bright at 50%
+¥	Allow specifying an original or hand-picked image by URL
 
 
 2.0a6 To Do:
@@ -111,7 +121,7 @@ Riemersma metric:
 ¥	Make sure all prefs UI is functional
 Ã	Add cropping limit checkbox (now a slider)
 	Exporting
-¥		Re-enforce 10000 pixel limit
+¥		Re-enforce 10,000 pixel limit
 Ã		Fade display
 ¥		Cancelling
 ¥		Initial units
@@ -119,25 +129,18 @@ Riemersma metric:
 Ã		Background option
 Ã	Tiles not clearing when source removed
 Ã	Make Fade and Zoom toolbar items narrower
-¥	Save&restore background mode
-¥	Save&restore pause state
 ¥	Document being corrupted when saved during quit?
 Ã	Get rid of +[plugInClass name] and read from Info.plist instead (simplifies and localizes)
-¥	Disable "tiles apart" pop-up when images can only appear in one tile
 ¥	Google cache limit not sticking
 Ã   Make QuickTime image caching a user option
-¥	Add "Report Crashes" option
-¥	Selected tile highlight cropped when zoomed
 ¥	"You have not set the tile shapes" after loading a mosaic
-¥	"Loading..." image in web page pop-up
-¥	Remove image cache purging on source removal?
-¥	Disable background options when all tiles have a unique match
-¥	Clear selected source when drawer closed
-¥	Disable drawer controls whenever a sheet is dropped.
+Ã	Remove image cache purging on source removal?
+Ã	Disable drawer controls whenever a sheet is dropped.
 Ã	Queue tiles for refresh when background set to best match mode
 Ã	Figure out how to differentiate between unique and best matches when loading.
 	QuickTime source:
 Ã		Scale movie when sheet presented
 Ã		Recent movies
-¥	Tiles setup panel coming up blank the second time
-¥	Average tile size wrong in Tiles Setup
+Ã	Tiles setup panel coming up blank the second time
+Ã	Average tile size wrong in Tiles Setup
+¥	Clear better match cache when original image or tiles setup change
