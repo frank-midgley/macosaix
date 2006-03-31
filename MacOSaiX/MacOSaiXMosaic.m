@@ -1128,16 +1128,10 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 #pragma mark -
 
+
 - (void)dealloc
 {
-		// TBD: is this necessary?  Or just let the images be purged from the cache as new ones get added?
-	[imageSourcesLock lock];
-		NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
-		id<MacOSaiXImageSource>	imageSource = nil;
-		while (imageSource = [imageSourceEnumerator nextObject])
-			[[MacOSaiXImageCache sharedImageCache] removeCachedImagesFromSource:imageSource];
-		[imageSources release];
-	[imageSourcesLock unlock];
+	[imageSources release];
 	[imageSourcesLock release];
 	[diskCacheSubPaths release];
 	
