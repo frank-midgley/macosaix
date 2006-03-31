@@ -30,6 +30,19 @@
 	delegate = inDelegate;
 	didEndSelector = inDidEndSelector;
 	
+	[self window];
+	
+		// Populate the GUI with the current shape settings.
+	[plugInsPopUp selectItemAtIndex:[plugInsPopUp indexOfItemWithRepresentedObject:[[mosaic tileShapes] class]]];
+	[self setPlugIn:self];
+	
+		// Set the image rules controls.
+	int				popUpIndex = [imageUseCountPopUp indexOfItemWithTag:[mosaic imageUseCount]];
+	[imageUseCountPopUp selectItemAtIndex:popUpIndex];
+	popUpIndex = [imageReuseDistancePopUp indexOfItemWithTag:[mosaic imageReuseDistance]];
+	[imageReuseDistancePopUp selectItemAtIndex:popUpIndex];
+	[imageCropLimitSlider setIntValue:[mosaic imageCropLimit]];
+	
 	[NSApp beginSheet:[self window] 
 	   modalForWindow:window
 		modalDelegate:self 
@@ -55,10 +68,10 @@
 	[editorBox setContentViewMargins:NSMakeSize(16.0, 16.0)];
 	
 		// Populate the tile shapes pop-up with the names of the currently available plug-ins.
+		// TODO: listen for a notification from the app delegate that the list changed and re-populate.
 	[(MacOSaiX *)[NSApp delegate] discoverPlugIns];
 	NSEnumerator	*enumerator = [[(MacOSaiX *)[NSApp delegate] tileShapesClasses] objectEnumerator];
 	Class			tileShapesClass = nil;
-	int				currentlyUsedClassIndex = -1;
 	float			maxWidth = 0.0;
 	NSString		*titleFormat = @"%@ Tile Shapes";
 	[plugInsPopUp removeAllItems];
@@ -78,22 +91,8 @@
 		[plugInsPopUp selectItem:newItem];
 		[plugInsPopUp sizeToFit];
 		maxWidth = MAX(maxWidth, [plugInsPopUp frame].size.width);
-		
-		if ([[[self mosaic] tileShapes] isKindOfClass:tileShapesClass])
-			currentlyUsedClassIndex = [plugInsPopUp numberOfItems] - 1;
 	}
 	[plugInsPopUp setFrameSize:NSMakeSize(maxWidth, [plugInsPopUp frame].size.height)];
-	[plugInsPopUp selectItemAtIndex:currentlyUsedClassIndex];
-	
-		// Populate the GUI with the current shape settings.
-	[self setPlugIn:self];
-	
-		// Set the image rules controls.
-	int				popUpIndex = [imageUseCountPopUp indexOfItemWithTag:[[self mosaic] imageUseCount]];
-	[imageUseCountPopUp selectItemAtIndex:popUpIndex];
-	popUpIndex = [imageReuseDistancePopUp indexOfItemWithTag:[[self mosaic] imageReuseDistance]];
-	[imageReuseDistancePopUp selectItemAtIndex:popUpIndex];
-	[imageCropLimitSlider setIntValue:[[self mosaic] imageCropLimit]];
 }
 
 
@@ -211,6 +210,8 @@
 		
 		[errorView setStringValue:@"Could not load the plug-in"];
 		[errorView setEditable:NO];
+		
+		[editorBox setContentView:errorView];
 	}
 }
 
