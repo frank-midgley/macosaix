@@ -1377,6 +1377,14 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 }
 
 
+- (void)setDrawerControlsEnabled:(BOOL)enabled
+{
+	[imageSourcesTableView setDoubleAction:(enabled ? @selector(editImageSource:) : nil)];
+	[imageSourcesPopUpButton setEnabled:enabled];
+	[imageSourcesRemoveButton setEnabled:enabled];
+}
+
+
 #pragma mark -
 #pragma mark Save As methods
 
@@ -1596,6 +1604,18 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	{
 		[self setZoom:self];
 	}
+}
+
+
+- (void)windowWillBeginSheet:(NSNotification *)notification
+{
+	[self setDrawerControlsEnabled:NO];
+}
+
+
+- (void)windowDidEndSheet:(NSNotification *)notification
+{
+	[self setDrawerControlsEnabled:YES];
 }
 
 
