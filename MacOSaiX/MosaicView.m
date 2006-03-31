@@ -544,11 +544,11 @@
 	NSEnumerator		*tileEnumerator = nil;
 	MacOSaiXTile		*tile = nil;
 	NSAffineTransform	*darkenTransform = [NSAffineTransform transform], 
-		*lightenTransform = [NSAffineTransform transform];
+						*lightenTransform = [NSAffineTransform transform];
 	
-	[darkenTransform translateXBy:1.5 yBy:0.5];
+	[darkenTransform translateXBy:1.0 yBy:-1.0];
 	[darkenTransform scaleXBy:mainImageSize.width yBy:mainImageSize.height];
-	[lightenTransform translateXBy:0.5 yBy:1.5];
+	[lightenTransform translateXBy:0.0 yBy:0.0];
 	[lightenTransform scaleXBy:mainImageSize.width yBy:mainImageSize.height];
 	
 	[tileOutlinesImage release];
@@ -557,13 +557,21 @@
 		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];	// darken
 		tileEnumerator = [[mosaic tiles] objectEnumerator];
 		while (tile = [tileEnumerator nextObject])
-			[[darkenTransform transformBezierPath:[tile outline]] stroke];
+		{
+			NSBezierPath	*transformedPath = [darkenTransform transformBezierPath:[tile outline]];
+			[transformedPath setLineWidth:3.0];
+			[transformedPath stroke];
+		}
 		
 		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
 		tileEnumerator = [[mosaic tiles] objectEnumerator];
 		while (tile = [tileEnumerator nextObject])
-			[[lightenTransform transformBezierPath:[tile outline]] stroke];
-	[tileOutlinesImage unlockFocus];
+		{
+			NSBezierPath	*transformedPath = [lightenTransform transformBezierPath:[tile outline]];
+			[transformedPath setLineWidth:3.0];
+			[transformedPath stroke];
+		}
+		[tileOutlinesImage unlockFocus];
 }
 
 
@@ -782,7 +790,7 @@
 	
 		// Highlight the selected image sources.
 	[highlightedImageSourcesLock lock];
-	if (highlightedImageSourcesOutline)
+	if (highlightedImageSourcesOutline && !drawLoRes)
 	{
 		NSSize				boundsSize = mosaicBounds.size;
 		NSAffineTransform	*transform = [NSAffineTransform transform];
@@ -810,9 +818,15 @@
 		// Highlight the selected tile.
 	if (highlightedTile)
 	{
+		float	minX = NSMinX(mosaicBounds), 
+				minY = NSMinY(mosaicBounds), 
+				width = NSWidth(mosaicBounds), 
+				height = NSHeight(mosaicBounds);
+		
 			// Draw the tile's outline with a 4pt thick dashed line.
 		NSAffineTransform	*transform = [NSAffineTransform transform];
-		[transform scaleXBy:mosaicBounds.size.width yBy:mosaicBounds.size.height];
+		[transform translateXBy:minX yBy:minY];
+		[transform scaleXBy:width yBy:height];
 		NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile outline]];
 		[bezierPath setLineWidth:4];
 		
@@ -829,14 +843,14 @@
 		if (!viewTileOutlines)
 		{
 			transform = [NSAffineTransform transform];
-			[transform translateXBy:0.5 yBy:-0.5];
-			[transform scaleXBy:mosaicBounds.size.width yBy:mosaicBounds.size.height];
+			[transform translateXBy:minX + 0.5 yBy:minY - 0.5];
+			[transform scaleXBy:width yBy:height];
 			[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];	// darken
 			[[transform transformBezierPath:[highlightedTile outline]] stroke];
 			
 			transform = [NSAffineTransform transform];
-			[transform translateXBy:-0.5 yBy:0.5];
-			[transform scaleXBy:mosaicBounds.size.width yBy:mosaicBounds.size.height];
+			[transform translateXBy:minX - 0.5 yBy:minY + 0.5];
+			[transform scaleXBy:width yBy:height];
 			[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
 			[[transform transformBezierPath:[highlightedTile outline]] stroke];
 		}
@@ -870,29 +884,25 @@
 
 - (void)highlightTile:(MacOSaiXTile *)tile
 {
-	NSAffineTransform	*transform = [NSAffineTransform transform];
-	[transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
+	NSRect				mosaicBounds = [self boundsForOriginalImage:[mosaic originalImage]];
+    NSAffineTransform	*transform = [NSAffineTransform transform];
+	[transform translateXBy:NSMinX(mosaicBounds) yBy:NSMinY(mosaicBounds)];
+	[transform scaleXBy:NSWidth(mosaicBounds) yBy:NSHeight(mosaicBounds)];
 	
     if (highlightedTile)
     {
 			// Mark the previously highlighted area for re-display.
 		NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile outline]];
-		[self setNeedsDisplayInRect:NSMakeRect([bezierPath bounds].origin.x - 2,
-											   [bezierPath bounds].origin.y - 2,
-											   [bezierPath bounds].size.width + 4,
-											   [bezierPath bounds].size.height + 4)];
+		[self setNeedsDisplayInRect:NSInsetRect([bezierPath bounds], -2.0, -2.0)];
 	}
 	
 	highlightedTile = tile;
 	
     if (highlightedTile)
     {
-			// Mark the previously highlighted area for re-display.
+			// Mark the newly highlighted area for re-display.
 		NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile outline]];
-		[self setNeedsDisplayInRect:NSMakeRect([bezierPath bounds].origin.x - 2,
-											   [bezierPath bounds].origin.y - 2,
-											   [bezierPath bounds].size.width + 4,
-											   [bezierPath bounds].size.height + 4)];
+		[self setNeedsDisplayInRect:NSInsetRect([bezierPath bounds], -2.0, -2.0)];
 	}
 }
 
@@ -944,17 +954,15 @@
 
 - (void)animateHighlight
 {
-    NSAffineTransform	*transform = [NSAffineTransform transform];
-    NSBezierPath	*bezierPath;
-    
     phase = ++phase % 10;
-    [transform scaleXBy:[self bounds].size.width yBy:[self bounds].size.height];
-    bezierPath = [transform transformBezierPath:[highlightedTile outline]];
+	
+	NSRect				mosaicBounds = [self boundsForOriginalImage:[mosaic originalImage]];
+    NSAffineTransform	*transform = [NSAffineTransform transform];
+	[transform translateXBy:NSMinX(mosaicBounds) yBy:NSMinY(mosaicBounds)];
+	[transform scaleXBy:NSWidth(mosaicBounds) yBy:NSHeight(mosaicBounds)];
+    NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile outline]];
 
-    [self setNeedsDisplayInRect:NSMakeRect([bezierPath bounds].origin.x - 2,
-					   [bezierPath bounds].origin.y - 2,
-					   [bezierPath bounds].size.width + 4,
-					   [bezierPath bounds].size.height + 4)];
+    [self setNeedsDisplayInRect:NSInsetRect([bezierPath bounds], -2.0, -2.0)];
 }
 
 
