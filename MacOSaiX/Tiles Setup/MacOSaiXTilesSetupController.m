@@ -184,14 +184,13 @@
 				heightDiff = MAX(0.0, [editor minimumSize].height - [[editorBox contentView] frame].size.height), 
 				baseHeight = NSHeight(contentFrame) - NSHeight([[editorBox contentView] frame]) + 0.0, 
 				baseWidth = NSWidth(contentFrame) - NSWidth([[editorBox contentView] frame]) + 0.0;
-		[[editor editorView] setFrame:[[editorBox contentView] frame]];
 		[[editor editorView] setAutoresizingMask:[[editorBox contentView] autoresizingMask]];
 		[editorBox setContentView:[[[NSView alloc] initWithFrame:NSZeroRect] autorelease]];
 		
 		if (NSWidth(contentFrame) + widthDiff < 426.0)
 			widthDiff = 426.0 - NSWidth(contentFrame);
-		if (NSHeight(contentFrame) + heightDiff < 430.0)
-			heightDiff = 430.0 - NSHeight(contentFrame);
+		if (NSHeight(contentFrame) + heightDiff < 434.0)
+			heightDiff = 434.0 - NSHeight(contentFrame);
 		
 		frame.origin.x -= widthDiff / 2.0;
 		frame.origin.y -= heightDiff;
@@ -304,7 +303,7 @@
 				minHeight = (panelSize.height - editorBoxSize.height) + [editor minimumSize].height;
 		
 		minWidth = MAX(minWidth, 426.0);
-		minHeight = MAX(minHeight, 430.0);
+		minHeight = MAX(minHeight, 434.0);
 		
 		proposedFrameSize.width = MAX(proposedFrameSize.width, minWidth);
 		proposedFrameSize.height = MAX(proposedFrameSize.height, minHeight);
