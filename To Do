@@ -64,7 +64,6 @@ Riemersma metric:
 ¥		Create documentation
 ¥		Create sample plug-in projects
 ¥	Prompt for password when leaving kiosk mode
-¥	Get rid of all NSLog's
 ¥	Enable cancelling of document load
 ¥	Clean up about box
 ¥	Kiosk dialogs on secondary monitors not ordering out
@@ -99,7 +98,7 @@ Riemersma metric:
 Ã	Rework puzzle shapes plug-in to conform with new API
 Ã	Add recents to folder source
 Ã	Follow aliases in folder source
-?	Single menu for restricting tile sizes
+Ã	Single menu for restricting tile sizes
 	Complete plug-in API
 Ã		OS check
 Ã		Add preferences API for image source plug-ins
@@ -114,26 +113,26 @@ Riemersma metric:
 Ã	Handle case of no original images
 ¥	Make sure everything works on virgin system
 Ã	Tile Setup sheet displaced when switching to puzzle pieces
-¥	New UI for tile count/size better than previous?
+Ã	New UI for tile count/size better than previous?
 	Tile outlines display performance:
 Ã		When viewing tile outline
 Ã		Selecting image source with 1000's of images in mosaic
-¥	Make sure all prefs UI is functional
+Ã	Make sure all prefs UI is functional
 Ã	Add cropping limit checkbox (now a slider)
 	Exporting
 ¥		Re-enforce 10,000 pixel limit
 Ã		Fade display
 ¥		Cancelling
 ¥		Initial units
-Ã		Remember defaults
+¥		Remember defaults
 Ã		Background option
 Ã	Tiles not clearing when source removed
 Ã	Make Fade and Zoom toolbar items narrower
-¥	Document being corrupted when saved during quit?
+Ã	Document being corrupted when saved during quit
 Ã	Get rid of +[plugInClass name] and read from Info.plist instead (simplifies and localizes)
-¥	Google cache limit not sticking
+Ã	Google cache limit not sticking
 Ã   Make QuickTime image caching a user option
-¥	"You have not set the tile shapes" after loading a mosaic
+Ã	"You have not set the tile shapes" after loading a mosaic
 Ã	Remove image cache purging on source removal?
 Ã	Disable drawer controls whenever a sheet is dropped.
 Ã	Queue tiles for refresh when background set to best match mode
@@ -144,3 +143,4 @@ Riemersma metric:
 Ã	Tiles setup panel coming up blank the second time
 Ã	Average tile size wrong in Tiles Setup
 ¥	Clear better match cache when original image or tiles setup change
+Ã	Get rid of all NSLog's
