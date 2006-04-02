@@ -177,7 +177,9 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 					fullSizeRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:imageRect] autorelease];
 				[image unlockFocus];
 			NS_HANDLER
-				NSLog(@"Failed to lock focus on %@", imageIdentifier);
+				#ifdef DEBUG
+					NSLog(@"Failed to lock focus on %@", imageIdentifier);
+				#endif
 			NS_ENDHANDLER
 		}
 
@@ -302,7 +304,9 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 				[scalableRep drawInRect:scaledRect];
 				imageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0.0, 0.0, size.width, size.height)] autorelease];
 			NS_HANDLER
-				NSLog(@"Could not scale an image to (%f, %f)", size.width, size.height);
+				#ifdef DEBUG
+					NSLog(@"Could not scale an image to (%f, %f)", size.width, size.height);
+				#endif
 			NS_ENDHANDLER
 			
 			if (gotFocus)

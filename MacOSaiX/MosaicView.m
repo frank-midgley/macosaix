@@ -446,7 +446,9 @@
 							}
 						[mainImage unlockFocus];
 					NS_HANDLER
-						NSLog(@"Could not lock focus on mosaic image");
+						#ifdef DEBUG
+							NSLog(@"Could not lock focus on mosaic image");
+						#endif
 					NS_ENDHANDLER
 				}
 			[mainImageLock unlock];
@@ -468,7 +470,9 @@
 							}
 						[backgroundImage unlockFocus];
 					NS_HANDLER
-						NSLog(@"Could not lock focus on non-unique image");
+						#ifdef DEBUG
+							NSLog(@"Could not lock focus on non-unique image");
+						#endif
 					NS_ENDHANDLER
 				}
 			[backgroundImageLock unlock];

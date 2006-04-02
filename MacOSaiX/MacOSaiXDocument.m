@@ -513,8 +513,10 @@
 																		  sourceIndex,
 																		  [[uniqueMatch imageIdentifier] stringByEscapingXMLEntites],
 																		  [uniqueMatch matchValue]]];
+#ifdef DEBUG
 					else
 						NSLog(@"oops");
+#endif
 				}
 				MacOSaiXImageMatch	*bestMatch = [tile bestImageMatch];
 				if (bestMatch)
@@ -527,8 +529,10 @@
 																		  sourceIndex,
 																		  [[bestMatch imageIdentifier] stringByEscapingXMLEntites],
 																		  [bestMatch matchValue]]];
+#ifdef DEBUG
 					else
 						NSLog(@"oops");
+#endif
 				}
 				
 				[buffer appendString:@"\t</TILE>\n"];

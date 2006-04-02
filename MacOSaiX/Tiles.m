@@ -93,8 +93,10 @@
 			// Copy out the portion of the original image contained by the tile's outline.
 		[originalImage drawInRect:destRect fromRect:origRect operation:NSCompositeCopy fraction:1.0];
 		bitmapRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect];
-		if (bitmapRep == nil)
-			NSLog(@"Could not extract tile image from original.");
+		#ifdef DEBUG
+			if (bitmapRep == nil)
+				NSLog(@"Could not extract tile image from original.");
+		#endif
 	
 			// Calculate a mask image using the tile's outline that is the same size as the image
 			// extracted from the original.  The mask will be white for pixels that are inside the 
@@ -120,7 +122,9 @@
 			maskRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect];
 		[[NSGraphicsContext currentContext] restoreGraphicsState];
 	NS_HANDLER
-		NSLog(@"Exception raised while extracting tile images: %@", [localException name]);
+		#ifdef DEBUG
+			NSLog(@"Exception raised while extracting tile images: %@", [localException name]);
+		#endif
 	NS_ENDHANDLER
 	
 	if (focusLocked)
