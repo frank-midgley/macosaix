@@ -173,19 +173,26 @@
 	int	autosaveInterval = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Autosave Frequency"] description] intValue] * 60;
 	if (autosaveInterval < 60)
 		autosaveInterval = 60;
-	autosaveTimer = [[NSTimer scheduledTimerWithTimeInterval:autosaveInterval target:self selector:@selector(autoSave:) userInfo:nil repeats:NO] retain];
+	autosaveTimer = [[NSTimer scheduledTimerWithTimeInterval:autosaveInterval 
+													  target:self 
+													selector:@selector(autoSave:) 
+													userInfo:nil 
+													 repeats:NO] retain];
 }
 
 
 - (void)autoSave:(NSTimer *)timer
 {
-	if ([self autoSaveEnabled])
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Save Mosaics"])
 	{
-		if ([self isDocumentEdited])
-			[self saveDocument:self];
+		if ([self autoSaveEnabled])
+		{
+			if ([self isDocumentEdited])
+				[self saveDocument:self];
+		}
+		else
+			missedAutoSave = YES;
 	}
-	else
-		missedAutoSave = YES;
 }
 
 
@@ -195,7 +202,8 @@
 
 - (void)updateChangeCount:(NSDocumentChangeType)changeType
 {
-	if (changeType == NSChangeDone && !autosaveTimer)
+	if (changeType == NSChangeDone && !autosaveTimer && 
+		[[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Save Mosaics"])
 		[self performSelectorOnMainThread:@selector(startAutosaveTimer:) withObject:nil waitUntilDone:YES];
 	
 	[super updateChangeCount:changeType];
@@ -573,7 +581,9 @@
 	
 	if (![(MacOSaiX *)[NSApp delegate] isQuitting])
 	{
-		[self performSelectorOnMainThread:@selector(startAutosaveTimer:) withObject:nil waitUntilDone:NO];
+		if ([[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Save Mosaics"])
+			[self performSelectorOnMainThread:@selector(startAutosaveTimer:) withObject:nil waitUntilDone:NO];
+		
 		if (!wasPaused)
 			[mosaic resume];
 	}
@@ -1097,6 +1107,11 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (void)closeAfterDocument:(NSDocument *)doc didSave:(BOOL)didSave contextInfo:(void *)metaContextInfo
 {
+		// Wait for the save thread to complete.
+		// TBD: is the method above necessary if we do this?
+	while (saving)
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+	
 		// The save has completed so call back to the close initiator.
 	id		shouldCloseDelegate = [(NSDictionary *)metaContextInfo objectForKey:@"Should Close Delegate"];
 	SEL		shouldCloseSelector = NSSelectorFromString([(NSDictionary *)metaContextInfo objectForKey:@"Should Close Selector"]);
