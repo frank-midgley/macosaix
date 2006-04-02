@@ -35,6 +35,13 @@
 		// Populate the GUI with the current shape settings.
 	[plugInsPopUp selectItemAtIndex:[plugInsPopUp indexOfItemWithRepresentedObject:[[mosaic tileShapes] class]]];
 	[self setPlugIn:self];
+	NSRect	frame = [[self window] frame];
+	NSSize	minSize = [[self window] minSize];
+	if (NSWidth(frame) < minSize.width)
+		frame.size.width = minSize.width;
+	if (NSHeight(frame) < minSize.height)
+		frame.size.height = minSize.height;
+	[[self window] setFrame:frame display:NO];
 	
 		// Set the image rules controls.
 	int				popUpIndex = [imageUseCountPopUp indexOfItemWithTag:[mosaic imageUseCount]];
@@ -65,7 +72,7 @@
 
 - (void)awakeFromNib
 {
-	[editorBox setContentViewMargins:NSMakeSize(16.0, 16.0)];
+	[editorBox setContentViewMargins:NSMakeSize(0.0, 0.0)];
 	
 		// Populate the tile shapes pop-up with the names of the currently available plug-ins.
 		// TODO: listen for a notification from the app delegate that the list changed and re-populate.
@@ -164,21 +171,33 @@
 	if (editorClass)
 	{
 			// Release any previous editor and create a new one using the selected class.
+		[editor editingComplete];
 		[editor release];
 		editor = [[editorClass alloc] initWithDelegate:self];
 		
 		[self updatePreview];
 	
 			// Swap in the view of the new editor.  Make sure the panel is big enough to contain the view's minimum size.
+		NSRect	frame = [[self window] frame], 
+				contentFrame = [[[self window] contentView] frame];
 		float	widthDiff = MAX(0.0, [editor minimumSize].width - [[editorBox contentView] frame].size.width),
-				heightDiff = MAX(0.0, [editor minimumSize].height - [[editorBox contentView] frame].size.height);
+				heightDiff = MAX(0.0, [editor minimumSize].height - [[editorBox contentView] frame].size.height), 
+				baseHeight = NSHeight(contentFrame) - NSHeight([[editorBox contentView] frame]) + 0.0, 
+				baseWidth = NSWidth(contentFrame) - NSWidth([[editorBox contentView] frame]) + 0.0;
 		[[editor editorView] setFrame:[[editorBox contentView] frame]];
 		[[editor editorView] setAutoresizingMask:[[editorBox contentView] autoresizingMask]];
 		[editorBox setContentView:[[[NSView alloc] initWithFrame:NSZeroRect] autorelease]];
-		NSRect	frame = [[self window] frame];
+		
+		if (NSWidth(contentFrame) + widthDiff < 426.0)
+			widthDiff = 426.0 - NSWidth(contentFrame);
+		if (NSHeight(contentFrame) + heightDiff < 430.0)
+			heightDiff = 430.0 - NSHeight(contentFrame);
+		
+		frame.origin.x -= widthDiff / 2.0;
 		frame.origin.y -= heightDiff;
 		frame.size.width += widthDiff;
 		frame.size.height += heightDiff;
+		[[self window] setContentMinSize:NSMakeSize(baseWidth + [editor minimumSize].width, baseHeight + [editor minimumSize].height)];
 		[[self window] setFrame:frame display:YES animate:YES];
 		[editorBox setContentView:[editor editorView]];
 		
@@ -280,9 +299,12 @@
 	if (resizingWindow == [self window])
 	{
 		NSSize	panelSize = [resizingWindow frame].size,
-		editorBoxSize = [[editorBox contentView] frame].size;
+				editorBoxSize = [[editorBox contentView] frame].size;
 		float	minWidth = (panelSize.width - editorBoxSize.width) + [editor minimumSize].width,
 				minHeight = (panelSize.height - editorBoxSize.height) + [editor minimumSize].height;
+		
+		minWidth = MAX(minWidth, 426.0);
+		minHeight = MAX(minHeight, 430.0);
 		
 		proposedFrameSize.width = MAX(proposedFrameSize.width, minWidth);
 		proposedFrameSize.height = MAX(proposedFrameSize.height, minHeight);
