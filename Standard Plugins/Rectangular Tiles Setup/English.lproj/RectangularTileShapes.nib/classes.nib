@@ -14,7 +14,6 @@
             OUTLETS = {
                 editorDelegate = id; 
                 editorView = NSView; 
-                tallerLabel = NSTextField; 
                 tilesAcrossSlider = NSSlider; 
                 tilesAcrossStepper = NSStepper; 
                 tilesAcrossTextField = NSTextField; 
@@ -24,8 +23,6 @@
                 tilesDownTextField = NSTextField; 
                 tilesSizePopUp = NSPopUpButton; 
                 tilesSizeSlider = NSSlider; 
-                tilesSizeTextField = NSTextField; 
-                widerLabel = NSTextField; 
             }; 
             SUPERCLASS = NSObject; 
         }, 

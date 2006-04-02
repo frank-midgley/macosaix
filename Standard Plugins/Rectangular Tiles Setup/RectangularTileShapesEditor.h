@@ -27,9 +27,6 @@
 	IBOutlet NSPopUpButton			*tilesSizePopUp;
 	IBOutlet NSSlider				*tilesSizeSlider,
 									*tilesCountSlider;
-    IBOutlet NSTextField			*tilesSizeTextField, 
-									*widerLabel, 
-									*tallerLabel;
 	
 	id								editorDelegate;
 	NSSize							originalImageSize;

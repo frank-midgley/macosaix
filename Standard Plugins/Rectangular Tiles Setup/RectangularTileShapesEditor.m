@@ -11,7 +11,7 @@
 #import "NSString+MacOSaiX.h"
 
 
-enum { tilesSizeOther, tilesSize1x1, tilesSize3x4, tilesSize4x3 };
+enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 
 @interface MacOSaiXRectangularTileShapesEditor (PrivateMethods)
@@ -52,7 +52,7 @@ enum { tilesSizeOther, tilesSize1x1, tilesSize3x4, tilesSize4x3 };
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(345.0, 167.0);
+	return NSMakeSize(250.0, 140.0);
 }
 
 
@@ -161,14 +161,16 @@ enum { tilesSizeOther, tilesSize1x1, tilesSize3x4, tilesSize4x3 };
 	float	tileAspectRatio = (originalImageSize.width / tilesAcross) / 
 							  (originalImageSize.height / tilesDown);
 	
-	[tilesSizeTextField setStringValue:[NSString stringWithAspectRatio:tileAspectRatio]];
-	
+		// Update the tile size slider and pop-up.
 	if (tileAspectRatio < 1.0)
 		tileAspectRatio = (tileAspectRatio - minAspectRatio) / (1.0 - minAspectRatio);
 	else if (tileAspectRatio > 1.0)
 		tileAspectRatio = (tileAspectRatio - 1.0) / (maxAspectRatio - 1.0) + 1.0;
 	[tilesSizeSlider setFloatValue:tileAspectRatio];
 	
+	[[tilesSizePopUp itemAtIndex:0] setTitle:[NSString stringWithAspectRatio:[self aspectRatio]]];
+	
+		// Update the tile count slider.
 	int		minX = [tilesAcrossSlider minValue], 
 			minY = [tilesDownSlider minValue], 
 			maxX = [tilesAcrossSlider maxValue], 
@@ -223,64 +225,35 @@ enum { tilesSizeOther, tilesSize1x1, tilesSize3x4, tilesSize4x3 };
 
 - (IBAction)setTilesSize:(id)sender
 {
-	int	tilesSize = [tilesSizePopUp selectedTag];
+	float	tileAspectRatio = 1.0;
+	if ([tilesSizePopUp selectedTag] == tilesSize3x4)
+		tileAspectRatio = 3.0 / 4.0;
+	else if ([tilesSizePopUp selectedTag] == tilesSize4x3)
+		tileAspectRatio = 4.0 / 3.0;
 	
-	if (tilesSize == tilesSizeOther)
-	{
-		if ([tilesSizeSlider respondsToSelector:@selector(setHidden:)])
-		{
-			[tilesSizeSlider setHidden:NO];
-			[tilesSizeTextField setHidden:NO];
-			[widerLabel setHidden:NO];
-			[tallerLabel setHidden:NO];
-		}
-		[tilesSizeSlider setEnabled:YES];
-		[tilesSizeTextField setEnabled:YES];
-		[tilesSizeTextField setStringValue:[NSString stringWithAspectRatio:[self aspectRatio]]];
-	}
+		// Map the ratio to the slider position.
+	if (tileAspectRatio < 1.0)
+		tileAspectRatio = (tileAspectRatio - minAspectRatio) / (1.0 - minAspectRatio);
 	else
-	{
-		if ([tilesSizeSlider respondsToSelector:@selector(setHidden:)])
-		{
-			[tilesSizeSlider setHidden:YES];
-			[tilesSizeTextField setHidden:YES];
-			[widerLabel setHidden:YES];
-			[tallerLabel setHidden:YES];
-		}
-		[tilesSizeSlider setEnabled:NO];
-		[tilesSizeTextField setEnabled:NO];
-		[tilesSizeTextField setStringValue:@""];
-		
-			// Use a preset ratio.
-		float	tileAspectRatio = 1.0;
-		if (tilesSize == tilesSize3x4)
-			tileAspectRatio = 3.0 / 4.0;
-		else if (tilesSize == tilesSize4x3)
-			tileAspectRatio = 4.0 / 3.0;
-		
-			// Map the ratio to the slider position.
-		if (tileAspectRatio < 1.0)
-			tileAspectRatio = (tileAspectRatio - minAspectRatio) / (1.0 - minAspectRatio);
-		else
-			tileAspectRatio = (tileAspectRatio - 1.0) / (maxAspectRatio - 1.0) + 1.0;
-		[tilesSizeSlider setFloatValue:tileAspectRatio];
-		
-		[self setFreeFormControlsBasedOnFixedSizeControls];
-		
-		[currentTileShapes setTilesAcross:[tilesAcrossSlider intValue]];
-		[currentTileShapes setTilesDown:[tilesDownSlider intValue]];
-		
-		[self updatePlugInDefaults];
-		
-		[editorDelegate tileShapesWereEdited];
-	}
+		tileAspectRatio = (tileAspectRatio - 1.0) / (maxAspectRatio - 1.0) + 1.0;
+	[tilesSizeSlider setFloatValue:tileAspectRatio];
+	
+	[self setFreeFormControlsBasedOnFixedSizeControls];
+	[[tilesSizePopUp itemAtIndex:0] setTitle:[NSString stringWithAspectRatio:[self aspectRatio]]];
+	
+	[currentTileShapes setTilesAcross:[tilesAcrossSlider intValue]];
+	[currentTileShapes setTilesDown:[tilesDownSlider intValue]];
+	
+	[self updatePlugInDefaults];
+	
+	[editorDelegate tileShapesWereEdited];
 }
 
 
 - (IBAction)setOtherTilesSize:(id)sender
 {
 	[self setFreeFormControlsBasedOnFixedSizeControls];
-	[tilesSizeTextField setStringValue:[NSString stringWithAspectRatio:[self aspectRatio]]];
+	[[tilesSizePopUp itemAtIndex:0] setTitle:[NSString stringWithAspectRatio:[self aspectRatio]]];
 	
 	[currentTileShapes setTilesAcross:[tilesAcrossSlider intValue]];
 	[currentTileShapes setTilesDown:[tilesDownSlider intValue]];
