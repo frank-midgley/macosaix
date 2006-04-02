@@ -370,28 +370,33 @@ static NSArray	*formatExtensions = nil;
 				
 					// Translate the tile's outline (in unit space) to the size of the exported image.
 				NSRect		drawRect;
-				if ([clipPath bounds].size.width / [pixletImageRep size].width <
-					[clipPath bounds].size.height / [pixletImageRep size].height)
+				NSSize		clipSize = [clipPath bounds].size,
+							pixletSize = [pixletImageRep size];
+				if (clipSize.width / pixletSize.width < clipSize.height / pixletSize.height)
 				{
-					drawRect.size = NSMakeSize([clipPath bounds].size.height * [pixletImageRep size].width /
-								[pixletImageRep size].height,
-								[clipPath bounds].size.height);
-					drawRect.origin = NSMakePoint([clipPath bounds].origin.x - 
-									(drawRect.size.width - [clipPath bounds].size.width) / 2.0,
-								[clipPath bounds].origin.y);
+					drawRect.size = NSMakeSize(clipSize.height * pixletSize.width / pixletSize.height,
+											   clipSize.height);
+					drawRect.origin = NSMakePoint(NSMinX([clipPath bounds]) - 
+												  (NSWidth(drawRect) - clipSize.width) / 2.0,
+												  NSMinY([clipPath bounds]));
 				}
 				else
 				{
-					drawRect.size = NSMakeSize([clipPath bounds].size.width,
-								[clipPath bounds].size.width * [pixletImageRep size].height /
-								[pixletImageRep size].width);
-					drawRect.origin = NSMakePoint([clipPath bounds].origin.x,
-								[clipPath bounds].origin.y - 
-									(drawRect.size.height - [clipPath bounds].size.height) / 2.0);
+					drawRect.size = NSMakeSize(clipSize.width,
+											   clipSize.width * pixletSize.height / pixletSize.width);
+					drawRect.origin = NSMakePoint(NSMinX([clipPath bounds]),
+												  NSMinY([clipPath bounds]) - 
+												  (NSHeight(drawRect) - clipSize.height) / 2.0);
 				}
 				
+//				drawRect = NSMakeRect(floorf(NSMinX(drawRect)), 
+//									  floorf(NSMinY(drawRect)), 
+//									  ceilf(NSMaxX(drawRect)) - floorf(NSMinX(drawRect)), 
+//									  ceilf(NSMaxY(drawRect)) - floorf(NSMinY(drawRect)));
+//				NSLog(@"x:%g-%g y:%g-%g", NSMinX(drawRect), NSMaxX(drawRect), NSMinY(drawRect), NSMaxY(drawRect));
+				
 					// Finally, draw the tile's image.
-				NSImage *pixletImage = [[[NSImage alloc] initWithSize:[pixletImageRep size]] autorelease];
+				NSImage *pixletImage = [[[NSImage alloc] initWithSize:pixletSize] autorelease];
 				[pixletImage addRepresentation:pixletImageRep];
 				[pixletImage drawInRect:drawRect 
 							   fromRect:NSZeroRect 
@@ -535,7 +540,8 @@ static NSArray	*formatExtensions = nil;
 			[exportHTML appendString:exportAreasHTML];
 			NSString		*export5HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export5" ofType:@"html"];
 			[exportHTML appendString:[NSString stringWithContentsOfFile:export5HTMLPath]];
-			[exportHTML writeToFile:[filename stringByAppendingPathComponent:@"index.html"] atomically:NO];
+			filename = [filename stringByAppendingPathComponent:@"index.html"];
+			[exportHTML writeToFile:filename atomically:NO];
 		}
 		else
 			[bitmapData writeToFile:filename atomically:YES];
@@ -545,7 +551,7 @@ static NSArray	*formatExtensions = nil;
 	NS_ENDHANDLER
 	
 	if (!error && openWhenComplete)
-		[[NSWorkspace sharedWorkspace] openFile:[filename stringByAppendingPathComponent:@"index.html"]];
+		[[NSWorkspace sharedWorkspace] openFile:filename];
 	
 	if (didEndSelector)
 		[delegate performSelector:didEndSelector withObject:error];
