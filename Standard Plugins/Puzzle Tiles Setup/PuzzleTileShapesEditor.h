@@ -15,18 +15,22 @@
 	IBOutlet NSView				*editorView;
     IBOutlet NSTextField		*tilesAcrossTextField,
 								*tilesDownTextField, 
-								*tileSizeTextField,
 								*tabbedSidesTextField, 
 								*curvinessTextField;
 	IBOutlet NSSlider			*tilesAcrossSlider,
 								*tilesDownSlider, 
-								*tileSizeSlider, 
+								*tilesSizeSlider, 
+								*tilesCountSlider, 
 								*tabbedSidesSlider, 
 								*curvinessSlider;
-	IBOutlet NSButton			*preserveTileSizeCheckBox;
+	IBOutlet NSStepper			*tilesAcrossStepper, 
+								*tilesDownStepper;
+	IBOutlet NSPopUpButton		*tilesSizePopUp;
 	IBOutlet NSMatrix			*alignImagesMatrix;
 	id							editorDelegate;
 	NSSize						originalImageSize;
+	float						minAspectRatio,
+								maxAspectRatio;
 	MacOSaiXPuzzleTileShapes	*currentTileShapes;
 	
 	NSTimer						*previewTimer;
@@ -36,10 +40,11 @@
 - (IBAction)setTilesAcross:(id)sender;
 - (IBAction)setTilesDown:(id)sender;
 - (IBAction)setTilesSize:(id)sender;
+- (IBAction)setTilesCount:(id)sender;
+
 - (IBAction)setTabbedSides:(id)sender;
 - (IBAction)setCurviness:(id)sender;
 
-- (IBAction)setTileSizePreserved:(id)sender;
 - (IBAction)setImagesAligned:(id)sender;
 
 @end

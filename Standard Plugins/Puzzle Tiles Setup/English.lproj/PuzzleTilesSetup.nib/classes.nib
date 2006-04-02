@@ -6,8 +6,8 @@
                 setCurviness = id; 
                 setImagesAligned = id; 
                 setTabbedSides = id; 
-                setTileSizePreserved = id; 
                 setTilesAcross = id; 
+                setTilesCount = id; 
                 setTilesDown = id; 
                 setTilesSize = id; 
             }; 
@@ -19,15 +19,17 @@
                 curvinessTextField = NSTextField; 
                 editorDelegate = id; 
                 editorView = NSView; 
-                preserveTileSizeCheckBox = NSButton; 
                 tabbedSidesSlider = NSSlider; 
                 tabbedSidesTextField = NSTextField; 
-                tileSizeSlider = NSSlider; 
-                tileSizeTextField = NSTextField; 
                 tilesAcrossSlider = NSSlider; 
+                tilesAcrossStepper = NSStepper; 
                 tilesAcrossTextField = NSTextField; 
+                tilesCountSlider = NSSlider; 
                 tilesDownSlider = NSSlider; 
+                tilesDownStepper = NSStepper; 
                 tilesDownTextField = NSTextField; 
+                tilesSizePopUp = NSPopUpButton; 
+                tilesSizeSlider = NSSlider; 
             }; 
             SUPERCLASS = NSObject; 
         }

@@ -255,8 +255,8 @@
 		NSDictionary	*plugInDefaults = [[NSUserDefaults standardUserDefaults] objectForKey:@"Puzzle Tile Shapes"];
 		int				tilesAcrossPref = [[plugInDefaults objectForKey:@"Tiles Across"] intValue],
 						tilesDownPref = [[plugInDefaults objectForKey:@"Tiles Down"] intValue];
-		float			tabbedSidesPref = [[plugInDefaults objectForKey:@"Tabbed Sides"] floatValue],
-						curvinessPref = [[plugInDefaults objectForKey:@"Curviness"] floatValue];
+		float			tabbedSidesPref = [[plugInDefaults objectForKey:@"Tabbed Sides Percentage"] floatValue] / 100.0,
+						curvinessPref = [[plugInDefaults objectForKey:@"Curviness Percentage"] floatValue] / 100.0;
 
 		[self setTilesAcross:MIN(MAX(10, tilesAcrossPref), 200)];
 		[self setTilesDown:MIN(MAX(10, tilesDownPref), 200)];
