@@ -37,5 +37,6 @@
 - (MacOSaiXFullScreenController *)openMosaicWindowOnScreen:(NSScreen *)screen;
 
 - (IBAction)enterKioskMode:(id)sender;
+- (BOOL)inKioskMode;
 
 @end

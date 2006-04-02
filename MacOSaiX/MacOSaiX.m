@@ -129,7 +129,7 @@
 
 - (BOOL)applicationShouldOpenUntitledFile:(NSApplication *)sender
 {
-	return YES;
+	return ![self inKioskMode];
 }
 
 
@@ -427,6 +427,12 @@
 		[[controller window] close];
 	
 	[mainSetupController release];
+}
+
+
+- (BOOL)inKioskMode
+{
+	return (kioskController != nil);
 }
 
 
