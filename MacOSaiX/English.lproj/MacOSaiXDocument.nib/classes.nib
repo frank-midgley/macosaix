@@ -1,5 +1,6 @@
 {
     IBClasses = (
+        {CLASS = MacOSaiXEventCatchingPanel; LANGUAGE = ObjC; SUPERCLASS = NSWindow; }, 
         {
             ACTIONS = {
                 addNewImageSource = id; 
