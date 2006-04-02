@@ -52,7 +52,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(250.0, 140.0);
+	return NSMakeSize(270.0, 211.0);
 }
 
 
