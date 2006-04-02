@@ -34,12 +34,6 @@
 }
 
 
-- (void)setOKButton:(NSButton *)button
-{
-	okButton = button;
-}
-
-
 - (void)editImageSource:(id<MacOSaiXImageSource>)imageSource
 {
 	[iconView setImage:[imageSource image]];
@@ -116,6 +110,12 @@
 		[matrix selectCellAtRow:0 column:0];
 	
 	currentImageSource = (MacOSaiXiPhotoImageSource *)imageSource;
+}
+
+
+- (BOOL)settingsAreValid
+{
+	return YES;
 }
 
 

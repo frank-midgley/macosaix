@@ -19,7 +19,6 @@
 	IBOutlet NSProgressIndicator	*matchingPhotosIndicator;
 	NSTimer							*matchingPhotosTimer;
 	
-	NSButton						*okButton;
 	FlickrImageSource				*currentImageSource;
 }
 

@@ -33,12 +33,6 @@
 }
 
 
-- (void)setOKButton:(NSButton *)button
-{
-	okButton = button;
-}
-
-
 - (void)editImageSource:(id<MacOSaiXImageSource>)imageSource
 {
 	currentImageSource = (GoogleImageSource *)imageSource;
@@ -49,6 +43,15 @@
 	[colorSpacePopUpButton selectItemAtIndex:[currentImageSource colorSpace]];
 	[siteTextField setStringValue:([currentImageSource siteString] ? [currentImageSource siteString] : @"")];
 	[adultContentFilteringPopUpButton selectItemAtIndex:[currentImageSource adultContentFiltering]];
+}
+
+
+- (BOOL)settingsAreValid
+{
+	return ([[currentImageSource requiredTerms] length] > 0 || 
+			[[currentImageSource optionalTerms] length] > 0 || 
+			[[currentImageSource excludedTerms] length] > 0 || 
+			[[currentImageSource siteString] length] > 0);
 }
 
 

@@ -238,7 +238,9 @@ static NSImage			*sQuickTimeImage = nil;
 	}
 	@catch (NSException *exception)
 	{
-		NSLog(@"QuickTime Image Source: Could not set current image.");
+		#ifdef DEBUG
+			NSLog(@"QuickTime Image Source: Could not set current image.");
+		#endif
 	}
 	@finally
 	{

@@ -19,7 +19,6 @@
 	IBOutlet NSPopUpButton	*colorSpacePopUpButton,
 							*adultContentFilteringPopUpButton;
 
-	NSButton				*okButton;
 	GoogleImageSource		*currentImageSource;
 }
 

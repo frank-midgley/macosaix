@@ -21,8 +21,6 @@
 	IBOutlet NSPopUpButton		*albumsPopUp,
 								*keywordsPopUp;
 	
-	NSButton					*okButton;
-	
 		// The image source instance currently being edited.
 	MacOSaiXiPhotoImageSource	*currentImageSource;
 }

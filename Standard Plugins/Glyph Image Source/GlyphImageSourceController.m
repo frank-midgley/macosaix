@@ -68,12 +68,6 @@
 }
 
 
-- (void)setOKButton:(NSButton *)button
-{
-	okButton = button;
-}
-
-
 - (void)updateSample:(NSTimer *)timer
 {
 	[currentImageSource reset];
@@ -169,6 +163,12 @@
 		
 		[[NSNotificationCenter defaultCenter] removeObserver:self name:NSColorListDidChangeNotification object:nil];
 	}
+}
+
+
+- (BOOL)settingsAreValid
+{
+	return YES;	// TODO: at least one font and one color chosen
 }
 
 

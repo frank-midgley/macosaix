@@ -636,7 +636,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		// Now that the sheet is big enough we can swap in the controller's editor view.
 	[imageSourceEditorBox setContentView:[imageSourceEditorController editorView]];
 
-	[imageSourceEditorController setOKButton:imageSourceEditorOKButton];	// so the controller can disable it for invalid settings
+		// Tell the editor to edit the source.
 	[imageSourceEditorController editImageSource:editableSource];
 	
 		// Re-establish the key view loop:
@@ -657,6 +657,12 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		modalDelegate:self 
 	   didEndSelector:@selector(imageSourceEditorDidEnd:returnCode:contextInfo:) 
 		  contextInfo:[[NSArray arrayWithObjects:editableSource, originalImageSource, nil] retain]];
+}
+
+
+- (void)windowEventDidOccur:(NSEvent *)event
+{
+	[imageSourceEditorOKButton setEnabled:[imageSourceEditorController settingsAreValid]];
 }
 
 

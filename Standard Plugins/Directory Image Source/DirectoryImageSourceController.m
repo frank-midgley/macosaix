@@ -68,12 +68,6 @@
 }
 
 
-- (void)setOKButton:(NSButton *)button
-{
-	okButton = button;
-}
-
-
 - (int)rowOfCurrentFolder
 {
 	int					row = 0;
@@ -172,6 +166,12 @@
 	}
 	
 	[self setCurrentImageSource:(DirectoryImageSource *)imageSource];
+}
+
+
+- (BOOL)settingsAreValid
+{
+	return ([currentImageSource path] != nil);
 }
 
 
@@ -280,16 +280,11 @@
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
 	if ([folderTableView selectedRow] == -1)
-	{
 		[currentImageSource setPath:nil];
-		[okButton setEnabled:NO];
-	}
 	else
 	{
 		NSDictionary	*folderDict = [folderList objectAtIndex:[folderTableView selectedRow]];
 		[currentImageSource setPath:[folderDict objectForKey:@"Path"]];
-		
-		[okButton setEnabled:YES];
 	}
 }
 

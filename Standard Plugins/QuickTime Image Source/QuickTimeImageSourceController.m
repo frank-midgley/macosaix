@@ -204,20 +204,6 @@
 }
 
 
-- (void)setOKButton:(NSButton *)button
-{
-	okButton = button;
-	
-		// Set up to get notified when the window changes size so that we can adjust the
-		// width of the movie view in a way that preserves the movie's aspect ratio.
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:nil];
-	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(movieSuperViewDidChangeFrame:) 
-												 name:NSViewFrameDidChangeNotification 
-											   object:[movieView superview]];
-}
-
-
 - (void)editImageSource:(id<MacOSaiXImageSource>)imageSource
 {
 	[currentImageSource release];
@@ -237,12 +223,26 @@
 		[currentImageSource setPath:[[moviesController selection] valueForKey:@"path"]];
 	
 	[saveFramesCheckBox setState:([currentImageSource canRefetchImages] ? NSOffState : NSOnState)];
+	
+		// Set up to get notified when the window changes size so that we can adjust the
+		// width of the movie view in a way that preserves the movie's aspect ratio.
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(movieSuperViewDidChangeFrame:) 
+												 name:NSViewFrameDidChangeNotification 
+											   object:[movieView superview]];
+}
+
+
+- (BOOL)settingsAreValid
+{
+	return ([[moviesController selectedObjects] count] == 1);
 }
 
 
 - (void)editingComplete
 {
 	[movieView setMovie:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:nil];
 }
 
 
@@ -329,13 +329,9 @@
 	{
 		[self sizeMovieView];
 		[currentImageSource setPath:[[selectedMovieDicts lastObject] valueForKey:@"path"]];
-		[okButton setEnabled:YES];
 	}
 	else
-	{
 		[currentImageSource setPath:nil];
-		[okButton setEnabled:NO];
-	}
 }
 
 
@@ -367,7 +363,6 @@
 - (void)dealloc
 {
 	[currentImageSource release];
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:nil];
 	
 	[super dealloc];
 }

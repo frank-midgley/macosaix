@@ -33,18 +33,18 @@
 }
 
 
-- (void)setOKButton:(NSButton *)button
-{
-	okButton = button;
-}
-
-
 - (void)editImageSource:(id<MacOSaiXImageSource>)imageSource
 {
 	currentImageSource = (FlickrImageSource *)imageSource;
 	
 	[queryField setStringValue:([currentImageSource queryString] ? [currentImageSource queryString] : @"")];
 	[queryTypeMatrix selectCellAtRow:[currentImageSource queryType] column:0];
+}
+
+
+- (BOOL)settingsAreValid
+{
+	return ([[currentImageSource queryString] length] > 0);
 }
 
 
@@ -162,8 +162,6 @@
 		NSString	*queryString = [[queryField stringValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 		
 		[currentImageSource setQueryString:queryString];
-		
-		[okButton setEnabled:([queryString length] > 0)];
 		
 		[self getCountOfMatchingPhotos];
 	}

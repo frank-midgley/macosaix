@@ -34,8 +34,6 @@
 	IBOutlet NSMatrix			*countMatrix;
 	IBOutlet NSTextField		*countTextField;
 	
-	NSButton					*okButton;
-	
 	MacOSaiXGlyphImageSource	*currentImageSource;
 	NSTimer						*sampleTimer;
 	

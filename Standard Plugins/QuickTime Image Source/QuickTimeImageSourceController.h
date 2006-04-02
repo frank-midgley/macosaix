@@ -25,8 +25,6 @@
 	IBOutlet NSMovieView		*movieView;
 	IBOutlet NSTextField		*movieNameTextField;
 	
-	NSButton					*okButton;
-	
 	QuickTimeImageSource		*currentImageSource;
 }
 

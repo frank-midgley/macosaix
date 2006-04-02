@@ -89,13 +89,15 @@
 	// This method should return the control of the editor view that should initially receive focus.
 - (NSResponder *)firstResponder;
 
-	// This method is called to allow the controller to disable the OK when appropriate.
-- (void)setOKButton:(NSButton *)button;
-
 	// This method is called whenever an image source is to be edited.  The controller 
 	// should populate its controls with the values from the image source and update the 
 	// source when the user makes changes to the controls.
 - (void)editImageSource:(id<MacOSaiXImageSource>)imageSource;
+
+	// This method should indicate whether the current state of the editing controls 
+	// represents a valid image source.  If NO then the OK button will be disabled.
+- (BOOL)settingsAreValid;
+
 - (void)editingComplete;
 
 @end

@@ -20,7 +20,6 @@
 	IBOutlet NSButton		*chooseFolderButton, 
 							*clearFolderListButton, 
 							*followsAliasesButton;
-	NSButton				*okButton;
 	
 	NSMutableArray			*folderList;
 	
