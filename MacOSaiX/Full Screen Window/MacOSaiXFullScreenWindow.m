@@ -22,7 +22,11 @@
 
 - (void)sendEvent:(NSEvent *)theEvent
 {
-	if ([(MacOSaiXFullScreenController *)[self windowController] closesOnKeyPress] && [theEvent type] == NSKeyDown)
+	NSWindowController	*controller = [self windowController];
+	
+	if ([controller isKindOfClass:[MacOSaiXFullScreenController class]] && 
+		[(MacOSaiXFullScreenController *)controller closesOnKeyPress] && 
+		[theEvent type] == NSKeyDown)
 		[self close];
 	else
 		[super sendEvent:theEvent];
