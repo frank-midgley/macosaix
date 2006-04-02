@@ -46,7 +46,7 @@
 
 @protocol MacOSaiXTileShapesEditor <NSObject>
 
-- (id)initWithDelegate:(id)delegate;
+- (id)initWithOriginalImage:(NSImage *)originalImage;
 
 	// The view containing the editing controls.
 - (NSView *)editorView;
@@ -65,7 +65,5 @@
 
 @end
 
-@interface NSObject (MacOSaiXTileShapesEditorDelegate)
-- (NSImage *)originalImage;
-- (void)tileShapesWereEdited;
-@end
+
+#define MacOSaiXTileShapesDidChangeNotification @"MacOSaiXTileShapesDidChangeNotification"

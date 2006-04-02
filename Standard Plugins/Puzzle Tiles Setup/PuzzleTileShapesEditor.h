@@ -27,7 +27,7 @@
 								*tilesDownStepper;
 	IBOutlet NSPopUpButton		*tilesSizePopUp;
 	IBOutlet NSMatrix			*alignImagesMatrix;
-	id							editorDelegate;
+	
 	NSSize						originalImageSize;
 	float						minAspectRatio,
 								maxAspectRatio;

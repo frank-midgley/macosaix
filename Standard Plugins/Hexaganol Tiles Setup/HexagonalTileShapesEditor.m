@@ -47,14 +47,10 @@
 }
 
 
-- (id)initWithDelegate:(id)delegate
+- (id)initWithOriginalImage:(NSImage *)originalImage
 {
 	if (self = [super init])
-	{
-		editorDelegate = delegate;
-		
-		originalImageSize = [[editorDelegate originalImage] size];
-	}
+		originalImageSize = [originalImage size];
 	
 	return self;
 }
@@ -130,7 +126,7 @@
 	else
 		NSBeep();
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 }
 
 
@@ -157,7 +153,7 @@
 	else
 		NSBeep();
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 }
 
 
@@ -177,7 +173,7 @@
 	if ([restrictTileSizeCheckBox state] == NSOnState)
 		[self setTilesDownBasedOnTilesAcross];
 	else
-		[editorDelegate tileShapesWereEdited];
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 	
 	[self updatePlugInDefaults];
 }
@@ -199,7 +195,7 @@
 	if ([restrictTileSizeCheckBox state] == NSOnState)
 		[self setTilesAcrossBasedOnTilesDown];
 	else
-		[editorDelegate tileShapesWereEdited];
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 	
 	[self updatePlugInDefaults];
 }

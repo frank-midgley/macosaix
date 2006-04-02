@@ -28,7 +28,6 @@
 	IBOutlet NSSlider				*tilesSizeSlider,
 									*tilesCountSlider;
 	
-	id								editorDelegate;
 	NSSize							originalImageSize;
 	float							minAspectRatio,
 									maxAspectRatio;

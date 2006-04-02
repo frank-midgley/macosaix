@@ -171,9 +171,17 @@
 	if (editorClass)
 	{
 			// Release any previous editor and create a new one using the selected class.
-		[editor editingComplete];
-		[editor release];
-		editor = [[editorClass alloc] initWithDelegate:self];
+		if (editor)
+		{
+			[editor editingComplete];
+			[editor release];
+			[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXTileShapesDidChangeNotification object:editor];
+		}
+		editor = [[editorClass alloc] initWithOriginalImage:[[self mosaic] originalImage]];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(tileShapesDidChange:)
+													 name:MacOSaiXTileShapesDidChangeNotification 
+												   object:editor];
 		
 		[self updatePreview];
 	
@@ -234,7 +242,7 @@
 }
 
 
-- (void)tileShapesWereEdited
+- (void)tileShapesDidChange:(NSNotification *)notification
 {
 	int		tileCount = [editor tileCount];
 	

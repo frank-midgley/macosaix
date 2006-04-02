@@ -39,10 +39,10 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (id)initWithDelegate:(id)delegate
+- (id)initWithOriginalImage:(NSImage *)originalImage
 {
 	if (self = [super init])
-		editorDelegate = delegate;
+		originalImageSize = [originalImage size];
 	
 	return self;
 }
@@ -84,8 +84,6 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 {
 	[self setCurrentTileShapes:tilesSetup];
 	
-	originalImageSize = [[editorDelegate originalImage] size];
-	
 	minAspectRatio = (originalImageSize.width / [tilesAcrossSlider maxValue]) / 
 					 (originalImageSize.height / [tilesDownSlider minValue]);
 	maxAspectRatio = (originalImageSize.width / [tilesAcrossSlider minValue]) / 
@@ -117,7 +115,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	[curvinessSlider setFloatValue:curviness];
 	[curvinessTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", curviness * 100.0]];
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 	
 	previewTimer = [[NSTimer scheduledTimerWithTimeInterval:1.0 
 													 target:self 
@@ -222,7 +220,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 }
 
 
@@ -239,7 +237,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 }
 
 
@@ -269,7 +267,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 }
 
 
@@ -282,7 +280,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 }
 
 
@@ -295,7 +293,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	[currentTileShapes setTabbedSidesRatio:[tabbedSidesSlider floatValue]];
 	[tabbedSidesTextField setStringValue:[NSString stringWithFormat:@"%d%%", (int)([tabbedSidesSlider floatValue] * 100.0)]];
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 	
 	[self updatePlugInDefaults];
 }
@@ -306,7 +304,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	[currentTileShapes setCurviness:[curvinessSlider floatValue]];
 	[curvinessTextField setStringValue:[NSString stringWithFormat:@"%d%%", (int)([curvinessSlider floatValue] * 100.0)]];
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 	
 	[self updatePlugInDefaults];
 }
@@ -316,7 +314,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 {
 	[currentTileShapes setImagesAligned:[alignImagesMatrix selectedRow] == 1];
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 	
 	[self updatePlugInDefaults];
 }
@@ -348,7 +346,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	previewPiece.bottomRightVerticalCurve = (random() % 200 - 100) / 100.0 * curviness;
 	previewPiece.alignImages = ([alignImagesMatrix selectedRow] == 1);
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 }
 
 

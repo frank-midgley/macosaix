@@ -30,11 +30,11 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (id)initWithDelegate:(id)delegate
+- (id)initWithOriginalImage:(NSImage *)originalImage
 {
 	if (self = [super init])
 	{
-		editorDelegate = delegate;
+		originalImageSize = [originalImage size];
 	}
 	
 	return self;
@@ -84,8 +84,6 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 {
 	[self setCurrentTileShapes:tilesSetup];
 	
-	originalImageSize = [[editorDelegate originalImage] size];
-	
 	minAspectRatio = (originalImageSize.width / [tilesAcrossSlider maxValue]) / 
 					 (originalImageSize.height / [tilesDownSlider minValue]);
 	maxAspectRatio = (originalImageSize.width / [tilesAcrossSlider minValue]) / 
@@ -107,7 +105,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self setFixedSizeControlsBasedOnFreeformControls];
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 }
 
 
@@ -202,7 +200,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 }
 
 
@@ -219,7 +217,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 }
 
 
@@ -246,7 +244,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 }
 
 
@@ -260,7 +258,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 }
 
 
@@ -273,7 +271,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[editorDelegate tileShapesWereEdited];
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
 }
 
 
