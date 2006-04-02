@@ -10,6 +10,8 @@
 		0109CA3F09D385DF008290BE /* MacOSaiXWarningController.h in Headers */ = {isa = PBXBuildFile; fileRef = 0109CA3D09D385DF008290BE /* MacOSaiXWarningController.h */; };
 		0109CA4009D385DF008290BE /* MacOSaiXWarningController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0109CA3E09D385DF008290BE /* MacOSaiXWarningController.m */; };
 		0109CA4709D385E5008290BE /* Warning.nib in Resources */ = {isa = PBXBuildFile; fileRef = 0109CA4109D385E5008290BE /* Warning.nib */; };
+		0109D41509E084D8008290BE /* MacOSaiXEventCatchingPanel.h in Headers */ = {isa = PBXBuildFile; fileRef = 0109D41309E084D8008290BE /* MacOSaiXEventCatchingPanel.h */; };
+		0109D41609E084D8008290BE /* MacOSaiXEventCatchingPanel.m in Sources */ = {isa = PBXBuildFile; fileRef = 0109D41409E084D8008290BE /* MacOSaiXEventCatchingPanel.m */; };
 		010D1F7608FF5FAD00950013 /* MacOSaiXFullScreenWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 010D1F7408FF5FAD00950013 /* MacOSaiXFullScreenWindow.h */; };
 		010D1F7708FF5FAD00950013 /* MacOSaiXFullScreenWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 010D1F7508FF5FAD00950013 /* MacOSaiXFullScreenWindow.m */; };
 		010D20B60902C01700950013 /* Kiosk Setup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 010D20980902C01700950013 /* Kiosk Setup.nib */; };
@@ -389,6 +391,8 @@
 		0109CA3D09D385DF008290BE /* MacOSaiXWarningController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXWarningController.h; sourceTree = "<group>"; };
 		0109CA3E09D385DF008290BE /* MacOSaiXWarningController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXWarningController.m; sourceTree = "<group>"; };
 		0109CA4209D385E5008290BE /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Warning.nib; sourceTree = "<group>"; };
+		0109D41309E084D8008290BE /* MacOSaiXEventCatchingPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXEventCatchingPanel.h; sourceTree = "<group>"; };
+		0109D41409E084D8008290BE /* MacOSaiXEventCatchingPanel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXEventCatchingPanel.m; sourceTree = "<group>"; };
 		010D1F7408FF5FAD00950013 /* MacOSaiXFullScreenWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXFullScreenWindow.h; sourceTree = "<group>"; };
 		010D1F7508FF5FAD00950013 /* MacOSaiXFullScreenWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXFullScreenWindow.m; sourceTree = "<group>"; };
 		010D20990902C01700950013 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Kiosk Setup.nib"; sourceTree = "<group>"; };
@@ -410,8 +414,6 @@
 		016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXHandPickedImageSource.h; sourceTree = "<group>"; };
 		016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXHandPickedImageSource.m; sourceTree = "<group>"; };
 		016A2E3108D1459D002D56C1 /* Version.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Version.plist; sourceTree = "<group>"; };
-		016A312108D5276A002D56C1 /* MacOSaiXImageDeallocator.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageDeallocator.h; sourceTree = "<group>"; };
-		016A312208D5276A002D56C1 /* MacOSaiXImageDeallocator.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXImageDeallocator.m; sourceTree = "<group>"; };
 		01722B8D09298D3300290929 /* FlickrImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FlickrImageSource.h; sourceTree = "<group>"; };
 		01722B8E09298D3300290929 /* FlickrImageSource.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = FlickrImageSource.m; sourceTree = "<group>"; };
 		01722B8F09298D3300290929 /* FlickrImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FlickrImageSourceController.h; sourceTree = "<group>"; };
@@ -676,6 +678,8 @@
 				9289DDA6073D713100C88091 /* MacOSaiXWindowController.m */,
 				92887D9A094CCC83000FA225 /* MacOSaiXPopUpImageView.h */,
 				92887D9B094CCC83000FA225 /* MacOSaiXPopUpImageView.m */,
+				0109D41309E084D8008290BE /* MacOSaiXEventCatchingPanel.h */,
+				0109D41409E084D8008290BE /* MacOSaiXEventCatchingPanel.m */,
 			);
 			name = Document;
 			sourceTree = "<group>";
@@ -1008,8 +1012,6 @@
 				016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */,
 				9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */,
 				9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */,
-				016A312108D5276A002D56C1 /* MacOSaiXImageDeallocator.h */,
-				016A312208D5276A002D56C1 /* MacOSaiXImageDeallocator.m */,
 				016A2C5008CD2611002D56C1 /* MacOSaiXImageMatch.h */,
 				016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */,
 				92B9087908C25F0500D621F5 /* MacOSaiXImageMatcher.h */,
@@ -1146,6 +1148,7 @@
 				9298FE030995592300E7A096 /* MacOSaiXExportController.h in Headers */,
 				924E805D099E8C0D006977E3 /* MacOSaiXTilesSetupController.h in Headers */,
 				0109CA3F09D385DF008290BE /* MacOSaiXWarningController.h in Headers */,
+				0109D41509E084D8008290BE /* MacOSaiXEventCatchingPanel.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1869,6 +1872,7 @@
 				9298FE040995592300E7A096 /* MacOSaiXExportController.m in Sources */,
 				924E805E099E8C0D006977E3 /* MacOSaiXTilesSetupController.m in Sources */,
 				0109CA4009D385DF008290BE /* MacOSaiXWarningController.m in Sources */,
+				0109D41609E084D8008290BE /* MacOSaiXEventCatchingPanel.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
