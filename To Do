@@ -38,7 +38,7 @@ Riemersma metric:
 ¥	New mosaic from image on clipboard
 ¥	Mosaic image source.  (use images from an existing mosaic) (Mark Everdell)
 ¥	Streaming QT source
-¥	Save a low-res version of the mosaic image
+¥	Save a low-res version of the mosaic image in the document
 
 
 2.0x To Do:
@@ -64,6 +64,7 @@ Riemersma metric:
 ¥		Create documentation
 ¥		Create sample plug-in projects
 ¥	Prompt for password when leaving kiosk mode
+¥	Add background setting for kiosk mode
 ¥	Enable cancelling of document load
 ¥	Clean up about box
 ¥	Kiosk dialogs on secondary monitors not ordering out
@@ -78,8 +79,7 @@ Riemersma metric:
 ¥	Save&restore pause state
 ¥	Disable "tiles apart" pop-up when images can only appear in one tile
 ¥	Add "Report Crashes" option
-¥	Selected tile highlight cropped when zoomed
-¥	Disable background options when all tiles have a unique match
+¥	Disable background options when all tiles have a unique match? (breaks lines workaround)
 ¥	Clear selected source when drawer closed
 ¥	"Loading..." image in web page pop-up
 ¥	Fade too bright at 50%
@@ -144,3 +144,4 @@ Riemersma metric:
 Ã	Average tile size wrong in Tiles Setup
 ¥	Clear better match cache when original image or tiles setup change
 Ã	Get rid of all NSLog's
+Ã	Selected tile highlight cropped when zoomed
