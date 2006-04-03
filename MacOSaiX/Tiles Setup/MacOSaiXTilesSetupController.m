@@ -175,13 +175,8 @@
 		{
 			[editor editingComplete];
 			[editor release];
-			[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXTileShapesDidChangeNotification object:editor];
 		}
 		editor = [[editorClass alloc] initWithOriginalImage:[[self mosaic] originalImage]];
-		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(tileShapesDidChange:)
-													 name:MacOSaiXTileShapesDidChangeNotification 
-												   object:editor];
 		
 		[self updatePreview];
 	
@@ -242,16 +237,17 @@
 }
 
 
-- (void)tileShapesDidChange:(NSNotification *)notification
+- (void)windowEventDidOccur:(NSEvent *)event
 {
-	int		tileCount = [editor tileCount];
+	[self updatePreview];
 	
+	int		tileCount = [editor tileCount];
 	if (tileCount > 0)
 		[countField setIntValue:tileCount];
 	else
 		[countField setStringValue:@"Unknown"];
 	
-	[self updatePreview];
+	[okButton setEnabled:[editor settingsAreValid]];
 }
 
 

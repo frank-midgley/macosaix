@@ -58,12 +58,14 @@
 - (NSResponder *)firstResponder;
 
 - (void)editTileShapes:(id<MacOSaiXTileShapes>)tilesSetup;
-- (void)editingComplete;
+
+	// This method should indicate whether the current state of the editing controls 
+	// represents a valid image source.  If NO then the OK button will be disabled.
+- (BOOL)settingsAreValid;
 
 - (int)tileCount;
 - (NSBezierPath *)previewPath;
 
+- (void)editingComplete;
+
 @end
-
-
-#define MacOSaiXTileShapesDidChangeNotification @"MacOSaiXTileShapesDidChangeNotification"

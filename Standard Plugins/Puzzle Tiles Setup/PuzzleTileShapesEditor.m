@@ -18,6 +18,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 - (void)setTilesAcrossBasedOnTilesDown;
 - (void)setTilesDownBasedOnTilesAcross;
 - (void)setFixedSizeControlsBasedOnFreeformControls;
+- (void)updatePreview:(NSTimer *)timer;
 @end
 
 
@@ -73,16 +74,10 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (void)setCurrentTileShapes:(id<MacOSaiXTileShapes>)tileShapes
-{
-	[currentTileShapes autorelease];
-	currentTileShapes = [tileShapes retain];
-}
-
-
 - (void)editTileShapes:(id<MacOSaiXTileShapes>)tilesSetup
 {
-	[self setCurrentTileShapes:tilesSetup];
+	[currentTileShapes autorelease];
+	currentTileShapes = [tilesSetup retain];
 	
 	minAspectRatio = (originalImageSize.width / [tilesAcrossSlider maxValue]) / 
 					 (originalImageSize.height / [tilesDownSlider minValue]);
@@ -115,8 +110,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	[curvinessSlider setFloatValue:curviness];
 	[curvinessTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", curviness * 100.0]];
 	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
-	
+	[self updatePreview:nil];
 	previewTimer = [[NSTimer scheduledTimerWithTimeInterval:1.0 
 													 target:self 
 												   selector:@selector(updatePreview:) 
@@ -220,7 +214,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
+	[[editorView window] sendEvent:nil];
 }
 
 
@@ -237,7 +231,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
+	[[editorView window] sendEvent:nil];
 }
 
 
@@ -267,7 +261,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
+	[[editorView window] sendEvent:nil];
 }
 
 
@@ -280,7 +274,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
+	[[editorView window] sendEvent:nil];
 }
 
 
@@ -293,9 +287,9 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	[currentTileShapes setTabbedSidesRatio:[tabbedSidesSlider floatValue]];
 	[tabbedSidesTextField setStringValue:[NSString stringWithFormat:@"%d%%", (int)([tabbedSidesSlider floatValue] * 100.0)]];
 	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
-	
 	[self updatePlugInDefaults];
+	
+	[[editorView window] sendEvent:nil];
 }
 
 
@@ -304,9 +298,9 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	[currentTileShapes setCurviness:[curvinessSlider floatValue]];
 	[curvinessTextField setStringValue:[NSString stringWithFormat:@"%d%%", (int)([curvinessSlider floatValue] * 100.0)]];
 	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
-	
 	[self updatePlugInDefaults];
+	
+	[[editorView window] sendEvent:nil];
 }
 
 
@@ -314,9 +308,13 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 {
 	[currentTileShapes setImagesAligned:[alignImagesMatrix selectedRow] == 1];
 	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
-	
 	[self updatePlugInDefaults];
+}
+
+
+- (BOOL)settingsAreValid
+{
+	return YES;
 }
 
 
@@ -346,7 +344,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	previewPiece.bottomRightVerticalCurve = (random() % 200 - 100) / 100.0 * curviness;
 	previewPiece.alignImages = ([alignImagesMatrix selectedRow] == 1);
 	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
+	[[editorView window] sendEvent:nil];
 }
 
 
