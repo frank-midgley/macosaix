@@ -84,6 +84,8 @@ Riemersma metric:
 ¥	"Loading..." image in web page pop-up
 ¥	Fade too bright at 50%
 ¥	Allow specifying an original or hand-picked image by URL
+¥	Make sure everything works on virgin system
+¥	Break out image source and tile editors into their own controllers
 
 
 2.0a6 To Do:
@@ -103,7 +105,7 @@ Riemersma metric:
 Ã		OS check
 Ã		Add preferences API for image source plug-ins
 Ã		Add preferences API for tile shapes plug-ins
-¥		Delegation change for tile shapes (and image sources?) (hex shapes)
+Ã		Delegation change for tile shapes (and image sources?) (hex shapes)
 Ã	Don't loop forever scaling from the cache
 Ã	Auto-start pref not honored
 Ã	Start icon not changing to pause when started
@@ -111,7 +113,6 @@ Riemersma metric:
 Ã	Enable "Clear Menu" in originals menu
 Ã	Add "other" and "clear" items to toolbar originals menu and make clear work in both menus
 Ã	Handle case of no original images
-¥	Make sure everything works on virgin system
 Ã	Tile Setup sheet displaced when switching to puzzle pieces
 Ã	New UI for tile count/size better than previous?
 	Tile outlines display performance:
@@ -122,9 +123,9 @@ Riemersma metric:
 	Exporting
 ¥		Re-enforce 10,000 pixel limit
 Ã		Fade display
-¥		Cancelling
-¥		Initial units
-¥		Remember defaults
+Ã		Cancelling
+?		Initial units
+Ã		Remember defaults
 Ã		Background option
 Ã	Tiles not clearing when source removed
 Ã	Make Fade and Zoom toolbar items narrower
@@ -142,6 +143,7 @@ Riemersma metric:
 Ã		Recent movies
 Ã	Tiles setup panel coming up blank the second time
 Ã	Average tile size wrong in Tiles Setup
-¥	Clear better match cache when original image or tiles setup change
+Ã	Clear better match cache when original image or tiles setup change
 Ã	Get rid of all NSLog's
 Ã	Selected tile highlight cropped when zoomed
+Ã	Wrong rect being displayed in full screen mode
