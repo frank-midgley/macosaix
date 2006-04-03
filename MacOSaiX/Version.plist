@@ -21,11 +21,11 @@
 	<key>fileCreator</key>
 	<string></string>
 	<key>fileReleaseDateD</key>
-	<string>13</string>
+	<string>03</string>
 	<key>fileReleaseDateM</key>
-	<string>09</string>
+	<string>04</string>
 	<key>fileReleaseDateY</key>
-	<string>2005</string>
+	<string>2006</string>
 	<key>fileType</key>
 	<string>APPL</string>
 	<key>padVersion</key>
@@ -39,7 +39,7 @@
 		<string>http://homepage.mac.com/knarf/MacOSaiX/MacOSaiX2.0a6.dmg</string>
 	</array>
 	<key>productFileSize</key>
-	<string>444 KB</string>
+	<string>840 KB</string>
 	<key>productIconURL</key>
 	<string></string>
 	<key>productKeywords</key>
@@ -69,6 +69,7 @@
 	<string>0</string>
 	<key>productReleaseNotes</key>
 	<string>• Improved user interface.
+• MacOSaiX is now universal and will run on Intel-based Macs.
 • Yahoo's flickr photo-sharing service can now be searched for images.
 • Mosaics can now be viewed full screen.
 • A new kiosk mode is available.
@@ -88,7 +89,7 @@
 	<key>productReviews</key>
 	<string></string>
 	<key>productVersion</key>
-	<string>2.0a5</string>
+	<string>2.0a6</string>
 	<key>productWebStore</key>
 	<string></string>
 </dict>
