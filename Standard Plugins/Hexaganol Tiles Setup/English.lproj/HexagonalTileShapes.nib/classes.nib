@@ -3,25 +3,24 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
-                restrictTileSize = id; 
-                setRestrictedXSize = id; 
-                setRestrictedYSize = id; 
                 setTilesAcross = id; 
+                setTilesCount = id; 
                 setTilesDown = id; 
+                setTilesSize = id; 
             }; 
             CLASS = MacOSaiXHexagonalTileShapesEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 editorView = NSView; 
-                restrictTileSizeCheckBox = NSButton; 
-                restrictedXSizePopUpButton = NSPopUpButton; 
-                restrictedYSizePopUpButton = NSPopUpButton; 
-                tileCountTextField = NSTextField; 
-                tileSizeTextField = NSTextField; 
+                tilesAcrossSlider = NSSlider; 
                 tilesAcrossStepper = NSStepper; 
                 tilesAcrossTextField = NSTextField; 
+                tilesCountSlider = NSSlider; 
+                tilesDownSlider = NSSlider; 
                 tilesDownStepper = NSStepper; 
                 tilesDownTextField = NSTextField; 
+                tilesSizePopUp = NSPopUpButton; 
+                tilesSizeSlider = NSSlider; 
             }; 
             SUPERCLASS = NSObject; 
         }

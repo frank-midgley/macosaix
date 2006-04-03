@@ -13,24 +13,30 @@
 @interface MacOSaiXHexagonalTileShapesEditor : NSObject <MacOSaiXTileShapesEditor>
 {
 	IBOutlet NSView					*editorView;
+	
+		// Freeform controls
+	IBOutlet NSSlider				*tilesAcrossSlider,
+									*tilesDownSlider;
     IBOutlet NSTextField			*tilesAcrossTextField,
 									*tilesDownTextField;
-    IBOutlet NSStepper				*tilesAcrossStepper, 
+	IBOutlet NSStepper				*tilesAcrossStepper, 
 									*tilesDownStepper;
-	IBOutlet NSTextField			*tileCountTextField, 
-									*tileSizeTextField;
-	IBOutlet NSButton				*restrictTileSizeCheckBox;
-	IBOutlet NSPopUpButton			*restrictedXSizePopUpButton,
-									*restrictedYSizePopUpButton;
+	
+		// Fixed Size controls
+	IBOutlet NSPopUpButton			*tilesSizePopUp;
+	IBOutlet NSSlider				*tilesSizeSlider,
+									*tilesCountSlider;
 	
 	NSSize							originalImageSize;
+	float							minAspectRatio,
+									maxAspectRatio;
 	MacOSaiXHexagonalTileShapes		*currentTileShapes;
 }
 
 - (IBAction)setTilesAcross:(id)sender;
 - (IBAction)setTilesDown:(id)sender;
-- (IBAction)restrictTileSize:(id)sender;
-- (IBAction)setRestrictedXSize:(id)sender;
-- (IBAction)setRestrictedYSize:(id)sender;
+
+- (IBAction)setTilesSize:(id)sender;
+- (IBAction)setTilesCount:(id)sender;
 
 @end

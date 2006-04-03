@@ -11,9 +11,11 @@
 #import "NSString+MacOSaiX.h"
 
 
+enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
+
+
 @interface MacOSaiXHexagonalTileShapesEditor (PrivateMethods)
-- (void)setTilesAcrossBasedOnTilesDown;
-- (void)setTilesDownBasedOnTilesAcross;
+- (void)setFixedSizeControlsBasedOnFreeformControls;
 @end
 
 
@@ -37,7 +39,7 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(340.0, 175.0);
+	return NSMakeSize(270.0, 211.0);
 }
 
 
@@ -61,170 +63,197 @@
 	[[NSUserDefaults standardUserDefaults] setObject:[NSDictionary dictionaryWithObjectsAndKeys:
 														[NSNumber numberWithInt:[currentTileShapes tilesAcross]], @"Tiles Across", 
 														[NSNumber numberWithInt:[currentTileShapes tilesDown]], @"Tiles Down", 
-														[NSNumber numberWithBool:([restrictTileSizeCheckBox state] == NSOnState)], 
-															@"Restrict Tile Size", 
-														[restrictedXSizePopUpButton titleOfSelectedItem], @"Restrict Tile X Size", 
-														[restrictedYSizePopUpButton titleOfSelectedItem], @"Restrict Tile Y Size", 
 														nil]
 											  forKey:@"Hexagonal Tile Shapes"];
 }
 
 
-- (void)setCurrentTileShapes:(id<MacOSaiXTileShapes>)tileShapes
-{
-	[currentTileShapes autorelease];
-	currentTileShapes = [tileShapes retain];
-}
-
-
 - (void)editTileShapes:(id<MacOSaiXTileShapes>)tilesSetup
 {
-	[self setCurrentTileShapes:tilesSetup];
+	[currentTileShapes autorelease];
+	currentTileShapes = [tilesSetup retain];
 	
-		// Constrain the tiles across value to the stepper's range and update the model and view.
+	minAspectRatio = (originalImageSize.width / [tilesAcrossSlider maxValue]) / 
+					 (originalImageSize.height / [tilesDownSlider minValue]);
+	maxAspectRatio = (originalImageSize.width / [tilesAcrossSlider minValue]) / 
+					 (originalImageSize.height / [tilesDownSlider maxValue]);
+	
+	// Constrain the tiles across value to the stepper's range and update the model and view.
 	int	tilesAcross = MIN(MAX([currentTileShapes tilesAcross], [tilesAcrossStepper minValue]), [tilesAcrossStepper maxValue]);
 	[currentTileShapes setTilesAcross:tilesAcross];
 	[tilesAcrossStepper setIntValue:tilesAcross];
 	[tilesAcrossTextField setIntValue:tilesAcross];
+	[tilesAcrossStepper setIntValue:tilesAcross];
 	
 		// Constrain the tiles down value to the stepper's range and update the model and view.
 	int	tilesDown = MIN(MAX([currentTileShapes tilesDown], [tilesDownStepper minValue]), [tilesDownStepper maxValue]);
 	[currentTileShapes setTilesDown:tilesDown];
 	[tilesDownStepper setIntValue:tilesDown];
 	[tilesDownTextField setIntValue:tilesDown];
+	[tilesDownStepper setIntValue:tilesDown];
 	
-	NSDictionary	*lastUsedSettings = [[NSUserDefaults standardUserDefaults] objectForKey:@"Hexagonal Tile Shapes"];
-	[restrictTileSizeCheckBox setState:[[lastUsedSettings objectForKey:@"Restrict Tile Size"] boolValue]];
-	[restrictedXSizePopUpButton selectItemWithTitle:[lastUsedSettings objectForKey:@"Restrict Tile X Size"]];
-	[restrictedYSizePopUpButton selectItemWithTitle:[lastUsedSettings objectForKey:@"Restrict Tile Y Size"]];
-	
-	if ([restrictTileSizeCheckBox state] == NSOnState)
-		[self setTilesDownBasedOnTilesAcross];
+	[self setFixedSizeControlsBasedOnFreeformControls];
 }
 
 
-- (void)setTilesAcrossBasedOnTilesDown
+- (float)aspectRatio
 {
-	int		tilesAcross = [tilesAcrossStepper intValue], 
-			tilesDown = [tilesDownStepper intValue];
-	float	targetAspectRatio = (float)[[restrictedXSizePopUpButton titleOfSelectedItem] intValue] / 
-								(float)[[restrictedYSizePopUpButton titleOfSelectedItem] intValue];
+	float	aspectRatio = [tilesSizeSlider floatValue];
 	
-	tilesAcross = originalImageSize.width * (float)tilesDown / originalImageSize.height / targetAspectRatio;
+	if (aspectRatio < 1.0)
+		aspectRatio = minAspectRatio + (1.0 - minAspectRatio) * aspectRatio;
+	else if (aspectRatio > 1.0)
+		aspectRatio = 1.0 + (maxAspectRatio - 1.0) * (aspectRatio - 1.0);
 	
-	if (fabsf((originalImageSize.width / tilesAcross) / (originalImageSize.height / tilesDown) - targetAspectRatio) > 
-		fabsf((originalImageSize.width / (tilesAcross + 1)) / (originalImageSize.height / tilesDown) - targetAspectRatio))
-		tilesAcross++;
-	
-	if (tilesAcross >= [tilesAcrossStepper minValue] && tilesAcross <= [tilesAcrossStepper maxValue])
-	{
-		[currentTileShapes setTilesAcross:tilesAcross];
-		[tilesAcrossStepper setIntValue:tilesAcross];
-		[tilesAcrossTextField setIntValue:tilesAcross];
-		[self updatePlugInDefaults];
-	}
-	else
-		NSBeep();
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
+	return aspectRatio;
 }
 
 
-- (void)setTilesDownBasedOnTilesAcross
+- (void)setFreeFormControlsBasedOnFixedSizeControls
 {
-	int		tilesAcross = [tilesAcrossStepper intValue], 
-			tilesDown = [tilesDownStepper intValue];
-	float	targetAspectRatio = (float)[[restrictedXSizePopUpButton titleOfSelectedItem] intValue] / 
-								(float)[[restrictedYSizePopUpButton titleOfSelectedItem] intValue];
+	float	aspectRatio = [self aspectRatio], 
+			targetTileCount = [tilesCountSlider floatValue];
 	
-	tilesDown = originalImageSize.height * tilesAcross * targetAspectRatio / originalImageSize.width;
+	int		minX = [tilesAcrossSlider minValue], 
+			minY = [tilesDownSlider minValue], 
+			maxX = [tilesAcrossSlider maxValue], 
+			maxY = [tilesDownSlider maxValue];
+	if (originalImageSize.height * minX * aspectRatio / originalImageSize.width < minY)
+		minX = originalImageSize.width * minY / aspectRatio / originalImageSize.height;
+	if (originalImageSize.width * minY / aspectRatio / originalImageSize.height < minX)
+		minY = minX * originalImageSize.height * aspectRatio / originalImageSize.width;
+	if (originalImageSize.height * maxX * aspectRatio / originalImageSize.width > maxY)
+		maxX = originalImageSize.width * maxY / aspectRatio / originalImageSize.height;
+	if (originalImageSize.width * maxY / aspectRatio / originalImageSize.height > maxX)
+		maxY = maxX * originalImageSize.height * aspectRatio / originalImageSize.width;
 	
-	if (fabsf((originalImageSize.width / tilesAcross) / (originalImageSize.height / tilesDown) - targetAspectRatio) > 
-		fabsf((originalImageSize.width / tilesAcross) / (originalImageSize.height / (tilesDown + 1)) - targetAspectRatio))
-		tilesDown++;
+	int		tilesAcross = minX + (maxX - minX) * targetTileCount, 
+			tilesDown = minY + (maxY - minY) * targetTileCount;
 	
-	if (tilesDown >= [tilesDownStepper minValue] && tilesDown <= [tilesDownStepper maxValue])
-	{
-		[currentTileShapes setTilesDown:tilesDown];
-		[tilesDownStepper setIntValue:tilesDown];
-		[tilesDownTextField setIntValue:tilesDown];
-		[self updatePlugInDefaults];
-	}
+	[tilesAcrossSlider setIntValue:tilesAcross];
+	[tilesAcrossTextField setIntValue:tilesAcross];
+	[tilesAcrossStepper setIntValue:tilesAcross];
+	[tilesDownSlider setIntValue:tilesDown];
+	[tilesDownTextField setIntValue:tilesDown];
+	[tilesDownStepper setIntValue:tilesDown];
+}
+
+
+- (void)setFixedSizeControlsBasedOnFreeformControls
+{
+	int		tilesAcross = [tilesAcrossSlider intValue], 
+			tilesDown = [tilesDownSlider intValue];
+	float	tileAspectRatio = (originalImageSize.width / tilesAcross) / 
+							  (originalImageSize.height / tilesDown);
+	
+		// Update the tile size slider and pop-up.
+	if (tileAspectRatio < 1.0)
+		tileAspectRatio = (tileAspectRatio - minAspectRatio) / (1.0 - minAspectRatio);
+	else if (tileAspectRatio > 1.0)
+		tileAspectRatio = (tileAspectRatio - 1.0) / (maxAspectRatio - 1.0) + 1.0;
+	[tilesSizeSlider setFloatValue:tileAspectRatio];
+	
+	[[tilesSizePopUp itemAtIndex:0] setTitle:[NSString stringWithAspectRatio:[self aspectRatio]]];
+	
+		// Update the tile count slider.
+	int		minX = [tilesAcrossSlider minValue], 
+			minY = [tilesDownSlider minValue], 
+			maxX = [tilesAcrossSlider maxValue], 
+			maxY = [tilesDownSlider maxValue], 
+			minTileCount = 0,
+			maxTileCount = 0;
+	if (originalImageSize.height * minX * tileAspectRatio / originalImageSize.width < minY)
+		minTileCount = minX * minX / tileAspectRatio;
 	else
-		NSBeep();
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
+		minTileCount = minY * minY * tileAspectRatio;
+	if (originalImageSize.height * maxX * tileAspectRatio / originalImageSize.width < maxY)
+		maxTileCount = maxX * maxX / tileAspectRatio;
+	else
+		maxTileCount = maxY * maxY * tileAspectRatio;
+	[tilesCountSlider setFloatValue:(float)(tilesAcross * tilesDown - minTileCount) / (maxTileCount - minTileCount)];
 }
 
 
 - (IBAction)setTilesAcross:(id)sender
 {
-		// Jump by 10 if the user had the option key down, by one otherwise.
-	if (([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0)
-	{
-		if ([tilesAcrossStepper intValue] > [currentTileShapes tilesAcross])
-			[tilesAcrossStepper setIntValue:MIN([currentTileShapes tilesAcross] + 10, [tilesAcrossStepper maxValue])];
-		else if ([tilesAcrossStepper intValue] < [currentTileShapes tilesAcross])
-			[tilesAcrossStepper setIntValue:MAX([currentTileShapes tilesAcross] - 10, [tilesAcrossStepper minValue])];
-	}
-    [currentTileShapes setTilesAcross:[tilesAcrossStepper intValue]];
-    [tilesAcrossTextField setIntValue:[tilesAcrossStepper intValue]];
-	
-	if ([restrictTileSizeCheckBox state] == NSOnState)
-		[self setTilesDownBasedOnTilesAcross];
+    [currentTileShapes setTilesAcross:[sender intValue]];
+    [tilesAcrossTextField setIntValue:[sender intValue]];
+	if (sender == tilesAcrossSlider)
+		[tilesAcrossStepper setIntValue:[sender intValue]];
 	else
-		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
+		[tilesAcrossSlider setIntValue:[sender intValue]];
+	
+	[self setFixedSizeControlsBasedOnFreeformControls];
 	
 	[self updatePlugInDefaults];
+	
+	[[editorView window] sendEvent:nil];
 }
 
 
 - (IBAction)setTilesDown:(id)sender
 {
-		// Jump by 10 if the user had the option key down, by one otherwise.
-	if (([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0)
-	{
-		if ([tilesDownStepper intValue] > [currentTileShapes tilesDown])
-			[tilesDownStepper setIntValue:MIN([currentTileShapes tilesDown] + 10, [tilesDownStepper maxValue])];
-		else if ([tilesDownStepper intValue] < [currentTileShapes tilesDown])
-			[tilesDownStepper setIntValue:MAX([currentTileShapes tilesDown] - 10, [tilesDownStepper minValue])];
-	}
-    [currentTileShapes setTilesDown:[tilesDownStepper intValue]];
-    [tilesDownTextField setIntValue:[tilesDownStepper intValue]];
-	
-	if ([restrictTileSizeCheckBox state] == NSOnState)
-		[self setTilesAcrossBasedOnTilesDown];
+    [currentTileShapes setTilesDown:[sender intValue]];
+    [tilesDownTextField setIntValue:[sender intValue]];
+	if (sender == tilesDownSlider)
+		[tilesDownStepper setIntValue:[sender intValue]];
 	else
-		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeNotification object:self];
+		[tilesDownSlider setIntValue:[sender intValue]];
+	
+	[self setFixedSizeControlsBasedOnFreeformControls];
 	
 	[self updatePlugInDefaults];
+	
+	[[editorView window] sendEvent:nil];
 }
 
 
-- (IBAction)restrictTileSize:(id)sender
+- (IBAction)setTilesSize:(id)sender
 {
-	if ([restrictTileSizeCheckBox state] == NSOnState)
-		[self setTilesDownBasedOnTilesAcross];
+	if (sender == tilesSizePopUp)
+	{
+		float	tileAspectRatio = 1.0;
+		if ([tilesSizePopUp selectedTag] == tilesSize3x4)
+			tileAspectRatio = 3.0 / 4.0;
+		else if ([tilesSizePopUp selectedTag] == tilesSize4x3)
+			tileAspectRatio = 4.0 / 3.0;
+		
+			// Map the ratio to the slider position.
+		if (tileAspectRatio < 1.0)
+			tileAspectRatio = (tileAspectRatio - minAspectRatio) / (1.0 - minAspectRatio);
+		else
+			tileAspectRatio = (tileAspectRatio - 1.0) / (maxAspectRatio - 1.0) + 1.0;
+		[tilesSizeSlider setFloatValue:tileAspectRatio];
+	}
+	
+	[self setFreeFormControlsBasedOnFixedSizeControls];
+	[[tilesSizePopUp itemAtIndex:0] setTitle:[NSString stringWithAspectRatio:[self aspectRatio]]];
+	
+	[currentTileShapes setTilesAcross:[tilesAcrossSlider intValue]];
+	[currentTileShapes setTilesDown:[tilesDownSlider intValue]];
 	
 	[self updatePlugInDefaults];
+	
+	[[editorView window] sendEvent:nil];
 }
 
 
-- (IBAction)setRestrictedXSize:(id)sender
+- (IBAction)setTilesCount:(id)sender
 {
-	if ([restrictTileSizeCheckBox state] == NSOnState)
-		[self setTilesDownBasedOnTilesAcross];
+	[self setFreeFormControlsBasedOnFixedSizeControls];
+	
+	[currentTileShapes setTilesAcross:[tilesAcrossSlider intValue]];
+	[currentTileShapes setTilesDown:[tilesDownSlider intValue]];
 	
 	[self updatePlugInDefaults];
+	
+	[[editorView window] sendEvent:nil];
 }
 
 
-- (IBAction)setRestrictedYSize:(id)sender
+- (BOOL)settingsAreValid
 {
-	if ([restrictTileSizeCheckBox state] == NSOnState)
-		[self setTilesDownBasedOnTilesAcross];
-	
-	[self updatePlugInDefaults];
+	return YES;
 }
 
 
