@@ -51,6 +51,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 - (BOOL)showTileMatchInEditor:(MacOSaiXImageMatch *)tileMatch selecting:(BOOL)selecting;
 - (void)allowUserToChooseImageOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
     contextInfo:(void *)context;
+- (void)setProgressCancelAction:(SEL)cancelAction;
 @end
 
 
@@ -959,7 +960,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	}
 	
 		// Set up the chosen image box.
-	[editorChosenImageBox setTitle:@"No Image Selected"];
+	[editorChosenImageBox setTitle:@"No Image File Selected"];
 	[editorChosenImageView setImage:nil];
 	[editorChosenMatchQualityTextField setStringValue:@"--"];
 	[editorChosenPercentCroppedTextField setStringValue:@"--"];
@@ -987,7 +988,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 {
 	if ([[sender URLs] count] == 0)
 	{
-		[editorChosenImageBox setTitle:@"No Image Selected"];
+		[editorChosenImageBox setTitle:@"No Image File Selected"];
 		[editorChosenImageView setImage:nil];
 		[editorChosenMatchQualityTextField setStringValue:@"--"];
 		[editorChosenPercentCroppedTextField setStringValue:@"--"];
@@ -1424,7 +1425,10 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 - (void)updateSaveAsProgress:(NSArray *)parameters
 {
 	if ([[self window] attachedSheet] != progressPanel)
+	{
+		[self setProgressCancelAction:@selector(cancelSaveAs:)];
 		[self displayProgressPanelWithMessage:[parameters objectAtIndex:1]];
+	}
 	else
 		[self setProgressMessage:[parameters objectAtIndex:1]];
 	
@@ -1454,6 +1458,12 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 }
 
 
+- (IBAction)cancelSaveAs:(id)sender
+{
+	[exportController cancelExport:self];
+}
+
+
 - (void)errorSheetDidDismiss:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
 	[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:YES];	// Re-enable auto saving.
@@ -1472,7 +1482,6 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[progressPanelIndicator setDoubleValue:0.0];
 		[progressPanelIndicator setIndeterminate:YES];
 		[progressPanelIndicator startAnimation:self];
-		[progressPanelCancelButton setEnabled:NO];
 		
 		[NSApp beginSheet:progressPanel
 		   modalForWindow:[self window]
@@ -1484,6 +1493,13 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[self performSelectorOnMainThread:@selector(displayProgressPanelWithMessage:) 
 							   withObject:message 
 							waitUntilDone:YES];
+}
+
+
+- (void)setProgressCancelAction:(SEL)cancelAction
+{
+	[progressPanelCancelButton setAction:cancelAction];
+	[progressPanelCancelButton setEnabled:(cancelAction != nil)];
 }
 
 
@@ -1520,6 +1536,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[NSApp endSheet:progressPanel];
 		[progressPanelIndicator stopAnimation:self];
 		[progressPanel orderOut:nil];
+		[progressPanelCancelButton setAction:nil];
+		[progressPanelCancelButton setEnabled:NO];
 	}
 	else
 		[self performSelectorOnMainThread:@selector(closeProgressPanel) 
