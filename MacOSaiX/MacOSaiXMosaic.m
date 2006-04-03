@@ -92,6 +92,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	[tilesWithoutBitmaps removeAllObjects];
 	[tilesWithoutBitmaps addObjectsFromArray:tiles];
 	
+		// Clear the cache of better matches
+	[betterMatchesCache removeAllObjects];
+	
 	mosaicStarted = NO;
 }
 
