@@ -68,15 +68,20 @@
 	<key>productPrice</key>
 	<string>0</string>
 	<key>productReleaseNotes</key>
-	<string>• Reworked the user interface.
-• Mosaics can now be viewed in full screen.
+	<string>• Improved user interface.
+• Yahoo's flickr photo-sharing service can now be searched for images.
+• Mosaics can now be viewed full screen.
 • A new kiosk mode is available.
-• Added a flickr image source.
-• Added display options for mosaic background.
-• .
-• .
-• .
-• .
+• Added display options for the background of mosaics.
+• Brought back and improved the puzzle piece tile shapes.
+• The image crop limit can now be disabled.
+• Autosaving can now be disabled.
+• Mosaics can now be saved as PNG files.
+• The resolution can now be set when saving as an JPEG, PNG or TIFF file.
+• Mosaics can now be saved as web pages
+•     Pop-up window follows the mouse and shows image detail.
+•     Live links to Google and flickr.
+• The size of the Google and flickr disk caches can now be customized.
 </string>
 	<key>productRequirements</key>
 	<string></string>
