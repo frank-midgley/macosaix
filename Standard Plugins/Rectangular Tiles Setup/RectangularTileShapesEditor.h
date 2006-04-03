@@ -15,7 +15,7 @@
 {
 	IBOutlet NSView					*editorView;
 	
-		// Freeform tab
+		// Freeform controls
 	IBOutlet NSSlider				*tilesAcrossSlider,
 									*tilesDownSlider;
     IBOutlet NSTextField			*tilesAcrossTextField,
@@ -23,7 +23,7 @@
 	IBOutlet NSStepper				*tilesAcrossStepper, 
 									*tilesDownStepper;
 
-		// Fixed Size tab
+		// Fixed Size controls
 	IBOutlet NSPopUpButton			*tilesSizePopUp;
 	IBOutlet NSSlider				*tilesSizeSlider,
 									*tilesCountSlider;
@@ -38,7 +38,6 @@
 - (IBAction)setTilesDown:(id)sender;
 
 - (IBAction)setTilesSize:(id)sender;
-- (IBAction)setOtherTilesSize:(id)sender;
 - (IBAction)setTilesCount:(id)sender;
 
 @end
