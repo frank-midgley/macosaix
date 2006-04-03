@@ -18,6 +18,7 @@
 - (void)tileShapesDidChange:(NSNotification *)notification;
 - (void)updateTileOutlinesImage;
 - (void)createHighlightedImageSourcesOutline;
+- (NSRect)boundsForOriginalImage:(NSImage *)originalImage;
 @end
 
 
@@ -507,8 +508,10 @@
 
 - (void)setTilesNeedDisplay:(NSTimer *)timer
 {
+	NSRect				mosaicBounds = [self boundsForOriginalImage:[mosaic originalImage]];
 	NSAffineTransform	*transform = [NSAffineTransform transform];
-	[transform scaleXBy:([self frame].size.width) yBy:([self frame].size.height)];
+	[transform translateXBy:NSMinX(mosaicBounds) yBy:NSMinY(mosaicBounds)];
+	[transform scaleXBy:NSWidth(mosaicBounds) yBy:NSHeight(mosaicBounds)];
 	
 	[tilesNeedDisplayLock lock];
 		NSEnumerator	*tileEnumerator = [tilesNeedingDisplay objectEnumerator];
@@ -658,7 +661,7 @@
 - (NSRect)boundsForOriginalImage:(NSImage *)originalImage
 {
 	NSRect	viewBounds = [self bounds],
-	mosaicBounds = viewBounds;
+			mosaicBounds = viewBounds;
 	NSSize	imageSize = [originalImage size];
 	
 	if ((NSWidth(viewBounds) / imageSize.width) < (NSHeight(viewBounds) / imageSize.height))
