@@ -38,8 +38,9 @@
 	
     int						imageFormat;
 	BOOL					createWebPage, 
-							includeOriginalImage;
-	BOOL					openWhenComplete;
+							includeOriginalImage, 
+							openWhenComplete, 
+							exportCancelled;
 }
 
 - (void)exportMosaic:(MacOSaiXMosaic *)mosaic
@@ -61,6 +62,8 @@
 - (IBAction)setIncludeOriginalImage:(id)sender;
 
 - (IBAction)setOpenImageWhenComplete:(id)sender;
+
+- (IBAction)cancelExport:(id)sender;
 
 - (NSString *)exportFormat;
 

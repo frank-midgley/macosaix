@@ -87,7 +87,7 @@ static NSArray	*formatExtensions = nil;
 	
 		// Set up the save panel for exporting.
     NSSavePanel	*savePanel = [NSSavePanel savePanel];
-    if ([widthField intValue] == 0)
+    if ([widthField floatValue] == 0.0)
     {
 		NSSize	originalSize = [[mosaic originalImage] size];
 		float	scale = 4.0;
@@ -206,6 +206,12 @@ static NSArray	*formatExtensions = nil;
 }
 
 
+- (IBAction)cancelExport:(id)sender
+{
+	exportCancelled = YES;
+}
+
+
 - (void)savePanelDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
 	[sheet orderOut:self];
@@ -258,7 +264,9 @@ static NSArray	*formatExtensions = nil;
 	
 		// Don't usurp the main thread.
 	[NSThread setThreadPriority:0.1];
-
+	
+	exportCancelled = NO;
+	
 	NSString				*exportExtension = [formatExtensions objectAtIndex:imageFormat];
 	NSBitmapImageFileType	exportImageType = jpegFormat;
 	NSMutableDictionary		*properties = [NSMutableDictionary dictionary];
@@ -341,7 +349,7 @@ static NSArray	*formatExtensions = nil;
 		// Add each tile to the image and optionally to the web page.
 	NSEnumerator		*tileEnumerator = [[mosaic tiles] objectEnumerator];
 	MacOSaiXTile		*tile = nil;
-	while (tile = [tileEnumerator nextObject])
+	while (!exportCancelled && (tile = [tileEnumerator nextObject]))
     {
         NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
 		
@@ -496,69 +504,78 @@ static NSArray	*formatExtensions = nil;
         [pool2 release];
     }
 	
-		// Now convert the image into the desired output format.
-    NSBitmapImageRep	*exportRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:exportRect];
-	NS_DURING
+	NSBitmapImageRep	*exportRep = nil;
+		
+	if (exportCancelled)
 		[exportImage unlockFocus];
-		
-		if ([resolutionPopUp selectedTag] != 72)
-		{
-			NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
-			[exportRep TIFFRepresentation];
-			[pool2 release];
+	else
+	{
+			// Now convert the image into the desired output format.
+		exportRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:exportRect];
+		NS_DURING
+			[exportImage unlockFocus];
 			
-			float	scale = 72.0 / [resolutionPopUp selectedTag];
-			[exportRep setSize:NSMakeSize([exportImage size].width * scale, [exportImage size].height * scale)];
-		}
-		
-		NSData					*bitmapData = [exportRep representationUsingType:exportImageType properties:properties];
-		
-		if (createWebPage)
-		{
-			[bitmapData writeToFile:[[filename stringByAppendingPathComponent:@"Mosaic"] 
-												stringByAppendingPathExtension:exportExtension] 
-						 atomically:NO];
+			if ([resolutionPopUp selectedTag] != 72)
+			{
+				NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
+				[exportRep TIFFRepresentation];
+				[pool2 release];
+				
+				float	scale = 72.0 / [resolutionPopUp selectedTag];
+				[exportRep setSize:NSMakeSize([exportImage size].width * scale, [exportImage size].height * scale)];
+			}
 			
-			NSString		*export1HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export1" ofType:@"html"];
-			NSMutableString	*exportHTML = [NSMutableString stringWithContentsOfFile:export1HTMLPath];
-			[exportHTML appendString:exportTilesHTML];
-			NSString		*export2HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export2" ofType:@"html"];
-			[exportHTML appendString:[NSString stringWithContentsOfFile:export2HTMLPath]];
-			NSString		*export3HTMLPath = nil;
-			if (includeOriginalImage)
-				export3HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export3+Original" ofType:@"html"];
+			NSData					*bitmapData = [exportRep representationUsingType:exportImageType properties:properties];
+			
+			if (createWebPage)
+			{
+				[bitmapData writeToFile:[[filename stringByAppendingPathComponent:@"Mosaic"] 
+													stringByAppendingPathExtension:exportExtension] 
+							 atomically:NO];
+				
+				NSString		*export1HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export1" ofType:@"html"];
+				NSMutableString	*exportHTML = [NSMutableString stringWithContentsOfFile:export1HTMLPath];
+				[exportHTML appendString:exportTilesHTML];
+				NSString		*export2HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export2" ofType:@"html"];
+				[exportHTML appendString:[NSString stringWithContentsOfFile:export2HTMLPath]];
+				NSString		*export3HTMLPath = nil;
+				if (includeOriginalImage)
+					export3HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export3+Original" ofType:@"html"];
+				else
+					export3HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export3" ofType:@"html"];
+				NSMutableString	*export3HTML = [NSMutableString stringWithContentsOfFile:export3HTMLPath];
+				[export3HTML replaceOccurrencesOfString:@"$(FORMAT_EXTENSION)" 
+											 withString:exportExtension 
+												options:NSLiteralSearch 
+												  range:NSMakeRange(0, [export3HTML length])];
+				[exportHTML appendString:export3HTML];
+				NSString		*export4HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export4" ofType:@"html"];
+				[exportHTML appendString:[NSString stringWithContentsOfFile:export4HTMLPath]];
+				[exportHTML appendString:exportAreasHTML];
+				NSString		*export5HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export5" ofType:@"html"];
+				[exportHTML appendString:[NSString stringWithContentsOfFile:export5HTMLPath]];
+				filename = [filename stringByAppendingPathComponent:@"index.html"];
+				[exportHTML writeToFile:filename atomically:NO];
+			}
 			else
-				export3HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export3" ofType:@"html"];
-			NSMutableString	*export3HTML = [NSMutableString stringWithContentsOfFile:export3HTMLPath];
-			[export3HTML replaceOccurrencesOfString:@"$(FORMAT_EXTENSION)" 
-										 withString:exportExtension 
-											options:NSLiteralSearch 
-											  range:NSMakeRange(0, [export3HTML length])];
-			[exportHTML appendString:export3HTML];
-			NSString		*export4HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export4" ofType:@"html"];
-			[exportHTML appendString:[NSString stringWithContentsOfFile:export4HTMLPath]];
-			[exportHTML appendString:exportAreasHTML];
-			NSString		*export5HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export5" ofType:@"html"];
-			[exportHTML appendString:[NSString stringWithContentsOfFile:export5HTMLPath]];
-			filename = [filename stringByAppendingPathComponent:@"index.html"];
-			[exportHTML writeToFile:filename atomically:NO];
-		}
-		else
-			[bitmapData writeToFile:filename atomically:YES];
-	NS_HANDLER
-		error = [NSString stringWithFormat:@"Could not convert the mosaic to the requested format.  (%@)",
-												 [localException reason]];
-	NS_ENDHANDLER
+				[bitmapData writeToFile:filename atomically:YES];
+		NS_HANDLER
+			error = [NSString stringWithFormat:@"Could not convert the mosaic to the requested format.  (%@)",
+													 [localException reason]];
+		NS_ENDHANDLER
+	}
 	
-	if (!error && openWhenComplete)
+	if (error || exportCancelled)
+		[[NSFileManager defaultManager] removeFileAtPath:filename handler:nil];
+	else if (openWhenComplete)
 		[[NSWorkspace sharedWorkspace] openFile:filename];
 	
 	if (didEndSelector)
 		[delegate performSelector:didEndSelector withObject:error];
 	
-    [pool release];
     [exportRep release];
     [exportImage release];
+    [pool release];
 }
 
 
