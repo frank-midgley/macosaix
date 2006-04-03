@@ -13,7 +13,8 @@
 
 - (void)sendEvent:(NSEvent *)event
 {
-	[super sendEvent:event];
+	if (event)
+		[super sendEvent:event];
 	
 	if ([[self delegate] respondsToSelector:@selector(windowEventDidOccur:)])
 		[[self delegate] windowEventDidOccur:event];
