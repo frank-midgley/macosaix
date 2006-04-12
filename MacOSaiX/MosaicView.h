@@ -26,8 +26,11 @@ typedef enum { clearMode = 0, blackMode, originalMode, bestMatchMode } MacOSaiXB
 	float					viewFade, 
 							originalFadeTime;
 	BOOL					inLiveRedraw;
+	
+		// Original image fading
 	NSImage					*previousOriginalImage;
 	NSDate					*originalFadeStartTime;
+	NSTimer					*originalFadeTimer;
 	
 		// Tile outlines display
 	BOOL					viewTileOutlines;

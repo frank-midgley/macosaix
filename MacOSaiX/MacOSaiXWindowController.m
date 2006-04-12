@@ -1854,11 +1854,14 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (void)dealloc
 {
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXRecentOriginalImagesDidChangeNotification object:nil];
+	[self setMosaic:nil];
+	
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	
 	[selectedTile release];
     [selectedTileImages release];
     [toolbarItems release];
+	[mosaicToolbarImage release];
     [removedSubviews release];
     [zoomToolbarMenuItem release];
     [viewToolbarMenuItem release];

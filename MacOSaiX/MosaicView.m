@@ -92,12 +92,16 @@
 	
 	if (originalImage != previousOriginalImage)
 	{
+		[originalFadeStartTime release];
 		originalFadeStartTime = [[NSDate alloc] init];
-		[NSTimer scheduledTimerWithTimeInterval:0.1 
-										 target:self 
-									   selector:@selector(completeFadeToNewOriginalImage:) 
-									   userInfo:nil 
-										repeats:YES];
+		if ([originalFadeTimer isValid])
+			[originalFadeTimer invalidate];
+		[originalFadeTimer release];
+		originalFadeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1 
+															  target:self 
+															selector:@selector(completeFadeToNewOriginalImage:) 
+															userInfo:nil 
+															 repeats:YES] retain];
 		
 			// De-queue any pending tile refreshes based on the previous original image.
 		[tilesNeedDisplayLock lock];
@@ -144,10 +148,16 @@
 
 - (void)completeFadeToNewOriginalImage:(NSTimer *)timer
 {
-	if ([[NSDate date] timeIntervalSinceDate:originalFadeStartTime] > originalFadeTime)
+	if (!originalFadeStartTime || [[NSDate date] timeIntervalSinceDate:originalFadeStartTime] > originalFadeTime)
 	{
 		[timer invalidate];
-		[self setNeedsDisplay:YES];
+		
+		if (timer == originalFadeTimer)
+		{
+			[originalFadeTimer release];
+			originalFadeTimer = nil;
+			[self setNeedsDisplay:YES];
+		}
 	}
 }
 
@@ -978,10 +988,13 @@
 	return mainImage;
 }
 
-
 - (void)dealloc
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	
+	if ([originalFadeTimer isValid])
+		[originalFadeTimer invalidate];
+	[originalFadeTimer release];
 	
 	[mainImage release];
 	[mainImageLock release];
