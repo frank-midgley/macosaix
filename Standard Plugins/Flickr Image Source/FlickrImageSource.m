@@ -349,7 +349,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 		if ([[NSFileManager defaultManager] fileExistsAtPath:[[self class] imageCachePath]])
 		{
 			identifierQueue = [[NSMutableArray array] retain];
-			nextPage = 1;
+			haveMoreImages = YES;
 		}
 		else
 		{
@@ -374,10 +374,8 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 	else
 		queryTypeString = @"Titles, Tags or Descriptions";
 	
-	[settingsXML appendFormat:@"<QUERY STRING=\"%@\" TYPE=\"%@\"/>\n", 
-							  [[self queryString] stringByEscapingXMLEntites], queryTypeString];
-	
-	[settingsXML appendFormat:@"<PAGE INDEX=\"%d\"/>\n", nextPage];
+	[settingsXML appendFormat:@"<QUERY STRING=\"%@\" TYPE=\"%@\"/ MIN_UPLOAD_DATE=\"%@\">\n", 
+							  [[self queryString] stringByEscapingXMLEntites], queryTypeString, lastUploadTimeStamp];
 	
 	if ([identifierQueue count] > 0)
 	{
@@ -409,8 +407,6 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 		if ([queryTypeString isEqualToString:@"Titles, Tags or Descriptions"])
 			[self setQueryType:matchTitlesTagsOrDescriptions];
 	}
-	else if ([settingType isEqualToString:@"PAGE"])
-		nextPage = [[[settingDict objectForKey:@"INDEX"] description] intValue];
 //	else if ([settingType isEqualToString:@"QUEUED_IMAGE"])
 //		[identifierQueue addObject:[[settingDict objectForKey:@"URL"] description]];
 }
@@ -455,7 +451,11 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 - (void)reset
 {
 	[identifierQueue removeAllObjects];
-	nextPage = 1;
+	
+	[lastUploadTimeStamp release];
+	lastUploadTimeStamp = nil;
+	
+	haveMoreImages = YES;
 }
 
 
@@ -495,18 +495,20 @@ void	endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 		MacOSaiX's flickr API Key: 514c14062bc75c91688dfdeacc6252c7
 		
 		http://www.flickr.com/services/api/
-		
-		Sorting: interestingness-desc
 	*/
 	WSMethodInvocationRef	flickrInvocation = WSMethodInvocationCreate((CFURLRef)[NSURL URLWithString:@"http://www.flickr.com/services/xmlrpc/"],
 																		CFSTR("flickr.photos.search"),
 																		kWSXMLRPCProtocol);
 	NSMutableDictionary		*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
 												@"514c14062bc75c91688dfdeacc6252c7", @"api_key", 
-												[NSNumber numberWithInt:nextPage], @"page", 
-												[NSNumber numberWithInt:100], @"per_page", 
-												@"date-posted-desc", @"sort", 
+												[NSNumber numberWithInt:1], @"page", 
+												[NSNumber numberWithInt:200], @"per_page", 
+												@"date-posted-asc", @"sort", 
+												@"date_upload", @"extras", 
 												nil];
+	
+	if (lastUploadTimeStamp)
+		[parameters setObject:lastUploadTimeStamp forKey:@"min_upload_date"];
 	
 	if (queryType == matchAllTags)
 	{
@@ -554,20 +556,25 @@ void	endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 		{
 				// An error occurred parsing the XML.
 // TODO: handle the error
-//			NSString	*parserError = (NSString *)CFXMLParserCopyErrorDescription(parser);
-//			
-//			errorMessage = [NSString stringWithFormat:@"Error at line %d: %@", CFXMLParserGetLineNumber(parser), parserError];
-//			
-//			[parserError release];
+			NSString	*parserError = (NSString *)CFXMLParserCopyErrorDescription(parser);
+			
+			NSLog(@"Error (%@) at line %d of:\n\n%@", parserError, CFXMLParserGetLineNumber(parser), xmlString);
+			
+			[parserError release];
 		}
 		else
 		{
-			int		pageCount = [[contextDict objectForKey:@"Page Count"] intValue];
+			NSString		*dateUploaded = [contextDict objectForKey:@"Last Upload Timestamp"];
 			
-			if (pageCount > nextPage)
-				nextPage++;
+			if (!dateUploaded)
+				haveMoreImages = NO;
 			else
-				nextPage = 0;
+			{
+				NSDecimalNumber	*timestamp = [[NSDecimalNumber decimalNumberWithString:dateUploaded]
+													decimalNumberByAdding:[NSDecimalNumber one]];
+				[lastUploadTimeStamp release];
+				lastUploadTimeStamp = [[timestamp stringValue] retain];
+			}
 		}
 		
 		CFRelease(parser);
@@ -598,6 +605,8 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 				{
 					[contextDict setObject:[nodeAttributes objectForKey:@"pages"] forKey:@"Page Count"];
 					
+					NSLog(@"Total pages = %@, count = %@", [nodeAttributes objectForKey:@"pages"], [nodeAttributes objectForKey:@"total"]);
+					
 					newObject = identifierQueue;
 				}
 				else if ([elementType isEqualToString:@"photo"])
@@ -605,9 +614,13 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					NSString	*serverID = [nodeAttributes objectForKey:@"server"], 
 								*photoID = [nodeAttributes objectForKey:@"id"], 
 								*secret = [nodeAttributes objectForKey:@"secret"], 
-								*owner = [nodeAttributes objectForKey:@"owner"];
+								*owner = [nodeAttributes objectForKey:@"owner"], 
+								*title = [nodeAttributes objectForKey:@"title"], 
+								*dateUploaded = [nodeAttributes objectForKey:@"dateupload"];
 					
-					newObject = [[NSString stringWithFormat:@"%@\t%@\t%@\t%@", serverID, photoID, secret, owner] retain];
+					newObject = [[NSString alloc] initWithFormat:@"%@\t%@\t%@\t%@\t%@", serverID, photoID, secret, owner, title];
+					
+					[contextDict setObject:dateUploaded forKey:@"Last Upload Timestamp"];
 				}
 			}
 				
@@ -643,7 +656,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (BOOL)hasMoreImages
 {
-	return ([identifierQueue count] > 0 || nextPage > 0);
+	return haveMoreImages;
 }
 
 
@@ -729,7 +742,12 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (NSString *)descriptionForIdentifier:(NSString *)identifier
 {
-	return nil;
+	NSArray		*identifierComponents = [identifier componentsSeparatedByString:@"\t"];
+	
+	if ([identifierComponents count] > 4)
+		return [identifierComponents objectAtIndex:4];
+	else
+		return nil;
 }	
 
 

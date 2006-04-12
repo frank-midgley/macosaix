@@ -18,7 +18,8 @@ typedef enum { matchAllTags, matchAnyTags, matchTitlesTagsOrDescriptions } Flick
     NSString				*queryString;
 	FlickrQueryType			queryType;
 	
-	int						nextPage;
+	BOOL					haveMoreImages;
+	NSString				*lastUploadTimeStamp;
 	NSMutableArray			*identifierQueue;
 }
 
