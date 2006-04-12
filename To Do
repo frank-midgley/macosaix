@@ -1,16 +1,12 @@
 Ideas for future versions:
     Service
 	Statistics drawer/window (matches per second, etc.)
-	Width of status text problem (works when shown/hidden)
 	Trim solid borders for alternate image
 	More export image panel options
-		resolution
 		SVG format
 		vector output (Glyphs only?)
-	Autosave on/off switch
 	"Must include" images
 	Printing (greeting card format?)
-	XGrid
 	Image regions
 	New image sources:
 		Icons
@@ -42,19 +38,20 @@ Riemersma metric:
 
 
 2.0x To Do:
+¥	Leak analysis
 ¥	Make sure pixels are being pulled from bitmaps correctly
-¥	Mosaic quality calculation should take into account each tile's percentage coverage of original image
 ¥	Get rid of lines on screen and in exported images
 	QuickTime source:
 ¥		Show aspect ratio
 	Directory source:
 ¥		Drag and drop support
+¥		Restarting after load
 	Glyphs source:
 ¥		Exception on pasting letters
 ¥		Use each letter once
 ¥		Remember previous choices
 	Flickr source:
-¥		Page by post date
+Ã		Page by post date
 ¥		Other options?  (pix by specific user, license, etc.)
 ¥		Log in?
 ¥	DOCTYPE plist in XML?
@@ -63,87 +60,31 @@ Riemersma metric:
 	Plug-in API's
 ¥		Create documentation
 ¥		Create sample plug-in projects
-¥	Prompt for password when leaving kiosk mode
-¥	Add background setting for kiosk mode
+	Kiosk mode
+¥		Enable password
+¥		Don't really quit
+¥		Add background setting
+¥		dialogs on secondary monitors not ordering out
+¥		Cancel button not working in kiosk setup?
 ¥	Enable cancelling of document load
 ¥	Clean up about box
-¥	Kiosk dialogs on secondary monitors not ordering out
-¥	Cancel button not working in kiosk setup?
-¥	Folder sources restarting after load?
 ¥	Mosaic view needs to draw lo-res during auto-fade
 ¥	Copy original image to doc bundle? or open mosaic read-only if original missing?
 ¥	Tooltip for tile images
 ¥	Add a default background mode pref
 ¥	Preserve mosaic area (w*h) when changing original
 ¥	Save&restore background mode
-¥	Save&restore pause state
+¥	Check if mosaic state should be paused or done on load
 ¥	Disable "tiles apart" pop-up when images can only appear in one tile
 ¥	Add "Report Crashes" option
-¥	Disable background options when all tiles have a unique match? (breaks lines workaround)
 ¥	Clear selected source when drawer closed
 ¥	"Loading..." image in web page pop-up
 ¥	Fade too bright at 50%
 ¥	Allow specifying an original or hand-picked image by URL
 ¥	Make sure everything works on virgin system
 ¥	Break out image source and tile editors into their own controllers
-
-
-2.0a6 To Do:
-Ã	Allow setup to be changed after mosaic has been started
-Ã	Fix iPhoto crasher in -[NSAppleScript dealloc]
-Ã	Fix crash in -[MosaicView createHighlightedImageSourcesOutline]
-Ã	Kiosk mode
-Ã	Full screen mode
-Ã	Allow showing original image or best non-unique match for tiles without a unique match.
-Ã	Flickr source
-Ã	Make sure Google and Flickr caches don't fill disk
-Ã	Rework puzzle shapes plug-in to conform with new API
-Ã	Add recents to folder source
-Ã	Follow aliases in folder source
-Ã	Single menu for restricting tile sizes
-	Complete plug-in API
-Ã		OS check
-Ã		Add preferences API for image source plug-ins
-Ã		Add preferences API for tile shapes plug-ins
-Ã		Delegation change for tile shapes (and image sources?) (hex shapes)
-Ã	Don't loop forever scaling from the cache
-Ã	Auto-start pref not honored
-Ã	Start icon not changing to pause when started
-Ã	Enable "Add New Image Source" sub-menu in Mosaic menu
-Ã	Enable "Clear Menu" in originals menu
-Ã	Add "other" and "clear" items to toolbar originals menu and make clear work in both menus
-Ã	Handle case of no original images
-Ã	Tile Setup sheet displaced when switching to puzzle pieces
-Ã	New UI for tile count/size better than previous?
-	Tile outlines display performance:
-Ã		When viewing tile outline
-Ã		Selecting image source with 1000's of images in mosaic
-Ã	Make sure all prefs UI is functional
-Ã	Add cropping limit checkbox (now a slider)
 	Exporting
 ¥		Re-enforce 10,000 pixel limit
-Ã		Fade display
-Ã		Cancelling
-?		Initial units
-Ã		Remember defaults
-Ã		Background option
-Ã	Tiles not clearing when source removed
-Ã	Make Fade and Zoom toolbar items narrower
-Ã	Document being corrupted when saved during quit
-Ã	Get rid of +[plugInClass name] and read from Info.plist instead (simplifies and localizes)
-Ã	Google cache limit not sticking
-Ã   Make QuickTime image caching a user option
-Ã	"You have not set the tile shapes" after loading a mosaic
-Ã	Remove image cache purging on source removal?
-Ã	Disable drawer controls whenever a sheet is dropped.
-Ã	Queue tiles for refresh when background set to best match mode
-Ã	Figure out how to differentiate between unique and best matches when loading.
-	QuickTime source:
-Ã		Scale movie when sheet presented
-Ã		Recent movies
-Ã	Tiles setup panel coming up blank the second time
-Ã	Average tile size wrong in Tiles Setup
-Ã	Clear better match cache when original image or tiles setup change
-Ã	Get rid of all NSLog's
-Ã	Selected tile highlight cropped when zoomed
-Ã	Wrong rect being displayed in full screen mode
+?		Initial units sensible
+¥	Images being lost when two or more instances allowed
+¥	Confirm changing tiles when sheet closes instead of opens
