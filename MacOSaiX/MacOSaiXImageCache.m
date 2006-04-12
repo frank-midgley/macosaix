@@ -387,12 +387,28 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 
 - (void)removeCachedImagesFromSource:(id<MacOSaiXImageSource>)imageSource
 {
+	[NSThread detachNewThreadSelector:@selector(removedCachedImagesFromSourceInThread:) 
+							 toTarget:self 
+						   withObject:imageSource];
+}
+
+
+- (void)removedCachedImagesFromSourceInThread:(id<MacOSaiXImageSource>)imageSource
+{
+	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	NSArray				*cacheKeys = nil;
+	
 	[cacheLock lock];
-		NSEnumerator	*keyEnumerator = [[memoryCache allKeys] objectEnumerator];
-		NSString		*key = nil;
-		while (key = [keyEnumerator nextObject])
-			if ([self imageSourceFromKey:key] == imageSource)
-			{
+		cacheKeys = [NSArray arrayWithArray:[memoryCache allKeys]];
+		[sourceCacheDirectories removeObjectForKey:[NSValue valueWithPointer:imageSource]];
+	[cacheLock unlock];
+	
+	NSEnumerator	*keyEnumerator = [cacheKeys objectEnumerator];
+	NSString		*key = nil;
+	while (key = [keyEnumerator nextObject])
+		if ([self imageSourceFromKey:key] == imageSource)
+		{
+			[cacheLock lock];
 				[memoryCache removeObjectForKey:key];
 				[nativeImageSizeDict removeObjectForKey:key];
 				
@@ -405,10 +421,10 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 					
 					keyIndex = [imageKeyRecencyArray indexOfObject:key];
 				}
-			}
-				
-		[sourceCacheDirectories removeObjectForKey:[NSValue valueWithPointer:imageSource]];
-	[cacheLock unlock];
+			[cacheLock unlock];
+		}
+			
+	[pool release];
 }
 
 
