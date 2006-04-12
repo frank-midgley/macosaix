@@ -362,6 +362,8 @@
 
 - (void)dealloc
 {
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	
 	[currentImageSource release];
 	
 	[super dealloc];
