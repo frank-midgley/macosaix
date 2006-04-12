@@ -38,7 +38,8 @@
 	int								enumerationThreadCount;
 	NSMutableDictionary				*enumerationCounts;
 	NSLock							*enumerationCountsLock;
-    NSMutableArray					*imageQueue;
+    NSMutableArray					*imageQueue, 
+									*revisitQueue;
     NSLock							*imageQueueLock;
 	
 		// Image matching

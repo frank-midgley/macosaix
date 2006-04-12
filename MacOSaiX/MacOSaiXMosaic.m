@@ -48,7 +48,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			// This queue is populated by the enumeration threads and accessed by the matching thread.
 		imageQueue = [[NSMutableArray alloc] init];
 		imageQueueLock = [[NSLock alloc] init];
-
+		revisitQueue = [[NSMutableArray alloc] init];
+		
 		calculateImageMatchesThreadLock = [[NSLock alloc] init];
 		betterMatchesCache = [[NSMutableDictionary alloc] init];
 		
@@ -396,6 +397,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			// Remove the image count for this source
 		[self setImageCount:0 forImageSource:imageSource];
 		
+			// Remove any cached images for this source
+		[[MacOSaiXImageCache sharedImageCache] removeCachedImagesFromSource:imageSource];
+		
 		if (!wasPaused)
 			[self resume];
 		
@@ -715,23 +719,46 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	[NSThread setThreadPriority:0.1];
 	
 	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
+	BOOL				revisit = NO;
+	int					revisitStep = 0;
 	
 	[imageQueueLock lock];
-	while (!pausing && [imageQueue count] > 0)
+	while (!pausing && ([imageQueue count] > 0 || [revisitQueue count] > 0))
 	{
-		while (!pausing && [imageQueue count] > 0)
+		while (!pausing && ([imageQueue count] > 0 || [revisitQueue count] > 0))
 		{
 				// As long as the image source threads are feeding images into the queue this loop
 				// will continue running so create a pool just for this pass through the loop.
 			NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
 			BOOL				queueLocked = NO;
 			
-				// pull the next image from the queue
-			NSDictionary		*nextImageDict = [[[imageQueue objectAtIndex:0] retain] autorelease];
-			[imageQueue removeObjectAtIndex:0];
+				// Pull the next image from one of the queues.
+				// Look at newly found images before revisiting previously found ones.
+			NSDictionary		*nextImageDict = nil;
+			int					newCount = [imageQueue count], 
+								revisitCount = [revisitQueue count];
+			if (newCount == 0)
+				revisit = YES;
+			else if (revisitCount == 0)
+				revisit = NO;
+			else
+				revisit = (revisitStep++ % 16 > 0);
+			
+			NSLog(@"%d images queued to revisit", revisitCount);
+			if (!revisit)	//newCount > 0 && revisitCount < MAXIMAGEURLS * 8)
+			{
+				nextImageDict = [[[imageQueue objectAtIndex:0] retain] autorelease];
+				[imageQueue removeObjectAtIndex:0];
+			}
+			else
+			{
+				nextImageDict = [[[revisitQueue lastObject] retain] autorelease];
+				[revisitQueue removeLastObject];
+				NSLog(@"                     revisiting %@", [nextImageDict objectForKey:@"Image Identifier"]);
+			}
 			
 				// let the image source threads add more images if the queue is not full
-			if ([imageQueue count] < MAXIMAGEURLS)
+			if (newCount < MAXIMAGEURLS)
 				[imageQueueLock unlock];
 			else
 				queueLocked = YES;
@@ -873,7 +900,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			
 			if ([betterMatches count] == 0)
 			{
-	//			NSLog(@"%@ from %@ is no longer needed", pixletImageIdentifier, pixletImageSource);
+//				NSLog(@"%@ from %@ is no longer needed", pixletImageIdentifier, pixletImageSource);
 				[betterMatchesCache removeObjectForKey:pixletKey];
 			}
 			else
@@ -925,8 +952,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 							// Add the tile's current image back to the queue so it can potentially get re-used by other tiles.
 						MacOSaiXImageMatch	*previousMatch = [[matchToUpdate tile] uniqueImageMatch];
 						if (previousMatch && ([previousMatch imageSource] != pixletImageSource || 
-							![[previousMatch imageIdentifier] isEqualToString:pixletImageIdentifier]) &&
-							[self imageUseCount] > 0)
+							![[previousMatch imageIdentifier] isEqualToString:pixletImageIdentifier]))
 						{
 							if (!queueLocked)
 							{
@@ -938,11 +964,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 																[previousMatch imageSource], @"Image Source", 
 																[previousMatch imageIdentifier], @"Image Identifier",
 																nil];
-							if (![imageQueue containsObject:newQueueEntry])
-							{
-		//						NSLog(@"Rechecking %@", [previousMatch imageIdentifier]);
-								[imageQueue addObject:newQueueEntry];
-							}
+							[revisitQueue removeObject:newQueueEntry];
+							[revisitQueue addObject:newQueueEntry];
 						}
 						
 						[[matchToUpdate tile] setUniqueImageMatch:matchToUpdate];
@@ -975,8 +998,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 														pixletImageSource, @"Image Source", 
 														pixletImageIdentifier, @"Image Identifier",
 														nil];
-					if (![imageQueue containsObject:newQueueEntry])
-						[imageQueue addObject:newQueueEntry];
+					[revisitQueue removeObject:newQueueEntry];
+					[revisitQueue addObject:newQueueEntry];
 					
 					pixletImageInUse = YES;
 				}
@@ -1134,12 +1157,17 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 - (void)dealloc
 {
+		// Purge all of this mosaic's images from the cache.
+	NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
+	id<MacOSaiXImageSource>	imageSource = nil;
+	while (imageSource = [imageSourceEnumerator nextObject])
+		[[MacOSaiXImageCache sharedImageCache] removeCachedImagesFromSource:imageSource];
+
 	[imageSources release];
 	[imageSourcesLock release];
 	[diskCacheSubPaths release];
 	
     [originalImage release];
-    [imageQueueLock release];
 	[enumerationThreadCountLock release];
 	[enumerationCountsLock release];
 	[enumerationCounts release];
@@ -1149,6 +1177,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	[tilesWithoutBitmaps release];
     [tileShapes release];
     [imageQueue release];
+    [imageQueueLock release];
+	[revisitQueue release];
 	
     [super dealloc];
 }
