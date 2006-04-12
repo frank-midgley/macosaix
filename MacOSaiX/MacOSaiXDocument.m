@@ -61,8 +61,8 @@
 	{
 			// This is a new document, not one loaded from disk.
 		NSString	*defaultShapesClassString = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Chosen Tile Shapes Class"];
-		[mosaic setTileShapes:[[[NSClassFromString(defaultShapesClassString) alloc] init] autorelease]
-				creatingTiles:YES];
+		[[self mosaic] setTileShapes:[[[NSClassFromString(defaultShapesClassString) alloc] init] autorelease]
+					   creatingTiles:YES];
 		
 			// Create a temporary cache directory until we get saved.
 		FSRef	chewableItemsRef;
@@ -100,11 +100,12 @@
 	
 	[mosaic autorelease];
 	mosaic = [inMosaic retain];
-
-	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(mosaicDidChangeState:) 
-												 name:MacOSaiXMosaicDidChangeStateNotification 
-											   object:mosaic];
+	
+	if (mosaic)
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(mosaicDidChangeState:) 
+													 name:MacOSaiXMosaicDidChangeStateNotification 
+												   object:mosaic];
 }
 
 
@@ -283,14 +284,14 @@
 	
 	[self setIsSaving:YES];
 	
-	BOOL			wasPaused = [mosaic isPaused];
+	BOOL			wasPaused = [[self mosaic] isPaused];
 	
 		// Display a sheet while the save is underway
 // TODO:	[[self mainWindowController] setCancelAction:@selector(cancelSave) andTarget:self];
 	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving mosaic project..."];
 	
 		// Pause the mosaic so that it is in a static state while saving.
-	[mosaic pause];
+	[[self mosaic] pause];
 	
 		// Create the new file wrapper and move over any cached images.
 	[self createFileWrapperAtPath:fileName 
@@ -323,7 +324,7 @@
 {
 	[self setIsSaving:YES];
 	
-	BOOL			wasPaused = [mosaic isPaused];
+	BOOL			wasPaused = [[self mosaic] isPaused];
 	
 	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving mosaic project..."];
 
@@ -408,9 +409,9 @@
 												dataUsingEncoding:NSUTF8StringEncoding]];
 			
 				// Write out the tile shapes settings
-			NSString		*className = NSStringFromClass([[mosaic tileShapes] class]);
+			NSString		*className = NSStringFromClass([[[self mosaic] tileShapes] class]);
 			NSMutableString	*tileShapesXML = [NSMutableString stringWithString:
-															[[[mosaic tileShapes] settingsAsXMLElement] stringByTrimmingCharactersInSet:
+															[[[[self mosaic] tileShapes] settingsAsXMLElement] stringByTrimmingCharactersInSet:
 																[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
 			[tileShapesXML replaceOccurrencesOfString:@"\n" withString:@"\n\t" options:0 range:NSMakeRange(0, [tileShapesXML length])];
 			[tileShapesXML insertString:@"\t" atIndex:0];
@@ -420,8 +421,8 @@
 			[fileHandle writeData:[@"</TILE_SHAPES_SETTINGS>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 			
 			[fileHandle writeData:[@"<IMAGE_USAGE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\"/>\n", [mosaic imageUseCount], [mosaic imageReuseDistance]] dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_CROP LIMIT=\"%d\"/>\n", [mosaic imageCropLimit]] dataUsingEncoding:NSUTF8StringEncoding]];
+			[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\"/>\n", [[self mosaic] imageUseCount], [[self mosaic] imageReuseDistance]] dataUsingEncoding:NSUTF8StringEncoding]];
+			[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_CROP LIMIT=\"%d\"/>\n", [[self mosaic] imageCropLimit]] dataUsingEncoding:NSUTF8StringEncoding]];
 			[fileHandle writeData:[@"</IMAGE_USAGE>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 			
 				// Write out the image sources.
@@ -434,11 +435,11 @@
 				NSString				*className = NSStringFromClass([imageSource class]);
 				if ([imageSource canRefetchImages])
 					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\">\n", 
-																	  index, className, [mosaic countOfImagesFromSource:imageSource]] 
+																	  index, className, [[self mosaic] countOfImagesFromSource:imageSource]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
 				else
 					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\" CACHE_NAME=\"%@\">\n", 
-																	  index, className, [mosaic countOfImagesFromSource:imageSource],
+																	  index, className, [[self mosaic] countOfImagesFromSource:imageSource],
 																	  [[self mosaic] diskCacheSubPathForImageSource:imageSource]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
 				
@@ -459,7 +460,7 @@
 				// Write out the tiles
 			[fileHandle writeData:[@"<TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 			NSMutableString	*buffer = [NSMutableString string];
-			NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
+			NSEnumerator	*tileEnumerator = [[[self mosaic] tiles] objectEnumerator];
 			MacOSaiXTile	*tile = nil;
 			while (tile = [tileEnumerator nextObject])
 			{
@@ -589,7 +590,7 @@
 			[self performSelectorOnMainThread:@selector(startAutosaveTimer:) withObject:nil waitUntilDone:NO];
 		
 		if (!wasPaused)
-			[mosaic resume];
+			[[self mosaic] resume];
 	}
 
 	[pool release];
@@ -637,7 +638,7 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 	{
 			// Set up the parser callbacks and context.
 		CFXMLParserCallBacks	callbacks = {0, createStructure, addChild, endStructure, NULL, NULL};	//resolveExternalEntity, handleError};
-		NSMutableArray			*stack = [NSMutableArray arrayWithObjects:self, mosaic, nil],
+		NSMutableArray			*stack = [NSMutableArray arrayWithObjects:self, [self mosaic], nil],
 								*contextArray = [NSMutableArray arrayWithObjects:stack, 
 																				 [NSNumber numberWithLong:[xmlData length]], 
 																				 [NSNumber numberWithInt:0], 
@@ -1030,8 +1031,8 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 						 contextInfo:(void *)contextInfo
 {
 		// pause threads so document dirty state doesn't change
-    if (![mosaic isPaused])
-		[mosaic pause];
+    if (![[self mosaic] isPaused])
+		[[self mosaic] pause];
     
 	if ([self isDocumentEdited])
 	{
@@ -1156,7 +1157,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	
 		// Let the helper threads know we are closing and resume so that they can clean up and exit.
 	documentIsClosing = YES;
-	[mosaic pause];
+	[[self mosaic] pause];
 	
 	if ([autosaveTimer isValid])
 	{
@@ -1166,7 +1167,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	}
 	
 		// wait for the threads to shut down
-    while ([mosaic isBusy])
+    while ([[self mosaic] isBusy])
 		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
 	
     [super close];
