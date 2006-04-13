@@ -374,7 +374,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 	else
 		queryTypeString = @"Titles, Tags or Descriptions";
 	
-	[settingsXML appendFormat:@"<QUERY STRING=\"%@\" TYPE=\"%@\"/ MIN_UPLOAD_DATE=\"%@\">\n", 
+	[settingsXML appendFormat:@"<QUERY STRING=\"%@\" TYPE=\"%@\" MIN_UPLOAD_DATE=\"%@\"/>\n", 
 							  [[self queryString] stringByEscapingXMLEntites], queryTypeString, lastUploadTimeStamp];
 	
 	if ([identifierQueue count] > 0)
