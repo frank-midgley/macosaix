@@ -386,6 +386,7 @@
 											NSMidY([screen frame]) - NSHeight([setupWindow frame]) / 2.0)];
 	[mainSetupController showWindow:self];
 	int								result = [NSApp runModalForWindow:[mainSetupController window]];
+	[mainSetupController close];
 	if (result == NSRunStoppedResponse)
 	{
 		OSStatus	status = SetSystemUIMode(kUIModeAllHidden, 0);
