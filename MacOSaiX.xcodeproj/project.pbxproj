@@ -164,6 +164,7 @@
 		92CC1B3E08F9C168004D0C31 /* MacOSaiXFullScreenController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA7B608F87DD200B40FA6 /* MacOSaiXFullScreenController.m */; };
 		92CC1B4008F9C16A004D0C31 /* MacOSaiXKioskSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA7CC08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m */; };
 		92CC1B4208F9C16C004D0C31 /* MacOSaiXScreenSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA87208F89EA400B40FA6 /* MacOSaiXScreenSetupController.m */; };
+		92DFC50809EDC3EA0076FD93 /* Loading.png in Resources */ = {isa = PBXBuildFile; fileRef = 92DFC50609EDC3EA0076FD93 /* Loading.png */; };
 		92E3E15607E7BE8C00E62AB8 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
 		92E3E15E07E7BE8C00E62AB8 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		92E3E17207E7BF0B00E62AB8 /* iPhoto Image Source.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92E3E17007E7BF0B00E62AB8 /* iPhoto Image Source.nib */; };
@@ -526,6 +527,7 @@
 		92DCA7CC08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXKioskSetupController.m; sourceTree = "<group>"; };
 		92DCA87108F89EA400B40FA6 /* MacOSaiXScreenSetupController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXScreenSetupController.h; sourceTree = "<group>"; };
 		92DCA87208F89EA400B40FA6 /* MacOSaiXScreenSetupController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXScreenSetupController.m; sourceTree = "<group>"; };
+		92DFC50709EDC3EA0076FD93 /* English */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = English; path = English.lproj/Loading.png; sourceTree = "<group>"; };
 		92E3E15F07E7BE8C00E62AB8 /* iPhoto Image Source.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "iPhoto Image Source.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		92E3E17107E7BF0B00E62AB8 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/iPhoto Image Source/English.lproj/iPhoto Image Source.nib"; sourceTree = "<group>"; };
 		92E3E17407E7BF1B00E62AB8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = Info.plist; path = "Standard Plugins/iPhoto Image Source/Info.plist"; sourceTree = "<group>"; };
@@ -1001,6 +1003,7 @@
 				92319CA609A7D6AA007CA9CD /* Export3+Original.html */,
 				92319C8D09A7D5F9007CA9CD /* Export4.html */,
 				92319CA109A7D656007CA9CD /* Export5.html */,
+				92DFC50609EDC3EA0076FD93 /* Loading.png */,
 			);
 			path = Export;
 			sourceTree = "<group>";
@@ -1725,6 +1728,7 @@
 				92319CAB09A7D6C5007CA9CD /* Export3.html in Resources */,
 				0109CA4709D385E5008290BE /* Warning.nib in Resources */,
 				9253016509D611EF001E27F3 /* NoOriginal.png in Resources */,
+				92DFC50809EDC3EA0076FD93 /* Loading.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2238,6 +2242,14 @@
 			);
 			name = Export.nib;
 			path = ../..;
+			sourceTree = "<group>";
+		};
+		92DFC50609EDC3EA0076FD93 /* Loading.png */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92DFC50709EDC3EA0076FD93 /* English */,
+			);
+			name = Loading.png;
 			sourceTree = "<group>";
 		};
 		92E3E17007E7BF0B00E62AB8 /* iPhoto Image Source.nib */ = {
