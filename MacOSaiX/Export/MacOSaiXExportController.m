@@ -297,6 +297,9 @@ static NSArray	*formatExtensions = nil;
 	{
 		[[NSFileManager defaultManager] removeFileAtPath:filename handler:nil];
 		[[NSFileManager defaultManager] createDirectoryAtPath:filename attributes:nil];
+		[[NSFileManager defaultManager] copyPath:[[NSBundle mainBundle] pathForImageResource:@"Loading"] 
+										  toPath:[filename stringByAppendingPathComponent:@"Loading.png"] 
+										 handler:nil];
 		
 		if (includeOriginalImage)
 		{
