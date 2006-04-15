@@ -744,7 +744,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			else
 				revisit = (revisitStep++ % 16 > 0);
 			
-			NSLog(@"%d images queued to revisit", revisitCount);
+//			NSLog(@"%d images queued to revisit", revisitCount);
 			if (!revisit)	//newCount > 0 && revisitCount < MAXIMAGEURLS * 8)
 			{
 				nextImageDict = [[[imageQueue objectAtIndex:0] retain] autorelease];
@@ -754,7 +754,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			{
 				nextImageDict = [[[revisitQueue lastObject] retain] autorelease];
 				[revisitQueue removeLastObject];
-				NSLog(@"                     revisiting %@", [nextImageDict objectForKey:@"Image Identifier"]);
+//				NSLog(@"                     revisiting %@", [nextImageDict objectForKey:@"Image Identifier"]);
 			}
 			
 				// let the image source threads add more images if the queue is not full
