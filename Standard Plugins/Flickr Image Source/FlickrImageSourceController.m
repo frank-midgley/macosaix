@@ -111,12 +111,12 @@
 		if ([currentImageSource queryType] == matchAllTags)
 		{
 			[parameters setObject:queryString forKey:@"tags"];
-			[parameters setObject:@"all" forKey:@"tagmode"];
+			[parameters setObject:@"all" forKey:@"tag_mode"];
 		}
-		else if ([currentImageSource queryType] == matchAnyTags)
+		else if ([currentImageSource queryType] == matchAnyTag)
 		{
 			[parameters setObject:queryString forKey:@"tags"];
-			[parameters setObject:@"any" forKey:@"tagmode"];
+			[parameters setObject:@"any" forKey:@"tag_mode"];
 		}
 		else
 			[parameters setObject:queryString forKey:@"text"];
