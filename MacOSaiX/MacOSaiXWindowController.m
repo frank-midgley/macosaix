@@ -9,13 +9,21 @@
 #import "MacOSaiXWindowController.h"
 
 #import "MacOSaiX.h"
+#import "MacOSaiXDocument.h"
+#import "MacOSaiXExportController.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatcher.h"
+#import "MacOSaiXImageSource.h"
 #import "MacOSaiXFullScreenController.h"
 #import "MacOSaiXPopUpImageView.h"
+#import "MacOSaiXTileShapes.h"
+#import "MacOSaiXTilesSetupController.h"
 #import "MacOSaiXWarningController.h"
+#import "MosaicView.h"
 #import "NSImage+MacOSaiX.h"
 #import "NSString+MacOSaiX.h"
+#import "OriginalView.h"
+#import "Tiles.h"
 
 #import <Carbon/Carbon.h>
 #import <unistd.h>
@@ -115,8 +123,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		
 			// Set up the "Image Sources" table
 		[imageSourcesTableView setDoubleAction:@selector(editImageSource:)];
-		[[imageSourcesTableView tableColumnWithIdentifier:@"Image Source Type"]
-			setDataCell:[[[NSImageCell alloc] init] autorelease]];
+//		[[imageSourcesTableView tableColumnWithIdentifier:@"Image"]
+//			setDataCell:[[[NSImageCell alloc] init] autorelease]];
 	
 			// Populate the "Add New Source..." pop-up menu with the names of the image sources.
 			// The represented object of each menu item will be the image source's class.
@@ -149,7 +157,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	[mosaicView setOriginalFadeTime:0.5];
 	
 		// For some reason IB insists on setting the drawer width to 200.  Have to set the size in code instead.
-	[imageSourcesDrawer setContentSize:NSMakeSize(250, [imageSourcesDrawer contentSize].height)];
+	[imageSourcesDrawer setContentSize:NSMakeSize(300, [imageSourcesDrawer contentSize].height)];
 	[imageSourcesDrawer open:self];
     
 	[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
@@ -160,7 +168,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	}
 	else
 	{
-		[pauseToolbarItem setLabel:@"Start Mosaic"];
+		[pauseToolbarItem setLabel:@"Start"];
 		[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Start Mosaic"];
 		
 			// Default to the most recently used original or prompt to choose one
@@ -186,6 +194,12 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 											 selector:@selector(recentOriginalImagesDidChange:) 
 												 name:MacOSaiXRecentOriginalImagesDidChangeNotification 
 											   object:nil];
+	
+	mosaicTrackingRectTag = [[[self window] contentView] addTrackingRect:[mosaicScrollView frame] 
+																   owner:mosaicView 
+																userData:nil 
+															assumeInside:NO];
+	[[self window] setAcceptsMouseMovedEvents:YES];
 	
 	[self mosaicDidChangeState:nil];
 }
@@ -373,6 +387,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		windowResizeStartTime = [[NSDate date] retain];
 		windowResizeDifference = NSMakeSize(windowResizeTargetSize.width - currentWindowSize.width,
 											windowResizeTargetSize.height - currentWindowSize.height);
+		[mosaicView setInLiveRedraw:[NSNumber numberWithBool:YES]];
 		[NSTimer scheduledTimerWithTimeInterval:0.01 
 										 target:self 
 									   selector:@selector(animateWindowResize:) 
@@ -404,6 +419,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[timer invalidate];
 		[windowResizeStartTime release];
 		windowResizeStartTime = nil;
+		
+		[mosaicView setInLiveRedraw:[NSNumber numberWithBool:NO]];
 	}
 }
 
@@ -535,7 +552,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 			// Update the toolbar.
 		if (![[self mosaic] wasStarted])
 		{
-			[pauseToolbarItem setLabel:@"Start Mosaic"];
+			[pauseToolbarItem setLabel:@"Start"];
 			[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
 		}
 		else if ([[self mosaic] isPaused])
@@ -551,11 +568,14 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		
 			// Start the automatic fade to the mosaic if appropriate.
 		if (!fadeTimer && !fadeWasAdjusted && [[self mosaic] allTilesHaveExtractedBitmaps])
+		{
+			[mosaicView setInLiveRedraw:[NSNumber numberWithBool:YES]];
 			fadeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1 
 														  target:self 
 														selector:@selector(fadeToMosaic:) 
 														userInfo:[NSDate date] 
 														 repeats:YES] retain];
+		}
 	}
 }
 
@@ -608,9 +628,6 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	// TBD: Set toolbar icon's tooltip?  And handle non-string values like awakeFromNib does?
 	NSImage	*shapesImage = [[[self mosaic] tileShapes] image];
 	[setupTilesToolbarItem setImage:(shapesImage ? shapesImage : [NSImage imageNamed:@"Tiles Setup"])];
-	
-	if (selectedTile)
-		[self selectTileAtPoint:tileSelectionPoint];
 	
 	[self mosaicDidChangeState:nil];
 }
@@ -744,67 +761,6 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 #pragma mark -
 #pragma mark Editor methods
-
-
-- (void)selectTileAtPoint:(NSPoint)thePoint
-{
-	tileSelectionPoint = thePoint;
-	
-    thePoint.x = thePoint.x / [mosaicView frame].size.width;
-    thePoint.y = thePoint.y / [mosaicView frame].size.height;
-    
-        // TBD: this isn't terribly efficient...
-	NSEnumerator	*tileEnumerator = [[[self mosaic] tiles] objectEnumerator];
-	MacOSaiXTile	*tile = nil;
-	while (tile = [tileEnumerator nextObject])
-        if ([[tile outline] containsPoint:thePoint])
-        {
-			if (tile == selectedTile)
-			{
-				if ([[NSApp currentEvent] clickCount] == 1)
-				{
-						// The selected tile was clicked so unselect it.
-					[selectedTile autorelease];
-					selectedTile = nil;
-					
-						// Get rid of the timer when no tile is selected.
-					[animateTileTimer invalidate];
-					[animateTileTimer release];
-					animateTileTimer = nil;
-				}
-			}
-			else
-			{
-					// Select a new tile.
-				if (!selectedTile)
-				{
-						// Create a timer to animate the selected tile ten times per second.
-					animateTileTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1
-											 target:(id)self
-											   selector:@selector(animateSelectedTile:)
-											   userInfo:nil
-											repeats:YES] retain];
-				}
-				
-				[selectedTile autorelease];
-				selectedTile = [tile retain];
-			}
-			
-			[mosaicView highlightTile:selectedTile];
-			
-			break;
-        }
-
-	if ([[NSApp currentEvent] clickCount] == 2)
-		[self chooseImageForSelectedTile:self];
-}
-
-
-- (void)animateSelectedTile:(id)timer
-{
-    if (![(MacOSaiXDocument *)[self document] isClosing])
-        [mosaicView animateHighlight];
-}
 
 
 - (NSImage *)highlightTileOutline:(NSBezierPath *)tileOutline inImage:(NSImage *)image croppedPercentage:(float *)croppedPercentage
@@ -1160,6 +1116,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	[mosaicView scrollPoint:NSMakePoint(centerPoint.x - NSWidth(visibleRect) / 2.0, 
 										centerPoint.y - NSHeight(visibleRect) / 2.0)];
 	[mosaicView setInLiveRedraw:[NSNumber numberWithBool:YES]];
+	[mosaicView performSelector:@selector(setInLiveRedraw:) withObject:[NSNumber numberWithBool:NO] afterDelay:0.0];
 }
 
 
@@ -1371,6 +1328,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[fadeTimer invalidate];
 		[fadeTimer release];
 		fadeTimer = nil;
+		
+		[mosaicView setInLiveRedraw:[NSNumber numberWithBool:NO]];
 	}
 }
 
@@ -1627,6 +1586,12 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	if ([notification object] == [self window])
 	{
 		[self setZoom:self];
+		
+		[[[self window] contentView] removeTrackingRect:mosaicTrackingRectTag];
+		mosaicTrackingRectTag = [[[self window] contentView] addTrackingRect:[mosaicScrollView frame] 
+																	   owner:mosaicView 
+																	userData:nil 
+																assumeInside:NO];
 	}
 }
 
@@ -1765,8 +1730,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar;
 {
-    return [NSArray arrayWithObjects:@"Original Image", @"Setup Tiles", @"Full Screen", @"Fade", @"Zoom", 
-									 @"Save As", @"Pause", @"Image Sources", 
+    return [NSArray arrayWithObjects:@"Original Image", @"Setup Tiles", @"Pause", @"Full Screen"
+									 , @"Fade", @"Zoom", @"Save As", @"Image Sources", 
 									 NSToolbarCustomizeToolbarItemIdentifier, NSToolbarSpaceItemIdentifier,
 									 NSToolbarFlexibleSpaceItemIdentifier, NSToolbarSeparatorItemIdentifier,
 									 nil];
@@ -1775,8 +1740,9 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar;
 {
-    return [NSArray arrayWithObjects:@"Original Image", @"Setup Tiles", @"Fade", @"Zoom", @"Pause", 
-									 NSToolbarFlexibleSpaceItemIdentifier, @"Image Sources", nil];
+    return [NSArray arrayWithObjects:@"Original Image", @"Setup Tiles", @"Image Sources", 
+									 NSToolbarFlexibleSpaceItemIdentifier, @"Pause", 
+									 NSToolbarFlexibleSpaceItemIdentifier, @"Zoom", @"Fade", nil];
 }
 
 
@@ -1795,34 +1761,21 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex
 {
+	id	value = nil;
+	
     if (aTableView == imageSourcesTableView)
     {
 		id<MacOSaiXImageSource>	imageSource = [[[self mosaic] imageSources] objectAtIndex:rowIndex];
 		
-		if ([[aTableColumn identifier] isEqualToString:@"Image Source Type"])
-			return [imageSource image];
-		else
-		{
-				// TBD: this won't work once entries get removed from the dictionary...
-			long	imageCount = [[self mosaic] countOfImagesFromSource:imageSource];
-			id		descriptor = [imageSource descriptor];
-			
-			if ([descriptor isKindOfClass:[NSString class]])
-				return [NSString stringWithFormat:@"%@\n(%ld images found)", descriptor, imageCount];
-			else if ([descriptor isKindOfClass:[NSAttributedString class]])
-			{
-				NSString	*stringToAppend = [NSString stringWithFormat:@"\n(%ld images found)", imageCount];
-				descriptor = [descriptor mutableCopy];
-				[(NSMutableAttributedString *)descriptor appendAttributedString:
-					[[[NSAttributedString alloc] initWithString:stringToAppend] autorelease]];
-				return descriptor;
-			}
-			else
-				return nil;
-		}
+		if ([[aTableColumn identifier] isEqualToString:@"Image"])
+			value = [imageSource image];
+		else if ([[aTableColumn identifier] isEqualToString:@"Description"])
+			value = [imageSource descriptor];
+		else if ([[aTableColumn identifier] isEqualToString:@"Image Count"])
+			value = [NSNumber numberWithUnsignedLong:[[self mosaic] countOfImagesFromSource:imageSource]];
     }
-	else
-		return nil;
+	
+	return value;
 }
 
 
@@ -1856,6 +1809,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 {
 	[self setMosaic:nil];
 	
+	[[[self window] contentView] removeTrackingRect:mosaicTrackingRectTag];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	
 	[selectedTile release];

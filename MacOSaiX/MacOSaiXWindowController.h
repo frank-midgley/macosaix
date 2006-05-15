@@ -1,13 +1,9 @@
 #import <Cocoa/Cocoa.h>
+
 #import "MosaicView.h"
-#import "OriginalView.h"
-#import "Tiles.h"
-#import "MacOSaiXExportController.h"
-#import "MacOSaiXImageSource.h"
-#import "MacOSaiXTileShapes.h"
-#import "MacOSaiXPopUpImageView.h"
-#import "MacOSaiXDocument.h"
-#import "MacOSaiXTilesSetupController.h"
+
+@class OriginalView, Tiles, MacOSaiXExportController, MacOSaiXImageSource, MacOSaiXTileShapes, 
+       MacOSaiXPopUpImageView, MacOSaiXDocument, MacOSaiXTilesSetupController;
 
 
 @interface MacOSaiXWindowController : NSWindowController 
@@ -103,6 +99,8 @@
 	NSDate								*windowResizeStartTime;
 	NSSize								windowResizeTargetSize, 
 										windowResizeDifference;
+	
+	NSTrackingRectTag					mosaicTrackingRectTag;
 }
 
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
@@ -137,7 +135,6 @@
 - (IBAction)cancelImageSource:(id)sender;
 
 	// Tile editor
-- (IBAction)selectTileAtPoint:(NSPoint)thePoint;
 - (IBAction)chooseImageForSelectedTile:(id)sender;
 - (IBAction)removeChosenImageForSelectedTile:(id)sender;
 
