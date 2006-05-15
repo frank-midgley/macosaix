@@ -8,10 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import "MacOSaiXKioskView.h"
-#import "MacOSaiXMosaic.h"
-#import "MosaicView.h"
-#import "MacOSaiXKioskMessageView.h"
+@class MacOSaiXMosaic, MosaicView, MacOSaiXKioskView, MacOSaiXKioskMessageView;
 
 
 @interface MacOSaiXKioskController : NSWindowController

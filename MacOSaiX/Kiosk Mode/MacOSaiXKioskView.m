@@ -8,6 +8,7 @@
 
 #import "MacOSaiXKioskView.h"
 
+#import "MosaicView.h"
 #import "RectangularTileShapes.h"
 
 

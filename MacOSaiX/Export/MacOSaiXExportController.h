@@ -8,8 +8,8 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import "MacOSaiXMosaic.h"
-#import "MosaicView.h"
+
+@class MacOSaiXMosaic, MosaicView;
 
 
 @interface MacOSaiXExportController : NSWindowController

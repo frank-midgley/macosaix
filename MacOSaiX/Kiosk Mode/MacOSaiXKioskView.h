@@ -8,7 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import "MosaicView.h"
+@class MosaicView;
 
 
 @interface MacOSaiXKioskView : NSView

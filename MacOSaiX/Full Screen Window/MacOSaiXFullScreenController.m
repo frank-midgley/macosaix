@@ -7,6 +7,8 @@
 //
 
 #import "MacOSaiXFullScreenController.h"
+#import "MacOSaiXMosaic.h"
+#import "MosaicView.h"
 
 
 @implementation MacOSaiXFullScreenController

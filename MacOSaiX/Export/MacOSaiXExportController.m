@@ -9,6 +9,8 @@
 #import "MacOSaiXExportController.h"
 
 #import "MacOSaiXImageCache.h"
+#import "MacOSaiXMosaic.h"
+#import "MosaicView.h"
 
 
 enum { jpegFormat, pngFormat, tiffFormat };

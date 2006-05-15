@@ -11,6 +11,10 @@
 #import "GoogleImageSource.h"
 #import "MacOSaiXDocument.h"
 #import "MacOSaiXFullScreenController.h"
+#import "MacOSaiXKioskMessageView.h"
+#import "MacOSaiXKioskView.h"
+#import "MacOSaiXMosaic.h"
+#import "MosaicView.h"
 #import "RectangularTileShapes.h"
 
 #import <pthread.h>
