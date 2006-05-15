@@ -482,27 +482,31 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 	if ([requiredTerms length] > 0)
 	{
 		[urlBase appendString:[NSString stringWithFormat:@"as_q=%@&", escapedNSString(requiredTerms)]];
+		[descriptor appendString:@"\""];
 		[descriptor appendString:requiredTerms];
+		[descriptor appendString:@"\""];
 	}
 	
 	if ([optionalTerms length] > 0)
 	{
 		[urlBase appendString:[NSString stringWithFormat:@"as_oq=%@&", escapedNSString(optionalTerms)]];
 		if ([descriptor length] > 0)
-			[descriptor appendString:@" and any of "];
+			[descriptor appendString:@" and any of \""];
 		else
-			[descriptor appendString:@"Any of "];
+			[descriptor appendString:@"Any of \""];
 		[descriptor appendString:optionalTerms];
+		[descriptor appendString:@"\""];
 	}
 	
 	if ([excludedTerms length] > 0)
 	{
 		[urlBase appendString:[NSString stringWithFormat:@"as_eq=%@&", escapedNSString(excludedTerms)]];
 		if ([descriptor length] > 0)
-			[descriptor appendString:@" but not "];
+			[descriptor appendString:@" but not \""];
 		else
-			[descriptor appendString:@"Not "];
+			[descriptor appendString:@"Not \""];
 		[descriptor appendString:excludedTerms];
+		[descriptor appendString:@"\""];
 	}
 	
 	switch (colorSpace)
