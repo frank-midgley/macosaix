@@ -109,7 +109,7 @@
 			if (![[NSFileManager defaultManager] fileExistsAtPath:folderPath isDirectory:&isFolder] || !isFolder)
 				[folderList removeObject:folderDict];
 			else
-				[folderDict setObject:[[NSFileManager defaultManager] attributedPath:folderPath] forKey:@"Attributed Path"];
+				[folderDict setObject:[[NSFileManager defaultManager] attributedPath:folderPath wraps:NO] forKey:@"Attributed Path"];
 		}
 	}
 	
@@ -118,7 +118,7 @@
 	{
 		[folderList addObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:
 									currentPath, @"Path", 
-									[[NSFileManager defaultManager] attributedPath:currentPath], @"Attributed Path", 
+									[[NSFileManager defaultManager] attributedPath:currentPath wraps:NO], @"Attributed Path", 
 									@"", @"Image Count", 
 									nil]];
 	}

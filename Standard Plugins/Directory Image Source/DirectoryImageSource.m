@@ -110,7 +110,7 @@
 	directoryImage = (directoryPath ? [[[NSWorkspace sharedWorkspace] iconForFile:directoryPath] retain] : nil);
 	
 	[directoryDescriptor autorelease];
-    directoryDescriptor = [[[NSFileManager defaultManager] attributedPath:directoryPath] retain];
+    directoryDescriptor = [[[NSFileManager defaultManager] attributedPath:directoryPath wraps:YES] retain];
 	
 	haveMoreImages = YES;
 	imageCount = 0;
