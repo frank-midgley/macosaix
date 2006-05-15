@@ -2426,7 +2426,7 @@
 			buildSettings = {
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = MacOSaiXPrefix.h;
+				GCC_PREFIX_HEADER = MacOSaiX/MacOSaiXPrefix.h;
 				INFOPLIST_FILE = MacOSaiX/Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = MacOSaiX;
@@ -2439,7 +2439,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = MacOSaiXPrefix.h;
+				GCC_PREFIX_HEADER = MacOSaiX/MacOSaiXPrefix.h;
 				INFOPLIST_FILE = MacOSaiX/Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = MacOSaiX;
