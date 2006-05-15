@@ -1069,7 +1069,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	else if ([[self imageSources] count] == 0)
 		statusKey = @"You have not added any image sources";
 	else if (![self wasStarted] && ![self imageSourcesExhausted])
-		statusKey = @"Ready to begin.  Click the Start Mosaic button in the toolbar.";
+		statusKey = @"Ready to begin.  Click the Start button in the toolbar.";
 	else if ([self isPaused])
 		statusKey = @"Paused";
 	else if ([tilesWithoutBitmaps count] > 0)
