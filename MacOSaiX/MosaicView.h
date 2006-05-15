@@ -41,7 +41,10 @@ typedef enum { clearMode = 0, blackMode, originalMode, bestMatchMode } MacOSaiXB
 	NSArray					*highlightedImageSources;
 	NSLock					*highlightedImageSourcesLock;
 	NSBezierPath			*highlightedImageSourcesOutline;
+	NSTimer					*animateHighlightedTileTimer;
     int						phase;
+	
+	IBOutlet NSMenu			*contextualMenu;
 	
 		// Tile refreshing
 	NSMutableArray			*tilesToRefresh, 
@@ -55,6 +58,15 @@ typedef enum { clearMode = 0, blackMode, originalMode, bestMatchMode } MacOSaiXB
 	NSTimer					*tilesNeedDisplayTimer;
 	
 	MacOSaiXBackgroundMode	backgroundMode;
+	
+		// Custom tooltip window
+	NSTimer					*tooltipTimer;
+	IBOutlet NSWindow		*tooltipWindow;
+	IBOutlet NSImageView	*tileImageView, 
+							*imageSourceImageView;
+	IBOutlet NSTextField	*imageSourceTextField, 
+							*tileImageTextField;
+	MacOSaiXTile			*tooltipTile;
 }
 
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
@@ -77,10 +89,10 @@ typedef enum { clearMode = 0, blackMode, originalMode, bestMatchMode } MacOSaiXB
 - (void)setBackgroundMode:(MacOSaiXBackgroundMode)mode;
 - (MacOSaiXBackgroundMode)backgroundMode;
 
-	// Highlight methods
-- (void)highlightTile:(MacOSaiXTile *)tile;
+	// Highlighting
+- (void)setHighlightedTile:(MacOSaiXTile *)tile;
+- (MacOSaiXTile *)highlightedTile;
 - (void)highlightImageSources:(NSArray *)imageSources;
-- (void)animateHighlight;
 
 - (NSImage *)image;
 

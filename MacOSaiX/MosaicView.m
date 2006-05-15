@@ -7,8 +7,10 @@
 //
 
 #import "MosaicView.h"
+#import "MacOSaiXFullScreenWindow.h"
 #import "MacOSaiXWindowController.h"
 #import "MacOSaiXImageCache.h"
+#import "NSImage+MacOSaiX.h"
 
 #import <pthread.h>
 
@@ -46,6 +48,15 @@
 	tilesNeedDisplayLock = [[NSLock alloc] init];
 	
 	highlightedImageSourcesLock = [[NSLock alloc] init];
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(windowDidBecomeMain:)
+												 name:NSWindowDidBecomeMainNotification 
+											   object:[self window]];
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(windowDidResignMain:)
+												 name:NSWindowDidBecomeMainNotification 
+											   object:[self window]];
 }
 
 
@@ -658,13 +669,20 @@
 }
 
 
-- (void)mouseDown:(NSEvent *)theEvent
+- (MacOSaiXTile *)tileAtPoint:(NSPoint)thePoint
 {
-    NSPoint						mouseLoc = [self convertPoint:[theEvent locationInWindow] fromView:nil];
-	MacOSaiXWindowController	*controller = [[self window] delegate];
+		// Convert the point to the unit square system that the tile outlines are in.
+    thePoint.x = thePoint.x / [self frame].size.width;
+    thePoint.y = thePoint.y / [self frame].size.height;
+    
+		// TBD: this isn't terribly efficient...
+	NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
+	MacOSaiXTile	*tile = nil;
+	while (tile = [tileEnumerator nextObject])
+        if ([[tile outline] containsPoint:thePoint])
+			break;
 	
-	if ([controller isKindOfClass:[MacOSaiXWindowController class]] && [self mouse:mouseLoc inRect:[self bounds]])
-		[controller selectTileAtPoint:mouseLoc];
+	return tile;
 }
 
 
@@ -878,10 +896,7 @@
 - (void)setInLiveRedraw:(NSNumber *)flag
 {
 	if (!inLiveRedraw && [flag boolValue])
-	{
 		inLiveRedraw = YES;
-		[self performSelector:_cmd withObject:[NSNumber numberWithBool:NO] afterDelay:0.0];
-	}
 	else if (inLiveRedraw && ![flag boolValue])
 	{
 		inLiveRedraw = NO;
@@ -896,10 +911,167 @@
 }
 
 
+#pragma mark -
+#pragma mark Tooltip methods
+
+
+- (void)setTooltipsEnabled:(BOOL)enabled
+{
+	if (enabled && !tooltipTimer)
+		tooltipTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1 
+														 target:self 
+													   selector:@selector(updateTooltip:) 
+													   userInfo:nil 
+														repeats:YES] retain];
+	else if (!enabled)
+	{
+		[tooltipTimer invalidate];
+		[tooltipTimer release];
+		tooltipTimer = nil;
+		
+		tooltipTile = nil;
+		
+		[tooltipWindow orderOut:self];
+	}
+}
+
+
+- (void)updateTooltip:(NSTimer *)timer
+{
+	if (!tooltipWindow)
+	{
+		[NSBundle loadNibNamed:@"Mosaic View" owner:self];
+		
+		NSWindow	*nibWindow = tooltipWindow;
+		tooltipWindow = [[MacOSaiXFullScreenWindow alloc] initWithContentRect:[nibWindow contentRectForFrameRect:[nibWindow frame]] 
+																	styleMask:NSBorderlessWindowMask 
+																	  backing:NSBackingStoreBuffered 
+																		defer:NO 
+																	   screen:[nibWindow screen]];
+		[tooltipWindow setContentView:[nibWindow contentView]];
+//		[tooltipWindow setAlphaValue:0.8];
+		[nibWindow release];
+	}
+	
+	NSPoint					screenPoint = [NSEvent mouseLocation],
+							windowPoint = [[self window] convertScreenToBase:screenPoint];
+	MacOSaiXTile			*tile = [self tileAtPoint:[self convertPoint:windowPoint fromView:nil]];
+	
+	if (tile != tooltipTile)
+	{
+		tooltipTile = tile;
+		
+		[tooltipWindow setFrameTopLeftPoint:NSMakePoint(screenPoint.x, screenPoint.y - 20.0)];
+		
+			// Fill in the details for the tile under the mouse.
+		MacOSaiXImageMatch		*imageMatch = [tile userChosenImageMatch];
+		if (!imageMatch)
+			imageMatch = [tile uniqueImageMatch];
+		if (!imageMatch && backgroundMode == bestMatchMode)
+			imageMatch = [tile bestImageMatch];
+		
+		if (imageMatch)
+		{
+			id<MacOSaiXImageSource>	imageSource = [imageMatch imageSource];
+			NSImage					*sourceImage = [[[imageSource image] copy] autorelease];
+			[sourceImage setScalesWhenResized:YES];
+			[sourceImage setSize:NSMakeSize(32.0, 32.0 * [sourceImage size].height / [sourceImage size].width)];
+			[imageSourceImageView setImage:sourceImage];
+			
+			id						sourceDescription = [imageSource descriptor];
+			if ([sourceDescription isKindOfClass:[NSAttributedString class]])
+				[imageSourceTextField setAttributedStringValue:sourceDescription];
+			else if ([sourceDescription isKindOfClass:[NSString class]])
+				[imageSourceTextField setStringValue:sourceDescription];
+			else
+			{
+				NSString	*genericDescription = [(id)[imageSource class] name];
+				[imageSourceTextField setStringValue:(genericDescription ? genericDescription : @"")];
+			}
+			
+			[tileImageView setImage:nil];
+			[tileImageTextField setStringValue:@"Fetching..."];
+			[tooltipWindow orderFront:self];
+			
+			[NSThread detachNewThreadSelector:@selector(updateTooltipWindowForImageMatch:) 
+									 toTarget:self 
+								   withObject:imageMatch];
+		}
+		else
+			[tooltipWindow orderOut:self];
+	}
+}
+
+
+- (void)updateTooltipWindowForImageMatch:(id)parameter
+{
+	if (!pthread_main_np())
+	{
+		NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+		
+		MacOSaiXImageMatch		*imageMatch = parameter;
+		id<MacOSaiXImageSource>	imageSource = [imageMatch imageSource];
+		NSString				*identifier = [imageMatch imageIdentifier];
+		NSBitmapImageRep		*imageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:NSZeroSize 
+																					forIdentifier:identifier 
+																					   fromSource:imageSource];
+		NSImage					*image = [[NSImage alloc] initWithSize:[imageRep size]];
+		NSString				*imageDescription = (image ? [imageSource descriptionForIdentifier:identifier] : nil);
+		
+		[image addRepresentation:imageRep];
+		[self performSelectorOnMainThread:_cmd 
+							   withObject:[NSDictionary dictionaryWithObjectsAndKeys:
+											   imageMatch, @"Image Match", 
+											   image, @"Image", 
+											   imageDescription, @"Image Description", 
+											   nil]
+							waitUntilDone:NO];
+		
+		[image release];
+		[pool release];
+	}
+	else
+	{
+		NSDictionary		*parameters = parameter;
+		MacOSaiXImageMatch	*imageMatch = [parameters objectForKey:@"Image Match"];
+		
+			// Only update the tooltip window if the mouse is still over the same tile.
+		if ([imageMatch tile] == tooltipTile)
+		{
+			NSImage			*image = [parameters objectForKey:@"Image"];
+			
+			if (image)
+			{
+				image = [[image copyWithLargestDimension:400.0] autorelease];
+				
+				float		widthDiff = [image size].width - NSWidth([tileImageView frame]), 
+							heightDiff = [image size].height - NSHeight([tileImageView frame]);
+				[tileImageView setImage:image];
+				
+				NSString	*imageDescription = [parameters objectForKey:@"Image Description"];
+				if (imageDescription)
+					[tileImageTextField setStringValue:imageDescription];
+				else
+					[tileImageTextField setStringValue:@""];
+				
+				NSRect		frameRect = [tooltipWindow frame];
+				frameRect.origin.y -= heightDiff;
+				frameRect.size.width += widthDiff;
+				frameRect.size.height += heightDiff;
+				[tooltipWindow setFrame:frameRect display:YES animate:YES];
+			}
+			else
+				;	// TBD
+		}
+	}
+}
+
+
+#pragma mark -
 #pragma mark Highlight methods
 
 
-- (void)highlightTile:(MacOSaiXTile *)tile
+- (void)setHighlightedTile:(MacOSaiXTile *)tile
 {
 	NSRect				mosaicBounds = [self boundsForOriginalImage:[mosaic originalImage]];
     NSAffineTransform	*transform = [NSAffineTransform transform];
@@ -913,7 +1085,8 @@
 		[self setNeedsDisplayInRect:NSInsetRect([bezierPath bounds], -2.0, -2.0)];
 	}
 	
-	highlightedTile = tile;
+	[highlightedTile autorelease];
+	highlightedTile = [tile retain];
 	
     if (highlightedTile)
     {
@@ -921,6 +1094,12 @@
 		NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile outline]];
 		[self setNeedsDisplayInRect:NSInsetRect([bezierPath bounds], -2.0, -2.0)];
 	}
+}
+
+
+- (MacOSaiXTile *)highlightedTile
+{
+	return highlightedTile;
 }
 
 
@@ -969,7 +1148,7 @@
 }
 
 
-- (void)animateHighlight
+- (void)animateHighlightedTile:(NSTimer *)timer
 {
     phase = ++phase % 10;
 	
@@ -983,10 +1162,121 @@
 }
 
 
+#pragma mark -
+
+
 - (NSImage *)image
 {
 	return mainImage;
 }
+
+
+- (void)mouseDown:(NSEvent *)theEvent
+{
+	MacOSaiXTile	*clickedTile = [self tileAtPoint:[self convertPoint:[theEvent locationInWindow] fromView:nil]];
+	
+	if ([theEvent clickCount] == 1)
+	{
+			// Change the selection.
+		if (clickedTile == highlightedTile)
+		{
+			[self setHighlightedTile:nil];
+			
+				// Get rid of the timer when no tile is selected.
+			[animateHighlightedTileTimer invalidate];
+			[animateHighlightedTileTimer release];
+			animateHighlightedTileTimer = nil;
+		}
+		else
+		{
+			[self setHighlightedTile:clickedTile];
+			
+			if (!animateHighlightedTileTimer)
+			{
+					// Create a timer to animate the selected tile ten times per second.
+				animateHighlightedTileTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1
+																				target:(id)self
+																			  selector:@selector(animateHighlightedTile:)
+																			  userInfo:nil
+																			   repeats:YES] retain];
+			}
+		}
+	}
+	else if ([theEvent clickCount] == 2)
+	{
+			// Edit the tile.
+		[self setHighlightedTile:clickedTile];
+		
+		MacOSaiXWindowController	*controller = [[self window] windowController];
+		if ([controller isKindOfClass:[MacOSaiXWindowController class]])
+			[controller chooseImageForSelectedTile:self];
+	}
+}
+
+
+- (void)mouseEntered:(NSEvent *)event
+{
+	[self setTooltipsEnabled:YES];
+}
+
+
+- (void)mouseExited:(NSEvent *)event
+{
+	[self setTooltipsEnabled:YES];
+}
+
+
+- (void)viewDidMoveToWindow
+{
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidBecomeMainNotification object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResignMainNotification object:nil];
+	
+	if ([self window])
+	{
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(windowDidBecomeMain:)
+													 name:NSWindowDidBecomeMainNotification 
+												   object:[self window]];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(windowDidResignMain:)
+													 name:NSWindowDidBecomeMainNotification 
+												   object:[self window]];
+	}
+}
+
+
+- (void)windowDidBecomeMain:(NSNotification *)notification
+{
+	NSPoint	windowPoint = [[self window] convertScreenToBase:[NSEvent mouseLocation]];
+	
+	if (NSPointInRect([self convertPoint:windowPoint fromView:nil], [self bounds]))
+		[self setTooltipsEnabled:YES];
+}
+
+
+- (void)windowDidResignMain:(NSNotification *)notification
+{
+	[self setTooltipsEnabled:NO];
+}
+
+
+- (NSMenu *)menuForEvent:(NSEvent *)event;
+{
+	[self setHighlightedTile:[self tileAtPoint:[self convertPoint:[event locationInWindow] fromView:nil]]];
+	
+	if (!contextualMenu)
+		[NSBundle loadNibNamed:@"Mosaic View" owner:self];
+	
+	return contextualMenu;
+}
+
+
+- (BOOL)validateMenuItem:(NSMenuItem *)item
+{
+//	if ([item menu] == contextualMenu)
+		return YES;
+}
+
 
 - (void)dealloc
 {
@@ -995,6 +1285,8 @@
 	if ([originalFadeTimer isValid])
 		[originalFadeTimer invalidate];
 	[originalFadeTimer release];
+	
+	[self setTooltipsEnabled:NO];
 	
 	[mainImage release];
 	[mainImageLock release];
@@ -1005,6 +1297,7 @@
 	[highlightedImageSources release];
 	[highlightedImageSourcesLock release];
 	[highlightedImageSourcesOutline release];
+	[contextualMenu release];
 	if ([tilesNeedDisplayTimer isValid])
 		[tilesNeedDisplayTimer invalidate];
 	[tilesNeedDisplayTimer release];
