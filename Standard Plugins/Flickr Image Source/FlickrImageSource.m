@@ -402,8 +402,8 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 		NSString	*queryTypeString = [[settingDict objectForKey:@"TYPE"] description];
 		if ([queryTypeString isEqualToString:@"All Tags"])
 			[self setQueryType:matchAllTags];
-		if ([queryTypeString isEqualToString:@"Any Tags"])
-			[self setQueryType:matchAnyTags];
+		if ([queryTypeString isEqualToString:@"Any Tag"] || [queryTypeString isEqualToString:@"Any Tags"])
+			[self setQueryType:matchAnyTag];
 		if ([queryTypeString isEqualToString:@"Titles, Tags or Descriptions"])
 			[self setQueryType:matchTitlesTagsOrDescriptions];
 	}
@@ -467,7 +467,37 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 
 - (id)descriptor
 {
-    return queryString;
+	NSString	*descriptor = nil;
+	
+	if (queryType == matchTitlesTagsOrDescriptions)
+		descriptor = [NSString stringWithFormat:@"Images matching \"%@\"", queryString];
+	else
+	{
+		NSMutableArray	*tags = [[queryString componentsSeparatedByString:@","] mutableCopy];
+		NSCharacterSet	*whiteSpaceSet = [NSCharacterSet whitespaceCharacterSet];
+		
+		if ([tags count] == 1)
+			descriptor = [NSString stringWithFormat:@"Tagged with \"%@\"", 
+										[[tags objectAtIndex:0] stringByTrimmingCharactersInSet:whiteSpaceSet]];
+		else
+		{
+			NSEnumerator	*tagEnumerator = [tags objectEnumerator];
+			NSString		*tag = nil;
+			unsigned		index = 0;
+			while (tag = [tagEnumerator nextObject])
+				[tags replaceObjectAtIndex:index++ withObject:[tag stringByTrimmingCharactersInSet:whiteSpaceSet]];
+			
+			descriptor = [NSString stringWithFormat:@"Tagged with \"%@\" %@ \"%@\"", 
+													[[tags subarrayWithRange:NSMakeRange(0, [tags count] - 1)]
+														componentsJoinedByString:@"\", \""], 
+													(queryType == matchAllTags ? @"and" : @"or"), 
+													[tags lastObject]];
+		}
+		
+		[tags release];
+	}
+	
+	return descriptor;
 }
 
 
@@ -513,12 +543,12 @@ void	endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 	if (queryType == matchAllTags)
 	{
 		[parameters setObject:queryString forKey:@"tags"];
-		[parameters setObject:@"all" forKey:@"tagmode"];
+		[parameters setObject:@"all" forKey:@"tag_mode"];
 	}
-	else if (queryType == matchAnyTags)
+	else if (queryType == matchAnyTag)
 	{
 		[parameters setObject:queryString forKey:@"tags"];
-		[parameters setObject:@"any" forKey:@"tagmode"];
+		[parameters setObject:@"any" forKey:@"tag_mode"];
 	}
 	else
 		[parameters setObject:queryString forKey:@"text"];

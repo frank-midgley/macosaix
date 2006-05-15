@@ -10,7 +10,7 @@
 #import "MacOSaiXImageSource.h"
 
 
-typedef enum { matchAllTags, matchAnyTags, matchTitlesTagsOrDescriptions } FlickrQueryType;
+typedef enum { matchAllTags, matchAnyTag, matchTitlesTagsOrDescriptions } FlickrQueryType;
 
 
 @interface FlickrImageSource : NSObject <MacOSaiXImageSource>
