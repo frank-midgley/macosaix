@@ -192,7 +192,7 @@
 @implementation NSFileManager (MacOSaiXAttributedPaths)
 
 
-- (NSAttributedString *)attributedPath:(NSString *)path
+- (NSAttributedString *)attributedPath:(NSString *)path wraps:(BOOL)wrap
 {
 	NSMutableArray	*pathComponents = [[[path pathComponents] mutableCopy] autorelease];
 	NSString		*fullPath = [NSString string];
@@ -220,7 +220,9 @@
 		// Loop through the components and build up the attributed string.
 	NSMutableAttributedString	*attributedPath = [[[NSMutableAttributedString alloc] initWithString:@""] autorelease];
 	NSEnumerator				*componentEnumerator = [pathComponents objectEnumerator];
-	NSString					*pathComponent = nil;
+	unichar						nbspUnichar = 0x00a0;
+	NSString					*pathComponent = nil, 
+								*nonBreakingSpace = [NSString stringWithCharacters:&nbspUnichar length:1];
 	while (pathComponent = [componentEnumerator nextObject])
 	{
 		if ([attributedPath length] > 0)
@@ -240,7 +242,8 @@
 		NSTextAttachment	*ta = [[NSTextAttachment alloc] init];
 		[(NSCell *)[ta attachmentCell] setImage:componentIcon];
 		NSAttributedString	*imageAS = [NSMutableAttributedString attributedStringWithAttachment:ta],
-							*nameAS = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" %@",
+							*nameAS = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@%@",
+																								nonBreakingSpace, 
 																								componentName]];
 		[attributedPath appendAttributedString:imageAS];
 		[attributedPath addAttribute:NSBaselineOffsetAttributeName 
@@ -252,7 +255,7 @@
 	}
 	
 	NSMutableParagraphStyle	*style = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
-	[style setLineBreakMode:NSLineBreakByTruncatingMiddle];
+	[style setLineBreakMode:(wrap ? NSLineBreakByWordWrapping : NSLineBreakByTruncatingMiddle)];
 	[attributedPath addAttribute:NSParagraphStyleAttributeName 
 						   value:style 
 						   range:NSMakeRange(0, [attributedPath length])];

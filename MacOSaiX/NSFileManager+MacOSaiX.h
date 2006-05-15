@@ -34,6 +34,6 @@
 
 @interface NSFileManager (MacOSaiXAttributedPaths)
 
-- (NSAttributedString *)attributedPath:(NSString *)path;
+- (NSAttributedString *)attributedPath:(NSString *)path wraps:(BOOL)wrap;
 
 @end
