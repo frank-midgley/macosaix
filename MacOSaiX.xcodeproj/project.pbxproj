@@ -7,12 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0109CA3F09D385DF008290BE /* MacOSaiXWarningController.h in Headers */ = {isa = PBXBuildFile; fileRef = 0109CA3D09D385DF008290BE /* MacOSaiXWarningController.h */; };
 		0109CA4009D385DF008290BE /* MacOSaiXWarningController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0109CA3E09D385DF008290BE /* MacOSaiXWarningController.m */; };
 		0109CA4709D385E5008290BE /* Warning.nib in Resources */ = {isa = PBXBuildFile; fileRef = 0109CA4109D385E5008290BE /* Warning.nib */; };
-		0109D41509E084D8008290BE /* MacOSaiXEventCatchingPanel.h in Headers */ = {isa = PBXBuildFile; fileRef = 0109D41309E084D8008290BE /* MacOSaiXEventCatchingPanel.h */; };
 		0109D41609E084D8008290BE /* MacOSaiXEventCatchingPanel.m in Sources */ = {isa = PBXBuildFile; fileRef = 0109D41409E084D8008290BE /* MacOSaiXEventCatchingPanel.m */; };
-		010D1F7608FF5FAD00950013 /* MacOSaiXFullScreenWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 010D1F7408FF5FAD00950013 /* MacOSaiXFullScreenWindow.h */; };
 		010D1F7708FF5FAD00950013 /* MacOSaiXFullScreenWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 010D1F7508FF5FAD00950013 /* MacOSaiXFullScreenWindow.m */; };
 		010D20B60902C01700950013 /* Kiosk Setup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 010D20980902C01700950013 /* Kiosk Setup.nib */; };
 		010D20B70902C01700950013 /* Kiosk.nib in Resources */ = {isa = PBXBuildFile; fileRef = 010D209A0902C01700950013 /* Kiosk.nib */; };
@@ -37,18 +34,18 @@
 		018F9A640964BE2F00CABB48 /* GooglePreferencesController.m in Sources */ = {isa = PBXBuildFile; fileRef = 018F9A620964BE2F00CABB48 /* GooglePreferencesController.m */; };
 		01A1978E071A200E00B11558 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		01A94F77097050DB00EF07B6 /* MacOSaiXPreferencesController.h in Headers */ = {isa = PBXBuildFile; fileRef = 01A94F76097050DB00EF07B6 /* MacOSaiXPreferencesController.h */; };
-		01A94F78097050DB00EF07B6 /* MacOSaiXPreferencesController.h in Headers */ = {isa = PBXBuildFile; fileRef = 01A94F76097050DB00EF07B6 /* MacOSaiXPreferencesController.h */; };
-		01AB92EB07DB797300DB4B86 /* NSString+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */; };
 		01AB92EC07DB797300DB4B86 /* NSString+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 01AB92EA07DB797300DB4B86 /* NSString+MacOSaiX.m */; };
 		01AC3A3C07B0997C0025F915 /* Settings.png in Resources */ = {isa = PBXBuildFile; fileRef = 01AC3A3B07B0997C0025F915 /* Settings.png */; };
 		01ACC0B208FCA4530013D213 /* MacOSaiXKioskView.m in Sources */ = {isa = PBXBuildFile; fileRef = 01ACC0AD08FCA3960013D213 /* MacOSaiXKioskView.m */; };
 		01ACC20108FCC0EA0013D213 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F599E5560266AAD101000103 /* Carbon.framework */; };
 		01AD286F07E3C99B00420875 /* GoogleImageSearch.gif in Resources */ = {isa = PBXBuildFile; fileRef = 01AD286D07E3C99A00420875 /* GoogleImageSearch.gif */; };
-		01BBDECD0747081400F17A9F /* NSImage+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01BBDECB0747081400F17A9F /* NSImage+MacOSaiX.h */; };
 		01BBDECE0747081400F17A9F /* NSImage+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */; };
 		01DCB2F5092C2508008345F3 /* Flickr Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 01722BA809298D3E00290929 /* Flickr Image Source.plugin */; };
 		01FE978E08E8EDFE00E4AC7C /* MacOSaiXKioskController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE978C08E8EDFE00E4AC7C /* MacOSaiXKioskController.m */; };
 		01FE981308F365C600E4AC7C /* MacOSaiXMosaic.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */; };
+		9211A5E50A17DA3A0021A583 /* Mosaic View.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9211A5E30A17DA3A0021A583 /* Mosaic View.nib */; };
+		9211A6840A17F7A80021A583 /* MacOSaiXToolTipView.h in Headers */ = {isa = PBXBuildFile; fileRef = 9211A6820A17F7A70021A583 /* MacOSaiXToolTipView.h */; };
+		9211A6850A17F7A80021A583 /* MacOSaiXToolTipView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9211A6830A17F7A70021A583 /* MacOSaiXToolTipView.m */; };
 		921607B208E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */; };
 		9216086708E5DC9F0018C4C1 /* DirectoryImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = F540721A023FE6860100010A /* DirectoryImageSource.m */; };
 		9216086A08E5DCA70018C4C1 /* NSFileManager+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */; };
@@ -69,12 +66,9 @@
 		92319CA809A7D6AA007CA9CD /* Export3+Original.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319CA609A7D6AA007CA9CD /* Export3+Original.html */; };
 		92319CAB09A7D6C5007CA9CD /* Export3.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319CA909A7D6C5007CA9CD /* Export3.html */; };
 		923384DC072180700010BE04 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
-		923384DD072180700010BE04 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
-		924E805D099E8C0D006977E3 /* MacOSaiXTilesSetupController.h in Headers */ = {isa = PBXBuildFile; fileRef = 924E805B099E8C0D006977E3 /* MacOSaiXTilesSetupController.h */; };
 		924E805E099E8C0D006977E3 /* MacOSaiXTilesSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 924E805C099E8C0D006977E3 /* MacOSaiXTilesSetupController.m */; };
 		924E807E099E9022006977E3 /* Tiles Setup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 924E807C099E9022006977E3 /* Tiles Setup.nib */; };
 		9253016509D611EF001E27F3 /* NoOriginal.png in Resources */ = {isa = PBXBuildFile; fileRef = 9253016409D611EF001E27F3 /* NoOriginal.png */; };
-		9254088C0915741F00384904 /* MacOSaiXKioskMessageView.h in Headers */ = {isa = PBXBuildFile; fileRef = 9254088A0915741F00384904 /* MacOSaiXKioskMessageView.h */; };
 		9254088D0915741F00384904 /* MacOSaiXKioskMessageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */; };
 		925FE5C407EBDAB200B0D002 /* Glyph Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 928489E506611CE6003B3514 /* Glyph Image Source.plugin */; };
 		9284898B06611CE5003B3514 /* ExportImage.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F594095502469B3101000104 /* ExportImage.tiff */; };
@@ -120,14 +114,12 @@
 		92865510072ADBD400EFC32A /* QuickTime Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92848A0406611CE6003B3514 /* QuickTime Image Source.plugin */; };
 		928656FD0734507600EFC32A /* Google Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 928489D406611CE6003B3514 /* Google Image Source.plugin */; };
 		9286575A0734584600EFC32A /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
-		9287C13B075A5CC6004C07EF /* MacOSaiXTileShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = 9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */; };
 		9287C13C075A5CC6004C07EF /* MacOSaiXTileShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = 9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */; };
 		9287C13D075A5CC6004C07EF /* MacOSaiXTileShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = 9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */; };
 		9287C13E075A5CC6004C07EF /* MacOSaiXTileShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = 9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */; };
 		9287C155075A5F55004C07EF /* RectangularTileShapes.h in Headers */ = {isa = PBXBuildFile; fileRef = 9287C153075A5F55004C07EF /* RectangularTileShapes.h */; };
 		9287C156075A5F55004C07EF /* RectangularTileShapes.m in Sources */ = {isa = PBXBuildFile; fileRef = 9287C154075A5F55004C07EF /* RectangularTileShapes.m */; };
 		9288242A0982C00E00181817 /* FullScreen.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 928824290982C00E00181817 /* FullScreen.tiff */; };
-		92887D9C094CCC83000FA225 /* MacOSaiXPopUpImageView.h in Headers */ = {isa = PBXBuildFile; fileRef = 92887D9A094CCC83000FA225 /* MacOSaiXPopUpImageView.h */; };
 		92887D9D094CCC84000FA225 /* MacOSaiXPopUpImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 92887D9B094CCC83000FA225 /* MacOSaiXPopUpImageView.m */; };
 		9289DDA8073D713100C88091 /* MacOSaiXImageCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */; };
 		9289DDAA073D713100C88091 /* MacOSaiXWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9289DDA6073D713100C88091 /* MacOSaiXWindowController.m */; };
@@ -143,7 +135,6 @@
 		9298FCC6098C1C3500E7A096 /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FCC4098C1C3500E7A096 /* Preferences.nib */; };
 		9298FCC9098C1C6800E7A096 /* FlickrPreferencesController.h in Headers */ = {isa = PBXBuildFile; fileRef = 9298FCC7098C1C6800E7A096 /* FlickrPreferencesController.h */; };
 		9298FCCA098C1C6800E7A096 /* FlickrPreferencesController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9298FCC8098C1C6800E7A096 /* FlickrPreferencesController.m */; };
-		9298FE030995592300E7A096 /* MacOSaiXExportController.h in Headers */ = {isa = PBXBuildFile; fileRef = 9298FE010995592300E7A096 /* MacOSaiXExportController.h */; };
 		9298FE040995592300E7A096 /* MacOSaiXExportController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9298FE020995592300E7A096 /* MacOSaiXExportController.m */; };
 		9298FE6309955B0E00E7A096 /* Export1.html in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE5D09955B0E00E7A096 /* Export1.html */; };
 		9298FE6409955B0E00E7A096 /* Export2.html in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE5F09955B0E00E7A096 /* Export2.html */; };
@@ -442,6 +433,10 @@
 		01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXMosaic.m; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		920F9A120A0D54E8006007C1 /* MacOSaiXPrefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXPrefix.h; path = ../MacOSaiXPrefix.h; sourceTree = "<group>"; };
+		9211A5E40A17DA3A0021A583 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Mosaic View.nib"; sourceTree = "<group>"; };
+		9211A6820A17F7A70021A583 /* MacOSaiXToolTipView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXToolTipView.h; sourceTree = "<group>"; };
+		9211A6830A17F7A70021A583 /* MacOSaiXToolTipView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXToolTipView.m; sourceTree = "<group>"; };
 		921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSFileManager+MacOSaiX.h"; sourceTree = "<group>"; };
 		921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSFileManager+MacOSaiX.m"; sourceTree = "<group>"; };
 		9226835F09267C1B00BF4EF7 /* PuzzleTileShapes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PuzzleTileShapes.h; sourceTree = "<group>"; };
@@ -822,6 +817,7 @@
 			isa = PBXGroup;
 			children = (
 				29B97316FDCFA39411CA2CEA /* main.m */,
+				920F9A120A0D54E8006007C1 /* MacOSaiXPrefix.h */,
 				9298FE6D09955B3B00E7A096 /* MainMenu.nib */,
 				F5666CC9C5B062B401D943E0 /* MacOSaiX.h */,
 				F5666CCAC5B062B401D943E0 /* MacOSaiX.m */,
@@ -974,6 +970,7 @@
 				012976FF086A63D30095AD36 /* MacOSaiXCrashReporterController.h */,
 				01297700086A63D30095AD36 /* MacOSaiXCrashReporterController.m */,
 				9298FE7109955B6600E7A096 /* Crash Reporter.nib */,
+				9211A5E30A17DA3A0021A583 /* Mosaic View.nib */,
 			);
 			name = "Crash Reporter";
 			sourceTree = "<group>";
@@ -1023,6 +1020,8 @@
 				01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */,
 				F5517EEE020CD88F01000106 /* MosaicView.h */,
 				F5517EEF020CD88F01000106 /* MosaicView.m */,
+				9211A6820A17F7A70021A583 /* MacOSaiXToolTipView.h */,
+				9211A6830A17F7A70021A583 /* MacOSaiXToolTipView.m */,
 				00EAAC6000853DFB7F000001 /* Tiles.h */,
 				00EAAC6100853DFB7F000001 /* Tiles.m */,
 			);
@@ -1140,18 +1139,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				923384DD072180700010BE04 /* MacOSaiXImageSource.h in Headers */,
-				01BBDECD0747081400F17A9F /* NSImage+MacOSaiX.h in Headers */,
-				9287C13B075A5CC6004C07EF /* MacOSaiXTileShapes.h in Headers */,
-				01AB92EB07DB797300DB4B86 /* NSString+MacOSaiX.h in Headers */,
-				010D1F7608FF5FAD00950013 /* MacOSaiXFullScreenWindow.h in Headers */,
-				9254088C0915741F00384904 /* MacOSaiXKioskMessageView.h in Headers */,
-				92887D9C094CCC83000FA225 /* MacOSaiXPopUpImageView.h in Headers */,
-				01A94F78097050DB00EF07B6 /* MacOSaiXPreferencesController.h in Headers */,
-				9298FE030995592300E7A096 /* MacOSaiXExportController.h in Headers */,
-				924E805D099E8C0D006977E3 /* MacOSaiXTilesSetupController.h in Headers */,
-				0109CA3F09D385DF008290BE /* MacOSaiXWarningController.h in Headers */,
-				0109D41509E084D8008290BE /* MacOSaiXEventCatchingPanel.h in Headers */,
+				9211A6840A17F7A80021A583 /* MacOSaiXToolTipView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1729,6 +1717,7 @@
 				0109CA4709D385E5008290BE /* Warning.nib in Resources */,
 				9253016509D611EF001E27F3 /* NoOriginal.png in Resources */,
 				92DFC50809EDC3EA0076FD93 /* Loading.png in Resources */,
+				9211A5E50A17DA3A0021A583 /* Mosaic View.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1877,6 +1866,7 @@
 				924E805E099E8C0D006977E3 /* MacOSaiXTilesSetupController.m in Sources */,
 				0109CA4009D385DF008290BE /* MacOSaiXWarningController.m in Sources */,
 				0109D41609E084D8008290BE /* MacOSaiXEventCatchingPanel.m in Sources */,
+				9211A6850A17F7A80021A583 /* MacOSaiXToolTipView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2041,6 +2031,14 @@
 				01AD286E07E3C99A00420875 /* English */,
 			);
 			name = GoogleImageSearch.gif;
+			sourceTree = "<group>";
+		};
+		9211A5E30A17DA3A0021A583 /* Mosaic View.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9211A5E40A17DA3A0021A583 /* English */,
+			);
+			name = "Mosaic View.nib";
 			sourceTree = "<group>";
 		};
 		9226836709267C2600BF4EF7 /* PuzzleTilesSetup.nib */ = {
@@ -2266,6 +2264,8 @@
 		0142D70A0895BF23007F1FD2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Hexaganol Tiles Setup/Info.plist";
 				PRODUCT_NAME = "Hexagonal Tiles";
 				WRAPPER_EXTENSION = plugin;
@@ -2275,6 +2275,8 @@
 		0142D70B0895BF23007F1FD2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Hexaganol Tiles Setup/Info.plist";
 				PRODUCT_NAME = "Hexagonal Tiles";
 				WRAPPER_EXTENSION = plugin;
@@ -2284,6 +2286,8 @@
 		0142D70F0895BF23007F1FD2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Rectangular Tiles Setup/Info.plist";
 				PRODUCT_NAME = "Rectangular Tiles";
 				WRAPPER_EXTENSION = plugin;
@@ -2293,6 +2297,8 @@
 		0142D7100895BF23007F1FD2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Rectangular Tiles Setup/Info.plist";
 				PRODUCT_NAME = "Rectangular Tiles";
 				WRAPPER_EXTENSION = plugin;
@@ -2302,6 +2308,8 @@
 		0142D7140895BF23007F1FD2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Directory Image Source/Info.plist";
 				PRODUCT_NAME = "Directory Image Source";
 				WRAPPER_EXTENSION = plugin;
@@ -2311,6 +2319,8 @@
 		0142D7150895BF23007F1FD2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Directory Image Source/Info.plist";
 				PRODUCT_NAME = "Directory Image Source";
 				WRAPPER_EXTENSION = plugin;
@@ -2320,6 +2330,8 @@
 		0142D7190895BF23007F1FD2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Glyph Image Source/Info.plist";
 				PRODUCT_NAME = "Glyph Image Source";
 				WRAPPER_EXTENSION = plugin;
@@ -2329,6 +2341,8 @@
 		0142D71A0895BF23007F1FD2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Glyph Image Source/Info.plist";
 				PRODUCT_NAME = "Glyph Image Source";
 				WRAPPER_EXTENSION = plugin;
@@ -2338,6 +2352,8 @@
 		0142D71E0895BF23007F1FD2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Google Image Source/Info.plist";
 				PRODUCT_NAME = "Google Image Source";
 				WRAPPER_EXTENSION = plugin;
@@ -2347,6 +2363,8 @@
 		0142D71F0895BF23007F1FD2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Google Image Source/Info.plist";
 				PRODUCT_NAME = "Google Image Source";
 				WRAPPER_EXTENSION = plugin;
@@ -2356,6 +2374,8 @@
 		0142D7230895BF23007F1FD2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/iPhoto Image Source/Info.plist";
 				PRODUCT_NAME = "iPhoto Image Source";
 				WRAPPER_EXTENSION = plugin;
@@ -2365,6 +2385,8 @@
 		0142D7240895BF23007F1FD2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/iPhoto Image Source/Info.plist";
 				PRODUCT_NAME = "iPhoto Image Source";
 				WRAPPER_EXTENSION = plugin;
@@ -2374,6 +2396,8 @@
 		0142D7280895BF23007F1FD2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/QuickTime Image Source/Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
@@ -2386,6 +2410,8 @@
 		0142D7290895BF23007F1FD2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/QuickTime Image Source/Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
@@ -2399,6 +2425,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = MacOSaiXPrefix.h;
 				INFOPLIST_FILE = MacOSaiX/Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = MacOSaiX;
@@ -2410,6 +2438,8 @@
 		0142D72E0895BF23007F1FD2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = MacOSaiXPrefix.h;
 				INFOPLIST_FILE = MacOSaiX/Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = MacOSaiX;
@@ -2420,6 +2450,8 @@
 		0142D7320895BF23007F1FD2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Puzzle Tiles Setup/Info.plist";
 				PRODUCT_NAME = "Puzzle Tiles";
 				WRAPPER_EXTENSION = plugin;
@@ -2429,6 +2461,8 @@
 		0142D7330895BF23007F1FD2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Puzzle Tiles Setup/Info.plist";
 				PRODUCT_NAME = "Puzzle Tiles";
 				WRAPPER_EXTENSION = plugin;
@@ -2492,6 +2526,8 @@
 		01722BA609298D3E00290929 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Flickr Image Source/Info.plist";
 				PRODUCT_NAME = "Flickr Image Source";
 				WRAPPER_EXTENSION = plugin;
@@ -2501,6 +2537,8 @@
 		01722BA709298D3E00290929 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Flickr Image Source/Info.plist";
 				PRODUCT_NAME = "Flickr Image Source";
 				WRAPPER_EXTENSION = plugin;
