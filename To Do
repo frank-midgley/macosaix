@@ -35,6 +35,8 @@ Riemersma metric:
 ¥	Mosaic image source.  (use images from an existing mosaic) (Mark Everdell)
 ¥	Streaming QT source
 ¥	Save a low-res version of the mosaic image in the document
+	Flickr source:
+¥		Show count remaining
 
 
 2.0x To Do:
@@ -43,19 +45,23 @@ Riemersma metric:
 ¥	Get rid of lines on screen and in exported images
 	QuickTime source:
 ¥		Show aspect ratio
-	Directory source:
+	Folder source:
+¥		Remember last chosen folder
 ¥		Drag and drop support
 ¥		Restarting after load
+¥		Fix two-line wrapping/truncating
 	Glyphs source:
+¥		Takes too long to pull up the first time
 ¥		Exception on pasting letters
 ¥		Use each letter once
 ¥		Remember previous choices
 	Flickr source:
 Ã		Page by post date
 Ã		Allow fetching > 4100 images
-¥		Figure out if "any tag" option can work
-¥		Other options?  (pix by specific user, license, etc.)
+Ã		Figure out if "any tag" option can work (needed commas and correct XML tag)
+¥		Other options?  (pix by specific user, friends and/or family, license, etc.)
 ¥		Log in?
+¥		Can be resized too small (at least after having enlarged another source type)
 ¥	DOCTYPE plist in XML?
 ¥	Window zooming
 Ã	Tile refresh leaves black edges
@@ -70,7 +76,7 @@ Riemersma metric:
 Ã		Cancel button not working in kiosk setup?
 ¥	Enable cancelling of document load
 ¥	Clean up about box
-¥	Mosaic view needs to draw lo-res during auto-fade
+Ã	Mosaic view needs to draw lo-res during auto-fade
 ¥	Copy original image to doc bundle? or open mosaic read-only if original missing?
 ¥	Tooltip for tile images
 ¥	Add a default background mode pref
@@ -90,3 +96,7 @@ Riemersma metric:
 ?		Initial units sensible
 Ã	Images being lost when any number of instances allowed
 ¥	Confirm changing tiles when sheet closes instead of opens
+¥	Fix spacing of buttons on warning sheet
+¥	Better quoting/joining of string lists, e.g. "a", "b", or "c"
+¥	Keep source at same array index after editing
+¥	Use non-breaking space between icon and item name in attributed path strings
