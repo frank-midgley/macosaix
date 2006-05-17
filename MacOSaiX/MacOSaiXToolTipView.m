@@ -22,7 +22,7 @@
 	[[[NSColor yellowColor] highlightWithLevel:0.75] set];
 	NSRectFill(rect);
 	
-	[[NSColor grayColor] set];
+	[[NSColor lightGrayColor] set];
 	NSFrameRect([self bounds]);
 }
 
