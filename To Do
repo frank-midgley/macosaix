@@ -20,6 +20,9 @@ Ideas for future versions:
 	AppleScript support
 	Rework MosaicView to not use a stored image but redraw the tiles as needed in -drawRect:.  Would allow for better zooming.
 	RSS feed
+	Drag image from one tile to another to swap images.
+	Cut and paste images between tiles.
+	
 
 =======================================================================================
 
@@ -35,6 +38,8 @@ Riemersma metric:
 ¥	Mosaic image source.  (use images from an existing mosaic) (Mark Everdell)
 ¥	Streaming QT source
 ¥	Save a low-res version of the mosaic image in the document
+¥	Add a default background mode pref
+¥	Allow specifying an original or hand-picked image by URL
 	Flickr source:
 ¥		Show count remaining
 
@@ -79,16 +84,14 @@ Riemersma metric:
 Ã	Mosaic view needs to draw lo-res during auto-fade
 ¥	Copy original image to doc bundle? or open mosaic read-only if original missing?
 ¥	Tooltip for tile images
-¥	Add a default background mode pref
 ¥	Preserve mosaic area (w*h) when changing original
 ¥	Save&restore background mode
 ¥	Check if mosaic state should be paused or done on load
-¥	Disable "tiles apart" pop-up when images can only appear in one tile
+Ã	Disable "tiles apart" pop-up when images can only appear in one tile
 ¥	Add "Report Crashes" option
 ¥	Clear selected source when drawer closed
 Ã	"Loading..." image in web page pop-up
 ¥	Fade too bright at 50%
-¥	Allow specifying an original or hand-picked image by URL
 ¥	Make sure everything works on virgin system
 ¥	Break out image source and tile editors into their own controllers
 	Exporting
