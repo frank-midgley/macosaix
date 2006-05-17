@@ -15,6 +15,8 @@
 		010D20B70902C01700950013 /* Kiosk.nib in Resources */ = {isa = PBXBuildFile; fileRef = 010D209A0902C01700950013 /* Kiosk.nib */; };
 		010D20BA0902C01700950013 /* Screen Setup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 010D20A00902C01700950013 /* Screen Setup.nib */; };
 		0111F0B60968728600EE09C1 /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 0111F0B40968728600EE09C1 /* Preferences.nib */; };
+		011C7CE40A1AADCB0023CD62 /* MacOSaiXTextFieldCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 011C7CE20A1AADCB0023CD62 /* MacOSaiXTextFieldCell.h */; };
+		011C7CE50A1AADCB0023CD62 /* MacOSaiXTextFieldCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 011C7CE30A1AADCB0023CD62 /* MacOSaiXTextFieldCell.m */; };
 		0120B21F08C7FF8600974680 /* G.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0120B21E08C7FF8600974680 /* G.tiff */; };
 		0127354307CD6EBB0053037A /* Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0127354207CD6EBB0053037A /* Defaults.plist */; };
 		0128323A071B7297004ACF95 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
@@ -391,6 +393,8 @@
 		010D209B0902C01700950013 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Kiosk.nib; sourceTree = "<group>"; };
 		010D20A10902C01700950013 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Screen Setup.nib"; sourceTree = "<group>"; };
 		0111F0B50968728600EE09C1 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Google Image Source/English.lproj/Preferences.nib"; sourceTree = "<group>"; };
+		011C7CE20A1AADCB0023CD62 /* MacOSaiXTextFieldCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXTextFieldCell.h; sourceTree = "<group>"; };
+		011C7CE30A1AADCB0023CD62 /* MacOSaiXTextFieldCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXTextFieldCell.m; sourceTree = "<group>"; };
 		0120B21E08C7FF8600974680 /* G.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = G.tiff; path = "Standard Plugins/Google Image Source/G.tiff"; sourceTree = "<group>"; };
 		0127354207CD6EBB0053037A /* Defaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Defaults.plist; sourceTree = "<group>"; };
 		012976FF086A63D30095AD36 /* MacOSaiXCrashReporterController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXCrashReporterController.h; sourceTree = "<group>"; };
@@ -433,7 +437,7 @@
 		01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXMosaic.m; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
-		920F9A120A0D54E8006007C1 /* MacOSaiXPrefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXPrefix.h; path = ../MacOSaiXPrefix.h; sourceTree = "<group>"; };
+		920F9A120A0D54E8006007C1 /* MacOSaiXPrefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXPrefix.h; sourceTree = "<group>"; };
 		9211A5E40A17DA3A0021A583 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Mosaic View.nib"; sourceTree = "<group>"; };
 		9211A6820A17F7A70021A583 /* MacOSaiXToolTipView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXToolTipView.h; sourceTree = "<group>"; };
 		9211A6830A17F7A70021A583 /* MacOSaiXToolTipView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXToolTipView.m; sourceTree = "<group>"; };
@@ -970,7 +974,6 @@
 				012976FF086A63D30095AD36 /* MacOSaiXCrashReporterController.h */,
 				01297700086A63D30095AD36 /* MacOSaiXCrashReporterController.m */,
 				9298FE7109955B6600E7A096 /* Crash Reporter.nib */,
-				9211A5E30A17DA3A0021A583 /* Mosaic View.nib */,
 			);
 			name = "Crash Reporter";
 			sourceTree = "<group>";
@@ -1020,10 +1023,13 @@
 				01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */,
 				F5517EEE020CD88F01000106 /* MosaicView.h */,
 				F5517EEF020CD88F01000106 /* MosaicView.m */,
+				9211A5E30A17DA3A0021A583 /* Mosaic View.nib */,
 				9211A6820A17F7A70021A583 /* MacOSaiXToolTipView.h */,
 				9211A6830A17F7A70021A583 /* MacOSaiXToolTipView.m */,
 				00EAAC6000853DFB7F000001 /* Tiles.h */,
 				00EAAC6100853DFB7F000001 /* Tiles.m */,
+				011C7CE20A1AADCB0023CD62 /* MacOSaiXTextFieldCell.h */,
+				011C7CE30A1AADCB0023CD62 /* MacOSaiXTextFieldCell.m */,
 			);
 			name = Common;
 			sourceTree = "<group>";
@@ -1140,6 +1146,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9211A6840A17F7A80021A583 /* MacOSaiXToolTipView.h in Headers */,
+				011C7CE40A1AADCB0023CD62 /* MacOSaiXTextFieldCell.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1799,7 +1806,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd build/Release\n\trm -rf MacOSaiX\n\tmkdir -p MacOSaiX\n\tcp -r MacOSaiX.app MacOSaiX\n\t\n\tosascript\t\t-e\t'tell application \"Finder\"' \\\n\t\t\t\t-e\t\t'if exists disk \"MacOSaiX\" then eject disk \"MacOSaiX\"' \\\n\t\t\t\t-e\t'end tell'\n\trm -f MacOSaiX_working.dmg\n\thdiutil create -srcfolder MacOSaiX -format UDRW -attach MacOSaiX_working.dmg\n\techo \"hdiutil create exited $?\"\n\t\n\tosascript\t\t-e 'tell application \"Finder\"' \\\n\t\t\t\t-e\t\t'activate' \\\n\t\t\t\t-e\t\t'tell container window of disk \"MacOSaiX\"' \\\n\t\t\t\t-e\t\t\t'open' \\\n\t\t\t\t-e\t\t\t'set bounds to {50, 50, 450, 350}' \\\n\t\t\t\t-e\t\t\t'set toolbar visible to false' \\\n\t\t\t\t-e\t\t\t'set toolbar visible to true' \\\n\t\t\t\t-e\t\t\t'set sidebar width to 120' \\\n\t\t\t\t-e\t\t\t'set current view to icon view' \\\n\t\t\t\t-e\t\t\t'tell its icon view options' \\\n\t\t\t\t-e\t\t\t\t'set icon size to 128' \\\n\t\t\t\t-e\t\t\t\t'set text size to 16' \\\n\t\t\t\t-e\t\t\t\t'set background color to {65535, 64352, 52722}' \\\n\t\t\t\t-e\t\t\t'end tell' \\\n\t\t\t\t-e\t\t\t'set position of item 1 of target to {132, 115}' \\\n\t\t\t\t-e\t\t'end tell' \\\n\t\t\t\t-e\t'end tell'\n\techo \"osascript exited $?\"\n\tsleep 5\n\tosascript\t-e 'tell application \"Finder\" to eject disk \"MacOSaiX\"'\n\techo \"osascript exited $?\"\n\t\n\trm -f MacOSaiX.dmg\n\thdiutil convert MacOSaiX_working.dmg -format UDZO -o MacOSaiX.dmg\n\techo \"hdiutil convert exited $?\"\n\t\n\topen MacOSaiX.dmg\nfi";
+			shellScript = "if [ $CONFIGURATION = \"Release2\" ]\nthen\n\tcd build/Release\n\trm -rf MacOSaiX\n\tmkdir -p MacOSaiX\n\tcp -r MacOSaiX.app MacOSaiX\n\t\n\tosascript\t\t-e\t'tell application \"Finder\"' \\\n\t\t\t\t-e\t\t'if exists disk \"MacOSaiX\" then eject disk \"MacOSaiX\"' \\\n\t\t\t\t-e\t'end tell'\n\trm -f MacOSaiX_working.dmg\n\thdiutil create -srcfolder MacOSaiX -format UDRW -attach MacOSaiX_working.dmg\n\techo \"hdiutil create exited $?\"\n\t\n\tosascript\t\t-e 'tell application \"Finder\"' \\\n\t\t\t\t-e\t\t'activate' \\\n\t\t\t\t-e\t\t'tell container window of disk \"MacOSaiX\"' \\\n\t\t\t\t-e\t\t\t'open' \\\n\t\t\t\t-e\t\t\t'set bounds to {50, 50, 450, 350}' \\\n\t\t\t\t-e\t\t\t'set toolbar visible to false' \\\n\t\t\t\t-e\t\t\t'set toolbar visible to true' \\\n\t\t\t\t-e\t\t\t'set sidebar width to 120' \\\n\t\t\t\t-e\t\t\t'set current view to icon view' \\\n\t\t\t\t-e\t\t\t'tell its icon view options' \\\n\t\t\t\t-e\t\t\t\t'set icon size to 128' \\\n\t\t\t\t-e\t\t\t\t'set text size to 16' \\\n\t\t\t\t-e\t\t\t\t'set background color to {65535, 64352, 52722}' \\\n\t\t\t\t-e\t\t\t'end tell' \\\n\t\t\t\t-e\t\t\t'set position of item 1 of target to {132, 115}' \\\n\t\t\t\t-e\t\t'end tell' \\\n\t\t\t\t-e\t'end tell'\n\techo \"osascript exited $?\"\n\tsleep 5\n\tosascript\t-e 'tell application \"Finder\" to eject disk \"MacOSaiX\"'\n\techo \"osascript exited $?\"\n\t\n\trm -f MacOSaiX.dmg\n\thdiutil convert MacOSaiX_working.dmg -format UDZO -o MacOSaiX.dmg\n\techo \"hdiutil convert exited $?\"\n\t\n\topen MacOSaiX.dmg\nfi";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1867,6 +1874,7 @@
 				0109CA4009D385DF008290BE /* MacOSaiXWarningController.m in Sources */,
 				0109D41609E084D8008290BE /* MacOSaiXEventCatchingPanel.m in Sources */,
 				9211A6850A17F7A80021A583 /* MacOSaiXToolTipView.m in Sources */,
+				011C7CE50A1AADCB0023CD62 /* MacOSaiXTextFieldCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
