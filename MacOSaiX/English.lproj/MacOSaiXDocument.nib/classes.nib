@@ -2,6 +2,11 @@
     IBClasses = (
         {CLASS = MacOSaiXEventCatchingPanel; LANGUAGE = ObjC; SUPERCLASS = NSWindow; }, 
         {
+            CLASS = MacOSaiXTextFieldCell; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = NSTextFieldCell; 
+        }, 
+        {
             ACTIONS = {
                 addNewImageSource = id; 
                 cancelImageSource = id; 
