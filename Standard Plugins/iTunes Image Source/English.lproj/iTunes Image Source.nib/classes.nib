@@ -1,0 +1,18 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {chooseAllTracks = id; choosePlaylist = id; setSourceType = id; }; 
+            CLASS = MacOSaiXiTunesImageSourceController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                editorView = NSView; 
+                iconView = NSImageView; 
+                matrix = NSMatrix; 
+                playlistsPopUp = NSPopUpButton; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}
