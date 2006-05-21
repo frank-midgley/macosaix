@@ -109,7 +109,7 @@ static NSImage	*iPhotoImage = nil,
 	if ([settingType isEqualToString:@"ALBUM"])
 		[self setAlbumName:[[[settingDict objectForKey:@"NAME"] description] stringByUnescapingXMLEntites]];
 	else if ([settingType isEqualToString:@"KEYWORD"])
-		[self setAlbumName:[[[settingDict objectForKey:@"NAME"] description] stringByUnescapingXMLEntites]];
+		[self setKeywordName:[[[settingDict objectForKey:@"NAME"] description] stringByUnescapingXMLEntites]];
 	else if ([settingType isEqualToString:@"PHOTO_IDS"])
 		remainingPhotoIDs = [[[[settingDict objectForKey:@"REMAINING"] description] componentsSeparatedByString:@","] mutableCopy];
 }
