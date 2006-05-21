@@ -6,6 +6,32 @@
 	objectVersion = 42;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		011C7D730A1D76AE0023CD62 /* Standard Plug-Ins */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 011C7DA20A1D770A0023CD62 /* Build configuration list for PBXAggregateTarget "Standard Plug-Ins" */;
+			buildPhases = (
+			);
+			buildSettings = {
+				PRODUCT_NAME = "Standard Plug-Ins";
+			};
+			dependencies = (
+				011C7D770A1D76C50023CD62 /* PBXTargetDependency */,
+				011C7D790A1D76C50023CD62 /* PBXTargetDependency */,
+				011C7D7B0A1D76C50023CD62 /* PBXTargetDependency */,
+				011C7D7D0A1D76C50023CD62 /* PBXTargetDependency */,
+				011C7D7F0A1D76C50023CD62 /* PBXTargetDependency */,
+				011C7D810A1D76C50023CD62 /* PBXTargetDependency */,
+				011C7D830A1D76C50023CD62 /* PBXTargetDependency */,
+				011C7D850A1D76C50023CD62 /* PBXTargetDependency */,
+				011C7D870A1D76C50023CD62 /* PBXTargetDependency */,
+				011C7D890A1D76C50023CD62 /* PBXTargetDependency */,
+			);
+			name = "Standard Plug-Ins";
+			productName = "Standard Plug-Ins";
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		0109CA4009D385DF008290BE /* MacOSaiXWarningController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0109CA3E09D385DF008290BE /* MacOSaiXWarningController.m */; };
 		0109CA4709D385E5008290BE /* Warning.nib in Resources */ = {isa = PBXBuildFile; fileRef = 0109CA4109D385E5008290BE /* Warning.nib */; };
@@ -17,6 +43,12 @@
 		0111F0B60968728600EE09C1 /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 0111F0B40968728600EE09C1 /* Preferences.nib */; };
 		011C7CE40A1AADCB0023CD62 /* MacOSaiXTextFieldCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 011C7CE20A1AADCB0023CD62 /* MacOSaiXTextFieldCell.h */; };
 		011C7CE50A1AADCB0023CD62 /* MacOSaiXTextFieldCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 011C7CE30A1AADCB0023CD62 /* MacOSaiXTextFieldCell.m */; };
+		011C7D640A1D76460023CD62 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
+		011C7D8C0A1D76FE0023CD62 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 011C7D710A1D76930023CD62 /* Info.plist */; };
+		011C7D8E0A1D76FF0023CD62 /* iTunesImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 011C7D550A1D763B0023CD62 /* iTunesImageSource.m */; };
+		011C7D900A1D77000023CD62 /* iTunesImageSourceController.m in Sources */ = {isa = PBXBuildFile; fileRef = 011C7D570A1D763B0023CD62 /* iTunesImageSourceController.m */; };
+		011C7DAB0A1D77150023CD62 /* iTunes Image Source.nib in Resources */ = {isa = PBXBuildFile; fileRef = 011C7DA50A1D77150023CD62 /* iTunes Image Source.nib */; };
+		011C7E050A1D89170023CD62 /* iTunes Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 011C7D690A1D76460023CD62 /* iTunes Image Source.plugin */; };
 		0120B21F08C7FF8600974680 /* G.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0120B21E08C7FF8600974680 /* G.tiff */; };
 		0127354307CD6EBB0053037A /* Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0127354207CD6EBB0053037A /* Defaults.plist */; };
 		0128323A071B7297004ACF95 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
@@ -175,6 +207,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
+		011C7D650A1D76460023CD62 /* PBXBuildRule */ = {
+			isa = PBXBuildRule;
+			compilerSpec = com.apple.compilers.gcc.3_3;
+			fileType = sourcecode.c;
+			isEditable = 1;
+			outputFiles = (
+			);
+		};
 		0129763F0846A1DE0095AD36 /* PBXBuildRule */ = {
 			isa = PBXBuildRule;
 			compilerSpec = com.apple.compilers.gcc.3_3;
@@ -291,68 +331,82 @@
 /* End PBXBuildStyle section */
 
 /* Begin PBXContainerItemProxy section */
-		01DCB2E1092C2323008345F3 /* PBXContainerItemProxy */ = {
+		011C7D760A1D76C50023CD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 01722B9409298D3E00290929;
-			remoteInfo = "Flickr Image Source Plug-In";
-		};
-		9226839C0926875400BF4EF7 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 01453D49071B6F2D00BCEC7C;
-			remoteInfo = "Puzzle Tiles Setup";
-		};
-		9227FD5907E378AC0020C5F4 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 01CB07E5071A1F2B00710BCF;
+			remoteGlobalIDString = 01CB07E5071A1F2B00710BCF /* Hexagonal Tiles Plug-in */;
 			remoteInfo = "Hexagonal Tiles Plug-in";
 		};
-		925FE54D07E9CDDA00B0D002 /* PBXContainerItemProxy */ = {
+		011C7D780A1D76C50023CD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 928489D506611CE6003B3514;
+			remoteGlobalIDString = 01453D49071B6F2D00BCEC7C /* Puzzle Tiles Setup */;
+			remoteInfo = "Puzzle Tiles Setup";
+		};
+		011C7D7A0A1D76C50023CD62 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 928489E606611CE6003B3514 /* Rectangular Tiles Plug-In */;
+			remoteInfo = "Rectangular Tiles Plug-In";
+		};
+		011C7D7C0A1D76C50023CD62 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 928489B506611CE6003B3514 /* Directory Image Source Plug-In */;
+			remoteInfo = "Directory Image Source Plug-In";
+		};
+		011C7D7E0A1D76C50023CD62 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 01722B9409298D3E00290929 /* Flickr Image Source Plug-In */;
+			remoteInfo = "Flickr Image Source Plug-In";
+		};
+		011C7D800A1D76C50023CD62 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 928489D506611CE6003B3514 /* Glyph Image Source Plug-In */;
 			remoteInfo = "Glyph Image Source Plug-In";
 		};
-		92848A0706611CE6003B3514 /* PBXContainerItemProxy */ = {
+		011C7D820A1D76C50023CD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 928489B506611CE6003B3514;
-			remoteInfo = "Directory Image Source Plug-In (Upgraded)";
-		};
-		92848A0B06611CE6003B3514 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 928489E606611CE6003B3514;
-			remoteInfo = "Rectangular Tiles Plug-In (Upgraded)";
-		};
-		928654A5072AC64400EFC32A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 928489F406611CE6003B3514;
-			remoteInfo = "QuickTime Image Source Plug-In";
-		};
-		928656FE0734508200EFC32A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 928489C506611CE6003B3514;
+			remoteGlobalIDString = 928489C506611CE6003B3514 /* Google Image Source Plug-In */;
 			remoteInfo = "Google Image Source Plug-In";
 		};
-		92E3E1B207E7CF9100E62AB8 /* PBXContainerItemProxy */ = {
+		011C7D840A1D76C50023CD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 92E3E15207E7BE8C00E62AB8;
+			remoteGlobalIDString = 92E3E15207E7BE8C00E62AB8 /* iPhoto Image Source Plug-In */;
 			remoteInfo = "iPhoto Image Source Plug-In";
+		};
+		011C7D860A1D76C50023CD62 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 011C7D580A1D76460023CD62 /* iTunes Image Source Plug-In */;
+			remoteInfo = "iTunes Image Source Plug-In";
+		};
+		011C7D880A1D76C50023CD62 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 928489F406611CE6003B3514 /* QuickTime Image Source Plug-In */;
+			remoteInfo = "QuickTime Image Source Plug-In";
+		};
+		011C7D8A0A1D76D10023CD62 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 011C7D730A1D76AE0023CD62 /* Standard Plug-Ins */;
+			remoteInfo = "Standard Plug-Ins";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -364,14 +418,15 @@
 			dstSubfolderSpec = 13;
 			files = (
 				9227FD5F07E378CC0020C5F4 /* Hexagonal Tiles.plugin in CopyFiles */,
+				922683A8092687A900BF4EF7 /* Puzzle Tiles.plugin in CopyFiles */,
 				92848A1A06611CE6003B3514 /* Rectangular Tiles.plugin in CopyFiles */,
 				92848A1706611CE6003B3514 /* Directory Image Source.plugin in CopyFiles */,
 				01DCB2F5092C2508008345F3 /* Flickr Image Source.plugin in CopyFiles */,
 				928656FD0734507600EFC32A /* Google Image Source.plugin in CopyFiles */,
 				925FE5C407EBDAB200B0D002 /* Glyph Image Source.plugin in CopyFiles */,
 				92E3E22C07E7E22A00E62AB8 /* iPhoto Image Source.plugin in CopyFiles */,
+				011C7E050A1D89170023CD62 /* iTunes Image Source.plugin in CopyFiles */,
 				92865510072ADBD400EFC32A /* QuickTime Image Source.plugin in CopyFiles */,
-				922683A8092687A900BF4EF7 /* Puzzle Tiles.plugin in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -395,6 +450,14 @@
 		0111F0B50968728600EE09C1 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Google Image Source/English.lproj/Preferences.nib"; sourceTree = "<group>"; };
 		011C7CE20A1AADCB0023CD62 /* MacOSaiXTextFieldCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXTextFieldCell.h; sourceTree = "<group>"; };
 		011C7CE30A1AADCB0023CD62 /* MacOSaiXTextFieldCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXTextFieldCell.m; sourceTree = "<group>"; };
+		011C7D540A1D763A0023CD62 /* iTunesImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = iTunesImageSource.h; sourceTree = "<group>"; };
+		011C7D550A1D763B0023CD62 /* iTunesImageSource.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = iTunesImageSource.m; sourceTree = "<group>"; };
+		011C7D560A1D763B0023CD62 /* iTunesImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = iTunesImageSourceController.h; sourceTree = "<group>"; };
+		011C7D570A1D763B0023CD62 /* iTunesImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = iTunesImageSourceController.m; sourceTree = "<group>"; };
+		011C7D690A1D76460023CD62 /* iTunes Image Source.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "iTunes Image Source.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
+		011C7D710A1D76930023CD62 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
+		011C7DA60A1D77150023CD62 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/iTunes Image Source/English.lproj/iTunes Image Source.nib"; sourceTree = "<group>"; };
+		011C7DC80A1D7D6D0023CD62 /* MacOSaiXPluginPrefix.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXPluginPrefix.h; path = "Standard Plugins/MacOSaiXPluginPrefix.h"; sourceTree = "<group>"; };
 		0120B21E08C7FF8600974680 /* G.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = G.tiff; path = "Standard Plugins/Google Image Source/G.tiff"; sourceTree = "<group>"; };
 		0127354207CD6EBB0053037A /* Defaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Defaults.plist; sourceTree = "<group>"; };
 		012976FF086A63D30095AD36 /* MacOSaiXCrashReporterController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXCrashReporterController.h; sourceTree = "<group>"; };
@@ -574,6 +637,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		011C7D630A1D76460023CD62 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				011C7D640A1D76460023CD62 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		01453D48071B6F2D00BCEC7C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -698,6 +769,20 @@
 			name = Resources;
 			sourceTree = "<group>";
 		};
+		011C7D4D0A1D760F0023CD62 /* iTunes Image Source */ = {
+			isa = PBXGroup;
+			children = (
+				011C7D540A1D763A0023CD62 /* iTunesImageSource.h */,
+				011C7D550A1D763B0023CD62 /* iTunesImageSource.m */,
+				011C7D560A1D763B0023CD62 /* iTunesImageSourceController.h */,
+				011C7D570A1D763B0023CD62 /* iTunesImageSourceController.m */,
+				011C7DA50A1D77150023CD62 /* iTunes Image Source.nib */,
+				011C7D710A1D76930023CD62 /* Info.plist */,
+			);
+			name = "iTunes Image Source";
+			path = "Standard Plugins/iTunes Image Source";
+			sourceTree = "<group>";
+		};
 		01453C99071B6EE300BCEC7C /* Image Sources */ = {
 			isa = PBXGroup;
 			children = (
@@ -706,6 +791,7 @@
 				927FA75E03FA3621000A0D3F /* Glyph */,
 				927FA75D03FA3614000A0D3F /* Google */,
 				92E3E16E07E7BEE800E62AB8 /* iPhoto */,
+				011C7D4D0A1D760F0023CD62 /* iTunes Image Source */,
 				92F2B1D7048027570000011E /* QuickTime */,
 			);
 			name = "Image Sources";
@@ -856,6 +942,7 @@
 				92E3E15F07E7BE8C00E62AB8 /* iPhoto Image Source.plugin */,
 				92848A0406611CE6003B3514 /* QuickTime Image Source.plugin */,
 				01722BA809298D3E00290929 /* Flickr Image Source.plugin */,
+				011C7D690A1D76460023CD62 /* iTunes Image Source.plugin */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1104,6 +1191,7 @@
 		F5EE25FD03901F9D01705684 /* Standard Plugins */ = {
 			isa = PBXGroup;
 			children = (
+				011C7DC80A1D7D6D0023CD62 /* MacOSaiXPluginPrefix.h */,
 				01453CA7071B6EED00BCEC7C /* Tile Shapes */,
 				01453C99071B6EE300BCEC7C /* Image Sources */,
 			);
@@ -1113,6 +1201,13 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		011C7D590A1D76460023CD62 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		01283247071B72B5004ACF95 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -1218,6 +1313,41 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		011C7D580A1D76460023CD62 /* iTunes Image Source Plug-In */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 011C7D660A1D76460023CD62 /* Build configuration list for PBXNativeTarget "iTunes Image Source Plug-In" */;
+			buildPhases = (
+				011C7D590A1D76460023CD62 /* Headers */,
+				011C7D5E0A1D76460023CD62 /* Resources */,
+				011C7D600A1D76460023CD62 /* Sources */,
+				011C7D630A1D76460023CD62 /* Frameworks */,
+			);
+			buildRules = (
+				011C7D650A1D76460023CD62 /* PBXBuildRule */,
+			);
+			buildSettings = {
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INFOPLIST_FILE = "Standard Plugins/iPhoto Image Source/Info.plist";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "iPhoto Image Source";
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = plugin;
+			};
+			dependencies = (
+			);
+			name = "iTunes Image Source Plug-In";
+			productInstallPath = "$(USER_LIBRARY_DIR)/Bundles";
+			productName = "Directory Image Source";
+			productReference = 011C7D690A1D76460023CD62 /* iTunes Image Source.plugin */;
+			productType = "com.apple.product-type.bundle";
+		};
 		01453D49071B6F2D00BCEC7C /* Puzzle Tiles Setup */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0142D7310895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Puzzle Tiles Setup" */;
@@ -1394,15 +1524,7 @@
 				WRAPPER_EXTENSION = app;
 			};
 			dependencies = (
-				9227FD5A07E378AC0020C5F4 /* PBXTargetDependency */,
-				9226839D0926875400BF4EF7 /* PBXTargetDependency */,
-				92848A0C06611CE6003B3514 /* PBXTargetDependency */,
-				92848A0806611CE6003B3514 /* PBXTargetDependency */,
-				01DCB2E2092C2323008345F3 /* PBXTargetDependency */,
-				925FE54E07E9CDDA00B0D002 /* PBXTargetDependency */,
-				928656FF0734508200EFC32A /* PBXTargetDependency */,
-				92E3E1B307E7CF9100E62AB8 /* PBXTargetDependency */,
-				928654A6072AC64400EFC32A /* PBXTargetDependency */,
+				011C7D8B0A1D76D10023CD62 /* PBXTargetDependency */,
 			);
 			name = MacOSaiX.app;
 			productInstallPath = "$(HOME)/Applications";
@@ -1639,6 +1761,7 @@
 			projectDirPath = "";
 			targets = (
 				9284897106611CE5003B3514 /* MacOSaiX.app */,
+				011C7D730A1D76AE0023CD62 /* Standard Plug-Ins */,
 				01CB07E5071A1F2B00710BCF /* Hexagonal Tiles Plug-in */,
 				01453D49071B6F2D00BCEC7C /* Puzzle Tiles Setup */,
 				928489E606611CE6003B3514 /* Rectangular Tiles Plug-In */,
@@ -1647,12 +1770,22 @@
 				928489D506611CE6003B3514 /* Glyph Image Source Plug-In */,
 				928489C506611CE6003B3514 /* Google Image Source Plug-In */,
 				92E3E15207E7BE8C00E62AB8 /* iPhoto Image Source Plug-In */,
+				011C7D580A1D76460023CD62 /* iTunes Image Source Plug-In */,
 				928489F406611CE6003B3514 /* QuickTime Image Source Plug-In */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		011C7D5E0A1D76460023CD62 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				011C7D8C0A1D76FE0023CD62 /* Info.plist in Resources */,
+				011C7DAB0A1D77150023CD62 /* iTunes Image Source.nib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		01453D46071B6F2D00BCEC7C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1811,6 +1944,15 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		011C7D600A1D76460023CD62 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				011C7D8E0A1D76FF0023CD62 /* iTunesImageSource.m in Sources */,
+				011C7D900A1D77000023CD62 /* iTunesImageSourceController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		01453D47071B6F2D00BCEC7C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1937,50 +2079,60 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		01DCB2E2092C2323008345F3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 01722B9409298D3E00290929 /* Flickr Image Source Plug-In */;
-			targetProxy = 01DCB2E1092C2323008345F3 /* PBXContainerItemProxy */;
-		};
-		9226839D0926875400BF4EF7 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 01453D49071B6F2D00BCEC7C /* Puzzle Tiles Setup */;
-			targetProxy = 9226839C0926875400BF4EF7 /* PBXContainerItemProxy */;
-		};
-		9227FD5A07E378AC0020C5F4 /* PBXTargetDependency */ = {
+		011C7D770A1D76C50023CD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 01CB07E5071A1F2B00710BCF /* Hexagonal Tiles Plug-in */;
-			targetProxy = 9227FD5907E378AC0020C5F4 /* PBXContainerItemProxy */;
+			targetProxy = 011C7D760A1D76C50023CD62 /* PBXContainerItemProxy */;
 		};
-		925FE54E07E9CDDA00B0D002 /* PBXTargetDependency */ = {
+		011C7D790A1D76C50023CD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 928489D506611CE6003B3514 /* Glyph Image Source Plug-In */;
-			targetProxy = 925FE54D07E9CDDA00B0D002 /* PBXContainerItemProxy */;
+			target = 01453D49071B6F2D00BCEC7C /* Puzzle Tiles Setup */;
+			targetProxy = 011C7D780A1D76C50023CD62 /* PBXContainerItemProxy */;
 		};
-		92848A0806611CE6003B3514 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 928489B506611CE6003B3514 /* Directory Image Source Plug-In */;
-			targetProxy = 92848A0706611CE6003B3514 /* PBXContainerItemProxy */;
-		};
-		92848A0C06611CE6003B3514 /* PBXTargetDependency */ = {
+		011C7D7B0A1D76C50023CD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 928489E606611CE6003B3514 /* Rectangular Tiles Plug-In */;
-			targetProxy = 92848A0B06611CE6003B3514 /* PBXContainerItemProxy */;
+			targetProxy = 011C7D7A0A1D76C50023CD62 /* PBXContainerItemProxy */;
 		};
-		928654A6072AC64400EFC32A /* PBXTargetDependency */ = {
+		011C7D7D0A1D76C50023CD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 928489F406611CE6003B3514 /* QuickTime Image Source Plug-In */;
-			targetProxy = 928654A5072AC64400EFC32A /* PBXContainerItemProxy */;
+			target = 928489B506611CE6003B3514 /* Directory Image Source Plug-In */;
+			targetProxy = 011C7D7C0A1D76C50023CD62 /* PBXContainerItemProxy */;
 		};
-		928656FF0734508200EFC32A /* PBXTargetDependency */ = {
+		011C7D7F0A1D76C50023CD62 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 01722B9409298D3E00290929 /* Flickr Image Source Plug-In */;
+			targetProxy = 011C7D7E0A1D76C50023CD62 /* PBXContainerItemProxy */;
+		};
+		011C7D810A1D76C50023CD62 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 928489D506611CE6003B3514 /* Glyph Image Source Plug-In */;
+			targetProxy = 011C7D800A1D76C50023CD62 /* PBXContainerItemProxy */;
+		};
+		011C7D830A1D76C50023CD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 928489C506611CE6003B3514 /* Google Image Source Plug-In */;
-			targetProxy = 928656FE0734508200EFC32A /* PBXContainerItemProxy */;
+			targetProxy = 011C7D820A1D76C50023CD62 /* PBXContainerItemProxy */;
 		};
-		92E3E1B307E7CF9100E62AB8 /* PBXTargetDependency */ = {
+		011C7D850A1D76C50023CD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 92E3E15207E7BE8C00E62AB8 /* iPhoto Image Source Plug-In */;
-			targetProxy = 92E3E1B207E7CF9100E62AB8 /* PBXContainerItemProxy */;
+			targetProxy = 011C7D840A1D76C50023CD62 /* PBXContainerItemProxy */;
+		};
+		011C7D870A1D76C50023CD62 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 011C7D580A1D76460023CD62 /* iTunes Image Source Plug-In */;
+			targetProxy = 011C7D860A1D76C50023CD62 /* PBXContainerItemProxy */;
+		};
+		011C7D890A1D76C50023CD62 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 928489F406611CE6003B3514 /* QuickTime Image Source Plug-In */;
+			targetProxy = 011C7D880A1D76C50023CD62 /* PBXContainerItemProxy */;
+		};
+		011C7D8B0A1D76D10023CD62 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 011C7D730A1D76AE0023CD62 /* Standard Plug-Ins */;
+			targetProxy = 011C7D8A0A1D76D10023CD62 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -2023,6 +2175,15 @@
 				0111F0B50968728600EE09C1 /* English */,
 			);
 			name = Preferences.nib;
+			sourceTree = "<group>";
+		};
+		011C7DA50A1D77150023CD62 /* iTunes Image Source.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				011C7DA60A1D77150023CD62 /* English */,
+			);
+			name = "iTunes Image Source.nib";
+			path = ../..;
 			sourceTree = "<group>";
 		};
 		01722BD309298DCE00290929 /* Flickr Image Source.nib */ = {
@@ -2269,6 +2430,50 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		011C7D670A1D76460023CD62 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
+				INFOPLIST_FILE = "Standard Plugins/iTunes Image Source/Info.plist";
+				PRODUCT_NAME = "iTunes Image Source";
+				WRAPPER_EXTENSION = plugin;
+			};
+			name = Debug;
+		};
+		011C7D680A1D76460023CD62 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
+				INFOPLIST_FILE = "Standard Plugins/iTunes Image Source/Info.plist";
+				PRODUCT_NAME = "iTunes Image Source";
+				WRAPPER_EXTENSION = plugin;
+			};
+			name = Release;
+		};
+		011C7DA30A1D770A0023CD62 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = "Standard Plug-Ins";
+			};
+			name = Debug;
+		};
+		011C7DA40A1D770A0023CD62 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				PRODUCT_NAME = "Standard Plug-Ins";
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 		0142D70A0895BF23007F1FD2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2556,6 +2761,24 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		011C7D660A1D76460023CD62 /* Build configuration list for PBXNativeTarget "iTunes Image Source Plug-In" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				011C7D670A1D76460023CD62 /* Debug */,
+				011C7D680A1D76460023CD62 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		011C7DA20A1D770A0023CD62 /* Build configuration list for PBXAggregateTarget "Standard Plug-Ins" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				011C7DA30A1D770A0023CD62 /* Debug */,
+				011C7DA40A1D770A0023CD62 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		0142D7090895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Hexagonal Tiles Plug-in" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
