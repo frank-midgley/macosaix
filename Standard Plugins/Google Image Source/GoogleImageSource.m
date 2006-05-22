@@ -669,6 +669,12 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
+- (float)aspectRatio
+{
+	return 0.0;
+}
+
+
 - (void)populateImageQueueFromNextPage
 {
 	while ([imageURLQueue count] == 0 && startIndex >= 0)

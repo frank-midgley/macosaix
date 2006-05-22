@@ -38,6 +38,10 @@
 
 - (id)descriptor;	// either an NSString or an NSAttributedString
 
+	// The aspect ratio (width / height) of the images in this source.  If the ratio is not known 
+	// or is variable then return 0.0.
+- (float)aspectRatio;
+
 	// This method should return whether there are any images remaining in the source.
 	// TBD: is this needed or is nil from -nextImageAndIdentifier: enough?
 - (BOOL)hasMoreImages;

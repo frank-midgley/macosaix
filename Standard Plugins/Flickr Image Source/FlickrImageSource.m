@@ -501,6 +501,12 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
+- (float)aspectRatio
+{
+	return 0.0;
+}
+
+
 - (id)copyWithZone:(NSZone *)zone
 {
 	FlickrImageSource	*copy = [[FlickrImageSource allocWithZone:zone] init];

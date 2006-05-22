@@ -198,6 +198,12 @@ static NSImage	*iPhotoImage = nil,
 }
 
 
+- (float)aspectRatio
+{
+	return 0.0;
+}
+
+
 - (BOOL)hasMoreImages
 {
 	return (!remainingPhotoIDs || [remainingPhotoIDs count] > 0);

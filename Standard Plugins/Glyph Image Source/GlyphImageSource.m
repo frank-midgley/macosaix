@@ -207,6 +207,13 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
+- (float)aspectRatio
+{
+		// TODO: this might be known
+	return 0.0;
+}
+
+
 - (NSColor *)randomColor
 {
 	float		red = 0.0,

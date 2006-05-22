@@ -152,6 +152,12 @@
 }
 
 
+- (float)aspectRatio
+{
+	return 0.0;
+}
+
+
 - (BOOL)hasMoreImages
 {
 	return haveMoreImages;
