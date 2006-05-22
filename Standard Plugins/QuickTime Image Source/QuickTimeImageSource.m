@@ -184,7 +184,7 @@ static NSImage			*sQuickTimeImage = nil;
 		}
 		else
 		{
-			aspectRatio = 1.0;
+			aspectRatio = 0.0;
 			timeScale = 15;
 			duration = 0;
 		}
