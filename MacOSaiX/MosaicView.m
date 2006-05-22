@@ -52,11 +52,11 @@
 	highlightedImageSourcesLock = [[NSLock alloc] init];
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(windowDidBecomeKey:)
+											 selector:@selector(windowDidBecomeMain:)
 												 name:NSWindowDidBecomeMainNotification 
 											   object:[self window]];
 	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(windowDidResignKey:)
+											 selector:@selector(windowDidResignMain:)
 												 name:NSWindowDidBecomeMainNotification 
 											   object:[self window]];
 }
@@ -924,7 +924,6 @@
 																	defer:NO 
 																   screen:[nibWindow screen]];
 	[tooltipWindow setContentView:[nibWindow contentView]];
-//	[tooltipWindow setAlphaValue:0.8];
 	[nibWindow release];
 	
 	[imageSourceTextField setCell:[[[MacOSaiXTextFieldCell alloc] initTextCell:@""] autorelease]];
@@ -933,6 +932,36 @@
 
 #pragma mark -
 #pragma mark Tooltip methods
+
+
+- (void)hideTooltip
+{
+	if ([tooltipWindow screen] && !tooltipHideTimer)
+		tooltipHideTimer = [[NSTimer scheduledTimerWithTimeInterval:0.05 
+															 target:self 
+														   selector:@selector(animateHidingOfTooltip:) 
+														   userInfo:[NSMutableString string] 
+															repeats:YES] retain];
+}
+
+
+- (void)animateHidingOfTooltip:(NSTimer *)timer
+{
+	NSMutableString	*state = [timer userInfo];
+	
+	if ([state length] < 10)
+	{
+		[tooltipWindow setAlphaValue:1.0 - [state length] / 10.0];
+		[state appendString:@"*"];
+	}
+	else
+	{
+		[tooltipHideTimer invalidate];
+		[tooltipHideTimer release];
+		tooltipHideTimer = nil;
+		[tooltipWindow orderOut:self];
+	}
+}
 
 
 - (void)setTooltipsEnabled:(BOOL)enabled
@@ -951,7 +980,7 @@
 		
 		tooltipTile = nil;
 		
-		[tooltipWindow orderOut:self];
+		[self hideTooltip];
 	}
 }
 
@@ -971,8 +1000,6 @@
 			if (!tooltipWindow)
 				[self loadNib];
 			
-			[tooltipWindow setFrameTopLeftPoint:NSMakePoint(screenPoint.x, screenPoint.y - 20.0)];
-			
 				// Fill in the details for the tile under the mouse.
 			MacOSaiXImageMatch		*imageMatch = [tile userChosenImageMatch];
 			if (!imageMatch)
@@ -982,6 +1009,11 @@
 			
 			if (imageMatch)
 			{
+				NSPoint point = NSMakePoint(screenPoint.x, screenPoint.y - 20.0);
+				if (point.y < NSHeight([tooltipWindow frame]))
+					point.y = screenPoint.y + NSHeight([tooltipWindow frame]) + 20.0;
+				[tooltipWindow setFrameTopLeftPoint:point];
+				
 				id<MacOSaiXImageSource>	imageSource = [imageMatch imageSource];
 				NSImage					*sourceImage = [[[imageSource image] copy] autorelease];
 				[sourceImage setScalesWhenResized:YES];
@@ -999,16 +1031,21 @@
 					[imageSourceTextField setStringValue:(genericDescription ? genericDescription : @"")];
 				}
 				
+				[tooltipHideTimer invalidate];
+				[tooltipHideTimer release];
+				tooltipHideTimer = nil;
+				
 				[tileImageView setImage:nil];
 				[tileImageTextField setStringValue:@"Fetching..."];
+				[tooltipWindow setAlphaValue:1.0];
 				[tooltipWindow orderFront:self];
 				
 				[NSThread detachNewThreadSelector:@selector(updateTooltipWindowForImageMatch:) 
 										 toTarget:self 
 									   withObject:imageMatch];
 			}
-			else
-				[tooltipWindow orderOut:self];
+			else //if ([tooltipWindow orderedIndex] != NSNotFound)
+				[self hideTooltip];
 		}
 	}
 }
@@ -1066,7 +1103,8 @@
 					[tileImageTextField setStringValue:@""];
 				
 				NSRect		frameRect = [tooltipWindow frame];
-				frameRect.origin.y -= heightDiff;
+				if (NSMinY(frameRect) > NSHeight(frameRect) + 20.0)
+					frameRect.origin.y -= heightDiff;
 				frameRect.size.width += widthDiff;
 				frameRect.size.height += heightDiff;
 				[tooltipWindow setFrame:frameRect display:YES animate:YES];
@@ -1186,7 +1224,7 @@
 {
 	if (tooltipTile)
 	{
-		[tooltipWindow orderOut:self];
+		[self hideTooltip];
 		tooltipTile = nil;
 	}
 	
@@ -1245,24 +1283,24 @@
 
 - (void)viewDidMoveToWindow
 {
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidBecomeKeyNotification object:nil];
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResignKeyNotification object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidBecomeMainNotification object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResignMainNotification object:nil];
 	
 	if ([self window])
 	{
 		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(windowDidBecomeKey:)
-													 name:NSWindowDidBecomeKeyNotification 
+												 selector:@selector(windowDidBecomeMain:)
+													 name:NSWindowDidBecomeMainNotification 
 												   object:[self window]];
 		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(windowDidResignKey:)
-													 name:NSWindowDidBecomeKeyNotification 
+												 selector:@selector(windowDidResignMain:)
+													 name:NSWindowDidBecomeMainNotification 
 												   object:[self window]];
 	}
 }
 
 
-- (void)windowDidBecomeKey:(NSNotification *)notification
+- (void)windowDidBecomeMain:(NSNotification *)notification
 {
 	NSPoint	windowPoint = [[self window] convertScreenToBase:[NSEvent mouseLocation]];
 	
@@ -1271,7 +1309,7 @@
 }
 
 
-- (void)windowDidResignKey:(NSNotification *)notification
+- (void)windowDidResignMain:(NSNotification *)notification
 {
 	[self setTooltipsEnabled:NO];
 }

@@ -60,7 +60,8 @@ typedef enum { clearMode = 0, blackMode, originalMode, bestMatchMode } MacOSaiXB
 	MacOSaiXBackgroundMode	backgroundMode;
 	
 		// Custom tooltip window
-	NSTimer					*tooltipTimer;
+	NSTimer					*tooltipTimer, 
+							*tooltipHideTimer;
 	IBOutlet NSWindow		*tooltipWindow;
 	IBOutlet NSImageView	*tileImageView, 
 							*imageSourceImageView;
