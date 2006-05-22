@@ -162,6 +162,12 @@ static NSImage	*iTunesImage = nil,
 }
 
 
+- (float)aspectRatio
+{
+	return 1.0;
+}
+
+
 - (BOOL)hasMoreImages
 {
 	return (!remainingTrackIDs || [remainingTrackIDs count] > 0);
@@ -284,9 +290,46 @@ static NSImage	*iTunesImage = nil,
 }	
 
 
-- (NSString *)descriptionForIdentifier:(NSString *)identifier
+- (NSString *)descriptionForIdentifier:(id)param
 {
-	return nil;
+	NSString	*description = nil;
+	
+	if (!pthread_main_np())
+	{
+		NSMutableDictionary	*params = [NSMutableDictionary dictionaryWithObject:param forKey:@"Track ID"];
+		[self performSelectorOnMainThread:_cmd withObject:params waitUntilDone:YES];
+		description = [NSString stringWithFormat:@"%@: %@", [params objectForKey:@"Artist"], [params objectForKey:@"Album"]];
+	}
+	else
+	{
+		BOOL			paramIsDict = [param isKindOfClass:[NSDictionary class]];
+		NSString		*trackID = (paramIsDict ? [param objectForKey:@"Track ID"] : param);
+		NSString		*scriptText = [NSString stringWithFormat:
+											@"tell application \"iTunes\" to " \
+											@"get {artist, album} of (first track of first library playlist of " \
+											@"(first source whose kind is library) whose database ID is %@)", 
+											trackID];
+		
+		NSAppleScript			*getTrackDescScript = [[[NSAppleScript alloc] initWithSource:scriptText] autorelease];
+		NSDictionary			*scriptError = nil;
+		NSAppleEventDescriptor	*getTrackDescResult = [getTrackDescScript executeAndReturnError:&scriptError];
+		
+		if (!scriptError && [getTrackDescResult numberOfItems] == 2)
+		{
+			NSString	*artist = [[getTrackDescResult descriptorAtIndex:1] stringValue],
+						*album = [[getTrackDescResult descriptorAtIndex:2] stringValue];
+			
+			if (paramIsDict)
+			{
+				[param setObject:artist forKey:@"Artist"];
+				[param setObject:album forKey:@"Album"];
+			}
+			else
+				description = [NSString stringWithFormat:@"%@: %@", artist, album];
+		}
+	}
+	
+	return description;
 }	
 
 
