@@ -12,9 +12,6 @@
 			buildConfigurationList = 011C7DA20A1D770A0023CD62 /* Build configuration list for PBXAggregateTarget "Standard Plug-Ins" */;
 			buildPhases = (
 			);
-			buildSettings = {
-				PRODUCT_NAME = "Standard Plug-Ins";
-			};
 			dependencies = (
 				011C7D770A1D76C50023CD62 /* PBXTargetDependency */,
 				011C7D790A1D76C50023CD62 /* PBXTargetDependency */,
@@ -164,6 +161,9 @@
 		928F72CD066122CD00873AE2 /* GlyphImageSource.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F54EF786025F976A01000103 /* GlyphImageSource.tiff */; };
 		928F72D3066122D300873AE2 /* RectangularTileShapes.nib in Resources */ = {isa = PBXBuildFile; fileRef = 928F72930661226000873AE2 /* RectangularTileShapes.nib */; };
 		928F72D5066122D800873AE2 /* QuickTime Image Source.nib in Resources */ = {isa = PBXBuildFile; fileRef = 928F72970661226000873AE2 /* QuickTime Image Source.nib */; };
+		92911DD00A23D42100F9C82A /* MacOSaiXImageSourceEditor.h in Headers */ = {isa = PBXBuildFile; fileRef = 92911DCE0A23D42000F9C82A /* MacOSaiXImageSourceEditor.h */; };
+		92911DD10A23D42100F9C82A /* MacOSaiXImageSourceEditor.m in Sources */ = {isa = PBXBuildFile; fileRef = 92911DCF0A23D42100F9C82A /* MacOSaiXImageSourceEditor.m */; };
+		92911DDC0A23D63400F9C82A /* Image Source Editor.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92911DDA0A23D63400F9C82A /* Image Source Editor.nib */; };
 		92951FF1068A7FE600366ACB /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 928F724A0661214000873AE2 /* Info.plist */; };
 		9298FBA30982DB9400E7A096 /* Full Screen.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FBA10982DB9400E7A096 /* Full Screen.nib */; };
 		9298FCC6098C1C3500E7A096 /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FCC4098C1C3500E7A096 /* Preferences.nib */; };
@@ -297,115 +297,82 @@
 		};
 /* End PBXBuildRule section */
 
-/* Begin PBXBuildStyle section */
-		4A9504CCFFE6A4B311CA0CBA /* Development */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				MACOSX_DEPLOYMENT_TARGET = 10.2;
-				ZERO_LINK = YES;
-			};
-			name = Development;
-		};
-		4A9504CDFFE6A4B311CA0CBA /* Deployment */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-				COPY_PHASE_STRIP = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				MACOSX_DEPLOYMENT_TARGET = 10.2;
-				ZERO_LINK = NO;
-			};
-			name = Deployment;
-		};
-		F5B7584A024DAEFD0100010D /* Profile */ = {
-			isa = PBXBuildStyle;
-			buildSettings = {
-			};
-			name = Profile;
-		};
-/* End PBXBuildStyle section */
-
 /* Begin PBXContainerItemProxy section */
 		011C7D760A1D76C50023CD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 01CB07E5071A1F2B00710BCF /* Hexagonal Tiles Plug-in */;
+			remoteGlobalIDString = 01CB07E5071A1F2B00710BCF;
 			remoteInfo = "Hexagonal Tiles Plug-in";
 		};
 		011C7D780A1D76C50023CD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 01453D49071B6F2D00BCEC7C /* Puzzle Tiles Setup */;
+			remoteGlobalIDString = 01453D49071B6F2D00BCEC7C;
 			remoteInfo = "Puzzle Tiles Setup";
 		};
 		011C7D7A0A1D76C50023CD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 928489E606611CE6003B3514 /* Rectangular Tiles Plug-In */;
+			remoteGlobalIDString = 928489E606611CE6003B3514;
 			remoteInfo = "Rectangular Tiles Plug-In";
 		};
 		011C7D7C0A1D76C50023CD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 928489B506611CE6003B3514 /* Directory Image Source Plug-In */;
+			remoteGlobalIDString = 928489B506611CE6003B3514;
 			remoteInfo = "Directory Image Source Plug-In";
 		};
 		011C7D7E0A1D76C50023CD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 01722B9409298D3E00290929 /* Flickr Image Source Plug-In */;
+			remoteGlobalIDString = 01722B9409298D3E00290929;
 			remoteInfo = "Flickr Image Source Plug-In";
 		};
 		011C7D800A1D76C50023CD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 928489D506611CE6003B3514 /* Glyph Image Source Plug-In */;
+			remoteGlobalIDString = 928489D506611CE6003B3514;
 			remoteInfo = "Glyph Image Source Plug-In";
 		};
 		011C7D820A1D76C50023CD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 928489C506611CE6003B3514 /* Google Image Source Plug-In */;
+			remoteGlobalIDString = 928489C506611CE6003B3514;
 			remoteInfo = "Google Image Source Plug-In";
 		};
 		011C7D840A1D76C50023CD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 92E3E15207E7BE8C00E62AB8 /* iPhoto Image Source Plug-In */;
+			remoteGlobalIDString = 92E3E15207E7BE8C00E62AB8;
 			remoteInfo = "iPhoto Image Source Plug-In";
 		};
 		011C7D860A1D76C50023CD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 011C7D580A1D76460023CD62 /* iTunes Image Source Plug-In */;
+			remoteGlobalIDString = 011C7D580A1D76460023CD62;
 			remoteInfo = "iTunes Image Source Plug-In";
 		};
 		011C7D880A1D76C50023CD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 928489F406611CE6003B3514 /* QuickTime Image Source Plug-In */;
+			remoteGlobalIDString = 928489F406611CE6003B3514;
 			remoteInfo = "QuickTime Image Source Plug-In";
 		};
 		011C7D8A0A1D76D10023CD62 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 011C7D730A1D76AE0023CD62 /* Standard Plug-Ins */;
+			remoteGlobalIDString = 011C7D730A1D76AE0023CD62;
 			remoteInfo = "Standard Plug-Ins";
 		};
 /* End PBXContainerItemProxy section */
@@ -556,6 +523,9 @@
 		928F72E80661237300873AE2 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = Info.plist; path = "Standard Plugins/Rectangular Tiles Setup/Info.plist"; sourceTree = "<group>"; };
 		92902AEEC5B082BD00F96641 /* RectangularTileShapesEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RectangularTileShapesEditor.h; path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapesEditor.h"; sourceTree = "<group>"; };
 		92902AEFC5B082BD00F96641 /* RectangularTileShapesEditor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RectangularTileShapesEditor.m; path = "Standard Plugins/Rectangular Tiles Setup/RectangularTileShapesEditor.m"; sourceTree = "<group>"; };
+		92911DCE0A23D42000F9C82A /* MacOSaiXImageSourceEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageSourceEditor.h; sourceTree = "<group>"; };
+		92911DCF0A23D42100F9C82A /* MacOSaiXImageSourceEditor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXImageSourceEditor.m; sourceTree = "<group>"; };
+		92911DDB0A23D63400F9C82A /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "MacOSaiX/Image Source Editor/English.lproj/Image Source Editor.nib"; sourceTree = "<group>"; };
 		9298FBA20982DB9400E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Full Screen.nib"; sourceTree = "<group>"; };
 		9298FCC5098C1C3500E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Preferences.nib; sourceTree = "<group>"; };
 		9298FCC7098C1C6800E7A096 /* FlickrPreferencesController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FlickrPreferencesController.h; sourceTree = "<group>"; };
@@ -769,7 +739,7 @@
 			name = Resources;
 			sourceTree = "<group>";
 		};
-		011C7D4D0A1D760F0023CD62 /* iTunes Image Source */ = {
+		011C7D4D0A1D760F0023CD62 /* iTunes */ = {
 			isa = PBXGroup;
 			children = (
 				011C7D540A1D763A0023CD62 /* iTunesImageSource.h */,
@@ -779,7 +749,7 @@
 				011C7DA50A1D77150023CD62 /* iTunes Image Source.nib */,
 				011C7D710A1D76930023CD62 /* Info.plist */,
 			);
-			name = "iTunes Image Source";
+			name = iTunes;
 			path = "Standard Plugins/iTunes Image Source";
 			sourceTree = "<group>";
 		};
@@ -791,7 +761,7 @@
 				927FA75E03FA3621000A0D3F /* Glyph */,
 				927FA75D03FA3614000A0D3F /* Google */,
 				92E3E16E07E7BEE800E62AB8 /* iPhoto */,
-				011C7D4D0A1D760F0023CD62 /* iTunes Image Source */,
+				011C7D4D0A1D760F0023CD62 /* iTunes */,
 				92F2B1D7048027570000011E /* QuickTime */,
 			);
 			name = "Image Sources";
@@ -906,14 +876,11 @@
 		080E96DDFE201D6D7F000001 /* MacOSaiX */ = {
 			isa = PBXGroup;
 			children = (
-				29B97316FDCFA39411CA2CEA /* main.m */,
-				920F9A120A0D54E8006007C1 /* MacOSaiXPrefix.h */,
-				9298FE6D09955B3B00E7A096 /* MainMenu.nib */,
-				F5666CC9C5B062B401D943E0 /* MacOSaiX.h */,
-				F5666CCAC5B062B401D943E0 /* MacOSaiX.m */,
+				92911D9B0A23D33500F9C82A /* Application */,
 				010D208D0902BF0600950013 /* Document */,
 				92DCA54D08F871A100B40FA6 /* Common */,
 				924E8058099E8BD1006977E3 /* Tiles Setup */,
+				92911DA40A23D37500F9C82A /* Image Source Editor */,
 				9298FE0A0995594700E7A096 /* Export */,
 				0109CA3609D385A5008290BE /* Warning Controller */,
 				928824890982D05400181817 /* Full Screen Window */,
@@ -956,6 +923,7 @@
 				92F00CC907C1AA31004F6D06 /* Third Party Code */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 				F54D1108020F41F001000116 /* To Do */,
+				92911DDA0A23D63400F9C82A /* Image Source Editor.nib */,
 			);
 			name = MacOSaiX;
 			sourceTree = "<group>";
@@ -1076,6 +1044,27 @@
 				014DB625071A2C8D00DF68C0 /* Info.plist */,
 			);
 			name = Hexagonal;
+			sourceTree = "<group>";
+		};
+		92911D9B0A23D33500F9C82A /* Application */ = {
+			isa = PBXGroup;
+			children = (
+				29B97316FDCFA39411CA2CEA /* main.m */,
+				920F9A120A0D54E8006007C1 /* MacOSaiXPrefix.h */,
+				9298FE6D09955B3B00E7A096 /* MainMenu.nib */,
+				F5666CC9C5B062B401D943E0 /* MacOSaiX.h */,
+				F5666CCAC5B062B401D943E0 /* MacOSaiX.m */,
+			);
+			name = Application;
+			sourceTree = "<group>";
+		};
+		92911DA40A23D37500F9C82A /* Image Source Editor */ = {
+			isa = PBXGroup;
+			children = (
+				92911DCE0A23D42000F9C82A /* MacOSaiXImageSourceEditor.h */,
+				92911DCF0A23D42100F9C82A /* MacOSaiXImageSourceEditor.m */,
+			);
+			path = "Image Source Editor";
 			sourceTree = "<group>";
 		};
 		9298FE0A0995594700E7A096 /* Export */ = {
@@ -1242,6 +1231,7 @@
 			files = (
 				9211A6840A17F7A80021A583 /* MacOSaiXToolTipView.h in Headers */,
 				011C7CE40A1AADCB0023CD62 /* MacOSaiXTextFieldCell.h in Headers */,
+				92911DD00A23D42100F9C82A /* MacOSaiXImageSourceEditor.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1325,21 +1315,6 @@
 			buildRules = (
 				011C7D650A1D76460023CD62 /* PBXBuildRule */,
 			);
-			buildSettings = {
-				GCC_OPTIMIZATION_LEVEL = 0;
-				INFOPLIST_FILE = "Standard Plugins/iPhoto Image Source/Info.plist";
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "";
-				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = "iPhoto Image Source";
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = plugin;
-			};
 			dependencies = (
 			);
 			name = "iTunes Image Source Plug-In";
@@ -1360,54 +1335,11 @@
 			buildRules = (
 				012976430846A1FF0095AD36 /* PBXBuildRule */,
 			);
-			buildSettings = {
-				GCC_PRECOMPILE_PREFIX_HEADER = NO;
-				GCC_PREFIX_HEADER = "";
-				INFOPLIST_FILE = "Standard Plugins/Puzzle Tiles Setup/Info.plist";
-				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Bundles";
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Foundation,
-					"-framework",
-					AppKit,
-				);
-				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = "Puzzle Tiles";
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = plugin;
-			};
 			dependencies = (
 			);
 			name = "Puzzle Tiles Setup";
 			productName = "Puzzle Tiles Setup";
 			productReference = 01453D4A071B6F2D00BCEC7C /* Puzzle Tiles.plugin */;
-			productSettingsXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
-<plist version=\"1.0\">
-<dict>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>English</string>
-	<key>CFBundleExecutable</key>
-	<string>Puzzle Tiles Setup</string>
-	<key>CFBundleIdentifier</key>
-	<string>com.yourcompany.Puzzle_Tiles_Setup</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>1.0</string>
-</dict>
-</plist>
-";
 			productType = "com.apple.product-type.bundle";
 		};
 		01722B9409298D3E00290929 /* Flickr Image Source Plug-In */ = {
@@ -1422,21 +1354,6 @@
 			buildRules = (
 				01722BA409298D3E00290929 /* PBXBuildRule */,
 			);
-			buildSettings = {
-				GCC_OPTIMIZATION_LEVEL = 0;
-				INFOPLIST_FILE = "Standard Plugins/Google Image Source/Info.plist";
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "";
-				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = "Google Image Source";
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = plugin;
-			};
 			dependencies = (
 			);
 			name = "Flickr Image Source Plug-In";
@@ -1457,29 +1374,6 @@
 			buildRules = (
 				012976400846A1F60095AD36 /* PBXBuildRule */,
 			);
-			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = /Users/frank/Development/MacOSaiX/build;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "";
-				INFOPLIST_FILE = "Standard Plugins/Hexaganol Tiles Setup/Info.plist";
-				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Bundles";
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Foundation,
-					"-framework",
-					AppKit,
-				);
-				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = "Hexagonal Tiles";
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = plugin;
-			};
 			dependencies = (
 			);
 			name = "Hexagonal Tiles Plug-in";
@@ -1501,28 +1395,6 @@
 			buildRules = (
 				0129763F0846A1DE0095AD36 /* PBXBuildRule */,
 			);
-			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Versions/A/Frameworks",
-					"$(BUILT_PRODUCTS_DIR)",
-					/Users/frank/Development/MacOSaiX/build,
-				);
-				GCC_OPTIMIZATION_LEVEL = 0;
-				HEADER_SEARCH_PATHS = "";
-				INFOPLIST_FILE = MacOSaiX/Info.plist;
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "";
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = MacOSaiX;
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = app;
-			};
 			dependencies = (
 				011C7D8B0A1D76D10023CD62 /* PBXTargetDependency */,
 			);
@@ -1544,21 +1416,6 @@
 			buildRules = (
 				012976490846A2100095AD36 /* PBXBuildRule */,
 			);
-			buildSettings = {
-				GCC_OPTIMIZATION_LEVEL = 0;
-				INFOPLIST_FILE = "Standard Plugins/Directory Image Source/Info.plist";
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "";
-				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = "Directory Image Source";
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = plugin;
-			};
 			dependencies = (
 			);
 			name = "Directory Image Source Plug-In";
@@ -1579,21 +1436,6 @@
 			buildRules = (
 				0129764F0846A21D0095AD36 /* PBXBuildRule */,
 			);
-			buildSettings = {
-				GCC_OPTIMIZATION_LEVEL = 0;
-				INFOPLIST_FILE = "Standard Plugins/Google Image Source/Info.plist";
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "";
-				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = "Google Image Source";
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = plugin;
-			};
 			dependencies = (
 			);
 			name = "Google Image Source Plug-In";
@@ -1615,21 +1457,6 @@
 			buildRules = (
 				0129764C0846A2170095AD36 /* PBXBuildRule */,
 			);
-			buildSettings = {
-				GCC_OPTIMIZATION_LEVEL = 0;
-				INFOPLIST_FILE = "Standard Plugins/Glyph Image Source/Info.plist";
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "";
-				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = "Glyph Image Source";
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = plugin;
-			};
 			dependencies = (
 			);
 			name = "Glyph Image Source Plug-In";
@@ -1650,21 +1477,6 @@
 			buildRules = (
 				012976460846A2060095AD36 /* PBXBuildRule */,
 			);
-			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = "$(BUILT_PRODUCTS_DIR)";
-				INFOPLIST_FILE = "Standard Plugins/Rectangular Tiles Setup/Info.plist";
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "";
-				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = "Rectangular Tiles";
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = plugin;
-			};
 			dependencies = (
 			);
 			name = "Rectangular Tiles Plug-In";
@@ -1685,21 +1497,6 @@
 			buildRules = (
 				012976550846A2340095AD36 /* PBXBuildRule */,
 			);
-			buildSettings = {
-				GCC_OPTIMIZATION_LEVEL = 0;
-				INFOPLIST_FILE = "Standard Plugins/QuickTime Image Source/Info.plist";
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "";
-				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = "QuickTime Image Source";
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = plugin;
-			};
 			dependencies = (
 			);
 			name = "QuickTime Image Source Plug-In";
@@ -1720,21 +1517,6 @@
 			buildRules = (
 				012976520846A2280095AD36 /* PBXBuildRule */,
 			);
-			buildSettings = {
-				GCC_OPTIMIZATION_LEVEL = 0;
-				INFOPLIST_FILE = "Standard Plugins/iPhoto Image Source/Info.plist";
-				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "";
-				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = "iPhoto Image Source";
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = plugin;
-			};
 			dependencies = (
 			);
 			name = "iPhoto Image Source Plug-In";
@@ -1749,13 +1531,6 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = 0142D7360895BF23007F1FD2 /* Build configuration list for PBXProject "MacOSaiX" */;
-			buildSettings = {
-			};
-			buildStyles = (
-				4A9504CCFFE6A4B311CA0CBA /* Development */,
-				4A9504CDFFE6A4B311CA0CBA /* Deployment */,
-				F5B7584A024DAEFD0100010D /* Profile */,
-			);
 			hasScannedForEncodings = 1;
 			mainGroup = 29B97314FDCFA39411CA2CEA /* MacOSaiX */;
 			projectDirPath = "";
@@ -1858,6 +1633,7 @@
 				9253016509D611EF001E27F3 /* NoOriginal.png in Resources */,
 				92DFC50809EDC3EA0076FD93 /* Loading.png in Resources */,
 				9211A5E50A17DA3A0021A583 /* Mosaic View.nib in Resources */,
+				92911DDC0A23D63400F9C82A /* Image Source Editor.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2017,6 +1793,7 @@
 				0109D41609E084D8008290BE /* MacOSaiXEventCatchingPanel.m in Sources */,
 				9211A6850A17F7A80021A583 /* MacOSaiXToolTipView.m in Sources */,
 				011C7CE50A1AADCB0023CD62 /* MacOSaiXTextFieldCell.m in Sources */,
+				92911DD10A23D42100F9C82A /* MacOSaiXImageSourceEditor.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2304,6 +2081,14 @@
 				928F729A0661226000873AE2 /* English */,
 			);
 			name = "Directory Image Source.nib";
+			sourceTree = "<group>";
+		};
+		92911DDA0A23D63400F9C82A /* Image Source Editor.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92911DDB0A23D63400F9C82A /* English */,
+			);
+			name = "Image Source Editor.nib";
 			sourceTree = "<group>";
 		};
 		9298FBA10982DB9400E7A096 /* Full Screen.nib */ = {

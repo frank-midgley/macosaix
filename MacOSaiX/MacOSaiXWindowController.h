@@ -3,7 +3,7 @@
 #import "MosaicView.h"
 
 @class OriginalView, Tiles, MacOSaiXExportController, MacOSaiXImageSource, MacOSaiXTileShapes, 
-       MacOSaiXPopUpImageView, MacOSaiXDocument, MacOSaiXTilesSetupController;
+       MacOSaiXPopUpImageView, MacOSaiXDocument, MacOSaiXTilesSetupController, MacOSaiXImageSourceEditor;
 
 
 @interface MacOSaiXWindowController : NSWindowController 
@@ -39,14 +39,8 @@
 	IBOutlet NSTableView				*imageSourcesTableView;
 	IBOutlet NSPopUpButton				*imageSourcesPopUpButton;
 	IBOutlet NSButton					*imageSourcesRemoveButton;
+	MacOSaiXImageSourceEditor			*imageSourceEditor;
 	
-		// Image source editor
-	IBOutlet NSPanel					*imageSourceEditorPanel;
-	IBOutlet NSBox						*imageSourceEditorBox;
-	IBOutlet NSButton					*imageSourceEditorCancelButton, 
-										*imageSourceEditorOKButton;
-	id<MacOSaiXImageSourceController>	imageSourceEditorController;
-		
 		// Selected tile editor
 	IBOutlet NSView						*editorAccessoryView;
 	IBOutlet NSBox						*editorChosenImageBox;
@@ -129,10 +123,6 @@
 	// Image sources drawer
 - (IBAction)addNewImageSource:(id)sender;
 - (IBAction)removeImageSource:(id)sender;
-
-	// Image source editor
-- (IBAction)saveImageSource:(id)sender;
-- (IBAction)cancelImageSource:(id)sender;
 
 	// Tile editor
 - (IBAction)chooseImageForSelectedTile:(id)sender;
