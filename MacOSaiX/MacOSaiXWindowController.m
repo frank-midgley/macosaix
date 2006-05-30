@@ -14,6 +14,7 @@
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatcher.h"
 #import "MacOSaiXImageSource.h"
+#import "MacOSaiXImageSourceEditor.h"
 #import "MacOSaiXFullScreenController.h"
 #import "MacOSaiXPopUpImageView.h"
 #import "MacOSaiXTileShapes.h"
@@ -637,50 +638,29 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 #pragma mark Image Sources methods
 
 
-- (void)editImageSourceInSheet:(id<MacOSaiXImageSource>)originalImageSource
+- (void)editImageSourceInSheet:(id<MacOSaiXImageSource>)imageSource
 {
-	id<MacOSaiXImageSource>				editableSource = [[originalImageSource copyWithZone:[self zone]] autorelease];
+	if (!imageSourceEditor)
+		imageSourceEditor = [[MacOSaiXImageSourceEditor alloc] initWithWindow:nil];
 	
-	imageSourceEditorController = [[[[originalImageSource class] editorClass] alloc] init];
-	
-		// Make sure the panel is big enough to contain the view's minimum size.
-	float	widthDiff = MAX(0.0, [imageSourceEditorController minimumSize].width - [[imageSourceEditorBox contentView] frame].size.width),
-			heightDiff = MAX(0.0, [imageSourceEditorController minimumSize].height - [[imageSourceEditorBox contentView] frame].size.height);
-	NSSize	currentPanelSize = [[imageSourceEditorPanel contentView] frame].size;
-	[imageSourceEditorPanel setContentSize:NSMakeSize(currentPanelSize.width + widthDiff, currentPanelSize.height + heightDiff)];
-	[[imageSourceEditorController editorView] setFrame:[[imageSourceEditorBox contentView] frame]];
-	[[imageSourceEditorController editorView] setAutoresizingMask:[[imageSourceEditorBox contentView] autoresizingMask]];
-	
-		// Now that the sheet is big enough we can swap in the controller's editor view.
-	[imageSourceEditorBox setContentView:[imageSourceEditorController editorView]];
-
-		// Tell the editor to edit the source.
-	[imageSourceEditorController editImageSource:editableSource];
-	
-		// Re-establish the key view loop:
-		// 1. Focus on the editor view's first responder.
-		// 2. Set the next key view of the last view in the editor's loop to the cancel button.
-		// 3. Set the next key view of the OK button to the first view in the editor's loop.
-	[imageSourceEditorPanel setInitialFirstResponder:(NSView *)[imageSourceEditorController firstResponder]];
-	NSView	*lastKeyView = (NSView *)[imageSourceEditorController firstResponder];
-	while ([lastKeyView nextKeyView] && 
-			[[lastKeyView nextKeyView] isDescendantOf:[imageSourceEditorController editorView]] &&
-			[lastKeyView nextKeyView] != [imageSourceEditorController firstResponder])
-		lastKeyView = [lastKeyView nextKeyView];
-	[lastKeyView setNextKeyView:imageSourceEditorCancelButton];
-	[imageSourceEditorOKButton setNextKeyView:(NSView *)[imageSourceEditorController firstResponder]];
-	
-	[NSApp beginSheet:imageSourceEditorPanel 
-	   modalForWindow:[self window]
-		modalDelegate:self 
-	   didEndSelector:@selector(imageSourceEditorDidEnd:returnCode:contextInfo:) 
-		  contextInfo:[[NSArray arrayWithObjects:editableSource, originalImageSource, nil] retain]];
+	[imageSourceEditor editImageSource:imageSource 
+								mosaic:[self mosaic] 
+						modalForWindow:[self window] 
+						 modalDelegate:self 
+						didEndSelector:@selector(imageSourceWasEdited:originalImageSource:)];
 }
 
 
-- (void)windowEventDidOccur:(NSEvent *)event
+- (void)imageSourceWasEdited:(id<MacOSaiXImageSource>)editedImageSource 
+		 originalImageSource:(id<MacOSaiXImageSource>)originalImageSource
 {
-	[imageSourceEditorOKButton setEnabled:[imageSourceEditorController settingsAreValid]];
+	if (editedImageSource)
+	{
+		[[self mosaic] removeImageSource:originalImageSource];
+		[[self mosaic] addImageSource:editedImageSource];
+		
+		[imageSourcesTableView reloadData];
+	}
 }
 
 
@@ -702,44 +682,6 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 {
 	if (sender == imageSourcesTableView)
 		[self editImageSourceInSheet:[[[self mosaic] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]]];
-}
-
-
-- (IBAction)saveImageSource:(id)sender;
-{
-	[NSApp endSheet:imageSourceEditorPanel returnCode:NSOKButton];
-}
-
-
-- (IBAction)cancelImageSource:(id)sender
-{
-	[NSApp endSheet:imageSourceEditorPanel returnCode:NSCancelButton];
-}
-
-
-- (void)imageSourceEditorDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
-{
-	NSArray								*parameters = (NSArray *)contextInfo;
-	id<MacOSaiXImageSource>				editedImageSource = [parameters objectAtIndex:0],
-										originalImageSource = [parameters objectAtIndex:1];
-	
-	[sheet orderOut:self];
-	
-		// Do this before adding the source so we don't run into thread safety issues with QuickTime.
-	[imageSourceEditorBox setContentView:[[[NSView alloc] initWithFrame:NSZeroRect] autorelease]];
-	
-	if (returnCode == NSOKButton)
-	{
-		[[self mosaic] removeImageSource:originalImageSource];
-		[[self mosaic] addImageSource:editedImageSource];
-		
-		[imageSourcesTableView reloadData];
-	}
-	
-	[imageSourceEditorController editImageSource:nil];
-	[imageSourceEditorController release];
-	imageSourceEditorController = nil;
-	[(id)contextInfo release];
 }
 
 
@@ -1550,16 +1492,6 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		proposedFrameSize.height += diff.height;
 		proposedFrameSize.width += diff.width;
 	}
-	else if (resizingWindow == imageSourceEditorPanel)
-	{
-//		NSSize	panelSize = [imageSourceEditorPanel frame].size,
-//				editorBoxSize = [[imageSourceEditorBox contentView] frame].size;
-//		float	minWidth = (panelSize.width - editorBoxSize.width) + [imageSourceEditorController minimumSize].width,
-//				minHeight = (panelSize.height - editorBoxSize.height) + [imageSourceEditorController minimumSize].height;
-//		
-//		proposedFrameSize.width = MAX(proposedFrameSize.width, minWidth);
-//		proposedFrameSize.height = MAX(proposedFrameSize.height, minHeight);
-	}
 
     return proposedFrameSize;
 }
@@ -1636,22 +1568,22 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
     
     toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier] autorelease];
     
-	if ([itemIdentifier isEqualToString:@"Original Image"])
+	if ([itemIdentifier isEqualToString:@"Original"])
     {
 		[toolbarItem setMinSize:NSMakeSize(44.0, 32.0)];
 		[toolbarItem setMaxSize:NSMakeSize(44.0, 32.0)];
-		[toolbarItem setLabel:@"Original Image"];
-		[toolbarItem setPaletteLabel:@"Original Image"];
+		[toolbarItem setLabel:@"Original"];
+		[toolbarItem setPaletteLabel:@"Original"];
 		[toolbarItem setView:originalImagePopUpView];
 // TODO:		[toolbarItem setMenuFormRepresentation:[originalImagePopUpButton menu]];
     }
-	else if ([itemIdentifier isEqualToString:@"Setup Tiles"])
+	else if ([itemIdentifier isEqualToString:@"Tiles"])
     {
 		NSImage	*shapesImage = [[[self mosaic] tileShapes] image];
 		if (shapesImage)
 			[toolbarItem setImage:shapesImage];
-		[toolbarItem setLabel:@"Tiles Setup"];
-		[toolbarItem setPaletteLabel:@"Tiles Setup"];
+		[toolbarItem setLabel:@"Tiles"];
+		[toolbarItem setPaletteLabel:@"Tiles"];
 		[toolbarItem setTarget:self];
 		[toolbarItem setAction:@selector(setupTiles:)];
 		[toolbarItem setToolTip:@"Change the tile shapes or image use rules"];
@@ -1685,14 +1617,14 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[toolbarItem setAction:@selector(togglePause:)];
 		pauseToolbarItem = toolbarItem;
     }
-	else if ([itemIdentifier isEqualToString:@"Image Sources"])
+	else if ([itemIdentifier isEqualToString:@"Sources"])
     {
 		[toolbarItem setImage:[NSImage imageNamed:@"ImageSources"]];
-		[toolbarItem setLabel:@"Image Sources"];
-		[toolbarItem setPaletteLabel:@"Image Sources"];
+		[toolbarItem setLabel:@"Sources"];
+		[toolbarItem setPaletteLabel:@"Sources"];
 		[toolbarItem setTarget:imageSourcesDrawer];
 		[toolbarItem setAction:@selector(toggle:)];
-		[toolbarItem setToolTip:@"Show/hide image sources"];
+		[toolbarItem setToolTip:@"Show/hide the image sources drawer"];
     }
 	else if ([itemIdentifier isEqualToString:@"Fade"])
     {
@@ -1730,8 +1662,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar;
 {
-    return [NSArray arrayWithObjects:@"Original Image", @"Setup Tiles", @"Pause", @"Full Screen"
-									 , @"Fade", @"Zoom", @"Save As", @"Image Sources", 
+    return [NSArray arrayWithObjects:@"Original", @"Tiles", @"Pause", @"Full Screen"
+									 , @"Fade", @"Zoom", @"Save As", @"Sources", 
 									 NSToolbarCustomizeToolbarItemIdentifier, NSToolbarSpaceItemIdentifier,
 									 NSToolbarFlexibleSpaceItemIdentifier, NSToolbarSeparatorItemIdentifier,
 									 nil];
@@ -1740,7 +1672,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar;
 {
-    return [NSArray arrayWithObjects:@"Original Image", @"Setup Tiles", @"Image Sources", 
+    return [NSArray arrayWithObjects:@"Original", @"Tiles", @"Sources", 
 									 NSToolbarFlexibleSpaceItemIdentifier, @"Pause", 
 									 NSToolbarFlexibleSpaceItemIdentifier, @"Zoom", @"Fade", nil];
 }
