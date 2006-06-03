@@ -755,6 +755,12 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
+- (NSImage *)thumbnailForIdentifier:(NSString *)identifier
+{
+	return nil;
+}
+
+
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 	NSImage		*image = nil;

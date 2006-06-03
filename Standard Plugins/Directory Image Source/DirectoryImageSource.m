@@ -228,26 +228,12 @@
 	{
 		if (subPath = [directoryEnumerator nextObject])
 		{
-			NSString	*fullPath = [directoryPath stringByAppendingPathComponent:subPath];
-			NSArray		*pathComponents = [fullPath pathComponents];
-			unsigned	iPhotoLibraryIndex = [pathComponents indexOfObject:@"iPhoto Library"],
-						thumbsIndex = 0,
-						originalsIndex = 0;
-			
 			[lastEnumeratedPath release];
 			lastEnumeratedPath = [subPath retain];
 			
-			if (iPhotoLibraryIndex != NSNotFound && iPhotoLibraryIndex < [pathComponents count] - 1)
-			{
-				NSArray *iPhotoLibraryPathComponents = [pathComponents subarrayWithRange:
-							NSMakeRange(iPhotoLibraryIndex + 1, [pathComponents count] - iPhotoLibraryIndex - 1)];
-				thumbsIndex = [iPhotoLibraryPathComponents indexOfObject:@"Thumbs"],
-				originalsIndex = [iPhotoLibraryPathComponents indexOfObject:@"Originals"];
-			}
+			image = [self thumbnailForIdentifier:subPath];
 			
-				// If the path doesn't point to an iPhoto thumb or original then try to open it.
-				// Otherwise we get duplicates of iPhoto images in the mosaic.
-			if ((iPhotoLibraryIndex == NSNotFound || (thumbsIndex == NSNotFound && originalsIndex == NSNotFound)))
+			if (!image)
 				image = [self imageForIdentifier:subPath];
 		}
 	}
@@ -271,6 +257,50 @@
 - (BOOL)canRefetchImages
 {
 	return YES;
+}
+
+
+- (NSImage *)thumbnailForIdentifier:(NSString *)identifier
+{
+	NSImage	*thumbnail = nil;
+
+	if (NSClassFromString(@"CIImage"))
+	{
+			// Use ImageIO to check for a thumbnail in the file.
+		NSString			*imagePath = [[NSFileManager defaultManager] pathByResolvingAliasesInPath:
+												[directoryPath stringByAppendingPathComponent:identifier]];
+		CGImageSourceRef	thumbnailSourceRef = CGImageSourceCreateWithURL((CFURLRef)[NSURL fileURLWithPath:imagePath], NULL);
+		
+		if (thumbnailSourceRef)
+		{
+			NSDictionary	*options = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES]
+																   forKey:(NSString *)kCGImageSourceCreateThumbnailWithTransform];
+			CGImageRef		thumbnailRef = CGImageSourceCreateThumbnailAtIndex(thumbnailSourceRef, 0, (CFDictionaryRef)options);
+			
+			if (thumbnailRef)
+			{
+					// There is a thumbnail so create an NSImage from it.
+				CIImage	*ciThumbnail = [CIImage imageWithCGImage:thumbnailRef];
+				
+				if (ciThumbnail)
+				{
+					NSCIImageRep	*thumbnailRep = [NSCIImageRep imageRepWithCIImage:ciThumbnail];
+					
+					if (thumbnailRep)
+					{
+						thumbnail = [[[NSImage alloc] initWithSize:[thumbnailRep size]] autorelease];
+						[thumbnail addRepresentation:thumbnailRep];
+					}
+				}
+				
+				CFRelease(thumbnailRef);
+			}
+			
+			CFRelease(thumbnailSourceRef);
+		}
+	}
+	
+	return thumbnail;
 }
 
 
@@ -321,9 +351,7 @@
 				*fullPath = [[NSFileManager defaultManager] pathByResolvingAliasesInPath:
 								[directoryPath stringByAppendingPathComponent:identifier]];
 	
-#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
-	if (MDItemCreate)
-#endif
+	if (MDItemCreate != nil)
 	{
 		MDItemRef	itemRef = MDItemCreate(kCFAllocatorDefault, (CFStringRef)fullPath);
 		if (itemRef)

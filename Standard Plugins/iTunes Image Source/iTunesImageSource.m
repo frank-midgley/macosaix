@@ -233,6 +233,12 @@ static NSImage	*iTunesImage = nil,
 }
 
 
+- (NSImage *)thumbnailForIdentifier:(NSString *)identifier
+{
+	return nil;
+}
+
+
 - (NSImage *)imageForIdentifier:(id)parameter
 {
 	NSImage		*image = nil;

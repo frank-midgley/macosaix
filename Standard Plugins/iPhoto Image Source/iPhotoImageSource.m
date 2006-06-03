@@ -17,7 +17,7 @@ static NSImage	*iPhotoImage = nil,
 
 
 @interface MacOSaiXiPhotoImageSource (PrivateMethods)
-- (NSString *)pathOfPhotoWithID:(NSString *)photoID;
+- (NSString *)valueOfProperty:(NSString *)propertyName forPhotoWithID:(NSString *)photoID;
 @end
 
 
@@ -260,7 +260,10 @@ static NSImage	*iPhotoImage = nil,
 	{
 		NSString		*photoID = [remainingPhotoIDs objectAtIndex:0];
 		
-		image = [self imageForIdentifier:photoID];
+		image = [self thumbnailForIdentifier:photoID];
+
+		if (!image)
+			image = [self imageForIdentifier:photoID];
 		
 		if (image)
 			*identifier = [[photoID retain] autorelease];
@@ -272,39 +275,43 @@ static NSImage	*iPhotoImage = nil,
 }
 
 
-- (void)pathOfPhotoWithParameters:(NSMutableDictionary *)parameters
+- (void)getValueOfPhotoPropertyWithParameters:(NSMutableDictionary *)parameters
 {
-	NSString	*photoPath = [self pathOfPhotoWithID:[parameters objectForKey:@"Photo ID"]];
+	NSString	*value = [self valueOfProperty:[parameters objectForKey:@"Property Name"]
+								forPhotoWithID:[parameters objectForKey:@"Photo ID"]];
 	
-	if (photoPath)
-		[parameters setObject:photoPath forKey:@"Photo Path"];
+	if (value)
+		[parameters setObject:value forKey:@"Property Value"];
 }
 
 
-- (NSString *)pathOfPhotoWithID:(NSString *)photoID
+- (NSString *)valueOfProperty:(NSString *)propertyName forPhotoWithID:(NSString *)photoID
 {
-	NSString		*imagePath = nil;
+	NSString		*value = nil;
 	
 	if (!pthread_main_np())
 	{
-		NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObject:photoID forKey:@"Photo ID"];
-		[self performSelectorOnMainThread:@selector(pathOfPhotoWithParameters:) withObject:parameters waitUntilDone:YES];
-		imagePath = [parameters objectForKey:@"Photo Path"];
+		NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+												photoID, @"Photo ID", 
+												propertyName, @"Property Name", 
+												nil];
+		[self performSelectorOnMainThread:@selector(getValueOfPhotoPropertyWithParameters:) withObject:parameters waitUntilDone:YES];
+		value = [parameters objectForKey:@"Property Value"];
 	}
 	else
 	{
-		NSString				*getImagePathText = [NSString stringWithFormat:@"tell application \"iPhoto\" to " \
-																			   @"get image path of first photo whose id is %@", 
-																			   photoID];
-		NSAppleScript			*getImagePathScript = [[[NSAppleScript alloc] initWithSource:getImagePathText] autorelease];
+		NSString				*getImagePropertyText = [NSString stringWithFormat:@"tell application \"iPhoto\" to " \
+																				   @"get @% of first photo whose id is %@", 
+																				   propertyName, photoID];
+		NSAppleScript			*getImagePropertyScript = [[[NSAppleScript alloc] initWithSource:getImagePropertyText] autorelease];
 		NSDictionary			*scriptError = nil;
-		NSAppleEventDescriptor	*getImagePathResult = [getImagePathScript executeAndReturnError:&scriptError];
+		NSAppleEventDescriptor	*getImagePropertyResult = [getImagePropertyScript executeAndReturnError:&scriptError];
 		
 		if (!scriptError)
-			imagePath = [(NSAppleEventDescriptor *)getImagePathResult stringValue];
+			value = [(NSAppleEventDescriptor *)getImagePropertyResult stringValue];
 	}
 	
-	return imagePath;
+	return value;
 }
 
 
@@ -314,10 +321,37 @@ static NSImage	*iPhotoImage = nil,
 }
 
 
+- (NSImage *)thumbnailForIdentifier:(NSString *)identifier
+{
+	NSImage		*image = nil;
+	NSString	*imagePath = [self valueOfProperty:@"thumbnail path" forPhotoWithID:identifier];
+	
+	if (imagePath)
+	{
+		NS_DURING
+			image = [[[NSImage alloc] initWithContentsOfFile:imagePath] autorelease];
+			if (!image)
+			{
+					// The image might have the wrong or a missing file extension so 
+					// try init'ing it based on its contents instead.  This requires 
+					// more memory so only do this if initWithContentsOfFile fails.
+				NSData	*data = [[NSData alloc] initWithContentsOfFile:imagePath];
+				image = [[[NSImage alloc] initWithData:data] autorelease];
+				[data release];
+			}
+		NS_HANDLER
+			NSLog(@"%@ is not a valid image file.", imagePath);
+		NS_ENDHANDLER
+	}
+	
+    return image;
+}
+
+
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 	NSImage		*image = nil;
-	NSString	*imagePath = [self pathOfPhotoWithID:identifier];
+	NSString	*imagePath = [self valueOfProperty:@"image path" forPhotoWithID:identifier];
 	
 	if (imagePath)
 	{
@@ -355,7 +389,7 @@ static NSImage	*iPhotoImage = nil,
 
 - (NSString *)descriptionForIdentifier:(NSString *)identifier
 {
-	return nil;
+	return [self valueOfProperty:@"name" forPhotoWithID:identifier];
 }	
 
 

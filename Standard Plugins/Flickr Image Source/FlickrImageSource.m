@@ -115,21 +115,21 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
-+ (NSString *)cachedFileNameForIdentifier:(NSString *)identifier
++ (NSString *)cachedFileNameForIdentifier:(NSString *)identifier thumbnail:(BOOL)thumbnail
 {
 	NSArray		*identifierComponents = [identifier componentsSeparatedByString:@"\t"];
 	NSString	*serverID = [identifierComponents objectAtIndex:0], 
 				*photoID = [identifierComponents objectAtIndex:1];
 	
-	return [NSString stringWithFormat:@"%@-%@.jpg", serverID, photoID];
+	return [NSString stringWithFormat:@"%@-%@%@.jpg", serverID, photoID, (thumbnail ? @" thumb" : @"")];
 }
 
 
-+ (void)cacheImageData:(NSData *)imageData withIdentifier:(NSString *)identifier
++ (void)cacheImageData:(NSData *)imageData withIdentifier:(NSString *)identifier isThumbnail:(BOOL)isThumbnail
 {
 	if (!sPruningCache)
 	{
-		NSString	*imageFileName = [self cachedFileNameForIdentifier:identifier];
+		NSString	*imageFileName = [self cachedFileNameForIdentifier:identifier thumbnail:isThumbnail];
 
 		[sImageCacheLock lock];
 			[imageData writeToFile:[[self imageCachePath] stringByAppendingPathComponent:imageFileName] atomically:NO];
@@ -145,10 +145,10 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
-+ (NSImage *)cachedImageWithIdentifier:(NSString *)identifier
++ (NSImage *)cachedImageWithIdentifier:(NSString *)identifier getThumbnail:(BOOL)thumbnail
 {
 	NSImage		*cachedImage = nil;
-	NSString	*imageFileName = [self cachedFileNameForIdentifier:identifier];
+	NSString	*imageFileName = [self cachedFileNameForIdentifier:identifier thumbnail:thumbnail];
 	NSData		*imageData = nil;
 	
 	imageData = [[NSData alloc] initWithContentsOfFile:[[self imageCachePath] stringByAppendingPathComponent:imageFileName]];
@@ -707,7 +707,9 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 		else
 		{
 				// Get the image for the first identifier in the queue.
-			image = [self imageForIdentifier:[identifierQueue objectAtIndex:0]];
+			image = [self thumbnailForIdentifier:[identifierQueue objectAtIndex:0]];
+			if (!image)
+				image = [self imageForIdentifier:[identifierQueue objectAtIndex:0]];
 			if (image)
 				*identifier = [[[identifierQueue objectAtIndex:0] retain] autorelease];
 			[identifierQueue removeObjectAtIndex:0];
@@ -724,10 +726,38 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 }
 
 
+- (NSImage *)thumbnailForIdentifier:(NSString *)identifier
+{
+		// First check if we have this thumbnail in the disk cache.
+	NSImage		*image = [[self class] cachedImageWithIdentifier:identifier getThumbnail:YES];
+	
+		// If it's not in the cache then fetch the thumbnail from flickr.
+	if (!image)
+	{
+		NSArray		*identifierComponents = [identifier componentsSeparatedByString:@"\t"];
+		NSString	*serverID = [identifierComponents objectAtIndex:0], 
+					*photoID = [identifierComponents objectAtIndex:1],
+					*secret = [identifierComponents objectAtIndex:2];
+		NSURL		*thumbnailURL = [NSURL URLWithString:[NSString stringWithFormat:@"http://static.flickr.com/%@/%@_%@_t.jpg", 
+															   serverID, photoID, secret]];
+		NSData		*imageData = [[[NSData alloc] initWithContentsOfURL:thumbnailURL] autorelease];
+		
+		if (imageData)
+		{
+			image = [[[NSImage alloc] initWithData:imageData] autorelease];
+			if (image)
+				[[self class] cacheImageData:imageData withIdentifier:identifier isThumbnail:YES];
+		}
+	}
+	
+    return image;
+}
+
+
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 		// First check if we have this image in the disk cache.
-	NSImage		*image = [[self class] cachedImageWithIdentifier:identifier];
+	NSImage		*image = [[self class] cachedImageWithIdentifier:identifier getThumbnail:NO];
 	
 		// If it's not in the cache then fetch the image from flickr.
 	if (!image)
@@ -738,7 +768,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 		{
 			image = [[[NSImage alloc] initWithData:imageData] autorelease];
 			if (image)
-				[[self class] cacheImageData:imageData withIdentifier:identifier];
+				[[self class] cacheImageData:imageData withIdentifier:identifier isThumbnail:NO];
 		}
 	}
 	
@@ -753,7 +783,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 				*photoID = [identifierComponents objectAtIndex:1],
 				*secret = [identifierComponents objectAtIndex:2];
 	
-	return [NSURL URLWithString:[NSString stringWithFormat:@"http://static.flickr.com/%@/%@_%@_m.jpg", 
+	return [NSURL URLWithString:[NSString stringWithFormat:@"http://static.flickr.com/%@/%@_%@.jpg", 
 														   serverID, photoID, secret]];
 }	
 

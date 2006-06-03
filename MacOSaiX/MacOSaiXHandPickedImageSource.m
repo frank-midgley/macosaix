@@ -108,6 +108,12 @@
 }
 
 
+- (NSImage *)thumbnailForIdentifier:(NSString *)identifier
+{
+	return nil;
+}
+
+
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 		// The identifier is a full path to an image file.

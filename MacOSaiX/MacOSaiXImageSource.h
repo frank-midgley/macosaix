@@ -60,6 +60,12 @@
 	// be one of the values returned by a previous call to -nextImageAndIdentifier:.  The image does 
 	// not need to be the exact same instance returned by -nextImageAndIdentifier but should contain  
 	// the same image data.
+- (NSImage *)thumbnailForIdentifier:(NSString *)identifier;
+
+	// This method should return the image specified by the identifier.  The identifier will always
+	// be one of the values returned by a previous call to -nextImageAndIdentifier:.  The image does 
+	// not need to be the exact same instance returned by -nextImageAndIdentifier but should contain  
+	// the same image data.
 - (NSImage *)imageForIdentifier:(NSString *)identifier;
 
 	// This method should return a URL that points to the identified image.

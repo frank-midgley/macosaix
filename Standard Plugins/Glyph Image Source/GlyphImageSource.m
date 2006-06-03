@@ -387,6 +387,12 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
+- (NSImage *)thumbnailForIdentifier:(NSString *)identifier
+{
+	return nil;
+}
+
+
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 	NSImage	*image = nil;

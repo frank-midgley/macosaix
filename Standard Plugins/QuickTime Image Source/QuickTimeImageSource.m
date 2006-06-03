@@ -386,6 +386,12 @@ static NSImage			*sQuickTimeImage = nil;
 }
 
 
+- (NSImage *)thumbnailForIdentifier:(NSString *)identifier
+{
+	return nil;
+}
+
+
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 	NSImage	*imageAtTimeValue = nil;
