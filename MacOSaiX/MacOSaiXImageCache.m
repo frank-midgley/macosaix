@@ -56,27 +56,34 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 }
 
 
-- (NSString *)keyWithImageSource:(id<MacOSaiXImageSource>)imageSource identifier:(NSString *)imageIdentifier
+- (id)keyWithImageSource:(id<MacOSaiXImageSource>)imageSource identifier:(NSString *)imageIdentifier
 {
-	return [NSString stringWithFormat:@"%p\t%@", imageSource, imageIdentifier];
+	return [NSDictionary dictionaryWithObjectsAndKeys:
+				[NSValue valueWithPointer:imageSource], @"Image Source Pointer", 
+				imageIdentifier, @"Image Identifier", 
+				nil];
+//	return [NSString stringWithFormat:@"%p\t%@", imageSource, imageIdentifier];
 }
 
 
-- (id<MacOSaiXImageSource>)imageSourceFromKey:(NSString *)key
+- (id<MacOSaiXImageSource>)imageSourceFromKey:(id)key
 {
 	void			*imageSourcePtr = 0;
-	
-	sscanf([key UTF8String], "%p\t", &imageSourcePtr);
+
+	imageSourcePtr = [[(NSDictionary *)key objectForKey:@"Image Source Pointer"] pointerValue];
+//	sscanf([(NSString *)key UTF8String], "%p\t", &imageSourcePtr);
 	
 	return (id<MacOSaiXImageSource>)imageSourcePtr;
 }
 
 
-- (NSString *)imageIdentifierFromKey:(NSString *)key
+- (NSString *)imageIdentifierFromKey:(id)key
 {
-	unsigned int	tabPos = [key rangeOfString:@"\t"].location;
+	return [(NSDictionary *)key objectForKey:@"Image Identifier"];
 	
-	return [key substringFromIndex:tabPos + 1];
+//	unsigned int	tabPos = [key rangeOfString:@"\t"].location;
+//	
+//	return [(NSString *)key substringFromIndex:tabPos + 1];
 }
 
 
@@ -154,7 +161,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		fromSource:(id<MacOSaiXImageSource>)imageSource
 {
 	[cacheLock lock];
-		NSString			*imageKey = [self keyWithImageSource:imageSource identifier:imageIdentifier];
+		id					imageKey = [self keyWithImageSource:imageSource identifier:imageIdentifier];
 			
 			// Get a bitmap image rep at the full size of the image.
 		NSBitmapImageRep	*fullSizeRep = nil;
@@ -218,7 +225,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 {
 	NSBitmapImageRep	*imageRep = nil,
 						*scalableRep = nil;
-	NSString			*imageKey = [self keyWithImageSource:imageSource identifier:imageIdentifier];
+	id					imageKey = [self keyWithImageSource:imageSource identifier:imageIdentifier];
 
 	size = NSMakeSize(roundf(size.width), roundf(size.height));
 	
