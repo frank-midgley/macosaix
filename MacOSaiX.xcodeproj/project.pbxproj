@@ -72,6 +72,7 @@
 		01AD286F07E3C99B00420875 /* GoogleImageSearch.gif in Resources */ = {isa = PBXBuildFile; fileRef = 01AD286D07E3C99A00420875 /* GoogleImageSearch.gif */; };
 		01BBDECE0747081400F17A9F /* NSImage+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */; };
 		01DCB2F5092C2508008345F3 /* Flickr Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 01722BA809298D3E00290929 /* Flickr Image Source.plugin */; };
+		01DDE1B50A2E8756004F1F4E /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01DDE1950A2E8755004F1F4E /* QuartzCore.framework */; };
 		01FE978E08E8EDFE00E4AC7C /* MacOSaiXKioskController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE978C08E8EDFE00E4AC7C /* MacOSaiXKioskController.m */; };
 		01FE981308F365C600E4AC7C /* MacOSaiXMosaic.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */; };
 		9211A5E50A17DA3A0021A583 /* Mosaic View.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9211A5E30A17DA3A0021A583 /* Mosaic View.nib */; };
@@ -461,6 +462,7 @@
 		01BBDECB0747081400F17A9F /* NSImage+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSImage+MacOSaiX.h"; sourceTree = "<group>"; };
 		01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSImage+MacOSaiX.m"; sourceTree = "<group>"; };
 		01CB07E6071A1F2B00710BCF /* Hexagonal Tiles.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Hexagonal Tiles.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
+		01DDE1950A2E8755004F1F4E /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = /System/Library/Frameworks/QuartzCore.framework; sourceTree = "<absolute>"; };
 		01FE978B08E8EDFE00E4AC7C /* MacOSaiXKioskController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXKioskController.h; sourceTree = "<group>"; };
 		01FE978C08E8EDFE00E4AC7C /* MacOSaiXKioskController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXKioskController.m; sourceTree = "<group>"; };
 		01FE981008F365C600E4AC7C /* MacOSaiXMosaic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXMosaic.h; sourceTree = "<group>"; };
@@ -653,6 +655,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				928489C006611CE6003B3514 /* Cocoa.framework in Frameworks */,
+				01DDE1B50A2E8756004F1F4E /* QuartzCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -934,6 +937,7 @@
 				F599E5560266AAD101000103 /* Carbon.framework */,
 				F514D53C0390266E01B25AF1 /* Cocoa.framework */,
 				29B97325FDCFA39411CA2CEA /* Foundation.framework */,
+				01DDE1950A2E8755004F1F4E /* QuartzCore.framework */,
 				92F2B1EC048027FA0000011E /* QuickTime.framework */,
 			);
 			name = Frameworks;
