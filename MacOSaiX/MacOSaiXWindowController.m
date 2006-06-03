@@ -661,6 +661,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		
 		[imageSourcesTableView reloadData];
 	}
+	
+	[originalImageSource release];
 }
 
 
@@ -674,14 +676,19 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		imageSourceClass = [[sender selectedItem] representedObject];
 	
 	if ([imageSourceClass conformsToProtocol:@protocol(MacOSaiXImageSource)])
-		[self editImageSourceInSheet:[[[imageSourceClass alloc] init] autorelease]];
+		[self editImageSourceInSheet:[[imageSourceClass alloc] init]];
 }
 
 
 - (IBAction)editImageSource:(id)sender
 {
 	if (sender == imageSourcesTableView)
-		[self editImageSourceInSheet:[[[self mosaic] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]]];
+	{
+		id<MacOSaiXImageSource>	imageSource = [[[self mosaic] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]];
+		
+		[imageSource retain];
+		[self editImageSourceInSheet:imageSource];
+	}
 }
 
 
