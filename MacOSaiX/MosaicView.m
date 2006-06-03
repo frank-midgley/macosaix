@@ -967,13 +967,18 @@
 - (void)setTooltipsEnabled:(BOOL)enabled
 {
 	if (enabled && !tooltipTimer)
+	{
+		//NSLog(@"Enabling tooltips");
 		tooltipTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1 
 														 target:self 
 													   selector:@selector(updateTooltip:) 
 													   userInfo:nil 
 														repeats:YES] retain];
+	}
 	else if (!enabled)
 	{
+		//NSLog(@"Disabling tooltips");
+		
 		[tooltipTimer invalidate];
 		[tooltipTimer release];
 		tooltipTimer = nil;
@@ -1277,7 +1282,7 @@
 
 - (void)mouseExited:(NSEvent *)event
 {
-	[self setTooltipsEnabled:YES];
+	[self setTooltipsEnabled:NO];
 }
 
 
