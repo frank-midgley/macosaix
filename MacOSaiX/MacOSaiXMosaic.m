@@ -1073,11 +1073,11 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	else if ([self isPaused])
 		statusKey = @"Paused";
 	else if ([tilesWithoutBitmaps count] > 0)
-		statusKey = @"Extracting tile images";	// TODO: include the % complete
+		statusKey = @"Extracting tile images...";	// TODO: include the % complete
 	else if (calculateImageMatchesThreadAlive)
-		statusKey = @"Matching images";
+		statusKey = @"Matching images...";
 	else if (enumerationThreadCount > 0)
-		statusKey = @"Looking for new images";
+		statusKey = @"Looking for new images...";
 	else
 		statusKey = @"Done";
 	
