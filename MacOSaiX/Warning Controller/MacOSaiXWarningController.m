@@ -181,17 +181,19 @@
 	
 	[defaultButton setTitle:[buttonTitles objectAtIndex:0]];
 	[defaultButton sizeToFit];
+	[defaultButton setFrame:NSInsetRect([defaultButton frame], -6.0, 0.0)];
 	[defaultButton setFrame:NSOffsetRect([defaultButton frame], rightEdge - NSMaxX([defaultButton frame]), 0.0)];
 	
-	rightEdge = NSMinX([defaultButton frame]) - 20.0;
+	rightEdge = NSMinX([defaultButton frame]);
 	
 	if ([buttonTitles count] > 1)
 	{
 		[alternateButton setTitle:[buttonTitles objectAtIndex:1]];
 		[alternateButton sizeToFit];
+		[alternateButton setFrame:NSInsetRect([alternateButton frame], -6.0, 0.0)];
 		[alternateButton setFrame:NSOffsetRect([alternateButton frame], rightEdge - NSMaxX([alternateButton frame]), 0.0)];
 		
-		rightEdge = NSMinX([alternateButton frame]) - 20.0;
+		rightEdge = NSMinX([alternateButton frame]);
 	}
 	else
 	{
@@ -203,9 +205,10 @@
 	{
 		[otherButton setTitle:[buttonTitles objectAtIndex:2]];
 		[otherButton sizeToFit];
+		[otherButton setFrame:NSInsetRect([otherButton frame], -6.0, 0.0)];
 		[otherButton setFrame:NSOffsetRect([otherButton frame], rightEdge - NSMaxX([otherButton frame]), 0.0)];
 		
-		rightEdge = NSMinX([otherButton frame]) - 20.0;
+		rightEdge = NSMinX([otherButton frame]);
 	}
 	else
 	{
