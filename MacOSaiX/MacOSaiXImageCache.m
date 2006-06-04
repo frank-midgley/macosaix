@@ -332,7 +332,12 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 				// Re-request the image from the source or pull it from the source's disk cache.
 			NSImage		*image = nil;
 			if ([imageSource canRefetchImages])
-				image = [imageSource imageForIdentifier:imageIdentifier];
+			{
+				if (!NSEqualSizes(size, NSZeroSize))
+					image = [imageSource thumbnailForIdentifier:imageIdentifier];
+				if (!image || [image size].width < size.width || [image size].height < size.height)
+					image = [imageSource imageForIdentifier:imageIdentifier];
+			}
 			else
 			{
 				NSString	*imagePath = [self cachePathForIdentifier:imageIdentifier forSource:imageSource];
