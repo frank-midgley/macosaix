@@ -9,6 +9,11 @@
 #import "FlickrImageSourceController.h"
 
 
+@interface FlickrImageSourceController (PrivateMethods)
+- (void)getCountOfMatchingPhotos;
+@end
+
+
 @implementation FlickrImageSourceController
 
 
@@ -37,7 +42,15 @@
 {
 	currentImageSource = (FlickrImageSource *)imageSource;
 	
-	[queryField setStringValue:([currentImageSource queryString] ? [currentImageSource queryString] : @"")];
+	if ([currentImageSource queryString])
+	{
+		[queryField setStringValue:[currentImageSource queryString]];
+		if ([[currentImageSource queryString] length] > 0)
+			[self getCountOfMatchingPhotos];
+	}
+	else
+		[queryField setStringValue:@""];
+	
 	[queryTypeMatrix selectCellAtRow:[currentImageSource queryType] column:0];
 }
 
