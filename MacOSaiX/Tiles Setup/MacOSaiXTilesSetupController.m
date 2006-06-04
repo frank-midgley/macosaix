@@ -48,7 +48,7 @@
 	[imageUseCountPopUp selectItemAtIndex:popUpIndex];
 	popUpIndex = [imageReuseDistancePopUp indexOfItemWithTag:[mosaic imageReuseDistance]];
 	[imageReuseDistancePopUp selectItemAtIndex:popUpIndex];
-	[imageReuseDistancePopUp setEnabled:([mosaic imageUseCount] > 0)];
+	[imageReuseDistancePopUp setEnabled:([mosaic imageUseCount] != 1)];
 	[imageCropLimitSlider setIntValue:[mosaic imageCropLimit]];
 	
 	[NSApp beginSheet:[self window] 
@@ -240,7 +240,7 @@
 
 - (IBAction)setImageUseCount:(id)sender
 {
-	[imageReuseDistancePopUp setEnabled:([[imageUseCountPopUp selectedItem] tag] > 0)];
+	[imageReuseDistancePopUp setEnabled:([[imageUseCountPopUp selectedItem] tag] != 1)];
 }
 
 
