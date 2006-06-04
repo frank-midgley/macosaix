@@ -9,6 +9,9 @@
 #import "NSFileManager+MacOSaiX.h"
 
 
+static NSMutableAttributedString	*sSeparatorAS;
+
+
 @implementation MacOSaiXDirectoryEnumerator
 
 
@@ -192,6 +195,23 @@
 @implementation NSFileManager (MacOSaiXAttributedPaths)
 
 
+- (NSAttributedString *)attributedPathSeparator
+{
+	if (!sSeparatorAS)
+	{
+		NSTextAttachment			*ta = [[[NSTextAttachment alloc] init] autorelease];
+		[(NSCell *)[ta attachmentCell] setImage:[NSImage imageNamed:@"PathSeparator"]];
+		
+		sSeparatorAS = [[NSAttributedString attributedStringWithAttachment:ta] mutableCopy];
+		[sSeparatorAS addAttribute:NSBaselineOffsetAttributeName 
+							 value:[NSNumber numberWithInt:1] 
+							 range:NSMakeRange(0, 1)];
+	}
+	
+	return sSeparatorAS;
+}
+
+
 - (NSAttributedString *)attributedPath:(NSString *)path wraps:(BOOL)wrap
 {
 	NSMutableArray	*pathComponents = [[[path pathComponents] mutableCopy] autorelease];
@@ -226,25 +246,21 @@
 	while (pathComponent = [componentEnumerator nextObject])
 	{
 		if ([attributedPath length] > 0)
-		{
-			NSAttributedString	*delimiterAS = [[NSAttributedString alloc] initWithString:@" > "];
-			[attributedPath appendAttributedString:delimiterAS];
-			[delimiterAS release];
-		}
+			[attributedPath appendAttributedString:[self attributedPathSeparator]];
 		
 		fullPath = [fullPath stringByAppendingPathComponent:pathComponent];
 		
 		NSImage		*componentIcon = (fullPath ? [[NSWorkspace sharedWorkspace] iconForFile:fullPath] : nil);
 		[componentIcon setSize:NSMakeSize(16.0, 16.0)];
 		
-		NSString	*componentName = [[NSFileManager defaultManager] displayNameAtPath:fullPath];
+		NSString	*componentName = ([fullPath isEqualToString:NSHomeDirectory()] ? @"" : 
+										[NSString stringWithFormat:@"%@%@", nonBreakingSpace, 
+										[[NSFileManager defaultManager] displayNameAtPath:fullPath]]);
 		
 		NSTextAttachment	*ta = [[NSTextAttachment alloc] init];
 		[(NSCell *)[ta attachmentCell] setImage:componentIcon];
 		NSAttributedString	*imageAS = [NSMutableAttributedString attributedStringWithAttachment:ta],
-							*nameAS = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@%@",
-																								nonBreakingSpace, 
-																								componentName]];
+							*nameAS = [[NSAttributedString alloc] initWithString:componentName];
 		[attributedPath appendAttributedString:imageAS];
 		[attributedPath addAttribute:NSBaselineOffsetAttributeName 
 							   value:[NSNumber numberWithInt:-3] 
@@ -256,6 +272,8 @@
 	
 	NSMutableParagraphStyle	*style = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
 	[style setLineBreakMode:(wrap ? NSLineBreakByWordWrapping : NSLineBreakByTruncatingMiddle)];
+	[style setFirstLineHeadIndent:0.0];
+	[style setHeadIndent:12.0];
 	[attributedPath addAttribute:NSParagraphStyleAttributeName 
 						   value:style 
 						   range:NSMakeRange(0, [attributedPath length])];
