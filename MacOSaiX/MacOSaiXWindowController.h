@@ -3,7 +3,7 @@
 #import "MosaicView.h"
 
 @class OriginalView, Tiles, MacOSaiXExportController, MacOSaiXImageSource, MacOSaiXTileShapes, 
-       MacOSaiXPopUpImageView, MacOSaiXDocument, MacOSaiXTilesSetupController, MacOSaiXImageSourceEditor;
+       MacOSaiXPopUpButton, MacOSaiXDocument, MacOSaiXTilesSetupController, MacOSaiXImageSourceEditor;
 
 
 @interface MacOSaiXWindowController : NSWindowController 
@@ -30,14 +30,14 @@
     IBOutlet NSMenu						*zoomToolbarSubmenu;
 	
 	IBOutlet NSView						*openOriginalAccessoryView;
-	MacOSaiXPopUpImageView				*originalImagePopUpView;
+	MacOSaiXPopUpButton					*originalImageToolbarView;
 	
 	MacOSaiXTilesSetupController		*tilesSetupController;
 	
 		// Image Sources
     IBOutlet NSDrawer					*imageSourcesDrawer;
 	IBOutlet NSTableView				*imageSourcesTableView;
-	IBOutlet NSPopUpButton				*imageSourcesPopUpButton;
+	IBOutlet MacOSaiXPopUpButton		*imageSourcesPopUpButton;
 	IBOutlet NSButton					*imageSourcesRemoveButton;
 	MacOSaiXImageSourceEditor			*imageSourceEditor;
 	

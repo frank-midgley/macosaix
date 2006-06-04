@@ -16,7 +16,7 @@
 #import "MacOSaiXImageSource.h"
 #import "MacOSaiXImageSourceEditor.h"
 #import "MacOSaiXFullScreenController.h"
-#import "MacOSaiXPopUpImageView.h"
+#import "MacOSaiXPopUpButton.h"
 #import "MacOSaiXTileShapes.h"
 #import "MacOSaiXTilesSetupController.h"
 #import "MacOSaiXWarningController.h"
@@ -90,9 +90,11 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
     mosaicMenu = [[NSApp delegate] valueForKey:@"mosaicMenu"];
 
 		// set up the toolbar
-	originalImagePopUpView = [[MacOSaiXPopUpImageView alloc] initWithFrame:NSMakeRect(0.0, 0.0, 44.0, 32.0)];
-	[originalImagePopUpView setMenu:recentOriginalsMenu];
-	[originalImagePopUpView setImage:[NSImage imageNamed:@"NoOriginal"]];
+	originalImageToolbarView = [[MacOSaiXPopUpButton alloc] initWithFrame:NSMakeRect(0.0, 0.0, 44.0, 32.0)];
+	[originalImageToolbarView setBordered:NO];
+	[originalImageToolbarView setImagePosition:NSImageOnly];
+	[originalImageToolbarView setMenu:recentOriginalsMenu];
+	[originalImageToolbarView setImage:[NSImage imageNamed:@"NoOriginal"]];
 	[self updateRecentOriginalImages];
     zoomToolbarMenuItem = [[NSMenuItem alloc] initWithTitle:@"Zoom" action:nil keyEquivalent:@""];
     [zoomToolbarMenuItem setSubmenu:zoomToolbarSubmenu];
@@ -132,7 +134,6 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		NSEnumerator	*enumerator = [[[NSApp delegate] imageSourceClasses] objectEnumerator];
 		Class			imageSourceClass;
 		[imageSourcesPopUpButton removeAllItems];
-		[imageSourcesPopUpButton addItemWithTitle:@"Add New Source..."];
 		while (imageSourceClass = [enumerator nextObject])
 		{
 			NSBundle		*plugInBundle = [NSBundle bundleForClass:imageSourceClass];
@@ -159,6 +160,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	
 		// For some reason IB insists on setting the drawer width to 200.  Have to set the size in code instead.
 	[imageSourcesDrawer setContentSize:NSMakeSize(300, [imageSourcesDrawer contentSize].height)];
+	[imageSourcesPopUpButton setIndicatorColor:[NSColor colorWithCalibratedWhite:0.2941 alpha:1.0]];
 	[imageSourcesDrawer open:self];
     
 	[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
@@ -182,10 +184,10 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 			[[self mosaic] setOriginalImage:lastImage];
 			[lastImage release];
 		}
-		else if ([[originalImagePopUpView menu] numberOfItems] > 4)
+		else if ([[originalImageToolbarView menu] numberOfItems] > 4)
 		{
 				// The last chosen image is not available, pick the first recent original in the list.
-			[self setOriginalImageFromMenu:[[originalImagePopUpView menu] itemAtIndex:2]];
+			[self setOriginalImageFromMenu:[[originalImageToolbarView menu] itemAtIndex:2]];
 		}
 		else
 			[self performSelector:@selector(chooseOriginalImage:) withObject:self afterDelay:0.0];
@@ -315,7 +317,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 															object:nil];
 		
 			// Set the image in the toolbar item.
-		[originalImagePopUpView setImage:originalImage];
+		[originalImageToolbarView setImage:originalImage];
 		
 			// Set the zoom so that all of the new image is displayed.
 		[zoomSlider setFloatValue:0.0];
@@ -1581,7 +1583,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[toolbarItem setMaxSize:NSMakeSize(44.0, 32.0)];
 		[toolbarItem setLabel:@"Original"];
 		[toolbarItem setPaletteLabel:@"Original"];
-		[toolbarItem setView:originalImagePopUpView];
+		[toolbarItem setView:originalImageToolbarView];
 // TODO:		[toolbarItem setMenuFormRepresentation:[originalImagePopUpButton menu]];
     }
 	else if ([itemIdentifier isEqualToString:@"Tiles"])
