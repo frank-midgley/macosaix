@@ -1,6 +1,7 @@
 {
     IBClasses = (
         {CLASS = MacOSaiXEventCatchingPanel; LANGUAGE = ObjC; SUPERCLASS = NSWindow; }, 
+        {CLASS = MacOSaiXPopUpButton; LANGUAGE = ObjC; SUPERCLASS = NSButton; }, 
         {
             CLASS = MacOSaiXTextFieldCell; 
             LANGUAGE = ObjC; 
@@ -9,13 +10,11 @@
         {
             ACTIONS = {
                 addNewImageSource = id; 
-                cancelImageSource = id; 
                 chooseImageForSelectedTile = id; 
                 chooseOriginalImage = id; 
                 clearRecentOriginalImages = id; 
                 removeChosenImageForSelectedTile = id; 
                 removeImageSource = id; 
-                saveImageSource = id; 
                 saveMosaicAs = id; 
                 setMaximumZoom = id; 
                 setMinimumZoom = id; 
@@ -45,13 +44,8 @@
                 fadeOriginalButton = NSButton; 
                 fadeSlider = NSSlider; 
                 fadeToolbarView = NSView; 
-                imageSourceEditorBox = NSBox; 
-                imageSourceEditorCancelButton = NSButton; 
-                imageSourceEditorController = id; 
-                imageSourceEditorOKButton = NSButton; 
-                imageSourceEditorPanel = NSPanel; 
                 imageSourcesDrawer = NSDrawer; 
-                imageSourcesPopUpButton = NSPopUpButton; 
+                imageSourcesPopUpButton = MacOSaiXPopUpButton; 
                 imageSourcesRemoveButton = NSButton; 
                 imageSourcesTableView = NSTableView; 
                 imagesFoundField = NSTextField; 
