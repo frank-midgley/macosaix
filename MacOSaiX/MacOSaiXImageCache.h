@@ -20,7 +20,8 @@
 	NSString					*cachedImagesPath;
     NSRecursiveLock				*cacheLock;
     NSMutableArray				*imageRepRecencyArray,
-                                *imageKeyRecencyArray;
+                                *imageIdentifierRecencyArray, 
+								*imageSourceRecencyArray;
 	unsigned long				cachedImageCount,
 								perfectHitCount,
 								scalableHitCount,
@@ -50,7 +51,5 @@
 							   fromSource:(id<MacOSaiXImageSource>)imageSource;
 
 - (void)removeCachedImagesFromSource:(id<MacOSaiXImageSource>)imageSource;
-
-- (NSString *)xmlDataWithImageSources:(NSArray *)imageSources;
 
 @end
