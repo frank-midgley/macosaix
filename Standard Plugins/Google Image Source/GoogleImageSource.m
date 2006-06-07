@@ -222,14 +222,14 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 		unsigned long long	targetSize = sMaxCacheSize * 0.9;
 		while (!sPurgeCache && (sCacheSize > targetSize || freeSpace < sMinFreeSpace) && [imageArray count] > 0)
 		{
-			NSDictionary		*imageToDelete = [imageArray lastObject];
+			NSDictionary		*imageToDelete = [imageArray objectAtIndex:0];
 			unsigned long long	fileSize = [[imageToDelete objectForKey:@"Size"] unsignedLongLongValue];
 			
 			[fileManager removeFileAtPath:[imageToDelete objectForKey:@"Path"] handler:nil];
 			sCacheSize -= fileSize;
 			freeSpace += fileSize;
 			
-			[imageArray removeLastObject];
+			[imageArray removeObjectAtIndex:0];
 		}
 		
 		if (sPurgeCache)

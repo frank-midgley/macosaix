@@ -221,14 +221,14 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 		int					purgeCount = 0;
 		while (!sPurgeCache && (sCacheSize > targetSize || freeSpace < sMinFreeSpace) && [imageArray count] > 0)
 		{
-			NSDictionary		*imageToDelete = [imageArray lastObject];
+			NSDictionary		*imageToDelete = [imageArray objectAtIndex:0];
 			unsigned long long	fileSize = [[imageToDelete objectForKey:@"Size"] unsignedLongLongValue];
 			
 			[fileManager removeFileAtPath:[imageToDelete objectForKey:@"Path"] handler:nil];
 			sCacheSize -= fileSize;
 			freeSpace += fileSize;
 			
-			[imageArray removeLastObject];
+			[imageArray removeObjectAtIndex:0];
 			purgeCount++;
 		}
 		#ifdef DEBUG
@@ -730,6 +730,10 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 {
 		// First check if we have this thumbnail in the disk cache.
 	NSImage		*image = [[self class] cachedImageWithIdentifier:identifier getThumbnail:YES];
+	
+		// Next go for the full size image in the cache.
+	if (!image)
+		image = [[self class] cachedImageWithIdentifier:identifier getThumbnail:NO];
 	
 		// If it's not in the cache then fetch the thumbnail from flickr.
 	if (!image)
