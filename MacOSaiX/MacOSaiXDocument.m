@@ -83,7 +83,6 @@
 	mainWindowController = [[MacOSaiXWindowController alloc] initWithWindow:nil];
 	[mainWindowController setMosaic:[self mosaic]];
 	[self addWindowController:mainWindowController];
-	[mainWindowController showWindow:self];
 }
 
 
