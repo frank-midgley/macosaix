@@ -146,11 +146,10 @@
 	if ([image isValid])
 	{
 		MacOSaiXDocument	*newDocument = [[NSDocumentController sharedDocumentController] 
-												makeUntitledDocumentOfType:@"MacOSaiX Project"];
+												openUntitledDocumentOfType:@"MacOSaiX Project" display:NO];
 		
 		[newDocument setOriginalImagePath:filename];
 		[[newDocument mosaic] setOriginalImage:image];
-		[newDocument makeWindowControllers];
 		[newDocument showWindows];
 		
 		return YES;
