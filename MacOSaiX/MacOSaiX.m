@@ -133,6 +133,33 @@
 }
 
 
+- (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
+{
+	NSImage	*image = [[NSImage alloc] initWithContentsOfFile:filename];
+	if (!image)
+	{
+		NSData	*imageData = [NSData dataWithContentsOfMappedFile:filename];
+		
+		image = [[NSImage alloc] initWithData:imageData];
+	}
+	
+	if ([image isValid])
+	{
+		MacOSaiXDocument	*newDocument = [[NSDocumentController sharedDocumentController] 
+												makeUntitledDocumentOfType:@"MacOSaiX Project"];
+		
+		[newDocument setOriginalImagePath:filename];
+		[[newDocument mosaic] setOriginalImage:image];
+		[newDocument makeWindowControllers];
+		[newDocument showWindows];
+		
+		return YES;
+	}
+	else
+		return NO;
+}
+
+
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
 		// To provide a service:
