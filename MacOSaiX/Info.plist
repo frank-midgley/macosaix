@@ -20,11 +20,73 @@
 			<key>NSDocumentClass</key>
 			<string>MacOSaiXDocument</string>
 		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>bmp</string>
+				<string>BMP</string>
+				<string>gif</string>
+				<string>GIF</string>
+				<string>jpeg</string>
+				<string>JPEG</string>
+				<string>jpg</string>
+				<string>JPG</string>
+				<string>jpe</string>
+				<string>JPE</string>
+				<string>thm</string>
+				<string>THM</string>
+				<string>jp2</string>
+				<string>JP2</string>
+				<string>pict</string>
+				<string>PICT</string>
+				<string>pct</string>
+				<string>PCT</string>
+				<string>png</string>
+				<string>PNG</string>
+				<string>qtif</string>
+				<string>QTIF</string>
+				<string>tiff</string>
+				<string>TIFF</string>
+				<string>tif</string>
+				<string>TIF</string>
+			</array>
+			<key>CFBundleTypeMIMETypes</key>
+			<array>
+				<string>image/gif</string>
+				<string>image/jpeg</string>
+				<string>image/png</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Image File</string>
+			<key>CFBundleTypeOSTypes</key>
+			<array>
+				<string>BMP </string>
+				<string>BMPf</string>
+				<string>GIFf</string>
+				<string>JPEG</string>
+				<string>PICT</string>
+				<string>PNGf</string>
+				<string>qtif</string>
+				<string>TIFF</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.apple.quicktime-image</string>
+				<string>com.compuserve.gif</string>
+				<string>com.microsoft.bmp</string>
+				<string>public.jpeg</string>
+				<string>public.jpeg-2000</string>
+				<string>public.png</string>
+				<string>public.tiff</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
 	<string>MacOSaiX</string>
 	<key>CFBundleGetInfoString</key>
-	<string>2.0a6</string>
+	<string>2.0b1</string>
 	<key>CFBundleIconFile</key>
 	<string>Application Icon</string>
 	<key>CFBundleIdentifier</key>
@@ -36,9 +98,9 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.0a6</string>
+	<string>2.0b1</string>
 	<key>CFBundleVersion</key>
-	<string>2.0a6</string>
+	<string>2.0b1</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
