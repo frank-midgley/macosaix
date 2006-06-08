@@ -163,17 +163,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	[imageSourcesPopUpButton setIndicatorColor:[NSColor colorWithCalibratedWhite:0.2941 alpha:1.0]];
 	[imageSourcesDrawer open:self];
     
-	[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
-	if ([[self document] fileName])
+	if (![[self document] originalImagePath])
 	{
-		[pauseToolbarItem setLabel:@"Resume"];
-		[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Resume Matching"];
-	}
-	else
-	{
-		[pauseToolbarItem setLabel:@"Start"];
-		[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:@"Start Mosaic"];
-		
 			// Default to the most recently used original or prompt to choose one
 			// if no previous original was found.
 		NSString	*lastPath = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Chosen Original Image Path"];
@@ -315,6 +306,9 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[[NSUserDefaults standardUserDefaults] synchronize];
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXRecentOriginalImagesDidChangeNotification
 															object:nil];
+		
+			// Make sure the nib is loaded.
+		[self window];
 		
 			// Set the image in the toolbar item.
 		[originalImageToolbarView setImage:originalImage];
