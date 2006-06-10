@@ -28,6 +28,12 @@
 }
 
 
+- (NSSize)maximumSize
+{
+	return NSMakeSize(460.0, 66.0);
+}
+
+
 - (NSResponder *)firstResponder
 {
 	return playlistsPopUp;

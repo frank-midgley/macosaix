@@ -93,8 +93,10 @@
 	// This method should return the view used to edit an image source.
 - (NSView *)editorView;
 
-	// This method should return the minimum size of the editor view.
+	// These methods should return the minimum and maximum sizes of the editor view.
+	// If no limit is desired then return NSZeroSize from either method.
 - (NSSize)minimumSize;
+- (NSSize)maximumSize;
 
 	// This method should return the control of the editor view that should initially receive focus.
 - (NSResponder *)firstResponder;

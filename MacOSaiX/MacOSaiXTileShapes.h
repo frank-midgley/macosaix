@@ -51,8 +51,10 @@
 	// The view containing the editing controls.
 - (NSView *)editorView;
 
-	// The minimum size of the editor view.
+	// These methods should return the minimum and maximum sizes of the editor view.
+	// If no limit is desired then return NSZeroSize from either method.
 - (NSSize)minimumSize;
+- (NSSize)maximumSize;
 
 	// The first responder of the editor view.
 - (NSResponder *)firstResponder;

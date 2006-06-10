@@ -32,6 +32,12 @@
 }
 
 
+- (NSSize)maximumSize
+{
+	return NSMakeSize(374.0, 181.0);
+}
+
+
 - (NSResponder *)firstResponder
 {
 	return queryField;

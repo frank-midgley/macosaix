@@ -45,6 +45,12 @@
 }
 
 
+- (NSSize)maximumSize
+{
+	return NSZeroSize;
+}
+
+
 - (NSResponder *)firstResponder
 {
 	return fontsOutlineView;

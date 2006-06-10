@@ -24,7 +24,13 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(460.0, 66.0);
+	return NSMakeSize(460.0, 67.0);
+}
+
+
+- (NSSize)maximumSize
+{
+	return NSMakeSize(460.0, 67.0);
 }
 
 
