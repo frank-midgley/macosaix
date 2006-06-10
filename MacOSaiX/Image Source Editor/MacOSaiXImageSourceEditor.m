@@ -35,13 +35,19 @@
 	editor = [[[[imageSource class] editorClass] alloc] init];
 	
 		// Make sure the panel is big enough to contain the view's minimum size.
-		// TBD: should there be a max size as well?
-	float	widthDiff = MAX(0.0, [editor minimumSize].width - [[editorBox contentView] frame].size.width),
-			heightDiff = MAX(0.0, [editor minimumSize].height - [[editorBox contentView] frame].size.height);
-	NSSize	currentPanelSize = [[[self window] contentView] frame].size;
-	[[self window] setContentSize:NSMakeSize(currentPanelSize.width + widthDiff, currentPanelSize.height + heightDiff)];
+	NSSize	currentPanelSize = [[[self window] contentView] frame].size, 
+			newPanelSize = [self windowWillResize:[self window] toSize:currentPanelSize];
+	float	widthDiff = newPanelSize.width - currentPanelSize.width, 
+			heightDiff = newPanelSize.height - currentPanelSize.height, 
+			baseWidth = currentPanelSize.width - NSWidth([[editorBox contentView] frame]), 
+			baseHeight = currentPanelSize.height - NSHeight([[editorBox contentView] frame]);
+	[[self window] setContentSize:newPanelSize];
+	[[self window] setContentMinSize:NSMakeSize(baseWidth + [editor minimumSize].width, baseHeight + [editor minimumSize].height)];
 	[[editor editorView] setFrame:[[editorBox contentView] frame]];
 	[[editor editorView] setAutoresizingMask:[[editorBox contentView] autoresizingMask]];
+	
+	[[self window] setShowsResizeIndicator:(!NSEqualSizes([editor minimumSize], [editor maximumSize]) || 
+											 NSEqualSizes([editor minimumSize], NSZeroSize))];
 	
 	// Now that the sheet is big enough we can swap in the controller's editor view.
 	[editorBox setContentView:[editor editorView]];
@@ -80,13 +86,25 @@
 {
 	if (resizingWindow == [self window])
 	{
-//		NSSize	panelSize = [imageSourceEditorPanel frame].size,
-//				editorBoxSize = [[imageSourceEditorBox contentView] frame].size;
-//		float	minWidth = (panelSize.width - editorBoxSize.width) + [imageSourceEditorController minimumSize].width,
-//				minHeight = (panelSize.height - editorBoxSize.height) + [imageSourceEditorController minimumSize].height;
-//		
-//		proposedFrameSize.width = MAX(proposedFrameSize.width, minWidth);
-//		proposedFrameSize.height = MAX(proposedFrameSize.height, minHeight);
+		NSSize	panelSize = [resizingWindow frame].size,
+				editorBoxSize = [[editorBox contentView] frame].size, 
+				minEditorSize = [editor minimumSize], 
+				maxEditorSize = [editor maximumSize];
+		
+		if (NSEqualSizes(minEditorSize, NSZeroSize))
+			minEditorSize = NSMakeSize(0.0, 0.0);
+		if (NSEqualSizes(maxEditorSize, NSZeroSize))
+			maxEditorSize = NSMakeSize(10000.0, 10000.0);
+		
+		float	borderWidth = panelSize.width - editorBoxSize.width,
+				borderHeight = panelSize.height - editorBoxSize.height, 
+				minWidth = borderWidth + minEditorSize.width, 
+				minHeight = borderHeight + minEditorSize.height, 
+				maxWidth = borderWidth + maxEditorSize.width, 
+				maxHeight = borderHeight + maxEditorSize.height;
+		
+		proposedFrameSize.width = MIN(MAX(proposedFrameSize.width, minWidth), maxWidth);
+		proposedFrameSize.height = MIN(MAX(proposedFrameSize.height, minHeight), maxHeight);
 	}
 	
 	return proposedFrameSize;
