@@ -11,7 +11,6 @@ Ideas for future versions:
 	New image sources:
 		Icons
 		iSight source
-		iTunes album art
 		Delicious
 	Directory source
 		Option to only use images bigger or smaller than certain dimensions
@@ -49,8 +48,6 @@ Riemersma metric:
 ¥	Leak analysis
 ¥	Make sure pixels are being pulled from bitmaps correctly
 ¥	Get rid of lines on screen and in exported images
-	QuickTime source:
-¥		Show aspect ratio
 	Folder source:
 ¥		Remember last chosen folder
 ¥		Drag and drop support
@@ -62,45 +59,64 @@ Riemersma metric:
 ¥		Use each letter once
 ¥		Remember previous choices
 	Flickr source:
-Ã		Page by post date
-Ã		Allow fetching > 4100 images
-Ã		Figure out if "any tag" option can work (needed commas and correct XML tag)
 ¥		Other options?  (pix by specific user, friends and/or family, license, etc.)
 ¥		Log in?
-¥		Can be resized too small (at least after having enlarged another source type)
 ¥	DOCTYPE plist in XML?
 ¥	Window zooming
+	Kiosk mode
+¥		Enable password
+¥		dialogs on secondary monitors not ordering out
+¥	Enable cancelling of document load
+¥	Copy original image to doc bundle? or open mosaic read-only if original missing?
+¥	Preserve mosaic area (w*h) when changing original
+¥	Save&restore background mode?
+¥	Clear selected source when drawer closed
+¥	Fade too bright at 50%
+¥	Make sure everything works on virgin system
+?	Better quoting/joining of string lists, e.g. "a", "b" or "c"
+¥	Keep source at same array index after editing
+¥	Use non-breaking space between icon and item name in attributed path strings
+¥	Keep tile tooltip from going offscreen
+¥	Don't re-extract tile images when changing image reuse rules
+	Tile Editor
+¥		Show more of the original image
+¥		Add the URL somewhere
+¥		Fetch description and URL off the main thread
+¥		Fix the match percentage so at least some images are <90%
+
+
+2.0b1 To Do:
+Ã	New iTunes album artwork source
+¥	New iSight source
+Ã	Allow image files to be opened by MacOSaiX
 Ã	Tile refresh leaves black edges
+Ã	Mosaic view needs to draw lo-res during auto-fade
+Ã	Disable "tiles apart" pop-up when images can only appear in one tile
+Ã	"Loading..." image in web page pop-up
+Ã	Images being lost when any number of instances allowed
+Ã	Fix spacing of buttons on warning sheet
+¥	Replace image re-use distance pop-up with slider
+¥	Clean up about box
+Ã	Tooltip for tile images
+¥	Check if mosaic state should be paused or done on load
+¥	Add "Report Crashes" option
+Ã	Break out image source and tile editors into their own controllers
+¥	Add more info to editor (source, description, URL, etc.)
+	Kiosk mode
+Ã		Cancel button not working in kiosk setup?
+¥		Don't really quit
+¥		Add background setting
 	Plug-in API's
 ¥		Create documentation
 ¥		Create sample plug-in projects
-	Kiosk mode
-¥		Enable password
-¥		Don't really quit
-¥		Add background setting
-¥		dialogs on secondary monitors not ordering out
-Ã		Cancel button not working in kiosk setup?
-¥	Enable cancelling of document load
-¥	Clean up about box
-Ã	Mosaic view needs to draw lo-res during auto-fade
-¥	Copy original image to doc bundle? or open mosaic read-only if original missing?
-¥	Tooltip for tile images
-¥	Preserve mosaic area (w*h) when changing original
-¥	Save&restore background mode
-¥	Check if mosaic state should be paused or done on load
-Ã	Disable "tiles apart" pop-up when images can only appear in one tile
-¥	Add "Report Crashes" option
-¥	Clear selected source when drawer closed
-Ã	"Loading..." image in web page pop-up
-¥	Fade too bright at 50%
-¥	Make sure everything works on virgin system
-¥	Break out image source and tile editors into their own controllers
+	Flickr source:
+Ã		Page by post date
+Ã		Allow fetching > 4100 images
+Ã		Figure out if "any tag" option can work (needed commas and correct XML tag)
+Ã		Can be resized too small (at least after having enlarged another source type)
+	QuickTime source:
+¥		Show aspect ratio
 	Exporting
 ¥		Re-enforce 10,000 pixel limit
 ?		Initial units sensible
-Ã	Images being lost when any number of instances allowed
 ¥	Confirm changing tiles when sheet closes instead of opens
-¥	Fix spacing of buttons on warning sheet
-¥	Better quoting/joining of string lists, e.g. "a", "b", or "c"
-¥	Keep source at same array index after editing
-¥	Use non-breaking space between icon and item name in attributed path strings
