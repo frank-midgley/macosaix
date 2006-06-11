@@ -67,7 +67,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 	while ([memoryCache count] > 0 && (currentMemoryCacheSize + imageRepSize) > maxMemoryCacheSize)
 	{
 		NSString				*oldestIdentifier = [imageIdentifierRecencyArray lastObject];
-		id<MacOSaiXImageSource>	oldestSource = [imageSourceRecencyArray lastObject];
+		id<MacOSaiXImageSource>	oldestSource = [[imageSourceRecencyArray lastObject] pointerValue];
 		NSValue					*oldestSourceKey = [NSValue valueWithPointer:oldestSource];
 		NSBitmapImageRep		*oldestRep = [imageRepRecencyArray lastObject];
 		unsigned long long		oldestRepSize = [oldestRep bytesPerRow] * [oldestRep pixelsHigh];
@@ -111,7 +111,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		// The newest items are closer to index 0.
 	[imageRepRecencyArray insertObject:imageRep atIndex:0];
 	[imageIdentifierRecencyArray insertObject:imageIdentifier atIndex:0];
-	[imageSourceRecencyArray insertObject:imageSource atIndex:0];
+	[imageSourceRecencyArray insertObject:imageSourceKey atIndex:0];
 	
 //	NSLog(@"%llu bytes, %d image reps in cache", currentMemoryCacheSize, [imageRepRecencyArray count]);
 }
@@ -218,7 +218,8 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 	size = NSMakeSize(roundf(size.width), roundf(size.height));
 	
 	[cacheLock lock];
-		NSValue			*nativeSizeValue = [[nativeImageSizeDict objectForKey:[NSValue valueWithPointer:imageSource]]
+		NSValue			*imageSourceKey = [NSValue valueWithPointer:imageSource], 
+						*nativeSizeValue = [[nativeImageSizeDict objectForKey:imageSourceKey]
 												objectForKey:imageIdentifier];
 		
 		if (nativeSizeValue)
@@ -253,7 +254,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 					}
 					[imageRepRecencyArray insertObject:imageRep atIndex:0];
 					[imageIdentifierRecencyArray insertObject:imageIdentifier atIndex:0];
-					[imageSourceRecencyArray insertObject:imageSource atIndex:0];
+					[imageSourceRecencyArray insertObject:imageSourceKey atIndex:0];
 					break;
 				}
 				else if (NSEqualSizes(cachedRepSize, nativeSize))
@@ -400,7 +401,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		
 		signed int		index = [imageRepRecencyArray count];
 		while (--index >= 0)
-			if ([imageSourceRecencyArray objectAtIndex:index] == imageSource)
+			if ([[imageSourceRecencyArray objectAtIndex:index] pointerValue] == imageSourceKey)
 			{
 				[imageSourceRecencyArray removeObjectAtIndex:index];
 				[imageIdentifierRecencyArray removeObjectAtIndex:index];
