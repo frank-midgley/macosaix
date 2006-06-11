@@ -42,16 +42,6 @@
 	MacOSaiXImageSourceEditor			*imageSourceEditor;
 	
 		// Selected tile editor
-	IBOutlet NSView						*editorAccessoryView;
-	IBOutlet NSBox						*editorChosenImageBox;
-	IBOutlet NSImageView				*editorOriginalImageView,
-										*editorCurrentImageView, 
-										*editorChosenImageView;
-	IBOutlet NSTextField				*editorCurrentPercentCroppedTextField, 
-										*editorCurrentMatchQualityTextField,
-										*editorChosenPercentCroppedTextField, 
-										*editorChosenMatchQualityTextField;
-	float								editorChosenMatchValue;
 	
 		// Progress panel
     IBOutlet NSPanel					*progressPanel;
@@ -62,7 +52,6 @@
 	MacOSaiXExportController			*exportController;
     NSTimer								*fadeTimer,
 										*animateTileTimer;
-    NSMutableArray						*selectedTileImages;
     NSMutableDictionary					*toolbarItems;
     NSToolbarItem						*toggleOriginalToolbarItem, 
 										*pauseToolbarItem, 
@@ -81,7 +70,6 @@
     float								overallMatch, 
 										lastDisplayMatch, 
 										zoom;
-    MacOSaiXTile						*selectedTile;
 	NSPoint								tileSelectionPoint;
     NSWindow							*mainWindow, 
 										*mosaicImageDrawWindow;
