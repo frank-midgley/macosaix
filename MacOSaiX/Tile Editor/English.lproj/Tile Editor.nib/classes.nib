@@ -1,0 +1,32 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {"" = id; }; 
+            CLASS = FirstResponder; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            CLASS = MacOSaiXTileEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                accessoryView = NSView; 
+                chosenImageBox = NSBox; 
+                chosenImageView = NSImageView; 
+                chosenMatchQualityTextField = NSTextField; 
+                chosenPercentCroppedTextField = NSTextField; 
+                currentImageDescriptionField = NSTextField; 
+                currentImageSourceImageView = NSImageView; 
+                currentImageSourceNameField = NSTextField; 
+                currentImageView = NSImageView; 
+                currentMatchQualityTextField = NSTextField; 
+                currentPercentCroppedTextField = NSTextField; 
+                delegate = id; 
+                originalImageView = NSImageView; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = NSWindowController; LANGUAGE = ObjC; SUPERCLASS = NSResponder; }
+    ); 
+    IBVersion = 1; 
+}
