@@ -46,9 +46,7 @@
 		// Set the image rules controls.
 	int				popUpIndex = [imageUseCountPopUp indexOfItemWithTag:[mosaic imageUseCount]];
 	[imageUseCountPopUp selectItemAtIndex:popUpIndex];
-	popUpIndex = [imageReuseDistancePopUp indexOfItemWithTag:[mosaic imageReuseDistance]];
-	[imageReuseDistancePopUp selectItemAtIndex:popUpIndex];
-	[imageReuseDistancePopUp setEnabled:([mosaic imageUseCount] != 1)];
+	[imageReuseSlider setIntValue:[mosaic imageReuseDistance]];
 	[imageCropLimitSlider setIntValue:[mosaic imageCropLimit]];
 	
 	[NSApp beginSheet:[self window] 
@@ -240,7 +238,7 @@
 
 - (IBAction)setImageUseCount:(id)sender
 {
-	[imageReuseDistancePopUp setEnabled:([[imageUseCountPopUp selectedItem] tag] != 1)];
+	[imageReuseSlider setEnabled:([[imageUseCountPopUp selectedItem] tag] != 1)];
 }
 
 
@@ -267,7 +265,7 @@
 - (IBAction)ok:(id)sender;
 {
 	[[self mosaic] setImageUseCount:[[imageUseCountPopUp selectedItem] tag]];
-	[[self mosaic] setImageReuseDistance:[[imageReuseDistancePopUp selectedItem] tag]];
+	[[self mosaic] setImageReuseDistance:[imageReuseSlider intValue]];
 	[[self mosaic] setImageCropLimit:[imageCropLimitSlider intValue]];
 	
 	[NSApp endSheet:[self window] returnCode:NSOKButton];

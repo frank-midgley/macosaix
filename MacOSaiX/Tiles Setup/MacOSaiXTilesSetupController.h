@@ -29,9 +29,9 @@
 									*tileSizeField;
 	
 		// Image rules
-	IBOutlet NSPopUpButton			*imageUseCountPopUp,
-									*imageReuseDistancePopUp;
-	IBOutlet NSSlider				*imageCropLimitSlider;
+	IBOutlet NSPopUpButton			*imageUseCountPopUp;
+	IBOutlet NSSlider				*imageReuseSlider, 
+									*imageCropLimitSlider;
 	IBOutlet NSButton				*cancelButton,
 									*okButton;
 }
