@@ -914,10 +914,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				
 					// Loop through the list of better matches and pick the first items (up to the use count) 
 					// that aren't too close together.
-				float				minDistanceApart = [self imageReuseDistance] * [self imageReuseDistance] *
-													   ([self averageUnitTileSize].width * [self averageUnitTileSize].width +
-														[self averageUnitTileSize].height * [self averageUnitTileSize].height / 
-														originalImageAspectRatio / originalImageAspectRatio);
+				float				minDistanceApart = powf([self imageReuseDistance] * 0.95 / 100.0, 2.0);
 				NSMutableArray		*matchesToUpdate = [NSMutableArray array];
 				NSEnumerator		*betterMatchEnumerator = [betterMatches objectEnumerator];
 				MacOSaiXImageMatch	*betterMatch = nil;
@@ -973,7 +970,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					
 						// Only remember a reasonable number of the best matches.
 						// TODO: cache this since it never changes
-					int	roughUpperBound = pow(sqrt([tiles count]) / imageReuseDistance, 2);
+					int	roughUpperBound = 4 + ([tiles count] / 2.0 * (100.0 - [self imageReuseDistance]) / 100.0);
 					if ([betterMatches count] > roughUpperBound)
 					{
 						[betterMatches removeObjectsInRange:NSMakeRange(roughUpperBound, [betterMatches count] - roughUpperBound)];
