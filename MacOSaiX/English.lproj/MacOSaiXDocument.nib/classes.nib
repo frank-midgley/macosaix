@@ -31,15 +31,6 @@
             CLASS = MacOSaiXWindowController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                editorAccessoryView = NSView; 
-                editorChosenImageBox = NSBox; 
-                editorChosenImageView = NSImageView; 
-                editorChosenMatchQualityTextField = NSTextField; 
-                editorChosenPercentCroppedTextField = NSTextField; 
-                editorCurrentImageView = NSImageView; 
-                editorCurrentMatchQualityTextField = NSTextField; 
-                editorCurrentPercentCroppedTextField = NSTextField; 
-                editorOriginalImageView = NSImageView; 
                 fadeMosaicButton = NSButton; 
                 fadeOriginalButton = NSButton; 
                 fadeSlider = NSSlider; 
