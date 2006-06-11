@@ -11,7 +11,7 @@
 	<key>Image Use Count</key>
 	<integer>0</integer>
 	<key>Image Reuse Distance</key>
-	<integer>10</integer>
+	<integer>66</integer>
 	<key>Image Crop Limit</key>
 	<integer>20</integer>
 	<key>Last Chosen Tile Shapes Class</key>
