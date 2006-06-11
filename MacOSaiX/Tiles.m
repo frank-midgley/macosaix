@@ -22,17 +22,9 @@
 }
 
 
-- (void)setNeighboringTiles:(NSArray *)neighboringTiles
+- (MacOSaiXMosaic *)mosaic
 {
-	[neighborSet autorelease];
-	neighborSet = [[NSMutableSet setWithArray:neighboringTiles] retain];
-	[neighborSet removeObject:self];
-}
-
-
-- (NSArray *)neighboringTiles
-{
-	return [neighborSet allObjects];
+	return mosaic;
 }
 
 - (void)setOutline:(NSBezierPath *)inOutline
@@ -240,7 +232,6 @@
 - (void)dealloc
 {
     [outline release];
-	[neighborSet release];
     [bitmapRep release];
 	[maskRep release];
 	[uniqueImageMatch release];

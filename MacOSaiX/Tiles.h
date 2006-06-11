@@ -16,7 +16,6 @@
 @interface MacOSaiXTile : NSObject
 {
 	NSBezierPath		*outline;				// The shape of this tile
-	NSMutableSet		*neighborSet;			// A set containing tiles that are considered neighbors of this tile
 	NSBitmapImageRep	*bitmapRep,				// The portion of the original image that is in this tile
 						*maskRep;
 	MacOSaiXImageMatch	*uniqueImageMatch,
@@ -28,8 +27,7 @@
 	// designated initializer
 - (id)initWithOutline:(NSBezierPath *)outline fromMosaic:(MacOSaiXMosaic *)inMosaic;
 
-- (void)setNeighboringTiles:(NSArray *)neighboringTiles;
-- (NSArray *)neighboringTiles;
+- (MacOSaiXMosaic *)mosaic;
 
 - (void)setOutline:(NSBezierPath *)outline;
 - (NSBezierPath *)outline;
