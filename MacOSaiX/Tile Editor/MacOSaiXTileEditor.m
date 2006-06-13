@@ -139,22 +139,24 @@
 	MacOSaiXImageMatch	*currentMatch = [tile displayedImageMatch];
 	if (currentMatch)
 	{
-		NSSize				currentSize = [[MacOSaiXImageCache sharedImageCache] nativeSizeOfImageWithIdentifier:[currentMatch imageIdentifier] 
-																									  fromSource:[currentMatch imageSource]];
+		id<MacOSaiXImageSource>	currentSource = [currentMatch imageSource];
+		NSString				*currentIdentifier = [currentMatch imageIdentifier];
+		NSSize					currentSize = [[MacOSaiXImageCache sharedImageCache] nativeSizeOfImageWithIdentifier:currentIdentifier 
+																										  fromSource:currentSource];
 		
 		if (NSEqualSizes(currentSize, NSZeroSize))
 		{
 				// The image is not in the cache so request a random sized rep to get it loaded.
 			[[MacOSaiXImageCache sharedImageCache] imageRepAtSize:NSMakeSize(1.0, 1.0) 
-													forIdentifier:[currentMatch imageIdentifier] 
-													   fromSource:[currentMatch imageSource]];
-			currentSize = [[MacOSaiXImageCache sharedImageCache] nativeSizeOfImageWithIdentifier:[currentMatch imageIdentifier] 
-																					  fromSource:[currentMatch imageSource]];
+													forIdentifier:currentIdentifier 
+													   fromSource:currentSource];
+			currentSize = [[MacOSaiXImageCache sharedImageCache] nativeSizeOfImageWithIdentifier:currentIdentifier 
+																					  fromSource:currentSource];
 		}
 		
 		NSBitmapImageRep	*currentRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:currentSize 
-																				  forIdentifier:[currentMatch imageIdentifier] 
-																					 fromSource:[currentMatch imageSource]];
+																				  forIdentifier:currentIdentifier 
+																					 fromSource:currentSource];
 		NSImage				*currentImage = [[[NSImage alloc] initWithSize:currentSize] autorelease];
 		[currentImage addRepresentation:currentRep];
 		float				croppedPercentage = 0.0;
@@ -163,10 +165,9 @@
 		//							matchPercentage = (worstCaseMatch - sqrtf([currentMatch matchValue])) / worstCaseMatch * 100.0;
 		[currentMatchQualityTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", 100.0 - [currentMatch matchValue] * 100.0]];
 		[currentPercentCroppedTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", croppedPercentage]];
-		[currentImageSourceImageView setImage:[[currentMatch imageSource] image]];
-		[currentImageSourceNameField setObjectValue:[[currentMatch imageSource] descriptor]];
-		[currentImageDescriptionField setStringValue:[[currentMatch imageSource] descriptionForIdentifier:[currentMatch imageIdentifier]]];
-			
+		[currentImageSourceImageView setImage:[currentSource image]];
+		[currentImageSourceNameField setObjectValue:[currentSource descriptor]];
+		[currentImageDescriptionField setStringValue:[currentSource descriptionForIdentifier:currentIdentifier]];
 	}
 	else
 	{
