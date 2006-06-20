@@ -95,10 +95,12 @@ Riemersma metric:
 Ã	"Loading..." image in web page pop-up
 Ã	Images being lost when any number of instances allowed
 Ã	Fix spacing of buttons on warning sheet
-¥	Replace image re-use distance pop-up with slider
+Ã	Replace image re-use distance pop-up with slider
 ¥	Clean up about box
 Ã	Tooltip for tile images
 ¥	Check if mosaic state should be paused or done on load
+¥	Lock down GUI when original image not loaded
+¥	Store original image size in XML
 ¥	Add "Report Crashes" option
 Ã	Break out image source and tile editors into their own controllers
 ¥	Add more info to editor (source, description, URL, etc.)
