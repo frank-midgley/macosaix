@@ -1,0 +1,28 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {"" = id; }; 
+            CLASS = FirstResponder; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            ACTIONS = {chooseAnotherMovie = id; clearMovieList = id; setSaveFrames = id; }; 
+            CLASS = QuickTimeImageSourceController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                chooseAnotherMovieButton = NSButton; 
+                clearMovieListButton = NSButton; 
+                editorView = NSView; 
+                movieBox = NSBox; 
+                movieNameTextField = NSTextField; 
+                movieView = NSMovieView; 
+                moviesController = NSArrayController; 
+                moviesTable = NSTableView; 
+                saveFramesCheckBox = NSButton; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}
