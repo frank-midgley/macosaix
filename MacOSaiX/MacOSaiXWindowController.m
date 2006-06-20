@@ -397,20 +397,25 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (void)animateWindowResize:(NSTimer *)timer
 {
-	float	resizePhase = [[NSDate date] timeIntervalSinceDate:windowResizeStartTime] * 2.0;
-	if (resizePhase > 1.0)
-		resizePhase = 1.0;
+	float	resizePhase = 1.0;
 	
-	NSSize	newSize = NSMakeSize(windowResizeTargetSize.width - windowResizeDifference.width * (1.0 - resizePhase), 
-								 windowResizeTargetSize.height - windowResizeDifference.height * (1.0 - resizePhase));
-	NSRect	currentFrame = [[self window] frame];
-	
-	[[self window] setFrame:NSMakeRect(NSMinX(currentFrame), 
-									   NSMinY(currentFrame) + NSHeight(currentFrame) - newSize.height, 
-									   newSize.width, 
-									   newSize.height)
-					display:YES
-					animate:NO];
+	if (windowResizeStartTime)
+	{
+		resizePhase = [[NSDate date] timeIntervalSinceDate:windowResizeStartTime] * 2.0;
+		if (resizePhase > 1.0)
+			resizePhase = 1.0;
+		
+		NSSize	newSize = NSMakeSize(windowResizeTargetSize.width - windowResizeDifference.width * (1.0 - resizePhase), 
+									 windowResizeTargetSize.height - windowResizeDifference.height * (1.0 - resizePhase));
+		NSRect	currentFrame = [[self window] frame];
+		
+		[[self window] setFrame:NSMakeRect(NSMinX(currentFrame), 
+										   NSMinY(currentFrame) + NSHeight(currentFrame) - newSize.height, 
+										   newSize.width, 
+										   newSize.height)
+						display:YES
+						animate:NO];
+	}
 	
 	if (resizePhase == 1.0)
 	{
@@ -1319,6 +1324,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		
 		if ([fadeTimer isValid])
 			[fadeTimer invalidate];
+		
+		[self setMosaic:nil];
 	}
 }
 
@@ -1508,8 +1515,6 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (void)dealloc
 {
-	[self setMosaic:nil];
-	
 	[[[self window] contentView] removeTrackingRect:mosaicTrackingRectTag];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	
