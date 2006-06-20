@@ -69,7 +69,8 @@
 		if (mosaic)
 			[[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:mosaic];
 		
-		mosaic = inMosaic;
+		[mosaic autorelease];
+		mosaic = [inMosaic retain];
 		
 		if (mosaic)
 		{
@@ -209,6 +210,11 @@
 
 - (void)tileShapesDidChange:(NSNotification *)notification
 {
+	[tileRefreshLock lock];
+		[tilesToRefresh removeAllObjects];
+		[tileMatchTypesToRefresh removeAllObjects];
+	[tileRefreshLock unlock];
+	
 	[mainImageLock lock];
 		if (mainImage)
 		{
@@ -425,7 +431,7 @@
 		}
 		
 		[innerPool release];
-	} while (tileToRefresh);
+	} while ([self window] && tileToRefresh);
 	
 	[tileRefreshLock lock];
 		if ([tilesToRedraw count] > 0)
@@ -446,7 +452,7 @@
 	NSEnumerator	*tileDictEnumerator = [tilesToRedraw objectEnumerator];
 	NSDictionary	*tileDict = nil;
 	
-	while (tileDict = [tileDictEnumerator nextObject])
+	while (mosaic && (tileDict = [tileDictEnumerator nextObject]))
 	{
 		MacOSaiXTile	*tile = [tileDict objectForKey:@"Tile"];
 		NSImageRep		*imageRep = [tileDict objectForKey:@"Image Rep"];
@@ -1342,6 +1348,8 @@
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	
+//	[self tileShapesDidChange:nil];
+	
 	if ([originalFadeTimer isValid])
 		[originalFadeTimer invalidate];
 	[originalFadeTimer release];
@@ -1365,7 +1373,10 @@
 	[tilesToRefresh release];
 	[tileMatchTypesToRefresh release];
 	[previousOriginalImage release];
-	
+
+	[mosaic release];
+	mosaic = nil;
+
 	[super dealloc];
 }
 
