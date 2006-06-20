@@ -57,7 +57,7 @@
 
 - (void)makeWindowControllers
 {
-	if (![self fileName])	// TBD: is this the right way to check for this?
+	if (![self fileName])
 	{
 			// This is a new document, not one loaded from disk.
 		NSString	*defaultShapesClassString = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Chosen Tile Shapes Class"];
@@ -685,10 +685,11 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 		[self performSelectorOnMainThread:@selector(presentFailedLoadSheet:) 
 							   withObject:errorMessage 
 						    waitUntilDone:NO];
-//	else
-//		[[self mainWindowController] performSelectorOnMainThread:@selector(synchronizeGUIWithDocument) 
-//													  withObject:nil 
-//												   waitUntilDone:NO];
+	else if (![[self mosaic] originalImage])
+		[self performSelectorOnMainThread:@selector(presentOriginalIsMissingSheet) 
+							   withObject:nil 
+							waitUntilDone:NO];
+	
 	[pool release];
 }
 
@@ -879,9 +880,19 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 	{
 			// Set the original image path.
 		[document setOriginalImagePath:(NSString *)child];
-		NSImage		*originalImage = [[NSImage alloc] initWithContentsOfFile:child];
-		[mosaic setOriginalImage:originalImage];
-		[originalImage release];
+		
+		NSImage	*image = [[NSImage alloc] initWithContentsOfFile:child];
+		if (!image)
+		{
+			NSData	*imageData = [NSData dataWithContentsOfMappedFile:child];
+			image = [[NSImage alloc] initWithData:imageData];
+		}
+		
+		if (image)
+		{
+			[mosaic setOriginalImage:image];
+			[image release];
+		}
 	}
 	else if ([(id)parent conformsToProtocol:@protocol(MacOSaiXTileShapes)] && [(id)child isKindOfClass:[NSDictionary class]])
 	{
@@ -946,6 +957,8 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 			[(MacOSaiXTile *)parent setUserChosenImageMatch:match];
 		
 		[(MacOSaiXImageMatch *)child setTile:(MacOSaiXTile *)parent];
+		
+		[mosaic setWasStarted:YES];
 	}
 	
 //	NSLog(@"Parent <%@: %p> added child <%@: %p>", NSStringFromClass([parent class]), (void *)parent, NSStringFromClass([child class]), (void *)child);
@@ -1011,7 +1024,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (void)presentFailedLoadSheet:(id)errorMessage
 {
-	NSBeginAlertSheet(@"The mosaic could not be loaded.", @"Close", nil, nil, [mainWindowController window], 
+	NSBeginAlertSheet(@"The mosaic could not be opened.", @"Close", nil, nil, [mainWindowController window], 
 					  self, nil, @selector(failedLoadSheetDidDismiss:returnCode:contextInfo:), nil, errorMessage);
 }
 
@@ -1019,6 +1032,23 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 - (void)failedLoadSheetDidDismiss:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
 	[self close];
+}
+
+
+- (void)presentOriginalIsMissingSheet
+{
+	NSBeginAlertSheet(@"The mosaic's original image could not be opened.", 
+					  @"Close", @"Open", nil, [mainWindowController window], 
+					  self, nil, @selector(originalMissingSheetDidDismiss:returnCode:contextInfo:), nil, 
+					  @"You can open the project and save it in another format but you will not be able to " \
+					  @"make any changes until you switch to another original image.");
+}
+
+
+- (void)originalMissingSheetDidDismiss:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+	if (returnCode == NSAlertDefaultReturn)
+		[self close];
 }
 
 
