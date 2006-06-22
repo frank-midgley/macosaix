@@ -186,11 +186,16 @@
 	NSOpenPanel	*openPanel = [NSOpenPanel openPanel];
 	[openPanel setCanChooseFiles:YES];
 	[openPanel setCanChooseDirectories:NO];
-	[openPanel setAccessoryView:accessoryView];
 	if ([openPanel respondsToSelector:@selector(setMessage:)])
 		[openPanel setMessage:@"Choose an image to be displayed in this tile:"];
 	[openPanel setPrompt:@"Choose"];
 	[openPanel setDelegate:self];
+	
+	[openPanel setAccessoryView:accessoryView];
+	NSSize	superSize = [[accessoryView superview] frame].size;
+	[accessoryView setFrame:NSMakeRect(5.0, 5.0, superSize.width - 10.0, superSize.height - 10.0)];
+	[accessoryView setAutoresizingMask:NSViewWidthSizable];
+	
 	[openPanel beginSheetForDirectory:nil
 								 file:nil
 								types:[NSImage imageFileTypes]
