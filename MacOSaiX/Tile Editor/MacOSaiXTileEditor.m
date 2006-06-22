@@ -90,6 +90,31 @@
 }
 
 
+- (void)awakeFromNib
+{
+	newImageTitleFormat = [[chosenImageBox title] copy];
+	
+	NSImage		*browserIcon = nil;
+	CFURLRef	browserURL = nil;
+	OSStatus	status = LSGetApplicationForURL((CFURLRef)[NSURL URLWithString:@"http://www.apple.com/"], 
+												kLSRolesViewer,
+												NULL,
+												&browserURL);
+	if (status == noErr)
+	{
+		browserIcon = [[NSWorkspace sharedWorkspace] iconForFile:[(NSURL *)browserURL path]];
+		[browserIcon setSize:[openCurrentImageURLButton frame].size];
+		[openCurrentImageURLButton setImage:browserIcon];
+	}
+	else
+	{
+		[openCurrentImageURLButton removeFromSuperview];
+		openCurrentImageURLButton = nil;
+	}
+	
+}
+
+
 - (void)chooseImageForTile:(MacOSaiXTile *)inTile 
 			modalForWindow:(NSWindow *)window 
 			 modalDelegate:(id)inDelegate
@@ -141,8 +166,9 @@
 	{
 		id<MacOSaiXImageSource>	currentSource = [currentMatch imageSource];
 		NSString				*currentIdentifier = [currentMatch imageIdentifier];
-		NSSize					currentSize = [[MacOSaiXImageCache sharedImageCache] nativeSizeOfImageWithIdentifier:currentIdentifier 
-																										  fromSource:currentSource];
+		NSSize					currentSize = [[MacOSaiXImageCache sharedImageCache] 
+													nativeSizeOfImageWithIdentifier:currentIdentifier 
+																		 fromSource:currentSource];
 		
 		if (NSEqualSizes(currentSize, NSZeroSize))
 		{
@@ -167,17 +193,24 @@
 		[currentPercentCroppedTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", croppedPercentage]];
 		[currentImageSourceImageView setImage:[currentSource image]];
 		[currentImageSourceNameField setObjectValue:[currentSource descriptor]];
-		[currentImageDescriptionField setStringValue:[currentSource descriptionForIdentifier:currentIdentifier]];
+		NSString	*description = [currentSource descriptionForIdentifier:currentIdentifier];
+		[currentImageDescriptionField setStringValue:(description ? description : @"No description available")];
+		
+		[currentImageContextURL release];
+		currentImageContextURL = [[currentSource contextURLForIdentifier:currentIdentifier] retain];
+		[openCurrentImageURLButton setEnabled:(currentImageContextURL != nil)];
+		[openCurrentImageURLButton setToolTip:[currentImageContextURL absoluteString]];
 	}
 	else
 	{
 		[currentImageView setImage:nil];
 		[currentMatchQualityTextField setStringValue:@"--"];
 		[currentPercentCroppedTextField setStringValue:@"--"];
+		[openCurrentImageURLButton setEnabled:NO];
 	}
 	
 	// Set up the chosen image box.
-	[chosenImageBox setTitle:@"No Image File Selected"];
+	[chosenImageBox setTitle:[NSString stringWithFormat:newImageTitleFormat, @"No File Selected"]];
 	[chosenImageView setImage:nil];
 	[chosenMatchQualityTextField setStringValue:@"--"];
 	[chosenPercentCroppedTextField setStringValue:@"--"];
@@ -210,16 +243,14 @@
 {
 	if ([[sender URLs] count] == 0)
 	{
-		[chosenImageBox setTitle:@"No Image File Selected"];
+		[chosenImageBox setTitle:[NSString stringWithFormat:newImageTitleFormat, @"No File Selected"]];
 		[chosenImageView setImage:nil];
 		[chosenMatchQualityTextField setStringValue:@"--"];
 		[chosenPercentCroppedTextField setStringValue:@"--"];
 	}
 	else
 	{
-			// This shouldn't be necessary but updating the views right away often crashes 
-			// because of some interaction with the AppKit thread that is creating a preview 
-			// of the selected image.
+			// This shouldn't be necessary but updating the views right away often crashes because of some interaction with the AppKit thread that is creating a preview of the selected image.
 		[self performSelector:@selector(updateUserChosenViewsForImageAtPath:) withObject:[[sender filenames] objectAtIndex:0] afterDelay:0.0];
 	}
 }
@@ -227,8 +258,10 @@
 
 - (void)updateUserChosenViewsForImageAtPath:(NSString *)imagePath
 {
-	NSString			*chosenImageIdentifier = imagePath;
-	[chosenImageBox setTitle:[[NSFileManager defaultManager] displayNameAtPath:chosenImageIdentifier]];
+	NSString			*chosenImageIdentifier = imagePath, 
+						*chosenImageName = [[NSFileManager defaultManager] displayNameAtPath:chosenImageIdentifier];
+
+	[chosenImageBox setTitle:[NSString stringWithFormat:newImageTitleFormat, chosenImageName]];
 	
 	NSImage				*chosenImage = [[[NSImage alloc] initWithContentsOfFile:chosenImageIdentifier] autorelease];
 	[chosenImage setCachedSeparately:YES];
@@ -260,6 +293,12 @@
 }
 
 
+- (IBAction)openWebPageForCurrentImage:(id)sender
+{
+	[[NSWorkspace sharedWorkspace] openURL:currentImageContextURL];
+}
+
+
 - (void)chooseImagePanelDidEnd:(NSOpenPanel *)openPanel returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
 	[openPanel orderOut:self];
@@ -286,6 +325,8 @@
 - (void)dealloc
 {
 	[accessoryView release];
+	[newImageTitleFormat release];
+	[currentImageContextURL release];
 	
 	[super dealloc];
 }

@@ -29,12 +29,18 @@
 							*currentImageDescriptionField, 
 							*chosenPercentCroppedTextField, 
 							*chosenMatchQualityTextField;
+	IBOutlet NSButton		*openCurrentImageURLButton;
+	
+	NSString				*newImageTitleFormat;
 	float					chosenMatchValue;
+	NSURL					*currentImageContextURL;
 }
 
 - (void)chooseImageForTile:(MacOSaiXTile *)tile 
 			modalForWindow:(NSWindow *)window 
 			 modalDelegate:(id)delegate
 			didEndSelector:(SEL)didEndSelector;
+
+- (IBAction)openWebPageForCurrentImage:(id)sender;
 
 @end
