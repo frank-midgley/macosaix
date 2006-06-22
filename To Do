@@ -101,7 +101,7 @@ Riemersma metric:
 ¥	Check if mosaic state should be paused or done on load
 ¥	Lock down GUI when original image not loaded
 ¥	Store original image size in XML
-¥	Add "Report Crashes" option
+Ã	Add "Report Crashes" option
 Ã	Break out image source and tile editors into their own controllers
 ¥	Add more info to editor (source, description, URL, etc.)
 	Kiosk mode
