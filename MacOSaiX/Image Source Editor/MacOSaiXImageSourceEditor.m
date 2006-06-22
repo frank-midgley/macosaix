@@ -42,7 +42,8 @@
 			baseWidth = currentPanelSize.width - NSWidth([[editorBox contentView] frame]), 
 			baseHeight = currentPanelSize.height - NSHeight([[editorBox contentView] frame]);
 	[[self window] setContentSize:newPanelSize];
-	[[self window] setContentMinSize:NSMakeSize(baseWidth + [editor minimumSize].width, baseHeight + [editor minimumSize].height)];
+	[[self window] setContentMinSize:NSMakeSize(baseWidth + [editor minimumSize].width + widthDiff, 
+												baseHeight + [editor minimumSize].height + heightDiff)];
 	[[editor editorView] setFrame:[[editorBox contentView] frame]];
 	[[editor editorView] setAutoresizingMask:[[editorBox contentView] autoresizingMask]];
 	
