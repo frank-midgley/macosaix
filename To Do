@@ -122,3 +122,4 @@ Riemersma metric:
 ¥		Re-enforce 10,000 pixel limit
 ?		Initial units sensible
 ¥	Confirm changing tiles when sheet closes instead of opens
+¥	Figure out why opening a document makes it dirty
