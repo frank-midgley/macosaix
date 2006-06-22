@@ -6,6 +6,7 @@
                 resetWarnings = id; 
                 setAutoSave = id; 
                 setAutoStart = id; 
+                setReportCrashes = id; 
                 setUpdateCheck = id; 
             }; 
             CLASS = MacOSaiXPreferencesController; 
@@ -17,9 +18,15 @@
                 currentController = id; 
                 preferenceBox = NSBox; 
                 preferenceTable = NSTableView; 
+                reportCrashesCheckBox = NSButton; 
                 updateCheckBox = NSButton; 
             }; 
             SUPERCLASS = NSWindowController; 
+        }, 
+        {
+            CLASS = MacOSaiXTextFieldCell; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = NSTextFieldCell; 
         }
     ); 
     IBVersion = 1; 

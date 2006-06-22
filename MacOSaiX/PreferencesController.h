@@ -26,13 +26,15 @@
 	id<MacOSaiXPreferencesController>	currentController;
 	
 		// MacOSaiX preferences GUI
-	IBOutlet NSButton					*updateCheckBox,
+	IBOutlet NSButton					*updateCheckBox, 
+										*reportCrashesCheckBox, 
 										*autoStartCheckBox,
 										*autoSaveCheckBox;
     IBOutlet NSTextField				*autoSaveFrequencyField;
 }
 
 - (IBAction)setUpdateCheck:(id)sender;
+- (IBAction)setReportCrashes:(id)sender;
 - (IBAction)setAutoStart:(id)sender;
 - (IBAction)setAutoSave:(id)sender;
 - (IBAction)resetWarnings:(id)sender;

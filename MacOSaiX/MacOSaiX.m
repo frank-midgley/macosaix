@@ -87,7 +87,8 @@
 	
 	[self discoverPlugIns];
 	
-	[MacOSaiXCrashReporterController checkForCrash];
+	if ([defaults boolForKey:@"Check For Crash at Launch"])
+		[MacOSaiXCrashReporterController checkForCrash];
 }
 
 

@@ -35,6 +35,7 @@
 		// Populate the main prefs view from the user defaults.
     NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
 	[updateCheckBox setState:([defaults boolForKey:@"Perform Update Check at Launch"] ? NSOnState : NSOffState)];
+	[reportCrashesCheckBox setState:([defaults boolForKey:@"Check For Crash at Launch"] ? NSOnState : NSOffState)];
 	[autoStartCheckBox setState:([defaults boolForKey:@"Automatically Start Mosaics"] ? NSOnState : NSOffState)];
 	[autoSaveCheckBox setState:([defaults boolForKey:@"Automatically Save Mosaics"] ? NSOnState : NSOffState)];
     int				frequency = [defaults integerForKey:@"Autosave Frequency"];
@@ -62,6 +63,15 @@
     NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
 	
 	[defaults setBool:([updateCheckBox state] == NSOnState) forKey:@"Perform Update Check at Launch"];
+    [defaults synchronize];
+}
+
+
+- (IBAction)setReportCrashes:(id)sender;
+{
+    NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
+	
+	[defaults setBool:([reportCrashesCheckBox state] == NSOnState) forKey:@"Check For Crash at Launch"];
     [defaults synchronize];
 }
 
