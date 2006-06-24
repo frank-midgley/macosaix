@@ -403,8 +403,9 @@
 			[fileHandle writeData:[@"<MOSAIC>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 
 				// Write out the path to the original image
-			[fileHandle writeData:[[NSString stringWithFormat:@"<ORIGINAL_IMAGE PATH=\"%@\"/>\n\n", 
-												[[self originalImagePath] stringByEscapingXMLEntites]] 
+			[fileHandle writeData:[[NSString stringWithFormat:@"<ORIGINAL_IMAGE PATH=\"%@\" ASPECT_RATIO=\"%f\"/>\n\n", 
+												[[self originalImagePath] stringByEscapingXMLEntites], 
+												[[self mosaic] aspectRatio]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
 			
 				// Write out the tile shapes settings
@@ -513,10 +514,6 @@
 																		  sourceIndex,
 																		  [[uniqueMatch imageIdentifier] stringByEscapingXMLEntites],
 																		  [uniqueMatch matchValue]]];
-#ifdef DEBUG
-					else
-						NSLog(@"oops");
-#endif
 				}
 				MacOSaiXImageMatch	*bestMatch = [tile bestImageMatch];
 				if (bestMatch)
@@ -529,10 +526,6 @@
 																		  sourceIndex,
 																		  [[bestMatch imageIdentifier] stringByEscapingXMLEntites],
 																		  [bestMatch matchValue]]];
-#ifdef DEBUG
-					else
-						NSLog(@"oops");
-#endif
 				}
 				
 				[buffer appendString:@"\t</TILE>\n"];
@@ -718,7 +711,29 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 				}
 				else if ([elementType isEqualToString:@"ORIGINAL_IMAGE"])
 				{
-					newObject = [[nodeAttributes objectForKey:@"PATH"] stringByUnescapingXMLEntites];
+					NSString	*path = [[nodeAttributes objectForKey:@"PATH"] stringByUnescapingXMLEntites];
+					
+					[document setOriginalImagePath:path];
+					
+					NSImage	*image = [[NSImage alloc] initWithContentsOfFile:path];
+					if (!image)
+					{
+						NSData	*imageData = [NSData dataWithContentsOfMappedFile:path];
+						image = [[NSImage alloc] initWithData:imageData];
+					}
+					
+					if (!image)
+					{
+						NSString	*aspectRatio = [nodeAttributes objectForKey:@"ASPECT_RATIO"];
+						if (aspectRatio)
+							[mosaic setAspectRatio:[aspectRatio floatValue]];
+					}
+					
+					if (image)
+					{
+						[mosaic setOriginalImage:image];
+						[image release];
+					}
 				}
 				else if ([elementType isEqualToString:@"TILE_SHAPES_SETTINGS"])
 				{
@@ -873,28 +888,10 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	NSMutableArray		*stack = [(NSArray *)info objectAtIndex:0];
-	MacOSaiXDocument	*document = [stack objectAtIndex:0];
+//	MacOSaiXDocument	*document = [stack objectAtIndex:0];	// unused in this method
 	MacOSaiXMosaic		*mosaic = [stack objectAtIndex:1];
 
-	if (parent == mosaic && [(id)child isKindOfClass:[NSString class]])
-	{
-			// Set the original image path.
-		[document setOriginalImagePath:(NSString *)child];
-		
-		NSImage	*image = [[NSImage alloc] initWithContentsOfFile:child];
-		if (!image)
-		{
-			NSData	*imageData = [NSData dataWithContentsOfMappedFile:child];
-			image = [[NSImage alloc] initWithData:imageData];
-		}
-		
-		if (image)
-		{
-			[mosaic setOriginalImage:image];
-			[image release];
-		}
-	}
-	else if ([(id)parent conformsToProtocol:@protocol(MacOSaiXTileShapes)] && [(id)child isKindOfClass:[NSDictionary class]])
+	if ([(id)parent conformsToProtocol:@protocol(MacOSaiXTileShapes)] && [(id)child isKindOfClass:[NSDictionary class]])
 	{
 			// Pass a setting on to the tile shapes instance.
 		[(id<MacOSaiXTileShapes>)parent useSavedSetting:(NSDictionary *)child];
