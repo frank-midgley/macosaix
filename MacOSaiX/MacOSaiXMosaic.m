@@ -40,6 +40,8 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
     {
 		paused = YES;
 		
+		originalImageAspectRatio = 1.0;	// avoid any divide-by-zero errors
+		
 		imageSources = [[NSMutableArray alloc] init];
 		imageSourcesLock = [[NSLock alloc] init];
 		tilesWithoutBitmaps = [[NSMutableArray alloc] init];
@@ -114,14 +116,15 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		originalImage = [image retain];
 
 		[originalImage setCachedSeparately:YES];
-		originalImageAspectRatio = [originalImage size].width / [originalImage size].height;
+		[self setAspectRatio:[originalImage size].width / [originalImage size].height];
 
 			// Ignore whatever DPI was set for the image.  We just care about the bitmap.
 		NSImageRep	*originalRep = [[originalImage representations] objectAtIndex:0];
 		[originalRep setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
 		[originalImage setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
 		
-		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXOriginalImageDidChangeNotification object:self];
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXOriginalImageDidChangeNotification 
+															object:self];
 	}
 }
 
@@ -129,6 +132,22 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 - (NSImage *)originalImage
 {
 	return [[originalImage retain] autorelease];
+}
+
+
+- (void)setAspectRatio:(float)ratio
+{
+	originalImageAspectRatio = ratio;
+	
+	if (!originalImage)
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXOriginalImageDidChangeNotification
+															object:self];
+}
+
+
+- (float)aspectRatio
+{
+	return originalImageAspectRatio;
 }
 
 

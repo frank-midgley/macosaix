@@ -57,6 +57,9 @@
 - (void)setOriginalImage:(NSImage *)image;
 - (NSImage *)originalImage;
 
+- (void)setAspectRatio:(float)ratio;
+- (float)aspectRatio;
+
 - (void)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes creatingTiles:(BOOL)createTiles;
 - (id<MacOSaiXTileShapes>)tileShapes;
 - (NSSize)averageUnitTileSize;
