@@ -164,7 +164,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	[imageSourcesPopUpButton setIndicatorColor:[NSColor colorWithCalibratedWhite:0.2941 alpha:1.0]];
 	[imageSourcesDrawer open:self];
     
-	if (![[self document] originalImagePath])
+	if (![[self document] fileName])
 	{
 			// Default to the most recently used original or prompt to choose one
 			// if no previous original was found.
@@ -270,114 +270,118 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 			// Remember this original in the user's defaults so they can easily re-choose it for future mosaics.
 		NSString		*originalImagePath = [[self document] originalImagePath];
 		NSImage			*originalImage = [[self mosaic] originalImage];
-		NSImage			*thumbnailImage = [[[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)] autorelease], 
-						*scaledImage = [originalImage copyWithLargestDimension:32.0];
-		[thumbnailImage lockFocus];
-			if ([scaledImage size].width > [scaledImage size].height)
-				[scaledImage compositeToPoint:NSMakePoint(0.0, 16.0 - [scaledImage size].height / 2.0) 
-									operation:NSCompositeCopy];
-			else
-				[scaledImage compositeToPoint:NSMakePoint(16.0 - [scaledImage size].width / 2.0, 0.0) 
-									operation:NSCompositeCopy];
-		[thumbnailImage unlockFocus];
-		[scaledImage release];
 		
-		NSMutableArray	*originals = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] mutableCopy] autorelease];
-		if (originals)
+		if (originalImage)
 		{
-				// Remove any previous entry from the defaults for the image at this path.
-			NSEnumerator	*originalEnumerator = [originals objectEnumerator];
-			NSDictionary	*originalDict = nil;
-			while (originalDict = [originalEnumerator nextObject])
-				if ([[originalDict objectForKey:@"Path"] isEqualToString:originalImagePath])
+			NSImage			*thumbnailImage = [[[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)] autorelease], 
+							*scaledImage = [originalImage copyWithLargestDimension:32.0];
+			[thumbnailImage lockFocus];
+				if ([scaledImage size].width > [scaledImage size].height)
+					[scaledImage compositeToPoint:NSMakePoint(0.0, 16.0 - [scaledImage size].height / 2.0) 
+										operation:NSCompositeCopy];
+				else
+					[scaledImage compositeToPoint:NSMakePoint(16.0 - [scaledImage size].width / 2.0, 0.0) 
+										operation:NSCompositeCopy];
+			[thumbnailImage unlockFocus];
+			[scaledImage release];
+			
+			NSMutableArray	*originals = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] mutableCopy] autorelease];
+			if (originals)
+			{
+					// Remove any previous entry from the defaults for the image at this path.
+				NSEnumerator	*originalEnumerator = [originals objectEnumerator];
+				NSDictionary	*originalDict = nil;
+				while (originalDict = [originalEnumerator nextObject])
+					if ([[originalDict objectForKey:@"Path"] isEqualToString:originalImagePath])
+					{
+						[originals removeObject:originalDict];
+						break;
+					}
+			}
+			else
+				originals = [NSMutableArray array];
+			[originals insertObject:[NSDictionary dictionaryWithObjectsAndKeys:
+										originalImagePath, @"Path", 
+										[[originalImagePath lastPathComponent] stringByDeletingPathExtension], @"Name", 
+										[thumbnailImage TIFFRepresentation], @"Thumbnail Data",
+										nil]
+							atIndex:0];
+			[[NSUserDefaults standardUserDefaults] setObject:originals forKey:@"Recent Originals"];
+			[[NSUserDefaults standardUserDefaults] synchronize];
+			[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXRecentOriginalImagesDidChangeNotification
+																object:nil];
+			
+				// Make sure the nib is loaded.
+			[self window];
+			
+				// Set the image in the toolbar item.
+			[originalImageToolbarView setImage:originalImage];
+			
+				// Create the toolbar icons for the View Original/View Mosaic item.  Toolbar item images 
+				// must be 32x32 so we center the thumbnail in an image of the correct size.
+			[originalToolbarImage release];
+			float	scaledWidth = [originalImage size].width * 16.0 / [originalImage size].height;
+			originalToolbarImage = [[NSImage alloc] initWithSize:NSMakeSize(scaledWidth, 16.0)];
+			[originalToolbarImage lockFocus];
+				[originalImage drawInRect:NSMakeRect(0.0, 0.0, scaledWidth, 16.0) 
+								 fromRect:NSZeroRect 
+								operation:NSCompositeCopy 
+								 fraction:1.0];
+			[originalToolbarImage unlockFocus];
+				// Create a version that looks like a 4x4 mosaic.
+			[mosaicToolbarImage release];
+			mosaicToolbarImage = [originalToolbarImage copy];
+			NSSize	thumbSize = [originalToolbarImage size];
+			[mosaicToolbarImage lockFocus];
+				float	quarterWidth = thumbSize.width / 4.0,
+						quarterHeight = thumbSize.height / 4.0,
+						xStart = 0.0,
+						yStart = 0.0;
+				if (thumbSize.width > thumbSize.height)
+					yStart = (16.0 - thumbSize.height) / 2.0;
+				else
+					xStart = (scaledWidth - thumbSize.width) / 2.0;
+				
+					// Lighten the top and left edges.
+				[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
+				int	i;
+				for (i = 0; i < 4; i++)
 				{
-					[originals removeObject:originalDict];
-					break;
+					[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + 0.0, 
+																  yStart + (i + 1) * quarterHeight - 0.5)
+											  toPoint:NSMakePoint(xStart + quarterWidth * 4.0 - 0.5, 
+																  yStart + (i + 1) * quarterHeight - 0.5)];
+					[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + i * quarterWidth + 0.5, 
+																  yStart + 0.0)
+											  toPoint:NSMakePoint(xStart + i * quarterWidth + 0.5, 
+																  yStart + quarterHeight * 4.0 - 0.5)];
 				}
+				
+					// Darken the bottom and right edges.
+				[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
+				for (i = 0; i < 4; i++)
+				{
+					[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + 0.5, 
+																  yStart + i * quarterHeight + 0.5)
+											  toPoint:NSMakePoint(xStart + quarterWidth * 4.0, 
+																  yStart + i * quarterHeight + 0.5)];
+					[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + (i + 1) * quarterWidth - 0.5, 
+																  yStart + 0.0)
+											  toPoint:NSMakePoint(xStart + (i + 1) * quarterWidth - 0.5, 
+																  yStart + quarterHeight * 4.0 - 0.5)];
+				}
+			[mosaicToolbarImage unlockFocus];
+			
+				// Update the toolbar item.
+			[fadeOriginalButton setImage:originalToolbarImage];
+			[fadeMosaicButton setImage:mosaicToolbarImage];
 		}
-		else
-			originals = [NSMutableArray array];
-		[originals insertObject:[NSDictionary dictionaryWithObjectsAndKeys:
-									originalImagePath, @"Path", 
-									[[originalImagePath lastPathComponent] stringByDeletingPathExtension], @"Name", 
-									[thumbnailImage TIFFRepresentation], @"Thumbnail Data",
-									nil]
-						atIndex:0];
-		[[NSUserDefaults standardUserDefaults] setObject:originals forKey:@"Recent Originals"];
-		[[NSUserDefaults standardUserDefaults] synchronize];
-		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXRecentOriginalImagesDidChangeNotification
-															object:nil];
-		
-			// Make sure the nib is loaded.
-		[self window];
-		
-			// Set the image in the toolbar item.
-		[originalImageToolbarView setImage:originalImage];
 		
 			// Set the zoom so that all of the new image is displayed.
 		[zoomSlider setFloatValue:0.0];
 		[self setZoom:self];
 		
 		[self mosaicDidChangeState:nil];
-		
-			// Create the toolbar icons for the View Original/View Mosaic item.  Toolbar item images 
-			// must be 32x32 so we center the thumbnail in an image of the correct size.
-		[originalToolbarImage release];
-		float	scaledWidth = [originalImage size].width * 16.0 / [originalImage size].height;
-		originalToolbarImage = [[NSImage alloc] initWithSize:NSMakeSize(scaledWidth, 16.0)];
-		[originalToolbarImage lockFocus];
-			[originalImage drawInRect:NSMakeRect(0.0, 0.0, scaledWidth, 16.0) 
-							 fromRect:NSZeroRect 
-							operation:NSCompositeCopy 
-							 fraction:1.0];
-		[originalToolbarImage unlockFocus];
-			// Create a version that looks like a 4x4 mosaic.
-		[mosaicToolbarImage release];
-		mosaicToolbarImage = [originalToolbarImage copy];
-		NSSize	thumbSize = [originalToolbarImage size];
-		[mosaicToolbarImage lockFocus];
-			float	quarterWidth = thumbSize.width / 4.0,
-					quarterHeight = thumbSize.height / 4.0,
-					xStart = 0.0,
-					yStart = 0.0;
-			if (thumbSize.width > thumbSize.height)
-				yStart = (16.0 - thumbSize.height) / 2.0;
-			else
-				xStart = (scaledWidth - thumbSize.width) / 2.0;
-			
-				// Lighten the top and left edges.
-			[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
-			int	i;
-			for (i = 0; i < 4; i++)
-			{
-				[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + 0.0, 
-															  yStart + (i + 1) * quarterHeight - 0.5)
-										  toPoint:NSMakePoint(xStart + quarterWidth * 4.0 - 0.5, 
-															  yStart + (i + 1) * quarterHeight - 0.5)];
-				[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + i * quarterWidth + 0.5, 
-															  yStart + 0.0)
-										  toPoint:NSMakePoint(xStart + i * quarterWidth + 0.5, 
-															  yStart + quarterHeight * 4.0 - 0.5)];
-			}
-			
-				// Darken the bottom and right edges.
-			[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
-			for (i = 0; i < 4; i++)
-			{
-				[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + 0.5, 
-															  yStart + i * quarterHeight + 0.5)
-										  toPoint:NSMakePoint(xStart + quarterWidth * 4.0, 
-															  yStart + i * quarterHeight + 0.5)];
-				[NSBezierPath strokeLineFromPoint:NSMakePoint(xStart + (i + 1) * quarterWidth - 0.5, 
-															  yStart + 0.0)
-										  toPoint:NSMakePoint(xStart + (i + 1) * quarterWidth - 0.5, 
-															  yStart + quarterHeight * 4.0 - 0.5)];
-			}
-		[mosaicToolbarImage unlockFocus];
-		
-			// Update the toolbar item.
-		[fadeOriginalButton setImage:originalToolbarImage];
-		[fadeMosaicButton setImage:mosaicToolbarImage];
 		
 			// Resize the window to respect the original image's aspect ratio
 		NSSize		currentWindowSize = [[self window] frame].size;
@@ -1235,24 +1239,22 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (NSSize)windowWillResize:(NSWindow *)resizingWindow toSize:(NSSize)proposedFrameSize
 {
-	if (resizingWindow == [self window] && [[self mosaic] originalImage])
+	if (resizingWindow == [self window])
 	{
-		float	aspectRatio = [[[self mosaic] originalImage] size].width / [[[self mosaic] originalImage] size].height,
+		float	aspectRatio = [[self mosaic] aspectRatio],
 				windowTop = NSMaxY([resizingWindow frame]), 
 				minHeight = 200;	// TODO: get this from nib setting
-		NSSize	diff;
+		NSSize	diff = NSMakeSize([resizingWindow frame].size.width - [[resizingWindow contentView] frame].size.width, 
+								  [resizingWindow frame].size.height - [[resizingWindow contentView] frame].size.height);
 		NSRect	screenFrame = [[resizingWindow screen] frame];
 		
 		proposedFrameSize.width = MIN(MAX(proposedFrameSize.width, 132),
-									  screenFrame.size.width - [resizingWindow frame].origin.x);
-		diff.width = [resizingWindow frame].size.width - [[resizingWindow contentView] frame].size.width;
-		diff.height = [resizingWindow frame].size.height - [[resizingWindow contentView] frame].size.height;
-		proposedFrameSize.width -= diff.width;
+									  screenFrame.size.width - [resizingWindow frame].origin.x) - diff.width;
 		windowTop -= diff.height + 16 + (statusBarShowing ? [statusBarView frame].size.height : 0);
 		
-		// Calculate the height of the window based on the proposed width
-		//   and preserve the aspect ratio of the mosaic image.
-		// If the height is too big for the screen, lower the width.
+			// Calculate the height of the window based on the proposed width
+			//   and preserve the aspect ratio of the mosaic image.
+			// If the height is too big for the screen, lower the width.
 		proposedFrameSize.height = (proposedFrameSize.width - 16) / aspectRatio;
 		if (proposedFrameSize.height > windowTop || proposedFrameSize.height < minHeight)
 		{
@@ -1260,7 +1262,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 			proposedFrameSize.width = proposedFrameSize.height * aspectRatio + 16;
 		}
 		
-		// add height of scroll bar and status bar (if showing)
+			// Add height of scroll bar and status bar (if showing)
 		proposedFrameSize.height += 16 + (statusBarShowing ? [statusBarView frame].size.height : 0);
 		
 		proposedFrameSize.height += diff.height;

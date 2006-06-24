@@ -104,7 +104,8 @@
 {
 	NSImage	*originalImage = [mosaic originalImage];
 	
-	if (originalImage != previousOriginalImage)
+		// Phase out the previous image.
+	if (previousOriginalImage && originalImage != previousOriginalImage)
 	{
 		[originalFadeStartTime release];
 		originalFadeStartTime = [[NSDate alloc] init];
@@ -117,39 +118,40 @@
 															userInfo:nil 
 															 repeats:YES] retain];
 		
-			// De-queue any pending tile refreshes based on the previous original image.
+			// De-queue any pending tile refreshes for the previous original image.
 		[tilesNeedDisplayLock lock];
 			[tilesNeedingDisplay removeAllObjects];
 		[tilesNeedDisplayLock unlock];
+	}
+	
+		// Phase in the new image.
+	if (!originalImage || originalImage != previousOriginalImage)
+	{
+			// Pick a size for the main and background images.
+			// (somewhat arbitrary but large enough for decent zooming)
+		float	bitmapSize = 10.0 * 1024.0 * 1024.0;
+		mainImageSize.width = floorf(sqrtf([mosaic aspectRatio] * bitmapSize));
+		mainImageSize.height = floorf(bitmapSize / mainImageSize.width);
 		
-		if (originalImage)
-		{
-				// Pick a size for the main and background images.
-				// (somewhat arbitrary but large enough for decent zooming)
-			float	aspectRatio = [originalImage size].width / [originalImage size].height;
-			mainImageSize = (aspectRatio > 1.0 ? NSMakeSize(3200.0, 3200.0 / aspectRatio) : 
-												 NSMakeSize(3200.0 * aspectRatio, 3200.0));
+		[mainImageLock lock];
+				// Release the current main image.  A new one will be created later off the main thread.
+			[mainImage autorelease];
+			mainImage = nil;
 			
-			[mainImageLock lock];
-					// Release the current main image.  A new one will be created later off the main thread.
-				[mainImage autorelease];
-				mainImage = nil;
-				
-					// Set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined on a unit square)
-				[mainImageTransform autorelease];
-				mainImageTransform = [[NSAffineTransform alloc] init];
-				[mainImageTransform scaleXBy:mainImageSize.width yBy:mainImageSize.height];
-			[mainImageLock unlock];
-			
-				// Release the current background image.  A new one will be created later if needed off the main thread.
-			[backgroundImageLock lock];
-					[backgroundImage autorelease];
-					backgroundImage = nil;
-			[backgroundImageLock unlock];
-			
-			if (viewTileOutlines)
-				[self updateTileOutlinesImage];
-		}
+				// Set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined on a unit square)
+			[mainImageTransform autorelease];
+			mainImageTransform = [[NSAffineTransform alloc] init];
+			[mainImageTransform scaleXBy:mainImageSize.width yBy:mainImageSize.height];
+		[mainImageLock unlock];
+		
+			// Release the current background image.  A new one will be created later if needed off the main thread.
+		[backgroundImageLock lock];
+				[backgroundImage autorelease];
+				backgroundImage = nil;
+		[backgroundImageLock unlock];
+		
+		if (viewTileOutlines)
+			[self updateTileOutlinesImage];
 	}
 }
 
