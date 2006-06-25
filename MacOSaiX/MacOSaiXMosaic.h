@@ -72,16 +72,18 @@
 - (void)setImageCropLimit:(int)cropLimit;
 
 - (NSArray *)tiles;
+- (BOOL)allTilesHaveExtractedBitmaps;
 
 - (BOOL)isBusy;
-- (NSString *)status;
-- (unsigned long)countOfImagesFromSource:(id<MacOSaiXImageSource>)imageSource;
+- (NSString *)busyStatus;
+
 - (unsigned long)imagesFound;
-- (BOOL)allTilesHaveExtractedBitmaps;
 
 - (NSArray *)imageSources;
 - (void)addImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource;
+- (BOOL)imageSourcesExhausted;
+- (unsigned long)countOfImagesFromSource:(id<MacOSaiXImageSource>)imageSource;
 
 - (NSString *)diskCachePath;
 - (void)setDiskCachePath:(NSString *)path;

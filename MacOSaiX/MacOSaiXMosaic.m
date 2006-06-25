@@ -1074,30 +1074,18 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 }
 
 
-- (NSString *)status
+- (NSString *)busyStatus
 {
-	NSString	*statusKey = nil;
+	NSString	*status = nil;
 	
-	if (![self originalImage])
-		statusKey = @"You have not chosen the original image";
-	else if ([[self tiles] count] == 0)
-		statusKey = @"You have not set the tile shapes";
-	else if ([[self imageSources] count] == 0)
-		statusKey = @"You have not added any image sources";
-	else if (![self wasStarted] && ![self imageSourcesExhausted])
-		statusKey = @"Ready to begin.  Click the Start button in the toolbar.";
-	else if ([self isPaused])
-		statusKey = @"Paused";
-	else if ([tilesWithoutBitmaps count] > 0)
-		statusKey = @"Extracting tile images...";	// TODO: include the % complete
+	if ([tilesWithoutBitmaps count] > 0)
+		status = NSLocalizedString(@"Extracting tile images...", @"");	// TODO: include the % complete (localized)
 	else if (calculateImageMatchesThreadAlive)
-		statusKey = @"Matching images...";
+		status = NSLocalizedString(@"Matching images...", @"");
 	else if (enumerationThreadCount > 0)
-		statusKey = @"Looking for new images...";
-	else
-		statusKey = @"Done";
+		status = NSLocalizedString(@"Looking for new images...", @"");
 	
-	return [[NSBundle mainBundle] localizedStringForKey:statusKey value:@"" table:nil];
+	return status;
 }
 
 
