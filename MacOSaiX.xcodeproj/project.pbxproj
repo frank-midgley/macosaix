@@ -108,6 +108,9 @@
 		92319CA809A7D6AA007CA9CD /* Export3+Original.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319CA609A7D6AA007CA9CD /* Export3+Original.html */; };
 		92319CAB09A7D6C5007CA9CD /* Export3.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319CA909A7D6C5007CA9CD /* Export3.html */; };
 		923384DC072180700010BE04 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
+		9240AE720A4DABAB00759546 /* MacOSaiXProgressController.h in Headers */ = {isa = PBXBuildFile; fileRef = 9240AE700A4DABAB00759546 /* MacOSaiXProgressController.h */; };
+		9240AE730A4DABAB00759546 /* MacOSaiXProgressController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9240AE710A4DABAB00759546 /* MacOSaiXProgressController.m */; };
+		9240AE950A4DB11100759546 /* Progress.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9240AE930A4DB11100759546 /* Progress.nib */; };
 		924E805E099E8C0D006977E3 /* MacOSaiXTilesSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 924E805C099E8C0D006977E3 /* MacOSaiXTilesSetupController.m */; };
 		924E807E099E9022006977E3 /* Tiles Setup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 924E807C099E9022006977E3 /* Tiles Setup.nib */; };
 		9253016509D611EF001E27F3 /* NoOriginal.png in Resources */ = {isa = PBXBuildFile; fileRef = 9253016409D611EF001E27F3 /* NoOriginal.png */; };
@@ -453,7 +456,6 @@
 		011C7DC80A1D7D6D0023CD62 /* MacOSaiXPluginPrefix.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MacOSaiXPluginPrefix.h; path = "Standard Plugins/MacOSaiXPluginPrefix.h"; sourceTree = "<group>"; };
 		0120B21E08C7FF8600974680 /* G.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = G.tiff; path = "Standard Plugins/Google Image Source/G.tiff"; sourceTree = "<group>"; };
 		0124FA540A44A6290074777E /* iSight Image Source.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "iSight Image Source.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0124FA550A44A6290074777E /* Info copy.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = "Info copy.plist"; path = "Standard Plugins/QuickTime Image Source/Info copy.plist"; sourceTree = "<group>"; };
 		0124FA6F0A44A7050074777E /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
 		0124FA700A44A7050074777E /* iSightImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = iSightImageSource.h; sourceTree = "<group>"; };
 		0124FA710A44A7050074777E /* iSightImageSource.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = iSightImageSource.m; sourceTree = "<group>"; };
@@ -524,6 +526,9 @@
 		92319CA709A7D6AA007CA9CD /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = "English.lproj/Export3+Original.html"; sourceTree = "<group>"; };
 		92319CAA09A7D6C5007CA9CD /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export3.html; sourceTree = "<group>"; };
 		923384DB072180700010BE04 /* MacOSaiXImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageSource.h; sourceTree = "<group>"; };
+		9240AE700A4DABAB00759546 /* MacOSaiXProgressController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXProgressController.h; sourceTree = "<group>"; };
+		9240AE710A4DABAB00759546 /* MacOSaiXProgressController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXProgressController.m; sourceTree = "<group>"; };
+		9240AE940A4DB11100759546 /* Progress.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = Progress.nib; path = MacOSaiX/English.lproj/Progress.nib; sourceTree = "<group>"; };
 		924E805B099E8C0D006977E3 /* MacOSaiXTilesSetupController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXTilesSetupController.h; sourceTree = "<group>"; };
 		924E805C099E8C0D006977E3 /* MacOSaiXTilesSetupController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXTilesSetupController.m; sourceTree = "<group>"; };
 		924E807D099E9022006977E3 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Tiles Setup.nib"; sourceTree = "<group>"; };
@@ -575,7 +580,7 @@
 		9298FE7809955B9A00E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Preferences.nib; sourceTree = "<group>"; };
 		9298FE7B09955BB600E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Credits.html; sourceTree = "<group>"; };
 		9298FE7D09955BB600E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		9298FE7F09955BB600E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/Localized.strings; sourceTree = "<group>"; };
+		9298FE7F09955BB600E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/Localized.strings; sourceTree = "<group>"; };
 		9298FEF109955C5A00E7A096 /* Application Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Application Icon.icns"; path = "../Icon work/Application Icon/Application Icon.icns"; sourceTree = "<group>"; };
 		9298FEF209955C5A00E7A096 /* Document Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Document Icon.icns"; path = "../Icon work/Document Icon/Document Icon.icns"; sourceTree = "<group>"; };
 		9298FF1309955E1500E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = MacOSaiX/Export/English.lproj/Export.nib; sourceTree = "<group>"; };
@@ -951,6 +956,7 @@
 				92911DA40A23D37500F9C82A /* Image Source Editor */,
 				92DA0F740A3B63010064E69E /* Tile Editor */,
 				9298FE0A0995594700E7A096 /* Save As */,
+				9240AE6F0A4DAB4A00759546 /* Progress Sheet */,
 				0109CA3609D385A5008290BE /* Warning Controller */,
 				928824890982D05400181817 /* Full Screen Window */,
 				01AB92ED07DB797E00DB4B86 /* Cocoa Extensions */,
@@ -1007,6 +1013,16 @@
 				92F2B1EC048027FA0000011E /* QuickTime.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9240AE6F0A4DAB4A00759546 /* Progress Sheet */ = {
+			isa = PBXGroup;
+			children = (
+				9240AE700A4DABAB00759546 /* MacOSaiXProgressController.h */,
+				9240AE710A4DABAB00759546 /* MacOSaiXProgressController.m */,
+				9240AE930A4DB11100759546 /* Progress.nib */,
+			);
+			name = "Progress Sheet";
 			sourceTree = "<group>";
 		};
 		924E8058099E8BD1006977E3 /* Tiles Setup */ = {
@@ -1258,7 +1274,6 @@
 				92F2B1D6048027510000011E /* QuickTimeImageSourceController.m */,
 				928F72970661226000873AE2 /* QuickTime Image Source.nib */,
 				928F72E40661235B00873AE2 /* Info.plist */,
-				0124FA550A44A6290074777E /* Info copy.plist */,
 			);
 			name = QuickTime;
 			sourceTree = "<group>";
@@ -1330,6 +1345,7 @@
 				92911DD00A23D42100F9C82A /* MacOSaiXImageSourceEditor.h in Headers */,
 				92DA0D8F0A32243C0064E69E /* MacOSaiXPopUpButton.h in Headers */,
 				92DA0F7F0A3B63450064E69E /* MacOSaiXTileEditor.h in Headers */,
+				9240AE720A4DABAB00759546 /* MacOSaiXProgressController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1401,41 +1417,43 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		011C7D580A1D76460023CD62 /* iTunes Image Source Plug-In */ = {
+		011C7D580A1D76460023CD62 /* iTunes Image Source */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 011C7D660A1D76460023CD62 /* Build configuration list for PBXNativeTarget "iTunes Image Source Plug-In" */;
+			buildConfigurationList = 011C7D660A1D76460023CD62 /* Build configuration list for PBXNativeTarget "iTunes Image Source" */;
 			buildPhases = (
 				011C7D590A1D76460023CD62 /* Headers */,
 				011C7D5E0A1D76460023CD62 /* Resources */,
 				011C7D600A1D76460023CD62 /* Sources */,
 				011C7D630A1D76460023CD62 /* Frameworks */,
+				9240B1000A4DFD9300759546 /* ShellScript */,
 			);
 			buildRules = (
 				011C7D650A1D76460023CD62 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
-			name = "iTunes Image Source Plug-In";
+			name = "iTunes Image Source";
 			productInstallPath = "$(USER_LIBRARY_DIR)/Bundles";
 			productName = "Directory Image Source";
 			productReference = 011C7D690A1D76460023CD62 /* iTunes Image Source.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
-		0124FA430A44A6290074777E /* iSight Image Source Plug-In */ = {
+		0124FA430A44A6290074777E /* iSight Image Source */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0124FA510A44A6290074777E /* Build configuration list for PBXNativeTarget "iSight Image Source Plug-In" */;
+			buildConfigurationList = 0124FA510A44A6290074777E /* Build configuration list for PBXNativeTarget "iSight Image Source" */;
 			buildPhases = (
 				0124FA440A44A6290074777E /* Headers */,
 				0124FA480A44A6290074777E /* Resources */,
 				0124FA4A0A44A6290074777E /* Sources */,
 				0124FA4D0A44A6290074777E /* Frameworks */,
+				9240B0FA0A4DFD8300759546 /* ShellScript */,
 			);
 			buildRules = (
 				0124FA500A44A6290074777E /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
-			name = "iSight Image Source Plug-In";
+			name = "iSight Image Source";
 			productInstallPath = "$(USER_LIBRARY_DIR)/Bundles";
 			productName = "Directory Image Source";
 			productReference = 0124FA540A44A6290074777E /* iSight Image Source.plugin */;
@@ -1449,6 +1467,7 @@
 				01453D46071B6F2D00BCEC7C /* Resources */,
 				01453D47071B6F2D00BCEC7C /* Sources */,
 				01453D48071B6F2D00BCEC7C /* Frameworks */,
+				9240B0E20A4DFD2900759546 /* ShellScript */,
 			);
 			buildRules = (
 				012976430846A1FF0095AD36 /* PBXBuildRule */,
@@ -1460,41 +1479,43 @@
 			productReference = 01453D4A071B6F2D00BCEC7C /* Puzzle Tiles.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
-		01722B9409298D3E00290929 /* Flickr Image Source Plug-In */ = {
+		01722B9409298D3E00290929 /* Flickr Image Source */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 01722BA509298D3E00290929 /* Build configuration list for PBXNativeTarget "Flickr Image Source Plug-In" */;
+			buildConfigurationList = 01722BA509298D3E00290929 /* Build configuration list for PBXNativeTarget "Flickr Image Source" */;
 			buildPhases = (
 				01722B9509298D3E00290929 /* Headers */,
 				01722B9909298D3E00290929 /* Resources */,
 				01722B9F09298D3E00290929 /* Sources */,
 				01722BA209298D3E00290929 /* Frameworks */,
+				9240B0E60A4DFD4800759546 /* ShellScript */,
 			);
 			buildRules = (
 				01722BA409298D3E00290929 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
-			name = "Flickr Image Source Plug-In";
+			name = "Flickr Image Source";
 			productInstallPath = "$(USER_LIBRARY_DIR)/Bundles";
 			productName = "Directory Image Source";
 			productReference = 01722BA809298D3E00290929 /* Flickr Image Source.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
-		01CB07E5071A1F2B00710BCF /* Hexagonal Tiles Plug-in */ = {
+		01CB07E5071A1F2B00710BCF /* Hexaganol Tiles Setup */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0142D7090895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Hexagonal Tiles Plug-in" */;
+			buildConfigurationList = 0142D7090895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Hexaganol Tiles Setup" */;
 			buildPhases = (
 				01A197A4071A202500B11558 /* Headers */,
 				01CB07E2071A1F2B00710BCF /* Resources */,
 				01CB07E3071A1F2B00710BCF /* Sources */,
 				01CB07E4071A1F2B00710BCF /* Frameworks */,
+				9240B0A80A4DFAA900759546 /* ShellScript */,
 			);
 			buildRules = (
 				012976400846A1F60095AD36 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
-			name = "Hexagonal Tiles Plug-in";
+			name = "Hexaganol Tiles Setup";
 			productName = "Hexagonal Tiles Plug-in";
 			productReference = 01CB07E6071A1F2B00710BCF /* Hexagonal Tiles.plugin */;
 			productType = "com.apple.product-type.bundle";
@@ -1522,122 +1543,128 @@
 			productReference = 928489A306611CE6003B3514 /* MacOSaiX.app */;
 			productType = "com.apple.product-type.application";
 		};
-		928489B506611CE6003B3514 /* Folder Image Source Plug-In */ = {
+		928489B506611CE6003B3514 /* Directory Image Source */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0142D7130895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Folder Image Source Plug-In" */;
+			buildConfigurationList = 0142D7130895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Directory Image Source" */;
 			buildPhases = (
 				928489B706611CE6003B3514 /* Headers */,
 				928489BA06611CE6003B3514 /* Resources */,
 				928489BC06611CE6003B3514 /* Sources */,
 				928489BF06611CE6003B3514 /* Frameworks */,
+				9240B0EA0A4DFD5800759546 /* ShellScript */,
 			);
 			buildRules = (
 				012976490846A2100095AD36 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
-			name = "Folder Image Source Plug-In";
+			name = "Directory Image Source";
 			productInstallPath = "$(USER_LIBRARY_DIR)/Bundles";
 			productName = "Directory Image Source";
 			productReference = 928489C406611CE6003B3514 /* Directory Image Source.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
-		928489C506611CE6003B3514 /* Google Image Source Plug-In */ = {
+		928489C506611CE6003B3514 /* Google Image Source */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0142D71D0895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Google Image Source Plug-In" */;
+			buildConfigurationList = 0142D71D0895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Google Image Source" */;
 			buildPhases = (
 				928489C706611CE6003B3514 /* Headers */,
 				928489CA06611CE6003B3514 /* Resources */,
 				928489CC06611CE6003B3514 /* Sources */,
 				928489CF06611CE6003B3514 /* Frameworks */,
+				9240B0F20A4DFD7000759546 /* ShellScript */,
 			);
 			buildRules = (
 				0129764F0846A21D0095AD36 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
-			name = "Google Image Source Plug-In";
+			name = "Google Image Source";
 			productInstallPath = "$(USER_LIBRARY_DIR)/Bundles";
 			productName = "Directory Image Source";
 			productReference = 928489D406611CE6003B3514 /* Google Image Source.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
-		928489D506611CE6003B3514 /* Glyph Image Source Plug-In */ = {
+		928489D506611CE6003B3514 /* Glyph Image Source */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0142D7180895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Glyph Image Source Plug-In" */;
+			buildConfigurationList = 0142D7180895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Glyph Image Source" */;
 			buildPhases = (
 				928489D706611CE6003B3514 /* Headers */,
 				928489DA06611CE6003B3514 /* Resources */,
 				928489DC06611CE6003B3514 /* Sources */,
 				928489DF06611CE6003B3514 /* Frameworks */,
 				928489E206611CE6003B3514 /* Rez */,
+				9240B0EE0A4DFD6200759546 /* ShellScript */,
 			);
 			buildRules = (
 				0129764C0846A2170095AD36 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
-			name = "Glyph Image Source Plug-In";
+			name = "Glyph Image Source";
 			productInstallPath = "$(USER_LIBRARY_DIR)/Bundles";
 			productName = "Directory Image Source";
 			productReference = 928489E506611CE6003B3514 /* Glyph Image Source.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
-		928489E606611CE6003B3514 /* Rectangular Tiles Plug-In */ = {
+		928489E606611CE6003B3514 /* Rectangular Tiles Setup */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0142D70E0895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Rectangular Tiles Plug-In" */;
+			buildConfigurationList = 0142D70E0895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Rectangular Tiles Setup" */;
 			buildPhases = (
 				928489E806611CE6003B3514 /* Headers */,
 				928489EA06611CE6003B3514 /* Resources */,
 				928489EC06611CE6003B3514 /* Sources */,
 				928489EE06611CE6003B3514 /* Frameworks */,
+				9240B0E40A4DFD3900759546 /* ShellScript */,
 			);
 			buildRules = (
 				012976460846A2060095AD36 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
-			name = "Rectangular Tiles Plug-In";
+			name = "Rectangular Tiles Setup";
 			productInstallPath = "$(USER_LIBRARY_DIR)/Bundles";
 			productName = RectangularTiles.plugin;
 			productReference = 928489F306611CE6003B3514 /* Rectangular Tiles.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
-		928489F406611CE6003B3514 /* QuickTime Image Source Plug-In */ = {
+		928489F406611CE6003B3514 /* QuickTime Image Source */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0142D7270895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "QuickTime Image Source Plug-In" */;
+			buildConfigurationList = 0142D7270895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "QuickTime Image Source" */;
 			buildPhases = (
 				928489F606611CE6003B3514 /* Headers */,
 				928489F906611CE6003B3514 /* Resources */,
 				928489FB06611CE6003B3514 /* Sources */,
 				928489FE06611CE6003B3514 /* Frameworks */,
+				9240B1040A4DFD9D00759546 /* ShellScript */,
 			);
 			buildRules = (
 				012976550846A2340095AD36 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
-			name = "QuickTime Image Source Plug-In";
+			name = "QuickTime Image Source";
 			productInstallPath = "$(USER_LIBRARY_DIR)/Bundles";
 			productName = "Directory Image Source";
 			productReference = 92848A0406611CE6003B3514 /* QuickTime Image Source.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
-		92E3E15207E7BE8C00E62AB8 /* iPhoto Image Source Plug-In */ = {
+		92E3E15207E7BE8C00E62AB8 /* iPhoto Image Source */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0142D7220895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "iPhoto Image Source Plug-In" */;
+			buildConfigurationList = 0142D7220895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "iPhoto Image Source" */;
 			buildPhases = (
 				92E3E15307E7BE8C00E62AB8 /* Headers */,
 				92E3E15707E7BE8C00E62AB8 /* Resources */,
 				92E3E15A07E7BE8C00E62AB8 /* Sources */,
 				92E3E15D07E7BE8C00E62AB8 /* Frameworks */,
+				9240B0F60A4DFD7800759546 /* ShellScript */,
 			);
 			buildRules = (
 				012976520846A2280095AD36 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
-			name = "iPhoto Image Source Plug-In";
+			name = "iPhoto Image Source";
 			productInstallPath = "$(USER_LIBRARY_DIR)/Bundles";
 			productName = "Directory Image Source";
 			productReference = 92E3E15F07E7BE8C00E62AB8 /* iPhoto Image Source.plugin */;
@@ -1655,17 +1682,17 @@
 			targets = (
 				9284897106611CE5003B3514 /* MacOSaiX.app */,
 				011C7D730A1D76AE0023CD62 /* Standard Plug-Ins */,
-				01CB07E5071A1F2B00710BCF /* Hexagonal Tiles Plug-in */,
+				01CB07E5071A1F2B00710BCF /* Hexaganol Tiles Setup */,
 				01453D49071B6F2D00BCEC7C /* Puzzle Tiles Setup */,
-				928489E606611CE6003B3514 /* Rectangular Tiles Plug-In */,
-				01722B9409298D3E00290929 /* Flickr Image Source Plug-In */,
-				928489B506611CE6003B3514 /* Folder Image Source Plug-In */,
-				928489D506611CE6003B3514 /* Glyph Image Source Plug-In */,
-				928489C506611CE6003B3514 /* Google Image Source Plug-In */,
-				92E3E15207E7BE8C00E62AB8 /* iPhoto Image Source Plug-In */,
-				0124FA430A44A6290074777E /* iSight Image Source Plug-In */,
-				011C7D580A1D76460023CD62 /* iTunes Image Source Plug-In */,
-				928489F406611CE6003B3514 /* QuickTime Image Source Plug-In */,
+				928489E606611CE6003B3514 /* Rectangular Tiles Setup */,
+				01722B9409298D3E00290929 /* Flickr Image Source */,
+				928489B506611CE6003B3514 /* Directory Image Source */,
+				928489D506611CE6003B3514 /* Glyph Image Source */,
+				928489C506611CE6003B3514 /* Google Image Source */,
+				92E3E15207E7BE8C00E62AB8 /* iPhoto Image Source */,
+				0124FA430A44A6290074777E /* iSight Image Source */,
+				011C7D580A1D76460023CD62 /* iTunes Image Source */,
+				928489F406611CE6003B3514 /* QuickTime Image Source */,
 			);
 		};
 /* End PBXProject section */
@@ -1767,6 +1794,7 @@
 				92DA0D530A32193D0064E69E /* Remove.png in Resources */,
 				92DA0E700A3235190064E69E /* PathSeparator.png in Resources */,
 				92DA0F830A3B63710064E69E /* Tile Editor.nib in Resources */,
+				9240AE950A4DB11100759546 /* Progress.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1837,6 +1865,149 @@
 /* End PBXRezBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		9240B0A80A4DFAA900759546 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/$TARGET_NAME\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
+		};
+		9240B0E20A4DFD2900759546 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/$TARGET_NAME\"\n\tgenstrings -o English.lproj *.m */*.m\nfi\n";
+		};
+		9240B0E40A4DFD3900759546 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/$TARGET_NAME\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
+		};
+		9240B0E60A4DFD4800759546 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/$TARGET_NAME\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
+		};
+		9240B0EA0A4DFD5800759546 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/$TARGET_NAME\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
+		};
+		9240B0EE0A4DFD6200759546 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/$TARGET_NAME\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
+		};
+		9240B0F20A4DFD7000759546 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/$TARGET_NAME\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
+		};
+		9240B0F60A4DFD7800759546 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/$TARGET_NAME\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
+		};
+		9240B0FA0A4DFD8300759546 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/$TARGET_NAME\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
+		};
+		9240B1000A4DFD9300759546 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/$TARGET_NAME\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
+		};
+		9240B1040A4DFD9D00759546 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/$TARGET_NAME\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
+		};
 		92539F2A089C44BE003DA3C0 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1848,7 +2019,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ $CONFIGURATION = \"Release2\" ]\nthen\n\tcd build/Release\n\trm -rf MacOSaiX\n\tmkdir -p MacOSaiX\n\tcp -r MacOSaiX.app MacOSaiX\n\t\n\tosascript\t\t-e\t'tell application \"Finder\"' \\\n\t\t\t\t-e\t\t'if exists disk \"MacOSaiX\" then eject disk \"MacOSaiX\"' \\\n\t\t\t\t-e\t'end tell'\n\trm -f MacOSaiX_working.dmg\n\thdiutil create -srcfolder MacOSaiX -format UDRW -attach MacOSaiX_working.dmg\n\techo \"hdiutil create exited $?\"\n\t\n\tosascript\t\t-e 'tell application \"Finder\"' \\\n\t\t\t\t-e\t\t'activate' \\\n\t\t\t\t-e\t\t'tell container window of disk \"MacOSaiX\"' \\\n\t\t\t\t-e\t\t\t'open' \\\n\t\t\t\t-e\t\t\t'set bounds to {50, 50, 450, 350}' \\\n\t\t\t\t-e\t\t\t'set toolbar visible to false' \\\n\t\t\t\t-e\t\t\t'set toolbar visible to true' \\\n\t\t\t\t-e\t\t\t'set sidebar width to 120' \\\n\t\t\t\t-e\t\t\t'set current view to icon view' \\\n\t\t\t\t-e\t\t\t'tell its icon view options' \\\n\t\t\t\t-e\t\t\t\t'set icon size to 128' \\\n\t\t\t\t-e\t\t\t\t'set text size to 16' \\\n\t\t\t\t-e\t\t\t\t'set background color to {65535, 64352, 52722}' \\\n\t\t\t\t-e\t\t\t'end tell' \\\n\t\t\t\t-e\t\t\t'set position of item 1 of target to {132, 115}' \\\n\t\t\t\t-e\t\t'end tell' \\\n\t\t\t\t-e\t'end tell'\n\techo \"osascript exited $?\"\n\tsleep 5\n\tosascript\t-e 'tell application \"Finder\" to eject disk \"MacOSaiX\"'\n\techo \"osascript exited $?\"\n\t\n\trm -f MacOSaiX.dmg\n\thdiutil convert MacOSaiX_working.dmg -format UDZO -o MacOSaiX.dmg\n\techo \"hdiutil convert exited $?\"\n\t\n\topen MacOSaiX.dmg\nfi";
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd MacOSaiX\n\tgenstrings -o English.lproj *.m */*.m\n\n\tcd \"$SRCROOT\"\n\tfind . -name \"*.nib\" -o -name \"*.strings\" | grep -v CVS | grep -v \"~\" > Localizable.files\n\ttar cfz Localizable.tgz --files-from Localizable.files\n\t#rm Localizable.files\nfi\n\nif [ $CONFIGURATION = \"Release2\" ]\nthen\n\tcd ../build/Release\n\trm -rf MacOSaiX\n\tmkdir -p MacOSaiX\n\tcp -r MacOSaiX.app MacOSaiX\n\t\n\tosascript\t\t-e\t'tell application \"Finder\"' \\\n\t\t\t\t-e\t\t'if exists disk \"MacOSaiX\" then eject disk \"MacOSaiX\"' \\\n\t\t\t\t-e\t'end tell'\n\trm -f MacOSaiX_working.dmg\n\thdiutil create -srcfolder MacOSaiX -format UDRW -attach MacOSaiX_working.dmg\n\techo \"hdiutil create exited $?\"\n\t\n\tosascript\t\t-e 'tell application \"Finder\"' \\\n\t\t\t\t-e\t\t'activate' \\\n\t\t\t\t-e\t\t'tell container window of disk \"MacOSaiX\"' \\\n\t\t\t\t-e\t\t\t'open' \\\n\t\t\t\t-e\t\t\t'set bounds to {50, 50, 450, 350}' \\\n\t\t\t\t-e\t\t\t'set toolbar visible to false' \\\n\t\t\t\t-e\t\t\t'set toolbar visible to true' \\\n\t\t\t\t-e\t\t\t'set sidebar width to 120' \\\n\t\t\t\t-e\t\t\t'set current view to icon view' \\\n\t\t\t\t-e\t\t\t'tell its icon view options' \\\n\t\t\t\t-e\t\t\t\t'set icon size to 128' \\\n\t\t\t\t-e\t\t\t\t'set text size to 16' \\\n\t\t\t\t-e\t\t\t\t'set background color to {65535, 64352, 52722}' \\\n\t\t\t\t-e\t\t\t'end tell' \\\n\t\t\t\t-e\t\t\t'set position of item 1 of target to {132, 115}' \\\n\t\t\t\t-e\t\t'end tell' \\\n\t\t\t\t-e\t'end tell'\n\techo \"osascript exited $?\"\n\tsleep 5\n\tosascript\t-e 'tell application \"Finder\" to eject disk \"MacOSaiX\"'\n\techo \"osascript exited $?\"\n\t\n\trm -f MacOSaiX.dmg\n\thdiutil convert MacOSaiX_working.dmg -format UDZO -o MacOSaiX.dmg\n\techo \"hdiutil convert exited $?\"\n\t\n\topen MacOSaiX.dmg\nfi";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1937,6 +2108,7 @@
 				92911DD10A23D42100F9C82A /* MacOSaiXImageSourceEditor.m in Sources */,
 				92DA0D900A32243C0064E69E /* MacOSaiXPopUpButton.m in Sources */,
 				92DA0F800A3B63450064E69E /* MacOSaiXTileEditor.m in Sources */,
+				9240AE730A4DABAB00759546 /* MacOSaiXProgressController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2001,7 +2173,7 @@
 /* Begin PBXTargetDependency section */
 		011C7D770A1D76C50023CD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 01CB07E5071A1F2B00710BCF /* Hexagonal Tiles Plug-in */;
+			target = 01CB07E5071A1F2B00710BCF /* Hexaganol Tiles Setup */;
 			targetProxy = 011C7D760A1D76C50023CD62 /* PBXContainerItemProxy */;
 		};
 		011C7D790A1D76C50023CD62 /* PBXTargetDependency */ = {
@@ -2011,42 +2183,42 @@
 		};
 		011C7D7B0A1D76C50023CD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 928489E606611CE6003B3514 /* Rectangular Tiles Plug-In */;
+			target = 928489E606611CE6003B3514 /* Rectangular Tiles Setup */;
 			targetProxy = 011C7D7A0A1D76C50023CD62 /* PBXContainerItemProxy */;
 		};
 		011C7D7D0A1D76C50023CD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 928489B506611CE6003B3514 /* Folder Image Source Plug-In */;
+			target = 928489B506611CE6003B3514 /* Directory Image Source */;
 			targetProxy = 011C7D7C0A1D76C50023CD62 /* PBXContainerItemProxy */;
 		};
 		011C7D7F0A1D76C50023CD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 01722B9409298D3E00290929 /* Flickr Image Source Plug-In */;
+			target = 01722B9409298D3E00290929 /* Flickr Image Source */;
 			targetProxy = 011C7D7E0A1D76C50023CD62 /* PBXContainerItemProxy */;
 		};
 		011C7D810A1D76C50023CD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 928489D506611CE6003B3514 /* Glyph Image Source Plug-In */;
+			target = 928489D506611CE6003B3514 /* Glyph Image Source */;
 			targetProxy = 011C7D800A1D76C50023CD62 /* PBXContainerItemProxy */;
 		};
 		011C7D830A1D76C50023CD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 928489C506611CE6003B3514 /* Google Image Source Plug-In */;
+			target = 928489C506611CE6003B3514 /* Google Image Source */;
 			targetProxy = 011C7D820A1D76C50023CD62 /* PBXContainerItemProxy */;
 		};
 		011C7D850A1D76C50023CD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 92E3E15207E7BE8C00E62AB8 /* iPhoto Image Source Plug-In */;
+			target = 92E3E15207E7BE8C00E62AB8 /* iPhoto Image Source */;
 			targetProxy = 011C7D840A1D76C50023CD62 /* PBXContainerItemProxy */;
 		};
 		011C7D870A1D76C50023CD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 011C7D580A1D76460023CD62 /* iTunes Image Source Plug-In */;
+			target = 011C7D580A1D76460023CD62 /* iTunes Image Source */;
 			targetProxy = 011C7D860A1D76C50023CD62 /* PBXContainerItemProxy */;
 		};
 		011C7D890A1D76C50023CD62 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 928489F406611CE6003B3514 /* QuickTime Image Source Plug-In */;
+			target = 928489F406611CE6003B3514 /* QuickTime Image Source */;
 			targetProxy = 011C7D880A1D76C50023CD62 /* PBXContainerItemProxy */;
 		};
 		011C7D8B0A1D76D10023CD62 /* PBXTargetDependency */ = {
@@ -2184,6 +2356,15 @@
 				92319CAA09A7D6C5007CA9CD /* English */,
 			);
 			name = Export3.html;
+			sourceTree = "<group>";
+		};
+		9240AE930A4DB11100759546 /* Progress.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9240AE940A4DB11100759546 /* Progress.nib */,
+			);
+			name = Progress.nib;
+			path = ..;
 			sourceTree = "<group>";
 		};
 		924E807C099E9022006977E3 /* Tiles Setup.nib */ = {
@@ -2734,7 +2915,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		011C7D660A1D76460023CD62 /* Build configuration list for PBXNativeTarget "iTunes Image Source Plug-In" */ = {
+		011C7D660A1D76460023CD62 /* Build configuration list for PBXNativeTarget "iTunes Image Source" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				011C7D670A1D76460023CD62 /* Debug */,
@@ -2752,7 +2933,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		0124FA510A44A6290074777E /* Build configuration list for PBXNativeTarget "iSight Image Source Plug-In" */ = {
+		0124FA510A44A6290074777E /* Build configuration list for PBXNativeTarget "iSight Image Source" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0124FA520A44A6290074777E /* Debug */,
@@ -2761,7 +2942,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		0142D7090895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Hexagonal Tiles Plug-in" */ = {
+		0142D7090895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Hexaganol Tiles Setup" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0142D70A0895BF23007F1FD2 /* Debug */,
@@ -2770,7 +2951,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		0142D70E0895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Rectangular Tiles Plug-In" */ = {
+		0142D70E0895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Rectangular Tiles Setup" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0142D70F0895BF23007F1FD2 /* Debug */,
@@ -2779,7 +2960,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		0142D7130895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Folder Image Source Plug-In" */ = {
+		0142D7130895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Directory Image Source" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0142D7140895BF23007F1FD2 /* Debug */,
@@ -2788,7 +2969,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		0142D7180895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Glyph Image Source Plug-In" */ = {
+		0142D7180895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Glyph Image Source" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0142D7190895BF23007F1FD2 /* Debug */,
@@ -2797,7 +2978,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		0142D71D0895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Google Image Source Plug-In" */ = {
+		0142D71D0895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Google Image Source" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0142D71E0895BF23007F1FD2 /* Debug */,
@@ -2806,7 +2987,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		0142D7220895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "iPhoto Image Source Plug-In" */ = {
+		0142D7220895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "iPhoto Image Source" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0142D7230895BF23007F1FD2 /* Debug */,
@@ -2815,7 +2996,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		0142D7270895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "QuickTime Image Source Plug-In" */ = {
+		0142D7270895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "QuickTime Image Source" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0142D7280895BF23007F1FD2 /* Debug */,
@@ -2851,7 +3032,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		01722BA509298D3E00290929 /* Build configuration list for PBXNativeTarget "Flickr Image Source Plug-In" */ = {
+		01722BA509298D3E00290929 /* Build configuration list for PBXNativeTarget "Flickr Image Source" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				01722BA609298D3E00290929 /* Debug */,
