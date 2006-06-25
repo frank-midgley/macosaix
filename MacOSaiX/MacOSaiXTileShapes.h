@@ -28,8 +28,8 @@
 	// This image is used for the "Tiles Setup" toolbar icon (32x32).
 - (NSImage *)image;
 
-	// A human-readable NSString, NSAttributedString or NSImage that briefly describes this instance's settings.
-- (id)briefDescription;
+	// A human-readable string that briefly describes this instance's settings.
+- (NSString *)briefDescription;
 
 	// Methods for adding settings to a saved file.
 - (NSString *)settingsAsXMLElement;
