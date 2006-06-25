@@ -470,14 +470,14 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 	NSString	*descriptor = nil;
 	
 	if (queryType == matchTitlesTagsOrDescriptions)
-		descriptor = [NSString stringWithFormat:@"Images matching \"%@\"", queryString];
+		descriptor = [NSString stringWithFormat:NSLocalizedString(@"Images matching \"%@\"", @""), queryString];
 	else
 	{
 		NSMutableArray	*tags = [[queryString componentsSeparatedByString:@","] mutableCopy];
 		NSCharacterSet	*whiteSpaceSet = [NSCharacterSet whitespaceCharacterSet];
 		
 		if ([tags count] == 1)
-			descriptor = [NSString stringWithFormat:@"Images tagged with \"%@\"", 
+			descriptor = [NSString stringWithFormat:NSLocalizedString(@"Images tagged with \"%@\"", @""), 
 										[[tags objectAtIndex:0] stringByTrimmingCharactersInSet:whiteSpaceSet]];
 		else
 		{
@@ -487,10 +487,10 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 			while (tag = [tagEnumerator nextObject])
 				[tags replaceObjectAtIndex:index++ withObject:[tag stringByTrimmingCharactersInSet:whiteSpaceSet]];
 			
-			descriptor = [NSString stringWithFormat:@"Images tagged with \"%@\" %@ \"%@\"", 
+			descriptor = [NSString stringWithFormat:NSLocalizedString(@"Images tagged with \"%@\" %@ \"%@\"", @""), 
 													[[tags subarrayWithRange:NSMakeRange(0, [tags count] - 1)]
 														componentsJoinedByString:@"\", \""], 
-													(queryType == matchAllTags ? @"and" : @"or"), 
+													NSLocalizedString((queryType == matchAllTags ? @"and" : @"or"), @""), 
 													[tags lastObject]];
 		}
 		

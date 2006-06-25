@@ -114,7 +114,7 @@
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	NSString			*queryString = [currentImageSource queryString], 
-						*photoCount = @"unknown";
+						*photoCount = NSLocalizedString(@"unknown", @"");
 	
 	if ([queryString length] > 0)
 	{

@@ -80,9 +80,9 @@ Riemersma metric:
 ¥	Don't re-extract tile images when changing image reuse rules
 	Tile Editor
 ¥		Show more of the original image
-¥		Add the URL somewhere
 ¥		Fetch description and URL off the main thread
 ¥		Fix the match percentage so at least some images are <90%
+¥	Check if mosaic state should be paused or done on load
 
 
 2.0b1 To Do:
@@ -98,12 +98,15 @@ Riemersma metric:
 Ã	Replace image re-use distance pop-up with slider
 ¥	Clean up about box
 Ã	Tooltip for tile images
-¥	Check if mosaic state should be paused or done on load
 ¥	Lock down GUI when original image not loaded
-¥	Store original image size in XML
+Ã	Store original image size in XML
 Ã	Add "Report Crashes" option
-Ã	Break out image source and tile editors into their own controllers
-¥	Add more info to editor (source, description, URL, etc.)
+Ã	Break out tile editor into its own controller
+	Image source editor
+Ã		Break out into its own controller
+Ã		Add more info (source, description, URL, etc.)
+Ã	Break progress sheet out into its own controller
+Ã	Add new "Refreshing tiles" status message
 	Kiosk mode
 Ã		Cancel button not working in kiosk setup?
 ¥		Don't really quit
@@ -116,10 +119,14 @@ Riemersma metric:
 Ã		Allow fetching > 4100 images
 Ã		Figure out if "any tag" option can work (needed commas and correct XML tag)
 Ã		Can be resized too small (at least after having enlarged another source type)
+	Font source:
+¥		???
 	QuickTime source:
 ¥		Show aspect ratio
 	Exporting
 ¥		Re-enforce 10,000 pixel limit
 ?		Initial units sensible
 ¥	Confirm changing tiles when sheet closes instead of opens
-¥	Figure out why opening a document makes it dirty
+Ã	Figure out why opening a document makes it dirty
+¥	Prepare for localization
+¥	Display tiles description in tooltip on toolbar button.
