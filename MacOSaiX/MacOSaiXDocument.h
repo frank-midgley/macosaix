@@ -13,13 +13,14 @@
 #import "MacOSaiXWindowController.h"
 
 
-@class MacOSaiXWindowController;
+@class MacOSaiXWindowController, MacOSaiXProgressController;
 
 
 @interface MacOSaiXDocument : NSDocument 
 {
 	MacOSaiXMosaic				*mosaic;
 	MacOSaiXWindowController	*mainWindowController;
+	MacOSaiXProgressController	*progressController;
 	
 	NSString					*originalImagePath;
 	
@@ -31,8 +32,9 @@
 		// Saving
     NSDate						*lastSaved;
     NSTimer						*autosaveTimer;
-	BOOL						saving,
-								loading;
+	BOOL						saving, 
+								loading, 
+								loadCancelled;
 }
 
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
