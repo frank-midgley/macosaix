@@ -10,6 +10,7 @@
 
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXMosaic.h"
+#import "MacOSaiXProgressController.h"
 #import "MosaicView.h"
 
 
@@ -63,7 +64,6 @@ static NSArray	*formatExtensions = nil;
 		  mosaicView:(MosaicView *)inMosaicView 
 	  modalForWindow:(NSWindow *)window 
 	   modalDelegate:(id)inDelegate
-	progressSelector:(SEL)inProgressSelector
 	  didEndSelector:(SEL)inDidEndSelector
 {
 	if (!accessoryView)
@@ -78,7 +78,6 @@ static NSArray	*formatExtensions = nil;
 	[fadeSlider setFloatValue:[mosaicView fade]];
 	
 	delegate = inDelegate;
-	progressSelector = ([delegate respondsToSelector:inProgressSelector] ? inProgressSelector : nil);
 	didEndSelector = ([delegate respondsToSelector:inDidEndSelector] ? inDidEndSelector : nil);
 	
 		// Pause the mosaic so we don't have a moving target.
@@ -216,6 +215,8 @@ static NSArray	*formatExtensions = nil;
 
 - (void)savePanelDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
+	NSWindow	*window = [sheet parentWindow];
+	
 	[sheet orderOut:self];
 	
     if (returnCode == NSOKButton)
@@ -232,10 +233,10 @@ static NSArray	*formatExtensions = nil;
 		[[NSUserDefaults standardUserDefaults] setObject:exportDefaults forKey:@"Export Defaults"];
 		[[NSUserDefaults standardUserDefaults] synchronize];
 		
-		if (progressSelector)
-			[delegate performSelector:progressSelector 
-						   withObject:[NSNumber numberWithInt:0] 
-						   withObject:@"Exporting mosaic image..."];
+		progressController = [[MacOSaiXProgressController alloc] initWithWindow:nil];
+		[progressController setCancelTarget:self action:@selector(cancelExport:)];
+		[progressController displayPanelWithMessage:NSLocalizedString(@"Exporting mosaic image...", @"") 
+									 modalForWindow:window];
 		
 			// Spawn a thread to do the export so the GUI doesn't get tied up.
 		[NSApplication detachDrawingThread:@selector(exportMosaic:)
@@ -290,7 +291,8 @@ static NSArray	*formatExtensions = nil;
 	NS_DURING
 		[exportImage lockFocus];
 	NS_HANDLER
-		error = [NSString stringWithFormat:@"Could not draw images into the mosaic.  (%@)", [localException reason]];
+		error = [NSString stringWithFormat:NSLocalizedString(@"Could not draw images into the mosaic.  (%@)", @""), 
+										   [localException reason]];
 	NS_ENDHANDLER
 	
 	[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
@@ -499,10 +501,8 @@ static NSArray	*formatExtensions = nil;
 			NS_ENDHANDLER
 		}
 			
-		if (progressSelector)
-			[delegate performSelector:progressSelector 
-						   withObject:[NSNumber numberWithDouble:((double)tilesExported / (double)tileCount * 100.0)] 
-						   withObject:[NSString stringWithFormat:@"Exporting tile %d of %d...", tilesExported, tileCount]];
+		[progressController setMessage:@"Exporting tile %d of %d...", tilesExported, tileCount];
+		[progressController setPercentComplete:[NSNumber numberWithDouble:(100.0 * tilesExported / tileCount)]];
 		
 		tilesExported++;
 		
@@ -565,8 +565,8 @@ static NSArray	*formatExtensions = nil;
 			else
 				[bitmapData writeToFile:filename atomically:YES];
 		NS_HANDLER
-			error = [NSString stringWithFormat:@"Could not convert the mosaic to the requested format.  (%@)",
-													 [localException reason]];
+			error = [NSString stringWithFormat:NSLocalizedString(@"Could not convert the mosaic to the requested format.  (%@)", @""), 
+											   [localException reason]];
 		NS_ENDHANDLER
 	}
 	

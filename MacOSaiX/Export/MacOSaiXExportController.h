@@ -9,38 +9,39 @@
 #import <Cocoa/Cocoa.h>
 
 
-@class MacOSaiXMosaic, MosaicView;
+@class MacOSaiXMosaic, MacOSaiXProgressController, MosaicView;
 
 
 @interface MacOSaiXExportController : NSWindowController
 {
-    IBOutlet NSView			*accessoryView;
+    IBOutlet NSView				*accessoryView;
 	
-	IBOutlet MosaicView		*mosaicView;
-	IBOutlet NSPopUpButton	*backgroundPopUp;
-	IBOutlet NSSlider		*fadeSlider;
+	IBOutlet MosaicView			*mosaicView;
+	IBOutlet NSPopUpButton		*backgroundPopUp;
+	IBOutlet NSSlider			*fadeSlider;
 	
-	IBOutlet NSMatrix		*formatMatrix;
-	IBOutlet NSButton		*createWebPageButton, 
-							*includeOriginalButton;
+	IBOutlet NSMatrix			*formatMatrix;
+	IBOutlet NSButton			*createWebPageButton, 
+								*includeOriginalButton;
 	
-	IBOutlet NSTextField	*widthField, 
-							*heightField;
-	IBOutlet NSPopUpButton	*unitsPopUp, 
-							*resolutionPopUp;
+	IBOutlet NSTextField		*widthField, 
+								*heightField;
+	IBOutlet NSPopUpButton		*unitsPopUp, 
+								*resolutionPopUp;
 	
-	IBOutlet NSButton		*openWhenCompleteButton;
+	IBOutlet NSButton			*openWhenCompleteButton;
 	
-	MacOSaiXMosaic			*mosaic;
-	id						delegate;
-	SEL						progressSelector, 
-							didEndSelector;
+	MacOSaiXMosaic				*mosaic;
+	id							delegate;
+	SEL							didEndSelector;
 	
-    int						imageFormat;
-	BOOL					createWebPage, 
-							includeOriginalImage, 
-							openWhenComplete, 
-							exportCancelled;
+	MacOSaiXProgressController	*progressController;
+	
+    int							imageFormat;
+	BOOL						createWebPage, 
+								includeOriginalImage, 
+								openWhenComplete, 
+								exportCancelled;
 }
 
 - (void)exportMosaic:(MacOSaiXMosaic *)mosaic
@@ -48,7 +49,6 @@
 		  mosaicView:(MosaicView *)inMosaicView 
 	  modalForWindow:(NSWindow *)window 
 	   modalDelegate:(id)inDelegate
-	progressSelector:(SEL)inProgressSelector
 	  didEndSelector:(SEL)inDidEndSelector;
 
 - (IBAction)setBackground:(id)sender;
