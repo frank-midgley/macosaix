@@ -41,14 +41,6 @@
 	IBOutlet NSButton					*imageSourcesRemoveButton;
 	MacOSaiXImageSourceEditor			*imageSourceEditor;
 	
-		// Selected tile editor
-	
-		// Progress panel
-    IBOutlet NSPanel					*progressPanel;
-	IBOutlet NSTextField				*progressPanelLabel;
-	IBOutlet NSProgressIndicator		*progressPanelIndicator;
-	IBOutlet NSButton					*progressPanelCancelButton;
-	
 	MacOSaiXExportController			*exportController;
     NSTimer								*fadeTimer,
 										*animateTileTimer;
@@ -118,12 +110,6 @@
 
 	// Save As methods
 - (IBAction)saveMosaicAs:(id)sender;
-
-	// Progress panel methods
-- (void)displayProgressPanelWithMessage:(NSString *)message;
-- (void)setProgressPercentComplete:(NSNumber *)percentComplete;
-- (void)setProgressMessage:(NSString *)message;
-- (void)closeProgressPanel;
 
 @end
 

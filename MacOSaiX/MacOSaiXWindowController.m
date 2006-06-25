@@ -53,6 +53,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 
 @interface MacOSaiXWindowController (PrivateMethods)
+- (void)updateStatus;
 - (IBAction)setOriginalImageFromMenu:(id)sender;
 - (void)updateRecentOriginalImages;
 - (void)mosaicDidChangeState:(NSNotification *)notification;
@@ -105,6 +106,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
     [toolbar setAllowsUserCustomization:YES];
     [[self window] setToolbar:toolbar];
     
+	[self updateStatus];
+	
 		// Make sure we have the latest and greatest list of plug-ins.
 	[[NSApp delegate] discoverPlugIns];
 
@@ -123,7 +126,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 //			[tileShapesDescriptionField setAttributedStringValue:[NSAttributedString attributedStringWithAttachment:imageTA]];
 //		}
 //		else
-//			[tileShapesDescriptionField setStringValue:@"No description available"];
+//			[tileShapesDescriptionField setStringValue:NSLocalizedString(@"No description available", @"")];
 		
 			// Set up the "Image Sources" table
 		[imageSourcesTableView setDoubleAction:@selector(editImageSource:)];
@@ -158,6 +161,10 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	[[mosaicScrollView contentView] setDrawsBackground:NO];
 	[mosaicView setMosaic:[self mosaic]];
 	[mosaicView setOriginalFadeTime:0.5];
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(mosaicViewDidChangeBusyState:) 
+												 name:MacOSaiXMosaicViewDidChangeBusyStateNotification 
+											   object:mosaicView];
 	
 		// For some reason IB insists on setting the drawer width to 200.  Have to set the size in code instead.
 	[imageSourcesDrawer setContentSize:NSMakeSize(300, [imageSourcesDrawer contentSize].height)];
@@ -210,9 +217,9 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		![[self mosaic] wasStarted] || 
 		![MacOSaiXWarningController warningIsEnabled:@"Changing Original Image"] || 
 		[MacOSaiXWarningController runAlertForWarning:@"Changing Original Image" 
-												title:@"Do you wish to change the original image?" 
-											  message:@"All work in the current mosaic will be lost." 
-										 buttonTitles:[NSArray arrayWithObjects:@"Change", @"Cancel", nil]] == 0)
+												title:NSLocalizedString(@"Do you wish to change the original image?", @"") 
+											  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
+										 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Change", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
 	{
 		NSString	*originalImagePath = [sender representedObject];
 		[[self document] setOriginalImagePath:originalImagePath];
@@ -496,6 +503,41 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 #pragma mark Miscellaneous
 
 
+- (void)updateStatus
+{
+	NSString	*status = @"";
+	BOOL		busy = NO;
+	
+	if (![[self mosaic] originalImage])
+		status = NSLocalizedString(@"You have not chosen the original image", @"");
+	else if ([[[self mosaic] tiles] count] == 0)
+		status = NSLocalizedString(@"You have not set the tile shapes", @"");
+	else if ([[[self mosaic] imageSources] count] == 0)
+		status = NSLocalizedString(@"You have not added any image sources", @"");
+	else if (![[self mosaic] wasStarted] && ![[self mosaic] imageSourcesExhausted])
+		status = NSLocalizedString(@"Click the Start button in the toolbar to begin.", @"");
+	else if ([[self mosaic] isBusy])
+	{
+		status = [[self mosaic] busyStatus];
+		busy = YES;
+	}
+	else if ([mosaicView isBusy])
+	{
+		status = [mosaicView busyStatus];
+		busy = YES;
+	}
+	else if ([[self mosaic] isPaused])
+		status = NSLocalizedString(@"Paused", @"");
+	[statusField setStringValue:status];
+	
+	if (busy)
+		[statusProgressIndicator startAnimation:self];
+	else
+		[statusProgressIndicator stopAnimation:self];
+	
+}
+
+
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic
 {
 	if (inMosaic != mosaic)
@@ -543,11 +585,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	{
 			// Update the status bar.
 		[imagesFoundField setIntValue:[[self mosaic] imagesFound]];
-		[statusField setStringValue:[[self mosaic] status]];
-		if ([[self mosaic] isBusy])
-			[statusProgressIndicator startAnimation:self];
-		else
-			[statusProgressIndicator stopAnimation:self];
+		[self updateStatus];
 		
 			// Update the image sources drawer.
 		if ([imageSourcesDrawer state] != NSDrawerClosedState)
@@ -587,16 +625,33 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 }
 
 
+- (void)mosaicViewDidChangeBusyState:(NSNotification *)notification
+{
+	if (!pthread_main_np())
+		[self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
+	else
+		[self updateStatus];
+}
+
 
 - (void)synchronizeMenus
 {
-	[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:([[self mosaic] isPaused] ? @"Resume Matching" : @"Pause Matching")];
+	if ([[self mosaic] isPaused])
+		[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:NSLocalizedString(@"Resume Matching", @"")];
+	else if ([[self mosaic] wasStarted])
+		[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:NSLocalizedString(@"Pause Matching", @"")];
+	else
+		[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:NSLocalizedString(@"Start Matching", @"")];
 
 	[[viewMenu itemWithTag:0] setState:([mosaicView fade] == 0.0 ? NSOnState : NSOffState)];
 	[[viewMenu itemWithTag:1] setState:([mosaicView fade] == 1.0 ? NSOnState : NSOffState)];
 
-	[[viewMenu itemAtIndex:[viewMenu indexOfItemWithTarget:nil andAction:@selector(toggleTileOutlines:)]] setTitle:([mosaicView viewTileOutlines] ? @"Hide Tile Outlines" : @"Show Tile Outlines")];
-	[[viewMenu itemAtIndex:[viewMenu indexOfItemWithTarget:nil andAction:@selector(toggleStatusBar:)]] setTitle:(statusBarShowing ? @"Hide Status Bar" : @"Show Status Bar")];
+	[[viewMenu itemAtIndex:[viewMenu indexOfItemWithTarget:nil andAction:@selector(toggleTileOutlines:)]] 
+		setTitle:([mosaicView viewTileOutlines] ? NSLocalizedString(@"Hide Tile Outlines", @"") : 
+												  NSLocalizedString(@"Show Tile Outlines", @""))];
+	[[viewMenu itemAtIndex:[viewMenu indexOfItemWithTarget:nil andAction:@selector(toggleStatusBar:)]] 
+		setTitle:(statusBarShowing ? NSLocalizedString(@"Hide Status Bar", @"") : 
+								     NSLocalizedString(@"Show Status Bar", @""))];
 }
 
 
@@ -615,9 +670,9 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	if (![[self mosaic] wasStarted] || 
 		![MacOSaiXWarningController warningIsEnabled:@"Changing Tiles Setup"] || 
 		[MacOSaiXWarningController runAlertForWarning:@"Changing Tiles Setup" 
-												title:@"Do you wish to change the tiles setup?" 
-											  message:@"All work in the current mosaic will be lost." 
-										 buttonTitles:[NSArray arrayWithObjects:@"Change", @"Cancel", nil]] == 0)
+												title:NSLocalizedString(@"Do you wish to change the tiles setup?", @"") 
+											  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
+										 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Change", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
 	{
 		if (!tilesSetupController)
 			tilesSetupController = [[MacOSaiXTilesSetupController alloc] initWithWindow:nil];
@@ -632,10 +687,11 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (void)tileShapesDidChange:(NSNotification *)notification
 {
-	// TBD: Set toolbar icon's tooltip?  And handle non-string values like awakeFromNib does?
 	NSImage	*shapesImage = [[[self mosaic] tileShapes] image];
-	[setupTilesToolbarItem setImage:(shapesImage ? shapesImage : [NSImage imageNamed:@"Tiles Setup"])];
 	
+	[setupTilesToolbarItem setImage:(shapesImage ? shapesImage : [NSImage imageNamed:@"Tiles Setup"])];
+	[setupTilesToolbarItem setToolTip:[[[self mosaic] tileShapes] briefDescription]];
+		
 	[self mosaicDidChangeState:nil];
 }
 
@@ -702,9 +758,9 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 {
 	if (![MacOSaiXWarningController warningIsEnabled:@"Removing Image Source"] || 
 		[MacOSaiXWarningController runAlertForWarning:@"Removing Image Source" 
-												title:@"Are you sure you wish to remove the selected image source?" 
-											  message:@"Tiles that were displaying images from this source may no longer have an image." 
-										 buttonTitles:[NSArray arrayWithObjects:@"Remove", @"Cancel", nil]] == 0)
+												title:NSLocalizedString(@"Are you sure you wish to remove the selected image source?", @"") 
+											  message:NSLocalizedString(@"Tiles that were displaying images from this source may no longer have an image.", @"") 
+										 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Remove", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
 	{
 		id<MacOSaiXImageSource>	imageSource = [[[self mosaic] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]];
 		
@@ -812,11 +868,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	
 		// Update the zoom factor based on who called this method.
     if ([sender isKindOfClass:[NSMenuItem class]])
-    {
-		if ([[sender title] isEqualToString:@"Minimum"]) zoom = [zoomSlider minValue];
-		if ([[sender title] isEqualToString:@"Medium"]) zoom = ([zoomSlider maxValue] - [zoomSlider minValue]) / 2.0;
-		if ([[sender title] isEqualToString:@"Maximum"]) zoom = [zoomSlider maxValue];
-    }
+		zoom = ([zoomSlider maxValue] - [zoomSlider minValue]) * [sender tag] / 100.0;
     else
 		zoom = [zoomSlider floatValue];
     
@@ -942,9 +994,9 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 {
     [imageSourcesDrawer toggle:(id)sender];
     if ([imageSourcesDrawer state] == NSDrawerClosedState)
-		[[viewMenu itemWithTitle:@"Show Image Sources"] setTitle:@"Hide Image Sources"];
+		[[viewMenu itemWithTitle:@"Show Image Sources"] setTitle:NSLocalizedString(@"Hide Image Sources", @"")];
     else
-		[[viewMenu itemWithTitle:@"Hide Image Sources"] setTitle:@"Show Image Sources"];
+		[[viewMenu itemWithTitle:@"Hide Image Sources"] setTitle:NSLocalizedString(@"Show Image Sources", @"")];
 }
 
 
@@ -1088,30 +1140,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 						mosaicView:mosaicView 
 					modalForWindow:[self window] 
 					 modalDelegate:self 
-				  progressSelector:@selector(saveAsDidProgress:message:) 
 					didEndSelector:@selector(saveAsDidComplete:)];
-}
-
-
-- (void)saveAsDidProgress:(NSNumber *)percentComplete message:(NSString *)message
-{
-	[self performSelectorOnMainThread:@selector(updateSaveAsProgress:) 
-						   withObject:[NSArray arrayWithObjects:percentComplete, message, nil] 
-						waitUntilDone:NO];
-}
-
-
-- (void)updateSaveAsProgress:(NSArray *)parameters
-{
-	if ([[self window] attachedSheet] != progressPanel)
-	{
-		[self setProgressCancelAction:@selector(cancelSaveAs:)];
-		[self displayProgressPanelWithMessage:[parameters objectAtIndex:1]];
-	}
-	else
-		[self setProgressMessage:[parameters objectAtIndex:1]];
-	
-	[self setProgressPercentComplete:[parameters objectAtIndex:0]];
 }
 
 
@@ -1125,8 +1154,6 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		if (!exportFormat)
 			exportFormat = @"html";
 		[saveAsToolbarItem setImage:[[NSWorkspace sharedWorkspace] iconForFileType:exportFormat]];
-		
-		[self closeProgressPanel];
 		
 		if (errorString)
 			NSBeginAlertSheet(@"The mosaic could not be saved.", @"OK", nil, nil, [self window], 
@@ -1148,84 +1175,6 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:YES];	// Re-enable auto saving.
 }
 
-
-#pragma mark -
-#pragma mark Progress panel
-
-
-- (void)displayProgressPanelWithMessage:(NSString *)message
-{
-	if (pthread_main_np())
-	{
-		[progressPanelLabel setStringValue:(message ? message : @"Please wait...")];
-		[progressPanelIndicator setDoubleValue:0.0];
-		[progressPanelIndicator setIndeterminate:YES];
-		[progressPanelIndicator startAnimation:self];
-		
-		[NSApp beginSheet:progressPanel
-		   modalForWindow:[self window]
-			modalDelegate:self
-		   didEndSelector:nil
-			  contextInfo:nil];
-	}
-	else
-		[self performSelectorOnMainThread:@selector(displayProgressPanelWithMessage:) 
-							   withObject:message 
-							waitUntilDone:YES];
-}
-
-
-- (void)setProgressCancelAction:(SEL)cancelAction
-{
-	[progressPanelCancelButton setAction:cancelAction];
-	[progressPanelCancelButton setEnabled:(cancelAction != nil)];
-}
-
-
-- (void)setProgressPercentComplete:(NSNumber *)percentComplete
-{
-	if (pthread_main_np())
-	{
-		double	percent = [percentComplete doubleValue];
-		[progressPanelIndicator setIndeterminate:(percent < 0.0 || percent > 100.0)];
-		[progressPanelIndicator setDoubleValue:percent];
-	}
-	else
-		[self performSelectorOnMainThread:@selector(setProgressPercentComplete:) 
-							   withObject:percentComplete 
-							waitUntilDone:YES];
-}
-
-
-- (void)setProgressMessage:(NSString *)message
-{
-	if (pthread_main_np())
-		[progressPanelLabel setStringValue:message];
-	else
-		[self performSelectorOnMainThread:@selector(setProgressMessage:) 
-							   withObject:message 
-							waitUntilDone:YES];
-}
-
-
-- (void)closeProgressPanel
-{
-	if (pthread_main_np())
-	{
-		[NSApp endSheet:progressPanel];
-		[progressPanelIndicator stopAnimation:self];
-		[progressPanel orderOut:nil];
-		[progressPanelCancelButton setAction:nil];
-		[progressPanelCancelButton setEnabled:NO];
-	}
-	else
-		[self performSelectorOnMainThread:@selector(closeProgressPanel) 
-							   withObject:nil 
-							waitUntilDone:NO];
-}
-
-
-// window delegate methods
 
 #pragma mark -
 #pragma mark Window delegate methods
@@ -1360,37 +1309,37 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		NSImage	*shapesImage = [[[self mosaic] tileShapes] image];
 		if (shapesImage)
 			[toolbarItem setImage:shapesImage];
-		[toolbarItem setLabel:@"Tiles"];
-		[toolbarItem setPaletteLabel:@"Tiles"];
+		[toolbarItem setLabel:NSLocalizedString(@"Tiles", @"")];
+		[toolbarItem setPaletteLabel:NSLocalizedString(@"Tiles", @"")];
 		[toolbarItem setTarget:self];
 		[toolbarItem setAction:@selector(setupTiles:)];
-		[toolbarItem setToolTip:@"Change the tile shapes or image use rules"];
+		[toolbarItem setToolTip:NSLocalizedString(@"Change the tile shapes or image use rules", @"")];
 		setupTilesToolbarItem = toolbarItem;
     }
 	else if ([itemIdentifier isEqualToString:@"Full Screen"])
     {
 		[toolbarItem setImage:[NSImage imageNamed:@"FullScreen"]];
-		[toolbarItem setLabel:@"Full Screen"];
-		[toolbarItem setPaletteLabel:@"Full Screen"];
+		[toolbarItem setLabel:NSLocalizedString(@"Full Screen", @"")];
+		[toolbarItem setPaletteLabel:NSLocalizedString(@"Full Screen", @"")];
 		[toolbarItem setTarget:self];
 		[toolbarItem setAction:@selector(viewFullScreen:)];
-		[toolbarItem setToolTip:@"View the mosaic in full screen mode"];
+		[toolbarItem setToolTip:NSLocalizedString(@"View the mosaic in full screen mode", @"")];
     }
 	else if ([itemIdentifier isEqualToString:@"Save As"])
     {
 		[toolbarItem setImage:[[NSWorkspace sharedWorkspace] iconForFileType:@"jpg"]];
-		[toolbarItem setLabel:@"Save As"];
-		[toolbarItem setPaletteLabel:@"Save As"];
+		[toolbarItem setLabel:NSLocalizedString(@"Save As", @"")];
+		[toolbarItem setPaletteLabel:NSLocalizedString(@"Save As", @"")];
 		[toolbarItem setTarget:self];
 		[toolbarItem setAction:@selector(saveMosaicAs:)];
-		[toolbarItem setToolTip:@"Save the mosaic as an image or web page"];
+		[toolbarItem setToolTip:NSLocalizedString(@"Save the mosaic as an image or web page", @"")];
 		saveAsToolbarItem = toolbarItem;
     }
 	else if ([itemIdentifier isEqualToString:@"Pause"])
     {
 		[toolbarItem setImage:[NSImage imageNamed:@"Pause"]];
-		[toolbarItem setLabel:[[self mosaic] isPaused] ? @"Resume" : @"Pause"];
-		[toolbarItem setPaletteLabel:[[self mosaic] isPaused] ? @"Resume" : @"Pause"];
+		[toolbarItem setLabel:NSLocalizedString(([[self mosaic] isPaused] ? @"Resume" : @"Pause"), @"")];
+		[toolbarItem setPaletteLabel:NSLocalizedString(([[self mosaic] isPaused] ? @"Resume" : @"Pause"), @"")];
 		[toolbarItem setTarget:self];
 		[toolbarItem setAction:@selector(togglePause:)];
 		pauseToolbarItem = toolbarItem;
@@ -1398,18 +1347,18 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	else if ([itemIdentifier isEqualToString:@"Sources"])
     {
 		[toolbarItem setImage:[NSImage imageNamed:@"ImageSources"]];
-		[toolbarItem setLabel:@"Sources"];
-		[toolbarItem setPaletteLabel:@"Sources"];
+		[toolbarItem setLabel:NSLocalizedString(@"Sources", @"")];
+		[toolbarItem setPaletteLabel:NSLocalizedString(@"Sources", @"")];
 		[toolbarItem setTarget:imageSourcesDrawer];
 		[toolbarItem setAction:@selector(toggle:)];
-		[toolbarItem setToolTip:@"Show/hide the image sources drawer"];
+		[toolbarItem setToolTip:NSLocalizedString(@"Show/hide the image sources drawer", @"")];
     }
 	else if ([itemIdentifier isEqualToString:@"Fade"])
     {
 		[toolbarItem setMinSize:[fadeToolbarView frame].size];
 		[toolbarItem setMaxSize:[fadeToolbarView frame].size];
-		[toolbarItem setLabel:@"Fade"];
-		[toolbarItem setPaletteLabel:@"Fade"];
+		[toolbarItem setLabel:NSLocalizedString(@"Fade", @"")];
+		[toolbarItem setPaletteLabel:NSLocalizedString(@"Fade", @"")];
 		[toolbarItem setView:fadeToolbarView];
 // TODO:		[toolbarItem setMenuFormRepresentation:zoomToolbarMenuItem];
     }
@@ -1417,8 +1366,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
     {
 		[toolbarItem setMinSize:[zoomToolbarView frame].size];
 		[toolbarItem setMaxSize:[zoomToolbarView frame].size];
-		[toolbarItem setLabel:@"Zoom"];
-		[toolbarItem setPaletteLabel:@"Zoom"];
+		[toolbarItem setLabel:NSLocalizedString(@"Zoom", @"")];
+		[toolbarItem setPaletteLabel:NSLocalizedString(@"Zoom", @"")];
 		[toolbarItem setView:zoomToolbarView];
 		[toolbarItem setMenuFormRepresentation:zoomToolbarMenuItem];
     }
