@@ -97,4 +97,11 @@ typedef enum { clearMode = 0, blackMode, originalMode, bestMatchMode } MacOSaiXB
 
 - (NSImage *)image;
 
+- (BOOL)isBusy;
+- (NSString *)busyStatus;
+
 @end
+
+
+// Notifications
+extern NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification;

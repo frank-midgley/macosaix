@@ -17,6 +17,8 @@
 #import <pthread.h>
 
 
+NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicViewDidChangeBusyStateNotification";
+
 @interface MosaicView (PrivateMethods)
 - (void)originalImageDidChange:(NSNotification *)notification;
 - (void)tileShapesDidChange:(NSNotification *)notification;
@@ -277,6 +279,8 @@
 		if (!refreshingTiles)
 		{
 			refreshingTiles = YES;
+			[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicViewDidChangeBusyStateNotification 
+																object:self];
 			[NSApplication detachDrawingThread:@selector(fetchTileImages:) toTarget:self withObject:nil];
 		}
 	[tileRefreshLock unlock];
@@ -442,7 +446,9 @@
 //								   withObject:[NSArray arrayWithArray:tilesToRedraw] 
 //								waitUntilDone:NO];
 		refreshingTiles = NO;
-	[tileRefreshLock unlock];
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicViewDidChangeBusyStateNotification 
+															object:self];
+		[tileRefreshLock unlock];
 	
 	[pool release];
 	
@@ -521,6 +527,23 @@
 		if (!tilesNeedDisplayTimer)
 			[self performSelectorOnMainThread:@selector(startNeedsDisplayTimer) withObject:nil waitUntilDone:NO];
 	[tilesNeedDisplayLock unlock];
+}
+
+
+- (BOOL)isBusy
+{
+	return refreshingTiles;
+}
+
+
+- (NSString *)busyStatus
+{
+	NSString	*status = nil;
+	
+	if (refreshingTiles)
+		status = NSLocalizedString(@"Refreshing tiles...", @"");
+	
+	return status;
 }
 
 
@@ -1049,7 +1072,7 @@
 				tooltipHideTimer = nil;
 				
 				[tileImageView setImage:nil];
-				[tileImageTextField setStringValue:@"Fetching..."];
+				[tileImageTextField setStringValue:NSLocalizedString(@"Fetching...", @"")];
 				[tooltipWindow setAlphaValue:1.0];
 				[tooltipWindow orderFront:self];
 				
