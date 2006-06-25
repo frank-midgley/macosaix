@@ -396,9 +396,9 @@
 }
 
 
-- (id)briefDescription
+- (NSString *)briefDescription
 {
-	return [NSString stringWithFormat:@"%d by %d puzzle pieces\n%.0f%% tabbed sides\n%.0f%% curviness", 
+	return [NSString stringWithFormat:NSLocalizedString(@"%d by %d puzzle pieces\n%.0f%% tabbed sides\n%.0f%% curviness", @""), 
 									  tilesAcross, tilesDown, tabbedSidesRatio * 100.0, curviness * 100.0];
 }
 

@@ -129,7 +129,7 @@
 		else
 		{
 			if (row == 0)
-				object = @"General Preferences";
+				object = NSLocalizedString(@"General Preferences", @"");
 			else
 			{
 				Class		plugInClass = [plugInClasses objectAtIndex:row - 1];
@@ -138,7 +138,7 @@
 				object = [plugInBundle objectForInfoDictionaryKey:@"CFBundleName"];
 				
 				if ([plugInClass conformsToProtocol:@protocol(MacOSaiXTileShapes)])
-					object = [NSString stringWithFormat:@"%@ Tile Shapes", object];
+					object = [NSString stringWithFormat:NSLocalizedString(@"%@ Tile Shapes", @""), object];
 			}
 		}
 	}

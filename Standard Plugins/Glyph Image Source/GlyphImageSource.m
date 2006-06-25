@@ -66,12 +66,12 @@ static NSImage	*glyphSourceImage = nil;
 
 + (NSArray *)builtInColorListNames
 {
-	return [NSArray arrayWithObjects:@"All Colors",
-									 @"Grayscale", 
-									 @"Redscale", 
-									 @"Greenscale", 
-									 @"Bluescale", 
-									 @"Sepia Tone",
+	return [NSArray arrayWithObjects:NSLocalizedString(@"All Colors", @""), 
+									 NSLocalizedString(@"Grayscale", @""), 
+									 NSLocalizedString(@"Redscale", @""), 
+									 NSLocalizedString(@"Greenscale", @""), 
+									 NSLocalizedString(@"Bluescale", @""), 
+									 NSLocalizedString(@"Sepia Tone", @""),
 									 nil];
 }
 
@@ -203,7 +203,7 @@ static NSImage	*glyphSourceImage = nil;
 
 - (id)descriptor
 {
-    return @"Random glyphs";
+    return NSLocalizedString(@"Random glyphs", @"");
 }
 
 
@@ -225,30 +225,30 @@ static NSImage	*glyphSourceImage = nil;
 	
 	if ([colorListClass isEqualToString:@"Built-in"])
 	{
-		if ([colorListName isEqualToString:@"All Colors"])
+		if ([colorListName isEqualToString:NSLocalizedString(@"All Colors", @"")])
 		{
 			red = (random() % 256) / 256.0;
 			green = (random() % 256) / 256.0;
 			blue = (random() % 256) / 256.0;
 		}
-		else if ([colorListName isEqualToString:@"Grayscale"])
+		else if ([colorListName isEqualToString:NSLocalizedString(@"Grayscale", @"")])
 			red = green = blue = (random() % 256) / 256.0;
-		else if ([colorListName isEqualToString:@"Redscale"])
+		else if ([colorListName isEqualToString:NSLocalizedString(@"Redscale", @"")])
 		{
 			red = (random() % 256) / 256.0;
 			green = blue = (random() % (int)(red * 256.0)) / 256.0;
 		}
-		else if ([colorListName isEqualToString:@"Greenscale"])
+		else if ([colorListName isEqualToString:NSLocalizedString(@"Greenscale", @"")])
 		{
 			green = (random() % 256) / 256.0;
 			red = blue = (random() % (int)(green * 256.0)) / 256.0;
 		}
-		else if ([colorListName isEqualToString:@"Bluescale"])
+		else if ([colorListName isEqualToString:NSLocalizedString(@"Bluescale", @"")])
 		{
 			blue = (random() % 256) / 256.0;
 			red = green = (random() % (int)(blue * 256.0)) / 256.0;
 		}
-		else if ([colorListName isEqualToString:@"Sepia Tone"])
+		else if ([colorListName isEqualToString:NSLocalizedString(@"Sepia Tone", @"")])
 		{
 				// Convert from HSV space: Hue = 50 degrees, Saturation = 35%, Value = random
 			red = (random() % 256) / 256.0;

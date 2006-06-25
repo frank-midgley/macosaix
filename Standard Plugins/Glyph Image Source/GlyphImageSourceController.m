@@ -88,7 +88,7 @@
 - (void)updateSizeField
 {
 	NSSize	sourceSize = [currentImageSource glyphsSize];
-	[sizeTextField setStringValue:[NSString stringWithFormat:@"Size: %@", 
+	[sizeTextField setStringValue:[NSString stringWithFormat:NSLocalizedString(@"Size: %@", @""), 
 										[NSString stringWithAspectRatio:sourceSize.width / sourceSize.height]]];
 }
 
@@ -108,7 +108,7 @@
 			while (fontName = [fontNameEnumerator nextObject])
 				[currentImageSource addFontWithName:fontName];
 				
-			[currentImageSource addColorList:@"All Colors" ofClass:@"Built-in"];
+			[currentImageSource addColorList:NSLocalizedString(@"All Colors", @"") ofClass:@"Built-in"];
 		}
 		
 			// Start a timer to show sample images for the current settings.

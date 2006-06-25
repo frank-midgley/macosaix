@@ -220,8 +220,8 @@
 	[openPanel setCanChooseFiles:YES];
 	[openPanel setCanChooseDirectories:NO];
 	if ([openPanel respondsToSelector:@selector(setMessage:)])
-		[openPanel setMessage:@"Choose an image to be displayed in this tile:"];
-	[openPanel setPrompt:@"Choose"];
+		[openPanel setMessage:NSLocalizedString(@"Choose an image to be displayed in this tile:", @"")];
+	[openPanel setPrompt:NSLocalizedString(@"Choose", @"")];
 	[openPanel setDelegate:self];
 	
 	[openPanel setAccessoryView:accessoryView];

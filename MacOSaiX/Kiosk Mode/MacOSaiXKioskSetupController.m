@@ -119,7 +119,7 @@
 		}
 		else
 		{
-			[buttonCell setTitle:@"No Image"];
+			[buttonCell setTitle:NSLocalizedString(@"No Image", @"")];
 			[buttonCell setImage:nil];
 			[buttonCell setImagePosition:NSNoImage];
 		}
@@ -152,7 +152,8 @@
 													[[NSColor greenColor] shadowWithLevel:0.5], NSForegroundColorAttributeName, 
 													style, NSParagraphStyleAttributeName, 
 													nil];
-		message = [[[NSAttributedString alloc] initWithString:@"Sample\nMessage" attributes:attributes] autorelease];
+		message = [[[NSAttributedString alloc] initWithString:NSLocalizedString(@"Sample\nMessage", @"") 
+												   attributes:attributes] autorelease];
 	}
 	[messageView setMessage:message];
 	
@@ -245,7 +246,7 @@
 		}
 		else
 		{
-			[buttonCell setTitle:@"Not An Image"];
+			[buttonCell setTitle:NSLocalizedString(@"Not An Image", @"")];
 			[buttonCell setImage:nil];
 			[buttonCell setImagePosition:NSNoImage];
 		}

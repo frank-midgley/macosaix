@@ -491,9 +491,9 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 	{
 		[urlBase appendString:[NSString stringWithFormat:@"as_oq=%@&", escapedNSString(optionalTerms)]];
 		if ([descriptor length] > 0)
-			[descriptor appendString:@" and any of \""];
+			[descriptor appendString:NSLocalizedString(@" and any of \"", @"")];
 		else
-			[descriptor appendString:@"Any of \""];
+			[descriptor appendString:NSLocalizedString(@"Any of \"", @"")];
 		[descriptor appendString:optionalTerms];
 		[descriptor appendString:@"\""];
 	}
@@ -502,9 +502,9 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 	{
 		[urlBase appendString:[NSString stringWithFormat:@"as_eq=%@&", escapedNSString(excludedTerms)]];
 		if ([descriptor length] > 0)
-			[descriptor appendString:@" but not \""];
+			[descriptor appendString:NSLocalizedString(@" but not \"", @"")];
 		else
-			[descriptor appendString:@"Not \""];
+			[descriptor appendString:NSLocalizedString(@"Not \"", @"")];
 		[descriptor appendString:excludedTerms];
 		[descriptor appendString:@"\""];
 	}
@@ -517,23 +517,23 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 		case rgbColorSpace:
 			[urlBase appendString:@"imgc=color&"];
 			if ([descriptor length] > 0)
-				[descriptor appendString:@" color"];
+				[descriptor appendString:NSLocalizedString(@" color", @"")];
 			else
-				[descriptor appendString:@"Color"];
+				[descriptor appendString:NSLocalizedString(@"Color", @"")];
 			break;
 		case grayscaleColorSpace:
 			[urlBase appendString:@"imgc=gray&"];
 			if ([descriptor length] > 0)
-				[descriptor appendString:@" grayscale"];
+				[descriptor appendString:NSLocalizedString(@" grayscale", @"")];
 			else
-				[descriptor appendString:@"Grayscale"];
+				[descriptor appendString:NSLocalizedString(@"Grayscale", @"")];
 			break;
 		case blackAndWhiteColorSpace:
 			[urlBase appendString:@"imgc=mono&"];
 			if ([descriptor length] > 0)
-				[descriptor appendString:@" black & white"];
+				[descriptor appendString:NSLocalizedString(@" black & white", @"")];
 			else
-				[descriptor appendString:@"Black & white"];
+				[descriptor appendString:NSLocalizedString(@"Black & white", @"")];
 			break;
 	}
 	
@@ -541,13 +541,13 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 	{
 		[urlBase appendString:[NSString stringWithFormat:@"as_sitesearch=%@&", escapedNSString(siteString)]];
 		if ([descriptor length] > 0)
-			[descriptor appendString:@" images from "];
+			[descriptor appendString:NSLocalizedString(@" images from ", @"")];
 		else
-			[descriptor appendString:@"Images from "];
+			[descriptor appendString:NSLocalizedString(@"Images from ", @"")];
 		[descriptor appendString:siteString];
 	}
 	else
-		[descriptor appendString:@" images"];
+		[descriptor appendString:NSLocalizedString(@" images", @"")];
 	
 	switch (adultContentFiltering)
 	{

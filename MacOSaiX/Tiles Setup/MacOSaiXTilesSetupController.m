@@ -79,7 +79,7 @@
 	NSEnumerator	*enumerator = [[(MacOSaiX *)[NSApp delegate] tileShapesClasses] objectEnumerator];
 	Class			tileShapesClass = nil;
 	float			maxWidth = 0.0;
-	NSString		*titleFormat = @"%@ Tile Shapes";
+	NSString		*titleFormat = NSLocalizedString(@"%@ Tile Shapes", @"");
 	[plugInsPopUp removeAllItems];
 	while (tileShapesClass = [enumerator nextObject])
 	{
@@ -228,7 +228,7 @@
 	{
 		NSTextField	*errorView = [[[NSTextField alloc] initWithFrame:[[editorBox contentView] frame]] autorelease];
 		
-		[errorView setStringValue:@"Could not load the plug-in"];
+		[errorView setStringValue:NSLocalizedString(@"Could not load the plug-in", @"")];
 		[errorView setEditable:NO];
 		
 		[editorBox setContentView:errorView];
@@ -250,7 +250,7 @@
 	if (tileCount > 0)
 		[countField setIntValue:tileCount];
 	else
-		[countField setStringValue:@"Unknown"];
+		[countField setStringValue:NSLocalizedString(@"Unknown", @"")];
 	
 	[okButton setEnabled:[editor settingsAreValid]];
 }

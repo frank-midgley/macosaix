@@ -132,7 +132,7 @@ static NSImage	*iTunesImage = nil,
 	if (name)
 	{
 		[sourceDescription autorelease];
-		sourceDescription = [[NSString stringWithFormat:@"Album artwork from \"%@\"", playlistName] retain];
+		sourceDescription = [[NSString stringWithFormat:NSLocalizedString(@"Album artwork from \"%@\"", @""), playlistName] retain];
 		
 			// Indicate that the track ID's need to be retrieved.
 		[remainingTrackIDs autorelease];
@@ -156,7 +156,7 @@ static NSImage	*iTunesImage = nil,
 - (id)descriptor
 {
 	if (!sourceDescription)
-		sourceDescription = [[NSString stringWithString:@"All album artwork"] retain];
+		sourceDescription = [[NSString stringWithString:NSLocalizedString(@"All album artwork", @"")] retain];
 	
 	return [[sourceDescription retain] autorelease];
 }
@@ -239,7 +239,7 @@ static NSImage	*iTunesImage = nil,
 }
 
 
-- (NSImage *)imageForIdentifier:(id)parameter
+- (NSImage *)imageForIdentifier:(NSString *)parameter
 {
 	NSImage		*image = nil;
 	
@@ -296,7 +296,7 @@ static NSImage	*iTunesImage = nil,
 }	
 
 
-- (NSString *)descriptionForIdentifier:(id)param
+- (NSString *)descriptionForIdentifier:(NSString *)param
 {
 	NSString	*description = nil;
 	
@@ -309,7 +309,7 @@ static NSImage	*iTunesImage = nil,
 	else
 	{
 		BOOL			paramIsDict = [param isKindOfClass:[NSDictionary class]];
-		NSString		*trackID = (paramIsDict ? [param objectForKey:@"Track ID"] : param);
+		NSString		*trackID = (paramIsDict ? [(NSDictionary *)param objectForKey:@"Track ID"] : param);
 		NSString		*scriptText = [NSString stringWithFormat:
 											@"tell application \"iTunes\" to " \
 											@"get {artist, album} of (first track of first library playlist of " \
@@ -327,8 +327,8 @@ static NSImage	*iTunesImage = nil,
 			
 			if (paramIsDict)
 			{
-				[param setObject:artist forKey:@"Artist"];
-				[param setObject:album forKey:@"Album"];
+				[(NSMutableDictionary *)param setObject:artist forKey:@"Artist"];
+				[(NSMutableDictionary *)param setObject:album forKey:@"Album"];
 			}
 			else
 				description = [NSString stringWithFormat:@"%@: %@", artist, album];

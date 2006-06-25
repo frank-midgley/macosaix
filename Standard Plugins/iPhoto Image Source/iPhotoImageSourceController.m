@@ -52,7 +52,7 @@
 	[albumsPopUp removeAllItems];
 	if (!getAlbumNamesResult)
 	{
-		[albumsPopUp addItemWithTitle:@"No albums available"];
+		[albumsPopUp addItemWithTitle:NSLocalizedString(@"No albums available", @"")];
 		[albumsPopUp setEnabled:NO];
 		[[matrix cellAtRow:1 column:0] setEnabled:NO];
 	}
@@ -80,7 +80,7 @@
 	[keywordsPopUp removeAllItems];
 	if (!getKeywordNamesResult)
 	{
-		[keywordsPopUp addItemWithTitle:@"No keywords available"];
+		[keywordsPopUp addItemWithTitle:NSLocalizedString(@"No keywords available", @"")];
 		[keywordsPopUp setEnabled:NO];
 		[[matrix cellAtRow:2 column:0] setEnabled:NO];
 	}

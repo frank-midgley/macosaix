@@ -135,9 +135,9 @@
 }
 
 
-- (id)briefDescription
+- (NSString *)briefDescription
 {
-	return [NSString stringWithFormat:@"%d by %d rectangles", tilesAcross, tilesDown];
+	return [NSString stringWithFormat:NSLocalizedString(@"%d by %d rectangles", @""), tilesAcross, tilesDown];
 }
 
 

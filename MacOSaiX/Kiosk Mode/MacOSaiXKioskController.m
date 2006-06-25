@@ -170,7 +170,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 		}
 		else
 		{
-			[buttonCell setTitle:@"No Image Available"];
+			[buttonCell setTitle:NSLocalizedString(@"No Image Available", @"")];
 			[buttonCell setImage:nil];
 			[buttonCell setImagePosition:NSNoImage];
 		}

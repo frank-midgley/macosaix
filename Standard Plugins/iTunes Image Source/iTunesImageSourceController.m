@@ -52,7 +52,7 @@
 	[playlistsPopUp removeAllItems];
 	if (!getPlaylistNamesResult)
 	{
-		[playlistsPopUp addItemWithTitle:@"No playlists available"];
+		[playlistsPopUp addItemWithTitle:NSLocalizedString(@"No playlists available", @"")];
 		[playlistsPopUp setEnabled:NO];
 		[[matrix cellAtRow:1 column:0] setEnabled:NO];
 	}

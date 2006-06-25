@@ -143,7 +143,7 @@ static NSImage	*iPhotoImage = nil,
 		[self setKeywordName:nil];
 		
 		[sourceDescription autorelease];
-		sourceDescription = [[NSString stringWithFormat:@"Photos from \"%@\"", albumName] retain];
+		sourceDescription = [[NSString stringWithFormat:NSLocalizedString(@"Photos from \"%@\"", @""), albumName] retain];
 		
 			// Indicate that the photo ID's need to be retrieved.
 		[remainingPhotoIDs autorelease];
@@ -168,7 +168,7 @@ static NSImage	*iPhotoImage = nil,
 		[self setAlbumName:nil];
 		
 		[sourceDescription autorelease];
-		sourceDescription = [[NSString stringWithFormat:@"\"%@\" photos", keywordName] retain];
+		sourceDescription = [[NSString stringWithFormat:NSLocalizedString(@"\"%@\" photos", @""), keywordName] retain];
 		
 			// Indicate that the photo ID's need to be retrieved.
 		[remainingPhotoIDs autorelease];
@@ -192,7 +192,7 @@ static NSImage	*iPhotoImage = nil,
 - (id)descriptor
 {
 	if (!sourceDescription)
-		sourceDescription = [[NSString stringWithString:@"All photos"] retain];
+		sourceDescription = [[NSString stringWithString:NSLocalizedString(@"All photos", @"")] retain];
 	
 	return [[sourceDescription retain] autorelease];
 }

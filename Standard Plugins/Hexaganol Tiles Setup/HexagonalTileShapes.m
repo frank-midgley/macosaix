@@ -140,9 +140,9 @@
 }
 
 
-- (id)briefDescription
+- (NSString *)briefDescription
 {
-	return [NSString stringWithFormat:@"%d by %d hexagons", tilesAcross, tilesDown];
+	return [NSString stringWithFormat:NSLocalizedString(@"%d by %d hexagons", @""), tilesAcross, tilesDown];
 }
 
 

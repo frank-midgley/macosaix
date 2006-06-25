@@ -64,7 +64,7 @@
 - (void)textDidChange:(NSNotification *)notification
 {
 	if ([[textView string] length] == 0)
-		[textView setString:@"Sample Message"];
+		[textView setString:NSLocalizedString(@"Sample Message", @"")];
 	
 	[textView setFrameSize:NSMakeSize(256.0, 256.0)];
 	[textView sizeToFit];
