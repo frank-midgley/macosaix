@@ -46,6 +46,20 @@
 @end
 
 
+@protocol MacOSaiXTileShapesDeprecated <MacOSaiXTileShapes>
+- (void)useSavedSetting:(NSDictionary *)settingDict;
+- (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict;
+- (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict;
+@end
+
+
+@protocol MacOSaiXImageSourceDeprecated <MacOSaiXImageSource>
+- (void)useSavedSetting:(NSDictionary *)settingDict;
+- (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict;
+- (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict;
+@end
+
+
 @implementation MacOSaiXDocument
 
 - (id)init
@@ -439,15 +453,9 @@
 			
 				// Write out the tile shapes settings
 			NSString		*className = NSStringFromClass([[[self mosaic] tileShapes] class]);
-			NSMutableString	*tileShapesXML = [NSMutableString stringWithString:
-															[[[[self mosaic] tileShapes] settingsAsXMLElement] stringByTrimmingCharactersInSet:
-																[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
-			[tileShapesXML replaceOccurrencesOfString:@"\n" withString:@"\n\t" options:0 range:NSMakeRange(0, [tileShapesXML length])];
-			[tileShapesXML insertString:@"\t" atIndex:0];
-			[tileShapesXML appendString:@"\n"];
-			[fileHandle writeData:[[NSString stringWithFormat:@"<TILE_SHAPES_SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[tileShapesXML dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[@"</TILE_SHAPES_SETTINGS>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
+			[fileHandle writeData:[[NSString stringWithFormat:@"<TILE_SHAPES_SETTINGS CLASS=\"%@\"/>\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
+			if (![[[self mosaic] tileShapes] saveSettingsToFileAtPath:[savePath stringByAppendingPathComponent:@"Tile Shapes Settings"]])
+				[NSException raise:@"" format:@"Could not save tile shapes settings"];
 			
 			[fileHandle writeData:[@"<IMAGE_USAGE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 			[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\"/>\n", [[self mosaic] imageUseCount], [[self mosaic] imageReuseDistance]] dataUsingEncoding:NSUTF8StringEncoding]];
@@ -467,22 +475,13 @@
 																	  index, className, [[self mosaic] countOfImagesFromSource:imageSource]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
 				else
-					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\" CACHE_NAME=\"%@\">\n", 
+					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\" CACHE_NAME=\"%@\" />\n", 
 																	  index, className, [[self mosaic] countOfImagesFromSource:imageSource],
 																	  [[self mosaic] diskCacheSubPathForImageSource:imageSource]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
-				
-					// Output the settings for this image source.
-					// TODO: need to tag this element with the source's namespace
-				NSMutableString			*imageSourceXML = [NSMutableString stringWithString:
-															[[imageSource settingsAsXMLElement] stringByTrimmingCharactersInSet:
-																[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
-				[imageSourceXML replaceOccurrencesOfString:@"\n" withString:@"\n\t\t" options:0 range:NSMakeRange(0, [imageSourceXML length])];
-				[imageSourceXML insertString:@"\t\t" atIndex:0];
-				[imageSourceXML appendString:@"\n"];
-				[fileHandle writeData:[imageSourceXML dataUsingEncoding:NSUTF8StringEncoding]];
-				
-				[fileHandle writeData:[@"\t</IMAGE_SOURCE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				NSString	*settingsFileName = [NSString stringWithFormat:@"Image Source %d", index];
+				if (![imageSource saveSettingsToFileAtPath:[savePath stringByAppendingPathComponent:settingsFileName]])
+					[NSException raise:@"" format:@"Could not save the settings for image source %d", index];
 			}
 			[fileHandle writeData:[@"</IMAGE_SOURCES>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 			
@@ -632,7 +631,9 @@
 	loading = YES;
 	loadCancelled = NO;
 	
-	[NSThread detachNewThreadSelector:@selector(loadXMLFile:) toTarget:self withObject:fileName];
+	[NSThread detachNewThreadSelector:@selector(loadXMLFile:) 
+							 toTarget:self 
+						   withObject:[fileName stringByAppendingPathComponent:@"Mosaic.xml"]];
 
 	return YES;
 }
@@ -654,7 +655,7 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 	
 	[[self mosaic] setDiskCachePath:fileName];
 	
-	NSData	*xmlData = [NSData dataWithContentsOfFile:[fileName stringByAppendingPathComponent:@"Mosaic.xml"]];
+	NSData	*xmlData = [NSData dataWithContentsOfFile:fileName];
 	
 	if (xmlData)
 	{
@@ -794,6 +795,11 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						NSString	*className = [nodeAttributes objectForKey:@"CLASS"];
 						
 						newObject = [[NSClassFromString(className) alloc] init];
+						
+						NSString	*settingsPath = [[document fileName] stringByAppendingPathComponent:@"Tile Shapes Settings"];
+						if ([[NSFileManager defaultManager] fileExistsAtPath:settingsPath] && 
+							![newObject loadSettingsFromFileAtPath:settingsPath])
+							CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, CFSTR("The tile shapes settings could not be loaded."));
 					}
 					else if ([elementType isEqualToString:@"IMAGE_USAGE"])
 					{
@@ -823,7 +829,8 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					}
 					else if ([elementType isEqualToString:@"IMAGE_SOURCE"])
 					{
-						NSString	*className = [nodeAttributes objectForKey:@"CLASS"],
+						NSString	*sourceID = [nodeAttributes objectForKey:@"ID"], 
+									*className = [nodeAttributes objectForKey:@"CLASS"], 
 									*imageCount = [nodeAttributes objectForKey:@"IMAGE_COUNT"], 
 									*cacheName = [nodeAttributes objectForKey:@"CACHE_NAME"];
 						
@@ -832,6 +839,13 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						[mosaic setImageCount:[imageCount intValue] forImageSource:newObject];
 						if (cacheName)
 							[mosaic setDiskCacheSubPath:cacheName forImageSource:newObject];
+						
+						NSString	*settingsPath = [[document fileName] stringByAppendingPathComponent:
+							[NSString stringWithFormat:@"Image Source %@", sourceID]];
+						if ([[NSFileManager defaultManager] fileExistsAtPath:settingsPath] && 
+							![newObject loadSettingsFromFileAtPath:settingsPath])
+							CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, 
+											 (CFStringRef)[NSString stringWithFormat:@"The settings for image source %@ could not be loaded.", sourceID]);
 					}
 					else if ([elementType isEqualToString:@"TILES"])
 					{
@@ -946,15 +960,15 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 //	MacOSaiXDocument	*document = [stack objectAtIndex:0];	// unused in this method
 	MacOSaiXMosaic		*mosaic = [stack objectAtIndex:1];
 
-	if ([(id)parent conformsToProtocol:@protocol(MacOSaiXTileShapes)] && [(id)child isKindOfClass:[NSDictionary class]])
+	if ([(id)parent conformsToProtocol:@protocol(MacOSaiXTileShapesDeprecated)] && [(id)child isKindOfClass:[NSDictionary class]])
 	{
 			// Pass a setting on to the tile shapes instance.
-		[(id<MacOSaiXTileShapes>)parent useSavedSetting:(NSDictionary *)child];
+		[(id<MacOSaiXTileShapesDeprecated>)parent useSavedSetting:(NSDictionary *)child];
 	}
-	else if ([(id)parent conformsToProtocol:@protocol(MacOSaiXImageSource)] && [(id)child isKindOfClass:[NSDictionary class]])
+	else if ([(id)parent conformsToProtocol:@protocol(MacOSaiXImageSourceDeprecated)] && [(id)child isKindOfClass:[NSDictionary class]])
 	{
 			// Pass a setting on to one of the image sources.
-		[(id<MacOSaiXImageSource>)parent useSavedSetting:(NSDictionary *)child];
+		[(id<MacOSaiXImageSourceDeprecated>)parent useSavedSetting:(NSDictionary *)child];
 	}
 	else if ([(id)parent isKindOfClass:[NSDictionary class]] && [(id)child isKindOfClass:[NSDictionary class]])
 	{
@@ -962,7 +976,8 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 		NSEnumerator	*stackEnumerator = [stack reverseObjectEnumerator];
 		id				stackObject = nil;
 		while (stackObject = [stackEnumerator nextObject])
-			if ([stackObject conformsToProtocol:@protocol(MacOSaiXTileShapes)] || [stackObject conformsToProtocol:@protocol(MacOSaiXImageSource)])
+			if ([stackObject conformsToProtocol:@protocol(MacOSaiXTileShapesDeprecated)] || 
+				[stackObject conformsToProtocol:@protocol(MacOSaiXImageSourceDeprecated)])
 			{
 				[stackObject addSavedChildSetting:(NSDictionary *)child toParent:(NSDictionary *)parent];
 				break;
