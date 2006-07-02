@@ -108,6 +108,8 @@
 		92319CA809A7D6AA007CA9CD /* Export3+Original.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319CA609A7D6AA007CA9CD /* Export3+Original.html */; };
 		92319CAB09A7D6C5007CA9CD /* Export3.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319CA909A7D6C5007CA9CD /* Export3.html */; };
 		923384DC072180700010BE04 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
+		9236C6560A571FCE00C07601 /* QuickTimeImageSourceMovie.h in Headers */ = {isa = PBXBuildFile; fileRef = 9236C6540A571FCD00C07601 /* QuickTimeImageSourceMovie.h */; };
+		9236C6570A571FCE00C07601 /* QuickTimeImageSourceMovie.m in Sources */ = {isa = PBXBuildFile; fileRef = 9236C6550A571FCE00C07601 /* QuickTimeImageSourceMovie.m */; };
 		9240AE720A4DABAB00759546 /* MacOSaiXProgressController.h in Headers */ = {isa = PBXBuildFile; fileRef = 9240AE700A4DABAB00759546 /* MacOSaiXProgressController.h */; };
 		9240AE730A4DABAB00759546 /* MacOSaiXProgressController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9240AE710A4DABAB00759546 /* MacOSaiXProgressController.m */; };
 		9240AE950A4DB11100759546 /* Progress.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9240AE930A4DB11100759546 /* Progress.nib */; };
@@ -526,6 +528,8 @@
 		92319CA709A7D6AA007CA9CD /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = "English.lproj/Export3+Original.html"; sourceTree = "<group>"; };
 		92319CAA09A7D6C5007CA9CD /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export3.html; sourceTree = "<group>"; };
 		923384DB072180700010BE04 /* MacOSaiXImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageSource.h; sourceTree = "<group>"; };
+		9236C6540A571FCD00C07601 /* QuickTimeImageSourceMovie.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTimeImageSourceMovie.h; path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSourceMovie.h"; sourceTree = "<group>"; };
+		9236C6550A571FCE00C07601 /* QuickTimeImageSourceMovie.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = QuickTimeImageSourceMovie.m; path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSourceMovie.m"; sourceTree = "<group>"; };
 		9240AE700A4DABAB00759546 /* MacOSaiXProgressController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXProgressController.h; sourceTree = "<group>"; };
 		9240AE710A4DABAB00759546 /* MacOSaiXProgressController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXProgressController.m; sourceTree = "<group>"; };
 		9240AE940A4DB11100759546 /* Progress.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = Progress.nib; path = MacOSaiX/English.lproj/Progress.nib; sourceTree = "<group>"; };
@@ -1274,6 +1278,8 @@
 				92F2B1D6048027510000011E /* QuickTimeImageSourceController.m */,
 				928F72970661226000873AE2 /* QuickTime Image Source.nib */,
 				928F72E40661235B00873AE2 /* Info.plist */,
+				9236C6540A571FCD00C07601 /* QuickTimeImageSourceMovie.h */,
+				9236C6550A571FCE00C07601 /* QuickTimeImageSourceMovie.m */,
 			);
 			name = QuickTime;
 			sourceTree = "<group>";
@@ -1400,6 +1406,7 @@
 				928489F706611CE6003B3514 /* QuickTimeImageSource.h in Headers */,
 				928489F806611CE6003B3514 /* QuickTimeImageSourceController.h in Headers */,
 				928654D7072AD54200EFC32A /* MacOSaiXImageSource.h in Headers */,
+				9236C6560A571FCE00C07601 /* QuickTimeImageSourceMovie.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2156,6 +2163,7 @@
 			files = (
 				928489FC06611CE6003B3514 /* QuickTimeImageSource.m in Sources */,
 				928489FD06611CE6003B3514 /* QuickTimeImageSourceController.m in Sources */,
+				9236C6570A571FCE00C07601 /* QuickTimeImageSourceMovie.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
