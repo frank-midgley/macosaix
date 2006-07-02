@@ -6,8 +6,6 @@
 //  Copyright (c) 2003-2004 Frank M. Midgley. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
-#import "MacOSaiXImageSource.h"
 #import "QuickTimeImageSource.h"
 
 
@@ -17,19 +15,15 @@
 	
 	IBOutlet NSArrayController	*moviesController;
 	IBOutlet NSTableView		*moviesTable;
-	IBOutlet NSButton			*chooseAnotherMovieButton, 
-								*clearMovieListButton, 
+	IBOutlet NSButton			*clearMovieListButton, 
 								*saveFramesCheckBox;
 	
-	IBOutlet NSBox				*movieBox;
 	IBOutlet NSMovieView		*movieView;
-	IBOutlet NSTextField		*movieNameTextField;
 	
 	QuickTimeImageSource		*currentImageSource;
 }
 
 - (IBAction)chooseAnotherMovie:(id)sender;
-- (IBAction)clearMovieList:(id)sender;
 - (IBAction)setSaveFrames:(id)sender;
 
 @end

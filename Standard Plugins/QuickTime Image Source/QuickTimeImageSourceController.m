@@ -8,82 +8,27 @@
 
 #import "QuickTimeImageSourceController.h"
 #import "QuickTimeImageSource.h"
+#import "QuickTimeImageSourceMovie.h"
 
 
 @implementation QuickTimeImageSourceController
-
-
-- (NSDictionary *)dictionaryForMovieAtPath:(NSString *)moviePath
-{
-	if (!moviePath)
-		return nil;
-	
-	NSMutableDictionary	*movieDict = nil;
-
-		// Check if we already have a dictionary for this movie.
-	NSEnumerator		*movieDictEnumerator = [[moviesController arrangedObjects] objectEnumerator];
-	while (movieDict = [movieDictEnumerator nextObject])
-		if ([[movieDict valueForKey:@"path"] isEqualToString:moviePath])
-			break;
-	
-	if (!movieDict)
-	{
-			// Create a new dictionary if the file at moviePath contains a movie.
-		NSMovie				*movie = [[NSMovie alloc] initWithURL:[NSURL fileURLWithPath:moviePath] byReference:YES];
-		
-		if (movie)
-		{
-			Movie				qtMovie = [movie QTMovie];
-			
-			movieDict = [NSMutableDictionary dictionaryWithObject:movie forKey:@"movie"];
-			[movieDict setObject:moviePath forKey:@"path"];
-			[movieDict setObject:[[moviePath lastPathComponent] stringByDeletingPathExtension] forKey:@"title"];
-			
-				// Get the movie's aspect ratio.
-			Rect				movieBounds;
-			GetMovieBox(qtMovie, &movieBounds);
-			float				aspectRatio = (float)(movieBounds.right - movieBounds.left) / 
-											  (float)(movieBounds.bottom - movieBounds.top);
-			[movieDict setObject:[NSNumber numberWithFloat:aspectRatio] forKey:@"aspectRatio"];
-			
-				// Get the length of the movie in seconds.
-			[movieDict setObject:[NSNumber numberWithLong:GetMovieDuration(qtMovie) / GetMovieTimeScale(qtMovie)] 
-						  forKey:@"seconds"];
-			
-				// Get the poster frame or the generic QuickTime icon if the poster is not available.
-			PicHandle	picHandle = GetMoviePosterPict(qtMovie);
-			OSErr       err = GetMoviesError();
-			if (err != noErr || !picHandle)
-				[movieDict setObject:[QuickTimeImageSource image] forKey:@"posterFrame"];
-			else
-			{
-				NSImage			*posterFrame = [[NSImage alloc] initWithData:[NSData dataWithBytes:*picHandle 
-																							length:GetHandleSize((Handle)picHandle)]];
-				[movieDict setObject:posterFrame forKey:@"posterFrame"];
-				[posterFrame release];
-				
-				KillPicture(picHandle);
-			}
-			
-			[movie release];
-		}
-	}
-	
-	return movieDict;
-}
 
 
 - (void)saveSettings
 {
 	NSMutableDictionary	*settings = [[[NSUserDefaults standardUserDefaults] objectForKey:@"QuickTime Image Source"] mutableCopy];
 	
-		// Remember the current movie paths.
-	NSMutableArray		*moviePaths = [NSMutableArray array];
-	NSEnumerator		*movieDictEnumerator = [[moviesController arrangedObjects] objectEnumerator];
-	NSDictionary		*movieDict = nil;
-	while (movieDict = [movieDictEnumerator nextObject])
-		[moviePaths addObject:[movieDict objectForKey:@"path"]];
-	[settings setObject:moviePaths forKey:@"Movie Paths"];
+		// Remember the current movie paths and poster frames.
+	NSMutableArray				*movieDicts = [NSMutableArray array];
+	NSEnumerator				*movieEnumerator = [[moviesController arrangedObjects] objectEnumerator];
+	QuickTimeImageSourceMovie	*movie = nil;
+	while (movie = [movieEnumerator nextObject])
+		[movieDicts addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+									[movie path], @"Path", 
+									[movie title], @"Title", 
+									[movie posterFrame], @"Poster Frame", 
+									nil]];
+	[settings setObject:movieDicts forKey:@"Movies"];
 	
 	if (currentImageSource)
 		[settings setObject:[NSNumber numberWithBool:![currentImageSource canRefetchImages]] 
@@ -105,7 +50,7 @@
 		NSSize	maxSize = NSMakeSize(NSWidth([[movieView superview] frame]) - 3.0 - 3.0, 
 									 NSHeight([[movieView superview] frame]) - 3.0 - 36.0 - 16.0);
 		
-		float	aspectRatio = [[[[moviesController selectedObjects] lastObject] objectForKey:@"aspectRatio"] floatValue];
+		float	aspectRatio = [(QuickTimeImageSourceMovie *)[[moviesController selectedObjects] lastObject] aspectRatio];
 		
 		if (maxSize.width > maxSize.height * aspectRatio)
 		{
@@ -131,13 +76,30 @@
 
 - (void)awakeFromNib
 {
-	NSDictionary	*settings = [[NSUserDefaults standardUserDefaults] objectForKey:@"QuickTime Image Source"];
-	NSArray			*moviePaths = [settings objectForKey:@"Movie Paths"];
+	NSSortDescriptor	*sortDescriptor  = [[[NSSortDescriptor alloc] initWithKey:@"title" ascending:YES] autorelease];
+	[moviesController setSortDescriptors:[NSArray arrayWithObject:sortDescriptor]];
 	
-	if (!moviePaths)
+	NSMutableArray	*movies = [NSMutableArray array];
+	NSDictionary	*settings = [[NSUserDefaults standardUserDefaults] objectForKey:@"QuickTime Image Source"];
+	NSMutableArray	*movieDicts = [settings objectForKey:@"Movies"];
+	
+	if (movieDicts)
 	{
+		NSEnumerator	*movieDictEnumerator = [movieDicts objectEnumerator];
+		NSDictionary	*movieDict = nil;
+		while (movieDict = [movieDictEnumerator nextObject])
+		{
+			QuickTimeImageSourceMovie	*movie = [QuickTimeImageSourceMovie movieWithPath:[movieDict objectForKey:@"Path"]];
+			[movie setPosterFrame:[movieDict objectForKey:@"Path"]];
+			[movie setTitle:[movieDict objectForKey:@"Title"]];
+			[movies addObject:movie];
+		}
+	}
+	else
+	{
+		movieDicts = [NSMutableArray array];
+		
 			// Use the contents of ~/Movies by default.
-		NSMutableArray	*defaultMoviePaths = [NSMutableArray array];
 		FSRef	moviesRef;
 		if (FSFindFolder(kUserDomain, kMovieDocumentsFolderType, false, &moviesRef) == noErr)
 		{
@@ -156,28 +118,13 @@
 					
 					if ([workspace isFilePackageAtPath:moviePath] ||
 						([fileManager fileExistsAtPath:moviePath isDirectory:&isDirectory] && !isDirectory))
-						[defaultMoviePaths addObject:moviePath];
+						[movies addObject:[QuickTimeImageSourceMovie movieWithPath:moviePath]];
 				}
 			}
 		}
-		
-		moviePaths = defaultMoviePaths;
 	}
 	
-		// Populate the list of valid movies from the paths.
-	NSMutableArray	*movies = [NSMutableArray array];
-	NSEnumerator	*moviePathEnumerator = [moviePaths objectEnumerator];
-	NSString		*moviePath = nil;
-	while (moviePath = [moviePathEnumerator nextObject])
-	{
-		NSDictionary	*movieDict = [self dictionaryForMovieAtPath:moviePath];
-		if (movieDict)
-			[movies addObject:movieDict];
-	}
-	
-	NSSortDescriptor	*sortDescriptor  = [[[NSSortDescriptor alloc] initWithKey:@"title" ascending:YES] autorelease];
-	[moviesController setSortDescriptors:[NSArray arrayWithObject:sortDescriptor]];
-	[moviesController setContent:movies];
+	[moviesController setContent:movieDicts];
 	
 	[self saveSettings];	// must be done after setting the content of the controller
 }
@@ -194,7 +141,7 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(500.0, 200.0);
+	return NSMakeSize(504.0, 286.0);
 }
 
 
@@ -215,18 +162,31 @@
 	[currentImageSource release];
 	currentImageSource = [imageSource retain];
 	
-	NSDictionary	*movieDict = [self dictionaryForMovieAtPath:[(QuickTimeImageSource *)imageSource path]];
-	if (movieDict)
+	NSString					*imageSourcePath = [(QuickTimeImageSource *)imageSource path];
+	QuickTimeImageSourceMovie	*movie = nil;
+	
+	if (!imageSourcePath)
 	{
-		if (![[moviesController arrangedObjects] containsObject:movieDict])
+		if ([[moviesController selectedObjects] count] > 0)
+			[currentImageSource setPath:[[moviesController selection] valueForKey:@"path"]];
+	}
+	else
+	{
+		NSEnumerator	*movieEnumerator = [[moviesController arrangedObjects] objectEnumerator];
+		while (movie = [movieEnumerator nextObject])
+			if ([[movie path] isEqualToString:imageSourcePath])
+				break;
+		
+		if (movie)
+			[moviesController setSelectedObjects:[NSArray arrayWithObject:movie]];
+		else
 		{
-			[moviesController addObject:movieDict];
+			movie = [QuickTimeImageSourceMovie movieWithPath:imageSourcePath];
+			[moviesController addObject:movie];
+			
 			[self saveSettings];
 		}
-		[moviesController setSelectedObjects:[NSArray arrayWithObject:movieDict]];
 	}
-	else if ([[moviesController selectedObjects] count] > 0)
-		[currentImageSource setPath:[[moviesController selection] valueForKey:@"path"]];
 	
 	[saveFramesCheckBox setState:([currentImageSource canRefetchImages] ? NSOffState : NSOnState)];
 	
@@ -273,45 +233,34 @@
 {
     if (returnCode == NSOKButton)
 	{
-        NSEnumerator    *moviePathEnumerator = [[sheet filenames] objectEnumerator];
-		NSString		*moviePath = nil;
-        NSDictionary    *lastValidMovieDict = nil;
-        BOOL            settingsChanged = NO;
+        NSEnumerator				*moviePathEnumerator = [[sheet filenames] objectEnumerator];
+		NSString					*moviePath = nil;
+		QuickTimeImageSourceMovie	*movie = nil;
+        BOOL						settingsChanged = NO;
         
         while (moviePath = [moviePathEnumerator nextObject])
         {
-            NSDictionary	*movieDict = [self dictionaryForMovieAtPath:moviePath];
-            if (movieDict)
-            {
-                lastValidMovieDict = movieDict;
-                
-                if (![[moviesController arrangedObjects] containsObject:movieDict])
-                {
-                    [moviesController addObject:movieDict];
-                    settingsChanged = YES;
-                }
-            }
+			NSEnumerator	*movieEnumerator = [[moviesController arrangedObjects] objectEnumerator];
+			while (movie = [movieEnumerator nextObject])
+				if ([[movie path] isEqualToString:moviePath])
+					break;
+			
+			if (!movie)
+			{
+				movie = [QuickTimeImageSourceMovie movieWithPath:moviePath];
+				[moviesController addObject:movie];
+				settingsChanged = YES;
+			}
         }
 		
-        if (!lastValidMovieDict)
+        if (!movie)
 			NSRunAlertPanel(@"The file you chose does not contain a movie.", nil, @"OK", nil, nil);
         else
-        {
-            [moviesController setSelectedObjects:[NSArray arrayWithObject:lastValidMovieDict]];
-            if (settingsChanged)
-                [self saveSettings];
-        }
+            [moviesController setSelectedObjects:[NSArray arrayWithObject:movie]];
+        
+		if (settingsChanged)
+			[self saveSettings];
 	}
-}
-
-
-- (IBAction)clearMovieList:(id)sender
-{
-	[moviesController removeObjects:[moviesController arrangedObjects]];
-	
-	[currentImageSource setPath:nil];
-	
-	[self saveSettings];
 }
 
 
@@ -329,12 +278,12 @@
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
-	NSArray	*selectedMovieDicts = [moviesController selectedObjects];
+	NSArray	*selectedMovies = [moviesController selectedObjects];
 	
-	if ([selectedMovieDicts count] == 1)
+	if ([selectedMovies count] == 1)
 	{
 		[self sizeMovieView];
-		[currentImageSource setPath:[[selectedMovieDicts lastObject] valueForKey:@"path"]];
+		[currentImageSource setPath:[[selectedMovies lastObject] path]];
 	}
 	else
 		[currentImageSource setPath:nil];
