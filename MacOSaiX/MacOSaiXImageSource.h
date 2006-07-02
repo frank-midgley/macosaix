@@ -18,28 +18,25 @@
 	// The image for a generic source of this type.
 + (NSImage *)image;
 
+	// A class conforming to the MacOSaiXImageSourceController protocol for editing the settings of an instance of this class of plug-in.  Return nil if there are no settings instances of this plug-in.
 + (Class)editorClass;
 
+	// A class conforming to the MacOSaiXPreferencesController protocol for editing preferences for this class of plug-in.  Return nil if there are no preferences for this plug-in.
 + (Class)preferencesControllerClass;
 
-	// Whether multiple sources of this type can be added (maybe glyphs?)
+	// Whether multiple sources of this type can be added to the same mosaic.
 + (BOOL)allowMultipleImageSources;
 
-	// Methods for adding settings to a saved file.
-- (NSString *)settingsAsXMLElement;
-
-	// Methods called when loading settings from a saved mosaic.
-- (void)useSavedSetting:(NSDictionary *)settingDict;
-- (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict;
-- (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict;
+	// Methods called to save and load settings.
+- (BOOL)saveSettingsToFileAtPath:(NSString *)path;
+- (BOOL)loadSettingsFromFileAtPath:(NSString *)path;
 
 	// An image representing this specific source (may be the same image returned by +image)
 - (NSImage *)image;
 
 - (id)descriptor;	// either an NSString or an NSAttributedString
 
-	// The aspect ratio (width / height) of the images in this source.  If the ratio is not known 
-	// or is variable then return 0.0.
+	// The aspect ratio (width / height) of the images in this source.  If the ratio is not known or is variable then return 0.0.
 - (float)aspectRatio;
 
 	// This method should return whether there are any images remaining in the source.

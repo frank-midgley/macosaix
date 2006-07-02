@@ -253,15 +253,11 @@
 	if (self = [super init])
 	{
 		NSDictionary	*plugInDefaults = [[NSUserDefaults standardUserDefaults] objectForKey:@"Puzzle Tile Shapes"];
-		int				tilesAcrossPref = [[plugInDefaults objectForKey:@"Tiles Across"] intValue],
-						tilesDownPref = [[plugInDefaults objectForKey:@"Tiles Down"] intValue];
-		float			tabbedSidesPref = [[plugInDefaults objectForKey:@"Tabbed Sides Percentage"] floatValue] / 100.0,
-						curvinessPref = [[plugInDefaults objectForKey:@"Curviness Percentage"] floatValue] / 100.0;
 
-		[self setTilesAcross:MIN(MAX(10, tilesAcrossPref), 200)];
-		[self setTilesDown:MIN(MAX(10, tilesDownPref), 200)];
-		[self setTabbedSidesRatio:MIN(MAX(0.0, tabbedSidesPref), 1.0)];
-		[self setCurviness:MIN(MAX(0.0, curvinessPref), 1.0)];
+		[self setTilesAcross:[[plugInDefaults objectForKey:@"Tiles Across"] intValue]];
+		[self setTilesDown:[[plugInDefaults objectForKey:@"Tiles Down"] intValue]];
+		[self setTabbedSidesRatio:[[plugInDefaults objectForKey:@"Tabbed Sides Percentage"] floatValue] / 100.0];
+		[self setCurviness:[[plugInDefaults objectForKey:@"Curviness Percentage"] floatValue] / 100.0];
 	}
 	
 	return self;
@@ -338,7 +334,7 @@
 
 - (void)setTilesAcross:(unsigned int)count
 {
-    tilesAcross = count;
+    tilesAcross = MIN(MAX(10, count), 200);
 }
 
 
@@ -350,7 +346,7 @@
 
 - (void)setTilesDown:(unsigned int)count
 {
-    tilesDown = count;
+    tilesDown = MIN(MAX(10, count), 200);
 }
 
 
@@ -362,7 +358,7 @@
 
 - (void)setTabbedSidesRatio:(float)ratio
 {
-	tabbedSidesRatio = ratio;
+	tabbedSidesRatio = MIN(MAX(0.0, ratio), 1.0);
 }
 
 
@@ -374,7 +370,7 @@
 
 - (void)setCurviness:(float)value
 {
-	curviness = value;
+	curviness = MIN(MAX(0.0, value), 1.0);
 }
 
 
@@ -403,11 +399,29 @@
 }
 
 
-- (NSString *)settingsAsXMLElement
+- (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
-	return [NSString stringWithFormat:@"<DIMENSIONS ACROSS=\"%d\" DOWN=\"%d\"/>\n" \
-									  @"<ATTRIBUTES TABBED_SIDES=\"%.3f\" CURVINESS=\"%.3f\" ALIGN_IMAGES=\"%@\"/>", 
-									  tilesAcross, tilesDown, tabbedSidesRatio, curviness, (alignImages ? @"YES" : @"NO")];
+	return [[NSDictionary dictionaryWithObjectsAndKeys:
+								[NSNumber numberWithInt:tilesAcross], @"Tiles Across", 
+								[NSNumber numberWithInt:tilesDown], @"Tiles Down", 
+								[NSNumber numberWithFloat:tabbedSidesRatio], @"Tabbed Sides Ratio", 
+								[NSNumber numberWithFloat:curviness], @"Curviness", 
+								[NSNumber numberWithBool:alignImages], @"Align Images", 
+								nil] 
+				writeToFile:path atomically:NO];
+}
+
+
+- (BOOL)loadSettingsFromFileAtPath:(NSString *)path
+{
+	NSDictionary	*settings = [NSDictionary dictionaryWithContentsOfFile:path];
+	
+	[self setTilesAcross:[[settings objectForKey:@"Tiles Across"] intValue]];
+	[self setTilesDown:[[settings objectForKey:@"Tiles Down"] intValue]];
+	[self setTabbedSidesRatio:[[settings objectForKey:@"Tabbed Sides Percentage"] floatValue] / 100.0];
+	[self setCurviness:[[settings objectForKey:@"Curviness Percentage"] floatValue] / 100.0];
+	
+	return YES;
 }
 
 

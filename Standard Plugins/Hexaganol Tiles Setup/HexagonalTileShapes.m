@@ -66,11 +66,9 @@
 	if (self = [super init])
 	{
 		NSDictionary	*plugInDefaults = [[NSUserDefaults standardUserDefaults] objectForKey:@"Hexagonal Tile Shapes"];
-		int				tilesAcrossPref = [[plugInDefaults objectForKey:@"Tiles Across"] intValue],
-						tilesDownPref = [[plugInDefaults objectForKey:@"Tiles Down"] intValue];
 		
-		[self setTilesAcross:(tilesAcrossPref > 0 ? tilesAcrossPref : 40)];
-		[self setTilesDown:(tilesDownPref > 0 ? tilesDownPref : 40)];
+		[self setTilesAcross:[[plugInDefaults objectForKey:@"Tiles Across"] intValue]];
+		[self setTilesDown:[[plugInDefaults objectForKey:@"Tiles Down"] intValue]];
 	}
 	
 	return self;
@@ -118,7 +116,7 @@
 
 - (void)setTilesAcross:(unsigned int)count
 {
-    tilesAcross = count;
+    tilesAcross = (count > 0 ? count : 40);
 }
 
 
@@ -130,7 +128,7 @@
 
 - (void)setTilesDown:(unsigned int)count
 {
-    tilesDown = count;
+    tilesDown = (count > 0 ? count : 40);
 }
 
 
@@ -146,9 +144,24 @@
 }
 
 
-- (NSString *)settingsAsXMLElement
+- (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
-	return [NSString stringWithFormat:@"<DIMENSIONS ACROSS=\"%d\" DOWN=\"%d\"/>", tilesAcross, tilesDown];
+	return [[NSDictionary dictionaryWithObjectsAndKeys:
+								[NSNumber numberWithInt:tilesAcross], @"Tiles Across", 
+								[NSNumber numberWithInt:tilesDown], @"Tiles Down", 
+								nil] 
+				writeToFile:path atomically:NO];
+}
+
+
+- (BOOL)loadSettingsFromFileAtPath:(NSString *)path
+{
+	NSDictionary	*settings = [NSDictionary dictionaryWithContentsOfFile:path];
+	
+	[self setTilesAcross:[[settings objectForKey:@"Tiles Across"] intValue]];
+	[self setTilesDown:[[settings objectForKey:@"Tiles Down"] intValue]];
+	
+	return YES;
 }
 
 

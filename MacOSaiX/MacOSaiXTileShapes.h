@@ -13,32 +13,26 @@
 
 @protocol MacOSaiXTileShapes <NSObject, NSCopying>
 
-	// A generic image for this type of tile shapes.
-	// This image is used for display in the preferences window (32x32), the tiles setup pop-up menu (16x16) 
-	// and the crash reporter window (16x16).
+	// A generic image for this type of tile shapes.  This image is used for display in the preferences window (32x32), the tiles setup pop-up menu (16x16) and the crash reporter window (16x16).
 + (NSImage *)image;
 
-	// A class whose instances conform to the MacOSaiXTileShapesEditor protocol.
+	// This method should return a class that conforms to the MacOSaiXTileShapesEditor protocol.
 + (Class)editorClass;
 
-	// A class whose instances conform to the MacOSaiXTileShapesPreferencesController protocol.
+	// This method should return a class that conforms to the MacOSaiXTileShapesPreferencesController protocol.  Return nil if there are no preferences for this plug-in.
 + (Class)preferencesControllerClass;
 
-	// An image appropriate for this instance of the tile shapes.
-	// This image is used for the "Tiles Setup" toolbar icon (32x32).
+	// An image appropriate for this instance of the tile shapes.  This image is used for the "Tiles Setup" toolbar icon (32x32).
 - (NSImage *)image;
 
 	// A human-readable string that briefly describes this instance's settings.
 - (NSString *)briefDescription;
 
-	// Methods for adding settings to a saved file.
-- (NSString *)settingsAsXMLElement;
+	// Methods called to save and load settings.
+- (BOOL)saveSettingsToFileAtPath:(NSString *)path;
+- (BOOL)loadSettingsFromFileAtPath:(NSString *)path;
 
-	// Methods called when loading settings from a saved mosaic.
-- (void)useSavedSetting:(NSDictionary *)settingDict;
-- (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict;
-- (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict;
-
+	// This method should return an array of NSBezierPaths based on the settings defined by the user.
 - (NSArray *)shapes;
 
 @end
@@ -51,8 +45,7 @@
 	// The view containing the editing controls.
 - (NSView *)editorView;
 
-	// These methods should return the minimum and maximum sizes of the editor view.
-	// If no limit is desired then return NSZeroSize from either method.
+	// These methods should return the minimum and maximum sizes of the editor view.  If no limit is desired then return NSZeroSize from either method.
 - (NSSize)minimumSize;
 - (NSSize)maximumSize;
 
@@ -61,8 +54,7 @@
 
 - (void)editTileShapes:(id<MacOSaiXTileShapes>)tilesSetup;
 
-	// This method should indicate whether the current state of the editing controls 
-	// represents a valid image source.  If NO then the OK button will be disabled.
+	// This method should indicate whether the current state of the editing controls represents a valid image source.  If NO then the OK button will be disabled.
 - (BOOL)settingsAreValid;
 
 - (int)tileCount;

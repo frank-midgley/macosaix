@@ -78,18 +78,26 @@ static NSImage	*iTunesImage = nil,
 }
 
 
-- (NSString *)settingsAsXMLElement
+- (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
-	NSMutableString	*settings = [NSMutableString string];
+	NSMutableDictionary	*settings = [NSMutableDictionary dictionaryWithObject:remainingTrackIDs
+																	   forKey:@"Remaining Track IDs"];
 	
 	if ([self playlistName])
-		[settings appendString:[NSString stringWithFormat:@"<PLAYLIST NAME=\"%@\"/>\n", 
-										  [[self playlistName] stringByEscapingXMLEntites]]];
+		[settings setObject:[self playlistName] forKey:@"Playlist"];
 	
-	[settings appendString:[NSString stringWithFormat:@"<TRACK_IDS REMAINING=\"%@\"/>", 
-													  [remainingTrackIDs componentsJoinedByString:@","]]];
+	return [settings writeToFile:path atomically:NO];
+}
 
-	return settings;
+
+- (BOOL)loadSettingsFromFileAtPath:(NSString *)path
+{
+	NSDictionary	*settings = [NSDictionary dictionaryWithContentsOfFile:path];
+	
+	[self setPlaylistName:[settings objectForKey:@"Playlist"]];
+	remainingTrackIDs = [[settings objectForKey:@"Remaining Track IDs"] retain];
+	
+	return YES;
 }
 
 

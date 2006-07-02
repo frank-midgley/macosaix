@@ -95,37 +95,30 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
-- (NSString *)settingsAsXMLElement
+- (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
-	NSMutableString	*settings = [NSMutableString string];
+	return [[NSDictionary dictionaryWithObjectsAndKeys:
+								fontNames, @"Font Names", 
+								colorLists, @"Color Lists", 
+								letterPool, @"Letter Pool", 
+								[NSNumber numberWithInt:imageCount], @"Image Count", 
+								[NSNumber numberWithInt:imageCountLimit], @"Image Count Limit", 
+								nil] 
+				writeToFile:path atomically:NO];
+}
+
+
+- (BOOL)loadSettingsFromFileAtPath:(NSString *)path
+{
+	NSDictionary	*settings = [NSDictionary dictionaryWithContentsOfFile:path];
 	
-	[settings appendString:@"<FONTS>\n"];
-	NSEnumerator	*fontNameEnumerator = [fontNames objectEnumerator];
-	NSString		*fontName = nil;
-	while (fontName = [fontNameEnumerator nextObject])
-		[settings appendFormat:@"\t<FONT NAME=\"%@\"/>\n", [fontName stringByEscapingXMLEntites]];
-	[settings appendString:@"</FONTS>\n"];
+	fontNames = [[settings objectForKey:@"Font Names"] retain];
+	colorLists = [[settings objectForKey:@"Color Lists"] retain];
+	letterPool = [[settings objectForKey:@"Letter Pool"] retain];
+	imageCount = [[settings objectForKey:@"Image Count"] intValue];
+	imageCountLimit = [[settings objectForKey:@"Image Count Limit"] intValue];
 	
-	[settings appendString:@"<COLORS>\n"];
-	NSEnumerator	*colorListClassEnumerator = [colorLists keyEnumerator];
-	NSString		*colorListClass = nil;
-	while (colorListClass = [colorListClassEnumerator nextObject])
-	{
-		NSEnumerator	*colorListNameEnumerator = [[colorLists objectForKey:colorListClass] objectEnumerator];
-		NSString		*colorListName = nil;
-		while (colorListName = [colorListNameEnumerator nextObject])
-			[settings appendFormat:@"\t<COLOR_LIST CLASS=\"%@\" NAME=\"%@\"/>\n", 
-								   [colorListClass stringByEscapingXMLEntites],
-								   [colorListName stringByEscapingXMLEntites]];
-	}
-	[settings appendString:@"</COLORS>\n"];
-	
-	if ([letterPool length] > 0)
-		[settings appendFormat:@"<LETTERS>%@</LETTERS>\n", [letterPool stringByEscapingXMLEntites]];
-	
-	[settings appendFormat:@"<COUNT CURRENT=\"%d\" LIMIT=\"%d\"/>\n", imageCount, imageCountLimit];
-	
-	return settings;
+	return YES;
 }
 
 

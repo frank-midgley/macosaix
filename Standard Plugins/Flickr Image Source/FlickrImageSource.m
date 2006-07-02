@@ -362,9 +362,8 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
-- (NSString *)settingsAsXMLElement
+- (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
-	NSMutableString	*settingsXML = [NSMutableString string];
 	NSString		*queryTypeString = nil;
 	
 	if ([self queryType] == matchAllTags)
@@ -374,52 +373,34 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 	else
 		queryTypeString = @"Titles, Tags or Descriptions";
 	
-	[settingsXML appendFormat:@"<QUERY STRING=\"%@\" TYPE=\"%@\" MIN_UPLOAD_DATE=\"%@\"/>\n", 
-							  [[self queryString] stringByEscapingXMLEntites], queryTypeString, lastUploadTimeStamp];
-	
-	if ([identifierQueue count] > 0)
-	{
-		[settingsXML appendString:@"<IDENTIFIER_QUEUE>\n"];
-		NSEnumerator	*enumerator = [identifierQueue objectEnumerator];
-		NSString		*identifier = nil;
-		while (identifier = [enumerator nextObject])
-			[settingsXML appendFormat:@"\t<IDENTIFIER>\"%@\"</IDENTIFIER>\n", identifier];
-		[settingsXML appendString:@"</IDENTIFIER_QUEUE>\n"];
-	}
-	
-	return settingsXML;
+	return [[NSDictionary dictionaryWithObjectsAndKeys:
+								[self queryString], @"Query String", 
+								queryTypeString, @"Query Type", 
+								lastUploadTimeStamp, @"Minimum Upload Date", 
+								identifierQueue, @"Identifier Queue", 
+								nil] 
+				writeToFile:path atomically:NO];
 }
 
 
-- (void)useSavedSetting:(NSDictionary *)settingDict
+- (BOOL)loadSettingsFromFileAtPath:(NSString *)path
 {
-	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
+	NSDictionary	*settings = [NSDictionary dictionaryWithContentsOfFile:path];
 	
-	if ([settingType isEqualToString:@"QUERY"])
-	{
-		[self setQueryString:[[[settingDict objectForKey:@"STRING"] description] stringByUnescapingXMLEntites]];
-
-		NSString	*queryTypeString = [[settingDict objectForKey:@"TYPE"] description];
-		if ([queryTypeString isEqualToString:@"All Tags"])
-			[self setQueryType:matchAllTags];
-		if ([queryTypeString isEqualToString:@"Any Tag"] || [queryTypeString isEqualToString:@"Any Tags"])
-			[self setQueryType:matchAnyTag];
-		if ([queryTypeString isEqualToString:@"Titles, Tags or Descriptions"])
-			[self setQueryType:matchTitlesTagsOrDescriptions];
-	}
-//	else if ([settingType isEqualToString:@"QUEUED_IMAGE"])
-//		[identifierQueue addObject:[[settingDict objectForKey:@"URL"] description]];
-}
-
-
-- (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict
-{
-	// TODO: add queued identifier
-}
-
-
-- (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict
-{
+	[self setQueryString:[settings objectForKey:@"Query String"]];
+	
+	NSString	*queryTypeString = [settings objectForKey:@"TYPE"];
+	if ([queryTypeString isEqualToString:@"All Tags"])
+		[self setQueryType:matchAllTags];
+	if ([queryTypeString isEqualToString:@"Any Tag"] || [queryTypeString isEqualToString:@"Any Tags"])
+		[self setQueryType:matchAnyTag];
+	if ([queryTypeString isEqualToString:@"Titles, Tags or Descriptions"])
+		[self setQueryType:matchTitlesTagsOrDescriptions];
+	
+	lastUploadTimeStamp = [[settings objectForKey:@"Minimum Upload Date"] retain];
+	identifierQueue = [[settings objectForKey:@"Identifier Queue"] retain];
+	
+	return YES;
 }
 
 

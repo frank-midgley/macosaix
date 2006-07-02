@@ -84,21 +84,29 @@ static NSImage	*iPhotoImage = nil,
 }
 
 
-- (NSString *)settingsAsXMLElement
+- (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
-	NSMutableString	*settings = [NSMutableString string];
+	NSMutableDictionary	*settings = [NSMutableDictionary dictionaryWithObject:remainingPhotoIDs
+																	   forKey:@"Remaining Photo IDs"];
 	
 	if ([self albumName])
-		[settings appendString:[NSString stringWithFormat:@"<ALBUM NAME=\"%@\"/>\n", 
-										  [[self albumName] stringByEscapingXMLEntites]]];
+		[settings setObject:[self albumName] forKey:@"Album"];
 	if ([self keywordName])
-		[settings appendString:[NSString stringWithFormat:@"<KEYWORD NAME=\"%@\"/>\n", 
-										  [[self keywordName] stringByEscapingXMLEntites]]];
+		[settings setObject:[self keywordName] forKey:@"Keyword"];
 	
-	[settings appendString:[NSString stringWithFormat:@"<PHOTO_IDS REMAINING=\"%@\"/>", 
-													  [remainingPhotoIDs componentsJoinedByString:@","]]];
+	return [settings writeToFile:path atomically:NO];
+}
 
-	return settings;
+
+- (BOOL)loadSettingsFromFileAtPath:(NSString *)path
+{
+	NSDictionary	*settings = [NSDictionary dictionaryWithContentsOfFile:path];
+	
+	[self setAlbumName:[settings objectForKey:@"Album"]];
+	[self setKeywordName:[settings objectForKey:@"Keyword"]];
+	remainingPhotoIDs = [[settings objectForKey:@"Remaining Photo IDs"] retain];
+	
+	return YES;
 }
 
 

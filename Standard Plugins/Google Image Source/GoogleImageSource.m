@@ -372,48 +372,83 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
-- (NSString *)settingsAsXMLElement
+- (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
-	NSMutableString	*settingsXML = [NSMutableString string];
+	NSMutableDictionary	*settings = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+										[NSNumber numberWithInt:startIndex], @"Page Index", 
+										imageURLQueue, @"Image URL Queue", 
+										nil];
 	
-	[settingsXML appendFormat:@"<TERMS REQUIRED=\"%@\"\n       OPTIONAL=\"%@\"\n       EXCLUDED=\"%@\"/>\n", 
-							  [[self requiredTerms] stringByEscapingXMLEntites],
-							  [[self optionalTerms] stringByEscapingXMLEntites],
-							  [[self excludedTerms] stringByEscapingXMLEntites]];
+	if ([self requiredTerms])
+		[settings setObject:[self requiredTerms] forKey:@"Required Terms"];
+	if ([self optionalTerms])
+		[settings setObject:[self optionalTerms] forKey:@"Optional Terms"];
+	if ([self excludedTerms])
+		[settings setObject:[self excludedTerms] forKey:@"Excluded Terms"];
 	
 	switch ([self colorSpace])
 	{
 		case anyColorSpace:
-			[settingsXML appendString:@"<COLOR_SPACE FILTER=\"ANY\"/>\n"]; break;
+			[settings setObject:@"Any" forKey:@"Colorspace"]; break;
 		case rgbColorSpace:
-			[settingsXML appendString:@"<COLOR_SPACE FILTER=\"RGB\"/>\n"]; break;
+			[settings setObject:@"RGB" forKey:@"Colorspace"]; break;
 		case grayscaleColorSpace:
-			[settingsXML appendString:@"<COLOR_SPACE FILTER=\"GRAYSCALE\"/>\n"]; break;
+			[settings setObject:@"Grayscale" forKey:@"Colorspace"]; break;
 		case blackAndWhiteColorSpace:
-			[settingsXML appendString:@"<COLOR_SPACE FILTER=\"B&amp;W\"/>\n"]; break;
+			[settings setObject:@"Black & White" forKey:@"Colorspace"]; break;
 	}
 	
 	if ([self siteString])
-		[settingsXML appendFormat:@"<SITE FILTER=\"%@\"/>\n", [[self siteString] stringByEscapingXMLEntites]];
+		[settings setObject:[self siteString] forKey:@"Site"];
 	
 	switch ([self adultContentFiltering])
 	{
 		case strictFiltering:
-			[settingsXML appendString:@"<ADULT_CONTENT FILTER=\"STRICT\"/>\n"]; break;
+			[settings setObject:@"Strict" forKey:@"Adult Content Filtering"]; break;
 		case moderateFiltering:
-			[settingsXML appendString:@"<ADULT_CONTENT FILTER=\"MODERATE\"/>\n"]; break;
+			[settings setObject:@"Moderate" forKey:@"Adult Content Filtering"]; break;
 		case noFiltering:
-			[settingsXML appendString:@"<ADULT_CONTENT FILTER=\"NONE\"/>\n"]; break;
+			[settings setObject:@"None" forKey:@"Adult Content Filtering"]; break;
 	}
 	
-	[settingsXML appendFormat:@"<PAGE INDEX=\"%d\"/>\n", startIndex];
+	return [settings writeToFile:path atomically:NO];
+}
+
+
+- (BOOL)loadSettingsFromFileAtPath:(NSString *)path
+{
+	NSDictionary	*settings = [NSDictionary dictionaryWithContentsOfFile:path];
 	
-	NSEnumerator	*queuedURLEnumerator = [imageURLQueue objectEnumerator];
-	NSString		*queuedURL = nil;
-	while (queuedURL = [queuedURLEnumerator nextObject])
-		[settingsXML appendFormat:@"<QUEUED_IMAGE URL=\"%@\"/>\n", queuedURL];
+	[self setRequiredTerms:[settings objectForKey:@"Required Terms"]];
+	[self setOptionalTerms:[settings objectForKey:@"Optional Terms"]];
+	[self setExcludedTerms:[settings objectForKey:@"Excluded Terms"]];
+		
+	NSString	*colorSpaceValue = [settings objectForKey:@"Colorspace"];
+	if ([colorSpaceValue isEqualToString:@"Any"])
+		[self setColorSpace:anyColorSpace];
+	else if ([colorSpaceValue isEqualToString:@"RGB"])
+		[self setColorSpace:rgbColorSpace];
+	else if ([colorSpaceValue isEqualToString:@"Grayscale"])
+		[self setColorSpace:grayscaleColorSpace];
+	else if ([colorSpaceValue isEqualToString:@"Black & White"])
+		[self setColorSpace:blackAndWhiteColorSpace];
 	
-	return settingsXML;
+	[self setSiteString:[settings objectForKey:@"Site"]];
+	
+	NSString	*filterValue = [settings objectForKey:@"Adult Content Filtering"];
+	if ([filterValue isEqualToString:@"Strict"])
+		[self setAdultContentFiltering:strictFiltering];
+	else if ([filterValue isEqualToString:@"Moderate"])
+		[self setAdultContentFiltering:moderateFiltering];
+	else if ([filterValue isEqualToString:@"None"])
+		[self setAdultContentFiltering:noFiltering];
+	
+	startIndex = [[settings objectForKey:@"Page Index"] intValue];
+	imageURLQueue = [[settings objectForKey:@"Image URL Queue"] retain];
+	
+	[self updateQueryAndDescriptor];
+	
+	return YES;
 }
 
 

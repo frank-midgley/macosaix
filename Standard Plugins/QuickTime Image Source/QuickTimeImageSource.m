@@ -84,12 +84,26 @@ static NSImage			*sQuickTimeImage = nil;
 }
 
 
-- (NSString *)settingsAsXMLElement
+- (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
-	return [NSString stringWithFormat:@"<MOVIE PATH=\"%@\" LAST_USED_TIME=\"%d\" SAVE_FRAMES=\"%@\"/>", 
-									  [[self path] stringByEscapingXMLEntites], 
-									  currentTimeValue,
-									  (canRefetchImages ? @"NO" : @"YES")];
+	return [[NSDictionary dictionaryWithObjectsAndKeys:
+								[self path], @"Path", 
+								[NSNumber numberWithLong:currentTimeValue], @"Last Used Time", 
+								[NSNumber numberWithBool:!canRefetchImages], @"Save Frames", 
+								nil] 
+				writeToFile:path atomically:NO];
+}
+
+
+- (BOOL)loadSettingsFromFileAtPath:(NSString *)path
+{
+	NSDictionary	*settings = [NSDictionary dictionaryWithContentsOfFile:path];
+	
+	[self setPath:[settings objectForKey:@"Path"]];
+	currentTimeValue = [[settings objectForKey:@"Last Used Time"] longValue];
+	canRefetchImages = ![[settings objectForKey:@"Save Frames"] boolValue];
+	
+	return YES;
 }
 
 

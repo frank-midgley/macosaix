@@ -55,14 +55,28 @@
 }
 
 
-- (NSString *)settingsAsXMLElement
+- (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
-	return [NSString stringWithFormat:@"<DIRECTORY PATH=\"%@\" FOLLOW_ALIASES=\"%@\" " \
-									  @"LAST_USED_SUB_PATH=\"%@\" IMAGE_COUNT=\"%d\"/>", 
-									  [[self path] stringByEscapingXMLEntites],
-									  ([self followsAliases] ? @"Y" : @"N"), 
-									  [lastEnumeratedPath stringByEscapingXMLEntites], 
-									  imageCount];
+	return [[NSDictionary dictionaryWithObjectsAndKeys:
+								[self path], @"Folder Path", 
+								[NSNumber numberWithBool:[self followsAliases]], @"Follow Aliases", 
+								lastEnumeratedPath, @"Last Used Path", 
+								[NSNumber numberWithInt:imageCount], @"Image Count", 
+								nil] 
+				writeToFile:path atomically:NO];
+}
+
+
+- (BOOL)loadSettingsFromFileAtPath:(NSString *)path
+{
+	NSDictionary	*settings = [NSDictionary dictionaryWithContentsOfFile:path];
+	
+	[self setPath:[settings objectForKey:@"Folder Path"]];
+	[self setFollowsAliases:[[settings objectForKey:@"Follow Aliases"] boolValue]];
+	lastEnumeratedPath = [[settings objectForKey:@"Last Used Path"] retain];
+	imageCount = [[settings objectForKey:@"Image Count"] intValue];
+	
+	return YES;
 }
 
 

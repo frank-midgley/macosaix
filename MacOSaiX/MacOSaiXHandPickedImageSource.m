@@ -50,6 +50,18 @@
 }
 
 
+- (BOOL)saveSettingsToFileAtPath:(NSString *)path
+{
+	return YES;
+}
+
+
+- (BOOL)loadSettingsFromFileAtPath:(NSString *)path
+{
+	return YES;
+}
+
+
 - (NSString *)settingsAsXMLElement
 {
 	return @"";
