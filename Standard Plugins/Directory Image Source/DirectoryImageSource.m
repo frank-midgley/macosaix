@@ -60,7 +60,7 @@
 	return [[NSDictionary dictionaryWithObjectsAndKeys:
 								[self path], @"Folder Path", 
 								[NSNumber numberWithBool:[self followsAliases]], @"Follow Aliases", 
-								lastEnumeratedPath, @"Last Used Path", 
+								lastEnumeratedPath, @"Last Visited Path", 
 								[NSNumber numberWithInt:imageCount], @"Image Count", 
 								nil] 
 				writeToFile:path atomically:NO];
@@ -73,7 +73,7 @@
 	
 	[self setPath:[settings objectForKey:@"Folder Path"]];
 	[self setFollowsAliases:[[settings objectForKey:@"Follow Aliases"] boolValue]];
-	lastEnumeratedPath = [[settings objectForKey:@"Last Used Path"] retain];
+	lastEnumeratedPath = [[settings objectForKey:@"Last Visited Path"] retain];
 	imageCount = [[settings objectForKey:@"Image Count"] intValue];
 	
 	return YES;
