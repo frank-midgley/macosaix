@@ -385,6 +385,30 @@ static NSImage			*sQuickTimeImage = nil;
 }
 
 
+- (void)setSamplingRateType:(int)type
+{
+	samplingRateType = type;
+}
+
+
+- (int)samplingRateType
+{
+	return samplingRateType;
+}
+
+
+- (void)setConstantSamplingRate:(float)rate
+{
+	constantSamplingRate = rate;
+}
+
+
+- (float)constantSamplingRate
+{
+	return constantSamplingRate;
+}
+
+
 - (void)setCanRefetchImages:(BOOL)flag
 {
 	if (canRefetchImages != flag)

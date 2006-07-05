@@ -24,11 +24,19 @@
                 currentTimeValue, 
                 duration;
 	TimeScale	timeScale;
+	int			samplingRateType;
+	float		constantSamplingRate;
 	BOOL		canRefetchImages;
 }
 
 - (NSString *)path;
 - (void)setPath:(NSString *)path;
+
+- (void)setSamplingRateType:(int)type;
+- (int)samplingRateType;
+
+- (void)setConstantSamplingRate:(float)rate;
+- (float)constantSamplingRate;
 
 - (void)setCanRefetchImages:(BOOL)flag;
 
