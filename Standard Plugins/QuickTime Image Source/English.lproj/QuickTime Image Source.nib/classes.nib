@@ -12,18 +12,23 @@
             SUPERCLASS = NSTextFieldCell; 
         }, 
         {
-            ACTIONS = {chooseAnotherMovie = id; clearMovieList = id; setSaveFrames = id; }; 
+            ACTIONS = {
+                chooseAnotherMovie = id; 
+                removeMovie = id; 
+                setConstantSamplingRate = id; 
+                setSamplingRateType = id; 
+                setSaveFrames = id; 
+            }; 
             CLASS = QuickTimeImageSourceController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                chooseAnotherMovieButton = NSButton; 
-                clearMovieListButton = NSButton; 
                 editorView = NSView; 
-                movieBox = NSBox; 
-                movieNameTextField = NSTextField; 
                 movieView = NSMovieView; 
                 moviesController = NSArrayController; 
                 moviesTable = NSTableView; 
+                samplingRateField = NSTextField; 
+                samplingRateMatrix = NSMatrix; 
+                samplingRateSlider = NSSlider; 
                 saveFramesCheckBox = NSButton; 
             }; 
             SUPERCLASS = NSObject; 
