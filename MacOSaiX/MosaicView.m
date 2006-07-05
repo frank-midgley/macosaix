@@ -1124,7 +1124,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		{
 			NSImage			*image = [parameters objectForKey:@"Image"];
 			
-			if (image)
+			if ([image isValid])
 			{
 				image = [[image copyWithLargestDimension:256.0] autorelease];
 				

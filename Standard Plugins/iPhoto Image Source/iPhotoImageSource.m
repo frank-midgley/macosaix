@@ -86,13 +86,14 @@ static NSImage	*iPhotoImage = nil,
 
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
-	NSMutableDictionary	*settings = [NSMutableDictionary dictionaryWithObject:remainingPhotoIDs
-																	   forKey:@"Remaining Photo IDs"];
+	NSMutableDictionary	*settings = [NSMutableDictionary dictionary];
 	
 	if ([self albumName])
 		[settings setObject:[self albumName] forKey:@"Album"];
 	if ([self keywordName])
 		[settings setObject:[self keywordName] forKey:@"Keyword"];
+	if (remainingPhotoIDs)
+		[settings setObject:remainingPhotoIDs forKey:@"Remaining Photo IDs"];
 	
 	return [settings writeToFile:path atomically:NO];
 }
