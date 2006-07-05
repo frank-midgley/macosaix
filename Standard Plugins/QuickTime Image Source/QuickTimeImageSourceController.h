@@ -15,8 +15,12 @@
 	
 	IBOutlet NSArrayController	*moviesController;
 	IBOutlet NSTableView		*moviesTable;
-	IBOutlet NSButton			*clearMovieListButton, 
-								*saveFramesCheckBox;
+	
+	IBOutlet NSMatrix			*samplingRateMatrix;
+	IBOutlet NSTextField		*samplingRateField;
+	IBOutlet NSSlider			*samplingRateSlider;
+	
+	IBOutlet NSButton			*saveFramesCheckBox;
 	
 	IBOutlet NSMovieView		*movieView;
 	
@@ -24,6 +28,10 @@
 }
 
 - (IBAction)chooseAnotherMovie:(id)sender;
+- (IBAction)removeMovie:(id)sender;
+
+- (IBAction)setSamplingRateType:(id)sender;
+- (IBAction)setConstantSamplingRate:(id)sender;
 - (IBAction)setSaveFrames:(id)sender;
 
 @end

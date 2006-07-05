@@ -26,7 +26,7 @@
 		[movieDicts addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 									[movie path], @"Path", 
 									[movie title], @"Title", 
-									[movie posterFrame], @"Poster Frame", 
+									[NSArchiver archivedDataWithRootObject:[movie posterFrame]], @"Poster Frame Data", 
 									nil]];
 	[settings setObject:movieDicts forKey:@"Movies"];
 	
@@ -47,8 +47,7 @@
 	{
 		[[movieView superview] setNeedsDisplayInRect:[movieView frame]];
 		
-		NSSize	maxSize = NSMakeSize(NSWidth([[movieView superview] frame]) - 3.0 - 3.0, 
-									 NSHeight([[movieView superview] frame]) - 3.0 - 36.0 - 16.0);
+		NSSize	maxSize = [[movieView superview] frame].size;
 		
 		float	aspectRatio = [(QuickTimeImageSourceMovie *)[[moviesController selectedObjects] lastObject] aspectRatio];
 		
@@ -56,14 +55,15 @@
 		{
 			float	scaledWidth = maxSize.height * aspectRatio, 
 					halfWidthDiff = (maxSize.width - scaledWidth) / 2.0;
-			[movieView setFrame:NSMakeRect(3.0 + halfWidthDiff, 33.0, scaledWidth, maxSize.height + 16.0)];
+			[movieView setFrame:NSMakeRect(halfWidthDiff, 0.0, scaledWidth, maxSize.height)];
 		}
 		else
 		{
 			float	scaledHeight = maxSize.width / aspectRatio, 
 					halfHeightDiff = (maxSize.height - scaledHeight) / 2.0;
-			[movieView setFrame:NSMakeRect(3.0, 33.0 + halfHeightDiff, maxSize.width, scaledHeight + 16.0)];
+			[movieView setFrame:NSMakeRect(0.0, halfHeightDiff, maxSize.width, scaledHeight)];
 		}
+		[[movieView superview] setNeedsDisplayInRect:[movieView frame]];
 	}
 }
 
@@ -90,15 +90,13 @@
 		while (movieDict = [movieDictEnumerator nextObject])
 		{
 			QuickTimeImageSourceMovie	*movie = [QuickTimeImageSourceMovie movieWithPath:[movieDict objectForKey:@"Path"]];
-			[movie setPosterFrame:[movieDict objectForKey:@"Path"]];
+			[movie setPosterFrame:[NSUnarchiver unarchiveObjectWithData:[movieDict objectForKey:@"Poster Frame Data"]]];
 			[movie setTitle:[movieDict objectForKey:@"Title"]];
 			[movies addObject:movie];
 		}
 	}
 	else
 	{
-		movieDicts = [NSMutableArray array];
-		
 			// Use the contents of ~/Movies by default.
 		FSRef	moviesRef;
 		if (FSFindFolder(kUserDomain, kMovieDocumentsFolderType, false, &moviesRef) == noErr)
@@ -107,24 +105,21 @@
 			if (moviesURLRef)
 			{
 				NSString		*moviesPath = [(NSURL *)moviesURLRef path];
-				NSFileManager	*fileManager = [NSFileManager defaultManager];
-				NSWorkspace		*workspace = [NSWorkspace sharedWorkspace];
-				NSEnumerator	*moviePathEnumerator = [fileManager enumeratorAtPath:moviesPath];
+				NSEnumerator	*moviePathEnumerator = [[NSFileManager defaultManager] enumeratorAtPath:moviesPath];
 				NSString		*subPath = nil;
 				while (subPath = [moviePathEnumerator nextObject])
 				{
-					NSString	*moviePath = [moviesPath stringByAppendingPathComponent:subPath];
-					BOOL		isDirectory = NO;
+					NSString					*moviePath = [moviesPath stringByAppendingPathComponent:subPath];
+					QuickTimeImageSourceMovie	*movie = [QuickTimeImageSourceMovie movieWithPath:moviePath];
 					
-					if ([workspace isFilePackageAtPath:moviePath] ||
-						([fileManager fileExistsAtPath:moviePath isDirectory:&isDirectory] && !isDirectory))
-						[movies addObject:[QuickTimeImageSourceMovie movieWithPath:moviePath]];
+					if ([movie movie])
+						[movies addObject:movie];
 				}
 			}
 		}
 	}
 	
-	[moviesController setContent:movieDicts];
+	[moviesController setContent:movies];
 	
 	[self saveSettings];	// must be done after setting the content of the controller
 }
@@ -141,7 +136,7 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(504.0, 286.0);
+	return NSMakeSize(485.0, 250.0);
 }
 
 
@@ -157,6 +152,19 @@
 }
 
 
+- (void)updateSamplingRateField
+{
+	float	rate = [currentImageSource constantSamplingRate];
+	
+	if (rate < 1.0)
+		[samplingRateField setStringValue:[NSString stringWithFormat:NSLocalizedString(@"%d frames per second", @""), (int)(1.0 / rate)]];
+	else if (rate == 1.0)
+		[samplingRateField setStringValue:NSLocalizedString(@"one frame per second", @"")];
+	else	// rate > 1.0
+		[samplingRateField setStringValue:[NSString stringWithFormat:NSLocalizedString(@"one frame every %d seconds", @""), (int)rate]];
+}
+
+
 - (void)editImageSource:(id<MacOSaiXImageSource>)imageSource
 {
 	[currentImageSource release];
@@ -167,7 +175,9 @@
 	
 	if (!imageSourcePath)
 	{
-		if ([[moviesController selectedObjects] count] > 0)
+		movie = [[moviesController selectedObjects] lastObject];
+		
+		if (movie)
 			[currentImageSource setPath:[[moviesController selection] valueForKey:@"path"]];
 	}
 	else
@@ -177,17 +187,24 @@
 			if ([[movie path] isEqualToString:imageSourcePath])
 				break;
 		
-		if (movie)
-			[moviesController setSelectedObjects:[NSArray arrayWithObject:movie]];
-		else
+		if (!movie)
 		{
 			movie = [QuickTimeImageSourceMovie movieWithPath:imageSourcePath];
-			[moviesController addObject:movie];
 			
-			[self saveSettings];
+			if (movie)
+			{
+				[moviesController addObject:movie];
+				
+				[self saveSettings];
+			}
 		}
 	}
 	
+	if (movie)
+		[moviesController setSelectedObjects:[NSArray arrayWithObject:movie]];
+	
+	[samplingRateMatrix selectCellWithTag:[currentImageSource samplingRateType]];
+	[self updateSamplingRateField];
 	[saveFramesCheckBox setState:([currentImageSource canRefetchImages] ? NSOffState : NSOnState)];
 	
 		// Set up to get notified when the window changes size so that we can adjust the
@@ -219,21 +236,10 @@
     [oPanel setCanChooseFiles:YES];
     [oPanel setCanChooseDirectories:NO];
     [oPanel setAllowsMultipleSelection:YES];
-    [oPanel beginSheetForDirectory:nil
-							  file:nil
-							 types:nil	//[NSMovie movieUnfilteredFileTypes]
-					modalForWindow:[editorView window] 
-					 modalDelegate:self
-					didEndSelector:@selector(chooseAnotherMovieDidEnd:returnCode:contextInfo:)
-					   contextInfo:nil];
-}
-
-
-- (void)chooseAnotherMovieDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode contextInfo:(void *)context
-{
-    if (returnCode == NSOKButton)
+	
+    if ([oPanel runModal] == NSFileHandlingPanelOKButton)
 	{
-        NSEnumerator				*moviePathEnumerator = [[sheet filenames] objectEnumerator];
+        NSEnumerator				*moviePathEnumerator = [[oPanel filenames] objectEnumerator];
 		NSString					*moviePath = nil;
 		QuickTimeImageSourceMovie	*movie = nil;
         BOOL						settingsChanged = NO;
@@ -248,6 +254,7 @@
 			if (!movie)
 			{
 				movie = [QuickTimeImageSourceMovie movieWithPath:moviePath];
+				[movie movie];	// force it to load the movie and cache the poster frame
 				[moviesController addObject:movie];
 				settingsChanged = YES;
 			}
@@ -261,6 +268,37 @@
 		if (settingsChanged)
 			[self saveSettings];
 	}
+}
+
+
+- (IBAction)removeMovie:(id)sender
+{
+	QuickTimeImageSourceMovie	*movie = [[moviesController selectedObjects] lastObject];
+	
+	if (movie)
+	{
+		[moviesController removeObject:movie];
+		
+		[self saveSettings];
+	}
+}
+
+
+- (IBAction)setSamplingRateType:(id)sender
+{
+	[currentImageSource setSamplingRateType:[samplingRateMatrix selectedTag]];
+}
+
+
+- (IBAction)setConstantSamplingRate:(id)sender
+{
+	int		setting = (int)roundf([sender floatValue]);
+	NSLog(@"%f = %d", [sender floatValue], setting);
+	float	rate = (setting < 1 ? -1.0 / (setting - 2.0) : setting);
+	
+	[currentImageSource setConstantSamplingRate:rate];
+	
+	[self updateSamplingRateField];
 }
 
 
@@ -287,28 +325,6 @@
 	}
 	else
 		[currentImageSource setPath:nil];
-}
-
-
-#pragma mark -
-#pragma mark Split view delegate methods
-
-
-- (float)splitView:(NSSplitView *)sender constrainMinCoordinate:(float)proposedCoord ofSubviewAt:(int)offset
-{
-	return MAX(226.0, proposedCoord);
-}
-
-
-- (float)splitView:(NSSplitView *)sender constrainMaxCoordinate:(float)proposedCoord ofSubviewAt:(int)offset
-{
-	return MIN(NSWidth([sender frame]) - 226.0, proposedCoord);
-}
-
-
-- (BOOL)splitView:(NSSplitView *)sender canCollapseSubview:(NSView *)subview
-{
-	return NO;
 }
 
 
