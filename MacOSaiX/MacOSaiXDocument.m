@@ -451,12 +451,6 @@
 												[[self mosaic] aspectRatio]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
 			
-				// Write out the tile shapes settings
-			NSString		*className = NSStringFromClass([[[self mosaic] tileShapes] class]);
-			[fileHandle writeData:[[NSString stringWithFormat:@"<TILE_SHAPES_SETTINGS CLASS=\"%@\"/>\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
-			if (![[[self mosaic] tileShapes] saveSettingsToFileAtPath:[savePath stringByAppendingPathComponent:@"Tile Shapes Settings"]])
-				[NSException raise:@"" format:@"Could not save tile shapes settings"];
-			
 			[fileHandle writeData:[@"<IMAGE_USAGE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 			[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\"/>\n", [[self mosaic] imageUseCount], [[self mosaic] imageReuseDistance]] dataUsingEncoding:NSUTF8StringEncoding]];
 			[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_CROP LIMIT=\"%d\"/>\n", [[self mosaic] imageCropLimit]] dataUsingEncoding:NSUTF8StringEncoding]];
@@ -471,7 +465,7 @@
 				id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:index];
 				NSString				*className = NSStringFromClass([imageSource class]);
 				if ([imageSource canRefetchImages])
-					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\">\n", 
+					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\" />\n", 
 																	  index, className, [[self mosaic] countOfImagesFromSource:imageSource]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
 				else
@@ -481,12 +475,15 @@
 												dataUsingEncoding:NSUTF8StringEncoding]];
 				NSString	*settingsFileName = [NSString stringWithFormat:@"Image Source %d", index];
 				if (![imageSource saveSettingsToFileAtPath:[savePath stringByAppendingPathComponent:settingsFileName]])
-					[NSException raise:@"" format:@"Could not save the settings for image source %d", index];
+					[NSException raise:@"" format:@"Could not save the settings for image source %d.", index];
 			}
 			[fileHandle writeData:[@"</IMAGE_SOURCES>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 			
-				// Write out the tiles
-			[fileHandle writeData:[@"<TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				// Write out the tiles and the shapes settings.
+			NSString		*className = NSStringFromClass([[[self mosaic] tileShapes] class]);
+			if (![[[self mosaic] tileShapes] saveSettingsToFileAtPath:[savePath stringByAppendingPathComponent:@"Tile Shapes Settings"]])
+				[NSException raise:@"" format:@"Could not save tile shapes settings."];
+			[fileHandle writeData:[[NSString stringWithFormat:@"<TILES CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
 			NSMutableString	*buffer = [NSMutableString string];
 			NSEnumerator	*tileEnumerator = [[[self mosaic] tiles] objectEnumerator];
 			MacOSaiXTile	*tile = nil;
@@ -792,6 +789,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					}
 					else if ([elementType isEqualToString:@"TILE_SHAPES_SETTINGS"])
 					{
+							// Deprecated.
 						NSString	*className = [nodeAttributes objectForKey:@"CLASS"];
 						
 						newObject = [[NSClassFromString(className) alloc] init];
@@ -849,7 +847,19 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					}
 					else if ([elementType isEqualToString:@"TILES"])
 					{
-						newObject = mosaic;
+						NSString	*className = [nodeAttributes objectForKey:@"CLASS"];
+						
+						if (className)
+						{
+							newObject = [[NSClassFromString(className) alloc] init];
+							
+							NSString	*settingsPath = [[document fileName] stringByAppendingPathComponent:@"Tile Shapes Settings"];
+							if (![[NSFileManager defaultManager] fileExistsAtPath:settingsPath] || 
+								![newObject loadSettingsFromFileAtPath:settingsPath])
+								CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, CFSTR("The tile shapes settings could not be loaded."));
+						}
+						else
+							newObject = mosaic;
 					}
 					else if ([elementType isEqualToString:@"TILE"])
 					{
