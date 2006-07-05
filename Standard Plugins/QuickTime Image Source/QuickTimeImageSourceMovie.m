@@ -8,10 +8,21 @@
 
 #import "QuickTimeImageSourceMovie.h"
 #import "QuickTimeImageSource.h"
+#import "NSString+MacOSaiX.h"
 #import <QuickTime/QuickTime.h>
 
 
 @implementation QuickTimeImageSourceMovie
+
+
++ (void)initialize
+{
+	if ([self class] == [QuickTimeImageSourceMovie class])
+	{
+		[self setKeys:[NSArray arrayWithObject:@"aspectRation"] triggerChangeNotificationsForDependentKey:@"aspectRatioString"];
+		[self setKeys:[NSArray arrayWithObject:@"duration"] triggerChangeNotificationsForDependentKey:@"durationString"];
+	}
+}
 
 
 + (QuickTimeImageSourceMovie *)movieWithPath:(NSString *)moviePath
@@ -77,6 +88,18 @@
 }
 
 
+- (NSString *)aspectRatioString
+{
+	return [NSString stringWithAspectRatio:aspectRatio];
+}
+
+
+- (NSString *)durationString
+{
+	return [NSString stringWithFormat:@"%02d:%02d:%02d", duration / 60 / 60, (duration / 60) % 60, duration % 60];
+}
+
+
 - (NSMovie *)movie
 {
 	if (!movie && path)
@@ -90,11 +113,13 @@
 				// Get the movie's aspect ratio.
 			Rect		movieBounds;
 			GetMovieBox(qtMovie, &movieBounds);
-			aspectRatio = (float)(movieBounds.right - movieBounds.left) / 
-						  (float)(movieBounds.bottom - movieBounds.top);
+			[self setValue:[NSNumber numberWithFloat:(float)(movieBounds.right - movieBounds.left) / 
+												     (float)(movieBounds.bottom - movieBounds.top)]
+					forKey:@"aspectRatio"];
 			
 				// Get the length of the movie in seconds.
-			duration = GetMovieDuration(qtMovie) / GetMovieTimeScale(qtMovie);
+			[self setValue:[NSNumber numberWithInt:GetMovieDuration(qtMovie) / GetMovieTimeScale(qtMovie)]
+					forKey:@"duration"];
 			
 				// Get the poster frame or the generic QuickTime icon if the poster is not available.
 			PicHandle	picHandle = GetMoviePosterPict(qtMovie);
@@ -102,11 +127,9 @@
 			if (err == noErr && picHandle)
 			{
 				NSData	*imageData = [NSData dataWithBytes:*picHandle length:GetHandleSize((Handle)picHandle)];
-				[self setPosterFrame:[[[NSImage alloc] initWithData:imageData] autorelease]];
+				[self setValue:[[[NSImage alloc] initWithData:imageData] autorelease] forKey:@"posterFrame"];
 				KillPicture(picHandle);
 			}
-			
-			[movie release];
 		}
 	}
 	
@@ -119,6 +142,7 @@
 	[path release];
 	[title release];
 	[posterFrame release];
+	[movie release];
 	
 	[super dealloc];
 }
