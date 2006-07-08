@@ -292,6 +292,9 @@
 
 - (IBAction)setConstantSamplingRate:(id)sender
 {
+	[samplingRateMatrix selectCellWithTag:1];
+	[currentImageSource setSamplingRateType:1];
+	
 	int		setting = (int)roundf([sender floatValue]);
 	NSLog(@"%f = %d", [sender floatValue], setting);
 	float	rate = (setting < 1 ? -1.0 / (setting - 2.0) : setting);
