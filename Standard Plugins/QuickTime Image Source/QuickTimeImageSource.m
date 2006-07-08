@@ -67,6 +67,8 @@ static NSImage			*sQuickTimeImage = nil;
 		NSNumber	*saveFramesPref = [[[NSUserDefaults standardUserDefaults] objectForKey:@"QuickTime Image Source"]
 											objectForKey:@"Save Frames"];
 		canRefetchImages = (saveFramesPref ? ![saveFramesPref boolValue] : YES);
+		
+		constantSamplingRate = 1.0;
 	}
 
     return self;
