@@ -14,19 +14,21 @@
 
 @interface QuickTimeImageSource : NSObject <MacOSaiXImageSource>
 {
-    NSString	*moviePath;
-	NSMovie		*movie;
-	NSLock		*movieLock;
-	BOOL		movieIsThreadSafe;
-	NSImage		*currentImage;
-	float		aspectRatio;
-	TimeValue	minIncrement,
-                currentTimeValue, 
-                duration;
-	TimeScale	timeScale;
-	int			samplingRateType;
-	float		constantSamplingRate;
-	BOOL		canRefetchImages;
+    NSString		*moviePath;
+	NSMovie			*movie;
+	NSRecursiveLock	*movieLock;
+	BOOL			movieIsThreadSafe;
+	NSImage			*currentImage;
+	float			aspectRatio;
+	TimeValue		minIncrement,
+					currentTimeValue, 
+					duration;
+	TimeScale		timeScale;
+	int				samplingRateType;
+	float			constantSamplingRate;
+	BOOL			canRefetchImages;
+	
+	NSMutableArray	*recentImageReps;
 }
 
 - (NSString *)path;

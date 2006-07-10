@@ -8,6 +8,8 @@
 
 #import "QuickTimeImageSource.h"
 #import "QuickTimeImageSourceController.h"
+#import "MacOSaiXImageMatcher.h"
+#import "NSImage+MacOSaiX.h"
 #import "NSString+MacOSaiX.h"
 #import <pthread.h>
 
@@ -62,13 +64,15 @@ static NSImage			*sQuickTimeImage = nil;
 {
 	if (self = [super init])
 	{
-		movieLock = [[NSLock alloc] init];
+		movieLock = [[NSRecursiveLock alloc] init];
 		
 		NSNumber	*saveFramesPref = [[[NSUserDefaults standardUserDefaults] objectForKey:@"QuickTime Image Source"]
 											objectForKey:@"Save Frames"];
 		canRefetchImages = (saveFramesPref ? ![saveFramesPref boolValue] : YES);
 		
 		constantSamplingRate = 1.0;
+		
+		recentImageReps = [[NSMutableArray array] retain];
 	}
 
     return self;
@@ -88,10 +92,17 @@ static NSImage			*sQuickTimeImage = nil;
 
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
+	NSMutableArray		*archivedImageReps = [NSMutableArray array];
+	NSEnumerator		*recentImageRepsEnumerator = [recentImageReps objectEnumerator];
+	NSBitmapImageRep	*recentImageRep = nil;
+	while (recentImageRep = [recentImageRepsEnumerator nextObject])
+		[archivedImageReps addObject:[NSArchiver archivedDataWithRootObject:recentImageRep]];
+	
 	return [[NSDictionary dictionaryWithObjectsAndKeys:
 								[self path], @"Path", 
 								[NSNumber numberWithLong:currentTimeValue], @"Last Used Time", 
 								[NSNumber numberWithBool:!canRefetchImages], @"Save Frames", 
+								archivedImageReps, @"Recent Frames", 
 								nil] 
 				writeToFile:path atomically:NO];
 }
@@ -104,6 +115,11 @@ static NSImage			*sQuickTimeImage = nil;
 	[self setPath:[settings objectForKey:@"Path"]];
 	currentTimeValue = [[settings objectForKey:@"Last Used Time"] longValue];
 	canRefetchImages = ![[settings objectForKey:@"Save Frames"] boolValue];
+	
+	NSEnumerator	*archivedImageRepsEnumerator = [[settings objectForKey:@"Recent Frames"] objectEnumerator];
+	NSData			*archivedImageRep = nil;
+	while (archivedImageRep = [archivedImageRepsEnumerator nextObject])
+		[recentImageReps addObject:[NSUnarchiver unarchiveObjectWithData:archivedImageRep]];
 	
 	return YES;
 }
@@ -184,9 +200,6 @@ static NSImage			*sQuickTimeImage = nil;
 				// Get the frame rate and duration of the movie.
 			timeScale = GetMovieTimeScale(qtMovie);
 			duration = GetMovieDuration(qtMovie);
-				
-				// The smallest step to take even if GetNextInterestingTime() returns a smaller value.
-			minIncrement = timeScale / 5;   // equals 5 fps
 
 			posterFrameTimeValue = GetMoviePosterTime(qtMovie);
 			
@@ -225,7 +238,9 @@ static NSImage			*sQuickTimeImage = nil;
 	
 	@try
 	{
+		[[NSGraphicsContext currentContext] saveGraphicsState];
 		[newImage lockFocus];
+			[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
 			if ([image size].width > [image size].height)
 			{
 				float	scaledHeight = 32.0 / [image size].width * [image size].height;
@@ -261,6 +276,7 @@ static NSImage			*sQuickTimeImage = nil;
 	@finally
 	{
 		[newImage unlockFocus];
+		[[NSGraphicsContext currentContext] restoreGraphicsState];
 	}
 	
 	[currentImage autorelease];
@@ -299,6 +315,8 @@ static NSImage			*sQuickTimeImage = nil;
 	NSImage	*nextImage = nil;
 	*identifier = nil;
 	
+	NSMutableDictionary	*parameters = [NSMutableDictionary dictionary];
+	
 	if (movieIsThreadSafe)
 	{
 		[movieLock lock];
@@ -310,43 +328,28 @@ static NSImage			*sQuickTimeImage = nil;
 			
 			if (err == noErr)
 			{
-					// TODO: Rather than using the next interesting time use the image matching code to 
-					//       detect when the image changes significantly.
-				TimeValue   nextInterestingTime = 0;
-				GetMovieNextInterestingTime (qtMovie, nextTimeStep, 0, nil, currentTimeValue, 1, &nextInterestingTime, nil);
-				
-				if (nextInterestingTime - currentTimeValue < minIncrement)
-					currentTimeValue += minIncrement;
-				else
-					currentTimeValue = nextInterestingTime;
-				
-				if (currentTimeValue < duration)
-					*identifier = [NSString stringWithFormat:@"%ld", currentTimeValue];
-				
-				DetachMovieFromCurrentThread(qtMovie);
+				@try
+				{
+					[self nextImageAndIdentifierOnMainThread:parameters];
+				}
+				@finally
+				{
+					DetachMovieFromCurrentThread(qtMovie);
+				}
 			}
 		}
 		@finally
 		{
 			[movieLock unlock];
 		}
-		
-		if (*identifier)
-			nextImage = [self imageForIdentifier:*identifier];
-		if (!nextImage)
-			*identifier = nil;
 	}
 	else
-	{
-		NSMutableDictionary	*parameters = [NSMutableDictionary dictionary];
-		
 		[self performSelectorOnMainThread:@selector(nextImageAndIdentifierOnMainThread:) 
 							   withObject:parameters
 							waitUntilDone:YES];
-		
-		*identifier = [parameters objectForKey:@"identifier"];
-		nextImage = [parameters objectForKey:@"image"];
-	}
+	
+	*identifier = [parameters objectForKey:@"identifier"];
+	nextImage = [parameters objectForKey:@"image"];
 	
 	if (nextImage)
 		[self setCurrentImage:nextImage];
@@ -355,33 +358,83 @@ static NSImage			*sQuickTimeImage = nil;
 }
 
 
+- (BOOL)imageIsSignificantlyDifferent:(NSImage *)image
+{
+	BOOL				isDifferent = YES;
+	
+		// Get a thumbnail bitmap.
+	NSImage				*thumbnail = [image copyWithLargestDimension:16];
+	NSBitmapImageRep	*imageRep = [[thumbnail representations] lastObject];
+	
+		// See if it is similar to any of the recent bitmaps.
+	MacOSaiXImageMatcher	*imageMatcher = [NSClassFromString(@"MacOSaiXImageMatcher") sharedMatcher];
+	NSEnumerator			*recentImageRepsEnumerator = [recentImageReps objectEnumerator];
+	NSBitmapImageRep		*recentImageRep = nil;
+	while (recentImageRep = [recentImageRepsEnumerator nextObject])
+		if ([imageMatcher compareImageRep:imageRep 
+								 withMask:nil 
+							   toImageRep:recentImageRep 
+							 previousBest:1.0] < 0.02)
+		{
+			isDifferent = NO;
+			break;
+		}
+	
+	if (isDifferent)
+	{
+		[recentImageReps insertObject:imageRep atIndex:0];
+		if ([recentImageReps count] > 32)
+			[recentImageReps removeLastObject];
+	}
+	
+	[thumbnail release];
+	
+	return isDifferent;
+}
+
+
 - (void)nextImageAndIdentifierOnMainThread:(NSMutableDictionary *)parameters
 {
-	// TODO: Rather than using the next interesting time use the image matching code to 
-	//       detect when the image changes significantly.
-	
-    Movie		qtMovie = [movie QTMovie];
-	TimeValue   nextInterestingTime = 0;
-	NSString	*identifier = nil;
 	NSImage		*image = [[[NSImage alloc] initWithSize:NSMakeSize(64, 64)] autorelease];
 	[image removeRepresentation:[[image representations] lastObject]];
 	
-	GetMovieNextInterestingTime (qtMovie, nextTimeStep, 0, nil, currentTimeValue, 1, &nextInterestingTime, nil);
-	if (nextInterestingTime - currentTimeValue < minIncrement)
-		currentTimeValue += minIncrement;
-	else
-		currentTimeValue = nextInterestingTime;
-	
-	if (currentTimeValue < duration)
+	if ([self samplingRateType] == 0)
 	{
-		identifier = [NSString stringWithFormat:@"%ld", currentTimeValue];
-		
-		[self imageForIdentifierOnMainThread:[NSArray arrayWithObjects:identifier, image, nil]];
-		
-		if ([[image representations] count] > 0)
+		do
 		{
-			[parameters setObject:identifier forKey:@"identifier"];
-			[parameters setObject:image forKey:@"image"];
+			currentTimeValue += timeScale / 10;	// max 10 fps
+			
+			if (currentTimeValue < duration)
+			{
+				NSString	*identifier = [NSString stringWithFormat:@"%ld", currentTimeValue];
+				
+				[self imageForIdentifierOnMainThread:[NSArray arrayWithObjects:identifier, image, nil]];
+				
+				if (![self imageIsSignificantlyDifferent:image])
+					[image removeRepresentation:[[image representations] lastObject]];
+				else
+				{
+					[parameters setObject:identifier forKey:@"identifier"];
+					[parameters setObject:image forKey:@"image"];
+				}
+			}
+		} while (currentTimeValue < duration && ![parameters objectForKey:@"image"]);
+	}
+	else
+	{
+		currentTimeValue += [self constantSamplingRate] * timeScale;
+		
+		if (currentTimeValue < duration)
+		{
+			NSString	*identifier = [NSString stringWithFormat:@"%ld", currentTimeValue];
+			
+			[self imageForIdentifierOnMainThread:[NSArray arrayWithObjects:identifier, image, nil]];
+			
+			if ([[image representations] count] > 0)
+			{
+				[parameters setObject:identifier forKey:@"identifier"];
+				[parameters setObject:image forKey:@"image"];
+			}
 		}
 	}
 }
@@ -556,6 +609,7 @@ static NSImage			*sQuickTimeImage = nil;
 		return;
 	
 	currentTimeValue = 0;
+	[recentImageReps removeAllObjects];
 	
 	if (movieIsThreadSafe)
 	{
@@ -607,6 +661,7 @@ static NSImage			*sQuickTimeImage = nil;
 	[self setPath:nil];
 	[movieLock release];
 	[currentImage release];
+	[recentImageReps release];
 	
 	[super dealloc];
 }
