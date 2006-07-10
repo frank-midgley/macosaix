@@ -16,6 +16,8 @@
 @interface MacOSaiXTile : NSObject
 {
 	NSBezierPath		*outline;				// The shape of this tile
+	float				orientation;			// The orientation of this tile (in radians)
+	
 	NSBitmapImageRep	*bitmapRep,				// The portion of the original image that is in this tile
 						*maskRep;
 	MacOSaiXImageMatch	*uniqueImageMatch,
@@ -26,6 +28,9 @@
 
 	// designated initializer
 - (id)initWithOutline:(NSBezierPath *)outline fromMosaic:(MacOSaiXMosaic *)inMosaic;
+
+- (void)setOrientation:(float)angle;
+- (float)orientation;
 
 - (MacOSaiXMosaic *)mosaic;
 

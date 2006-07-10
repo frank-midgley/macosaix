@@ -1,6 +1,7 @@
 #import "Tiles.h"
 
 #import "MacOSaiXDocument.h"
+#import "NSBezierPath+MacOSaiX.h"
 
 
 @interface MacOSaiXMosaic (TilePrivate)
@@ -17,6 +18,7 @@
 	{
 		outline = [inOutline retain];
 		mosaic = inMosaic;	// non-retained, it retains us
+		[self setOrientation:M_PI_2];
 	}
 	return self;
 }
@@ -37,6 +39,18 @@
 - (NSBezierPath *)outline
 {
     return outline;
+}
+
+
+- (void)setOrientation:(float)angle
+{
+	orientation = angle;
+}
+
+
+- (float)orientation
+{
+	return orientation;
 }
 
 
@@ -71,8 +85,11 @@
 								NSMakeRect(0, 0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE * origRect.size.height / origRect.size.width) : 
 								NSMakeRect(0, 0, TILE_BITMAP_SIZE * origRect.size.width / origRect.size.height, TILE_BITMAP_SIZE);
 	
-	NSImage	*workingImage = [[NSImage alloc] initWithSize:destRect.size];
-	BOOL	focusLocked = NO;
+	destRect.size.width = ceilf(destRect.size.width);
+	destRect.size.height = ceilf(destRect.size.height);
+	
+	NSImage			*workingImage = [[NSImage alloc] initWithSize:destRect.size];
+	BOOL			focusLocked = NO;
 	
 	NS_DURING
 		[workingImage lockFocus];
@@ -89,30 +106,6 @@
 			if (bitmapRep == nil)
 				NSLog(@"Could not extract tile image from original.");
 		#endif
-	
-			// Calculate a mask image using the tile's outline that is the same size as the image
-			// extracted from the original.  The mask will be white for pixels that are inside the 
-			// tile and black outside.
-			// (This would work better if we could just replace the previous rep's alpha channel
-			//  but I haven't figured out an easy way to do that yet.)
-		[[NSGraphicsContext currentContext] saveGraphicsState];	// so we can undo the clip
-				// Start with a black background.
-			[[NSColor blackColor] set];
-			[[NSBezierPath bezierPathWithRect:destRect] fill];
-			
-				// Fill the tile's outline with white.
-			NSAffineTransform  *transform = [NSAffineTransform transform];
-			[transform scaleXBy:destRect.size.width / [tileOutline bounds].size.width
-							yBy:destRect.size.height / [tileOutline bounds].size.height];
-			[transform translateXBy:[tileOutline bounds].origin.x * -1
-								yBy:[tileOutline bounds].origin.y * -1];
-			[[NSColor whiteColor] set];
-			[[transform transformBezierPath:tileOutline] fill];
-			
-				// Copy out the mask image and store it in the tile.
-				// TO DO: RGB is wasting space, should be grayscale.
-			maskRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect];
-		[[NSGraphicsContext currentContext] restoreGraphicsState];
 	NS_HANDLER
 		#ifdef DEBUG
 			NSLog(@"Exception raised while extracting tile images: %@", [localException name]);
@@ -123,7 +116,54 @@
 		[workingImage unlockFocus];
 	
 	[workingImage release];
+
+		// Calculate a mask image using the tile's outline that is the same size as the image
+		// extracted from the original.  The mask will be white for pixels that are inside the 
+		// tile and black outside.
+		// (This would work better if we could just replace the previous rep's alpha channel
+		//  but I haven't figured out an easy way to do that yet.)
+	maskRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nil 
+													   pixelsWide:NSWidth(destRect) 
+													   pixelsHigh:NSHeight(destRect) 
+													bitsPerSample:8 
+												  samplesPerPixel:1 
+														 hasAlpha:NO 
+														 isPlanar:NO 
+												   colorSpaceName:NSCalibratedWhiteColorSpace 
+													  bytesPerRow:0 
+													 bitsPerPixel:0];
+	CGColorSpaceRef	grayscaleColorSpace = CGColorSpaceCreateDeviceGray();
+	CGContextRef	bitmapContext = CGBitmapContextCreate([maskRep bitmapData], 
+														  [maskRep pixelsWide], 
+														  [maskRep pixelsHigh], 
+														  [maskRep bitsPerSample], 
+														  [maskRep bytesPerRow], 
+														  grayscaleColorSpace,
+														  kCGBitmapByteOrderDefault);
+		// Start with a black background.
+	CGContextSetGrayFillColor(bitmapContext, 0.0, 1.0);
+	CGRect			cgDestRect = CGRectMake(destRect.origin.x, destRect.origin.y, 
+											destRect.size.width, destRect.size.height);
+	CGContextFillRect(bitmapContext, cgDestRect);
+	
+		// Fill the tile's outline with white.
+	NSAffineTransform  *transform = [NSAffineTransform transform];
+	[transform scaleXBy:destRect.size.width / [tileOutline bounds].size.width
+					yBy:destRect.size.height / [tileOutline bounds].size.height];
+	[transform translateXBy:[tileOutline bounds].origin.x * -1
+						yBy:[tileOutline bounds].origin.y * -1];
+	CGPathRef		cgTileOutline = [[transform transformBezierPath:tileOutline] quartzPath];
+	CGContextSetGrayFillColor(bitmapContext, 1.0, 1.0);
+	CGContextBeginPath(bitmapContext);
+	CGContextAddPath(bitmapContext, cgTileOutline);
+	CGContextClosePath(bitmapContext);
+	CGContextFillPath(bitmapContext);
+	CGPathRelease(cgTileOutline);
+	
+	CGContextRelease(bitmapContext);
+	CGColorSpaceRelease(grayscaleColorSpace);
 }
+
 
 - (NSBitmapImageRep *)bitmapRep
 {
