@@ -63,7 +63,6 @@ float colorDifference(pixelColor color1, pixelColor color2)
 					*maskBytes = [maskRep bitmapData];
 	int				//bytesPerPixel = [imageRep hasAlpha] ? 4 : 3, 
 					//bytesPerRow = [imageRep bytesPerRow], 
-					maskBytesPerPixel = [maskRep hasAlpha] ? 4 : 3, 
 					maskBytesPerRow = [maskRep bytesPerRow];
 	int				startX, startY, pixelsWide = [imageRep size].width, pixelsHigh = [imageRep size].height;
 	
@@ -71,7 +70,7 @@ float colorDifference(pixelColor color1, pixelColor color2)
 		for (startY = 0; startY < pixelsHigh; startY++)
 		{
 			unsigned char	//*imageOffset = imageBytes + startX * bytesPerPixel + startY * bytesPerRow,
-							maskByte = *(maskBytes + startX * maskBytesPerPixel + startY * maskBytesPerRow);
+							maskByte = *(maskBytes + startY * maskBytesPerRow + startX);
 //			pixelColor		startColor = {*imageOffset, *(imageOffset + 1), *(imageOffset + 2)};
 
 #if 1
@@ -166,8 +165,8 @@ float colorDifference(pixelColor color1, pixelColor color2)
 		    previousBest:(float)valueToBeat
 {
 	if (!bitmapRep1 || !bitmapRep2 || 
-		[bitmapRep1 pixelsWide] != [maskRep pixelsWide] || [bitmapRep1 pixelsWide] != [bitmapRep2 pixelsWide] || 
-		[bitmapRep1 pixelsHigh] != [maskRep pixelsHigh] || [bitmapRep1 pixelsHigh] != [bitmapRep2 pixelsHigh])
+		(maskRep && [bitmapRep1 pixelsWide] != [maskRep pixelsWide]) || [bitmapRep1 pixelsWide] != [bitmapRep2 pixelsWide] || 
+		(maskRep && [bitmapRep1 pixelsHigh] != [maskRep pixelsHigh]) || [bitmapRep1 pixelsHigh] != [bitmapRep2 pixelsHigh])
 		[NSException raise:@"Invalid bitmap(s)" format:@"The bitmaps to compare are not the same size"];
 	
 	float				matchValue = 0.0;
@@ -175,17 +174,16 @@ float colorDifference(pixelColor color1, pixelColor color2)
 						bytesPerRow1 = [bitmapRep1 bytesPerRow], 
 						bytesPerPixel2 = [bitmapRep2 hasAlpha] ? 4 : 3, 
 						bytesPerRow2 = [bitmapRep2 bytesPerRow], 
-						maskBytesPerPixel = [maskRep hasAlpha] ? 4 : 3, 
 						maskBytesPerRow = [maskRep bytesPerRow], 
 						xSize = [bitmapRep1 size].width,
 						ySize = [bitmapRep1 size].height;
 	float				pixelCount = 0.0, // fractional pixels are counted
 						pixelsLeft = xSize * ySize;
-	NSData				*adjustedMask = [self adjustedMaskForMaskRep:maskRep ofImageRep:bitmapRep1];
+	NSData				*adjustedMask = (maskRep ? [self adjustedMaskForMaskRep:maskRep ofImageRep:bitmapRep1] : nil);
 	unsigned char		*bitmap1Bytes = [bitmapRep1 bitmapData], 
 						*bitmap2Bytes = [bitmapRep2 bitmapData], 
 						*maskBytes = [maskRep bitmapData], 
-						*adjustedMaskBytes = (unsigned char *)[adjustedMask bytes];
+						*adjustedMaskBytes = (maskRep ? (unsigned char *)[adjustedMask bytes] : nil);
 	
 		// Scale the 0.0<->1.0 value back to our internal scale to make calculation faster.
 	valueToBeat *= MAX_COLOR_DIFF;
@@ -204,10 +202,10 @@ float colorDifference(pixelColor color1, pixelColor color2)
 							*bitmap2_off = bitmap2Bytes + x * bytesPerPixel2 + y * bytesPerRow2;
 			pixelColor		color1 = {*bitmap1_off, *(bitmap1_off + 1), *(bitmap1_off + 2)}, 
 							color2 = {*bitmap2_off, *(bitmap2_off + 1), *(bitmap2_off + 2)};
-			float			adjustedMaskWeight = *(adjustedMaskBytes++) / 255.0;	// 0.0 <-> 1.0
+			float			adjustedMaskWeight = (maskRep ? *(adjustedMaskBytes++) / 255.0 : 1.0);	// 0.0 <-> 1.0
 			
 			matchValue += (MAX_COLOR_DIFF - colorDifference(color1, color2)) * adjustedMaskWeight;
-			pixelCount += (maskRep ? *(maskBytes + x * maskBytesPerPixel + y * maskBytesPerRow) / 255.0 : 1.0);
+			pixelCount += (maskRep ? *(maskBytes + x + y * maskBytesPerRow) / 255.0 : 1.0);
 		}
 		pixelsLeft -= ySize;
 		
