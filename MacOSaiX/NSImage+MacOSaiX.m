@@ -41,11 +41,14 @@
 	
 	if (haveFocus)
 	{
+		[[NSGraphicsContext currentContext] saveGraphicsState];
+		[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
 		[self drawInRect:copyRect 
 			    fromRect:NSMakeRect(0.0, 0.0, originalSize.width, originalSize.height) 
 			   operation:NSCompositeCopy 
 			    fraction:1.0];
 		bitmapRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:copyRect] autorelease];
+		[[NSGraphicsContext currentContext] restoreGraphicsState];
 		[copy unlockFocus];
 		
 		[copy removeRepresentation:[[copy representations] lastObject]];
