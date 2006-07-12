@@ -121,7 +121,7 @@ static NSArray	*formatExtensions = nil;
 					   modalForWindow:window
 						modalDelegate:self
 					   didEndSelector:@selector(savePanelDidEnd:returnCode:contextInfo:)
-						  contextInfo:nil];
+						  contextInfo:window];
 }
 
 
@@ -201,9 +201,42 @@ static NSArray	*formatExtensions = nil;
 }
 
 
+- (int)exportPixelWidth
+{
+	return ([unitsPopUp selectedTag] == 0 ? [widthField floatValue] * [resolutionPopUp selectedTag] : 
+			[widthField intValue]);
+}
+
+
+- (int)exportPixelHeight
+{
+	return ([unitsPopUp selectedTag] == 0 ? [heightField floatValue] * [resolutionPopUp selectedTag] : 
+			[heightField intValue]);
+}
+
+
 - (IBAction)setOpenImageWhenComplete:(id)sender
 {
 	openWhenComplete = ([openWhenCompleteButton state] == NSOnState);
+}
+
+
+- (NSString *)panel:(id)sender userEnteredFilename:(NSString *)filename confirmed:(BOOL)okFlag
+{
+	if (okFlag)
+	{
+		bitmapBuffer = malloc([self exportPixelWidth] * [self exportPixelHeight] * 4.0);
+		
+		if (!bitmapBuffer)
+		{
+			NSRunAlertPanel(@"There is not enough memory available to save the mosaic at that size.", 
+							@"Please choose a smaller size or resolution.", 
+							@"OK", nil, nil);
+			filename = nil;
+		}
+	}
+	
+	return filename;
 }
 
 
@@ -215,7 +248,7 @@ static NSArray	*formatExtensions = nil;
 
 - (void)savePanelDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
-	NSWindow	*window = [sheet parentWindow];
+	NSWindow	*window = (NSWindow *)contextInfo;
 	
 	[sheet orderOut:self];
 	
@@ -246,20 +279,6 @@ static NSArray	*formatExtensions = nil;
 }
 
 
-- (int)exportPixelWidth
-{
-	return ([unitsPopUp selectedTag] == 0 ? [widthField floatValue] * [resolutionPopUp selectedTag] : 
-											[widthField intValue]);
-}
-
-
-- (int)exportPixelHeight
-{
-	return ([unitsPopUp selectedTag] == 0 ? [heightField floatValue] * [resolutionPopUp selectedTag] : 
-											[heightField intValue]);
-}
-
-
 - (void)exportMosaic:(NSString *)filename
 {
     NSAutoreleasePool		*pool = [[NSAutoreleasePool alloc] init];
@@ -285,11 +304,22 @@ static NSArray	*formatExtensions = nil;
 	
 	NSRect					exportRect = NSMakeRect(0.0, 0.0, [self exportPixelWidth], [self exportPixelHeight]);
 	
+	NSBitmapImageRep		*exportRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&bitmapBuffer 
+																				 pixelsWide:[self exportPixelWidth] 
+																				 pixelsHigh:[self exportPixelHeight] 
+																			  bitsPerSample:8 
+																			samplesPerPixel:4 
+																				   hasAlpha:YES 
+																				   isPlanar:NO 
+																			 colorSpaceName:NSDeviceRGBColorSpace 
+																				bytesPerRow:0 
+																			   bitsPerPixel:0];
     NSImage					*exportImage = [[NSImage alloc] initWithSize:exportRect.size];
+	[exportImage addRepresentation:exportRep];
 	[exportImage setCachedSeparately:YES];
 	[exportImage setCacheMode:NSImageCacheNever];
 	NS_DURING
-		[exportImage lockFocus];
+		[exportImage lockFocusOnRepresentation:exportRep];
 	NS_HANDLER
 		error = [NSString stringWithFormat:NSLocalizedString(@"Could not draw images into the mosaic.  (%@)", @""), 
 										   [localException reason]];
@@ -509,8 +539,6 @@ static NSArray	*formatExtensions = nil;
         [pool2 release];
     }
 	
-	NSBitmapImageRep	*exportRep = nil;
-		
 	if (exportCancelled)
 		[exportImage unlockFocus];
 	else
@@ -530,7 +558,7 @@ static NSArray	*formatExtensions = nil;
 				[exportRep setSize:NSMakeSize([exportImage size].width * scale, [exportImage size].height * scale)];
 			}
 			
-			NSData					*bitmapData = [exportRep representationUsingType:exportImageType properties:properties];
+			NSData	*bitmapData = [exportRep representationUsingType:exportImageType properties:properties];
 			
 			if (createWebPage)
 			{
@@ -574,6 +602,8 @@ static NSArray	*formatExtensions = nil;
 		[[NSFileManager defaultManager] removeFileAtPath:filename handler:nil];
 	else if (openWhenComplete)
 		[[NSWorkspace sharedWorkspace] openFile:filename];
+	
+	[progressController closePanel];
 	
 	if (didEndSelector)
 		[delegate performSelector:didEndSelector withObject:error];

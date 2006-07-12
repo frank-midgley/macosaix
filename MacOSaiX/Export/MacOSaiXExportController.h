@@ -42,6 +42,8 @@
 								includeOriginalImage, 
 								openWhenComplete, 
 								exportCancelled;
+	
+	unsigned char				*bitmapBuffer;
 }
 
 - (void)exportMosaic:(MacOSaiXMosaic *)mosaic
