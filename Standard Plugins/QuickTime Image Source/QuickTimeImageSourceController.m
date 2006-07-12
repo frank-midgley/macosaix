@@ -16,7 +16,10 @@
 
 - (void)saveSettings
 {
-	NSMutableDictionary	*settings = [[[NSUserDefaults standardUserDefaults] objectForKey:@"QuickTime Image Source"] mutableCopy];
+	NSMutableDictionary	*settings = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"QuickTime Image Source"] mutableCopy] autorelease];
+	
+	if (!settings)
+		settings = [NSMutableDictionary dictionary];
 	
 		// Remember the current movie paths and poster frames.
 	NSMutableArray				*movieDicts = [NSMutableArray array];
@@ -36,8 +39,6 @@
 	
 	[[NSUserDefaults standardUserDefaults] setObject:settings forKey:@"QuickTime Image Source"];
 	[[NSUserDefaults standardUserDefaults] synchronize];
-	
-	[settings release];
 }
 
 
