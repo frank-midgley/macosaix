@@ -7,20 +7,10 @@
             SUPERCLASS = NSObject; 
         }, 
         {
-            ACTIONS = {chooseAnotherMovie = id; clearMovieList = id; setSaveFrames = id; }; 
-            CLASS = QuickTimeImageSourceController; 
+            ACTIONS = {setSource = id; }; 
+            CLASS = MacOSaiXiSightImageSourceController; 
             LANGUAGE = ObjC; 
-            OUTLETS = {
-                chooseAnotherMovieButton = NSButton; 
-                clearMovieListButton = NSButton; 
-                editorView = NSView; 
-                movieBox = NSBox; 
-                movieNameTextField = NSTextField; 
-                movieView = NSMovieView; 
-                moviesController = NSArrayController; 
-                moviesTable = NSTableView; 
-                saveFramesCheckBox = NSButton; 
-            }; 
+            OUTLETS = {editorView = NSView; previewView = NSImageView; sourcePopUp = NSPopUpButton; }; 
             SUPERCLASS = NSObject; 
         }
     ); 
