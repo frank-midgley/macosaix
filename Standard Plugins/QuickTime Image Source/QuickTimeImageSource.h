@@ -20,12 +20,13 @@
 	BOOL			movieIsThreadSafe;
 	NSImage			*currentImage;
 	float			aspectRatio;
-	TimeValue		minIncrement,
-					currentTimeValue, 
+	TimeValue		currentTimeValue, 
 					duration;
 	TimeScale		timeScale;
 	int				samplingRateType;
 	float			constantSamplingRate;
+	Rect			nativeBounds, 
+					thumbnailBounds;
 	BOOL			canRefetchImages;
 	
 	NSMutableArray	*recentImageReps;

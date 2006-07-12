@@ -20,7 +20,8 @@ static NSImage			*sQuickTimeImage = nil;
 @interface QuickTimeImageSource (PrivateMethods)
 - (void)setCurrentImage:(NSImage *)image;
 - (void)nextImageAndIdentifierOnMainThread:(NSMutableDictionary *)parameters;
-- (void)imageForIdentifierOnMainThread:(NSArray *)parameters;
+- (void)imageForIdentifierOnMainThread:(NSMutableDictionary *)parameters;
+- (NSImage *)frameAtTime:(TimeValue)time thumbnail:(BOOL)getThumbnail;
 @end
 
 
@@ -191,11 +192,13 @@ static NSImage			*sQuickTimeImage = nil;
 			Movie		qtMovie = [movie QTMovie];
 			
 				// Get the movie's aspect ratio and move its origin to {0, 0}.
-			Rect		movieBounds;
-			GetMovieBox(qtMovie, &movieBounds);
-			aspectRatio = (float)(movieBounds.right - movieBounds.left) / (float)(movieBounds.bottom - movieBounds.top);
-			OffsetRect(&movieBounds, -movieBounds.left, -movieBounds.top);
-			SetMovieBox(qtMovie, &movieBounds);
+			GetMovieBox(qtMovie, &nativeBounds);
+			aspectRatio = (float)(nativeBounds.right - nativeBounds.left) / (float)(nativeBounds.bottom - nativeBounds.top);
+			OffsetRect(&nativeBounds, -nativeBounds.left, -nativeBounds.top);
+			if (nativeBounds.right > 80)
+				SetRect(&thumbnailBounds, 0, 0, 80, nativeBounds.bottom * 80 / nativeBounds.right);
+			else
+				thumbnailBounds = nativeBounds;
 			
 				// Get the frame rate and duration of the movie.
 			timeScale = GetMovieTimeScale(qtMovie);
@@ -395,28 +398,18 @@ static NSImage			*sQuickTimeImage = nil;
 
 - (void)nextImageAndIdentifierOnMainThread:(NSMutableDictionary *)parameters
 {
-	NSImage		*image = [[[NSImage alloc] initWithSize:NSMakeSize(64, 64)] autorelease];
-	[image removeRepresentation:[[image representations] lastObject]];
-	
 	if ([self samplingRateType] == 0)
 	{
 		do
 		{
 			currentTimeValue += timeScale / 10;	// max 10 fps
 			
-			if (currentTimeValue < duration)
+			NSImage	*image = [self frameAtTime:currentTimeValue thumbnail:YES];
+			
+			if (image && [self imageIsSignificantlyDifferent:image])
 			{
-				NSString	*identifier = [NSString stringWithFormat:@"%ld", currentTimeValue];
-				
-				[self imageForIdentifierOnMainThread:[NSArray arrayWithObjects:identifier, image, nil]];
-				
-				if (![self imageIsSignificantlyDifferent:image])
-					[image removeRepresentation:[[image representations] lastObject]];
-				else
-				{
-					[parameters setObject:identifier forKey:@"identifier"];
-					[parameters setObject:image forKey:@"image"];
-				}
+				[parameters setObject:[NSString stringWithFormat:@"%ld", currentTimeValue] forKey:@"identifier"];
+				[parameters setObject:image forKey:@"image"];
 			}
 		} while (currentTimeValue < duration && ![parameters objectForKey:@"image"]);
 	}
@@ -426,13 +419,11 @@ static NSImage			*sQuickTimeImage = nil;
 		
 		if (currentTimeValue < duration)
 		{
-			NSString	*identifier = [NSString stringWithFormat:@"%ld", currentTimeValue];
+			NSImage	*image = [self frameAtTime:currentTimeValue thumbnail:YES];
 			
-			[self imageForIdentifierOnMainThread:[NSArray arrayWithObjects:identifier, image, nil]];
-			
-			if ([[image representations] count] > 0)
+			if (image)
 			{
-				[parameters setObject:identifier forKey:@"identifier"];
+				[parameters setObject:[NSString stringWithFormat:@"%ld", currentTimeValue] forKey:@"identifier"];
 				[parameters setObject:image forKey:@"image"];
 			}
 		}
@@ -479,15 +470,63 @@ static NSImage			*sQuickTimeImage = nil;
 }
 
 
-- (NSImage *)thumbnailForIdentifier:(NSString *)identifier
+- (NSImage *)frameAtTime:(TimeValue)time thumbnail:(BOOL)getThumbnail
 {
-	return nil;
+	NSImage	*image = nil;
+	
+	if (time <= duration)
+	{
+		Movie	qtMovie = [movie QTMovie];
+		
+		if (getThumbnail)
+			SetMovieBox(qtMovie, &nativeBounds);
+		else
+			SetMovieBox(qtMovie, &thumbnailBounds);
+			
+		PicHandle	picHandle = GetMoviePict(qtMovie, time);
+		OSErr       err = GetMoviesError();
+		if (err != noErr)
+			NSLog(@"Error %d getting movie picture.", err);
+		else if (picHandle)
+		{
+			NSData			*imageData = [NSData dataWithBytes:*picHandle length:GetHandleSize((Handle)picHandle)];
+			NSPICTImageRep	*imageRep = [NSPICTImageRep imageRepWithData:imageData];
+			image = [[[NSImage alloc] initWithSize:[imageRep size]] autorelease];
+			@try
+			{
+				[image lockFocus];
+				[imageRep drawAtPoint:NSMakePoint(0.0, 0.0)];
+				[image unlockFocus];
+			}
+			@catch (NSException *)
+			{
+				image = nil;
+			}
+			
+			KillPicture(picHandle);
+		}
+	}
+	
+	return image;
 }
 
 
-- (NSImage *)imageForIdentifier:(NSString *)identifier
+- (void)imageForIdentifierOnMainThread:(NSMutableDictionary *)parameters
 {
-	NSImage	*imageAtTimeValue = nil;
+	NSImage	*image = [self frameAtTime:[[parameters objectForKey:@"Identifier"] intValue] 
+							 thumbnail:[[parameters objectForKey:@"Thumbnail"] boolValue]];
+	
+	if (image)
+		[parameters setObject:image forKey:@"Image"];
+}
+
+
+- (NSImage *)imageForIdentifier:(NSString *)identifier thumbnail:(BOOL)getThumbnail
+{
+	NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+											identifier, @"Identifier",
+											[NSNumber numberWithBool:getThumbnail], @"Thumbnail", 
+											nil];
 	
 	if (movieIsThreadSafe)
 	{
@@ -500,30 +539,7 @@ static NSImage			*sQuickTimeImage = nil;
 			
 			if (err == noErr)
 			{
-				TimeValue	requestedTime = [identifier intValue];
-				
-				if (requestedTime <= duration)
-				{
-					PicHandle	picHandle = GetMoviePict(qtMovie, requestedTime);
-					OSErr       err = GetMoviesError();
-					if (err != noErr)
-						NSLog(@"Error %d getting movie picture.", err);
-					else if (picHandle)
-					{
-						NSPICTImageRep	*imageRep = [NSPICTImageRep imageRepWithData:[NSData dataWithBytes:*picHandle 
-																									length:GetHandleSize((Handle)picHandle)]];
-						imageAtTimeValue = [[[NSImage alloc] initWithSize:[imageRep size]] autorelease];
-						@try
-						{
-							[imageAtTimeValue lockFocus];
-								[imageRep drawAtPoint:NSMakePoint(0.0, 0.0)];
-							[imageAtTimeValue unlockFocus];
-						}
-						@finally {}
-						
-						KillPicture(picHandle);
-					}
-				}
+				[self imageForIdentifierOnMainThread:parameters];
 				
 				DetachMovieFromCurrentThread(qtMovie);
 			}
@@ -534,46 +550,23 @@ static NSImage			*sQuickTimeImage = nil;
 		}
 	}
 	else
-	{
-		imageAtTimeValue = [[[NSImage alloc] initWithSize:NSMakeSize(64, 64)] autorelease];
-		
 		[self performSelectorOnMainThread:@selector(imageForIdentifierOnMainThread:) 
-							   withObject:[NSArray arrayWithObjects:identifier, imageAtTimeValue, nil]
+							   withObject:parameters
 							waitUntilDone:YES];
-	}
 	
-	return imageAtTimeValue;
+	return [parameters objectForKey:@"Image"];
 }
 
 
-- (void)imageForIdentifierOnMainThread:(NSArray *)parameters
+- (NSImage *)thumbnailForIdentifier:(NSString *)identifier
 {
-    Movie		qtMovie = [movie QTMovie];
-	TimeValue	requestedTime = [[parameters objectAtIndex:0] intValue];
-	
-	if (requestedTime <= duration)
-	{
-		PicHandle	picHandle = GetMoviePict(qtMovie, requestedTime);
-		OSErr       err = GetMoviesError();
-		if (err != noErr)
-			NSLog(@"Error %d getting movie picture.", err);
-		else if (picHandle)
-		{
-			NSPICTImageRep	*imageRep = [NSPICTImageRep imageRepWithData:[NSData dataWithBytes:*picHandle 
-																						length:GetHandleSize((Handle)picHandle)]];
-			NSImage			*imageAtTimeValue = [parameters objectAtIndex:1];
-			[imageAtTimeValue setSize:[imageRep size]];
-			@try
-			{
-				[imageAtTimeValue lockFocus];
-				[imageRep drawAtPoint:NSMakePoint(0.0, 0.0)];
-				[imageAtTimeValue unlockFocus];
-			}
-			@finally {}
-			
-			KillPicture(picHandle);
-		}
-	}
+	return [self imageForIdentifier:identifier thumbnail:YES];
+}
+
+
+- (NSImage *)imageForIdentifier:(NSString *)identifier
+{
+	return [self imageForIdentifier:identifier thumbnail:NO];
 }
 
 
