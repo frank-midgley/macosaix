@@ -9,6 +9,7 @@
 #import "iSightImageSource.h"
 #import "iSightImageSourceController.h"
 #import "NSString+MacOSaiX.h"
+#import <Carbon/Carbon.h>
 #import <pthread.h>
 
 
@@ -19,49 +20,22 @@
 @end
 
 
-pascal OSErr mySGDataProc(SGChannel c, 
-						  Ptr p,
-						  long len,
-						  long *offset,
-						  long chRefCon,
-						  TimeValue time,
-						  short writeType, 
-						  long refCon)
-{
-    if ([myQDViewObject gworld]) 
-    {
-        // decompress a frame into the GWorld - can queue a frame for async decompression when passed in a completion proc
-        // once the image is in the GWorld it can be manipulated at will
-		CodecFlags		ignore;
-        ComponentResult err = DecompressSequenceFrameS([myQDViewObject decomSeq],  // sequence ID returned by DecompressSequenceBegin
-													   p,            // pointer to compressed image data
-													   len,          // size of the buffer
-													   0,            // in flags
-													   &ignore,        // out flags
-													   NULL);          // async completion proc
-		
-		if (err != noErr)
-			;
-		else
-		{
-			// ******  IMAGE IS NOW IN THE GWORLD ****** //
-
-				/* compute and display frames-per-second */
-			CGrafPtr		theSavedPort;
-			GDHandle		theSavedDevice;
-			GetGWorld(&theSavedPort, &theSavedDevice);
-			SetGWorld([myQDViewObject gworld], NULL);
-			
-			Rect	bounds = [myQDViewObject boundsRect];
-			
-			//TODO: copy out image
-			
-			SetGWorld(theSavedPort, theSavedDevice);
-		}
-	}
-	
-	return err;
-}
+//static pascal OSErr GrabberDataProc(SGChannel c, Ptr p, long len, long *offset, long chRefCon, TimeValue time, 
+//									short writeType, long refCon)
+//{
+//	return [(MacOSaiXiSightImageSource*)refCon handleData:p length:len time:time];
+//}
+//
+//static void TrackDecompression(void *decompressionTrackingRefCon,
+//                               OSStatus result,
+//                               ICMDecompressionTrackingFlags decompressionTrackingFlags,
+//                               CVPixelBufferRef pixelBuffer,
+//                               TimeValue64 displayTime,
+//                               TimeValue64 displayDuration,
+//                               ICMValidTimeFlags validTimeFlags,
+//                               void *sourceFrameRefCon, void *reserved)
+//{
+//}
 
 
 @implementation MacOSaiXiSightImageSource
@@ -69,7 +43,15 @@ pascal OSErr mySGDataProc(SGChannel c,
 
 + (NSImage *)image
 {
-	return [NSImage imageNamed:@"iSight"];
+	NSImage		*image = [NSImage imageNamed:@"iSight"];
+	
+	if (!image)
+	{
+		NSString	*imagePath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"iSight"];
+		image = [[[NSImage alloc] initWithContentsOfFile:imagePath] autorelease];
+	}
+	
+	return image;
 }
 
 
@@ -95,18 +77,17 @@ pascal OSErr mySGDataProc(SGChannel c,
 {
 	if (self = [super init])
 	{
-		movieLock = [[NSLock alloc] init];
 	}
 
     return self;
 }
 
 
-- (id)initWithPath:(NSString *)path
+- (id)initWithSource:(NSString *)source
 {
 	if (self = [self init])
 	{
-		[self setPath:path];
+		[self setSource:source];
 	}
 
     return self;
@@ -115,8 +96,8 @@ pascal OSErr mySGDataProc(SGChannel c,
 
 - (NSString *)settingsAsXMLElement
 {
-	return [NSString stringWithFormat:@"<MOVIE PATH=\"%@\" LAST_USED_TIME=\"%d\"/>", 
-									  [[self path] stringByEscapingXMLEntites]];
+	return [NSString stringWithFormat:@"<SOURCE NAME=\"%@\"/>", 
+									  [[self source] stringByEscapingXMLEntites]];
 }
 
 
@@ -124,14 +105,9 @@ pascal OSErr mySGDataProc(SGChannel c,
 {
 	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
 	
-	if ([settingType isEqualToString:@"MOVIE"])
+	if ([settingType isEqualToString:@"SOURCE"])
 	{
-		currentTimeValue = [[[settingDict objectForKey:@"LAST_USED_TIME"] description] intValue];
-		[self setPath:[[[settingDict objectForKey:@"PATH"] description] stringByUnescapingXMLEntites]];
-		
-		NSString	*saveFrames = [[settingDict objectForKey:@"SAVE_FRAMES"] description];
-		if ([saveFrames isEqualToString:@"YES"])
-			[self setCanRefetchImages:NO];
+		[self setSource:[[[settingDict objectForKey:@"NAME"] description] stringByUnescapingXMLEntites]];
 	}
 }
 
@@ -150,23 +126,101 @@ pascal OSErr mySGDataProc(SGChannel c,
 
 - (id)copyWithZone:(NSZone *)zone
 {
-	MacOSaiXiSightImageSource	*copy = [[MacOSaiXiSightImageSource allocWithZone:zone] initWithPath:[self path]];
+	MacOSaiXiSightImageSource	*copy = [[MacOSaiXiSightImageSource allocWithZone:zone] initWithSource:[self source]];
 	
 	return copy;
 }
 
 
-- (NSString *)path
+//- (void)taskGrabber
+//{
+//	static const double idleInterval = 1.0 / 60.0;
+//	
+//	SGIdle(grabber);
+//	
+//	if (!timer)
+//		timer = [[NSTimer scheduledTimerWithTimeInterval:idleInterval 
+//												  target:self 
+//												selector:@selector(taskGrabber) 
+//												userInfo:self 
+//												 repeats:YES] retain];
+//}
+
+
+- (NSString *)source
 {
-	return moviePath;
+	return videoSource;
 }
 
 
-- (void)setPath:(NSString *)path
+- (void)setSource:(NSString *)source
 {
-		// Set the initial image displayed in the sources table to the poster frame.
-	NSString	*identifier = [NSString stringWithFormat:@"%ld", (currentTimeValue > 0 && currentTimeValue < duration ? currentTimeValue : posterFrameTimeValue)];
-	[self setCurrentImage:[self imageForIdentifier:identifier]];
+	[videoSource autorelease];
+	videoSource = [source copy];
+	
+	OSStatus			err = noErr;
+	VideoDigitizerError	vdError = noErr;
+	Rect		bounds = {0, 0, 240, 320};
+	
+	grabber = OpenDefaultComponent(SeqGrabComponentType, 0);
+	
+	if (grabber)
+		err = SGInitialize(grabber);
+		
+	if (err == noErr)
+		err = SGSetDataRef(grabber, 0, 0, seqGrabDontMakeMovie);
+	
+	if (err == noErr)
+		err = SGNewChannel(grabber, VideoMediaType, &channel);
+	
+	if (err == noErr)
+		err = SGSetFrameRate(channel, 0);
+			
+	if (err == noErr)
+	{
+		err = QTNewGWorld(&offscreen, 32, &bounds, nil, nil, 0);
+		LockPixels(GetGWorldPixMap(offscreen));
+	}
+	
+	if (err == noErr)
+		err = SGSetGWorld(channel, offscreen, GetGWorldDevice(offscreen));
+	
+	if (err == noErr)
+		err = SGSetChannelBounds(channel, &bounds);
+	
+	if (err == noErr)
+		err = SGSetChannelUsage(channel, seqGrabRecordPreferQualityOverFrameRate);
+	
+//	if (err == noErr)
+//		err = SGSetDataProc(grabber, &GrabberDataProc, (long)self);
+	
+	if (err == noErr)
+		digitizer = SGGetVideoDigitizerComponent(channel);
+	
+	if (digitizer)
+	{
+//		vdError = VDSetTimeBase(digitizer, NewTimeBase());
+		
+		VDCompressionListHandle	compressionList = (VDCompressionListHandle) NewHandle(4);
+		if (vdError == noErr)
+			vdError = VDGetCompressionTypes(digitizer, compressionList);
+		
+		if (vdError == noErr)
+			vdError = VDSetCompressionOnOff(digitizer, TRUE);
+		
+		if (vdError == noErr)
+			vdError = VDSetCompression(digitizer, (*compressionList)->cType, 8, &bounds, 
+									 codecNormalQuality, 0, 0);
+		
+		imageDescHandle = (ImageDescriptionHandle) NewHandle(4);
+		if (vdError == noErr)
+			vdError = VDGetImageDescription(digitizer, imageDescHandle);
+		
+		if (vdError != noErr)
+			err = SGStartRecord(grabber);
+	}
+	
+//	[self taskGrabber];
 }
 
 
@@ -231,122 +285,132 @@ pascal OSErr mySGDataProc(SGChannel c,
 	// return the text to be displayed in the list of image sources
 - (id)descriptor
 {
-    return ([moviePath length] > 0) ? [[moviePath lastPathComponent] stringByDeletingPathExtension] : 
-									  @"No movie has been specified";
+    return ([videoSource length] > 0) ? videoSource : @"No video source has been specified";
 }
 
 
 - (BOOL)hasMoreImages
 {
-	return currentTimeValue < duration;
+	return YES;
 }
+
+
+//- (OSErr)handleData:(void*)data length:(long)length time:(TimeValue)timeValue
+//{
+//	OSStatus			err = noErr;
+//	ICMFrameTimeRecord	now = {0};
+//	
+//		// Create our decompression session the first time through
+//	if (imageDescription == nil)
+//	{
+//        // create a tracking callback record, this is mandatory
+//        // the TrackingCallback is used to track information about queued frames,
+//        // pixel buffers, errors, status and so on about the decompressed frames
+//		ICMDecompressionTrackingCallbackRecord trackingCallback = {&TrackDecompression, self};
+//		
+//		err = SGGetChannelTimeScale(channel, &timeScale);
+//		require_noerr(err, bail);
+//		
+//		imageDescription = (ImageDescriptionHandle)NewHandle(0);
+//		err = SGGetChannelSampleDescription(channel, Handle(imageDescription));
+//		require_noerr(err, bail);
+//		
+//        // create a decompression session for our visual context, Frames will be output to a visual context
+//        // If desired, the trackingCallback may be used to add additional data to pixel buffers before they are sent to the visual context
+//        // or to keep track of the status of the decompression
+//		err = ICMDecompressionSessionCreateForVisualContext(NULL, imageDescription, NULL, visualContext, &trackingCallback, &session);
+//		require_noerr(err, bail);
+//	}
+//	
+//	// Fill in the frame time
+//	now.recordSize = sizeof(ICMFrameTimeRecord);
+//	*(TimeValue64*)&now.value = timeValue;
+//	now.scale = timeScale;
+//	now.rate = fixed1;
+//	now.decodeTime = timeValue;
+//	now.frameNumber = frameNumber++;
+//	now.flags = icmFrameTimeIsNonScheduledDisplayTime;
+//	
+//	// Enqueue frame
+//	err = ICMDecompressionSessionDecodeFrame(session, (const UInt8*)data, length, NULL, &now, self);
+//	require_noerr(err, bail);
+//	
+//	// Force frame out
+//	err = ICMDecompressionSessionSetNonScheduledDisplayTime(session, *(long long int*)&now.value, timeScale, 0);
+//	require_noerr(err, bail);
+//}
 
 
 - (NSImage *)nextImageAndIdentifier:(NSString **)identifier;
 {
-	NSImage	*nextImage = nil;
-	*identifier = nil;
+	NSImage				*nextImage = nil;
 	
-	if (movieIsThreadSafe)
+	VideoDigitizerError	error = VDCompressOneFrameAsync(digitizer);
+	
+	while (1)
 	{
-		[movieLock lock];
+		//SGIdle(grabber);
 		
-		@try
+		UInt8		frameCount;
+		Ptr			buffer = NULL;
+		long		bufferSize = 0;
+		UInt8		similarity = 0;
+		TimeRecord	tr;
+		
+		error = VDCompressDone(digitizer, &frameCount, &buffer, &bufferSize, &similarity, &tr);
+		
+		if (error == noErr && buffer && frameCount != 0)
 		{
-			Movie	qtMovie = [movie QTMovie];
-			OSErr	err = AttachMovieToCurrentThread(qtMovie);
+			NSRect			windowRect = NSMakeRect(0.0, 0.0, 320.0, 240.0);
+			NSWindow		*window = [[NSWindow alloc] initWithContentRect:windowRect 
+																  styleMask:NSBorderlessWindowMask 
+																	backing:NSBackingStoreBuffered 
+																	  defer:NO];
+//			[window orderOut:self];
+			CGrafPtr		windowPort = GetWindowPort([window windowRef]);
+			LockPortBits(windowPort);
+			PixMapHandle	pmh = GetPortPixMap(windowPort);
 			
-			if (err == noErr)
-			{
-					// TODO: Rather than using the next interesting time use the image matching code to 
-					//       detect when the image changes significantly.
-				TimeValue   nextInterestingTime = 0;
-				GetMovieNextInterestingTime (qtMovie, nextTimeStep, 0, nil, currentTimeValue, 1, &nextInterestingTime, nil);
-				
-				if (nextInterestingTime - currentTimeValue < minIncrement)
-					currentTimeValue += minIncrement;
-				else
-					currentTimeValue = nextInterestingTime;
-				
-				if (currentTimeValue < duration)
-					*identifier = [NSString stringWithFormat:@"%ld", currentTimeValue];
-				
-				DetachMovieFromCurrentThread(qtMovie);
-			}
+			Rect			destRect = {0, 0, 240, 320};
+			error = DecompressImage(buffer, 
+									imageDescHandle,
+									pmh, 
+									NULL, // copy the full source rect
+									&destRect, 
+									srcCopy, 
+									NULL);	// no mask
+			error = VDReleaseCompressBuffer(digitizer, buffer);
+			UnlockPortBits(windowPort);
+			
+			[[window contentView] lockFocus];
+			NSBitmapImageRep	*bitmapRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:windowRect];
+			[window release];
+			
+			nextImage = [[NSImage alloc] initWithSize:[bitmapRep size]];
+			[nextImage addRepresentation:bitmapRep];
+			[bitmapRep release];
+			
+//			[window close];
+//			[window release];
+			
+			// TODO: create identifier from time record
+			break;
 		}
-		@finally
-		{
-			[movieLock unlock];
-		}
-		
-		if (*identifier)
-			nextImage = [self imageForIdentifier:*identifier];
-		if (!nextImage)
-			*identifier = nil;
-	}
-	else
-	{
-		NSMutableDictionary	*parameters = [NSMutableDictionary dictionary];
-		
-		[self performSelectorOnMainThread:@selector(nextImageAndIdentifierOnMainThread:) 
-							   withObject:parameters
-							waitUntilDone:YES];
-		
-		*identifier = [parameters objectForKey:@"identifier"];
-		nextImage = [parameters objectForKey:@"image"];
 	}
 	
 	if (nextImage)
 		[self setCurrentImage:nextImage];
 	
+	if (identifier)
+		*identifier = nil;
+	
 	return nextImage;
-}
-
-
-- (void)nextImageAndIdentifierOnMainThread:(NSMutableDictionary *)parameters
-{
-	// TODO: Rather than using the next interesting time use the image matching code to 
-	//       detect when the image changes significantly.
-	
-    Movie		qtMovie = [movie QTMovie];
-	TimeValue   nextInterestingTime = 0;
-	NSString	*identifier = nil;
-	NSImage		*image = [[[NSImage alloc] initWithSize:NSMakeSize(64, 64)] autorelease];
-	[image removeRepresentation:[[image representations] lastObject]];
-	
-	GetMovieNextInterestingTime (qtMovie, nextTimeStep, 0, nil, currentTimeValue, 1, &nextInterestingTime, nil);
-	if (nextInterestingTime - currentTimeValue < minIncrement)
-		currentTimeValue += minIncrement;
-	else
-		currentTimeValue = nextInterestingTime;
-	
-	if (currentTimeValue < duration)
-	{
-		identifier = [NSString stringWithFormat:@"%ld", currentTimeValue];
-		
-		[self imageForIdentifierOnMainThread:[NSArray arrayWithObjects:identifier, image, nil]];
-		
-		if ([[image representations] count] > 0)
-		{
-			[parameters setObject:identifier forKey:@"identifier"];
-			[parameters setObject:image forKey:@"image"];
-		}
-	}
-}
-
-
-- (void)setCanRefetchImages:(BOOL)flag
-{
-	if (canRefetchImages != flag)
-	{
-		canRefetchImages = flag;
-	}
 }
 
 
 - (BOOL)canRefetchImages
 {
-	return canRefetchImages;
+	return NO;
 }
 
 
@@ -358,93 +422,7 @@ pascal OSErr mySGDataProc(SGChannel c,
 
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
-	NSImage	*imageAtTimeValue = nil;
-	
-	if (movieIsThreadSafe)
-	{
-		[movieLock lock];
-		
-		@try
-		{
-			Movie	qtMovie = [movie QTMovie];
-			OSErr	err = AttachMovieToCurrentThread(qtMovie);
-			
-			if (err == noErr)
-			{
-				TimeValue	requestedTime = [identifier intValue];
-				
-				if (requestedTime <= duration)
-				{
-					PicHandle	picHandle = GetMoviePict(qtMovie, requestedTime);
-					OSErr       err = GetMoviesError();
-					if (err != noErr)
-						NSLog(@"Error %d getting movie picture.", err);
-					else if (picHandle)
-					{
-						NSPICTImageRep	*imageRep = [NSPICTImageRep imageRepWithData:[NSData dataWithBytes:*picHandle 
-																									length:GetHandleSize((Handle)picHandle)]];
-						imageAtTimeValue = [[[NSImage alloc] initWithSize:[imageRep size]] autorelease];
-						@try
-						{
-							[imageAtTimeValue lockFocus];
-								[imageRep drawAtPoint:NSMakePoint(0.0, 0.0)];
-							[imageAtTimeValue unlockFocus];
-						}
-						@finally {}
-						
-						KillPicture(picHandle);
-					}
-				}
-				
-				DetachMovieFromCurrentThread(qtMovie);
-			}
-		}
-		@finally
-		{
-			[movieLock unlock];
-		}
-	}
-	else
-	{
-		imageAtTimeValue = [[[NSImage alloc] initWithSize:NSMakeSize(64, 64)] autorelease];
-		
-		[self performSelectorOnMainThread:@selector(imageForIdentifierOnMainThread:) 
-							   withObject:[NSArray arrayWithObjects:identifier, imageAtTimeValue, nil]
-							waitUntilDone:YES];
-	}
-	
-	return imageAtTimeValue;
-}
-
-
-- (void)imageForIdentifierOnMainThread:(NSArray *)parameters
-{
-    Movie		qtMovie = [movie QTMovie];
-	TimeValue	requestedTime = [[parameters objectAtIndex:0] intValue];
-	
-	if (requestedTime <= duration)
-	{
-		PicHandle	picHandle = GetMoviePict(qtMovie, requestedTime);
-		OSErr       err = GetMoviesError();
-		if (err != noErr)
-			NSLog(@"Error %d getting movie picture.", err);
-		else if (picHandle)
-		{
-			NSPICTImageRep	*imageRep = [NSPICTImageRep imageRepWithData:[NSData dataWithBytes:*picHandle 
-																						length:GetHandleSize((Handle)picHandle)]];
-			NSImage			*imageAtTimeValue = [parameters objectAtIndex:1];
-			[imageAtTimeValue setSize:[imageRep size]];
-			@try
-			{
-				[imageAtTimeValue lockFocus];
-				[imageRep drawAtPoint:NSMakePoint(0.0, 0.0)];
-				[imageAtTimeValue unlockFocus];
-			}
-			@finally {}
-			
-			KillPicture(picHandle);
-		}
-	}
+	return nil;
 }
 
 
@@ -462,74 +440,43 @@ pascal OSErr mySGDataProc(SGChannel c,
 
 - (NSString *)descriptionForIdentifier:(NSString *)identifier
 {
-	NSString	*title = [[moviePath lastPathComponent] stringByDeletingPathExtension];
-	float		timeIndex = (float)[identifier intValue] / (float)timeScale;
-	int			wholeSeconds = timeIndex,
-				hours = wholeSeconds / 3600, 
-				minutes = (wholeSeconds - hours * 60) / 60, 
-				seconds = wholeSeconds % 60, 
-				milliseconds = (timeIndex - wholeSeconds) * 1000;
+	// TODO: return a timestamp
 	
-	return [NSString stringWithFormat:@"%@ [%d:%02d:%02d.%03d]", title, hours, minutes, seconds, milliseconds];
+	return nil;
 }	
 
 
 - (void)reset
 {
-	if (!movie)
-		return;
-	
-	currentTimeValue = 0;
-	
-	if (movieIsThreadSafe)
-	{
-			// Set the initial image displayed in the sources table to the poster frame.
-		[movieLock lock];
-		
-		@try
-		{
-			Movie		qtMovie = [movie QTMovie];
-			OSErr	err = AttachMovieToCurrentThread(qtMovie);
-			
-			if (err == noErr)
-			{
-				if (qtMovie)
-				{
-					NSString	*posterFrameIdentifier = [NSString stringWithFormat:@"%ld", GetMoviePosterTime(qtMovie)];
-					[self setCurrentImage:[self imageForIdentifier:posterFrameIdentifier]];
-				}
-				else
-					[self setCurrentImage:nil];
-				
-				DetachMovieFromCurrentThread(qtMovie);
-			}
-		}
-		@finally
-		{
-			[movieLock unlock];
-		}
-	}
-	else if (!pthread_main_np())
-		[self performSelectorOnMainThread:_cmd withObject:nil waitUntilDone:NO];
-	else
-	{
-			// Set the initial image displayed in the sources table to the poster frame.
-		Movie		qtMovie = [movie QTMovie];
-		if (qtMovie)
-		{
-			NSString	*posterFrameIdentifier = [NSString stringWithFormat:@"%ld", GetMoviePosterTime(qtMovie)];
-			[self setCurrentImage:[self imageForIdentifier:posterFrameIdentifier]];
-		}
-		else
-			[self setCurrentImage:nil];
-	}
 }
 
 
 - (void)dealloc
 {
-	[self setPath:nil];
-	[movieLock release];
+//	if (timer != nil)
+//	{
+//		[timer invalidate];
+//		[timer release];
+//	}
+//	
+//	if (grabber != NULL)
+//		SGStop(grabber);
+//	
+//	ICMDecompressionSessionRelease(session);
+//	
+//	if (imageDescription != nil)
+//		DisposeHandle(Handle(imageDescription));
+//	
+//	if (channel != nil)
+//		SGDisposeChannel(grabber, channel);
+//	
+//	if (grabber != nil)
+//		CloseComponent(grabber);
+//	
+//	if (offscreen != nil)
+//		DisposeGWorld(offscreen);
+	
+	[self setSource:nil];
 	[currentImage release];
 	
 	[super dealloc];

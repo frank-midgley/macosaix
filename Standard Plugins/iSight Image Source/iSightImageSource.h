@@ -14,14 +14,26 @@
 
 @interface MacOSaiXiSightImageSource : NSObject <MacOSaiXImageSource>
 {
-	NSLock		*movieLock;
-	BOOL		movieIsThreadSafe;
+	NSString	*videoSource;
 	NSImage		*currentImage;
 	float		aspectRatio;
+	
+	VideoDigitizerComponent		digitizer;
+	ImageDescriptionHandle		imageDescHandle;
+	
+	GWorldPtr					offscreen;
+	SeqGrabComponent			grabber;
+	SGChannel					channel;
+	TimeScale					timeScale;
+	ImageDescriptionHandle		imageDescription;
+	ICMDecompressionSessionRef	session;
+	long						frameNumber;
+	NSTimer						*timer;
+	NSSize						size;
 }
 
-- (NSString *)path;
-- (void)setPath:(NSString *)path;
+- (NSString *)source;
+- (void)setSource:(NSString *)source;
 
 - (float)aspectRatio;
 
