@@ -112,6 +112,7 @@ Riemersma metric:
 ¥		Don't really quit
 ¥		Add background setting
 	Plug-in API's
+¥		Minimum MacOSaiX version per plug-in
 ¥		Create documentation
 ¥		Create sample plug-in projects
 	Flickr source:
@@ -127,6 +128,7 @@ Riemersma metric:
 	Exporting
 ¥		Re-enforce 10,000 pixel limit
 ?		Initial units sensible
+¥		Pre-allocate bitmap buffer to detect enough memory?
 ¥	Confirm changing tiles when sheet closes instead of opens
 Ã	Figure out why opening a document makes it dirty
 ¥	Prepare for localization
