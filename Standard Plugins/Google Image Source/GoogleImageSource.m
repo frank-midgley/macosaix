@@ -113,19 +113,20 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
-+ (void)cacheImageData:(NSData *)imageData withIdentifier:(NSString *)identifier
++ (void)cacheImageData:(NSData *)imageData withIdentifier:(NSString *)identifier isThumbnail:(BOOL)isThumbnail
 {
 	if (!sPruningCache)
 	{
-		NSString	*imageID = [identifier substringWithRange:NSMakeRange(14, 12)],
-					*imageFileName = [NSString stringWithFormat:@"%x%x%x%x%x%x%x%x%x%x%x%x",
-																[imageID characterAtIndex:0], [imageID characterAtIndex:1],
-																[imageID characterAtIndex:2], [imageID characterAtIndex:3],
-																[imageID characterAtIndex:4], [imageID characterAtIndex:5],
-																[imageID characterAtIndex:6], [imageID characterAtIndex:7],
-																[imageID characterAtIndex:8], [imageID characterAtIndex:9],
-																[imageID characterAtIndex:10], [imageID characterAtIndex:11]];
-
+		NSString	*imageID = [identifier substringToIndex:[identifier rangeOfString:@":"].location], 
+					*imageFileName = [NSString stringWithFormat:@"%x%x%x%x%x%x%x%x%x%x%x%x%@.jpg",
+													[imageID characterAtIndex:0], [imageID characterAtIndex:1],
+													[imageID characterAtIndex:2], [imageID characterAtIndex:3],
+													[imageID characterAtIndex:4], [imageID characterAtIndex:5],
+													[imageID characterAtIndex:6], [imageID characterAtIndex:7],
+													[imageID characterAtIndex:8], [imageID characterAtIndex:9],
+													[imageID characterAtIndex:10], [imageID characterAtIndex:11],
+													(isThumbnail ? @" Thumbnail" : @"")];
+		
 		[sImageCacheLock lock];
 			[imageData writeToFile:[[self imageCachePath] stringByAppendingPathComponent:imageFileName] atomically:NO];
 			
@@ -140,17 +141,18 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
-+ (NSImage *)cachedImageWithIdentifier:(NSString *)identifier
++ (NSImage *)cachedImageWithIdentifier:(NSString *)identifier isThumbnail:(BOOL)isThumbnail
 {
 	NSImage		*cachedImage = nil;
-	NSString	*imageID = [identifier substringWithRange:NSMakeRange(14, 12)],
-				*imageFileName = [NSString stringWithFormat:@"%x%x%x%x%x%x%x%x%x%x%x%x",
-															[imageID characterAtIndex:0], [imageID characterAtIndex:1],
-															[imageID characterAtIndex:2], [imageID characterAtIndex:3],
-															[imageID characterAtIndex:4], [imageID characterAtIndex:5],
-															[imageID characterAtIndex:6], [imageID characterAtIndex:7],
-															[imageID characterAtIndex:8], [imageID characterAtIndex:9],
-															[imageID characterAtIndex:10], [imageID characterAtIndex:11]];
+	NSString	*imageID = [identifier substringToIndex:[identifier rangeOfString:@":"].location],
+				*imageFileName = [NSString stringWithFormat:@"%x%x%x%x%x%x%x%x%x%x%x%x%@.jpg",
+													[imageID characterAtIndex:0], [imageID characterAtIndex:1],
+													[imageID characterAtIndex:2], [imageID characterAtIndex:3],
+													[imageID characterAtIndex:4], [imageID characterAtIndex:5],
+													[imageID characterAtIndex:6], [imageID characterAtIndex:7],
+													[imageID characterAtIndex:8], [imageID characterAtIndex:9],
+													[imageID characterAtIndex:10], [imageID characterAtIndex:11], 
+													(isThumbnail ? @" Thumbnail" : @"")];
 	NSData		*imageData = nil;
 	
 	imageData = [[NSData alloc] initWithContentsOfFile:[[self imageCachePath] stringByAppendingPathComponent:imageFileName]];
@@ -741,8 +743,8 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 				
 					// If the URL has the expected prefix then add it to the queue.
 				NSString	*imageURL = [tag substringWithRange:src];
-				if ([imageURL hasPrefix:@"/images?q="])
-					[imageURLQueue addObject:[imageURL substringToIndex:([[imageURL substringFromIndex:1] rangeOfString:@"/"].location + 1)]];
+				if ([imageURL hasPrefix:@"/images?q=tbn:"])
+					[imageURLQueue addObject:[imageURL substringFromIndex:14]];
 			}
 			
 				// Check if there are any more pages of search results.
@@ -773,7 +775,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 		else
 		{
 				// Get the image for the first identifier in the queue.
-			image = [self imageForIdentifier:[imageURLQueue objectAtIndex:0]];
+			image = [self thumbnailForIdentifier:[imageURLQueue objectAtIndex:0]];
 			if (image)
 				*identifier = [[[imageURLQueue objectAtIndex:0] retain] autorelease];
 			[imageURLQueue removeObjectAtIndex:0];
@@ -792,36 +794,51 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 
 - (NSImage *)thumbnailForIdentifier:(NSString *)identifier
 {
-	return nil;
+	NSImage		*thumbnail = nil;
+	
+		// First check if we have this thumbnail in the cache.
+	thumbnail = [GoogleImageSource cachedImageWithIdentifier:identifier isThumbnail:YES];
+	
+		// If the thumbnail couldn't be read from the cache then fetch it from Google.
+	if (!thumbnail)
+	{
+		NSURL		*thumbnailURL = [NSURL URLWithString:[NSString stringWithFormat:@"http://images.google.com/images?q=tbn:%@", identifier]];
+		NSData		*thumbnailData = [[NSData alloc] initWithContentsOfURL:thumbnailURL];
+		
+		if (thumbnailData)
+		{
+			thumbnail = [[[NSImage alloc] initWithData:thumbnailData] autorelease];
+			
+			if (thumbnail)
+				[GoogleImageSource cacheImageData:thumbnailData withIdentifier:identifier isThumbnail:YES];
+			
+			[thumbnailData release];
+		}
+	}
+	
+    return thumbnail;
 }
 
 
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
-	NSImage		*image = nil;
+		// First check if we have this image in the cache.
+	NSImage		*image = [GoogleImageSource cachedImageWithIdentifier:identifier isThumbnail:NO];
 	
-	if ([identifier length] > 26)
+		// If the image couldn't be read from the cache then fetch it from the original site.
+	if (!image)
 	{
-			// First check if we have this image in the cache.
-		image = [GoogleImageSource cachedImageWithIdentifier:identifier];
+		NSURL	*imageURL = [self urlForIdentifier:identifier];
+		NSData	*imageData = [[NSData alloc] initWithContentsOfURL:imageURL];
 		
-			// If the image couldn't be read from the cache then fetch it from Google.
-		if (!image)
+		if (imageData)
 		{
-				// TODO: Try to get the higher res image from the original site and only fallback 
-				//       to Google's copy if that fails.
-			NSURL	*imageURL = [self urlForIdentifier:identifier];
-			NSData	*imageData = [[NSData alloc] initWithContentsOfURL:imageURL];
+			image = [[[NSImage alloc] initWithData:imageData] autorelease];
 			
-			if (imageData)
-			{
-				image = [[[NSImage alloc] initWithData:imageData] autorelease];
-				
-				if (image)
-					[GoogleImageSource cacheImageData:imageData withIdentifier:identifier];
-				
-				[imageData release];
-			}
+			if (image)
+				[GoogleImageSource cacheImageData:imageData withIdentifier:identifier isThumbnail:NO];
+			
+			[imageData release];
 		}
 	}
 	
@@ -829,9 +846,15 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
+- (NSURL *)thumbnailURLForIdentifier:(NSString *)identifier
+{
+	return [NSURL URLWithString:[NSString stringWithFormat:@"http://images.google.com/%@", identifier]];
+}	
+
+
 - (NSURL *)urlForIdentifier:(NSString *)identifier
 {
-	return [NSURL URLWithString:[NSString stringWithFormat:@"http://images.google.com%@", identifier]];
+	return [NSURL URLWithString:[identifier substringFromIndex:[identifier rangeOfString:@":"].location + 1]];
 }	
 
 
