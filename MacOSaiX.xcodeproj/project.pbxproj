@@ -60,6 +60,7 @@
 		0127354307CD6EBB0053037A /* Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0127354207CD6EBB0053037A /* Defaults.plist */; };
 		0128323A071B7297004ACF95 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		01297702086A63D30095AD36 /* MacOSaiXCrashReporterController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01297700086A63D30095AD36 /* MacOSaiXCrashReporterController.m */; };
+		012FD2DA0A50F839004495DC /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F599E5560266AAD101000103 /* Carbon.framework */; };
 		016A242308D7C952009A93BF /* ZoomIn.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242208D7C952009A93BF /* ZoomIn.png */; };
 		016A242508D7C975009A93BF /* ZoomOut.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242408D7C975009A93BF /* ZoomOut.png */; };
 		016A248208D7D8E2009A93BF /* HandPicked.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A248108D7D8E2009A93BF /* HandPicked.png */; };
@@ -585,7 +586,7 @@
 		9298FE7509955B7D00E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Update Available.nib"; sourceTree = "<group>"; };
 		9298FE7809955B9A00E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/Preferences.nib; sourceTree = "<group>"; };
 		9298FE7B09955BB600E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Credits.html; sourceTree = "<group>"; };
-		9298FE7D09955BB600E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		9298FE7D09955BB600E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		9298FE7F09955BB600E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/Localized.strings; sourceTree = "<group>"; };
 		9298FEF109955C5A00E7A096 /* Application Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Application Icon.icns"; path = "../Icon work/Application Icon/Application Icon.icns"; sourceTree = "<group>"; };
 		9298FEF209955C5A00E7A096 /* Document Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Document Icon.icns"; path = "../Icon work/Document Icon/Document Icon.icns"; sourceTree = "<group>"; };
@@ -676,6 +677,7 @@
 			files = (
 				0124FA4E0A44A6290074777E /* Cocoa.framework in Frameworks */,
 				0124FA4F0A44A6290074777E /* QuickTime.framework in Frameworks */,
+				012FD2DA0A50F839004495DC /* Carbon.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
