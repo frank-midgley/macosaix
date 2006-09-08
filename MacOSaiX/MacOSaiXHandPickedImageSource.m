@@ -14,7 +14,7 @@
 
 + (NSString *)name
 {
-	return @"Hand Picked Images";
+	return NSLocalizedString(@"Hand Picked Images", @"");
 }
 
 
@@ -91,7 +91,7 @@
 
 - (id)descriptor
 {
-	return @"Hand picked images";
+	return [[self class] name];
 }
 
 

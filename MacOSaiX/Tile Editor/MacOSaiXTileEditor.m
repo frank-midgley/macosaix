@@ -194,7 +194,7 @@
 		[currentImageSourceImageView setImage:[currentSource image]];
 		[currentImageSourceNameField setObjectValue:[currentSource descriptor]];
 		NSString	*description = [currentSource descriptionForIdentifier:currentIdentifier];
-		[currentImageDescriptionField setStringValue:(description ? description : @"No description available")];
+		[currentImageDescriptionField setStringValue:(description ? description : NSLocalizedString(@"No description available", @""))];
 		
 		[currentImageContextURL release];
 		currentImageContextURL = [[currentSource contextURLForIdentifier:currentIdentifier] retain];
@@ -210,7 +210,7 @@
 	}
 	
 	// Set up the chosen image box.
-	[chosenImageBox setTitle:[NSString stringWithFormat:newImageTitleFormat, @"No File Selected"]];
+	[chosenImageBox setTitle:[NSString stringWithFormat:newImageTitleFormat, NSLocalizedString(@"No File Selected", @"")]];
 	[chosenImageView setImage:nil];
 	[chosenMatchQualityTextField setStringValue:@"--"];
 	[chosenPercentCroppedTextField setStringValue:@"--"];
@@ -243,7 +243,7 @@
 {
 	if ([[sender URLs] count] == 0)
 	{
-		[chosenImageBox setTitle:[NSString stringWithFormat:newImageTitleFormat, @"No File Selected"]];
+		[chosenImageBox setTitle:[NSString stringWithFormat:newImageTitleFormat, NSLocalizedString(@"No File Selected", @"")]];
 		[chosenImageView setImage:nil];
 		[chosenMatchQualityTextField setStringValue:@"--"];
 		[chosenPercentCroppedTextField setStringValue:@"--"];

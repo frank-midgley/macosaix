@@ -25,9 +25,9 @@
 	NSString	*warningString = @"";
 	
 	if (!NSClassFromString(@"MacOSaiXRectangularTileShapes"))
-		warningString = @"The Rectangular Tile Shapes plug-in is missing.";
+		warningString = NSLocalizedString(@"The Rectangular Tile Shapes plug-in is missing.", @"");
 	if (!NSClassFromString(@"GoogleImageSource"))
-		warningString = @"The Google Image Source plug-in is missing.";
+		warningString = NSLocalizedString(@"The Google Image Source plug-in is missing.", @"");
 	else
 	{
 			// Make sure there is at least one original image chosen.
@@ -37,21 +37,21 @@
 			if ([[originalImageMatrix cellAtRow:0 column:column] imagePosition] == NSImageOnly)
 				atLeastOneImage = YES;
 		if (!atLeastOneImage)
-			warningString = @"Please choose at least one original image.";
+			warningString = NSLocalizedString(@"Please choose at least one original image.", @"");
 		else
 		{
 			NSString	*password = [passwordField stringValue];
 			
 			if ([requirePasswordButton state] == NSOnState && [password length] == 0)
-				warningString = @"Please enter a password.";
+				warningString = NSLocalizedString(@"Please enter a password.", @"");
 			else
 			{
 				NSString	*repeatedPassword = [repeatedPasswordField stringValue];
 				
 				if ([requirePasswordButton state] == NSOnState && [repeatedPassword length] == 0)
-					warningString = @"Please enter the repeated password.";
+					warningString = NSLocalizedString(@"Please enter the repeated password.", @"");
 				else if ([requirePasswordButton state] == NSOnState && ![password isEqualToString:repeatedPassword])
-					warningString = @"The passwords do not match.";
+					warningString = NSLocalizedString(@"The passwords do not match.", @"");
 				else
 				{
 						// Make sure one and only one screen is set to show the kiosk window.
@@ -65,9 +65,9 @@
 							settingsScreensCount++;
 					
 					if (settingsScreensCount == 0)
-						warningString = @"One screen must show the settings.";
+						warningString = NSLocalizedString(@"One of the screens must show the settings.", @"");
 					else if (settingsScreensCount > 1)
-						warningString = @"Only one screen can show the settings.";
+						warningString = NSLocalizedString(@"Only one screen can show the settings.", @"");
 					// else we're good to go
 				}
 			}

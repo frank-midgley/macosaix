@@ -27,7 +27,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 + (NSString *)name
 {
-	return @"Puzzle Pieces";
+	return NSLocalizedString(@"Puzzle Pieces", @"");
 }
 
 

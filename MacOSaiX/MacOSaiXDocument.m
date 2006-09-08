@@ -843,7 +843,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						if ([[NSFileManager defaultManager] fileExistsAtPath:settingsPath] && 
 							![newObject loadSettingsFromFileAtPath:settingsPath])
 							CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, 
-											 (CFStringRef)[NSString stringWithFormat:@"The settings for image source %@ could not be loaded.", sourceID]);
+											 (CFStringRef)[NSString stringWithFormat:NSLocalizedString(@"The settings for image source %@ could not be loaded.", @""), sourceID]);
 					}
 					else if ([elementType isEqualToString:@"TILES"])
 					{
@@ -856,7 +856,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 							NSString	*settingsPath = [[document fileName] stringByAppendingPathComponent:@"Tile Shapes Settings"];
 							if (![[NSFileManager defaultManager] fileExistsAtPath:settingsPath] || 
 								![newObject loadSettingsFromFileAtPath:settingsPath])
-								CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, CFSTR("The tile shapes settings could not be loaded."));
+								CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, (CFStringRef)NSLocalizedString(@"The tile shapes settings could not be loaded.", @""));
 						}
 						else
 							newObject = mosaic;
@@ -896,7 +896,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 																			   forTile:(MacOSaiXTile *)@"Best"];
 						}
 						else
-							CFXMLParserAbort(parser,kCFXMLErrorMalformedStartTag, CFSTR("Tile is using an image from an unknown source."));
+							CFXMLParserAbort(parser,kCFXMLErrorMalformedStartTag, (CFStringRef)NSLocalizedString(@"Tile is using an image from an unknown source.", @""));
 					}
 					else if ([elementType isEqualToString:@"UNIQUE_MATCH"])
 					{
@@ -917,7 +917,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 																			   forTile:(MacOSaiXTile *)@"Unique"];
 						}
 						else
-							CFXMLParserAbort(parser,kCFXMLErrorMalformedStartTag, CFSTR("Tile is using an image from an unknown source."));
+							CFXMLParserAbort(parser,kCFXMLErrorMalformedStartTag, (CFStringRef)NSLocalizedString(@"Tile is using an image from an unknown source.", @""));
 					}
 					else if ([elementType isEqualToString:@"USER_CHOSEN_MATCH"])
 					{
@@ -953,7 +953,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 	}
 	NS_HANDLER
 		CFXMLParserAbort(parser,kCFXMLErrorMalformedStartTag, 
-						 (CFStringRef)[NSString stringWithFormat:@"Could not create structure (%@)", [localException reason]]);
+						 (CFStringRef)[NSString stringWithFormat:NSLocalizedString(@"Could not create structure (%@)", @""), [localException reason]]);
 	NS_ENDHANDLER
 	
 	[pool release];
@@ -1101,8 +1101,11 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (void)presentFailedLoadSheet:(id)errorMessage
 {
-	NSBeginAlertSheet(@"The mosaic could not be opened.", @"Close", nil, nil, [mainWindowController window], 
-					  self, nil, @selector(failedLoadSheetDidDismiss:returnCode:contextInfo:), nil, errorMessage);
+	NSBeginAlertSheet(NSLocalizedString(@"The mosaic could not be opened.", @""), 
+					  NSLocalizedString(@"Close", @""), nil, nil, 
+					  [mainWindowController window], 
+					  self, nil, @selector(failedLoadSheetDidDismiss:returnCode:contextInfo:), nil, 
+					  errorMessage);
 }
 
 
@@ -1114,11 +1117,11 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 - (void)presentOriginalImageIsMissingSheet
 {
-	NSBeginAlertSheet(@"The mosaic's original image could not be opened.", 
-					  @"Close", @"Open", nil, [mainWindowController window], 
+	NSBeginAlertSheet(NSLocalizedString(@"The mosaic's original image could not be opened.", @""), 
+					  NSLocalizedString(@"Close", @""), NSLocalizedString(@"Open", @""), nil, [mainWindowController window], 
 					  self, nil, @selector(originalMissingSheetDidDismiss:returnCode:contextInfo:), nil, 
-					  @"You can open the project and save it in another format but you will not be able to " \
-					  @"make any changes until you switch to another original image.");
+					  NSLocalizedString(@"You can open the project and save it in another format but you will not be able to " \
+					  @"make any changes until you switch to another original image.", @""));
 }
 
 

@@ -646,7 +646,8 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 		}
 	NS_HANDLER
 		CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, 
-						 (CFStringRef)[NSString stringWithFormat:@"Could not create structure (%@)", [localException reason]]);
+						 (CFStringRef)[NSString stringWithFormat:NSLocalizedString(@"Could not create structure (%@)", @""), 
+																 [localException reason]]);
 	NS_ENDHANDLER
 	
 	[pool release];

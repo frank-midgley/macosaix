@@ -303,7 +303,7 @@ static NSImage			*sQuickTimeImage = nil;
 - (id)descriptor
 {
     return ([moviePath length] > 0) ? [[moviePath lastPathComponent] stringByDeletingPathExtension] : 
-									  @"No movie has been specified";
+									  NSLocalizedString(@"No movie has been specified", @"");
 }
 
 

@@ -285,7 +285,7 @@
 	// return the text to be displayed in the list of image sources
 - (id)descriptor
 {
-    return ([videoSource length] > 0) ? videoSource : @"No video source has been specified";
+    return ([videoSource length] > 0) ? videoSource : NSLocalizedString(@"No video source has been specified", @"");
 }
 
 

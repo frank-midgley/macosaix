@@ -262,7 +262,8 @@
         }
 		
         if (!movie)
-			NSRunAlertPanel(@"The file you chose does not contain a movie.", nil, @"OK", nil, nil);
+			NSRunAlertPanel(NSLocalizedString(@"The file you chose does not contain a movie.", @""), nil, 
+							NSLocalizedString(@"OK", @""), nil, nil);
         else
             [moviesController setSelectedObjects:[NSArray arrayWithObject:movie]];
         

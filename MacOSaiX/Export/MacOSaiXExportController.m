@@ -229,9 +229,9 @@ static NSArray	*formatExtensions = nil;
 		
 		if (!bitmapBuffer)
 		{
-			NSRunAlertPanel(@"There is not enough memory available to save the mosaic at that size.", 
-							@"Please choose a smaller size or resolution.", 
-							@"OK", nil, nil);
+			NSRunAlertPanel(NSLocalizedString(@"There is not enough memory available to save the mosaic at that size.", @""), 
+							NSLocalizedString(@"Please choose a smaller size or resolution.", @""), 
+							NSLocalizedString(@"OK", @""), nil, nil);
 			filename = nil;
 		}
 	}
@@ -531,7 +531,7 @@ static NSArray	*formatExtensions = nil;
 			NS_ENDHANDLER
 		}
 			
-		[progressController setMessage:@"Exporting tile %d of %d...", tilesExported, tileCount];
+		[progressController setMessage:NSLocalizedString(@"Exporting tile %d of %d...", @""), tilesExported, tileCount];
 		[progressController setPercentComplete:[NSNumber numberWithDouble:(100.0 * tilesExported / tileCount)]];
 		
 		tilesExported++;

@@ -417,7 +417,7 @@
 			if (index < [builtinColorLists count])
 				return [builtinColorLists objectAtIndex:index];
 			else
-				return @"System-wide Colors";
+				return NSLocalizedString(@"System-wide Colors", @"");
 		}
 		else
 			return [systemWideColorLists objectAtIndex:index];
