@@ -1079,7 +1079,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	NSString	*status = nil;
 	
 	if ([tilesWithoutBitmaps count] > 0)
-		status = NSLocalizedString(@"Extracting tile images...", @"");	// TODO: include the % complete (localized)
+		status = NSLocalizedString(@"Extracting tiles from original...", @"");	// TODO: include the % complete (localized)
 	else if (calculateImageMatchesThreadAlive)
 		status = NSLocalizedString(@"Matching images...", @"");
 	else if (enumerationThreadCount > 0)

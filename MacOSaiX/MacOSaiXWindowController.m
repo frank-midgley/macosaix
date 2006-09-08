@@ -98,7 +98,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	[originalImageToolbarView setMenu:recentOriginalsMenu];
 	[originalImageToolbarView setImage:[NSImage imageNamed:@"NoOriginal"]];
 	[self updateRecentOriginalImages];
-    zoomToolbarMenuItem = [[NSMenuItem alloc] initWithTitle:@"Zoom" action:nil keyEquivalent:@""];
+    zoomToolbarMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Zoom", @"") action:nil keyEquivalent:@""];
     [zoomToolbarMenuItem setSubmenu:zoomToolbarSubmenu];
     toolbarItems = [[NSMutableDictionary dictionary] retain];
     NSToolbar   *toolbar = [[[NSToolbar alloc] initWithIdentifier:@"MacOSaiXDocument"] autorelease];
@@ -597,17 +597,17 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 			// Update the toolbar.
 		if (![[self mosaic] wasStarted])
 		{
-			[pauseToolbarItem setLabel:@"Start"];
+			[pauseToolbarItem setLabel:NSLocalizedString(@"Start", @"")];
 			[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
 		}
 		else if ([[self mosaic] isPaused])
 		{
-			[pauseToolbarItem setLabel:@"Resume"];
+			[pauseToolbarItem setLabel:NSLocalizedString(@"Resume", @"")];
 			[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
 		}
 		else
 		{
-			[pauseToolbarItem setLabel:@"Pause"];
+			[pauseToolbarItem setLabel:NSLocalizedString(@"Pause", @"")];
 			[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
 		}
 		
@@ -1156,7 +1156,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[saveAsToolbarItem setImage:[[NSWorkspace sharedWorkspace] iconForFileType:exportFormat]];
 		
 		if (errorString)
-			NSBeginAlertSheet(@"The mosaic could not be saved.", @"OK", nil, nil, [self window], 
+			NSBeginAlertSheet(NSLocalizedString(@"The mosaic could not be saved.", @""), 
+							  NSLocalizedString(@"OK", @""), nil, nil, [self window], 
 							  self, nil, @selector(errorSheetDidDismiss:), nil, errorString);
 		else
 			[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:YES];	// Re-enable auto saving.
@@ -1299,8 +1300,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
     {
 		[toolbarItem setMinSize:NSMakeSize(44.0, 32.0)];
 		[toolbarItem setMaxSize:NSMakeSize(44.0, 32.0)];
-		[toolbarItem setLabel:@"Original"];
-		[toolbarItem setPaletteLabel:@"Original"];
+		[toolbarItem setLabel:NSLocalizedString(@"Original", @"")];
+		[toolbarItem setPaletteLabel:[toolbarItem label]];
 		[toolbarItem setView:originalImageToolbarView];
 // TODO:		[toolbarItem setMenuFormRepresentation:[originalImagePopUpButton menu]];
     }
@@ -1310,7 +1311,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		if (shapesImage)
 			[toolbarItem setImage:shapesImage];
 		[toolbarItem setLabel:NSLocalizedString(@"Tiles", @"")];
-		[toolbarItem setPaletteLabel:NSLocalizedString(@"Tiles", @"")];
+		[toolbarItem setPaletteLabel:[toolbarItem label]];
 		[toolbarItem setTarget:self];
 		[toolbarItem setAction:@selector(setupTiles:)];
 		[toolbarItem setToolTip:NSLocalizedString(@"Change the tile shapes or image use rules", @"")];
@@ -1320,7 +1321,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
     {
 		[toolbarItem setImage:[NSImage imageNamed:@"FullScreen"]];
 		[toolbarItem setLabel:NSLocalizedString(@"Full Screen", @"")];
-		[toolbarItem setPaletteLabel:NSLocalizedString(@"Full Screen", @"")];
+		[toolbarItem setPaletteLabel:[toolbarItem label]];
 		[toolbarItem setTarget:self];
 		[toolbarItem setAction:@selector(viewFullScreen:)];
 		[toolbarItem setToolTip:NSLocalizedString(@"View the mosaic in full screen mode", @"")];
@@ -1329,7 +1330,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
     {
 		[toolbarItem setImage:[[NSWorkspace sharedWorkspace] iconForFileType:@"jpg"]];
 		[toolbarItem setLabel:NSLocalizedString(@"Save As", @"")];
-		[toolbarItem setPaletteLabel:NSLocalizedString(@"Save As", @"")];
+		[toolbarItem setPaletteLabel:[toolbarItem label]];
 		[toolbarItem setTarget:self];
 		[toolbarItem setAction:@selector(saveMosaicAs:)];
 		[toolbarItem setToolTip:NSLocalizedString(@"Save the mosaic as an image or web page", @"")];
@@ -1339,7 +1340,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
     {
 		[toolbarItem setImage:[NSImage imageNamed:@"Pause"]];
 		[toolbarItem setLabel:NSLocalizedString(([[self mosaic] isPaused] ? @"Resume" : @"Pause"), @"")];
-		[toolbarItem setPaletteLabel:NSLocalizedString(([[self mosaic] isPaused] ? @"Resume" : @"Pause"), @"")];
+		[toolbarItem setPaletteLabel:NSLocalizedString(@"Pause/Resume", @"")];
 		[toolbarItem setTarget:self];
 		[toolbarItem setAction:@selector(togglePause:)];
 		pauseToolbarItem = toolbarItem;
@@ -1348,7 +1349,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
     {
 		[toolbarItem setImage:[NSImage imageNamed:@"ImageSources"]];
 		[toolbarItem setLabel:NSLocalizedString(@"Sources", @"")];
-		[toolbarItem setPaletteLabel:NSLocalizedString(@"Sources", @"")];
+		[toolbarItem setPaletteLabel:[toolbarItem label]];
 		[toolbarItem setTarget:imageSourcesDrawer];
 		[toolbarItem setAction:@selector(toggle:)];
 		[toolbarItem setToolTip:NSLocalizedString(@"Show/hide the image sources drawer", @"")];
@@ -1358,7 +1359,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[toolbarItem setMinSize:[fadeToolbarView frame].size];
 		[toolbarItem setMaxSize:[fadeToolbarView frame].size];
 		[toolbarItem setLabel:NSLocalizedString(@"Fade", @"")];
-		[toolbarItem setPaletteLabel:NSLocalizedString(@"Fade", @"")];
+		[toolbarItem setPaletteLabel:[toolbarItem label]];
 		[toolbarItem setView:fadeToolbarView];
 // TODO:		[toolbarItem setMenuFormRepresentation:zoomToolbarMenuItem];
     }
@@ -1367,7 +1368,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[toolbarItem setMinSize:[zoomToolbarView frame].size];
 		[toolbarItem setMaxSize:[zoomToolbarView frame].size];
 		[toolbarItem setLabel:NSLocalizedString(@"Zoom", @"")];
-		[toolbarItem setPaletteLabel:NSLocalizedString(@"Zoom", @"")];
+		[toolbarItem setPaletteLabel:[toolbarItem label]];
 		[toolbarItem setView:zoomToolbarView];
 		[toolbarItem setMenuFormRepresentation:zoomToolbarMenuItem];
     }

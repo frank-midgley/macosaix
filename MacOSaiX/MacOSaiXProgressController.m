@@ -24,7 +24,7 @@
 	NSWindow	*window = [parameters objectForKey:@"Window"];
 	
 	[self window];
-	[messageField setStringValue:(message ? message : @"Please wait...")];
+	[messageField setStringValue:(message ? message : NSLocalizedString(@"Please wait...", @""))];
 	[progressIndicator setDoubleValue:0.0];
 	[progressIndicator setIndeterminate:YES];
 	[progressIndicator startAnimation:self];
