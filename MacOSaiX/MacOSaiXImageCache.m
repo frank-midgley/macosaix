@@ -311,16 +311,36 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 //			NSLog(@"Cache miss rate: %.3f%%", missCount * 100.0 / (perfectHitCount + scalableHitCount + missCount));
 			
 				// Re-request the image from the source or pull it from the source's disk cache.
-			NSImage		*image = nil;
+			NSImage	*image = nil;
 			if ([imageSource canRefetchImages])
 			{
+				volatile NSImage	*thumbnailImage = nil,
+									*fullSizeImage = nil;
+				
 				[cacheLock unlock];
+				
+					// First grab the thumbnail.
 				if (!NSEqualSizes(size, NSZeroSize))
-					image = [imageSource thumbnailForIdentifier:imageIdentifier];
-				NSImageRep	*originalRep = [[image representations] objectAtIndex:0];
-				if (!image || [originalRep pixelsWide] < size.width || [originalRep pixelsHigh] < size.height)
-					image = [imageSource imageForIdentifier:imageIdentifier];
+				{
+					NS_DURING
+						thumbnailImage = [imageSource thumbnailForIdentifier:imageIdentifier];
+					NS_HANDLER
+					NS_ENDHANDLER
+				}
+					
+					// If there's no thumbnail or it's not big enough then grab the full size image.
+				NSImageRep	*originalRep = [[thumbnailImage representations] objectAtIndex:0];
+				if (!thumbnailImage || [originalRep pixelsWide] < size.width || [originalRep pixelsHigh] < size.height)
+				{
+					NS_DURING
+						fullSizeImage = [imageSource imageForIdentifier:imageIdentifier];
+					NS_HANDLER
+					NS_ENDHANDLER
+				}
 				[cacheLock lock];
+				
+					// Prefer the full size image over the thumbnail.
+				image = (NSImage *)(fullSizeImage ? fullSizeImage : thumbnailImage);
 			}
 			else
 			{
