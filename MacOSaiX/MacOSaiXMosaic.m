@@ -189,9 +189,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		
 			// Indicate that the average tile size needs to be recalculated.
 		averageUnitTileSize = NSZeroSize;
+		
+		[self reset];
 	}
-	
-	[self reset];
 	
 		// Let anyone who cares know that our tile shapes (and thus our tiles array) have changed.
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
