@@ -283,34 +283,38 @@
 			// Use ImageIO to check for a thumbnail in the file.
 		NSString			*imagePath = [[NSFileManager defaultManager] pathByResolvingAliasesInPath:
 												[directoryPath stringByAppendingPathComponent:identifier]];
-		CGImageSourceRef	thumbnailSourceRef = CGImageSourceCreateWithURL((CFURLRef)[NSURL fileURLWithPath:imagePath], NULL);
-		
-		if (thumbnailSourceRef)
+
+		if (imagePath)
 		{
-			NSDictionary	*options = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES]
-																   forKey:(NSString *)kCGImageSourceCreateThumbnailWithTransform];
-			CGImageRef		thumbnailRef = CGImageSourceCreateThumbnailAtIndex(thumbnailSourceRef, 0, (CFDictionaryRef)options);
+			CGImageSourceRef	thumbnailSourceRef = CGImageSourceCreateWithURL((CFURLRef)[NSURL fileURLWithPath:imagePath], NULL);
 			
-			if (thumbnailRef)
+			if (thumbnailSourceRef)
 			{
-					// There is a thumbnail so create an NSImage from it.
-				CIImage	*ciThumbnail = [CIImage imageWithCGImage:thumbnailRef];
+				NSDictionary	*options = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES]
+																	   forKey:(NSString *)kCGImageSourceCreateThumbnailWithTransform];
+				CGImageRef		thumbnailRef = CGImageSourceCreateThumbnailAtIndex(thumbnailSourceRef, 0, (CFDictionaryRef)options);
 				
-				if (ciThumbnail)
+				if (thumbnailRef)
 				{
-					NSCIImageRep	*thumbnailRep = [NSCIImageRep imageRepWithCIImage:ciThumbnail];
+						// There is a thumbnail so create an NSImage from it.
+					CIImage	*ciThumbnail = [CIImage imageWithCGImage:thumbnailRef];
 					
-					if (thumbnailRep)
+					if (ciThumbnail)
 					{
-						thumbnail = [[[NSImage alloc] initWithSize:[thumbnailRep size]] autorelease];
-						[thumbnail addRepresentation:thumbnailRep];
+						NSCIImageRep	*thumbnailRep = [NSCIImageRep imageRepWithCIImage:ciThumbnail];
+						
+						if (thumbnailRep)
+						{
+							thumbnail = [[[NSImage alloc] initWithSize:[thumbnailRep size]] autorelease];
+							[thumbnail addRepresentation:thumbnailRep];
+						}
 					}
+					
+					CFRelease(thumbnailRef);
 				}
 				
-				CFRelease(thumbnailRef);
+				CFRelease(thumbnailSourceRef);
 			}
-			
-			CFRelease(thumbnailSourceRef);
 		}
 	}
 	
