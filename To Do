@@ -120,8 +120,12 @@ Riemersma metric:
 Ã		Allow fetching > 4100 images
 Ã		Figure out if "any tag" option can work (needed commas and correct XML tag)
 Ã		Can be resized too small (at least after having enlarged another source type)
+	Folder source:
+Ã		Use thumbnails when available.
 	Font source:
 ¥		???
+	Google source:
+Ã		Fetch full size images when appropriate
 	QuickTime source:
 Ã		Show duration
 Ã		Show aspect ratio
