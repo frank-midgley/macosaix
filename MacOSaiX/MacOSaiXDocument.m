@@ -483,7 +483,7 @@
 			NSString		*className = NSStringFromClass([[[self mosaic] tileShapes] class]);
 			if (![[[self mosaic] tileShapes] saveSettingsToFileAtPath:[savePath stringByAppendingPathComponent:@"Tile Shapes Settings"]])
 				[NSException raise:@"" format:@"Could not save tile shapes settings."];
-			[fileHandle writeData:[[NSString stringWithFormat:@"<TILES CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
+			[fileHandle writeData:[[NSString stringWithFormat:@"<TILES SHAPES_CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
 			NSMutableString	*buffer = [NSMutableString string];
 			NSEnumerator	*tileEnumerator = [[[self mosaic] tiles] objectEnumerator];
 			MacOSaiXTile	*tile = nil;
@@ -847,16 +847,18 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					}
 					else if ([elementType isEqualToString:@"TILES"])
 					{
-						NSString	*className = [nodeAttributes objectForKey:@"CLASS"];
+						NSString	*shapesClassName = [nodeAttributes objectForKey:@"SHAPES_CLASS"];
 						
-						if (className)
+						if (shapesClassName)
 						{
-							newObject = [[NSClassFromString(className) alloc] init];
+							newObject = [[NSClassFromString(shapesClassName) alloc] init];
 							
 							NSString	*settingsPath = [[document fileName] stringByAppendingPathComponent:@"Tile Shapes Settings"];
 							if (![[NSFileManager defaultManager] fileExistsAtPath:settingsPath] || 
 								![newObject loadSettingsFromFileAtPath:settingsPath])
 								CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, (CFStringRef)NSLocalizedString(@"The tile shapes settings could not be loaded.", @""));
+							else
+								[mosaic setTileShapes:(id<MacOSaiXTileShapes>)newObject creatingTiles:NO];
 						}
 						else
 							newObject = mosaic;
@@ -993,7 +995,7 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 				break;
 			}
 	}
-	else if (parent == mosaic && [(id)child isKindOfClass:[MacOSaiXTile class]])
+	else if (parent == [mosaic tileShapes] && [(id)child isKindOfClass:[MacOSaiXTile class]])
 	{
 			// Add a tile to the mosaic.
 		[mosaic addTile:(MacOSaiXTile *)child];
@@ -1053,7 +1055,6 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 
 	if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXTileShapes)])
 	{
-		[mosaic setTileShapes:(id<MacOSaiXTileShapes>)newObject creatingTiles:NO];
 		[(id)newObject release];
 	}
 	else if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXImageSource)])
