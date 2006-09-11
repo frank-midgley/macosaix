@@ -199,6 +199,7 @@
 		9298FEF309955C5A00E7A096 /* Application Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9298FEF109955C5A00E7A096 /* Application Icon.icns */; };
 		9298FEF409955C5A00E7A096 /* Document Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9298FEF209955C5A00E7A096 /* Document Icon.icns */; };
 		9298FF1409955E1500E7A096 /* Export.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FF1209955E1500E7A096 /* Export.nib */; };
+		92A6B8F80AB4ACFB00298BCF /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92A6B8F70AB4ACFB00298BCF /* ApplicationServices.framework */; };
 		92B9087C08C25F0600D621F5 /* MacOSaiXImageMatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */; };
 		92C8AAF2080870100073045F /* GlyphTableColumn.h in Headers */ = {isa = PBXBuildFile; fileRef = 92C8AAF0080870100073045F /* GlyphTableColumn.h */; };
 		92C8AAF3080870100073045F /* GlyphTableColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92C8AAF1080870100073045F /* GlyphTableColumn.m */; };
@@ -591,6 +592,7 @@
 		9298FEF109955C5A00E7A096 /* Application Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Application Icon.icns"; path = "../Icon work/Application Icon/Application Icon.icns"; sourceTree = "<group>"; };
 		9298FEF209955C5A00E7A096 /* Document Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Document Icon.icns"; path = "../Icon work/Document Icon/Document Icon.icns"; sourceTree = "<group>"; };
 		9298FF1309955E1500E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = MacOSaiX/Export/English.lproj/Export.nib; sourceTree = "<group>"; };
+		92A6B8F70AB4ACFB00298BCF /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		92B45F70041A9DF1006867F5 /* DirectoryImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DirectoryImageSourceController.h; path = "Standard Plugins/Directory Image Source/DirectoryImageSourceController.h"; sourceTree = "<group>"; };
 		92B45F71041A9DF1006867F5 /* DirectoryImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DirectoryImageSourceController.m; path = "Standard Plugins/Directory Image Source/DirectoryImageSourceController.m"; sourceTree = "<group>"; };
 		92B45F74041A9E78006867F5 /* GlyphImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlyphImageSourceController.h; path = "Standard Plugins/Glyph Image Source/GlyphImageSourceController.h"; sourceTree = "<group>"; };
@@ -711,6 +713,7 @@
 			files = (
 				9284899F06611CE5003B3514 /* Cocoa.framework in Frameworks */,
 				01ACC20108FCC0EA0013D213 /* Carbon.framework in Frameworks */,
+				92A6B8F80AB4ACFB00298BCF /* ApplicationServices.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1018,6 +1021,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				92A6B8F70AB4ACFB00298BCF /* ApplicationServices.framework */,
 				F599E5560266AAD101000103 /* Carbon.framework */,
 				F514D53C0390266E01B25AF1 /* Cocoa.framework */,
 				29B97325FDCFA39411CA2CEA /* Foundation.framework */,
