@@ -320,7 +320,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 				[cacheLock unlock];
 				
 					// First grab the thumbnail.
-				if (!NSEqualSizes(size, NSZeroSize))
+				if (!NSEqualSizes(size, NSZeroSize) && size.width <= 128.0 && size.height <= 128.0)
 				{
 					NS_DURING
 						thumbnailImage = [imageSource thumbnailForIdentifier:imageIdentifier];
