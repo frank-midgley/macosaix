@@ -8,10 +8,13 @@
 
 #import "MacOSaiXExportController.h"
 
+#import <ApplicationServices/ApplicationServices.h>
+
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXMosaic.h"
 #import "MacOSaiXProgressController.h"
 #import "MosaicView.h"
+#import "NSBezierPath+MacOSaiX.h"
 
 
 enum { jpegFormat, pngFormat, tiffFormat };
@@ -111,6 +114,7 @@ static NSArray	*formatExtensions = nil;
     }
 	[savePanel setCanSelectHiddenExtension:YES];
     [savePanel setAccessoryView:accessoryView];
+	[savePanel setDelegate:self];
 	
 	NSString	*exportFormat = [self exportFormat];
     [savePanel setRequiredFileType:exportFormat];
@@ -225,7 +229,7 @@ static NSArray	*formatExtensions = nil;
 {
 	if (okFlag)
 	{
-		bitmapBuffer = malloc([self exportPixelWidth] * [self exportPixelHeight] * 4.0);
+		bitmapBuffer = malloc([self exportPixelWidth] * [self exportPixelHeight] * 4);
 		
 		if (!bitmapBuffer)
 		{
@@ -289,7 +293,7 @@ static NSArray	*formatExtensions = nil;
 	
 	exportCancelled = NO;
 	
-	NSString				*exportExtension = [formatExtensions objectAtIndex:imageFormat];
+//	NSString				*exportExtension = [formatExtensions objectAtIndex:imageFormat];
 	NSBitmapImageFileType	exportImageType = jpegFormat;
 	NSMutableDictionary		*properties = [NSMutableDictionary dictionary];
 	if (imageFormat == jpegFormat)
@@ -302,11 +306,22 @@ static NSArray	*formatExtensions = nil;
 		[properties setObject:[NSNumber numberWithInt:NSTIFFCompressionLZW] forKey:NSImageCompressionMethod];
 	}
 	
-	NSRect					exportRect = NSMakeRect(0.0, 0.0, [self exportPixelWidth], [self exportPixelHeight]);
+	int						exportWidth = [self exportPixelWidth], 
+							exportHeight = [self exportPixelHeight];
+#define USE_CG 1
 	
+#if USE_CG
+	CGColorSpaceRef	cgColorSpace = CGColorSpaceCreateDeviceRGB();
+	CGContextRef	cgContext = CGBitmapContextCreate(bitmapBuffer, exportWidth, 
+													  exportHeight, 8, 
+													  exportWidth * 4, cgColorSpace, 
+													  kCGImageAlphaPremultipliedLast);
+	CGContextSetInterpolationQuality(cgContext, kCGInterpolationHigh);
+#else
+	NSRect					exportRect = NSMakeRect(0.0, 0.0, exportWidth, exportHeight);
 	NSBitmapImageRep		*exportRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&bitmapBuffer 
-																				 pixelsWide:[self exportPixelWidth] 
-																				 pixelsHigh:[self exportPixelHeight] 
+																				 pixelsWide:exportWidth 
+																				 pixelsHigh:exportHeight 
 																			  bitsPerSample:8 
 																			samplesPerPixel:4 
 																				   hasAlpha:YES 
@@ -326,49 +341,70 @@ static NSArray	*formatExtensions = nil;
 	NS_ENDHANDLER
 	
 	[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
+#endif
 	
-	if (createWebPage)
-	{
-		[[NSFileManager defaultManager] removeFileAtPath:filename handler:nil];
-		[[NSFileManager defaultManager] createDirectoryAtPath:filename attributes:nil];
-		[[NSFileManager defaultManager] copyPath:[[NSBundle mainBundle] pathForImageResource:@"Loading"] 
-										  toPath:[filename stringByAppendingPathComponent:@"Loading.png"] 
-										 handler:nil];
-		
-		if (includeOriginalImage)
-		{
-			[[mosaic originalImage] drawInRect:exportRect 
-									  fromRect:NSZeroRect 
-									 operation:NSCompositeCopy 
-									  fraction:1.0];
-			
-			NSBitmapImageRep	*originalRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:exportRect];
-			NSData				*originalData = [originalRep representationUsingType:exportImageType properties:properties];
-			
-			[originalData writeToFile:[[filename stringByAppendingPathComponent:@"Original"] 
-														stringByAppendingPathExtension:exportExtension] 
-						   atomically:NO];
-			[originalRep release];
-		}
-	}
+//	if (createWebPage)
+//	{
+//		[[NSFileManager defaultManager] removeFileAtPath:filename handler:nil];
+//		[[NSFileManager defaultManager] createDirectoryAtPath:filename attributes:nil];
+//		[[NSFileManager defaultManager] copyPath:[[NSBundle mainBundle] pathForImageResource:@"Loading"] 
+//										  toPath:[filename stringByAppendingPathComponent:@"Loading.png"] 
+//										 handler:nil];
+//		
+//		if (includeOriginalImage)
+//		{
+//			[[mosaic originalImage] drawInRect:exportRect 
+//									  fromRect:NSZeroRect 
+//									 operation:NSCompositeCopy 
+//									  fraction:1.0];
+//			
+//			NSBitmapImageRep	*originalRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:exportRect];
+//			NSData				*originalData = [originalRep representationUsingType:exportImageType properties:properties];
+//			
+//			[originalData writeToFile:[[filename stringByAppendingPathComponent:@"Original"] 
+//														stringByAppendingPathExtension:exportExtension] 
+//						   atomically:NO];
+//			[originalRep release];
+//		}
+//	}
 	
-	[[NSColor clearColor] set];
-	NSRectFill(exportRect);
+	#if USE_CG
+		float	clearColorComponents[4] = {0, 0, 0, 0.0};
+		CGContextSetFillColor(cgContext, clearColorComponents);
+		CGRect	fullRect = CGRectMake(0.0, 0.0, exportWidth, exportHeight);
+		CGContextFillRect(cgContext, fullRect);
+	#else
+		[[NSColor clearColor] set];
+		NSRectFill(exportRect);
+	#endif
+	
 	if ([mosaicView backgroundMode] == originalMode || [mosaicView fade] < 1.0)
-		[[mosaic originalImage] drawInRect:exportRect 
+		#if USE_CG
+			;	// TODO
+		#else
+			[[mosaic originalImage] drawInRect:exportRect 
 								  fromRect:NSZeroRect 
 								 operation:NSCompositeCopy 
 								  fraction:1.0];
+		#endif
 	if ([mosaicView backgroundMode] == blackMode)
 	{
-		[[NSColor colorWithDeviceWhite:0.0 alpha:[mosaicView fade]] set];
-		NSRectFillUsingOperation(exportRect, NSCompositeSourceOver);
+		#if USE_CG
+			;	// TODO
+		#else
+			[[NSColor colorWithDeviceWhite:0.0 alpha:[mosaicView fade]] set];
+			NSRectFillUsingOperation(exportRect, NSCompositeSourceOver);
+		#endif
 	}
 	// TODO: draw a user specified solid color...
 	
 	
-    NSAffineTransform	*transform = [NSAffineTransform transform];
-    [transform scaleXBy:[exportImage size].width yBy:[exportImage size].height];
+	NSAffineTransform	*transform = [NSAffineTransform transform];
+	[transform scaleXBy:exportWidth yBy:exportHeight];
+	
+	#if USE_CG
+		;	// TBD: set up CG transform?
+	#endif
 	
 	unsigned long		tileCount = [[mosaic tiles] count],
 						tilesExported = 0;
@@ -376,12 +412,12 @@ static NSArray	*formatExtensions = nil;
 	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
 	
 		// Set up data for web exporting
-	NSMutableString		*exportTilesHTML = [NSMutableString string], 
-						*exportAreasHTML = [NSMutableString string];
-	NSMutableDictionary	*thumbnailKeyArrays = [NSMutableDictionary dictionary],
-						*thumbnailNumArrays = [NSMutableDictionary dictionary];
-	int					tileNum = 0;
-	BOOL				hasMultipleSources = ([[mosaic imageSources] count] > 1);
+//	NSMutableString		*exportTilesHTML = [NSMutableString string], 
+//						*exportAreasHTML = [NSMutableString string];
+//	NSMutableDictionary	*thumbnailKeyArrays = [NSMutableDictionary dictionary],
+//						*thumbnailNumArrays = [NSMutableDictionary dictionary];
+//	int					tileNum = 0;
+//	BOOL				hasMultipleSources = ([[mosaic imageSources] count] > 1);
 	
 		// Add each tile to the image and optionally to the web page.
 	NSEnumerator		*tileEnumerator = [[mosaic tiles] objectEnumerator];
@@ -402,14 +438,23 @@ static NSArray	*formatExtensions = nil;
 			NS_DURING
 					// Clip the tile's image to the outline of the tile.
 				NSBezierPath	*clipPath = [transform transformBezierPath:[tile outline]];
-				[NSGraphicsContext saveGraphicsState];
-				[clipPath addClip];
+				
+				#ifdef USE_CG
+					CGContextSaveGState(cgContext);
+					CGPathRef		cgOutline = [clipPath quartzPath];
+					CGContextAddPath(cgContext, cgOutline);
+					CGContextClip(cgContext);
+					CGPathRelease(cgOutline);
+				#else
+					[NSGraphicsContext saveGraphicsState];
+					[clipPath addClip];
+				#endif
 				
 					// Get the image for this tile from the cache.
 				id<MacOSaiXImageSource>	imageSource = [match imageSource];
-				int						imageSourceNum = [[mosaic imageSources] indexOfObjectIdenticalTo:imageSource] + 1;
+//				int						imageSourceNum = [[mosaic imageSources] indexOfObjectIdenticalTo:imageSource] + 1;
 				NSString				*imageIdentifier = [match imageIdentifier];
-				NSImageRep				*pixletImageRep = [imageCache imageRepAtSize:[clipPath bounds].size 
+				NSBitmapImageRep		*pixletImageRep = (NSBitmapImageRep *)[imageCache imageRepAtSize:[clipPath bounds].size 
 																	   forIdentifier:imageIdentifier 
 																		  fromSource:imageSource];
 				
@@ -441,94 +486,125 @@ static NSArray	*formatExtensions = nil;
 //				NSLog(@"x:%g-%g y:%g-%g", NSMinX(drawRect), NSMaxX(drawRect), NSMinY(drawRect), NSMaxY(drawRect));
 				
 					// Finally, draw the tile's image.
-				NSImage *pixletImage = [[[NSImage alloc] initWithSize:pixletSize] autorelease];
-				[pixletImage addRepresentation:pixletImageRep];
-				[pixletImage drawInRect:drawRect 
-							   fromRect:NSZeroRect 
-							  operation:NSCompositeSourceOver 
-							   fraction:[mosaicView fade]];
+				#ifdef USE_CG
+					CGRect				cgTileRect = CGRectMake(drawRect.origin.x, drawRect.origin.y, 
+													drawRect.size.width, drawRect.size.height);
+					CGDataProviderRef	cgDataProvider = CGDataProviderCreateWithData(NULL, 
+																					  [pixletImageRep bitmapData], 
+																					  [pixletImageRep bytesPerRow] * 
+																						[pixletImageRep pixelsHigh], 
+																					  NULL);
+					CGImageRef			cgTileImage = CGImageCreate([pixletImageRep pixelsWide], 
+																	[pixletImageRep pixelsHigh], 
+																	8, 
+																	32, 
+																	[pixletImageRep bytesPerRow], 
+																	cgColorSpace, 
+																	kCGImageAlphaPremultipliedLast, 
+																	cgDataProvider, 
+																	NULL, 
+																	FALSE,
+																	kCGRenderingIntentDefault);
+					CGContextDrawImage(cgContext, cgTileRect, cgTileImage);
+					CGDataProviderRelease(cgDataProvider);
+				#else
+					NSImage *pixletImage = [[[NSImage alloc] initWithSize:pixletSize] autorelease];
+					[pixletImage addRepresentation:pixletImageRep];
+					[pixletImage drawInRect:drawRect 
+								   fromRect:NSZeroRect 
+								  operation:NSCompositeSourceOver 
+								   fraction:[mosaicView fade]];
+				#endif
 				
 					// Clean up.
-				[NSGraphicsContext restoreGraphicsState];
+				#ifdef USE_CG
+					CGContextRestoreGState(cgContext);
+				#else
+					[NSGraphicsContext restoreGraphicsState];
+				#endif
 				
-				if (createWebPage)
-				{
-					NSValue			*sourceKey = [NSValue valueWithPointer:imageSource];
-					NSMutableArray	*thumbnailKeys = [thumbnailKeyArrays objectForKey:sourceKey], 
-									*thumbnailNums = [thumbnailNumArrays objectForKey:sourceKey];
-					int				thumbnailNum = 0;
-					
-					if (!thumbnailKeys)
-					{
-						thumbnailKeys = [NSMutableArray array];
-						[thumbnailKeyArrays setObject:thumbnailKeys forKey:sourceKey];
-						thumbnailNums = [NSMutableArray array];
-						[thumbnailNumArrays setObject:thumbnailNums forKey:sourceKey];
-					}
-					
-					int				thumbnailIndex = [thumbnailKeys indexOfObject:imageIdentifier];
-					NSString		*thumbnailName = nil;
-					
-					if (thumbnailIndex == NSNotFound)
-					{
-						thumbnailNum = tileNum++;
-						[thumbnailKeys addObject:imageIdentifier];
-						[thumbnailNums addObject:[NSNumber numberWithInt:thumbnailNum]];
-						if (hasMultipleSources)
-							thumbnailName = [NSString stringWithFormat:@"%d-%d", imageSourceNum, [thumbnailKeys count]];
-						else
-							thumbnailName = [NSString stringWithFormat:@"%d", thumbnailNum + 1];
-						
-						NSString	*description = [imageSource descriptionForIdentifier:imageIdentifier];
-						if (description)
-						{
-							description = [[description mutableCopy] autorelease];
-							[(NSMutableString *)description replaceOccurrencesOfString:@"'"
-																			withString:@"\\'" 
-																			   options:NSLiteralSearch 
-																				 range:NSMakeRange(0, [description length])];
-						}
-						else
-							description = @"";
-						
-							// Use the URL to the image if there is one, otherwise export a medium size thumbnail.
-						NSString	*tileImageURL = [[imageSource urlForIdentifier:imageIdentifier] absoluteString];
-						if (!tileImageURL)
-						{
-							NSImage		*thumbnailImage = [imageSource imageForIdentifier:imageIdentifier];
-							NSSize		newSize = [thumbnailImage size];
-							if (newSize.width > newSize.height)
-								newSize = NSMakeSize(200.0, newSize.height * 200.0 / newSize.width);
-							else
-								newSize = NSMakeSize(newSize.width * 200.0 / newSize.height, 200.0);
-							[thumbnailImage setScalesWhenResized:YES];
-							[thumbnailImage setSize:newSize];
-							[thumbnailImage lockFocus];
-								pixletImageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0.0, 0.0, newSize.width, newSize.height)] autorelease];
-							[thumbnailImage unlockFocus];
-							NSData		*bitmapData = [(NSBitmapImageRep *)pixletImageRep representationUsingType:NSJPEGFileType properties:nil];
-							[bitmapData writeToFile:[NSString stringWithFormat:@"%@/%@.jpg", filename, thumbnailName] 
-										 atomically:NO];
-							tileImageURL = [NSString stringWithFormat:@"%@.jpg", thumbnailName];
-						}
-						[exportTilesHTML appendFormat:@"tiles[%d] = new tile('%@', '%@');\n", 
-													  thumbnailNum, tileImageURL, description];
-					}
-					else
-						thumbnailNum = [[thumbnailNums objectAtIndex:thumbnailIndex] intValue];
-					
-					NSString	*contextURL = [[imageSource contextURLForIdentifier:imageIdentifier] absoluteString];
-					[exportAreasHTML appendFormat:@"\t<area shape='rect' coords='%d,%d,%d,%d' %@ " \
-												  @"onmouseover='showTile(event,%d)' onmouseout='hideTile()'>\n", 
-												  (int)NSMinX(drawRect), (int)([heightField intValue] - NSMaxY(drawRect)), 
-												  (int)NSMaxX(drawRect), (int)([heightField intValue] - NSMinY(drawRect)), 
-												  (contextURL ? [NSString stringWithFormat:@"href='%@'", contextURL] : @""),
-												  thumbnailNum];
-				}
+//				if (createWebPage)
+//				{
+//					NSValue			*sourceKey = [NSValue valueWithPointer:imageSource];
+//					NSMutableArray	*thumbnailKeys = [thumbnailKeyArrays objectForKey:sourceKey], 
+//									*thumbnailNums = [thumbnailNumArrays objectForKey:sourceKey];
+//					int				thumbnailNum = 0;
+//					
+//					if (!thumbnailKeys)
+//					{
+//						thumbnailKeys = [NSMutableArray array];
+//						[thumbnailKeyArrays setObject:thumbnailKeys forKey:sourceKey];
+//						thumbnailNums = [NSMutableArray array];
+//						[thumbnailNumArrays setObject:thumbnailNums forKey:sourceKey];
+//					}
+//					
+//					int				thumbnailIndex = [thumbnailKeys indexOfObject:imageIdentifier];
+//					NSString		*thumbnailName = nil;
+//					
+//					if (thumbnailIndex == NSNotFound)
+//					{
+//						thumbnailNum = tileNum++;
+//						[thumbnailKeys addObject:imageIdentifier];
+//						[thumbnailNums addObject:[NSNumber numberWithInt:thumbnailNum]];
+//						if (hasMultipleSources)
+//							thumbnailName = [NSString stringWithFormat:@"%d-%d", imageSourceNum, [thumbnailKeys count]];
+//						else
+//							thumbnailName = [NSString stringWithFormat:@"%d", thumbnailNum + 1];
+//						
+//						NSString	*description = [imageSource descriptionForIdentifier:imageIdentifier];
+//						if (description)
+//						{
+//							description = [[description mutableCopy] autorelease];
+//							[(NSMutableString *)description replaceOccurrencesOfString:@"'"
+//																			withString:@"\\'" 
+//																			   options:NSLiteralSearch 
+//																				 range:NSMakeRange(0, [description length])];
+//						}
+//						else
+//							description = @"";
+//						
+//							// Use the URL to the image if there is one, otherwise export a medium size thumbnail.
+//						NSString	*tileImageURL = [[imageSource urlForIdentifier:imageIdentifier] absoluteString];
+//						if (!tileImageURL)
+//						{
+//							NSImage		*thumbnailImage = [imageSource imageForIdentifier:imageIdentifier];
+//							NSSize		newSize = [thumbnailImage size];
+//							if (newSize.width > newSize.height)
+//								newSize = NSMakeSize(200.0, newSize.height * 200.0 / newSize.width);
+//							else
+//								newSize = NSMakeSize(newSize.width * 200.0 / newSize.height, 200.0);
+//							[thumbnailImage setScalesWhenResized:YES];
+//							[thumbnailImage setSize:newSize];
+//							[thumbnailImage lockFocus];
+//								pixletImageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0.0, 0.0, newSize.width, newSize.height)] autorelease];
+//							[thumbnailImage unlockFocus];
+//							NSData		*bitmapData = [(NSBitmapImageRep *)pixletImageRep representationUsingType:NSJPEGFileType properties:nil];
+//							[bitmapData writeToFile:[NSString stringWithFormat:@"%@/%@.jpg", filename, thumbnailName] 
+//										 atomically:NO];
+//							tileImageURL = [NSString stringWithFormat:@"%@.jpg", thumbnailName];
+//						}
+//						[exportTilesHTML appendFormat:@"tiles[%d] = new tile('%@', '%@');\n", 
+//													  thumbnailNum, tileImageURL, description];
+//					}
+//					else
+//						thumbnailNum = [[thumbnailNums objectAtIndex:thumbnailIndex] intValue];
+//					
+//					NSString	*contextURL = [[imageSource contextURLForIdentifier:imageIdentifier] absoluteString];
+//					[exportAreasHTML appendFormat:@"\t<area shape='rect' coords='%d,%d,%d,%d' %@ " 
+//												  @"onmouseover='showTile(event,%d)' onmouseout='hideTile()'>\n", 
+//												  (int)NSMinX(drawRect), (int)([heightField intValue] - NSMaxY(drawRect)), 
+//												  (int)NSMaxX(drawRect), (int)([heightField intValue] - NSMinY(drawRect)), 
+//												  (contextURL ? [NSString stringWithFormat:@"href='%@'", contextURL] : @""),
+//												  thumbnailNum];
+//				}
 			NS_HANDLER
 				NSLog(@"Exception during export: %@", localException);
-				[NSGraphicsContext restoreGraphicsState];
-			NS_ENDHANDLER
+				#ifdef USE_CG
+					CGContextRestoreGState(cgContext);
+				#else
+					[NSGraphicsContext restoreGraphicsState];
+				#endif
+				NS_ENDHANDLER
 		}
 			
 		[progressController setMessage:NSLocalizedString(@"Exporting tile %d of %d...", @""), tilesExported, tileCount];
@@ -540,57 +616,82 @@ static NSArray	*formatExtensions = nil;
     }
 	
 	if (exportCancelled)
-		[exportImage unlockFocus];
+		#if USE_CG
+			;
+		#else
+			[exportImage unlockFocus];
+		#endif
 	else
 	{
 			// Now convert the image into the desired output format.
-		exportRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:exportRect];
+		#if USE_CG
+			NSBitmapImageRep	*exportRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&bitmapBuffer 
+																					 pixelsWide:exportWidth 
+																					 pixelsHigh:exportHeight 
+																				  bitsPerSample:8 
+																				samplesPerPixel:4 
+																					   hasAlpha:YES 
+																					   isPlanar:NO 
+																				 colorSpaceName:NSDeviceRGBColorSpace 
+																					bytesPerRow:0 
+																				   bitsPerPixel:0];
+		#else
+			exportRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:exportRect];
+		#endif
+		
 		NS_DURING
-			[exportImage unlockFocus];
+			#if !USE_CG
+				[exportImage unlockFocus];
+			#endif
 			
 			if ([resolutionPopUp selectedTag] != 72)
 			{
-				NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
-				[exportRep TIFFRepresentation];
-				[pool2 release];
+				#if !USE_CG
+						// Why is this being done?  It requires a ton of memory.
+					NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
+					[exportRep TIFFRepresentation];
+					[pool2 release];
+				#endif
 				
 				float	scale = 72.0 / [resolutionPopUp selectedTag];
-				[exportRep setSize:NSMakeSize([exportImage size].width * scale, [exportImage size].height * scale)];
+				[exportRep setSize:NSMakeSize(exportWidth * scale, exportHeight * scale)];
 			}
+			
+			// CGImageDestinationCreateWithURL() for 10.4...
 			
 			NSData	*bitmapData = [exportRep representationUsingType:exportImageType properties:properties];
 			
-			if (createWebPage)
-			{
-				[bitmapData writeToFile:[[filename stringByAppendingPathComponent:@"Mosaic"] 
-													stringByAppendingPathExtension:exportExtension] 
-							 atomically:NO];
-				
-				NSString		*export1HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export1" ofType:@"html"];
-				NSMutableString	*exportHTML = [NSMutableString stringWithContentsOfFile:export1HTMLPath];
-				[exportHTML appendString:exportTilesHTML];
-				NSString		*export2HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export2" ofType:@"html"];
-				[exportHTML appendString:[NSString stringWithContentsOfFile:export2HTMLPath]];
-				NSString		*export3HTMLPath = nil;
-				if (includeOriginalImage)
-					export3HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export3+Original" ofType:@"html"];
-				else
-					export3HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export3" ofType:@"html"];
-				NSMutableString	*export3HTML = [NSMutableString stringWithContentsOfFile:export3HTMLPath];
-				[export3HTML replaceOccurrencesOfString:@"$(FORMAT_EXTENSION)" 
-											 withString:exportExtension 
-												options:NSLiteralSearch 
-												  range:NSMakeRange(0, [export3HTML length])];
-				[exportHTML appendString:export3HTML];
-				NSString		*export4HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export4" ofType:@"html"];
-				[exportHTML appendString:[NSString stringWithContentsOfFile:export4HTMLPath]];
-				[exportHTML appendString:exportAreasHTML];
-				NSString		*export5HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export5" ofType:@"html"];
-				[exportHTML appendString:[NSString stringWithContentsOfFile:export5HTMLPath]];
-				filename = [filename stringByAppendingPathComponent:@"index.html"];
-				[exportHTML writeToFile:filename atomically:NO];
-			}
-			else
+//			if (createWebPage)
+//			{
+//				[bitmapData writeToFile:[[filename stringByAppendingPathComponent:@"Mosaic"] 
+//													stringByAppendingPathExtension:exportExtension] 
+//							 atomically:NO];
+//				
+//				NSString		*export1HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export1" ofType:@"html"];
+//				NSMutableString	*exportHTML = [NSMutableString stringWithContentsOfFile:export1HTMLPath];
+//				[exportHTML appendString:exportTilesHTML];
+//				NSString		*export2HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export2" ofType:@"html"];
+//				[exportHTML appendString:[NSString stringWithContentsOfFile:export2HTMLPath]];
+//				NSString		*export3HTMLPath = nil;
+//				if (includeOriginalImage)
+//					export3HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export3+Original" ofType:@"html"];
+//				else
+//					export3HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export3" ofType:@"html"];
+//				NSMutableString	*export3HTML = [NSMutableString stringWithContentsOfFile:export3HTMLPath];
+//				[export3HTML replaceOccurrencesOfString:@"$(FORMAT_EXTENSION)" 
+//											 withString:exportExtension 
+//												options:NSLiteralSearch 
+//												  range:NSMakeRange(0, [export3HTML length])];
+//				[exportHTML appendString:export3HTML];
+//				NSString		*export4HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export4" ofType:@"html"];
+//				[exportHTML appendString:[NSString stringWithContentsOfFile:export4HTMLPath]];
+//				[exportHTML appendString:exportAreasHTML];
+//				NSString		*export5HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export5" ofType:@"html"];
+//				[exportHTML appendString:[NSString stringWithContentsOfFile:export5HTMLPath]];
+//				filename = [filename stringByAppendingPathComponent:@"index.html"];
+//				[exportHTML writeToFile:filename atomically:NO];
+//			}
+//			else
 				[bitmapData writeToFile:filename atomically:YES];
 		NS_HANDLER
 			error = [NSString stringWithFormat:NSLocalizedString(@"Could not convert the mosaic to the requested format.  (%@)", @""), 
@@ -608,8 +709,15 @@ static NSArray	*formatExtensions = nil;
 	if (didEndSelector)
 		[delegate performSelector:didEndSelector withObject:error];
 	
-    [exportRep release];
-    [exportImage release];
+	#if USE_CG
+		CGContextRelease(cgContext);
+		CGColorSpaceRelease(cgColorSpace);
+	#else
+		[exportImage release];
+		[exportRep release];
+	#endif
+	free(bitmapBuffer);
+	bitmapBuffer = nil;
     [pool release];
 }
 
@@ -676,17 +784,17 @@ static NSArray	*formatExtensions = nil;
 	else
 		height = [heightField floatValue];
 	
-	if ([unitsPopUp selectedTag] == 0)
-	{
-		width *= [resolutionPopUp selectedTag];
-		height *= [resolutionPopUp selectedTag];
-	}
-	
-	NSButton	*saveButton = [self bottomRightButtonInWindow:[[notification object] window]];
-	if (width <= 0.0 || width > 10000.0 || height <= 0.0 || height >= 10000.0)
-		[saveButton setEnabled:NO];
-	else
-		[saveButton setEnabled:YES];
+//	if ([unitsPopUp selectedTag] == 0)
+//	{
+//		width *= [resolutionPopUp selectedTag];
+//		height *= [resolutionPopUp selectedTag];
+//	}
+//	
+//	NSButton	*saveButton = [self bottomRightButtonInWindow:[[notification object] window]];
+//	if (width <= 0.0 || width > 10000.0 || height <= 0.0 || height >= 10000.0)
+//		[saveButton setEnabled:NO];
+//	else
+//		[saveButton setEnabled:YES];
 }
 
 
