@@ -199,6 +199,8 @@
 
 - (IBAction)cancelReport:(id)sender
 {
+	[[NSUserDefaults standardUserDefaults] setObject:crashDate forKey:@"Last Known Crash"];
+	[[NSUserDefaults standardUserDefaults] synchronize];
 	[self close];
 }
 
