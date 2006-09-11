@@ -1,6 +1,5 @@
 Ideas for future versions:
-    Service
-	Statistics drawer/window (matches per second, etc.)
+	Statistics shee/drawer/window (matches per second, table with occurence counts, etc.)
 	Trim solid borders for alternate image
 	More export image panel options
 		SVG format
@@ -10,15 +9,15 @@ Ideas for future versions:
 	Image regions
 	New image sources:
 		Icons
-		iSight source
 		Delicious
 	Directory source
 		Option to only use images bigger or smaller than certain dimensions
 	"option to replace ALL instances of one tile with another picture"
-	Button/menu item to not use selected image anywhere.  (probably in editor)
+	Button/menu item to not use selected image in the current mosaic.
+	Button/menu item to not use selected image in any mosaic.
 	AppleScript support
-	Rework MosaicView to not use a stored image but redraw the tiles as needed in -drawRect:.  Would allow for better zooming.
-	RSS feed
+	Rework MosaicView to not use a stored image but redraw the tiles as needed in -drawRect:.  Would allow for better zooming.  OpenGL?  Could have cool effects...
+	RSS feed (as source or for MacOSaiX web site?)
 	Drag image from one tile to another to swap images.
 	Cut and paste images between tiles.
 	Have text entered into Glyphs appear linearly so it can be read. (paul@anglesnet.com)
@@ -42,6 +41,8 @@ Riemersma metric:
 ¥	Allow specifying an original or hand-picked image by URL
 	Flickr source:
 ¥		Show count remaining
+¥	Allow image sources to be weighted
+¥	Investigate edge detecting original and weighting matches by tile detail
 
 
 2.0x To Do:
@@ -137,3 +138,4 @@ Riemersma metric:
 Ã	Figure out why opening a document makes it dirty
 ¥	Prepare for localization
 ¥	Display tiles description in tooltip on toolbar button.
+¥	Don't show crash reporter again if user clicks cancel.
