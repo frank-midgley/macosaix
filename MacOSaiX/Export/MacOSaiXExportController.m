@@ -378,26 +378,43 @@ static NSArray	*formatExtensions = nil;
 		NSRectFill(exportRect);
 	#endif
 	
-	if ([mosaicView backgroundMode] == originalMode || [mosaicView fade] < 1.0)
-		#if USE_CG
-			;	// TODO
-		#else
-			[[mosaic originalImage] drawInRect:exportRect 
-								  fromRect:NSZeroRect 
-								 operation:NSCompositeCopy 
-								  fraction:1.0];
-		#endif
-	if ([mosaicView backgroundMode] == blackMode)
+	swith ([mosaicView backgroundMode])
 	{
-		#if USE_CG
-			;	// TODO
-		#else
-			[[NSColor colorWithDeviceWhite:0.0 alpha:[mosaicView fade]] set];
-			NSRectFillUsingOperation(exportRect, NSCompositeSourceOver);
-		#endif
+		case originalMode:
+			if ([mosaicView fade] < 1.0)
+			{
+				#if USE_CG
+				{
+					NSData	*pngData = [[mosaic originalImage] TIFFRepresentation]
+					CGDataProviderRef	cgDataProvider = CGDataProviderCreateWithData(NULL, 
+																					  [pixletImageRep bitmapData], 
+																					  [pixletImageRep bytesPerRow] * 
+																					  [pixletImageRep pixelsHigh], 
+																					  NULL);
+					CGImageCreateWithPNGDataProvider(cgDataProvider, NULL, TRUE, kCGRenderingIntentDefault);
+				}
+				#else
+					[[mosaic originalImage] drawInRect:exportRect 
+										  fromRect:NSZeroRect 
+										 operation:NSCompositeCopy 
+										  fraction:1.0];
+				#endif
+			}
+			break;
+		case blackMode:
+		{
+			#if USE_CG
+				;	// TODO
+			#else
+				[[NSColor colorWithDeviceWhite:0.0 alpha:[mosaicView fade]] set];
+				NSRectFillUsingOperation(exportRect, NSCompositeSourceOver);
+			#endif
+			break;
+		}
+		// TODO: draw a user specified solid color...
+		default:
+			;
 	}
-	// TODO: draw a user specified solid color...
-	
 	
 	NSAffineTransform	*transform = [NSAffineTransform transform];
 	[transform scaleXBy:exportWidth yBy:exportHeight];
@@ -494,17 +511,25 @@ static NSArray	*formatExtensions = nil;
 																					  [pixletImageRep bytesPerRow] * 
 																						[pixletImageRep pixelsHigh], 
 																					  NULL);
+					CGBitmapInfo		cgBitmapInfo = ([pixletImageRep hasAlpha] ? kCGImageAlphaPremultipliedLast : kCGImageAlphaNone);
 					CGImageRef			cgTileImage = CGImageCreate([pixletImageRep pixelsWide], 
 																	[pixletImageRep pixelsHigh], 
-																	8, 
-																	32, 
+																	[pixletImageRep bitsPerSample], 
+																	[pixletImageRep bitsPerPixel], 
 																	[pixletImageRep bytesPerRow], 
 																	cgColorSpace, 
-																	kCGImageAlphaPremultipliedLast, 
+																	cgBitmapInfo, 
 																	cgDataProvider, 
 																	NULL, 
 																	FALSE,
 																	kCGRenderingIntentDefault);
+					CGImageDestinationRef	cgImageDest = CGImageDestinationCreateWithURL((CFURLRef)[NSURL fileURLWithPath:@"/Users/frank/Desktop/Mosaics/Pixlet.png"], 
+																						  kUTTypePNG, 
+																						  1, 
+																						  NULL);
+					CGImageDestinationAddImage(cgImageDest, cgTileImage, NULL);
+					CGImageDestinationFinalize(cgImageDest);
+					CFRelease(cgImageDest);
 					CGContextDrawImage(cgContext, cgTileRect, cgTileImage);
 					CGDataProviderRelease(cgDataProvider);
 				#else
@@ -625,16 +650,16 @@ static NSArray	*formatExtensions = nil;
 	{
 			// Now convert the image into the desired output format.
 		#if USE_CG
-			NSBitmapImageRep	*exportRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&bitmapBuffer 
-																					 pixelsWide:exportWidth 
-																					 pixelsHigh:exportHeight 
-																				  bitsPerSample:8 
-																				samplesPerPixel:4 
-																					   hasAlpha:YES 
-																					   isPlanar:NO 
-																				 colorSpaceName:NSDeviceRGBColorSpace 
-																					bytesPerRow:0 
-																				   bitsPerPixel:0];
+			NSBitmapImageRep		*exportRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&bitmapBuffer 
+																						 pixelsWide:exportWidth 
+																						 pixelsHigh:exportHeight 
+																					  bitsPerSample:8 
+																					samplesPerPixel:4 
+																						   hasAlpha:YES 
+																						   isPlanar:NO 
+																					 colorSpaceName:NSDeviceRGBColorSpace 
+																						bytesPerRow:0 
+																					   bitsPerPixel:0];
 		#else
 			exportRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:exportRect];
 		#endif
@@ -656,8 +681,6 @@ static NSArray	*formatExtensions = nil;
 				float	scale = 72.0 / [resolutionPopUp selectedTag];
 				[exportRep setSize:NSMakeSize(exportWidth * scale, exportHeight * scale)];
 			}
-			
-			// CGImageDestinationCreateWithURL() for 10.4...
 			
 			NSData	*bitmapData = [exportRep representationUsingType:exportImageType properties:properties];
 			
