@@ -84,6 +84,7 @@ Riemersma metric:
 ¥		Fetch description and URL off the main thread
 ¥		Fix the match percentage so at least some images are <90%
 ¥	Check if mosaic state should be paused or done on load
+¥	Save lo-res version of on-screen mosaic
 
 
 2.0b1 To Do:
@@ -139,3 +140,4 @@ Riemersma metric:
 ¥	Prepare for localization
 ¥	Display tiles description in tooltip on toolbar button.
 ¥	Don't show crash reporter again if user clicks cancel.
+¥	Add exception handler to -[MacOSaiXMosaic calculateImageMatches]
