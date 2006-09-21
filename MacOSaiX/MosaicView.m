@@ -54,12 +54,20 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	highlightedImageSourcesLock = [[NSLock alloc] init];
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(windowDidBecomeMain:)
+											 selector:@selector(windowDidBecomeMainOrKey:)
 												 name:NSWindowDidBecomeMainNotification 
 											   object:[self window]];
 	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(windowDidResignMain:)
-												 name:NSWindowDidBecomeMainNotification 
+											 selector:@selector(windowDidBecomeMainOrKey:)
+												 name:NSWindowDidBecomeKeyNotification 
+											   object:[self window]];
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(windowDidResignMainOrKey:)
+												 name:NSWindowDidResignMainNotification 
+											   object:[self window]];
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(windowDidResignMainOrKey:)
+												 name:NSWindowDidResignKeyNotification 
 											   object:[self window]];
 }
 
@@ -955,6 +963,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 																	defer:NO 
 																   screen:[nibWindow screen]];
 	[tooltipWindow setContentView:[nibWindow contentView]];
+	[tooltipWindow setLevel:NSFloatingWindowLevel];
 	[nibWindow release];
 	
 	[imageSourceTextField setCell:[[[MacOSaiXTextFieldCell alloc] initTextCell:@""] autorelease]];
@@ -995,7 +1004,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
-- (void)setTooltipsEnabled:(BOOL)enabled
+- (void)setTooltipsEnabled:(BOOL)enabled animateHiding:(BOOL)animateHiding
 {
 	if (enabled && !tooltipTimer)
 	{
@@ -1006,7 +1015,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 													   userInfo:nil 
 														repeats:YES] retain];
 	}
-	else if (!enabled)
+	else if (!enabled && tooltipTile)
 	{
 		//NSLog(@"Disabling tooltips");
 		
@@ -1014,9 +1023,18 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		[tooltipTimer release];
 		tooltipTimer = nil;
 		
-		tooltipTile = nil;
+		if (animateHiding)
+			[self hideTooltip];
+		else
+		{
+			if ([tooltipHideTimer isValid])
+				[tooltipHideTimer invalidate];
+			[tooltipHideTimer release];
+			tooltipHideTimer = nil;
+			[tooltipWindow orderOut:self];
+		}
 		
-		[self hideTooltip];
+		tooltipTile = nil;
 	}
 }
 
@@ -1307,47 +1325,58 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 - (void)mouseEntered:(NSEvent *)event
 {
-	[self setTooltipsEnabled:YES];
+	if ([[self window] isKeyWindow])
+		[self setTooltipsEnabled:YES animateHiding:YES];
 }
 
 
 - (void)mouseExited:(NSEvent *)event
 {
-	[self setTooltipsEnabled:NO];
+	[self setTooltipsEnabled:NO animateHiding:YES];
 }
 
 
 - (void)viewDidMoveToWindow
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidBecomeMainNotification object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidBecomeKeyNotification object:nil];
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResignMainNotification object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResignKeyNotification object:nil];
 	
 	if ([self window])
 	{
 		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(windowDidBecomeMain:)
+												 selector:@selector(windowDidBecomeMainOrKey:)
 													 name:NSWindowDidBecomeMainNotification 
 												   object:[self window]];
 		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(windowDidResignMain:)
-													 name:NSWindowDidBecomeMainNotification 
+												 selector:@selector(windowDidBecomeMainOrKey:)
+													 name:NSWindowDidBecomeKeyNotification 
+												   object:[self window]];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(windowDidResignMainOrKey:)
+													 name:NSWindowDidResignMainNotification 
+												   object:[self window]];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(windowDidResignMainOrKey:)
+													 name:NSWindowDidResignKeyNotification 
 												   object:[self window]];
 	}
 }
 
 
-- (void)windowDidBecomeMain:(NSNotification *)notification
+- (void)windowDidBecomeMainOrKey:(NSNotification *)notification
 {
 	NSPoint	windowPoint = [[self window] convertScreenToBase:[NSEvent mouseLocation]];
 	
 	if (NSPointInRect([self convertPoint:windowPoint fromView:nil], [self bounds]))
-		[self setTooltipsEnabled:YES];
+		[self setTooltipsEnabled:YES animateHiding:NO];
 }
 
 
-- (void)windowDidResignMain:(NSNotification *)notification
+- (void)windowDidResignMainOrKey:(NSNotification *)notification
 {
-	[self setTooltipsEnabled:NO];
+	[self setTooltipsEnabled:NO animateHiding:NO];
 }
 
 
@@ -1378,8 +1407,14 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	if ([originalFadeTimer isValid])
 		[originalFadeTimer invalidate];
 	[originalFadeTimer release];
+	if ([animateHighlightedTileTimer isValid])
+		[animateHighlightedTileTimer invalidate];
+	[animateHighlightedTileTimer release];
+	if ([tilesNeedDisplayTimer isValid])
+		[tilesNeedDisplayTimer invalidate];
+	[tilesNeedDisplayTimer release];
 	
-	[self setTooltipsEnabled:NO];
+	[self setTooltipsEnabled:NO animateHiding:NO];
 	
 	[mainImage release];
 	[mainImageLock release];
