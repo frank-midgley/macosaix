@@ -314,6 +314,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 			NSImage	*image = nil;
 			if ([imageSource canRefetchImages])
 			{
+				BOOL				fetchedThumbnail = NO;
 				volatile NSImage	*thumbnailImage = nil,
 									*fullSizeImage = nil;
 				
@@ -322,6 +323,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 					// First grab the thumbnail.
 				if (!NSEqualSizes(size, NSZeroSize) && size.width <= 128.0 && size.height <= 128.0)
 				{
+					fetchedThumbnail = YES;
 					NS_DURING
 						thumbnailImage = [imageSource thumbnailForIdentifier:imageIdentifier];
 					NS_HANDLER
@@ -336,6 +338,15 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 						fullSizeImage = [imageSource imageForIdentifier:imageIdentifier];
 					NS_HANDLER
 					NS_ENDHANDLER
+					
+					if (!fullSizeImage && !fetchedThumbnail)
+					{
+							// If we couldn't get the full sized image then grab the thumbnail no matter what size is being requested.
+						NS_DURING
+							thumbnailImage = [imageSource thumbnailForIdentifier:imageIdentifier];
+						NS_HANDLER
+						NS_ENDHANDLER
+					}
 				}
 				[cacheLock lock];
 				
