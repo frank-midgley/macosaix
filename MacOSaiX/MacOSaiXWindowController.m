@@ -667,21 +667,13 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (IBAction)setupTiles:(id)sender
 {
-	if (![[self mosaic] wasStarted] || 
-		![MacOSaiXWarningController warningIsEnabled:@"Changing Tiles Setup"] || 
-		[MacOSaiXWarningController runAlertForWarning:@"Changing Tiles Setup" 
-												title:NSLocalizedString(@"Do you wish to change the tiles setup?", @"") 
-											  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
-										 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Change", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
-	{
-		if (!tilesSetupController)
-			tilesSetupController = [[MacOSaiXTilesSetupController alloc] initWithWindow:nil];
-		
-		[tilesSetupController setupTilesForMosaic:[self mosaic] 
-								   modalForWindow:[self window] 
-									modalDelegate:nil 
-								   didEndSelector:nil];
-	}
+	if (!tilesSetupController)
+		tilesSetupController = [[MacOSaiXTilesSetupController alloc] initWithWindow:nil];
+	
+	[tilesSetupController setupTilesForMosaic:[self mosaic] 
+							   modalForWindow:[self window] 
+								modalDelegate:nil 
+							   didEndSelector:nil];
 }
 
 

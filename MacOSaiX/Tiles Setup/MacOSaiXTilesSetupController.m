@@ -9,6 +9,7 @@
 #import "MacOSaiXTilesSetupController.h"
 
 #import "MacOSaiX.h"
+#import "MacOSaiXWarningController.h"
 #import "NSString+MacOSaiX.h"
 
 
@@ -264,19 +265,19 @@
 
 - (IBAction)ok:(id)sender;
 {
-	[[self mosaic] setImageUseCount:[[imageUseCountPopUp selectedItem] tag]];
-	[[self mosaic] setImageReuseDistance:[imageReuseSlider intValue]];
-	[[self mosaic] setImageCropLimit:[imageCropLimitSlider intValue]];
-	
-	[NSApp endSheet:[self window] returnCode:NSOKButton];
+		// TBD: some changes may not require resetting
+	if (![[self mosaic] wasStarted] || 
+		![MacOSaiXWarningController warningIsEnabled:@"Changing Tiles Setup"] || 
+		[MacOSaiXWarningController runAlertForWarning:@"Changing Tiles Setup" 
+												title:NSLocalizedString(@"Do you wish to change the tiles setup?", @"") 
+											  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
+										 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Change", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
+		[NSApp endSheet:[self window] returnCode:NSOKButton];
 }
 
 
 - (void)tilesSetupDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
-		// Let the editor free up whatever resources it was using.
-	[editor editingComplete];
-	
 	[sheet orderOut:self];
 	
 	if (returnCode == NSOKButton)
@@ -284,8 +285,14 @@
 		[[NSUserDefaults standardUserDefaults] setObject:NSStringFromClass([tileShapesBeingEdited class])
 												  forKey:@"Last Chosen Tile Shapes Class"];
 		[[self mosaic] setTileShapes:tileShapesBeingEdited creatingTiles:YES];
+		[[self mosaic] setImageUseCount:[[imageUseCountPopUp selectedItem] tag]];
+		[[self mosaic] setImageReuseDistance:[imageReuseSlider intValue]];
+		[[self mosaic] setImageCropLimit:[imageCropLimitSlider intValue]];
 	}
-	
+
+		// Let the editor free up whatever resources it was using.
+	[editor editingComplete];
+			
 	[tileShapesBeingEdited release];
 	tileShapesBeingEdited = nil;
 	[editor release];
