@@ -84,6 +84,8 @@ Riemersma metric:
 ¥		Fetch description and URL off the main thread
 ¥		Fix the match percentage so at least some images are <90%
 ¥	Check if mosaic state should be paused or done on load
+¥	Close unedited Untitled window if other mosaic opened.
+¥	Allow aliases for cache folders
 ¥	Save lo-res version of on-screen mosaic
 
 
@@ -114,7 +116,7 @@ Riemersma metric:
 ¥		Don't really quit
 ¥		Add background setting
 	Plug-in API's
-¥		Minimum MacOSaiX version per plug-in
+Ã		Minimum MacOSaiX version per plug-in
 ¥		Create documentation
 ¥		Create sample plug-in projects
 	Flickr source:
@@ -135,9 +137,9 @@ Riemersma metric:
 ¥		Re-enforce 10,000 pixel limit
 ?		Initial units sensible
 ¥		Pre-allocate bitmap buffer to detect enough memory?
-¥	Confirm changing tiles when sheet closes instead of opens
+Ã	Confirm changing tiles when sheet closes instead of opens
 Ã	Figure out why opening a document makes it dirty
 ¥	Prepare for localization
 ¥	Display tiles description in tooltip on toolbar button.
-¥	Don't show crash reporter again if user clicks cancel.
+Ã	Don't show crash reporter again if user clicks cancel.
 ¥	Add exception handler to -[MacOSaiXMosaic calculateImageMatches]
