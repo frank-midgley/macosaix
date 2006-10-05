@@ -246,6 +246,16 @@
 					// TBD: also check for conflicting class names?
 				}
 				
+					// Make sure this copy of MacOSaiX is new enough to handle the plug-in.
+				NSString	*minMacOSaiXString = [plugInBundle objectForInfoDictionaryKey:@"Minimum MacOSaiX Version"];
+				if (plugInCompatible && minMacOSaiXString)
+				{
+					NSString		*versionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+					MacPADSocket	*macPAD = [[MacPADSocket alloc] init];
+					plugInCompatible = ([macPAD compareVersion:minMacOSaiXString 
+													toVersion:versionString] != NSOrderedAscending);
+				}
+				
 				if (plugInCompatible)
 				{
 					Class	plugInPrincipalClass = [plugInBundle principalClass];
