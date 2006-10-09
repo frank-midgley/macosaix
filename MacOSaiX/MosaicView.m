@@ -828,7 +828,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 				[backgroundImageLock unlock];
 				break;
 			case blackMode:
-				[[NSColor colorWithDeviceWhite:0.0 alpha:viewFade] set];
+				[[NSColor colorWithDeviceWhite:0.0 alpha:1.0] set];
 				NSRectFill(drawRect);
 				break;
 			default:
@@ -844,7 +844,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		[mainImageLock unlock];
 		
 			// Overlay the faded original if appropriate and if it's not already there.
-		if (viewFade < 1.0 && backgroundMode != originalMode)
+		if (viewFade < 1.0 && backgroundMode == originalMode)
 		{
 			[previousOriginalImage drawInRect:previousDrawRect 
 									 fromRect:previousOriginalRect 
