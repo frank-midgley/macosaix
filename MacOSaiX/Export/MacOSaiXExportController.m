@@ -311,10 +311,14 @@ static NSArray	*formatExtensions = nil;
 #define USE_CG 1
 	
 #if USE_CG
+	CGRect			cgExportRect = CGRectMake(0.0, 0.0, exportWidth, exportHeight);
 	CGColorSpaceRef	cgColorSpace = CGColorSpaceCreateDeviceRGB();
-	CGContextRef	cgContext = CGBitmapContextCreate(bitmapBuffer, exportWidth, 
-													  exportHeight, 8, 
-													  exportWidth * 4, cgColorSpace, 
+	CGContextRef	cgContext = CGBitmapContextCreate(bitmapBuffer, 
+													  exportWidth, 
+													  exportHeight, 
+													  8, 
+													  exportWidth * 4, 
+													  cgColorSpace, 
 													  kCGImageAlphaPremultipliedLast);
 	CGContextSetInterpolationQuality(cgContext, kCGInterpolationHigh);
 #else
@@ -369,44 +373,67 @@ static NSArray	*formatExtensions = nil;
 //	}
 	
 	#if USE_CG
-		float	clearColorComponents[4] = {0, 0, 0, 0.0};
+		float	clearColorComponents[2] = {0.0, 0.0};
 		CGContextSetFillColor(cgContext, clearColorComponents);
-		CGRect	fullRect = CGRectMake(0.0, 0.0, exportWidth, exportHeight);
-		CGContextFillRect(cgContext, fullRect);
+		CGContextFillRect(cgContext, cgExportRect);
 	#else
 		[[NSColor clearColor] set];
 		NSRectFill(exportRect);
 	#endif
 	
-	swith ([mosaicView backgroundMode])
+	switch ([mosaicView backgroundMode])
 	{
 		case originalMode:
 			if ([mosaicView fade] < 1.0)
 			{
 				#if USE_CG
 				{
-					NSData	*pngData = [[mosaic originalImage] TIFFRepresentation]
+					NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
+					NSData				*tiffData = [[mosaic originalImage] TIFFRepresentation];
+					NSBitmapImageRep	*originalImageRep = [[NSBitmapImageRep alloc] initWithData:tiffData];
 					CGDataProviderRef	cgDataProvider = CGDataProviderCreateWithData(NULL, 
-																					  [pixletImageRep bitmapData], 
-																					  [pixletImageRep bytesPerRow] * 
-																					  [pixletImageRep pixelsHigh], 
+																					  [originalImageRep bitmapData], 
+																					  [originalImageRep bytesPerRow] * 
+																					  [originalImageRep pixelsHigh], 
 																					  NULL);
-					CGImageCreateWithPNGDataProvider(cgDataProvider, NULL, TRUE, kCGRenderingIntentDefault);
+					CGBitmapInfo		cgBitmapInfo = ([originalImageRep hasAlpha] ? kCGImageAlphaPremultipliedLast : 
+																					  kCGImageAlphaNone);
+					CGImageRef			cgOriginalImage = CGImageCreate([originalImageRep pixelsWide], 
+																		[originalImageRep pixelsHigh], 
+																		[originalImageRep bitsPerSample], 
+																		[originalImageRep bitsPerPixel], 
+																		[originalImageRep bytesPerRow], 
+																		cgColorSpace, 
+																		cgBitmapInfo, 
+																		cgDataProvider, 
+																		NULL, 
+																		FALSE,
+																		kCGRenderingIntentDefault);
+					
+					CGContextSetAlpha(cgContext, 1.0 - [mosaicView fade]);
+					CGContextDrawImage(cgContext, cgExportRect, cgOriginalImage);
+					
+					CGImageRelease(cgOriginalImage);
+					CGDataProviderRelease(cgDataProvider);
+					[originalImageRep release];
+					[pool2 release];
 				}
 				#else
 					[[mosaic originalImage] drawInRect:exportRect 
 										  fromRect:NSZeroRect 
 										 operation:NSCompositeCopy 
-										  fraction:1.0];
+										  fraction:1.0 - [mosaicView fade]];
 				#endif
 			}
 			break;
 		case blackMode:
 		{
 			#if USE_CG
-				;	// TODO
+				float	blackColorComponents[2] = {0.0, 1.0};
+				CGContextSetFillColor(cgContext, blackColorComponents);
+				CGContextFillRect(cgContext, cgExportRect);
 			#else
-				[[NSColor colorWithDeviceWhite:0.0 alpha:[mosaicView fade]] set];
+				[[NSColor colorWithDeviceWhite:0.0 alpha:1.0] set];
 				NSRectFillUsingOperation(exportRect, NSCompositeSourceOver);
 			#endif
 			break;
@@ -456,7 +483,7 @@ static NSArray	*formatExtensions = nil;
 					// Clip the tile's image to the outline of the tile.
 				NSBezierPath	*clipPath = [transform transformBezierPath:[tile outline]];
 				
-				#ifdef USE_CG
+				#if USE_CG
 					CGContextSaveGState(cgContext);
 					CGPathRef		cgOutline = [clipPath quartzPath];
 					CGContextAddPath(cgContext, cgOutline);
@@ -503,7 +530,7 @@ static NSArray	*formatExtensions = nil;
 //				NSLog(@"x:%g-%g y:%g-%g", NSMinX(drawRect), NSMaxX(drawRect), NSMinY(drawRect), NSMaxY(drawRect));
 				
 					// Finally, draw the tile's image.
-				#ifdef USE_CG
+				#if USE_CG
 					CGRect				cgTileRect = CGRectMake(drawRect.origin.x, drawRect.origin.y, 
 													drawRect.size.width, drawRect.size.height);
 					CGDataProviderRef	cgDataProvider = CGDataProviderCreateWithData(NULL, 
@@ -523,13 +550,14 @@ static NSArray	*formatExtensions = nil;
 																	NULL, 
 																	FALSE,
 																	kCGRenderingIntentDefault);
-					CGImageDestinationRef	cgImageDest = CGImageDestinationCreateWithURL((CFURLRef)[NSURL fileURLWithPath:@"/Users/frank/Desktop/Mosaics/Pixlet.png"], 
-																						  kUTTypePNG, 
-																						  1, 
-																						  NULL);
-					CGImageDestinationAddImage(cgImageDest, cgTileImage, NULL);
-					CGImageDestinationFinalize(cgImageDest);
-					CFRelease(cgImageDest);
+//					CGImageDestinationRef	cgImageDest = CGImageDestinationCreateWithURL((CFURLRef)[NSURL fileURLWithPath:@"/Users/frank/Desktop/Mosaics/Pixlet.png"], 
+//																						  kUTTypePNG, 
+//																						  1, 
+//																						  NULL);
+//					CGImageDestinationAddImage(cgImageDest, cgTileImage, NULL);
+//					CGImageDestinationFinalize(cgImageDest);
+//					CFRelease(cgImageDest);
+					CGContextSetAlpha(cgContext, [mosaicView fade]);
 					CGContextDrawImage(cgContext, cgTileRect, cgTileImage);
 					CGDataProviderRelease(cgDataProvider);
 				#else
@@ -542,7 +570,7 @@ static NSArray	*formatExtensions = nil;
 				#endif
 				
 					// Clean up.
-				#ifdef USE_CG
+				#if USE_CG
 					CGContextRestoreGState(cgContext);
 				#else
 					[NSGraphicsContext restoreGraphicsState];
@@ -624,7 +652,7 @@ static NSArray	*formatExtensions = nil;
 //				}
 			NS_HANDLER
 				NSLog(@"Exception during export: %@", localException);
-				#ifdef USE_CG
+				#if USE_CG
 					CGContextRestoreGState(cgContext);
 				#else
 					[NSGraphicsContext restoreGraphicsState];
