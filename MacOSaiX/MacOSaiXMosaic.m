@@ -627,7 +627,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 					{
 						[imageQueueLock unlock];
 						if (!calculateImageMatchesThreadAlive)
-							[NSApplication detachDrawingThread:@selector(calculateImageMatches:) toTarget:self withObject:nil];
+							[NSApplication detachDrawingThread:@selector(calculateImageMatches) toTarget:self withObject:nil];
 						[imageQueueLock lock];
 						
 						[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.2]];
@@ -649,7 +649,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 				[imageQueueLock unlock];
 
 				if (!pausing && !calculateImageMatchesThreadAlive)
-					[NSApplication detachDrawingThread:@selector(calculateImageMatches:) toTarget:self withObject:nil];
+					[NSApplication detachDrawingThread:@selector(calculateImageMatches) toTarget:self withObject:nil];
 				
 				[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification 
 																	object:self];
@@ -712,7 +712,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 #pragma mark Image matching
 
 
-- (void)calculateImageMatches:(id)dummy
+- (void)calculateImageMatches
 {
 		// This method is called in a new thread whenever a non-empty image queue is discovered.
 		// It pulls images from the queue and matches them against each tile.  Once the queue
