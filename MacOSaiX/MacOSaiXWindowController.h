@@ -90,6 +90,7 @@
 - (IBAction)setViewFade:(id)sender;
 - (BOOL)viewingOriginal;
 - (IBAction)toggleTileOutlines:(id)sender;
+- (IBAction)setShowNonUniqueMatches:(id)sender;
 - (IBAction)setZoom:(id)sender;
 - (IBAction)setMinimumZoom:(id)sender;
 - (IBAction)setMaximumZoom:(id)sender;

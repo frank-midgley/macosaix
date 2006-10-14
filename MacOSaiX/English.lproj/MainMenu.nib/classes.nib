@@ -9,6 +9,7 @@
                 removeChosenImageForSelectedTile = id; 
                 saveMosaicAs = id; 
                 setBackground = id; 
+                setShowNonUniqueMatches = id; 
                 setViewMosaic = id; 
                 setViewOriginalImage = id; 
                 setZoom = id; 

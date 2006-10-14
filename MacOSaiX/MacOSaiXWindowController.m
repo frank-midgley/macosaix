@@ -851,6 +851,13 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 }
 
 
+- (IBAction)setShowNonUniqueMatches:(id)sender
+{
+	[mosaicView setShowNonUniqueMatches:![mosaicView showNonUniqueMatches]];
+	[self synchronizeMenus];
+}
+
+
 - (IBAction)setZoom:(id)sender
 {
 		// Calculate the currently centered point of the mosaic image independent of the zoom factor.
@@ -1072,6 +1079,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		valid = ([mosaicView highlightedTile] != nil && zoom != 0.0);
     else if (actionToValidate == @selector(togglePause:))
 		valid = ([[[self mosaic] imageSources] count] > 0);
+	else if (actionToValidate == @selector(setShowNonUniqueMatches:))
+		[menuItem setState:([mosaicView showNonUniqueMatches] ? NSOnState : NSOffState)];
 	else if (actionToValidate == @selector(setBackground:))
 		[menuItem setState:([menuItem tag] == [mosaicView backgroundMode] ? NSOnState : NSOffState)];
 
