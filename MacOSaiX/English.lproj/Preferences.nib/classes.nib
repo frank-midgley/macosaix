@@ -7,6 +7,7 @@
                 setAutoSave = id; 
                 setAutoStart = id; 
                 setReportCrashes = id; 
+                setShowTileTooltips = id; 
                 setUpdateCheck = id; 
             }; 
             CLASS = MacOSaiXPreferencesController; 
@@ -19,6 +20,7 @@
                 preferenceBox = NSBox; 
                 preferenceTable = NSTableView; 
                 reportCrashesCheckBox = NSButton; 
+                showTooltipsCheckBox = NSButton; 
                 updateCheckBox = NSButton; 
             }; 
             SUPERCLASS = NSWindowController; 

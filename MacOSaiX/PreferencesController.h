@@ -29,7 +29,8 @@
 	IBOutlet NSButton					*updateCheckBox, 
 										*reportCrashesCheckBox, 
 										*autoStartCheckBox,
-										*autoSaveCheckBox;
+										*autoSaveCheckBox, 
+										*showTooltipsCheckBox;
     IBOutlet NSTextField				*autoSaveFrequencyField;
 }
 
@@ -37,6 +38,7 @@
 - (IBAction)setReportCrashes:(id)sender;
 - (IBAction)setAutoStart:(id)sender;
 - (IBAction)setAutoSave:(id)sender;
+- (IBAction)setShowTileTooltips:(id)sender;
 - (IBAction)resetWarnings:(id)sender;
 
 @end

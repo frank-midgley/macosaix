@@ -42,6 +42,7 @@
 	if (frequency < 1)
 		frequency = 1;
     [autoSaveFrequencyField setIntValue:frequency];
+	[showTooltipsCheckBox setState:([defaults boolForKey:@"Show Tile Tooltips"] ? NSOnState : NSOffState)];
 	
 		// Get the list of plug-ins that have prefs.
 	plugInClasses = [[NSMutableArray array] retain];
@@ -90,6 +91,15 @@
     NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
 	
 	[defaults setBool:([autoSaveCheckBox state] == NSOnState) forKey:@"Automatically Save Mosaics"];
+    [defaults synchronize];
+}
+
+
+- (IBAction)setShowTileTooltips:(id)sender
+{
+    NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
+	
+	[defaults setBool:([showTooltipsCheckBox state] == NSOnState) forKey:@"Show Tile Tooltips"];
     [defaults synchronize];
 }
 
