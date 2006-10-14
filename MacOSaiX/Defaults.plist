@@ -10,6 +10,8 @@
 	<true/>
 	<key>Automatically Start Mosaics</key>
 	<true/>
+	<key>Show Tile Tooltips</key>
+	<true/>
 	<key>Image Use Count</key>
 	<integer>0</integer>
 	<key>Image Reuse Distance</key>
