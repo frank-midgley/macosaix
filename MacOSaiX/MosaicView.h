@@ -11,7 +11,7 @@
 #import "Tiles.h"
 
 
-typedef enum { clearMode = 0, blackMode, originalMode, bestMatchMode } MacOSaiXBackgroundMode;
+typedef enum { clearMode = 0, blackMode, originalMode } MacOSaiXBackgroundMode;
 
 
 @interface MosaicView : NSView
@@ -35,7 +35,9 @@ typedef enum { clearMode = 0, blackMode, originalMode, bestMatchMode } MacOSaiXB
 		// Tile outlines display
 	BOOL					viewTileOutlines;
 	NSImage					*tileOutlinesImage;
-					
+	
+	BOOL					showNonUniqueMatches;
+	
 		// Selected tile highlighting
     MacOSaiXTile			*highlightedTile;
 	NSArray					*highlightedImageSources;
@@ -86,6 +88,9 @@ typedef enum { clearMode = 0, blackMode, originalMode, bestMatchMode } MacOSaiXB
 
 - (void)setViewTileOutlines:(BOOL)inViewTileOutlines;
 - (BOOL)viewTileOutlines;
+
+- (void)setShowNonUniqueMatches:(BOOL)flag;
+- (BOOL)showNonUniqueMatches;
 
 - (void)setBackgroundMode:(MacOSaiXBackgroundMode)mode;
 - (MacOSaiXBackgroundMode)backgroundMode;

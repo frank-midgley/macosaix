@@ -38,6 +38,8 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		tilesToRefresh = [[NSMutableArray alloc] init];
 		tileMatchTypesToRefresh = [[NSMutableArray alloc] init];
 		tileRefreshLock = [[NSLock alloc] init];
+		
+		backgroundMode = originalMode;
 	}
 	
 	return self;
@@ -52,23 +54,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	tilesNeedDisplayLock = [[NSLock alloc] init];
 	
 	highlightedImageSourcesLock = [[NSLock alloc] init];
-	
-	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(windowDidBecomeMainOrKey:)
-												 name:NSWindowDidBecomeMainNotification 
-											   object:[self window]];
-	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(windowDidBecomeMainOrKey:)
-												 name:NSWindowDidBecomeKeyNotification 
-											   object:[self window]];
-	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(windowDidResignMainOrKey:)
-												 name:NSWindowDidResignMainNotification 
-											   object:[self window]];
-	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(windowDidResignMainOrKey:)
-												 name:NSWindowDidResignKeyNotification 
-											   object:[self window]];
 }
 
 
@@ -362,7 +347,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 					redrawBackground = YES;
 				
 					// TODO: background should not be redrawn if all tiles have a unique match.
-				if (backgroundMode == bestMatchMode && redrawBackground && backgroundImageMatch)
+				if (showNonUniqueMatches && redrawBackground && backgroundImageMatch)
 					backgroundImageRep = [imageCache imageRepAtSize:NSIntegralRect([clipPath bounds]).size
 													  forIdentifier:[backgroundImageMatch imageIdentifier] 
 														 fromSource:[backgroundImageMatch imageSource]];
@@ -391,7 +376,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 						[mainImageLock unlock];
 					}
 					
-					if (backgroundMode == bestMatchMode && redrawBackground)
+					if (showNonUniqueMatches && redrawBackground)
 					{
 						[tilesToRedraw addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 														@"Background", @"Layer", 
@@ -670,13 +655,13 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
-- (void)setBackgroundMode:(MacOSaiXBackgroundMode)mode
+- (void)setShowNonUniqueMatches:(BOOL)flag
 {
-	if (mode != backgroundMode)
+	if (showNonUniqueMatches != flag)
 	{
-		backgroundMode = mode;
+		showNonUniqueMatches = flag;
 		
-		if (mode == bestMatchMode)
+		if (showNonUniqueMatches)
 		{
 				// Queue the refresh of all tiles that don't have an image in the main layer.
 			NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
@@ -688,7 +673,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 											@"Best", @"Match Type", 
 											nil]];
 		}
-		else if (backgroundImage)
+		else
 		{
 				// Get rid of the memory consuming background image since it's no longer needed.
 				// A new one will be created if the mode is switched back to best match.
@@ -698,6 +683,23 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 				backgroundImage = nil;
 			[backgroundImageLock unlock];
 		}
+		
+		[self setNeedsDisplay:YES];
+	}
+}
+
+
+- (BOOL)showNonUniqueMatches
+{
+	return showNonUniqueMatches;
+}
+
+
+- (void)setBackgroundMode:(MacOSaiXBackgroundMode)mode
+{
+	if (mode != backgroundMode)
+	{
+		backgroundMode = mode;
 		
 		[self setNeedsDisplay:YES];
 	}
@@ -817,15 +819,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 				[originalImage drawInRect:drawRect 
 								 fromRect:originalRect 
 								operation:NSCompositeSourceOver 
-								 fraction:viewFade];
-				break;
-			case bestMatchMode:
-				[backgroundImageLock lock];
-					[backgroundImage drawInRect:drawRect 
-									   fromRect:mainImageRect 
-									  operation:NSCompositeSourceOver 
-									   fraction:viewFade];
-				[backgroundImageLock unlock];
+								 fraction:1.0];
 				break;
 			case blackMode:
 				[[NSColor colorWithDeviceWhite:0.0 alpha:1.0] set];
@@ -854,6 +848,16 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 									  fromRect:originalRect 
 									 operation:NSCompositeSourceOver 
 									  fraction:(1.0 - viewFade) * originalFade];
+		}
+		
+		if (showNonUniqueMatches)
+		{
+			[backgroundImageLock lock];
+				[backgroundImage drawInRect:drawRect 
+								   fromRect:mainImageRect 
+								  operation:NSCompositeSourceOver 
+								   fraction:viewFade];
+			[backgroundImageLock unlock];
 		}
 		
 		if (viewTileOutlines && !drawLoRes)
@@ -1006,7 +1010,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 - (void)setTooltipsEnabled:(BOOL)enabled animateHiding:(BOOL)animateHiding
 {
-	if (enabled && !tooltipTimer)
+	if (enabled && !tooltipTimer && [[NSUserDefaults standardUserDefaults] boolForKey:@"Show Tile Tooltips"])
 	{
 		//NSLog(@"Enabling tooltips");
 		tooltipTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1 
@@ -1058,7 +1062,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 			MacOSaiXImageMatch		*imageMatch = [tile userChosenImageMatch];
 			if (!imageMatch)
 				imageMatch = [tile uniqueImageMatch];
-			if (!imageMatch && backgroundMode == bestMatchMode)
+			if (!imageMatch && showNonUniqueMatches)
 				imageMatch = [tile bestImageMatch];
 			
 			if (imageMatch)
@@ -1215,7 +1219,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		id<MacOSaiXImageSource>	displayedSource = [[tile userChosenImageMatch] imageSource];
 		if (!displayedSource)
 			displayedSource = [[tile uniqueImageMatch] imageSource];
-		if (!displayedSource && backgroundMode == bestMatchMode)
+		if (!displayedSource && showNonUniqueMatches)
 			displayedSource = [[tile bestImageMatch] imageSource];
 		
 		if (displayedSource && [highlightedImageSources containsObject:displayedSource])
@@ -1367,16 +1371,24 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 - (void)windowDidBecomeMainOrKey:(NSNotification *)notification
 {
-	NSPoint	windowPoint = [[self window] convertScreenToBase:[NSEvent mouseLocation]];
-	
-	if (NSPointInRect([self convertPoint:windowPoint fromView:nil], [self bounds]))
-		[self setTooltipsEnabled:YES animateHiding:NO];
+	if ([notification object] == [self window])
+	{
+		NSPoint	windowPoint = [[self window] convertScreenToBase:[NSEvent mouseLocation]];
+		
+		if (NSPointInRect([self convertPoint:windowPoint fromView:nil], [self bounds]))
+			[self setTooltipsEnabled:YES animateHiding:NO];
+	}
+//	else
+//		NSLog(@"not my window");
 }
 
 
 - (void)windowDidResignMainOrKey:(NSNotification *)notification
 {
-	[self setTooltipsEnabled:NO animateHiding:NO];
+	if ([notification object] == [self window])
+		[self setTooltipsEnabled:NO animateHiding:NO];
+//	else
+//		NSLog(@"not my window");
 }
 
 
