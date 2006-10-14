@@ -796,19 +796,6 @@
 			name = Document;
 			sourceTree = "<group>";
 		};
-		010D20BB0902C0C700950013 /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				0127354207CD6EBB0053037A /* Defaults.plist */,
-				928F724A0661214000873AE2 /* Info.plist */,
-				9298FE7C09955BB600E7A096 /* InfoPlist.strings */,
-				9298FE7E09955BB600E7A096 /* Localized.strings */,
-				9298FE7A09955BB600E7A096 /* Credits.html */,
-				016A2E3108D1459D002D56C1 /* Version.plist */,
-			);
-			name = Resources;
-			sourceTree = "<group>";
-		};
 		011C7D4D0A1D760F0023CD62 /* iTunes */ = {
 			isa = PBXGroup;
 			children = (
@@ -980,7 +967,6 @@
 				0165CFD1086DE55E0070D6B5 /* Plug-in API's */,
 				0165CFCE086DE5100070D6B5 /* Preferences */,
 				01FE978A08E8EDDA00E4AC7C /* Kiosk Mode */,
-				010D20BB0902C0C700950013 /* Resources */,
 				92DCA56D08F8726300B40FA6 /* Images */,
 			);
 			path = MacOSaiX;
@@ -1153,9 +1139,15 @@
 			children = (
 				29B97316FDCFA39411CA2CEA /* main.m */,
 				920F9A120A0D54E8006007C1 /* MacOSaiXPrefix.h */,
-				9298FE6D09955B3B00E7A096 /* MainMenu.nib */,
 				F5666CC9C5B062B401D943E0 /* MacOSaiX.h */,
 				F5666CCAC5B062B401D943E0 /* MacOSaiX.m */,
+				9298FE6D09955B3B00E7A096 /* MainMenu.nib */,
+				0127354207CD6EBB0053037A /* Defaults.plist */,
+				928F724A0661214000873AE2 /* Info.plist */,
+				9298FE7C09955BB600E7A096 /* InfoPlist.strings */,
+				9298FE7E09955BB600E7A096 /* Localized.strings */,
+				9298FE7A09955BB600E7A096 /* Credits.html */,
+				016A2E3108D1459D002D56C1 /* Version.plist */,
 			);
 			name = Application;
 			sourceTree = "<group>";
