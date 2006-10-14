@@ -19,6 +19,7 @@
 	IBOutlet MosaicView			*mosaicView;
 	IBOutlet NSPopUpButton		*backgroundPopUp;
 	IBOutlet NSSlider			*fadeSlider;
+	IBOutlet NSButton			*showNonUniqueMatchesButton;
 	
 	IBOutlet NSMatrix			*formatMatrix;
 	IBOutlet NSButton			*createWebPageButton, 
@@ -55,6 +56,7 @@
 
 - (IBAction)setBackground:(id)sender;
 - (IBAction)setFade:(id)sender;
+- (IBAction)setShowNonUniqueMatches:(id)sender;
 
 - (IBAction)setUnits:(id)sender;
 - (IBAction)setResolution:(id)sender;

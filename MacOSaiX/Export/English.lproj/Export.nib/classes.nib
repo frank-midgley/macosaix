@@ -3,6 +3,7 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
+                cancelExport = id; 
                 setBackground = id; 
                 setCreateWebPage = id; 
                 setFade = id; 
@@ -10,6 +11,7 @@
                 setIncludeOriginalImage = id; 
                 setOpenImageWhenComplete = id; 
                 setResolution = id; 
+                setShowNonUniqueMatches = id; 
                 setUnits = id; 
             }; 
             CLASS = MacOSaiXExportController; 
@@ -26,6 +28,7 @@
                 mosaicView = MosaicView; 
                 openWhenCompleteButton = NSButton; 
                 resolutionPopUp = NSPopUpButton; 
+                showNonUniqueMatchesButton = NSButton; 
                 unitsPopUp = NSPopUpButton; 
                 widthField = NSTextField; 
             }; 
