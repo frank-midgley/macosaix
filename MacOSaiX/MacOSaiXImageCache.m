@@ -389,7 +389,11 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 					imageRep = [self imageRepAtSize:size forIdentifier:imageIdentifier fromSource:imageSource];
 			}
 			else
-				NSLog(@"Invalid image retrieved for \"%@\" from %@", imageIdentifier, imageSource);
+			{
+				#ifdef DEBUG
+					NSLog(@"Invalid image retrieved for \"%@\" from %@", imageIdentifier, imageSource);
+				#endif
+			}
 		}
 	[cacheLock unlock];
 	

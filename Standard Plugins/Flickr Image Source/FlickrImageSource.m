@@ -622,7 +622,9 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 				{
 					[contextDict setObject:[nodeAttributes objectForKey:@"pages"] forKey:@"Page Count"];
 					
-					NSLog(@"Total pages = %@, count = %@", [nodeAttributes objectForKey:@"pages"], [nodeAttributes objectForKey:@"total"]);
+					#ifdef DEBUG
+						NSLog(@"Total pages = %@, count = %@", [nodeAttributes objectForKey:@"pages"], [nodeAttributes objectForKey:@"total"]);
+					#endif
 					
 					newObject = identifierQueue;
 				}

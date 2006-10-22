@@ -609,7 +609,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 			[image setCacheMode:NSImageCacheNever];
 			imageIsValid = [image isValid];
 		NS_HANDLER
-			NSLog(@"Exception raised while getting the next image (%@)", localException);
+			#ifdef DEBUG
+				NSLog(@"Exception raised while getting the next image (%@)", localException);
+			#endif
 		NS_ENDHANDLER
 			
 		if (image && imageIsValid)

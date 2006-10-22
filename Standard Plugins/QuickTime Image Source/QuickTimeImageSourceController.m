@@ -298,7 +298,9 @@
 	[currentImageSource setSamplingRateType:1];
 	
 	int		setting = (int)roundf([sender floatValue]);
-	NSLog(@"%f = %d", [sender floatValue], setting);
+	#ifdef DEBUG
+		NSLog(@"%f = %d", [sender floatValue], setting);
+	#endif
 	float	rate = (setting < 1 ? -1.0 / (setting - 2.0) : setting);
 	
 	[currentImageSource setConstantSamplingRate:rate];

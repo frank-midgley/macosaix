@@ -55,7 +55,11 @@
 		[copy addRepresentation:bitmapRep];
 	}
 	else
-		NSLog(@"Couldn't create cached thumbnail image.");
+	{
+		#ifdef DEBUG
+			NSLog(@"Couldn't create cached thumbnail image.");
+		#endif
+	}
 	
 	return copy;
 }

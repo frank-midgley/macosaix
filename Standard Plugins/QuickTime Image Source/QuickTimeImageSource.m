@@ -212,7 +212,11 @@ static NSImage			*sQuickTimeImage = nil;
 			if (err == componentNotThreadSafeErr)
 				movieIsThreadSafe = NO;
 			else if (err != noErr)
-				NSLog(@"Could not detach from movie (%d)", err);
+			{
+				#ifdef DEBUG
+					NSLog(@"Could not detach from movie (%d)", err);
+				#endif
+			}
 		}
 		else
 		{
@@ -486,7 +490,11 @@ static NSImage			*sQuickTimeImage = nil;
 		PicHandle	picHandle = GetMoviePict(qtMovie, time);
 		OSErr       err = GetMoviesError();
 		if (err != noErr)
-			NSLog(@"Error %d getting movie picture.", err);
+		{
+			#ifdef DEBUG
+				NSLog(@"Error %d getting movie picture.", err);
+			#endif
+		}
 		else if (picHandle)
 		{
 			NSData			*imageData = [NSData dataWithBytes:*picHandle length:GetHandleSize((Handle)picHandle)];

@@ -83,7 +83,9 @@
 			[transformedTileOutline stroke];
 		[highlightedImage unlockFocus];
 	NS_HANDLER
-		NSLog(@"Could not lock focus on editor image");
+		#ifdef DEBUG
+			NSLog(@"Could not lock focus on editor image");
+		#endif
 	NS_ENDHANDLER
 	
     return highlightedImage;
@@ -156,7 +158,9 @@
 			[originalImage drawInRect:originalImageViewFrame fromRect:origRect operation:NSCompositeCopy fraction:1.0];
 		[originalImageForTile unlockFocus];
 	NS_HANDLER
-		NSLog(@"Exception raised while extracting tile images: %@", [localException name]);
+		#ifdef DEBUG
+			NSLog(@"Exception raised while extracting tile images: %@", [localException name]);
+		#endif
 	NS_ENDHANDLER
 	[originalImageView setImage:[self highlightTileOutlineInImage:originalImageForTile croppedPercentage:nil]];
 	
