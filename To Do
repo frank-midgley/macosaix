@@ -50,6 +50,7 @@ Riemersma metric:
 ¥	Make sure pixels are being pulled from bitmaps correctly
 ¥	Get rid of lines on screen and in exported images
 	Folder source:
+¥		Save button not enabled after adding new folder
 ¥		Remember last chosen folder
 ¥		Drag and drop support
 ¥		Restarting after load
@@ -87,7 +88,7 @@ Riemersma metric:
 ¥	Close unedited Untitled window if other mosaic opened.
 ¥	Allow aliases for cache folders
 ¥	Save lo-res version of on-screen mosaic
-
+¥	Allow dropping an image/file onto tiles
 
 2.0b1 To Do:
 Ã	New iTunes album artwork source
