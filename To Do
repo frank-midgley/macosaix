@@ -10,6 +10,7 @@ Ideas for future versions:
 	New image sources:
 		Icons
 		Delicious
+		Address Book person images
 	Directory source
 		Option to only use images bigger or smaller than certain dimensions
 	"option to replace ALL instances of one tile with another picture"
@@ -68,6 +69,7 @@ Riemersma metric:
 	Kiosk mode
 ¥		Enable password
 ¥		dialogs on secondary monitors not ordering out
+¥		Don't really quit
 ¥	Enable cancelling of document load
 ¥	Copy original image to doc bundle? or open mosaic read-only if original missing?
 ¥	Preserve mosaic area (w*h) when changing original
@@ -89,10 +91,15 @@ Riemersma metric:
 ¥	Allow aliases for cache folders
 ¥	Save lo-res version of on-screen mosaic
 ¥	Allow dropping an image/file onto tiles
+¥	New iSight source
+¥	Display tiles description in tooltip on toolbar button.
+	Plug-in API's
+Ã		Minimum MacOSaiX version per plug-in
+¥		Create documentation
+¥		Create sample plug-in projects
 
 2.0b1 To Do:
 Ã	New iTunes album artwork source
-¥	New iSight source
 Ã	Allow image files to be opened by MacOSaiX
 Ã	Tile refresh leaves black edges
 Ã	Mosaic view needs to draw lo-res during auto-fade
@@ -114,12 +121,7 @@ Riemersma metric:
 Ã	Add new "Refreshing tiles" status message
 	Kiosk mode
 Ã		Cancel button not working in kiosk setup?
-¥		Don't really quit
 ¥		Add background setting
-	Plug-in API's
-Ã		Minimum MacOSaiX version per plug-in
-¥		Create documentation
-¥		Create sample plug-in projects
 	Flickr source:
 Ã		Page by post date
 Ã		Allow fetching > 4100 images
@@ -134,13 +136,12 @@ Riemersma metric:
 	QuickTime source:
 Ã		Show duration
 Ã		Show aspect ratio
-	Exporting
-¥		Re-enforce 10,000 pixel limit
+	Save As
+X		Re-enforce 10,000 pixel limit
 ?		Initial units sensible
-¥		Pre-allocate bitmap buffer to detect enough memory?
+Ã		Pre-allocate bitmap buffer to detect enough memory
 Ã	Confirm changing tiles when sheet closes instead of opens
 Ã	Figure out why opening a document makes it dirty
 ¥	Prepare for localization
-¥	Display tiles description in tooltip on toolbar button.
 Ã	Don't show crash reporter again if user clicks cancel.
-¥	Add exception handler to -[MacOSaiXMosaic calculateImageMatches]
+Ã	Add exception handler to -[MacOSaiXMosaic calculateImageMatches]
