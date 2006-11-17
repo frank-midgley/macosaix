@@ -144,6 +144,8 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		fromSource:(id<MacOSaiXImageSource>)imageSource
 {
 	[cacheLock lock];
+	
+	NS_DURING
 			// Get a bitmap image rep at the full size of the image.
 		NSBitmapImageRep	*fullSizeRep = nil;
 		
@@ -189,6 +191,12 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 				[[image TIFFRepresentationUsingCompression:NSTIFFCompressionLZW factor:1.0] 
 											   writeToFile:imagePath atomically:NO];
 		}
+	NS_HANDLER
+		#ifdef DEBUG
+			NSLog(@"Could not cache \"%@\" (%@)", imageIdentifier, [localException reason]);
+		#endif
+	NS_ENDHANDLER
+	
 	[cacheLock unlock];
 }
 
