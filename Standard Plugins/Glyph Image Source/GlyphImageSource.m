@@ -89,6 +89,8 @@ static NSImage	*glyphSourceImage = nil;
 		colorLists = [[NSMutableDictionary dictionary] retain];
 		
 		glyphsDict = [[NSMutableDictionary dictionary] retain];
+		
+		[self addColorList:NSLocalizedString(@"All Colors", @"") ofClass:@"Built-in"];
 	}
 	
 	return self;
