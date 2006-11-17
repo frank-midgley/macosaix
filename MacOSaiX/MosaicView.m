@@ -89,6 +89,12 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
+- (MacOSaiXMosaic *)mosaic
+{
+	return mosaic;
+}
+
+
 - (BOOL)isOpaque
 {
 	return NO;

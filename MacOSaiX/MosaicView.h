@@ -73,6 +73,7 @@ typedef enum { clearMode = 0, blackMode, originalMode } MacOSaiXBackgroundMode;
 }
 
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
+- (MacOSaiXMosaic *)mosaic;
 
 - (void)setMainImage:(NSImage *)image;
 - (NSImage *)mainImage;
