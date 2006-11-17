@@ -7,17 +7,19 @@
 //
 
 #import "MacOSaiX.h"
-#import "PreferencesController.h"
-#import "MacOSaiXTileShapes.h"
-#import "MacOSaiXImageSource.h"
-#import "MacOSaiXDocument.h"
-#import "MacPADSocket.h"
-#import "MacOSaiXUpdateAvailableController.h"
+
+#import "MacOSaiXAboutBoxController.h"
 #import "MacOSaiXCrashReporterController.h"
+#import "MacOSaiXDocument.h"
+#import "MacOSaiXFullScreenWindow.h"
+#import "MacOSaiXImageSource.h"
 #import "MacOSaiXKioskController.h"
 #import "MacOSaiXKioskSetupController.h"
-#import "MacOSaiXFullScreenWindow.h"
 #import "MacOSaiXScreenSetupController.h"
+#import "MacOSaiXTileShapes.h"
+#import "MacOSaiXUpdateAvailableController.h"
+#import "MacPADSocket.h"
+#import "PreferencesController.h"
 
 #import <Carbon/Carbon.h>
 #import <pthread.h>
@@ -191,6 +193,15 @@
 //- (void)newMacOSaiXWithPasteboard:(NSPasteboard *)pBoard userObject:(id)userObj error:(NSString **)error
 //{
 //}
+
+	
+- (IBAction)showAboutBox:(id)sender
+{
+	MacOSaiXAboutBoxController	*controller = [[MacOSaiXAboutBoxController alloc] initWithWindow:nil];
+	[controller showWindow:self];
+	
+	// controller will release itself when window closes
+}
 
 
 - (IBAction)openPreferences:(id)sender

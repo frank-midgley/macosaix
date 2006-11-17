@@ -1,0 +1,25 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            CLASS = MacOSaiXAboutBoxController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {mosaicView = MosaicView; }; 
+            SUPERCLASS = NSWindowController; 
+        }, 
+        {
+            CLASS = MosaicView; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                contextualMenu = NSMenu; 
+                imageSourceImageView = NSImageView; 
+                imageSourceTextField = NSTextField; 
+                tileImageTextField = NSTextField; 
+                tileImageView = NSImageView; 
+                tooltipWindow = NSWindow; 
+            }; 
+            SUPERCLASS = NSView; 
+        }
+    ); 
+    IBVersion = 1; 
+}
