@@ -200,6 +200,10 @@
 		9298FEF409955C5A00E7A096 /* Document Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9298FEF209955C5A00E7A096 /* Document Icon.icns */; };
 		9298FF1409955E1500E7A096 /* Export.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FF1209955E1500E7A096 /* Export.nib */; };
 		92A6B8F80AB4ACFB00298BCF /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92A6B8F70AB4ACFB00298BCF /* ApplicationServices.framework */; };
+		92B4091A0B0D437F00BB3981 /* MacOSaiXAboutBoxController.h in Headers */ = {isa = PBXBuildFile; fileRef = 92B409180B0D437E00BB3981 /* MacOSaiXAboutBoxController.h */; };
+		92B4091B0B0D437F00BB3981 /* MacOSaiXAboutBoxController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B409190B0D437E00BB3981 /* MacOSaiXAboutBoxController.m */; };
+		92B409210B0D448500BB3981 /* About Box.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92B4091F0B0D448400BB3981 /* About Box.nib */; };
+		92B409800B0D4FB400BB3981 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92B4097F0B0D4FB300BB3981 /* AddressBook.framework */; };
 		92B9087C08C25F0600D621F5 /* MacOSaiXImageMatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */; };
 		92C8AAF2080870100073045F /* GlyphTableColumn.h in Headers */ = {isa = PBXBuildFile; fileRef = 92C8AAF0080870100073045F /* GlyphTableColumn.h */; };
 		92C8AAF3080870100073045F /* GlyphTableColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92C8AAF1080870100073045F /* GlyphTableColumn.m */; };
@@ -593,6 +597,10 @@
 		9298FEF209955C5A00E7A096 /* Document Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Document Icon.icns"; path = "../Icon work/Document Icon/Document Icon.icns"; sourceTree = "<group>"; };
 		9298FF1309955E1500E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = MacOSaiX/Export/English.lproj/Export.nib; sourceTree = "<group>"; };
 		92A6B8F70AB4ACFB00298BCF /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
+		92B409180B0D437E00BB3981 /* MacOSaiXAboutBoxController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXAboutBoxController.h; path = "About Box/MacOSaiXAboutBoxController.h"; sourceTree = "<group>"; };
+		92B409190B0D437E00BB3981 /* MacOSaiXAboutBoxController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXAboutBoxController.m; path = "About Box/MacOSaiXAboutBoxController.m"; sourceTree = "<group>"; };
+		92B409200B0D448500BB3981 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "MacOSaiX/About Box/English.lproj/About Box.nib"; sourceTree = "<group>"; };
+		92B4097F0B0D4FB300BB3981 /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = /System/Library/Frameworks/AddressBook.framework; sourceTree = "<absolute>"; };
 		92B45F70041A9DF1006867F5 /* DirectoryImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DirectoryImageSourceController.h; path = "Standard Plugins/Directory Image Source/DirectoryImageSourceController.h"; sourceTree = "<group>"; };
 		92B45F71041A9DF1006867F5 /* DirectoryImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DirectoryImageSourceController.m; path = "Standard Plugins/Directory Image Source/DirectoryImageSourceController.m"; sourceTree = "<group>"; };
 		92B45F74041A9E78006867F5 /* GlyphImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlyphImageSourceController.h; path = "Standard Plugins/Glyph Image Source/GlyphImageSourceController.h"; sourceTree = "<group>"; };
@@ -714,6 +722,7 @@
 				9284899F06611CE5003B3514 /* Cocoa.framework in Frameworks */,
 				01ACC20108FCC0EA0013D213 /* Carbon.framework in Frameworks */,
 				92A6B8F80AB4ACFB00298BCF /* ApplicationServices.framework in Frameworks */,
+				92B409800B0D4FB400BB3981 /* AddressBook.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -965,6 +974,7 @@
 				928F72460661211600873AE2 /* Crash Reporter */,
 				0165CFD0086DE5490070D6B5 /* Update Window */,
 				0165CFD1086DE55E0070D6B5 /* Plug-in API's */,
+				92B409170B0D431C00BB3981 /* About Box */,
 				0165CFCE086DE5100070D6B5 /* Preferences */,
 				01FE978A08E8EDDA00E4AC7C /* Kiosk Mode */,
 				92DCA56D08F8726300B40FA6 /* Images */,
@@ -1007,6 +1017,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				92B4097F0B0D4FB300BB3981 /* AddressBook.framework */,
 				92A6B8F70AB4ACFB00298BCF /* ApplicationServices.framework */,
 				F599E5560266AAD101000103 /* Carbon.framework */,
 				F514D53C0390266E01B25AF1 /* Cocoa.framework */,
@@ -1178,6 +1189,16 @@
 			);
 			name = "Save As";
 			path = Export;
+			sourceTree = "<group>";
+		};
+		92B409170B0D431C00BB3981 /* About Box */ = {
+			isa = PBXGroup;
+			children = (
+				92B409180B0D437E00BB3981 /* MacOSaiXAboutBoxController.h */,
+				92B409190B0D437E00BB3981 /* MacOSaiXAboutBoxController.m */,
+				92B4091F0B0D448400BB3981 /* About Box.nib */,
+			);
+			name = "About Box";
 			sourceTree = "<group>";
 		};
 		92DA0F740A3B63010064E69E /* Tile Editor */ = {
@@ -1357,6 +1378,7 @@
 				92DA0F7F0A3B63450064E69E /* MacOSaiXTileEditor.h in Headers */,
 				9240AE720A4DABAB00759546 /* MacOSaiXProgressController.h in Headers */,
 				92E0C5DE0A61C51C003C90CA /* NSBezierPath+MacOSaiX.h in Headers */,
+				92B4091A0B0D437F00BB3981 /* MacOSaiXAboutBoxController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1807,6 +1829,7 @@
 				92DA0E700A3235190064E69E /* PathSeparator.png in Resources */,
 				92DA0F830A3B63710064E69E /* Tile Editor.nib in Resources */,
 				9240AE950A4DB11100759546 /* Progress.nib in Resources */,
+				92B409210B0D448500BB3981 /* About Box.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2122,6 +2145,7 @@
 				92DA0F800A3B63450064E69E /* MacOSaiXTileEditor.m in Sources */,
 				9240AE730A4DABAB00759546 /* MacOSaiXProgressController.m in Sources */,
 				92E0C5DF0A61C51C003C90CA /* NSBezierPath+MacOSaiX.m in Sources */,
+				92B4091B0B0D437F00BB3981 /* MacOSaiXAboutBoxController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2541,6 +2565,15 @@
 			);
 			name = Export.nib;
 			path = ../..;
+			sourceTree = "<group>";
+		};
+		92B4091F0B0D448400BB3981 /* About Box.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92B409200B0D448500BB3981 /* English */,
+			);
+			name = "About Box.nib";
+			path = ..;
 			sourceTree = "<group>";
 		};
 		92DA0F810A3B63710064E69E /* Tile Editor.nib */ = {
