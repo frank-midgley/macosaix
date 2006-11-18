@@ -14,7 +14,15 @@
 
 @interface MacOSaiXAboutBoxController : NSWindowController <ABImageClient>
 {
-	IBOutlet MosaicView	*mosaicView;
+	IBOutlet NSTextField	*versionField;
+	IBOutlet NSButton		*homePageButton;
+	IBOutlet MosaicView		*mosaicView;
+	
+	NSMutableDictionary		*personImages;
+	NSString				*currentPersonName;
+	int						lastTileChangeCount;
 }
+
+- (IBAction)openHomePage:(id)sender;
 
 @end
