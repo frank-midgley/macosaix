@@ -40,6 +40,8 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		tileRefreshLock = [[NSLock alloc] init];
 		
 		backgroundMode = originalMode;
+		
+		allowsTileSelection = YES;
 	}
 	
 	return self;
@@ -1184,6 +1186,21 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 #pragma mark Highlight methods
 
 
+- (void)setAllowsTileSelection:(BOOL)flag
+{
+	if (!flag)
+		[self setHighlightedTile:nil];
+	
+	allowsTileSelection = flag;
+}
+
+
+- (BOOL)allowsTileSelection
+{
+	return allowsTileSelection;
+}
+
+
 - (void)setHighlightedTile:(MacOSaiXTile *)tile
 {
 	NSRect				mosaicBounds = [self boundsForOriginalImage:[mosaic originalImage]];
@@ -1294,7 +1311,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	
 	MacOSaiXTile	*clickedTile = [self tileAtPoint:[self convertPoint:[theEvent locationInWindow] fromView:nil]];
 	
-	if ([theEvent clickCount] == 1)
+	if ([theEvent clickCount] == 1 && [self allowsTileSelection])
 	{
 			// Change the selection.
 		if (clickedTile == highlightedTile)

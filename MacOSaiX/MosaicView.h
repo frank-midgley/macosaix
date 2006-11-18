@@ -39,6 +39,7 @@ typedef enum { clearMode = 0, blackMode, originalMode } MacOSaiXBackgroundMode;
 	BOOL					showNonUniqueMatches;
 	
 		// Selected tile highlighting
+	BOOL					allowsTileSelection;
     MacOSaiXTile			*highlightedTile;
 	NSArray					*highlightedImageSources;
 	NSLock					*highlightedImageSourcesLock;
@@ -97,6 +98,8 @@ typedef enum { clearMode = 0, blackMode, originalMode } MacOSaiXBackgroundMode;
 - (MacOSaiXBackgroundMode)backgroundMode;
 
 	// Highlighting
+- (void)setAllowsTileSelection:(BOOL)flag;
+- (BOOL)allowsTileSelection;
 - (void)setHighlightedTile:(MacOSaiXTile *)tile;
 - (MacOSaiXTile *)highlightedTile;
 - (void)highlightImageSources:(NSArray *)imageSources;
