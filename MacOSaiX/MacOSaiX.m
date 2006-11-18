@@ -12,6 +12,7 @@
 #import "MacOSaiXCrashReporterController.h"
 #import "MacOSaiXDocument.h"
 #import "MacOSaiXFullScreenWindow.h"
+#import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageSource.h"
 #import "MacOSaiXKioskController.h"
 #import "MacOSaiXKioskSetupController.h"
@@ -183,7 +184,10 @@
 	struct task_basic_info	taskInfo;
 	mach_msg_type_number_t	count = TASK_BASIC_INFO_COUNT;
 	if (task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t)&taskInfo, &count) == KERN_SUCCESS)
-		NSLog(@"%ld bytes in use", taskInfo.virtual_size - SHARED_TEXT_REGION_SIZE - SHARED_DATA_REGION_SIZE);
+		NSLog(@"%4.1f MB in use (cache = %3.1f MB for %5ld images)", 
+			  (taskInfo.virtual_size - SHARED_TEXT_REGION_SIZE - SHARED_DATA_REGION_SIZE) / 1024.0 / 1024.0, 
+			  [[MacOSaiXImageCache sharedImageCache] size] / 1024.0 / 1024.0, 
+			  [[MacOSaiXImageCache sharedImageCache] count]);
 	
 	// MAX = 0xFFFFFFFF - SHARED_TEXT_REGION_SIZE - SHARED_DATA_REGION_SIZE = 3,758,096,383
 }
