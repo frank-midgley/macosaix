@@ -86,6 +86,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		[imageRepRecencyArray removeLastObject];
 		
 		currentMemoryCacheSize -= oldestRepSize;
+		cachedImageCount--;
 	}
 
 		// Get the existing array for this key or create a new array.
@@ -108,10 +109,11 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 	currentMemoryCacheSize += imageRepSize;
 	
 		// Remember how recently we last saw this rep.
-		// The newest items are closer to index 0.
+		// The newest items are closest to index 0.
 	[imageRepRecencyArray insertObject:imageRep atIndex:0];
 	[imageIdentifierRecencyArray insertObject:imageIdentifier atIndex:0];
 	[imageSourceRecencyArray insertObject:imageSourceKey atIndex:0];
+	cachedImageCount++;
 	
 //	NSLog(@"%llu bytes, %d image reps in cache", currentMemoryCacheSize, [imageRepRecencyArray count]);
 }
@@ -417,8 +419,33 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		NSString		*identifier = nil;
 		while (identifier = [identifierEnumerator nextObject])
 		{
-			NSString	*imagePath = [self cachePathForIdentifier:identifier forSource:imageSource];
-			[[NSFileManager defaultManager] removeFileAtPath:imagePath handler:nil];
+				// Remove the image from the memory cache.
+			int		index = [imageRepRecencyArray count] - 1;
+			while (index >= 0)
+			{
+				if ([[imageSourceRecencyArray objectAtIndex:index] pointerValue] == imageSource &&
+					[[imageIdentifierRecencyArray objectAtIndex:index] isEqualToString:identifier])
+				{
+					NSBitmapImageRep	*imageRep = [imageRepRecencyArray objectAtIndex:index];
+					currentMemoryCacheSize -= [imageRep bytesPerRow] * [imageRep pixelsHigh];
+					
+					[imageRepRecencyArray removeObjectAtIndex:index];
+					[imageIdentifierRecencyArray removeObjectAtIndex:index];
+					[imageSourceRecencyArray removeObjectAtIndex:index];
+					cachedImageCount--;
+				}
+				
+				index--;
+			}
+			
+			[memoryCache removeObjectForKey:[NSValue valueWithPointer:imageSource]];
+					
+			if (![imageSource canRefetchImages])
+			{
+					// Remove the image from disk.
+				NSString	*imagePath = [self cachePathForIdentifier:identifier forSource:imageSource];
+				[[NSFileManager defaultManager] removeFileAtPath:imagePath handler:nil];
+			}
 		}
 	[cacheLock unlock];
 }
@@ -446,13 +473,33 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		while (--index >= 0)
 			if ([[imageSourceRecencyArray objectAtIndex:index] pointerValue] == imageSourceKey)
 			{
+				NSBitmapImageRep	*imageRep = [imageRepRecencyArray objectAtIndex:index];
+				currentMemoryCacheSize -= [imageRep bytesPerRow] * [imageRep pixelsHigh];
+				
 				[imageSourceRecencyArray removeObjectAtIndex:index];
 				[imageIdentifierRecencyArray removeObjectAtIndex:index];
 				[imageRepRecencyArray removeObjectAtIndex:index];
+				
+				cachedImageCount--;
 			}
 	[cacheLock unlock];
 			
 	[pool release];
+}
+
+
+#pragma Statistics
+
+
+- (unsigned long long)size
+{
+	return currentMemoryCacheSize;
+}
+
+
+- (unsigned long)count
+{
+	return cachedImageCount;
 }
 
 

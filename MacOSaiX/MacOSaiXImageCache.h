@@ -52,4 +52,7 @@
 
 - (void)removeCachedImagesFromSource:(id<MacOSaiXImageSource>)imageSource;
 
+- (unsigned long long)size;
+- (unsigned long)count;
+
 @end
