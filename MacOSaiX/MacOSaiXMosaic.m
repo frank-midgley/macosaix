@@ -1036,7 +1036,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 						}
 				}
 					
-				if (!pixletImageInUse && ![pixletImageSource canRefetchImages])
+				if (!pixletImageInUse)
 					[imageCache removeCachedImagesWithIdentifiers:[NSArray arrayWithObject:pixletImageIdentifier] 
 													   fromSource:pixletImageSource];
 			NS_HANDLER
