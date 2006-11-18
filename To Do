@@ -90,6 +90,7 @@ Riemersma metric:
 ¥	Close unedited Untitled window if other mosaic opened.
 ¥	Allow aliases for cache folders
 ¥	Save lo-res version of on-screen mosaic
+¥	Synchronize icon in fade view with current background
 ¥	Allow dropping an image/file onto tiles
 ¥	New iSight source
 ¥	Display tiles description in tooltip on toolbar button.
