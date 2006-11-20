@@ -18,8 +18,9 @@
 	IBOutlet NSButton		*homePageButton;
 	IBOutlet MosaicView		*mosaicView;
 	
-	NSMutableDictionary		*personImages;
-	NSString				*currentPersonName;
+	NSMutableDictionary		*personImages, 
+							*personTags;
+	
 	int						lastTileChangeCount;
 }
 

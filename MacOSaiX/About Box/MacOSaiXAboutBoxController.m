@@ -24,26 +24,19 @@
 @implementation MacOSaiXAboutBoxController
 
 
-- (void)setMosaicPerson:(NSString *)personName
-{
-	lastTileChangeCount = 0;
-	
-	[currentPersonName autorelease];
-	currentPersonName = [personName copy];
-	
-	[[MacOSaiXImageCache sharedImageCache] removeCachedImagesFromSource:[[[mosaicView mosaic] imageSources] lastObject]];
-	
-	[mosaicView setToolTip:personName];
-	[[mosaicView mosaic] setOriginalImage:[personImages objectForKey:personName]];
-	[[mosaicView mosaic] resume];
-}
-
-
 - (void)chooseNewPerson
 {
-	NSArray	*personNames = [personImages allKeys];
+	lastTileChangeCount = 0;
+	[[MacOSaiXImageCache sharedImageCache] removeCachedImagesFromSource:[[[mosaicView mosaic] imageSources] lastObject]];
 	
-	[self setMosaicPerson:[personNames objectAtIndex:random() % [personNames count]]];
+	NSArray		*personNames = [personImages allKeys];
+	
+	NSString	*newPersonName = [personNames objectAtIndex:random() % [personNames count]];
+	[[mosaicView mosaic] setOriginalImage:[personImages objectForKey:newPersonName]];
+
+	[mosaicView setToolTip:newPersonName];
+	
+	[[mosaicView mosaic] resume];
 }
 
 
@@ -97,65 +90,65 @@
 	[mosaic setTileShapes:tileShapes creatingTiles:YES];
 	[tileShapes release];
 	
-	personImages = [[NSMutableDictionary alloc] init];
+	personImages = [[NSMutableDictionary dictionaryWithObject:[NSImage imageNamed:@"Application Icon"] 
+													   forKey:@"MacOSaiX"] retain];
+	personTags = [[NSMutableDictionary alloc] init];
 	
-	ABPerson				*myRecord = [[ABAddressBook sharedAddressBook] me];
-	NSImage					*myImage = [[[NSImage alloc] initWithData:[myRecord imageData]] autorelease];
-	if (myImage)
-	{
-		NSString	*personName = NSLocalizedString(@"Me", @"");
-		
-		[personImages setObject:myImage forKey:personName];
-		[self setMosaicPerson:personName];
-	}
-	
+		// Get the images of the people in the address book.
 	NSEnumerator			*abPersonEnumerator = [[[ABAddressBook sharedAddressBook] people] objectEnumerator];
-	ABPerson				*abPerson = nil;
+	ABPerson				*myRecord = [[ABAddressBook sharedAddressBook] me],
+							*abPerson = nil;
 	while (abPerson = [abPersonEnumerator nextObject])
-		if (abPerson != myRecord)
+	{
+		NSString	*personName = nil;
+		
+		if (abPerson == myRecord)
+			personName = NSLocalizedString(@"Me", @"");
+		else
 		{
-			NSImage	*personImage = nil;
-			NSData	*imageData = [abPerson imageData];
-			
-			if (imageData)
-			{
-				NSString	*personName = [abPerson valueForProperty:kABNicknameProperty];
-				if (!personName)
-					personName = [NSString stringWithFormat:@"%@ %@", 
-															[abPerson valueForProperty:kABFirstNameProperty], 
-															[abPerson valueForProperty:kABLastNameProperty]];
-				
-				personImage = [[[NSImage alloc] initWithData:imageData] autorelease];
-				
-				if ([personImage isValid])
-					[personImages setObject:personImage forKey:personName];
-			}
-			
-			if (!personImage)
-				[abPerson beginLoadingImageDataForClient:self];
+			personName = [abPerson valueForProperty:kABNicknameProperty];
+			if (!personName)
+				personName = [NSString stringWithFormat:@"%@ %@", 
+														[abPerson valueForProperty:kABFirstNameProperty], 
+														[abPerson valueForProperty:kABLastNameProperty]];
 		}
 	
-	if (!currentPersonName)
-		[self chooseNewPerson];
+		NSImage	*personImage = nil;
+		NSData	*imageData = [abPerson imageData];
+		
+		if (imageData)
+		{
+			personImage = [[[NSImage alloc] initWithData:imageData] autorelease];
+			
+			if ([personImage isValid])
+				[personImages setObject:personImage forKey:personName];
+		}
+		
+		if (!personImage)
+		{
+			int	tag = [abPerson beginLoadingImageDataForClient:self];
+			
+			[personTags setObject:personName forKey:[NSNumber numberWithInt:tag]];
+		}
+	}
+			
+	[self chooseNewPerson];
 }
 
 
 - (void)consumeImageData:(NSData *)imageData forTag:(int)imageTag
 {
-//	if (imageData)
-//	{
-//		NSImage	*personImage = [[[NSImage alloc] initWithData:imageData] autorelease];
-//		
-//		if ([personImage isValid])
-//		{
-//			[personImages setObject:personImage forKey:personName];
-//			
-//			if (!currentPersonName)
-//				[self setMosaicPerson:personName];
-//		}
-//	}
-//	else
-//		[[mosaicView mosaic] setOriginalImage:[NSImage imageNamed:@"Application Icon"]];
+	NSString	*personName = [[[personTags objectForKey:[NSNumber numberWithInt:imageTag]] retain] autorelease];
+	
+	[personTags removeObjectForKey:[NSNumber numberWithInt:imageTag]];
+	
+	if (imageData)
+	{
+		NSImage	*personImage = [[[NSImage alloc] initWithData:imageData] autorelease];
+		
+		if ([personImage isValid])
+			[personImages setObject:personImage forKey:personName];
+	}
 }
 
 
@@ -165,9 +158,9 @@
 	
 //	NSLog(@"%d", currentCount - lastTileChangeCount);
 	
-	if (currentCount > lastTileChangeCount + 10)
+	if (currentCount > lastTileChangeCount + 5)
 	{
-			// Switch to another person's image.
+			// Switch to another person's image if the mosaic is not improving.
 		lastTileChangeCount = currentCount + 1000;
 		[self performSelectorOnMainThread:@selector(chooseNewPerson) withObject:nil waitUntilDone:NO];
 	}
