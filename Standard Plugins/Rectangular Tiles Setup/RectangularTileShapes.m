@@ -10,6 +10,50 @@
 #import "RectangularTileShapesEditor.h"
 
 
+@implementation MacOSaiXRectangularTileShape
+
+
++ (MacOSaiXRectangularTileShape *)tileShapeWithOutline:(NSBezierPath *)inOutline orientation:(float)inOrientation
+{
+	return [[[MacOSaiXRectangularTileShape alloc] initWithOutline:inOutline orientation:inOrientation] autorelease];
+}
+
+
+- (id)initWithOutline:(NSBezierPath *)inOutline orientation:(float)inOrientation
+{
+	if (self = [super init])
+	{
+		outline = [inOutline retain];
+		orientation = inOrientation;
+	}
+	
+	return self;
+}
+
+
+- (NSBezierPath *)outline
+{
+	return outline;
+}
+
+
+- (float)orientation
+{
+	return orientation;
+}
+
+
+- (void)dealloc
+{
+	[outline release];
+	
+	[super dealloc];
+}
+
+
+@end
+
+
 @implementation MacOSaiXRectangularTileShapes
 
 
@@ -162,7 +206,7 @@
 
 - (void)useSavedSetting:(NSDictionary *)settingDict
 {
-	NSString	*settingType = [settingDict objectForKey:kMacOSaiXTileShapesSettingType];
+	NSString	*settingType = [settingDict objectForKey:@"Element Type"];
 	
 	if ([settingType isEqualToString:@"DIMENSIONS"])
 	{
@@ -195,7 +239,8 @@
 			{
 				tileRect.origin.x = x * tileRect.size.width;
 				tileRect.origin.y = y * tileRect.size.height;
-				[tileOutlines addObject:[NSBezierPath bezierPathWithRect:tileRect]];
+				[tileOutlines addObject:[MacOSaiXRectangularTileShape tileShapeWithOutline:[NSBezierPath bezierPathWithRect:tileRect] 
+																			   orientation:0.0]];
 			}
 		
 	return [NSArray arrayWithArray:tileOutlines];

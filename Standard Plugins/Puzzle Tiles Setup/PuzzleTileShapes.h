@@ -15,35 +15,69 @@ typedef enum
 	outwardsTab = 1
 } PuzzleTabType;
 
-typedef struct _PuzzlePiece
+
+@interface MacOSaiXPuzzleTileShape : NSObject <MacOSaiXTileShape>
 {
-	PuzzleTabType	topTabType,
-					leftTabType,
-					rightTabType,
-					bottomTabType;
-	float			topLeftHorizontalCurve,
-					topLeftVerticalCurve,
-					topRightHorizontalCurve,
-					topRightVerticalCurve,
-					bottomLeftHorizontalCurve,
-					bottomLeftVerticalCurve,
-					bottomRightHorizontalCurve,
-					bottomRightVerticalCurve;
-	BOOL			alignImages;
-} PuzzlePiece;
+	NSBezierPath	*outline;
+	float			orientation;
+//	PuzzleTabType	topTabType,
+//					leftTabType,
+//					rightTabType,
+//					bottomTabType;
+//	float			topLeftHorizontalCurve,
+//					topLeftVerticalCurve,
+//					topRightHorizontalCurve,
+//					topRightVerticalCurve,
+//					bottomLeftHorizontalCurve,
+//					bottomLeftVerticalCurve,
+//					bottomRightHorizontalCurve,
+//					bottomRightVerticalCurve;
+}
+
++ (MacOSaiXPuzzleTileShape *)tileShapeWithBounds:(NSRect)tileBounds
+									  topTabType:(PuzzleTabType)topTabType 
+									 leftTabType:(PuzzleTabType)leftTabType 
+									rightTabType:(PuzzleTabType)rightTabType 
+								   bottomTabType:(PuzzleTabType)bottomTabType 
+						  topLeftHorizontalCurve:(float)topLeftHorizontalCurve 
+							topLeftVerticalCurve:(float)topLeftVerticalCurve 
+						 topRightHorizontalCurve:(float)topRightHorizontalCurve 
+						   topRightVerticalCurve:(float)topRightVerticalCurve 
+					   bottomLeftHorizontalCurve:(float)bottomLeftHorizontalCurve 
+						 bottomLeftVerticalCurve:(float)bottomLeftVerticalCurve 
+					  bottomRightHorizontalCurve:(float)bottomRightHorizontalCurve 
+						bottomRightVerticalCurve:(float)bottomRightVerticalCurve 
+									  alignImage:(BOOL)alignImage 
+									 orientation:(float)inOrientation;
+
+- (id)        initWithBounds:(NSRect)tileBounds
+				  topTabType:(PuzzleTabType)topTabType 
+				 leftTabType:(PuzzleTabType)leftTabType 
+				rightTabType:(PuzzleTabType)rightTabType 
+			   bottomTabType:(PuzzleTabType)bottomTabType 
+	  topLeftHorizontalCurve:(float)topLeftHorizontalCurve 
+		topLeftVerticalCurve:(float)topLeftVerticalCurve 
+	 topRightHorizontalCurve:(float)topRightHorizontalCurve 
+	   topRightVerticalCurve:(float)topRightVerticalCurve 
+   bottomLeftHorizontalCurve:(float)bottomLeftHorizontalCurve 
+	 bottomLeftVerticalCurve:(float)bottomLeftVerticalCurve 
+  bottomRightHorizontalCurve:(float)bottomRightHorizontalCurve 
+	bottomRightVerticalCurve:(float)bottomRightVerticalCurve 
+				  alignImage:(BOOL)alignImage 
+				 orientation:(float)inOrientation;
+
+@end
 
 
 @interface MacOSaiXPuzzleTileShapes : NSObject <MacOSaiXTileShapes>
 {
+	NSArray			*tileShapes;
 	unsigned int	tilesAcross, 
 					tilesDown;
 	float			tabbedSidesRatio, 
 					curviness;
 	BOOL			alignImages;
 }
-
-+ (NSBezierPath *)puzzlePathWithSize:(NSSize)tileSize
-						  attributes:(PuzzlePiece)attributes;
 
 - (void)setTilesAcross:(unsigned int)count;
 - (unsigned int)tilesAcross;

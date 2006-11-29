@@ -333,33 +333,38 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 - (void)updatePreview:(NSTimer *)timer
 {
 		// Pick a new random puzzle piece.
-	float	tabbedSidesRatio = [currentTileShapes tabbedSidesRatio],
-			curviness = [currentTileShapes curviness];
+	float		tileAspectRatio = (originalImageSize.width / [tilesAcrossSlider intValue]) / 
+								  (originalImageSize.height / [tilesDownSlider intValue]), 
+				tabbedSidesRatio = [currentTileShapes tabbedSidesRatio],
+				curviness = [currentTileShapes curviness];
 	
-	previewPiece.topTabType = (random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1;
-	previewPiece.leftTabType = (random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1;
-	previewPiece.rightTabType = (random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1;
-	previewPiece.bottomTabType = (random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1;
-	previewPiece.topLeftHorizontalCurve = (random() % 200 - 100) / 100.0 * curviness;
-	previewPiece.topLeftVerticalCurve = (random() % 200 - 100) / 100.0 * curviness;
-	previewPiece.topRightHorizontalCurve = (random() % 200 - 100) / 100.0 * curviness;
-	previewPiece.topRightVerticalCurve = (random() % 200 - 100) / 100.0 * curviness;
-	previewPiece.bottomLeftHorizontalCurve = (random() % 200 - 100) / 100.0 * curviness;
-	previewPiece.bottomLeftVerticalCurve = (random() % 200 - 100) / 100.0 * curviness;
-	previewPiece.bottomRightHorizontalCurve = (random() % 200 - 100) / 100.0 * curviness;
-	previewPiece.bottomRightVerticalCurve = (random() % 200 - 100) / 100.0 * curviness;
-	previewPiece.alignImages = ([alignImagesMatrix selectedRow] == 1);
+	float		prevOrient = (previewShape ? [previewShape orientation] : 0.0);
 	
+	[previewShape release];
+	previewShape = [[MacOSaiXPuzzleTileShape alloc] initWithBounds:NSMakeRect(0.0, 0.0, 1.0, 1.0 / tileAspectRatio) 
+														topTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
+													   leftTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
+													  rightTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
+													 bottomTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
+											topLeftHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
+											  topLeftVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
+										   topRightHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
+											 topRightVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
+										 bottomLeftHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
+										   bottomLeftVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
+										bottomRightHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
+										  bottomRightVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
+														alignImage:([alignImagesMatrix selectedRow] == 1) 
+													   orientation:prevOrient + 5.0];
+	
+		// Dummy event to let MacOSaiX know that the preview should be updated.
 	[[editorView window] sendEvent:nil];
 }
 
 
-- (NSBezierPath *)previewPath
+- (id<MacOSaiXTileShape>)previewShape
 {
-	float		tileAspectRatio = (originalImageSize.width / [tilesAcrossSlider intValue]) / 
-								  (originalImageSize.height / [tilesDownSlider intValue]);
-	return [MacOSaiXPuzzleTileShapes puzzlePathWithSize:NSMakeSize(1.0, 1.0 / tileAspectRatio) 
-											 attributes:previewPiece];
+	return	previewShape;
 }
 
 

@@ -173,19 +173,19 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	
 	if (createTiles)
 	{
-		NSArray	*tileOutlines = [tileShapes shapes];
+		NSArray	*shapesArray = [tileShapes shapes];
 		
 			// Discard any tiles created from a previous set of outlines.
 		if (!tiles)
-			tiles = [[NSMutableArray arrayWithCapacity:[tileOutlines count]] retain];
+			tiles = [[NSMutableArray arrayWithCapacity:[shapesArray count]] retain];
 		else
 			[tiles removeAllObjects];
 
 			// Create a new tile collection from the outlines.
-		NSEnumerator	*tileOutlineEnumerator = [tileOutlines objectEnumerator];
-		NSBezierPath	*tileOutline = nil;
-		while (tileOutline = [tileOutlineEnumerator nextObject])
-			[self addTile:[[[MacOSaiXTile alloc] initWithOutline:tileOutline fromMosaic:self] autorelease]];
+		NSEnumerator			*tileShapeEnumerator = [shapesArray objectEnumerator];
+		id<MacOSaiXTileShape>	tileShape = nil;
+		while (tileShape = [tileShapeEnumerator nextObject])
+			[self addTile:[[[MacOSaiXTile alloc] initWithOutline:[tileShape outline] fromMosaic:self] autorelease]];
 		
 			// Indicate that the average tile size needs to be recalculated.
 		averageUnitTileSize = NSZeroSize;

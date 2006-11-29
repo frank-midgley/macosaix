@@ -105,9 +105,10 @@
 
 - (void)updatePreview
 {
-	NSBezierPath	*previewPath = [editor previewPath];
-	NSImage			*previewImage = nil;
-	NSRect			previewPathBounds = [previewPath bounds];
+	id<MacOSaiXTileShape>	previewShape = [editor previewShape];
+	NSBezierPath			*previewPath = [previewShape outline];
+	NSImage					*previewImage = nil;
+	NSRect					previewPathBounds = [previewPath bounds];
 	
 	if (previewPath && NSWidth(previewPathBounds) > 0 && NSHeight(previewPathBounds) > 0)
 	{
@@ -119,8 +120,13 @@
 		[transform scaleBy:96.0 / MAX(NSWidth(previewPathBounds), NSHeight(previewPathBounds))];
 		[transform translateXBy:-NSMinX(previewPathBounds) yBy:-NSMinY(previewPathBounds)];
 		[previewPath transformUsingAffineTransform:transform];
+		previewPathBounds = [previewPath bounds];
 		
 		[previewPath setLineWidth:2.0];
+		
+		NSImage				*tileImage = [mosaic originalImage];
+		float				tileImageWidth = [tileImage size].width, 
+							tileImageHeight = [tileImage size].height;
 		
 			// Create the preview image
 		previewImage = [[NSImage alloc] initWithSize:NSMakeSize(previewSize.width + 4.0, 
@@ -129,7 +135,8 @@
 			[[NSColor clearColor] set];
 			NSRectFill(NSMakeRect(0.0, 0.0, previewSize.width, previewSize.height));
 			
-				// Draw the shadow.
+				// Draw a shadow for the tile.
+				// TODO: use NSShadow once 10.3 is required.
 			[[NSColor colorWithCalibratedWhite:0.0 alpha:0.25] set];
 			transform = [NSAffineTransform transform];
 			[transform translateXBy:3.0 yBy:1.0];
@@ -139,13 +146,40 @@
 			[transform translateXBy:2.0 yBy:2.0];
 			[[transform transformBezierPath:previewPath] stroke];
 			
-				// Draw the path.
 			transform = [NSAffineTransform transform];
 			[transform translateXBy:1.0 yBy:3.0];
-			[[NSColor whiteColor] set];
-			[[transform transformBezierPath:previewPath] fill];
+			NSBezierPath	*contentOutline = [transform transformBezierPath:previewPath];
+			
+				// Draw the original image inside the tile to indicate the orientation.
+			[[NSGraphicsContext currentContext] saveGraphicsState];
+			{
+				[contentOutline setClip];
+				
+				NSAffineTransform	*transform = [NSAffineTransform transform];
+				[transform rotateByDegrees:-[previewShape orientation]];
+				[transform translateXBy:-NSMidX(previewPathBounds) yBy:-NSMidY(previewPathBounds)];
+				NSRect				rotatedBounds = [[transform transformBezierPath:previewPath] bounds];
+				
+				transform = [NSAffineTransform transform];
+				[transform translateXBy:NSWidth([contentOutline bounds]) / 2.0 yBy:NSHeight([contentOutline bounds]) / 2.0];
+				[transform rotateByDegrees:[previewShape orientation]];
+				if ((NSWidth(rotatedBounds) / tileImageWidth) > (NSHeight(rotatedBounds) / tileImageHeight))
+					[transform scaleBy:NSWidth(rotatedBounds) / tileImageWidth];
+				else
+					[transform scaleBy:NSHeight(rotatedBounds) / tileImageHeight];
+				
+				[transform concat];
+				[tileImage drawInRect:NSMakeRect(-tileImageWidth / 2.0, -tileImageHeight / 2.0, 
+												 tileImageWidth, tileImageHeight) 
+							 fromRect:NSZeroRect 
+							operation:NSCompositeCopy 
+							 fraction:1.0];
+			}
+			[[NSGraphicsContext currentContext] restoreGraphicsState];
+			
+				// Draw the outline of the tile.
 			[[NSColor blackColor] set];
-			[[transform transformBezierPath:previewPath] stroke];
+			[contentOutline stroke];
 		[previewImage unlockFocus];
 		
 		float	tileAspectRatio = NSWidth(previewPathBounds) / NSHeight(previewPathBounds);

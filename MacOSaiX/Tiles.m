@@ -95,12 +95,44 @@
 		[workingImage lockFocus];
 		focusLocked = YES;
 		
-			// Start with a black image to overwrite any previous scratch contents.
-		[[NSColor blackColor] set];
+			// Start with a clear image.
+		[[NSColor clearColor] set];
 		[[NSBezierPath bezierPathWithRect:destRect] fill];
 		
 			// Copy out the portion of the original image contained by the tile's outline.
-		[originalImage drawInRect:destRect fromRect:origRect operation:NSCompositeCopy fraction:1.0];
+		#if 0
+			[originalImage drawInRect:destRect fromRect:origRect operation:NSCompositeCopy fraction:1.0];
+		#else
+			float				originalWidth = [originalImage size].width, 
+								originalHeight = [originalImage size].height;
+			NSAffineTransform	*transform = [NSAffineTransform transform];
+			[transform scaleXBy:originalWidth yBy:originalHeight];
+			NSBezierPath		*scaledOutline = [transform transformBezierPath:[self outline]];
+			NSRect				outlineBounds = [scaledOutline bounds];
+			
+			transform = [NSAffineTransform transform];
+			[transform rotateByDegrees:-[self imageOrientation]];
+			[transform translateXBy:-NSMidX(outlineBounds) yBy:-NSMidY(outlineBounds)];
+			NSRect				rotatedBounds = [[transform transformBezierPath:scaledOutline] bounds];
+			
+			transform = [NSAffineTransform transform];
+			[transform translateXBy:NSWidth([contentOutline bounds]) / 2.0 yBy:NSHeight([contentOutline bounds]) / 2.0];
+			[transform rotateByDegrees:[self imageOrientation]];
+			if ((NSWidth(rotatedBounds) / NSWidth(outlineBounds)) > (NSHeight(rotatedBounds) / originalImageHeight))
+				[transform scaleBy:NSWidth(rotatedBounds) / originalImageWidth];
+			else
+				[transform scaleBy:NSHeight(rotatedBounds) / originalImageHeight];
+			
+			[transform concat];
+			[tileImage drawInRect:NSMakeRect(-NSMinX(outlineBounds) - NSWidth(outlineBounds) / 2.0, 
+											 -NSMinY(outlineBounds) - NSHeight(outlineBounds) / 2.0, 
+											 NSWidth(outlineBounds), 
+											 NSHeight(outlineBounds)) 
+						 fromRect:NSZeroRect 
+						operation:NSCompositeCopy 
+						 fraction:1.0];
+		#endif
+		
 		bitmapRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect];
 		#ifdef DEBUG
 			if (bitmapRep == nil)

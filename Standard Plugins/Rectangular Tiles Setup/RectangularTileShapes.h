@@ -9,6 +9,18 @@
 #import "MacOSaiXTileShapes.h"
 
 
+@interface MacOSaiXRectangularTileShape : NSObject <MacOSaiXTileShape>
+{
+	NSBezierPath	*outline;
+	float			orientation;
+}
+
++ (MacOSaiXRectangularTileShape *)tileShapeWithOutline:(NSBezierPath *)inOutline orientation:(float)inOrientation;
+- (id)initWithOutline:(NSBezierPath *)outline orientation:(float)orientation;
+
+@end
+
+
 @interface MacOSaiXRectangularTileShapes : NSObject <MacOSaiXTileShapes>
 {
 	unsigned int	tilesAcross, 

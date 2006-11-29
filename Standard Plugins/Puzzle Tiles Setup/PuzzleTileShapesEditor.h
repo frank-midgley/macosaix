@@ -34,7 +34,7 @@
 	MacOSaiXPuzzleTileShapes	*currentTileShapes;
 	
 	NSTimer						*previewTimer;
-	PuzzlePiece					previewPiece;
+	MacOSaiXPuzzleTileShape		*previewShape;
 }
 
 - (IBAction)setTilesAcross:(id)sender;

@@ -10,6 +10,50 @@
 #import "HexagonalTileShapesEditor.h"
 
 
+@implementation MacOSaiXHexagonalTileShape
+
+
++ (MacOSaiXHexagonalTileShape *)tileShapeWithOutline:(NSBezierPath *)inOutline orientation:(float)inOrientation
+{
+	return [[[MacOSaiXHexagonalTileShape alloc] initWithOutline:inOutline orientation:inOrientation] autorelease];
+}
+
+
+- (id)initWithOutline:(NSBezierPath *)inOutline orientation:(float)inOrientation
+{
+	if (self = [super init])
+	{
+		outline = [inOutline retain];
+		orientation = inOrientation;
+	}
+	
+	return self;
+}
+
+
+- (NSBezierPath *)outline
+{
+	return outline;
+}
+
+
+- (float)orientation
+{
+	return orientation;
+}
+
+
+- (void)dealloc
+{
+	[outline release];
+	
+	[super dealloc];
+}
+
+
+@end
+
+
 @implementation MacOSaiXHexagonalTileShapes
 
 
@@ -167,7 +211,7 @@
 
 - (void)useSavedSetting:(NSDictionary *)settingDict
 {
-	NSString	*settingType = [settingDict objectForKey:kMacOSaiXTileShapesSettingType];
+	NSString	*settingType = [settingDict objectForKey:@"Element Type"];
 	
 	if ([settingType isEqualToString:@"DIMENSIONS"])
 	{

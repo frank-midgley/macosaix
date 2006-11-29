@@ -269,7 +269,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (NSBezierPath *)previewPath
+- (id<MacOSaiXTileShape>)previewShape
 {
 	float			unitHeight = (originalImageSize.height / [tilesDownTextField intValue]) / 
 								 (originalImageSize.width / [tilesAcrossTextField intValue]);
@@ -283,7 +283,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	[previewPath lineToPoint:NSMakePoint(0.0, unitHeight / 2.0)];
 	[previewPath lineToPoint:NSMakePoint(1.0 / 3.0, 0.0)];
 	
-	return previewPath;
+	return [MacOSaiXHexagonalTileShape tileShapeWithOutline:previewPath orientation:0.0];
 }
 
 

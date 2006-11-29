@@ -28,5 +28,7 @@
 	<string>QuickTimeImageSource</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.3.0</string>
+	<key>Minimum MacOSaiX Version</key>
+	<string>2.0</string>
 </dict>
 </plist>
