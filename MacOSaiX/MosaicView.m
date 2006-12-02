@@ -1417,12 +1417,20 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 - (NSMenu *)menuForEvent:(NSEvent *)event;
 {
-	[self setHighlightedTile:[self tileAtPoint:[self convertPoint:[event locationInWindow] fromView:nil]]];
-	
-	if (!contextualMenu)
-		[self loadNib];
-	
-	return contextualMenu;
+	if ([self allowsTileSelection])
+	{
+		[self setHighlightedTile:[self tileAtPoint:[self convertPoint:[event locationInWindow] fromView:nil]]];
+		
+		if (!contextualMenu)
+			[self loadNib];
+		
+		return contextualMenu;
+	}
+	else
+	{
+		[self setHighlightedTile:nil];
+		return nil;
+	}
 }
 
 
