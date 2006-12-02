@@ -15,7 +15,7 @@
 - (NSBezierPath *)outline;
 
 	// This method should return the angle at which images should be drawn inside the tile, in degrees.  Return 0 to have images drawn in their normal orientation.
-- (float)orientation;
+- (float)imageOrientation;
 
 @end
 
