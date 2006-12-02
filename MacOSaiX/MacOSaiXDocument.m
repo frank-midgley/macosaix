@@ -491,7 +491,7 @@
 			{
 				NSAutoreleasePool	*tilePool = [[NSAutoreleasePool alloc] init];
 				
-				[buffer appendString:@"\t<TILE>\n"];
+				[buffer appendFormat:@"\t<TILE IMAGE_ORIENTATION=\"%g\">\n", [tile imageOrientation]];
 				
 					// First write out the tile's outline
 				[buffer appendString:@"\t\t<OUTLINE>\n"];
@@ -502,18 +502,16 @@
 					switch ([[tile outline] elementAtIndex:index associatedPoints:points])
 					{
 						case NSMoveToBezierPathElement:
-							[buffer appendString:[NSString stringWithFormat:@"\t\t\t<MOVE_TO X=\"%g\" Y=\"%g\"/>\n", 
-																			points[0].x, points[0].y]];
+							[buffer appendFormat:@"\t\t\t<MOVE_TO X=\"%g\" Y=\"%g\"/>\n", points[0].x, points[0].y];
 							break;
 						case NSLineToBezierPathElement:
-							[buffer appendString:[NSString stringWithFormat:@"\t\t\t<LINE_TO X=\"%g\" Y=\"%g\"/>\n", 
-																			points[0].x, points[0].y]];
+							[buffer appendFormat:@"\t\t\t<LINE_TO X=\"%g\" Y=\"%g\"/>\n", points[0].x, points[0].y];
 							break;
 						case NSCurveToBezierPathElement:
-							[buffer appendString:[NSString stringWithFormat:@"\t\t\t<CURVE_TO X=\"%g\" Y=\"%g\" C1X=\"%g\" C1Y=\"%g\" C2X=\"%g\" C2Y=\"%g\"/>\n", 
-																			points[2].x, points[2].y, 
-																			points[0].x, points[0].y, 
-																			points[1].x, points[1].y]];
+							[buffer appendFormat:@"\t\t\t<CURVE_TO X=\"%g\" Y=\"%g\" C1X=\"%g\" C1Y=\"%g\" C2X=\"%g\" C2Y=\"%g\"/>\n", 
+												 points[2].x, points[2].y, 
+												 points[0].x, points[0].y, 
+												 points[1].x, points[1].y];
 							break;
 						case NSClosePathBezierPathElement:
 							[buffer appendString:@"\t\t\t<CLOSE_PATH/>\n"];
@@ -525,9 +523,9 @@
 					// Now write out the tile's matches.
 				MacOSaiXImageMatch	*userChosenMatch = [tile userChosenImageMatch];
 				if (userChosenMatch)
-					[buffer appendString:[NSString stringWithFormat:@"\t\t<USER_CHOSEN_MATCH ID=\"%@\" VALUE=\"%g\"/>\n", 
-																	  [[userChosenMatch imageIdentifier] stringByEscapingXMLEntites],
-																	  [userChosenMatch matchValue]]];
+					[buffer appendFormat:@"\t\t<USER_CHOSEN_MATCH ID=\"%@\" VALUE=\"%g\"/>\n", 
+										 [[userChosenMatch imageIdentifier] stringByEscapingXMLEntites],
+									     [userChosenMatch matchValue]];
 				MacOSaiXImageMatch	*uniqueMatch = [tile uniqueImageMatch];
 				if (uniqueMatch)
 				{
@@ -535,10 +533,10 @@
 						// Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
 						// fully working.
 					if (sourceIndex != NSNotFound)
-						[buffer appendString:[NSString stringWithFormat:@"\t\t<UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%g\"/>\n", 
-																		  sourceIndex,
-																		  [[uniqueMatch imageIdentifier] stringByEscapingXMLEntites],
-																		  [uniqueMatch matchValue]]];
+						[buffer appendFormat:@"\t\t<UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%g\"/>\n", 
+											 sourceIndex,
+											 [[uniqueMatch imageIdentifier] stringByEscapingXMLEntites],
+											 [uniqueMatch matchValue]];
 				}
 				MacOSaiXImageMatch	*bestMatch = [tile bestImageMatch];
 				if (bestMatch)
@@ -547,10 +545,10 @@
 						// Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
 						// fully working.
 					if (sourceIndex != NSNotFound)
-						[buffer appendString:[NSString stringWithFormat:@"\t\t<BEST_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%g\"/>\n", 
-																		  sourceIndex,
-																		  [[bestMatch imageIdentifier] stringByEscapingXMLEntites],
-																		  [bestMatch matchValue]]];
+						[buffer appendFormat:@"\t\t<BEST_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%g\"/>\n", 
+											 sourceIndex,
+											 [[bestMatch imageIdentifier] stringByEscapingXMLEntites],
+											 [bestMatch matchValue]];
 				}
 				
 				[buffer appendString:@"\t</TILE>\n"];
@@ -865,7 +863,14 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					}
 					else if ([elementType isEqualToString:@"TILE"])
 					{
-						newObject = [[MacOSaiXTile alloc] initWithOutline:nil fromMosaic:mosaic];
+						NSString	*imageOrientation = [nodeAttributes objectForKey:@"IMAGE_ORIENTATION"];
+						
+						if (!imageOrientation)
+							imageOrientation = @"0.0";
+						
+						newObject = [[MacOSaiXTile alloc] initWithOutline:nil 
+														 imageOrientation:[imageOrientation floatValue] 
+															   fromMosaic:mosaic];
 					}
 					else if ([elementType isEqualToString:@"OUTLINE"])
 					{
