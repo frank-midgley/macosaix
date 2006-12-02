@@ -15,6 +15,9 @@
 #import <AddressBook/AddressBook.h>
 
 
+static MacOSaiXAboutBoxController	*sharedController;
+
+
 @interface NSObject (AboutBoxHack)
 - (void)setTilesAcross:(int)tilesDown;
 - (void)setTilesDown:(int)tilesAcross;
@@ -22,6 +25,15 @@
 
 
 @implementation MacOSaiXAboutBoxController
+
+
++ (void)showAboutBox
+{
+	if (!sharedController)
+		sharedController = [[MacOSaiXAboutBoxController alloc] init];
+	
+	[sharedController showWindow:self];
+}
 
 
 - (void)chooseNewPerson
@@ -85,8 +97,8 @@
 	[imageSource release];
 	
 	id<MacOSaiXTileShapes>	tileShapes = [[NSClassFromString(@"MacOSaiXHexagonalTileShapes") alloc] init];
-	[(id)tileShapes setTilesAcross:20];
-	[(id)tileShapes setTilesDown:17];
+	[(id)tileShapes setTilesAcross:30];
+	[(id)tileShapes setTilesDown:24];
 	[mosaic setTileShapes:tileShapes creatingTiles:YES];
 	[tileShapes release];
 	
@@ -179,6 +191,7 @@
 {
 	[[mosaicView mosaic] pause];
 	[self autorelease];
+	sharedController = nil;
 }
 
 
