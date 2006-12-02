@@ -338,7 +338,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 				tabbedSidesRatio = [currentTileShapes tabbedSidesRatio],
 				curviness = [currentTileShapes curviness];
 	
-	float		prevOrient = (previewShape ? [previewShape orientation] : 0.0);
+	float		prevOrient = (previewShape ? [previewShape imageOrientation] : 0.0);
 	
 	[previewShape release];
 	previewShape = [[MacOSaiXPuzzleTileShape alloc] initWithBounds:NSMakeRect(0.0, 0.0, 1.0, 1.0 / tileAspectRatio) 
@@ -355,7 +355,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 										bottomRightHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
 										  bottomRightVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
 														alignImage:([alignImagesMatrix selectedRow] == 1) 
-													   orientation:prevOrient + 5.0];
+												  imageOrientation:prevOrient + 5.0];
 	
 		// Dummy event to let MacOSaiX know that the preview should be updated.
 	[[editorView window] sendEvent:nil];

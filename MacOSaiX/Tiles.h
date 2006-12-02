@@ -7,7 +7,7 @@
 #import "MacOSaiXImageMatch.h"
 
 
-#define TILE_BITMAP_SIZE		16.0
+#define TILE_BITMAP_SIZE		128.0
 
 
 @class MacOSaiXMosaic;
@@ -20,14 +20,18 @@
 	
 	NSBitmapImageRep	*bitmapRep,				// The portion of the original image that is in this tile
 						*maskRep;
+	
 	MacOSaiXImageMatch	*uniqueImageMatch,
 						*bestImageMatch,
 						*userChosenImageMatch;	// will be nil if user has not choosen an image
+	
 	MacOSaiXMosaic		*mosaic;				// The mosaic this tile is a part of (non-retained)
 }
 
 	// designated initializer
-- (id)initWithOutline:(NSBezierPath *)outline fromMosaic:(MacOSaiXMosaic *)inMosaic;
+- (id)initWithOutline:(NSBezierPath *)outline 
+	 imageOrientation:(float)angle
+		   fromMosaic:(MacOSaiXMosaic *)mosaic;
 
 - (void)setImageOrientation:(float)angle;
 - (float)imageOrientation;

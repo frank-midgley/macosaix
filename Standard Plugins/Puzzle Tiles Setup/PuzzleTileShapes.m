@@ -27,7 +27,7 @@
 					bottomRightHorizontalCurve:(float)bottomRightHorizontalCurve 
 					  bottomRightVerticalCurve:(float)bottomRightVerticalCurve 
 									alignImage:(BOOL)alignImage 
-								   orientation:(float)inOrientation
+							  imageOrientation:(float)angle
 {
 	return [[[self alloc] initWithBounds:tileBounds
 							  topTabType:topTabType 
@@ -43,7 +43,7 @@
 			  bottomRightHorizontalCurve:bottomRightHorizontalCurve 
 				bottomRightVerticalCurve:bottomRightVerticalCurve 
 							  alignImage:alignImage 
-							 orientation:inOrientation] autorelease];
+						imageOrientation:angle] autorelease];
 }
 
 
@@ -61,11 +61,11 @@
   bottomRightHorizontalCurve:(float)bottomRightHorizontalCurve 
 	bottomRightVerticalCurve:(float)bottomRightVerticalCurve 
 				  alignImage:(BOOL)alignImage 
-				 orientation:(float)inOrientation
+			imageOrientation:(float)angle
 {
 	if (self = [super init])
 	{
-		orientation = inOrientation;
+		imageOrientation = angle;
 		
 		outline = [[NSBezierPath bezierPath] retain];
 		
@@ -245,9 +245,9 @@
 }
 
 
-- (float)orientation
+- (float)imageOrientation
 {
-	return orientation;
+	return imageOrientation;
 }
 
 
@@ -292,7 +292,7 @@
 															   bottomRightHorizontalCurve:0.0 
 																 bottomRightVerticalCurve:0.0 
 																			   alignImage:NO 
-																			  orientation:0.0];
+																		 imageOrientation:0.0];
 		NSBezierPath			*tileOutline = [tileShape outline];
 		
 		NSAffineTransform		*transform = [NSAffineTransform transform];
@@ -373,7 +373,7 @@
 														   bottomRightHorizontalCurve:0.0 
 															 bottomRightVerticalCurve:0.0 
 																		   alignImage:YES 
-																		  orientation:0.0];
+																	 imageOrientation:0.0];
 	NSBezierPath			*tileOutline = [tileShape outline];
 	
 	NSAffineTransform		*transform = [NSAffineTransform transform];
@@ -602,7 +602,7 @@
 															 bottomRightHorizontalCurve:-horizontalCurviness[x + 1][y] 
 															   bottomRightVerticalCurve:verticalCurviness[x + 1][y] 
 																			 alignImage:alignImages 
-																			orientation:0.0]];
+																	   imageOrientation:0.0]];
 			}
 		
 		tileShapes = [[NSArray arrayWithArray:temporaryShapes] retain];

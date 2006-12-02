@@ -19,19 +19,7 @@ typedef enum
 @interface MacOSaiXPuzzleTileShape : NSObject <MacOSaiXTileShape>
 {
 	NSBezierPath	*outline;
-	float			orientation;
-//	PuzzleTabType	topTabType,
-//					leftTabType,
-//					rightTabType,
-//					bottomTabType;
-//	float			topLeftHorizontalCurve,
-//					topLeftVerticalCurve,
-//					topRightHorizontalCurve,
-//					topRightVerticalCurve,
-//					bottomLeftHorizontalCurve,
-//					bottomLeftVerticalCurve,
-//					bottomRightHorizontalCurve,
-//					bottomRightVerticalCurve;
+	float			imageOrientation;
 }
 
 + (MacOSaiXPuzzleTileShape *)tileShapeWithBounds:(NSRect)tileBounds
@@ -48,7 +36,7 @@ typedef enum
 					  bottomRightHorizontalCurve:(float)bottomRightHorizontalCurve 
 						bottomRightVerticalCurve:(float)bottomRightVerticalCurve 
 									  alignImage:(BOOL)alignImage 
-									 orientation:(float)inOrientation;
+								imageOrientation:(float)angle;
 
 - (id)        initWithBounds:(NSRect)tileBounds
 				  topTabType:(PuzzleTabType)topTabType 
@@ -64,7 +52,7 @@ typedef enum
   bottomRightHorizontalCurve:(float)bottomRightHorizontalCurve 
 	bottomRightVerticalCurve:(float)bottomRightVerticalCurve 
 				  alignImage:(BOOL)alignImage 
-				 orientation:(float)inOrientation;
+			imageOrientation:(float)angle;
 
 @end
 

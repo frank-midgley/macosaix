@@ -13,18 +13,18 @@
 @implementation MacOSaiXHexagonalTileShape
 
 
-+ (MacOSaiXHexagonalTileShape *)tileShapeWithOutline:(NSBezierPath *)inOutline orientation:(float)inOrientation
++ (MacOSaiXHexagonalTileShape *)tileShapeWithOutline:(NSBezierPath *)inOutline imageOrientation:(float)angle
 {
-	return [[[MacOSaiXHexagonalTileShape alloc] initWithOutline:inOutline orientation:inOrientation] autorelease];
+	return [[[MacOSaiXHexagonalTileShape alloc] initWithOutline:inOutline imageOrientation:angle] autorelease];
 }
 
 
-- (id)initWithOutline:(NSBezierPath *)inOutline orientation:(float)inOrientation
+- (id)initWithOutline:(NSBezierPath *)inOutline imageOrientation:(float)angle
 {
 	if (self = [super init])
 	{
 		outline = [inOutline retain];
-		orientation = inOrientation;
+		imageOrientation = angle;
 	}
 	
 	return self;
@@ -37,9 +37,9 @@
 }
 
 
-- (float)orientation
+- (float)imageOrientation
 {
-	return orientation;
+	return imageOrientation;
 }
 
 

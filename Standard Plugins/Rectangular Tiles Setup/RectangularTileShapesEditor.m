@@ -275,7 +275,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 {
 	NSBezierPath	*previewPath = [NSBezierPath bezierPathWithRect:NSMakeRect(0.0, 0.0, 100.0, 100.0 / [self aspectRatio])];
 	
-	return [MacOSaiXRectangularTileShape tileShapeWithOutline:previewPath orientation:0.0];
+	return [MacOSaiXRectangularTileShape tileShapeWithOutline:previewPath imageOrientation:0.0];
 }
 
 

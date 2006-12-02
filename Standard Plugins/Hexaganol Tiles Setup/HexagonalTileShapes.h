@@ -12,11 +12,11 @@
 @interface MacOSaiXHexagonalTileShape : NSObject <MacOSaiXTileShape>
 {
 	NSBezierPath	*outline;
-	float			orientation;
+	float			imageOrientation;
 }
 
-+ (MacOSaiXHexagonalTileShape *)tileShapeWithOutline:(NSBezierPath *)inOutline orientation:(float)inOrientation;
-- (id)initWithOutline:(NSBezierPath *)outline orientation:(float)orientation;
++ (MacOSaiXHexagonalTileShape *)tileShapeWithOutline:(NSBezierPath *)inOutline imageOrientation:(float)angle;
+- (id)initWithOutline:(NSBezierPath *)outline imageOrientation:(float)angle;
 
 @end
 

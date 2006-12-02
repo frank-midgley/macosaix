@@ -13,18 +13,18 @@
 @implementation MacOSaiXRectangularTileShape
 
 
-+ (MacOSaiXRectangularTileShape *)tileShapeWithOutline:(NSBezierPath *)inOutline orientation:(float)inOrientation
++ (MacOSaiXRectangularTileShape *)tileShapeWithOutline:(NSBezierPath *)inOutline imageOrientation:(float)angle
 {
-	return [[[MacOSaiXRectangularTileShape alloc] initWithOutline:inOutline orientation:inOrientation] autorelease];
+	return [[[MacOSaiXRectangularTileShape alloc] initWithOutline:inOutline imageOrientation:angle] autorelease];
 }
 
 
-- (id)initWithOutline:(NSBezierPath *)inOutline orientation:(float)inOrientation
+- (id)initWithOutline:(NSBezierPath *)inOutline imageOrientation:(float)angle
 {
 	if (self = [super init])
 	{
 		outline = [inOutline retain];
-		orientation = inOrientation;
+		imageOrientation = angle;
 	}
 	
 	return self;
@@ -37,9 +37,9 @@
 }
 
 
-- (float)orientation
+- (float)imageOrientation
 {
-	return orientation;
+	return imageOrientation;
 }
 
 
@@ -240,7 +240,7 @@
 				tileRect.origin.x = x * tileRect.size.width;
 				tileRect.origin.y = y * tileRect.size.height;
 				[tileOutlines addObject:[MacOSaiXRectangularTileShape tileShapeWithOutline:[NSBezierPath bezierPathWithRect:tileRect] 
-																			   orientation:0.0]];
+																		  imageOrientation:45.0]];
 			}
 		
 	return [NSArray arrayWithArray:tileOutlines];

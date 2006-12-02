@@ -12,13 +12,15 @@
 @implementation MacOSaiXTile
 
 
-- (id)initWithOutline:(NSBezierPath *)inOutline fromMosaic:(MacOSaiXMosaic *)inMosaic
+- (id)initWithOutline:(NSBezierPath *)inOutline 
+	 imageOrientation:(float)angle
+		   fromMosaic:(MacOSaiXMosaic *)inMosaic;
 {
 	if (self = [super init])
 	{
 		outline = [inOutline retain];
 		mosaic = inMosaic;	// non-retained, it retains us
-		[self setOrientation:M_PI_2];
+		[self setImageOrientation:angle];
 	}
 	return self;
 }
@@ -42,15 +44,15 @@
 }
 
 
-- (void)setOrientation:(float)angle
+- (void)setImageOrientation:(float)angle
 {
-	orientation = angle;
+	imageOrientation = angle;
 }
 
 
-- (float)orientation
+- (float)imageOrientation
 {
-	return orientation;
+	return imageOrientation;
 }
 
 
@@ -75,21 +77,46 @@
 - (void)createBitmapRep
 {
 		// Determine the bounds of the tile in the original image and in the workingImage.
-	NSBezierPath	*tileOutline = [self outline];
-	NSImage			*originalImage = [mosaic originalImage];
-	NSRect			origRect = NSMakeRect([tileOutline bounds].origin.x * [originalImage size].width,
-										  [tileOutline bounds].origin.y * [originalImage size].height,
-										  [tileOutline bounds].size.width * [originalImage size].width,
-										  [tileOutline bounds].size.height * [originalImage size].height),
-					destRect = (origRect.size.width > origRect.size.height) ?
-								NSMakeRect(0, 0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE * origRect.size.height / origRect.size.width) : 
-								NSMakeRect(0, 0, TILE_BITMAP_SIZE * origRect.size.width / origRect.size.height, TILE_BITMAP_SIZE);
+//	NSBezierPath		*tileOutline = [self outline];
+	NSImage				*originalImage = [mosaic originalImage];
+	float				originalWidth = [originalImage size].width, 
+						originalHeight = [originalImage size].height;
 	
-	destRect.size.width = ceilf(destRect.size.width);
-	destRect.size.height = ceilf(destRect.size.height);
+		// Scale the tile outline to the original image's dimensions, rotate it to the tile's orientation and center it at the origin.
+	NSAffineTransform	*transform = [NSAffineTransform transform];
+	[transform scaleXBy:originalWidth yBy:originalHeight];
+	NSBezierPath		*scaledOutline = [transform transformBezierPath:[self outline]];
+	NSRect				scaledBounds = [scaledOutline bounds];
 	
-	NSImage			*workingImage = [[NSImage alloc] initWithSize:destRect.size];
+		// Rotate the outline to match the image orientation.
+	transform = [NSAffineTransform transform];
+	[transform rotateByDegrees:-[self imageOrientation]];
+	[transform translateXBy:-NSMidX([scaledOutline bounds]) yBy:-NSMidY([scaledOutline bounds])];
+	NSBezierPath		*rotatedOutline = [transform transformBezierPath:[self outline]];
+	NSRect				rotatedBounds = [rotatedOutline bounds];
+	
+	BOOL				isLandscape = (NSWidth(rotatedBounds) > NSHeight(rotatedBounds));
+	
+		// Scale the outline to the bitmap size.
+	transform = [NSAffineTransform transform];
+	[transform translateXBy:TILE_BITMAP_SIZE / 2.0 yBy:TILE_BITMAP_SIZE / 2.0];
+	if (isLandscape)
+		[transform scaleBy:TILE_BITMAP_SIZE / NSWidth(rotatedBounds)];
+	else
+		[transform scaleBy:TILE_BITMAP_SIZE / NSHeight(rotatedBounds)];
+	[transform translateXBy:-NSMinX(rotatedBounds) yBy:-NSMinY(rotatedBounds)];
+	NSBezierPath		*bitmapOutline = [transform transformBezierPath:rotatedBounds];
+	
+	NSRect				destRect = isLandscape ? NSMakeRect(0.0, 
+															(TILE_BITMAP_SIZE - TILE_BITMAP_SIZE * NSHeight(rotatedBounds) / NSWidth(rotatedBounds)) / 2.0, 
+															TILE_BITMAP_SIZE, 
+															TILE_BITMAP_SIZE * NSHeight(rotatedBounds) / NSWidth(rotatedBounds)) : 
+												 NSMakeRect((TILE_BITMAP_SIZE - TILE_BITMAP_SIZE * NSWidth(rotatedBounds) / NSHeight(rotatedBounds)) / 2.0, 
+															0.0, 
+															TILE_BITMAP_SIZE * NSWidth(rotatedBounds) / NSHeight(rotatedBounds), 
+															TILE_BITMAP_SIZE);
 	BOOL			focusLocked = NO;
+	NSImage			*workingImage = [[NSImage alloc] initWithSize:NSMakeSize(TILE_BITMAP_SIZE, TILE_BITMAP_SIZE)];
 	
 	NS_DURING
 		[workingImage lockFocus];
@@ -97,43 +124,26 @@
 		
 			// Start with a clear image.
 		[[NSColor clearColor] set];
-		[[NSBezierPath bezierPathWithRect:destRect] fill];
+		[[NSBezierPath bezierPathWithRect:NSMakeRect(0.0, 0.0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE)] fill];
 		
-			// Copy out the portion of the original image contained by the tile's outline.
-		#if 0
-			[originalImage drawInRect:destRect fromRect:origRect operation:NSCompositeCopy fraction:1.0];
-		#else
-			float				originalWidth = [originalImage size].width, 
-								originalHeight = [originalImage size].height;
+			// Draw the original image using the transform so that the correct portion of the image is rendered at the correct orientation inside the working image.
+		[[NSGraphicsContext currentContext] saveGraphicsState];
 			NSAffineTransform	*transform = [NSAffineTransform transform];
-			[transform scaleXBy:originalWidth yBy:originalHeight];
-			NSBezierPath		*scaledOutline = [transform transformBezierPath:[self outline]];
-			NSRect				outlineBounds = [scaledOutline bounds];
-			
-			transform = [NSAffineTransform transform];
-			[transform rotateByDegrees:-[self imageOrientation]];
-			[transform translateXBy:-NSMidX(outlineBounds) yBy:-NSMidY(outlineBounds)];
-			NSRect				rotatedBounds = [[transform transformBezierPath:scaledOutline] bounds];
-			
-			transform = [NSAffineTransform transform];
-			[transform translateXBy:NSWidth([contentOutline bounds]) / 2.0 yBy:NSHeight([contentOutline bounds]) / 2.0];
-			[transform rotateByDegrees:[self imageOrientation]];
-			if ((NSWidth(rotatedBounds) / NSWidth(outlineBounds)) > (NSHeight(rotatedBounds) / originalImageHeight))
-				[transform scaleBy:NSWidth(rotatedBounds) / originalImageWidth];
+			[transform translateXBy:TILE_BITMAP_SIZE / 2.0 yBy:TILE_BITMAP_SIZE / 2.0];
+			if (isLandscape)
+				[transform scaleBy:TILE_BITMAP_SIZE / NSWidth(rotatedBounds)];
 			else
-				[transform scaleBy:NSHeight(rotatedBounds) / originalImageHeight];
-			
+				[transform scaleBy:TILE_BITMAP_SIZE / NSHeight(rotatedBounds)];
+			[transform rotateByDegrees:-[self imageOrientation]];
+			[transform translateXBy:-NSMidX(scaledBounds) yBy:-NSMidY(scaledBounds)];
 			[transform concat];
-			[tileImage drawInRect:NSMakeRect(-NSMinX(outlineBounds) - NSWidth(outlineBounds) / 2.0, 
-											 -NSMinY(outlineBounds) - NSHeight(outlineBounds) / 2.0, 
-											 NSWidth(outlineBounds), 
-											 NSHeight(outlineBounds)) 
-						 fromRect:NSZeroRect 
-						operation:NSCompositeCopy 
-						 fraction:1.0];
-		#endif
+			[originalImage drawInRect:NSMakeRect(0.0, 0.0, originalWidth, originalHeight) 
+							 fromRect:NSZeroRect 
+							operation:NSCompositeCopy 
+							 fraction:1.0];
+		[[NSGraphicsContext currentContext] restoreGraphicsState];
 		
-		bitmapRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:destRect];
+		bitmapRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:[bitmapOutline bounds]];
 		#ifdef DEBUG
 			if (bitmapRep == nil)
 				NSLog(@"Could not extract tile image from original.");
