@@ -185,7 +185,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		NSEnumerator			*tileShapeEnumerator = [shapesArray objectEnumerator];
 		id<MacOSaiXTileShape>	tileShape = nil;
 		while (tileShape = [tileShapeEnumerator nextObject])
-			[self addTile:[[[MacOSaiXTile alloc] initWithOutline:[tileShape outline] fromMosaic:self] autorelease]];
+			[self addTile:[[[MacOSaiXTile alloc] initWithOutline:[tileShape outline] 
+												imageOrientation:[tileShape imageOrientation]
+													  fromMosaic:self] autorelease]];
 		
 			// Indicate that the average tile size needs to be recalculated.
 		averageUnitTileSize = NSZeroSize;
