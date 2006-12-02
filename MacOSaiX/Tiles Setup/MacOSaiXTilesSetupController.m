@@ -156,13 +156,13 @@
 				[contentOutline setClip];
 				
 				NSAffineTransform	*transform = [NSAffineTransform transform];
-				[transform rotateByDegrees:-[previewShape orientation]];
+				[transform rotateByDegrees:-[previewShape imageOrientation]];
 				[transform translateXBy:-NSMidX(previewPathBounds) yBy:-NSMidY(previewPathBounds)];
 				NSRect				rotatedBounds = [[transform transformBezierPath:previewPath] bounds];
 				
 				transform = [NSAffineTransform transform];
 				[transform translateXBy:NSWidth([contentOutline bounds]) / 2.0 yBy:NSHeight([contentOutline bounds]) / 2.0];
-				[transform rotateByDegrees:[previewShape orientation]];
+				[transform rotateByDegrees:[previewShape imageOrientation]];
 				if ((NSWidth(rotatedBounds) / tileImageWidth) > (NSHeight(rotatedBounds) / tileImageHeight))
 					[transform scaleBy:NSWidth(rotatedBounds) / tileImageWidth];
 				else
