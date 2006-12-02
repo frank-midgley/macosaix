@@ -279,7 +279,7 @@ static NSArray	*formatExtensions = nil;
 		
 		progressController = [[MacOSaiXProgressController alloc] initWithWindow:nil];
 		[progressController setCancelTarget:self action:@selector(cancelExport:)];
-		[progressController displayPanelWithMessage:NSLocalizedString(@"Exporting mosaic image...", @"") 
+		[progressController displayPanelWithMessage:NSLocalizedString(@"Saving mosaic image...", @"") 
 									 modalForWindow:window];
 		
 			// Spawn a thread to do the export so the GUI doesn't get tied up.
@@ -695,7 +695,7 @@ static NSArray	*formatExtensions = nil;
 				NS_ENDHANDLER
 		}
 			
-		[progressController setMessage:NSLocalizedString(@"Exporting tile %d of %d...", @""), tilesExported, tileCount];
+		[progressController setMessage:NSLocalizedString(@"Saving tile %d of %d...", @""), tilesExported, tileCount];
 		[progressController setPercentComplete:[NSNumber numberWithDouble:(100.0 * tilesExported / tileCount)]];
 		
 		tilesExported++;
@@ -745,8 +745,16 @@ static NSArray	*formatExtensions = nil;
 				[exportRep setSize:NSMakeSize(exportWidth * scale, exportHeight * scale)];
 			}
 			
+			if (imageFormat == jpegFormat)
+				[progressController setMessage:NSLocalizedString(@"Converting mosaic image to JPEG format...", @"")];
+			else if (imageFormat == pngFormat)
+				[progressController setMessage:NSLocalizedString(@"Converting mosaic image to PNG format...", @"")];
+			else if (imageFormat == tiffFormat)
+				[progressController setMessage:NSLocalizedString(@"Converting mosaic image to TIFF format...", @"")];
+			
 			NSData	*bitmapData = [exportRep representationUsingType:exportImageType properties:properties];
 			
+			[progressController setMessage:NSLocalizedString(@"Saving mosaic image...", @"")];
 			if (createWebPage)
 			{
 				[bitmapData writeToFile:[[filename stringByAppendingPathComponent:@"Mosaic"] 
