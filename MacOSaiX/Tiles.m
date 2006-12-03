@@ -91,21 +91,21 @@
 	transform = [NSAffineTransform transform];
 	[transform rotateByDegrees:-[self imageOrientation]];
 	[transform translateXBy:-NSMidX([scaledOutline bounds]) yBy:-NSMidY([scaledOutline bounds])];
-	NSBezierPath		*rotatedOutline = [transform transformBezierPath:[self outline]];
+	NSBezierPath		*rotatedOutline = [transform transformBezierPath:scaledOutline];
 	NSRect				rotatedBounds = [rotatedOutline bounds];
 	
 	BOOL				isLandscape = (NSWidth(rotatedBounds) > NSHeight(rotatedBounds));
 	
-		// Scale the rotated outline to the bitmap size.  It will also be centered at the origin.
+		// Scale the rotated outline to the bitmap size.  It's bounds origin will be at the origin.
 	transform = [NSAffineTransform transform];
-	[transform translateXBy:TILE_BITMAP_SIZE / 2.0 yBy:TILE_BITMAP_SIZE / 2.0];
+//	[transform translateXBy:-TILE_BITMAP_SIZE / 2.0 yBy:-TILE_BITMAP_SIZE / 2.0];
 	if (isLandscape)
 		[transform scaleBy:TILE_BITMAP_SIZE / NSWidth(rotatedBounds)];
 	else
 		[transform scaleBy:TILE_BITMAP_SIZE / NSHeight(rotatedBounds)];
 	[transform translateXBy:-NSMinX(rotatedBounds) yBy:-NSMinY(rotatedBounds)];
 	NSBezierPath		*bitmapOutline = [transform transformBezierPath:rotatedOutline];
-	NSRect				bitmapRect = [bitmapOutline bounds];
+	NSRect				bitmapBounds = [bitmapOutline bounds];
 //	NSRect				destRect = isLandscape ? NSMakeRect(0.0, 
 //															(TILE_BITMAP_SIZE - TILE_BITMAP_SIZE * NSHeight(rotatedBounds) / NSWidth(rotatedBounds)) / 2.0, 
 //															TILE_BITMAP_SIZE, 
@@ -144,7 +144,7 @@
 							 fraction:1.0];
 		[[NSGraphicsContext currentContext] restoreGraphicsState];
 		
-		bitmapRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:[bitmapOutline bounds]];
+		bitmapRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:bitmapBounds];
 		#ifdef DEBUG
 			if (bitmapRep == nil)
 				NSLog(@"Could not extract tile image from original.");
@@ -166,8 +166,8 @@
 		// (This would work better if we could just replace the previous rep's alpha channel
 		//  but I haven't figured out an easy way to do that yet.)
 	maskRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nil 
-													   pixelsWide:NSWidth(bitmapRect) 
-													   pixelsHigh:NSHeight(bitmapRect) 
+													   pixelsWide:NSWidth(bitmapBounds) 
+													   pixelsHigh:NSHeight(bitmapBounds) 
 													bitsPerSample:8 
 												  samplesPerPixel:1 
 														 hasAlpha:NO 
@@ -185,8 +185,8 @@
 														  kCGBitmapByteOrderDefault);
 		// Start with a black background.
 	CGContextSetGrayFillColor(bitmapContext, 0.0, 1.0);
-	CGRect			cgDestRect = CGRectMake(bitmapRect.origin.x, bitmapRect.origin.y, 
-											bitmapRect.size.width, bitmapRect.size.height);
+	CGRect			cgDestRect = CGRectMake(bitmapBounds.origin.x, bitmapBounds.origin.y, 
+											bitmapBounds.size.width, bitmapBounds.size.height);
 	CGContextFillRect(bitmapContext, cgDestRect);
 	
 		// Fill the tile's outline with white.
