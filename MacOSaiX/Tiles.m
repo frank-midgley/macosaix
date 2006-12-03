@@ -77,18 +77,17 @@
 - (void)createBitmapRep
 {
 		// Determine the bounds of the tile in the original image and in the workingImage.
-//	NSBezierPath		*tileOutline = [self outline];
 	NSImage				*originalImage = [mosaic originalImage];
 	float				originalWidth = [originalImage size].width, 
 						originalHeight = [originalImage size].height;
 	
-		// Scale the tile outline to the original image's dimensions, rotate it to the tile's orientation and center it at the origin.
+		// Scale our unit-square-based outline to the original image's dimensions.
 	NSAffineTransform	*transform = [NSAffineTransform transform];
 	[transform scaleXBy:originalWidth yBy:originalHeight];
 	NSBezierPath		*scaledOutline = [transform transformBezierPath:[self outline]];
 	NSRect				scaledBounds = [scaledOutline bounds];
 	
-		// Rotate the outline to match the image orientation.
+		// Rotate the outline to offset the image orientation.  The rotated outline will be centered at the origin.
 	transform = [NSAffineTransform transform];
 	[transform rotateByDegrees:-[self imageOrientation]];
 	[transform translateXBy:-NSMidX([scaledOutline bounds]) yBy:-NSMidY([scaledOutline bounds])];
@@ -97,7 +96,7 @@
 	
 	BOOL				isLandscape = (NSWidth(rotatedBounds) > NSHeight(rotatedBounds));
 	
-		// Scale the outline to the bitmap size.
+		// Scale the rotated outline to the bitmap size.  It will also be centered at the origin.
 	transform = [NSAffineTransform transform];
 	[transform translateXBy:TILE_BITMAP_SIZE / 2.0 yBy:TILE_BITMAP_SIZE / 2.0];
 	if (isLandscape)
@@ -105,18 +104,20 @@
 	else
 		[transform scaleBy:TILE_BITMAP_SIZE / NSHeight(rotatedBounds)];
 	[transform translateXBy:-NSMinX(rotatedBounds) yBy:-NSMinY(rotatedBounds)];
-	NSBezierPath		*bitmapOutline = [transform transformBezierPath:rotatedBounds];
+	NSBezierPath		*bitmapOutline = [transform transformBezierPath:rotatedOutline];
+	NSRect				bitmapRect = [bitmapOutline bounds];
+//	NSRect				destRect = isLandscape ? NSMakeRect(0.0, 
+//															(TILE_BITMAP_SIZE - TILE_BITMAP_SIZE * NSHeight(rotatedBounds) / NSWidth(rotatedBounds)) / 2.0, 
+//															TILE_BITMAP_SIZE, 
+//															TILE_BITMAP_SIZE * NSHeight(rotatedBounds) / NSWidth(rotatedBounds)) : 
+//												 NSMakeRect((TILE_BITMAP_SIZE - TILE_BITMAP_SIZE * NSWidth(rotatedBounds) / NSHeight(rotatedBounds)) / 2.0, 
+//															0.0, 
+//															TILE_BITMAP_SIZE * NSWidth(rotatedBounds) / NSHeight(rotatedBounds), 
+//															TILE_BITMAP_SIZE);
 	
-	NSRect				destRect = isLandscape ? NSMakeRect(0.0, 
-															(TILE_BITMAP_SIZE - TILE_BITMAP_SIZE * NSHeight(rotatedBounds) / NSWidth(rotatedBounds)) / 2.0, 
-															TILE_BITMAP_SIZE, 
-															TILE_BITMAP_SIZE * NSHeight(rotatedBounds) / NSWidth(rotatedBounds)) : 
-												 NSMakeRect((TILE_BITMAP_SIZE - TILE_BITMAP_SIZE * NSWidth(rotatedBounds) / NSHeight(rotatedBounds)) / 2.0, 
-															0.0, 
-															TILE_BITMAP_SIZE * NSWidth(rotatedBounds) / NSHeight(rotatedBounds), 
-															TILE_BITMAP_SIZE);
-	BOOL			focusLocked = NO;
-	NSImage			*workingImage = [[NSImage alloc] initWithSize:NSMakeSize(TILE_BITMAP_SIZE, TILE_BITMAP_SIZE)];
+	// TODO: do this with CG instead of Cocoa, then it doesn't have to be on the main thread.
+	BOOL				focusLocked = NO;
+	NSImage				*workingImage = [[NSImage alloc] initWithSize:NSMakeSize(TILE_BITMAP_SIZE, TILE_BITMAP_SIZE)];
 	
 	NS_DURING
 		[workingImage lockFocus];
@@ -126,7 +127,7 @@
 		[[NSColor clearColor] set];
 		[[NSBezierPath bezierPathWithRect:NSMakeRect(0.0, 0.0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE)] fill];
 		
-			// Draw the original image using the transform so that the correct portion of the image is rendered at the correct orientation inside the working image.
+			// Draw the original image so that the correct portion of the image is rendered at the correct orientation inside the working image.
 		[[NSGraphicsContext currentContext] saveGraphicsState];
 			NSAffineTransform	*transform = [NSAffineTransform transform];
 			[transform translateXBy:TILE_BITMAP_SIZE / 2.0 yBy:TILE_BITMAP_SIZE / 2.0];
@@ -165,8 +166,8 @@
 		// (This would work better if we could just replace the previous rep's alpha channel
 		//  but I haven't figured out an easy way to do that yet.)
 	maskRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nil 
-													   pixelsWide:NSWidth(destRect) 
-													   pixelsHigh:NSHeight(destRect) 
+													   pixelsWide:NSWidth(bitmapRect) 
+													   pixelsHigh:NSHeight(bitmapRect) 
 													bitsPerSample:8 
 												  samplesPerPixel:1 
 														 hasAlpha:NO 
@@ -184,17 +185,12 @@
 														  kCGBitmapByteOrderDefault);
 		// Start with a black background.
 	CGContextSetGrayFillColor(bitmapContext, 0.0, 1.0);
-	CGRect			cgDestRect = CGRectMake(destRect.origin.x, destRect.origin.y, 
-											destRect.size.width, destRect.size.height);
+	CGRect			cgDestRect = CGRectMake(bitmapRect.origin.x, bitmapRect.origin.y, 
+											bitmapRect.size.width, bitmapRect.size.height);
 	CGContextFillRect(bitmapContext, cgDestRect);
 	
 		// Fill the tile's outline with white.
-	NSAffineTransform  *transform = [NSAffineTransform transform];
-	[transform scaleXBy:destRect.size.width / [tileOutline bounds].size.width
-					yBy:destRect.size.height / [tileOutline bounds].size.height];
-	[transform translateXBy:[tileOutline bounds].origin.x * -1
-						yBy:[tileOutline bounds].origin.y * -1];
-	CGPathRef		cgTileOutline = [[transform transformBezierPath:tileOutline] quartzPath];
+	CGPathRef		cgTileOutline = [bitmapOutline quartzPath];
 	CGContextSetGrayFillColor(bitmapContext, 1.0, 1.0);
 	CGContextBeginPath(bitmapContext);
 	CGContextAddPath(bitmapContext, cgTileOutline);
