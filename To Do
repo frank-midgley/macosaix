@@ -49,6 +49,7 @@ Riemersma metric:
 2.0x To Do:
 ¥	Leak analysis
 ¥	Make sure pixels are being pulled from bitmaps correctly
+¥	Extract tile bitmaps using CG
 ¥	Get rid of lines on screen and in exported images
 	Folder source:
 ¥		Save button not enabled after adding new folder
