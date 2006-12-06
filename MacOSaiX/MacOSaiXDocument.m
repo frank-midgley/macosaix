@@ -495,11 +495,12 @@
 				
 					// First write out the tile's outline
 				[buffer appendString:@"\t\t<OUTLINE>\n"];
-				int index;
-				for (index = 0; index < [[tile outline] elementCount]; index++)
+				int elementCount = [[tile unitOutline] elementCount], 
+					index;
+				for (index = 0; index < elementCount; index++)
 				{
 					NSPoint points[3];
-					switch ([[tile outline] elementAtIndex:index associatedPoints:points])
+					switch ([[tile unitOutline] elementAtIndex:index associatedPoints:points])
 					{
 						case NSMoveToBezierPathElement:
 							[buffer appendFormat:@"\t\t\t<MOVE_TO X=\"%g\" Y=\"%g\"/>\n", points[0].x, points[0].y];
@@ -868,9 +869,9 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						if (!imageOrientation)
 							imageOrientation = @"0.0";
 						
-						newObject = [[MacOSaiXTile alloc] initWithOutline:nil 
-														 imageOrientation:[imageOrientation floatValue] 
-															   fromMosaic:mosaic];
+						newObject = [[MacOSaiXTile alloc] initWithUnitOutline:nil 
+															 imageOrientation:[imageOrientation floatValue] 
+																	   mosaic:mosaic];
 					}
 					else if ([elementType isEqualToString:@"OUTLINE"])
 					{
@@ -1008,7 +1009,7 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[NSBezierPath class]])
 	{
 			// Add the bezier path outline for a tile.
-		[(MacOSaiXTile *)parent setOutline:(NSBezierPath *)child];
+		[(MacOSaiXTile *)parent setUnitOutline:(NSBezierPath *)child];
 	}
 	else if ([(id)parent isKindOfClass:[NSBezierPath class]] && [(id)child isKindOfClass:[NSDictionary class]])
 	{

@@ -12,7 +12,7 @@
 @protocol MacOSaiXTileShape <NSObject>
 
 	// This method should return a bezier path that defines the outline of the shape.  The outline is assumed to exist inside of a unit square that will be mapped to a mosaic's original image.  So, for example, the size of a rectangular tile in a 40x40 array would be {0.025, 0.025}.
-- (NSBezierPath *)outline;
+- (NSBezierPath *)unitOutline;
 
 	// This method should return the angle at which images should be drawn inside the tile, in degrees.  Return 0 to have images drawn in their normal orientation.
 - (float)imageOrientation;

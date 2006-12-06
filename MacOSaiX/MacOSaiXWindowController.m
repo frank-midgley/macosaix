@@ -907,8 +907,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (void)centerViewOnSelectedTile:(id)sender
 {
-    NSPoint	contentOrigin = NSMakePoint(NSMidX([[[mosaicView highlightedTile] outline] bounds]),
-					     NSMidY([[[mosaicView highlightedTile] outline] bounds]));
+    NSPoint	contentOrigin = NSMakePoint(NSMidX([[[mosaicView highlightedTile] unitOutline] bounds]),
+										NSMidY([[[mosaicView highlightedTile] unitOutline] bounds]));
     
     contentOrigin.x *= [mosaicView frame].size.width;
     contentOrigin.x -= [[mosaicScrollView contentView] bounds].size.width / 2;

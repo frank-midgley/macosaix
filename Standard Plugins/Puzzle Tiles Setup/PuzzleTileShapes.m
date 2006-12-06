@@ -239,7 +239,7 @@
 }
 
 
-- (NSBezierPath *)outline
+- (NSBezierPath *)unitOutline
 {
 	return outline;
 }
@@ -293,7 +293,7 @@
 																 bottomRightVerticalCurve:0.0 
 																			   alignImage:NO 
 																		 imageOrientation:0.0];
-		NSBezierPath			*tileOutline = [tileShape outline];
+		NSBezierPath			*tileOutline = [tileShape unitOutline];
 		
 		NSAffineTransform		*transform = [NSAffineTransform transform];
 		[transform translateXBy:3.0 yBy:7.0];
@@ -374,7 +374,7 @@
 															 bottomRightVerticalCurve:0.0 
 																		   alignImage:YES 
 																	 imageOrientation:0.0];
-	NSBezierPath			*tileOutline = [tileShape outline];
+	NSBezierPath			*tileOutline = [tileShape unitOutline];
 	
 	NSAffineTransform		*transform = [NSAffineTransform transform];
 	[transform translateXBy:4.5 yBy:5.5];

@@ -31,7 +31,7 @@
 }
 
 
-- (NSBezierPath *)outline
+- (NSBezierPath *)unitOutline
 {
 	return outline;
 }

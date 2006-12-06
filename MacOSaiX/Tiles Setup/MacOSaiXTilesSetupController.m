@@ -106,7 +106,7 @@
 - (void)updatePreview
 {
 	id<MacOSaiXTileShape>	previewShape = [editor previewShape];
-	NSBezierPath			*previewPath = [previewShape outline];
+	NSBezierPath			*previewPath = [previewShape unitOutline];
 	NSImage					*previewImage = nil;
 	NSRect					previewPathBounds = [previewPath bounds];
 	

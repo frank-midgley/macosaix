@@ -185,9 +185,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		NSEnumerator			*tileShapeEnumerator = [shapesArray objectEnumerator];
 		id<MacOSaiXTileShape>	tileShape = nil;
 		while (tileShape = [tileShapeEnumerator nextObject])
-			[self addTile:[[[MacOSaiXTile alloc] initWithOutline:[tileShape outline] 
-												imageOrientation:[tileShape imageOrientation]
-													  fromMosaic:self] autorelease]];
+			[self addTile:[[[MacOSaiXTile alloc] initWithUnitOutline:[tileShape unitOutline] 
+													imageOrientation:[tileShape imageOrientation]
+															  mosaic:self] autorelease]];
 		
 			// Indicate that the average tile size needs to be recalculated.
 		averageUnitTileSize = NSZeroSize;
@@ -213,12 +213,13 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	if (NSEqualSizes(averageUnitTileSize, NSZeroSize) && [tiles count] > 0)
 	{
 			// Calculate the average size of the tiles.
+			// TBD: should this be in unit or original space?
 		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
 		MacOSaiXTile	*tile = nil;
 		while (tile = [tileEnumerator nextObject])
 		{
-			averageUnitTileSize.width += NSWidth([[tile outline] bounds]);
-			averageUnitTileSize.height += NSHeight([[tile outline] bounds]);
+			averageUnitTileSize.width += NSWidth([[tile unitOutline] bounds]);
+			averageUnitTileSize.height += NSHeight([[tile unitOutline] bounds]);
 		}
 		averageUnitTileSize.width /= [tiles count];
 		averageUnitTileSize.height /= [tiles count];
@@ -948,10 +949,10 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 						float				closestDistance = INFINITY;
 						while (matchToUpdate = [matchesToUpdateEnumerator nextObject])
 						{
-							float	widthDiff = NSMidX([[betterMatchTile outline] bounds]) - 
-												NSMidX([[[matchToUpdate tile] outline] bounds]), 
-									heightDiff = (NSMidY([[betterMatchTile outline] bounds]) - 
-												  NSMidY([[[matchToUpdate tile] outline] bounds])) / originalImageAspectRatio, 
+							float	widthDiff = NSMidX([[betterMatchTile originalOutline] bounds]) - 
+												NSMidX([[[matchToUpdate tile] originalOutline] bounds]), 
+									heightDiff = NSMidY([[betterMatchTile originalOutline] bounds]) - 
+												 NSMidY([[[matchToUpdate tile] originalOutline] bounds]), 
 									distanceSquared = widthDiff * widthDiff + heightDiff * heightDiff;
 							
 							closestDistance = MIN(closestDistance, distanceSquared);
