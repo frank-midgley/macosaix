@@ -322,9 +322,16 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		
 		if (tileToRefresh)
 		{
-			NSBezierPath		*clipPath = [mainImageTransform transformBezierPath:[tileToRefresh outline]];
-			if (clipPath)
+			NSBezierPath		*rotatedOutline = [tileToRefresh rotatedOriginalOutline];
+			
+			if (rotatedOutline)
 			{
+				NSAffineTransform	*transform = [NSAffineTransform transform];
+				[transform translateXBy:NSMidX([rotatedOutline bounds]) yBy:NSMidY([rotatedOutline bounds])];
+				[transform scaleBy:mainImageSize.width / [[mosaic originalImage] size].width];
+				[transform translateXBy:-NSMidX([rotatedOutline bounds]) yBy:-NSMidY([rotatedOutline bounds])];
+				NSBezierPath		*mainOutline = [transform transformBezierPath:rotatedOutline];
+				
 				MacOSaiXImageMatch	*mainImageMatch = ([tileToRefresh userChosenImageMatch] ? [tileToRefresh userChosenImageMatch] :
 																							  [tileToRefresh uniqueImageMatch]), 
 									*backgroundImageMatch = [tileToRefresh bestImageMatch];
@@ -344,7 +351,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 						// TBD: But what if the image rep isn't opaque?
 					redrawBackground = NO;
 					
-					mainImageRep = [imageCache imageRepAtSize:NSIntegralRect([clipPath bounds]).size
+					mainImageRep = [imageCache imageRepAtSize:NSIntegralRect([mainOutline bounds]).size
 												forIdentifier:[mainImageMatch imageIdentifier] 
 												   fromSource:[mainImageMatch imageSource]];
 				}
@@ -356,7 +363,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 				
 					// TODO: background should not be redrawn if all tiles have a unique match.
 				if (showNonUniqueMatches && redrawBackground && backgroundImageMatch)
-					backgroundImageRep = [imageCache imageRepAtSize:NSIntegralRect([clipPath bounds]).size
+					backgroundImageRep = [imageCache imageRepAtSize:NSIntegralRect([mainOutline bounds]).size
 													  forIdentifier:[backgroundImageMatch imageIdentifier] 
 														 fromSource:[backgroundImageMatch imageSource]];
 				
@@ -409,9 +416,10 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 					
 					if ([tilesToRedraw count] > 0 && [lastRedraw timeIntervalSinceNow] < -0.2)
 					{
-						[self performSelectorOnMainThread:@selector(redrawTiles:) 
-											   withObject:[NSArray arrayWithArray:tilesToRedraw] 
-											waitUntilDone:NO];
+						[self performSelector:@selector(redrawTiles:) withObject:[NSArray arrayWithArray:tilesToRedraw]];
+//						[self performSelectorOnMainThread:@selector(redrawTiles:) 
+//											   withObject:[NSArray arrayWithArray:tilesToRedraw] 
+//											waitUntilDone:NO];
 						[tilesToRedraw removeAllObjects];
 					}
 				[tileRefreshLock unlock];
@@ -463,10 +471,24 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	
 	while (mosaic && (tileDict = [tileDictEnumerator nextObject]))
 	{
-		MacOSaiXTile	*tile = [tileDict objectForKey:@"Tile"];
-		NSImageRep		*imageRep = [tileDict objectForKey:@"Image Rep"];
-		BOOL			redrawMain = [[tileDict objectForKey:@"Layer"] isEqualToString:@"Main"];
-		NSBezierPath	*clipPath = [mainImageTransform transformBezierPath:[tile outline]];
+		MacOSaiXTile		*tile = [tileDict objectForKey:@"Tile"];
+		NSImageRep			*imageRep = [tileDict objectForKey:@"Image Rep"];
+		BOOL				redrawMain = [[tileDict objectForKey:@"Layer"] isEqualToString:@"Main"];
+		NSBezierPath		*clipPath = [mainImageTransform transformBezierPath:[tile unitOutline]], 
+							*originalOutline = [tile originalOutline];
+		NSRect				originalBounds = [originalOutline bounds];
+
+			// Rotate the outline to offset the tile's image orientation.
+		NSAffineTransform	*transform = [NSAffineTransform transform];
+		[transform translateXBy:NSMidX([clipPath bounds]) yBy:NSMidY([clipPath bounds])];
+		[transform scaleBy:mainImageSize.width / [[mosaic originalImage] size].width];
+		[transform rotateByDegrees:-[tile imageOrientation]];
+		[transform translateXBy:-NSMidX(originalBounds) yBy:-NSMidY(originalBounds)];
+		NSBezierPath		*rotatedOutline = [transform transformBezierPath:originalOutline];
+		NSRect				rotatedBounds = [rotatedOutline bounds];
+		
+		BOOL				widthLimited = (([imageRep size].width / NSWidth(rotatedBounds)) < 
+											([imageRep size].height / NSHeight(rotatedBounds)));
 		
 		if (redrawMain)
 		{
@@ -476,12 +498,24 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 					NS_DURING
 						[mainImage lockFocus];
 							[clipPath setClip];
+							
 							if (imageRep)
-								[imageRep drawAtPoint:[clipPath bounds].origin];
+							{
+								NSAffineTransform	*transform = [NSAffineTransform transform];
+								[transform translateXBy:NSMidX([clipPath bounds]) yBy:NSMidY([clipPath bounds])];
+								if (widthLimited)
+									[transform scaleBy:NSWidth(rotatedBounds) / [imageRep size].width];
+								else	// height limited
+									[transform scaleBy:NSHeight(rotatedBounds) / [imageRep size].height];
+								[transform rotateByDegrees:[tile imageOrientation]];
+								[transform translateXBy:-[imageRep size].width / 2.0 yBy:-[imageRep size].height / 2.0];
+								[transform concat];
+								[imageRep drawAtPoint:NSZeroPoint];
+							}
 							else
 							{
 								[[NSColor clearColor] set];
-								NSRectFill([clipPath bounds]);
+								NSRectFillUsingOperation([clipPath bounds], NSCompositeSourceOver);
 							}
 						[mainImage unlockFocus];
 					NS_HANDLER
@@ -572,7 +606,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		NSEnumerator	*tileEnumerator = [tilesNeedingDisplay objectEnumerator];
 		MacOSaiXTile	*tileNeedingDisplay = nil;
 		while (tileNeedingDisplay = [tileEnumerator nextObject])
-			[self setNeedsDisplayInRect:NSInsetRect([[transform transformBezierPath:[tileNeedingDisplay outline]] bounds], -1.0, -1.0)];
+			[self setNeedsDisplayInRect:NSInsetRect([[transform transformBezierPath:[tileNeedingDisplay unitOutline]] bounds], -1.0, -1.0)];
 		
 		[tilesNeedingDisplay removeAllObjects];
 		
@@ -620,7 +654,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		tileEnumerator = [[mosaic tiles] objectEnumerator];
 		while (tile = [tileEnumerator nextObject])
 		{
-			NSBezierPath	*transformedPath = [darkenTransform transformBezierPath:[tile outline]];
+			NSBezierPath	*transformedPath = [darkenTransform transformBezierPath:[tile unitOutline]];
 			[transformedPath setLineWidth:3.0];
 			[transformedPath stroke];
 		}
@@ -629,7 +663,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		tileEnumerator = [[mosaic tiles] objectEnumerator];
 		while (tile = [tileEnumerator nextObject])
 		{
-			NSBezierPath	*transformedPath = [lightenTransform transformBezierPath:[tile outline]];
+			NSBezierPath	*transformedPath = [lightenTransform transformBezierPath:[tile unitOutline]];
 			[transformedPath setLineWidth:3.0];
 			[transformedPath stroke];
 		}
@@ -730,7 +764,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
 	MacOSaiXTile	*tile = nil;
 	while (tile = [tileEnumerator nextObject])
-        if ([[tile outline] containsPoint:thePoint])
+        if ([[tile unitOutline] containsPoint:thePoint])
 			break;
 	
 	return tile;
@@ -915,7 +949,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		NSAffineTransform	*transform = [NSAffineTransform transform];
 		[transform translateXBy:minX yBy:minY];
 		[transform scaleXBy:width yBy:height];
-		NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile outline]];
+		NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile unitOutline]];
 		[bezierPath setLineWidth:4];
 		
 		float				dashes[2] = {5.0, 5.0};
@@ -934,13 +968,13 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 			[transform translateXBy:minX + 0.5 yBy:minY - 0.5];
 			[transform scaleXBy:width yBy:height];
 			[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];	// darken
-			[[transform transformBezierPath:[highlightedTile outline]] stroke];
+			[[transform transformBezierPath:[highlightedTile unitOutline]] stroke];
 			
 			transform = [NSAffineTransform transform];
 			[transform translateXBy:minX - 0.5 yBy:minY + 0.5];
 			[transform scaleXBy:width yBy:height];
 			[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
-			[[transform transformBezierPath:[highlightedTile outline]] stroke];
+			[[transform transformBezierPath:[highlightedTile unitOutline]] stroke];
 		}
 	}
 }
@@ -1211,7 +1245,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
     if (highlightedTile)
     {
 			// Mark the previously highlighted area for re-display.
-		NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile outline]];
+		NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile unitOutline]];
 		[self setNeedsDisplayInRect:NSInsetRect([bezierPath bounds], -2.0, -2.0)];
 	}
 	
@@ -1221,7 +1255,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
     if (highlightedTile)
     {
 			// Mark the newly highlighted area for re-display.
-		NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile outline]];
+		NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile unitOutline]];
 		[self setNeedsDisplayInRect:NSInsetRect([bezierPath bounds], -2.0, -2.0)];
 	}
 }
@@ -1249,7 +1283,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		{
 			if (!highlightedImageSourcesOutline)
 				highlightedImageSourcesOutline = [[NSBezierPath bezierPath] retain];
-			[highlightedImageSourcesOutline appendBezierPath:[tile outline]];
+			[highlightedImageSourcesOutline appendBezierPath:[tile unitOutline]];
 		}
 	}
 }
@@ -1286,7 +1320,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
     NSAffineTransform	*transform = [NSAffineTransform transform];
 	[transform translateXBy:NSMinX(mosaicBounds) yBy:NSMinY(mosaicBounds)];
 	[transform scaleXBy:NSWidth(mosaicBounds) yBy:NSHeight(mosaicBounds)];
-    NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile outline]];
+    NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile unitOutline]];
 
     [self setNeedsDisplayInRect:NSInsetRect([bezierPath bounds], -2.0, -2.0)];
 }

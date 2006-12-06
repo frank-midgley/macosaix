@@ -24,43 +24,42 @@
     NSImage				*highlightedImage = [[[NSImage alloc] initWithSize:[image size]] autorelease];
 	
 		// Figure out how to scale and translate the tile to fit within the image.
-    NSSize				tileSize = [[tile outline] bounds].size,
-						originalSize = [[[tile mosaic] originalImage] size], 
-						denormalizedTileSize = NSMakeSize(tileSize.width * originalSize.width, 
-														  tileSize.height * originalSize.height);
-    float				xScale, yScale;
+	NSBezierPath		*tileOutline = [tile rotatedOriginalOutline];
+    NSSize				tileSize = [tileOutline bounds].size;
+    float				scale;
     NSPoint				origin;
-    if (([image size].width / denormalizedTileSize.width) < ([image size].height / denormalizedTileSize.height))
+	
+    if (([image size].width / tileSize.width) < ([image size].height / tileSize.height))
     {
 			// Width is the limiting dimension.
-		float	scaledHeight = [image size].width * denormalizedTileSize.height / denormalizedTileSize.width, 
-				heightDiff = [image size].height - scaledHeight;
-		xScale = [image size].width / tileSize.width;
-		yScale = scaledHeight / tileSize.height;
+		scale = [image size].width / tileSize.width;
+		
+		float	heightDiff = [image size].height - tileSize.height * scale;
 		origin = NSMakePoint(0.0, heightDiff / 2.0);
-		if (croppedPercentage)
-			*croppedPercentage = ([image size].width * heightDiff) / 
-								 ([image size].width * [image size].height) * 100.0;
     }
     else
     {
 			// Height is the limiting dimension.
-		float	scaledWidth = [image size].height * denormalizedTileSize.width / denormalizedTileSize.height, 
-				widthDiff = [image size].width - scaledWidth;
-		xScale = scaledWidth / tileSize.width;
-		yScale = [image size].height / tileSize.height;
+		scale = [image size].height / tileSize.height;
+		
+		float	widthDiff = [image size].width - tileSize.width * scale;
 		origin = NSMakePoint(widthDiff / 2.0, 0.0);
-		if (croppedPercentage)
-			*croppedPercentage = (widthDiff * [image size].height) / 
-								 ([image size].width * [image size].height) * 100.0;
     }
 	
 		// Create a transform to scale and translate the tile outline.
     NSAffineTransform	*transform = [NSAffineTransform transform];
     [transform translateXBy:origin.x yBy:origin.y];
-    [transform scaleXBy:xScale yBy:yScale];
-    [transform translateXBy:-[[tile outline] bounds].origin.x yBy:-[[tile outline] bounds].origin.y];
-	NSBezierPath		*transformedTileOutline = [transform transformBezierPath:[tile outline]];
+    [transform scaleBy:scale];
+    [transform translateXBy:-NSMinX([tileOutline bounds]) yBy:-NSMinY([tileOutline bounds])];
+	NSBezierPath		*transformedTileOutline = [transform transformBezierPath:tileOutline];
+	
+	if (croppedPercentage)
+	{
+		float	imageArea = [image size].width * [image size].height, 
+				tileArea = NSWidth([transformedTileOutline bounds]) * NSHeight([transformedTileOutline bounds]);
+		
+		*croppedPercentage = (imageArea - tileArea) / imageArea * 100.0;
+	}
     
 	NS_DURING
 		[highlightedImage lockFocus];
@@ -141,12 +140,7 @@
 			NSRectFill(originalImageViewFrame);
 			
 				// Determine the bounds of the tile in the original image and in the scratch window.
-			NSBezierPath	*tileOutline = [tile outline];
-			NSImage			*originalImage = [[tile mosaic] originalImage];
-			NSRect			origRect = NSMakeRect([tileOutline bounds].origin.x * [originalImage size].width,
-												  [tileOutline bounds].origin.y * [originalImage size].height,
-												  [tileOutline bounds].size.width * [originalImage size].width,
-												  [tileOutline bounds].size.height * [originalImage size].height);
+			NSRect			origRect = [[tile originalOutline] bounds];
 			
 				// Expand the rectangle so that it's square.
 			if (origRect.size.width > origRect.size.height)
@@ -155,7 +149,7 @@
 				origRect = NSInsetRect(origRect, (origRect.size.width - origRect.size.height) / 2.0, 0.0);
 			
 				// Copy out the portion of the original image contained by the tile's outline.
-			[originalImage drawInRect:originalImageViewFrame fromRect:origRect operation:NSCompositeCopy fraction:1.0];
+			[[[tile mosaic] originalImage] drawInRect:originalImageViewFrame fromRect:origRect operation:NSCompositeCopy fraction:1.0];
 		[originalImageForTile unlockFocus];
 	NS_HANDLER
 		#ifdef DEBUG
