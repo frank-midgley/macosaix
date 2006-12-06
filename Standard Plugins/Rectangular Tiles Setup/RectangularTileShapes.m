@@ -239,8 +239,18 @@
 			{
 				tileRect.origin.x = x * tileRect.size.width;
 				tileRect.origin.y = y * tileRect.size.height;
+				
+				float	angle = atanf((NSMidY(tileRect) - 0.5) / (NSMidX(tileRect) - 0.5));
+				if (isnan(angle))
+					angle = (NSMidY(tileRect) < 0.5 ? 180.0 : 0.0);
+				else
+				{
+					if (NSMidX(tileRect) < 0.5)
+						angle += M_PI;
+					angle = angle / M_PI * 180.0 - 90.0;
+				}
 				[tileOutlines addObject:[MacOSaiXRectangularTileShape tileShapeWithOutline:[NSBezierPath bezierPathWithRect:tileRect] 
-																		  imageOrientation:0.0]];
+																		  imageOrientation:angle]];
 			}
 		
 	return [NSArray arrayWithArray:tileOutlines];
