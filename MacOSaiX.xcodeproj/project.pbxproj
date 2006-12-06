@@ -61,6 +61,8 @@
 		0128323A071B7297004ACF95 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		01297702086A63D30095AD36 /* MacOSaiXCrashReporterController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01297700086A63D30095AD36 /* MacOSaiXCrashReporterController.m */; };
 		012FD2DA0A50F839004495DC /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F599E5560266AAD101000103 /* Carbon.framework */; };
+		013602AA0B269B460078BCF7 /* MacOSaiXRectangularTilesOrientationView.h in Headers */ = {isa = PBXBuildFile; fileRef = 013602A80B269B460078BCF7 /* MacOSaiXRectangularTilesOrientationView.h */; };
+		013602AB0B269B460078BCF7 /* MacOSaiXRectangularTilesOrientationView.m in Sources */ = {isa = PBXBuildFile; fileRef = 013602A90B269B460078BCF7 /* MacOSaiXRectangularTilesOrientationView.m */; };
 		016A242308D7C952009A93BF /* ZoomIn.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242208D7C952009A93BF /* ZoomIn.png */; };
 		016A242508D7C975009A93BF /* ZoomOut.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242408D7C975009A93BF /* ZoomOut.png */; };
 		016A248208D7D8E2009A93BF /* HandPicked.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A248108D7D8E2009A93BF /* HandPicked.png */; };
@@ -234,7 +236,6 @@
 		92ECCFAE07F0F25600C77375 /* NSString+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */; };
 		92F00CCF07C1AA55004F6D06 /* MacPADSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F00CCD07C1AA55004F6D06 /* MacPADSocket.m */; };
 		92F00CE507C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F00CE307C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m */; };
-		92FF35C90937AFF9000FF862 /* Lock.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 92FF35C80937AFF8000FF862 /* Lock.tiff */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -476,6 +477,8 @@
 		0127354207CD6EBB0053037A /* Defaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Defaults.plist; sourceTree = "<group>"; };
 		012976FF086A63D30095AD36 /* MacOSaiXCrashReporterController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXCrashReporterController.h; sourceTree = "<group>"; };
 		01297700086A63D30095AD36 /* MacOSaiXCrashReporterController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXCrashReporterController.m; sourceTree = "<group>"; };
+		013602A80B269B460078BCF7 /* MacOSaiXRectangularTilesOrientationView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXRectangularTilesOrientationView.h; sourceTree = "<group>"; };
+		013602A90B269B460078BCF7 /* MacOSaiXRectangularTilesOrientationView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXRectangularTilesOrientationView.m; sourceTree = "<group>"; };
 		01453D4A071B6F2D00BCEC7C /* Puzzle Tiles.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Puzzle Tiles.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		01453D51071B6F8000BCEC7C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
 		014DB625071A2C8D00DF68C0 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = Info.plist; path = "Standard Plugins/Hexaganol Tiles Setup/Info.plist"; sourceTree = "<group>"; };
@@ -643,7 +646,6 @@
 		92F2B1D5048027510000011E /* QuickTimeImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = QuickTimeImageSourceController.h; path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSourceController.h"; sourceTree = SOURCE_ROOT; };
 		92F2B1D6048027510000011E /* QuickTimeImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = QuickTimeImageSourceController.m; path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSourceController.m"; sourceTree = SOURCE_ROOT; };
 		92F2B1EC048027FA0000011E /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = /System/Library/Frameworks/QuickTime.framework; sourceTree = "<absolute>"; };
-		92FF35C80937AFF8000FF862 /* Lock.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = Lock.tiff; path = "Standard Plugins/Rectangular Tiles Setup/Lock.tiff"; sourceTree = "<group>"; };
 		F514D53C0390266E01B25AF1 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		F514D5A203949AA801B25AF1 /* GoogleImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GoogleImageSourceController.h; path = "Standard Plugins/Google Image Source/GoogleImageSourceController.h"; sourceTree = "<group>"; };
 		F514D5A303949AA801B25AF1 /* GoogleImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = GoogleImageSourceController.m; path = "Standard Plugins/Google Image Source/GoogleImageSourceController.m"; sourceTree = "<group>"; };
@@ -1055,9 +1057,10 @@
 				9287C154075A5F55004C07EF /* RectangularTileShapes.m */,
 				92902AEEC5B082BD00F96641 /* RectangularTileShapesEditor.h */,
 				92902AEFC5B082BD00F96641 /* RectangularTileShapesEditor.m */,
+				013602A80B269B460078BCF7 /* MacOSaiXRectangularTilesOrientationView.h */,
+				013602A90B269B460078BCF7 /* MacOSaiXRectangularTilesOrientationView.m */,
 				928F72930661226000873AE2 /* RectangularTileShapes.nib */,
 				928F72E80661237300873AE2 /* Info.plist */,
-				92FF35C80937AFF8000FF862 /* Lock.tiff */,
 			);
 			name = Rectangular;
 			sourceTree = "<group>";
@@ -1423,6 +1426,7 @@
 				928489E906611CE6003B3514 /* RectangularTileShapesEditor.h in Headers */,
 				9287C13C075A5CC6004C07EF /* MacOSaiXTileShapes.h in Headers */,
 				9287C155075A5F55004C07EF /* RectangularTileShapes.h in Headers */,
+				013602AA0B269B460078BCF7 /* MacOSaiXRectangularTilesOrientationView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1867,7 +1871,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				928F72D3066122D300873AE2 /* RectangularTileShapes.nib in Resources */,
-				92FF35C90937AFF9000FF862 /* Lock.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2184,6 +2187,7 @@
 			files = (
 				928489ED06611CE6003B3514 /* RectangularTileShapesEditor.m in Sources */,
 				9287C156075A5F55004C07EF /* RectangularTileShapes.m in Sources */,
+				013602AB0B269B460078BCF7 /* MacOSaiXRectangularTilesOrientationView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
