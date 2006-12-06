@@ -516,7 +516,7 @@ static NSArray	*formatExtensions = nil;
 		{
 			NS_DURING
 					// Clip the tile's image to the outline of the tile.
-				NSBezierPath	*clipPath = [transform transformBezierPath:[tile outline]];
+				NSBezierPath	*clipPath = [transform transformBezierPath:[tile unitOutline]];
 				
 				#if USE_CG
 					CGContextSaveGState(cgContext);
