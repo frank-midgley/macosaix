@@ -7,7 +7,7 @@
 #import "MacOSaiXImageMatch.h"
 
 
-#define TILE_BITMAP_SIZE		128.0
+#define TILE_BITMAP_SIZE		16.0
 
 
 @class MacOSaiXMosaic;

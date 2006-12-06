@@ -120,6 +120,10 @@
 	[transform translateXBy:-NSMinX(rotatedBounds) yBy:-NSMinY(rotatedBounds)];
 	NSBezierPath		*bitmapOutline = [transform transformBezierPath:rotatedOutline];
 	NSRect				bitmapBounds = [bitmapOutline bounds];
+	if (widthLimited)
+		bitmapBounds.origin.y = (TILE_BITMAP_SIZE - NSHeight(bitmapBounds)) / 2.0;
+	else
+		bitmapBounds.origin.x = (TILE_BITMAP_SIZE - NSWidth(bitmapBounds)) / 2.0;
 	
 	// TODO: If this is done with CG instead of Cocoa then it doesn't have to be on the main thread.
 	BOOL				focusLocked = NO;
@@ -189,14 +193,14 @@
 														  [maskRep bytesPerRow], 
 														  grayscaleColorSpace,
 														  kCGBitmapByteOrderDefault);
+	
 		// Start with a black background.
 	CGContextSetGrayFillColor(bitmapContext, 0.0, 1.0);
-	CGRect			cgDestRect = CGRectMake(bitmapBounds.origin.x, bitmapBounds.origin.y, 
-											bitmapBounds.size.width, bitmapBounds.size.height);
+	CGRect				cgDestRect = CGRectMake(0.0, 0.0, bitmapBounds.size.width, bitmapBounds.size.height);
 	CGContextFillRect(bitmapContext, cgDestRect);
 	
 		// Fill the tile's outline with white.
-	CGPathRef		cgTileOutline = [bitmapOutline quartzPath];
+	CGPathRef			cgTileOutline = [bitmapOutline quartzPath];
 	CGContextSetGrayFillColor(bitmapContext, 1.0, 1.0);
 	CGContextBeginPath(bitmapContext);
 	CGContextAddPath(bitmapContext, cgTileOutline);
