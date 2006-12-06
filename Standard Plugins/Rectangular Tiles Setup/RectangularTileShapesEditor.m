@@ -28,10 +28,12 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (id)initWithOriginalImage:(NSImage *)originalImage
+- (id)initWithOriginalImage:(NSImage *)image
 {
 	if (self = [super init])
 	{
+		[originalImage release];
+		originalImage = [image retain];
 		originalImageSize = [originalImage size];
 	}
 	
@@ -42,7 +44,11 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 - (NSView *)editorView
 {
 	if (!editorView)
+	{
 		[NSBundle loadNibNamed:@"RectangularTileShapes" owner:self];
+		[imageOrientationView setImage:originalImage];
+		[imageOrientationView setDelegate:self];
+	}
 	
 	return editorView;
 }
@@ -50,7 +56,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(270.0, 211.0);
+	return NSMakeSize(400.0, 256.0);
 }
 
 
@@ -101,6 +107,10 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	[tilesDownStepper setIntValue:tilesDown];
 	
 	[self setFixedSizeControlsBasedOnFreeformControls];
+	
+	[imageOrientationMatrix selectCellAtRow:[currentTileShapes imageOrientationType] column:0];
+	[imageOrientationView setOrientationType:[currentTileShapes imageOrientationType]];
+	[imageOrientationView setFocusPoint:[currentTileShapes imageOrientationFocusPoint]];
 }
 
 
@@ -259,6 +269,20 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
+
+- (IBAction)setImageOrientation:(id)sender
+{
+	[currentTileShapes setImageOrientationType:[imageOrientationMatrix selectedRow]];
+	[imageOrientationView setOrientationType:[imageOrientationMatrix selectedRow]];
+}
+
+
+- (void)orientationViewDidChangeFocusPoint:(MacOSaiXRectangularTilesOrientationView *)orientationView
+{
+	[currentTileShapes setImageOrientationFocusPoint:[orientationView focusPoint]];
+}
+
+
 - (BOOL)settingsAreValid
 {
 	return YES;
@@ -275,7 +299,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 {
 	NSBezierPath	*previewPath = [NSBezierPath bezierPathWithRect:NSMakeRect(0.0, 0.0, 100.0, 100.0 / [self aspectRatio])];
 	
-	return [MacOSaiXRectangularTileShape tileShapeWithOutline:previewPath imageOrientation:0.0];
+	return [MacOSaiXRectangularTileShape tileShapeWithOutline:previewPath imageOrientation:random() % 360];
 }
 
 
@@ -288,6 +312,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 - (void)dealloc
 {
 	[editorView release];	// we are responsible for releasing any top-level objects in the nib
+	[originalImage release];
 	
 	[super dealloc];
 }

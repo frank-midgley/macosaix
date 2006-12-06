@@ -3,6 +3,7 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
+                setImageOrientation = id; 
                 setTilesAcross = id; 
                 setTilesCount = id; 
                 setTilesDown = id; 
@@ -12,6 +13,9 @@
             LANGUAGE = ObjC; 
             OUTLETS = {
                 editorView = NSView; 
+                imageOrientationLabel = NSTextField; 
+                imageOrientationMatrix = NSMatrix; 
+                imageOrientationView = MacOSaiXRectangularTilesOrientationView; 
                 tilesAcrossSlider = NSSlider; 
                 tilesAcrossStepper = NSStepper; 
                 tilesAcrossTextField = NSTextField; 
@@ -23,6 +27,11 @@
                 tilesSizeSlider = NSSlider; 
             }; 
             SUPERCLASS = NSObject; 
+        }, 
+        {
+            CLASS = MacOSaiXRectangularTilesOrientationView; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = NSImageView; 
         }, 
         {CLASS = NSSegmentedControl; LANGUAGE = ObjC; SUPERCLASS = NSControl; }
     ); 

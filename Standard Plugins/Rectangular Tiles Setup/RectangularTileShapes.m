@@ -100,6 +100,7 @@
 		
 		[self setTilesAcross:[[plugInDefaults objectForKey:@"Tiles Across"] intValue]];
 		[self setTilesDown:[[plugInDefaults objectForKey:@"Tiles Down"] intValue]];
+		[self setImageOrientationFocusPoint:NSMakePoint(0.5, 0.5)];
 	}
 	
 	return self;
@@ -112,6 +113,8 @@
 	
 	[copy setTilesAcross:[self tilesAcross]];
 	[copy setTilesDown:[self tilesDown]];
+	[copy setImageOrientationType:[self imageOrientationType]];
+	[copy setImageOrientationFocusPoint:[self imageOrientationFocusPoint]];
 	
 	return copy;
 }
@@ -177,6 +180,30 @@
 }
 
 
+- (void)setImageOrientationType:(MacOSaiXImageOrientation)orientationType
+{
+	imageOrientationType = orientationType;
+}
+
+
+- (MacOSaiXImageOrientation)imageOrientationType
+{
+	return imageOrientationType;
+}
+
+
+- (void)setImageOrientationFocusPoint:(NSPoint)point
+{
+	imageOrientationFocusPoint = point;
+}
+
+
+- (NSPoint)imageOrientationFocusPoint
+{
+	return imageOrientationFocusPoint;
+}
+
+
 - (NSString *)briefDescription
 {
 	return [NSString stringWithFormat:NSLocalizedString(@"%d by %d rectangles", @""), tilesAcross, tilesDown];
@@ -185,11 +212,27 @@
 
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
-	return [[NSDictionary dictionaryWithObjectsAndKeys:
-								[NSNumber numberWithInt:tilesAcross], @"Tiles Across", 
-								[NSNumber numberWithInt:tilesDown], @"Tiles Down", 
-								nil] 
-				writeToFile:path atomically:NO];
+	NSMutableDictionary	*settings = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+										[NSNumber numberWithInt:tilesAcross], @"Tiles Across", 
+										[NSNumber numberWithInt:tilesDown], @"Tiles Down", 
+										nil];
+	
+	switch (imageOrientationType)
+	{
+		case normalImageOrientation:
+			[settings setObject:@"Normal" forKey:@"Image Orientation Type"];
+			break;
+		case radialInImageOrientation:
+			[settings setObject:@"Radial In" forKey:@"Image Orientation Type"];
+			break;
+		case radialOutImageOrientation:
+			[settings setObject:@"Radial Out" forKey:@"Image Orientation Type"];
+			break;
+	}
+	
+	[settings setObject:NSStringFromPoint(imageOrientationFocusPoint) forKey:@"Image Orientation Focus Point"];
+	
+	return [settings writeToFile:path atomically:NO];
 }
 
 
@@ -199,6 +242,17 @@
 	
 	[self setTilesAcross:[[settings objectForKey:@"Tiles Across"] intValue]];
 	[self setTilesDown:[[settings objectForKey:@"Tiles Down"] intValue]];
+	
+	NSString		*orientationType = [settings objectForKey:@"Image Orientation Type"];
+	if ([orientationType isEqualToString:@"Radial In"])
+		[self setImageOrientationType:radialInImageOrientation];
+	else if ([orientationType isEqualToString:@"Radial Out"])
+		[self setImageOrientationType:radialInImageOrientation];
+	else
+		[self setImageOrientationType:normalImageOrientation];
+	
+	if ([settings objectForKey:@"Image Orientation Focus Point"])
+		[self setImageOrientationFocusPoint:NSPointFromString([settings objectForKey:@"Image Orientation Focus Point"])];
 	
 	return YES;
 }
@@ -240,15 +294,24 @@
 				tileRect.origin.x = x * tileRect.size.width;
 				tileRect.origin.y = y * tileRect.size.height;
 				
-				float	angle = atanf((NSMidY(tileRect) - 0.5) / (NSMidX(tileRect) - 0.5));
-				if (isnan(angle))
-					angle = (NSMidY(tileRect) < 0.5 ? 180.0 : 0.0);
-				else
+				float	angle = 0.0;
+				
+				if (imageOrientationType == radialInImageOrientation || imageOrientationType == radialOutImageOrientation)
 				{
-					if (NSMidX(tileRect) < 0.5)
-						angle += M_PI;
-					angle = angle / M_PI * 180.0 - 90.0;
+					angle = atanf((NSMidY(tileRect) - imageOrientationFocusPoint.y) / (NSMidX(tileRect) - imageOrientationFocusPoint.x));
+					if (isnan(angle))
+						angle = (NSMidY(tileRect) < imageOrientationFocusPoint.y ? 180.0 : 0.0);
+					else
+					{
+						if (NSMidX(tileRect) < imageOrientationFocusPoint.x)
+							angle += M_PI;
+						angle = angle / M_PI * 180.0 - 90.0;
+					}
+					
+					if (imageOrientationType == radialInImageOrientation)
+						angle = fmodf(angle + 180.0, 360.0);
 				}
+				
 				[tileOutlines addObject:[MacOSaiXRectangularTileShape tileShapeWithOutline:[NSBezierPath bezierPathWithRect:tileRect] 
 																		  imageOrientation:angle]];
 			}
