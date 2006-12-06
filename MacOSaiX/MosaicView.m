@@ -490,6 +490,15 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		BOOL				widthLimited = (([imageRep size].width / NSWidth(rotatedBounds)) < 
 											([imageRep size].height / NSHeight(rotatedBounds)));
 		
+		transform = [NSAffineTransform transform];
+		[transform translateXBy:NSMidX([clipPath bounds]) yBy:NSMidY([clipPath bounds])];
+		if (widthLimited)
+			[transform scaleBy:NSWidth(rotatedBounds) / [imageRep size].width];
+		else	// height limited
+			[transform scaleBy:NSHeight(rotatedBounds) / [imageRep size].height];
+		[transform rotateByDegrees:[tile imageOrientation]];
+		[transform translateXBy:-[imageRep size].width / 2.0 yBy:-[imageRep size].height / 2.0];
+		
 		if (redrawMain)
 		{
 			[mainImageLock lock];
@@ -501,14 +510,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 							
 							if (imageRep)
 							{
-								NSAffineTransform	*transform = [NSAffineTransform transform];
-								[transform translateXBy:NSMidX([clipPath bounds]) yBy:NSMidY([clipPath bounds])];
-								if (widthLimited)
-									[transform scaleBy:NSWidth(rotatedBounds) / [imageRep size].width];
-								else	// height limited
-									[transform scaleBy:NSHeight(rotatedBounds) / [imageRep size].height];
-								[transform rotateByDegrees:[tile imageOrientation]];
-								[transform translateXBy:-[imageRep size].width / 2.0 yBy:-[imageRep size].height / 2.0];
 								[transform concat];
 								[imageRep drawAtPoint:NSZeroPoint];
 							}
@@ -535,11 +536,14 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 						[backgroundImage lockFocus];
 							[clipPath setClip];
 							if (imageRep)
-								[imageRep drawAtPoint:[clipPath bounds].origin];
+							{
+								[transform concat];
+								[imageRep drawAtPoint:NSZeroPoint];
+							}
 							else
 							{
 								[[NSColor clearColor] set];
-								NSRectFill([clipPath bounds]);
+								NSRectFillUsingOperation([clipPath bounds], NSCompositeSourceOver);
 							}
 						[backgroundImage unlockFocus];
 					NS_HANDLER
@@ -1386,7 +1390,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 - (void)mouseEntered:(NSEvent *)event
 {
-	if ([[self window] isKeyWindow])
+	if ([[self window] isKeyWindow] && ![[self window] attachedSheet])
 		[self setTooltipsEnabled:YES animateHiding:YES];
 }
 
@@ -1403,6 +1407,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidBecomeKeyNotification object:nil];
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResignMainNotification object:nil];
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResignKeyNotification object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowWillBeginSheetNotification object:nil];
 	
 	if ([self window])
 	{
@@ -1422,6 +1427,10 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 												 selector:@selector(windowDidResignMainOrKey:)
 													 name:NSWindowDidResignKeyNotification 
 												   object:[self window]];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(windowDidResignMainOrKey:)
+													 name:NSWindowWillBeginSheetNotification 
+												   object:[self window]];
 	}
 }
 
@@ -1430,13 +1439,12 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 {
 	if ([notification object] == [self window])
 	{
+			// Enable tooltips if the cursor is over the mosaic.
 		NSPoint	windowPoint = [[self window] convertScreenToBase:[NSEvent mouseLocation]];
 		
 		if (NSPointInRect([self convertPoint:windowPoint fromView:nil], [self bounds]))
 			[self setTooltipsEnabled:YES animateHiding:NO];
 	}
-//	else
-//		NSLog(@"not my window");
 }
 
 
@@ -1444,8 +1452,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 {
 	if ([notification object] == [self window])
 		[self setTooltipsEnabled:NO animateHiding:NO];
-//	else
-//		NSLog(@"not my window");
 }
 
 
