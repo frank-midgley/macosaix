@@ -12,17 +12,23 @@
 @implementation MacOSaiXTile
 
 
-- (id)initWithOutline:(NSBezierPath *)inOutline 
-	 imageOrientation:(float)angle
-		   fromMosaic:(MacOSaiXMosaic *)inMosaic;
+- (id)initWithUnitOutline:(NSBezierPath *)outline 
+		 imageOrientation:(float)angle
+				   mosaic:(MacOSaiXMosaic *)inMosaic;
 {
 	if (self = [super init])
 	{
-		outline = [inOutline retain];
-		mosaic = inMosaic;	// non-retained, it retains us
+		[self setUnitOutline:outline];
 		[self setImageOrientation:angle];
+		[self setMosaic:inMosaic];
 	}
 	return self;
+}
+
+
+- (void)setMosaic:(MacOSaiXMosaic *)inMosaic
+{
+		mosaic = inMosaic;	// non-retained, it retains us
 }
 
 
@@ -31,16 +37,41 @@
 	return mosaic;
 }
 
-- (void)setOutline:(NSBezierPath *)inOutline
+- (void)setUnitOutline:(NSBezierPath *)outline
 {
-    [outline autorelease];
-    outline = [inOutline retain];
+    [unitOutline autorelease];
+    unitOutline = [outline retain];
 }
 
 
-- (NSBezierPath *)outline
+- (NSBezierPath *)unitOutline
 {
-    return outline;
+    return unitOutline;
+}
+
+
+- (NSBezierPath *)originalOutline
+{
+		// Scale our unit-square-based outline to the original image's dimensions.
+	NSSize				originalImageSize = [[mosaic originalImage] size];
+	NSAffineTransform	*transform = [NSAffineTransform transform];
+	[transform scaleXBy:originalImageSize.width yBy:originalImageSize.height];
+	
+	return [transform transformBezierPath:[self unitOutline]];
+}
+
+
+- (NSBezierPath *)rotatedOriginalOutline
+{
+		// Rotate the outline to offset the tile's image orientation.  The rotated outline will be centered at the origin.
+	NSBezierPath		*originalOutline = [self originalOutline];
+	NSAffineTransform	*transform = [NSAffineTransform transform];
+	
+	[transform translateXBy:NSMidX([originalOutline bounds]) yBy:NSMidY([originalOutline bounds])];
+	[transform rotateByDegrees:-[self imageOrientation]];
+	[transform translateXBy:-NSMidX([originalOutline bounds]) yBy:-NSMidY([originalOutline bounds])];
+	
+	return [transform transformBezierPath:originalOutline];
 }
 
 
@@ -76,46 +107,21 @@
 
 - (void)createBitmapRep
 {
-		// Determine the bounds of the tile in the original image and in the workingImage.
-	NSImage				*originalImage = [mosaic originalImage];
-	float				originalWidth = [originalImage size].width, 
-						originalHeight = [originalImage size].height;
-	
-		// Scale our unit-square-based outline to the original image's dimensions.
-	NSAffineTransform	*transform = [NSAffineTransform transform];
-	[transform scaleXBy:originalWidth yBy:originalHeight];
-	NSBezierPath		*scaledOutline = [transform transformBezierPath:[self outline]];
-	NSRect				scaledBounds = [scaledOutline bounds];
-	
-		// Rotate the outline to offset the image orientation.  The rotated outline will be centered at the origin.
-	transform = [NSAffineTransform transform];
-	[transform rotateByDegrees:-[self imageOrientation]];
-	[transform translateXBy:-NSMidX([scaledOutline bounds]) yBy:-NSMidY([scaledOutline bounds])];
-	NSBezierPath		*rotatedOutline = [transform transformBezierPath:scaledOutline];
+	NSBezierPath		*rotatedOutline = [self rotatedOriginalOutline];
 	NSRect				rotatedBounds = [rotatedOutline bounds];
+	BOOL				widthLimited = (NSWidth(rotatedBounds) > NSHeight(rotatedBounds));
 	
-	BOOL				isLandscape = (NSWidth(rotatedBounds) > NSHeight(rotatedBounds));
-	
-		// Scale the rotated outline to the bitmap size.  It's bounds origin will be at the origin.
-	transform = [NSAffineTransform transform];
-//	[transform translateXBy:-TILE_BITMAP_SIZE / 2.0 yBy:-TILE_BITMAP_SIZE / 2.0];
-	if (isLandscape)
+		// Scale the rotated outline to the bitmap size.
+	NSAffineTransform	*transform = [NSAffineTransform transform];
+	if (widthLimited)
 		[transform scaleBy:TILE_BITMAP_SIZE / NSWidth(rotatedBounds)];
 	else
 		[transform scaleBy:TILE_BITMAP_SIZE / NSHeight(rotatedBounds)];
 	[transform translateXBy:-NSMinX(rotatedBounds) yBy:-NSMinY(rotatedBounds)];
 	NSBezierPath		*bitmapOutline = [transform transformBezierPath:rotatedOutline];
 	NSRect				bitmapBounds = [bitmapOutline bounds];
-//	NSRect				destRect = isLandscape ? NSMakeRect(0.0, 
-//															(TILE_BITMAP_SIZE - TILE_BITMAP_SIZE * NSHeight(rotatedBounds) / NSWidth(rotatedBounds)) / 2.0, 
-//															TILE_BITMAP_SIZE, 
-//															TILE_BITMAP_SIZE * NSHeight(rotatedBounds) / NSWidth(rotatedBounds)) : 
-//												 NSMakeRect((TILE_BITMAP_SIZE - TILE_BITMAP_SIZE * NSWidth(rotatedBounds) / NSHeight(rotatedBounds)) / 2.0, 
-//															0.0, 
-//															TILE_BITMAP_SIZE * NSWidth(rotatedBounds) / NSHeight(rotatedBounds), 
-//															TILE_BITMAP_SIZE);
 	
-	// TODO: do this with CG instead of Cocoa, then it doesn't have to be on the main thread.
+	// TODO: If this is done with CG instead of Cocoa then it doesn't have to be on the main thread.
 	BOOL				focusLocked = NO;
 	NSImage				*workingImage = [[NSImage alloc] initWithSize:NSMakeSize(TILE_BITMAP_SIZE, TILE_BITMAP_SIZE)];
 	
@@ -131,15 +137,15 @@
 		[[NSGraphicsContext currentContext] saveGraphicsState];
 			NSAffineTransform	*transform = [NSAffineTransform transform];
 			[transform translateXBy:TILE_BITMAP_SIZE / 2.0 yBy:TILE_BITMAP_SIZE / 2.0];
-			if (isLandscape)
-				[transform scaleBy:TILE_BITMAP_SIZE / NSWidth(rotatedBounds)];
-			else
-				[transform scaleBy:TILE_BITMAP_SIZE / NSHeight(rotatedBounds)];
+			[transform scaleBy:NSWidth(bitmapBounds) / NSWidth(rotatedBounds)];
 			[transform rotateByDegrees:-[self imageOrientation]];
-			[transform translateXBy:-NSMidX(scaledBounds) yBy:-NSMidY(scaledBounds)];
+			[transform translateXBy:-NSMidX(rotatedBounds) yBy:-NSMidY(rotatedBounds)];
 			[transform concat];
-			[originalImage drawInRect:NSMakeRect(0.0, 0.0, originalWidth, originalHeight) 
-							 fromRect:NSZeroRect 
+			
+			NSImage				*originalImage = [mosaic originalImage];
+			NSRect				originalImageBounds = NSMakeRect(0.0, 0.0, [originalImage size].width, [originalImage size].height);
+			[originalImage drawInRect:originalImageBounds 
+							 fromRect:originalImageBounds 
 							operation:NSCompositeCopy 
 							 fraction:1.0];
 		[[NSGraphicsContext currentContext] restoreGraphicsState];
@@ -309,7 +315,7 @@
 
 - (void)dealloc
 {
-    [outline release];
+    [unitOutline release];
     [bitmapRep release];
 	[maskRep release];
 	[uniqueImageMatch release];
