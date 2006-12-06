@@ -230,9 +230,6 @@
 
 - (NSArray *)shapes
 {
-	tilesAcross = 1;
-	tilesDown = 1;
-	
 	int				x, y;
 	NSRect			tileRect = NSMakeRect(0.0, 0.0, 1.0 / tilesAcross, 1.0 / tilesDown);
 	NSMutableArray	*tileOutlines = [NSMutableArray arrayWithCapacity:(tilesAcross * tilesDown)];
@@ -243,7 +240,7 @@
 				tileRect.origin.x = x * tileRect.size.width;
 				tileRect.origin.y = y * tileRect.size.height;
 				[tileOutlines addObject:[MacOSaiXRectangularTileShape tileShapeWithOutline:[NSBezierPath bezierPathWithRect:tileRect] 
-																		  imageOrientation:15.0]];
+																		  imageOrientation:0.0]];
 			}
 		
 	return [NSArray arrayWithArray:tileOutlines];
