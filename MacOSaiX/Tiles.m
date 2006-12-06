@@ -176,8 +176,8 @@
 		// (This would work better if we could just replace the previous rep's alpha channel
 		//  but I haven't figured out an easy way to do that yet.)
 	maskRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nil 
-													   pixelsWide:NSWidth(bitmapBounds) 
-													   pixelsHigh:NSHeight(bitmapBounds) 
+													   pixelsWide:[bitmapRep size].width
+													   pixelsHigh:[bitmapRep size].height 
 													bitsPerSample:8 
 												  samplesPerPixel:1 
 														 hasAlpha:NO 
