@@ -20,6 +20,8 @@
 	<integer>20</integer>
 	<key>Last Chosen Tile Shapes Class</key>
 	<string>MacOSaiXRectangularTileShapes</string>
+	<key>Last Chosen Image Orientations Class</key>
+	<string>MacOSaiXConstantImageOrientations</string>
 	<key>Rectangular Tile Shapes</key>
 	<dict>
 		<key>Tiles Across</key>
