@@ -8,8 +8,12 @@
 
 #import "MacOSaiXMosaic.h"
 
+#import "MacOSaiXHandPickedImageSource.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatcher.h"
+#import "MacOSaiXImageOrientations.h"
+#import "MacOSaiXTileShapes.h"
+#import "Tiles.h"
 
 
 	// The maximum size of the image URL queue
@@ -19,9 +23,11 @@
 	// Notifications
 NSString	*MacOSaiXMosaicDidChangeStateNotification = @"MacOSaiXMosaicDidChangeStateNotification";
 NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChangeBusyStateNotification";
-NSString	*MacOSaiXOriginalImageDidChangeNotification = @"MacOSaiXOriginalImageDidChangeNotification";
+NSString	*MacOSaiXTargetImageWillChangeNotification = @"MacOSaiXTargetImageWillChangeNotification";
+NSString	*MacOSaiXTargetImageDidChangeNotification = @"MacOSaiXTargetImageDidChangeNotification";
 NSString	*MacOSaiXTileImageDidChangeNotification = @"MacOSaiXTileImageDidChangeNotification";
 NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDidChangeStateNotification";
+NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageOrientationsDidChangeStateNotification";
 
 
 @interface MacOSaiXMosaic (PrivateMethods)
@@ -40,7 +46,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
     {
 		paused = YES;
 		
-		originalImageAspectRatio = 1.0;	// avoid any divide-by-zero errors
+		targetImageAspectRatio = 1.0;	// avoid any divide-by-zero errors
 		
 		imageSources = [[NSMutableArray alloc] init];
 		imageSourcesLock = [[NSLock alloc] init];
@@ -103,51 +109,54 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 
 
 #pragma mark -
-#pragma mark Original image management
+#pragma mark Target image management
 
 
-- (void)setOriginalImage:(NSImage *)image
+- (void)setTargetImage:(NSImage *)image
 {
-	if (image != originalImage)
+	if (image != targetImage)
 	{
 		[self reset];
 		
-		[originalImage release];
-		originalImage = [image retain];
+		NSDictionary	*userInfo = (targetImage ? [NSDictionary dictionaryWithObject:targetImage forKey:@"Previous Image"] : [NSDictionary dictionary]);
+		
+		[targetImage release];
+		targetImage = [image retain];
 
-		[originalImage setCachedSeparately:YES];
-		[self setAspectRatio:[originalImage size].width / [originalImage size].height];
+		[targetImage setCachedSeparately:YES];
+		[self setAspectRatio:[targetImage size].width / [targetImage size].height];
 
 			// Ignore whatever DPI was set for the image.  We just care about the bitmap.
-		NSImageRep	*originalRep = [[originalImage representations] objectAtIndex:0];
-		[originalRep setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
-		[originalImage setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
+		NSImageRep		*targetRep = [[targetImage representations] objectAtIndex:0];
+		[targetRep setSize:NSMakeSize([targetRep pixelsWide], [targetRep pixelsHigh])];
+		[targetImage setSize:NSMakeSize([targetRep pixelsWide], [targetRep pixelsHigh])];
 		
-		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXOriginalImageDidChangeNotification 
-															object:self];
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTargetImageDidChangeNotification 
+															object:self 
+														  userInfo:userInfo];
 	}
 }
 
 
-- (NSImage *)originalImage
+- (NSImage *)targetImage
 {
-	return [[originalImage retain] autorelease];
+	return [[targetImage retain] autorelease];
 }
 
 
 - (void)setAspectRatio:(float)ratio
 {
-	originalImageAspectRatio = ratio;
+	targetImageAspectRatio = ratio;
 	
-	if (!originalImage)
-		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXOriginalImageDidChangeNotification
+	if (!targetImage)
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTargetImageDidChangeNotification
 															object:self];
 }
 
 
 - (float)aspectRatio
 {
-	return originalImageAspectRatio;
+	return targetImageAspectRatio;
 }
 
 
@@ -213,7 +222,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	if (NSEqualSizes(averageUnitTileSize, NSZeroSize) && [tiles count] > 0)
 	{
 			// Calculate the average size of the tiles.
-			// TBD: should this be in unit or original space?
+			// TBD: should this be in unit or target space?
 		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
 		MacOSaiXTile	*tile = nil;
 		while (tile = [tileEnumerator nextObject])
@@ -301,6 +310,27 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 															  userInfo:nil];
 		}
 	}
+}
+
+- (void)setImageOrientations:(id<MacOSaiXImageOrientations>)inImageOrientations
+{
+	[self pause];
+	
+	[imageOrientations autorelease];
+	imageOrientations = [inImageOrientations retain];
+		
+	[self reset];
+	
+		// Let anyone who cares know that our image orientations have changed.
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXImageOrientationsDidChangeStateNotification 
+														object:self 
+													  userInfo:nil];
+}
+
+
+- (id<MacOSaiXImageOrientations>)imageOrientations
+{
+	return imageOrientations;
 }
 
 
@@ -620,9 +650,9 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 		if (image && imageIsValid)
 		{
 				// Ignore whatever DPI was set for the image.  We just care about the bitmap.
-			NSImageRep	*originalRep = [[image representations] objectAtIndex:0];
-			[originalRep setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
-			[image setSize:NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh])];
+			NSImageRep	*targetRep = [[image representations] objectAtIndex:0];
+			[targetRep setSize:NSMakeSize([targetRep pixelsWide], [targetRep pixelsHigh])];
+			[image setSize:NSMakeSize([targetRep pixelsWide], [targetRep pixelsHigh])];
 			
 				// Only use images that are at least 16 pixels in each dimension.
 			if ([image size].width > 16 && [image size].height > 16)
@@ -949,10 +979,10 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 						float				closestDistance = INFINITY;
 						while (matchToUpdate = [matchesToUpdateEnumerator nextObject])
 						{
-							float	widthDiff = NSMidX([[betterMatchTile originalOutline] bounds]) - 
-												NSMidX([[[matchToUpdate tile] originalOutline] bounds]), 
-									heightDiff = NSMidY([[betterMatchTile originalOutline] bounds]) - 
-												 NSMidY([[[matchToUpdate tile] originalOutline] bounds]), 
+							float	widthDiff = NSMidX([[betterMatchTile targetOutline] bounds]) - 
+												NSMidX([[[matchToUpdate tile] targetOutline] bounds]), 
+									heightDiff = NSMidY([[betterMatchTile targetOutline] bounds]) - 
+												 NSMidY([[[matchToUpdate tile] targetOutline] bounds]), 
 									distanceSquared = widthDiff * widthDiff + heightDiff * heightDiff;
 							
 							closestDistance = MIN(closestDistance, distanceSquared);
@@ -1088,7 +1118,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	NSString	*status = nil;
 	
 	if ([tilesWithoutBitmaps count] > 0)
-		status = NSLocalizedString(@"Extracting tiles from original...", @"");	// TODO: include the % complete (localized)
+		status = NSLocalizedString(@"Extracting tiles from target image...", @"");	// TODO: include the % complete (localized)
 	else if (calculateImageMatchesThreadAlive)
 		status = NSLocalizedString(@"Matching images...", @"");
 	else if (enumerationThreadCount > 0)
@@ -1180,7 +1210,7 @@ NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDid
 	[imageSourcesLock release];
 	[diskCacheSubPaths release];
 	
-    [originalImage release];
+    [targetImage release];
 	[enumerationThreadCountLock release];
 	[enumerationCountsLock release];
 	[enumerationCounts release];

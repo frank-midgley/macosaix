@@ -6,22 +6,23 @@
 //  Copyright 2005 Frank M. Midgley. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
-
-#import "MacOSaiXHandPickedImageSource.h"
-#import "MacOSaiXImageSource.h"
-#import "MacOSaiXTileShapes.h"
-#import "Tiles.h"
+@class MacOSaiXHandPickedImageSource, MacOSaiXTile;
+@protocol MacOSaiXTileShapes, MacOSaiXImageOrientations, MacOSaiXImageSource;
 
 
 @interface MacOSaiXMosaic : NSObject
 {
-    NSImage							*originalImage;
-	float							originalImageAspectRatio;
+    NSImage							*targetImage;
+	float							targetImageAspectRatio;
+	
     NSMutableArray					*imageSources,
 									*tiles;
+	
 	NSLock							*imageSourcesLock;
+	
 	id<MacOSaiXTileShapes>			tileShapes;
+	id<MacOSaiXImageOrientations>	imageOrientations;
+	
 	NSSize							averageUnitTileSize;
 	
 	int								imageUseCount,
@@ -54,8 +55,8 @@
 									lastDisplayMatch;
 }
 
-- (void)setOriginalImage:(NSImage *)image;
-- (NSImage *)originalImage;
+- (void)setTargetImage:(NSImage *)image;
+- (NSImage *)targetImage;
 
 - (void)setAspectRatio:(float)ratio;
 - (float)aspectRatio;
@@ -63,6 +64,9 @@
 - (void)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes creatingTiles:(BOOL)createTiles;
 - (id<MacOSaiXTileShapes>)tileShapes;
 - (NSSize)averageUnitTileSize;
+
+- (void)setImageOrientations:(id<MacOSaiXImageOrientations>)imageOrientations;
+- (id<MacOSaiXImageOrientations>)imageOrientations;
 
 - (int)imageUseCount;
 - (void)setImageUseCount:(int)count;
@@ -106,6 +110,7 @@
 	// Notifications
 extern NSString	*MacOSaiXMosaicDidChangeStateNotification;
 extern NSString	*MacOSaiXMosaicDidChangeBusyStateNotification;
-extern NSString	*MacOSaiXOriginalImageDidChangeNotification;
+extern NSString	*MacOSaiXTargetImageDidChangeNotification;
 extern NSString *MacOSaiXTileImageDidChangeNotification;
 extern NSString *MacOSaiXTileShapesDidChangeStateNotification;
+extern NSString *MacOSaiXImageOrientationsDidChangeStateNotification;
