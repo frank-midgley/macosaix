@@ -19,7 +19,7 @@
 #import "MacOSaiXPopUpButton.h"
 //#import "MacOSaiXTileEditor.h"
 #import "MacOSaiXTileShapes.h"
-#import "MacOSaiXTilesSetupController.h"
+//#import "MacOSaiXTilesSetupController.h"
 #import "MacOSaiXWarningController.h"
 #import "MosaicView.h"
 #import "NSImage+MacOSaiX.h"
@@ -32,7 +32,6 @@
 #import "MacOSaiXTargetImageEditor.h"
 #import "MacOSaiXTileShapesEditor.h"
 #import "MacOSaiXTileEditor.h"
-#import "MacOSaiXViewOptionsEditor.h"
 
 #import <Carbon/Carbon.h>
 #import <unistd.h>
@@ -175,8 +174,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	[editorsView addEditor:imageOrientationsEditor];
 	tileEditor = [[MacOSaiXTileEditor alloc] initWithMosaicView:mosaicView];
 	[editorsView addEditor:tileEditor];
-	viewOptionsEditor = [[MacOSaiXViewOptionsEditor alloc] initWithMosaicView:mosaicView];
-	[editorsView addEditor:viewOptionsEditor];
 }
 
 
@@ -401,10 +398,10 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 //	if (!tilesSetupController)
 //		tilesSetupController = [[MacOSaiXTilesSetupController alloc] initWithWindow:nil];
 	
-	[tilesSetupController setupTilesForMosaic:[self mosaic] 
-							   modalForWindow:[self window] 
-								modalDelegate:nil 
-							   didEndSelector:nil];
+//	[tilesSetupController setupTilesForMosaic:[self mosaic] 
+//							   modalForWindow:[self window] 
+//								modalDelegate:nil 
+//							   didEndSelector:nil];
 }
 
 
@@ -841,8 +838,8 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar;
 {
-    return [NSArray arrayWithObjects:@"Target", @"Tiles", @"Pause", @"Full Screen"
-									 , @"Fade", @"Zoom", @"Save As", 
+    return [NSArray arrayWithObjects:@"Target", @"Tiles", @"Pause", @"Full Screen", 
+									 @"Fade", @"Zoom", @"Save As", 
 									 NSToolbarCustomizeToolbarItemIdentifier, NSToolbarSpaceItemIdentifier,
 									 NSToolbarFlexibleSpaceItemIdentifier, NSToolbarSeparatorItemIdentifier,
 									 nil];
@@ -881,7 +878,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	[imageSourcesEditor release];
 	[imageOrientationsEditor release];
 	[tileEditor release];
-	[viewOptionsEditor release];
 	
     [super dealloc];
 }

@@ -9,7 +9,7 @@
 @class MacOSaiXMosaic, MosaicView, Tiles, MacOSaiXEditorsView, MacOSaiXExportController, MacOSaiXImageSource, MacOSaiXTileShapes, 
        MacOSaiXPopUpButton, MacOSaiXDocument, MacOSaiXTilesSetupController, MacOSaiXImageSourceEditor;
 @class MacOSaiXTargetImageEditor, MacOSaiXTileShapesEditor, MacOSaiXImageUsageEditor, MacOSaiXImageSourcesEditor, 
-       MacOSaiXImageOrientationsEditor, MacOSaiXTileEditor, MacOSaiXViewOptionsEditor;
+       MacOSaiXImageOrientationsEditor, MacOSaiXTileEditor;
 @protocol MacOSaiXImageSource;
 
 
@@ -49,7 +49,6 @@
 	MacOSaiXImageSourcesEditor			*imageSourcesEditor;
 	MacOSaiXImageOrientationsEditor		*imageOrientationsEditor;
 	MacOSaiXTileEditor					*tileEditor;
-	MacOSaiXViewOptionsEditor			*viewOptionsEditor;
 	
 	MacOSaiXExportController			*exportController;
     NSTimer								*animateTileTimer;
