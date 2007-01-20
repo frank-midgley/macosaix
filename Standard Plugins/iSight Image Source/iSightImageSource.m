@@ -55,7 +55,7 @@
 }
 
 
-+ (Class)editorClass
++ (Class)dataSourceEditorClass
 {
 	return [MacOSaiXiSightImageSourceController class];
 }
@@ -103,7 +103,7 @@
 
 - (void)useSavedSetting:(NSDictionary *)settingDict
 {
-	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
+	NSString	*settingType = [settingDict objectForKey:@"Element Type"];
 	
 	if ([settingType isEqualToString:@"SOURCE"])
 	{

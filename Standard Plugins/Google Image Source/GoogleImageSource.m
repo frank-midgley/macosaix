@@ -89,7 +89,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
-+ (Class)editorClass
++ (Class)dataSourceEditorClass
 {
 	return [GoogleImageSourceController class];
 }
@@ -456,7 +456,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 
 - (void)useSavedSetting:(NSDictionary *)settingDict
 {
-	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
+	NSString	*settingType = [settingDict objectForKey:@"Element Type"];
 	
 	if ([settingType isEqualToString:@"TERMS"])
 	{

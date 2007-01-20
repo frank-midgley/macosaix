@@ -43,7 +43,7 @@ static NSImage	*iPhotoImage = nil,
 }
 
 
-+ (Class)editorClass
++ (Class)dataSourceEditorClass
 {
 	return [MacOSaiXiPhotoImageSourceController class];
 }
@@ -113,7 +113,7 @@ static NSImage	*iPhotoImage = nil,
 
 - (void)useSavedSetting:(NSDictionary *)settingDict
 {
-	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
+	NSString	*settingType = [settingDict objectForKey:@"Element Type"];
 	
 	if ([settingType isEqualToString:@"ALBUM"])
 		[self setAlbumName:[[[settingDict objectForKey:@"NAME"] description] stringByUnescapingXMLEntites]];

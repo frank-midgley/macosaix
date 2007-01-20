@@ -43,7 +43,7 @@ static NSImage	*iTunesImage = nil,
 }
 
 
-+ (Class)editorClass
++ (Class)dataSourceEditorClass
 {
 	return [MacOSaiXiTunesImageSourceController class];
 }
@@ -103,7 +103,7 @@ static NSImage	*iTunesImage = nil,
 
 - (void)useSavedSetting:(NSDictionary *)settingDict
 {
-	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
+	NSString	*settingType = [settingDict objectForKey:@"Element Type"];
 	
 	if ([settingType isEqualToString:@"ALBUM"])
 		[self setPlaylistName:[[[settingDict objectForKey:@"NAME"] description] stringByUnescapingXMLEntites]];

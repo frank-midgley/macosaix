@@ -46,7 +46,7 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
-+ (Class)editorClass
++ (Class)dataSourceEditorClass
 {
 	return [MacOSaiXGlyphImageSourceController class];
 }
@@ -126,7 +126,7 @@ static NSImage	*glyphSourceImage = nil;
 
 - (void)useSavedSetting:(NSDictionary *)settingDict
 {
-	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
+	NSString	*settingType = [settingDict objectForKey:@"Element Type"];
 	
 	if ([settingType isEqualToString:@"COUNT"])
 	{
@@ -138,7 +138,7 @@ static NSImage	*glyphSourceImage = nil;
 
 - (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict
 {
-	NSString	*settingType = [childSettingDict objectForKey:kMacOSaiXImageSourceSettingType];
+	NSString	*settingType = [childSettingDict objectForKey:@"Element Type"];
 	
 	if ([settingType isEqualToString:@"FONT"])
 		[self addFontWithName:[[[childSettingDict objectForKey:@"NAME"] description] stringByUnescapingXMLEntites]];
@@ -150,10 +150,10 @@ static NSImage	*glyphSourceImage = nil;
 
 - (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict
 {
-	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
+	NSString	*settingType = [settingDict objectForKey:@"Element Type"];
 	
 	if ([settingType isEqualToString:@"LETTERS"])
-		[self setLetterPool:[[[settingDict objectForKey:kMacOSaiXImageSourceSettingText] description] stringByUnescapingXMLEntites]];
+		[self setLetterPool:[[[settingDict objectForKey:@"Element Text"] description] stringByUnescapingXMLEntites]];
 }
 
 

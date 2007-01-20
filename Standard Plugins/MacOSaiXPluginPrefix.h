@@ -1,5 +1,6 @@
 #ifdef __OBJC__
-	#import <Cocoa/Cocoa.h>
+	#import "MacOSaiXPlugIn.h"
 	#import "MacOSaiXTileShapes.h"
+	#import "MacOSaiXImageOrientations.h"
 	#import "MacOSaiXImageSource.h"
 #endif

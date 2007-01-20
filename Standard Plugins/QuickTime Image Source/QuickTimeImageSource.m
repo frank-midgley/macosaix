@@ -43,7 +43,7 @@ static NSImage			*sQuickTimeImage = nil;
 }
 
 
-+ (Class)editorClass
++ (Class)dataSourceEditorClass
 {
 	return [QuickTimeImageSourceController class];
 }
@@ -128,7 +128,7 @@ static NSImage			*sQuickTimeImage = nil;
 
 - (void)useSavedSetting:(NSDictionary *)settingDict
 {
-	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
+	NSString	*settingType = [settingDict objectForKey:@"Element Type"];
 	
 	if ([settingType isEqualToString:@"MOVIE"])
 	{
