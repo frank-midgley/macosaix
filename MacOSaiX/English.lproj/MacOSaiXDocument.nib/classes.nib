@@ -1,5 +1,6 @@
 {
     IBClasses = (
+        {CLASS = MacOSaiXEditorsView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
         {CLASS = MacOSaiXEventCatchingPanel; LANGUAGE = ObjC; SUPERCLASS = NSWindow; }, 
         {CLASS = MacOSaiXPopUpButton; LANGUAGE = ObjC; SUPERCLASS = NSButton; }, 
         {
@@ -9,44 +10,29 @@
         }, 
         {
             ACTIONS = {
-                addNewImageSource = id; 
-                chooseImageForSelectedTile = id; 
                 chooseOriginalImage = id; 
                 clearRecentOriginalImages = id; 
-                removeChosenImageForSelectedTile = id; 
-                removeImageSource = id; 
                 saveMosaicAs = id; 
                 setMaximumZoom = id; 
                 setMinimumZoom = id; 
-                setViewFade = id; 
-                setViewMosaic = id; 
-                setViewOriginalImage = id; 
+                setShowNonUniqueMatches = id; 
                 setZoom = id; 
-                toggleImageSourcesDrawer = id; 
                 togglePause = id; 
                 toggleStatusBar = id; 
-                toggleTileOutlines = id; 
                 viewFullScreen = id; 
             }; 
             CLASS = MacOSaiXWindowController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                editorsView = MacOSaiXEditorsView; 
                 fadeMosaicButton = NSButton; 
                 fadeOriginalButton = NSButton; 
                 fadeSlider = NSSlider; 
                 fadeToolbarView = NSView; 
-                imageSourcesDrawer = NSDrawer; 
-                imageSourcesPopUpButton = MacOSaiXPopUpButton; 
-                imageSourcesRemoveButton = NSButton; 
-                imageSourcesTableView = NSTableView; 
                 imagesFoundField = NSTextField; 
                 mosaicScrollView = NSScrollView; 
                 mosaicView = MosaicView; 
                 openOriginalAccessoryView = NSView; 
-                progressPanel = NSPanel; 
-                progressPanelCancelButton = NSButton; 
-                progressPanelIndicator = NSProgressIndicator; 
-                progressPanelLabel = NSTextField; 
                 recentOriginalsMenu = NSMenu; 
                 statusBarView = NSView; 
                 statusField = NSTextField; 

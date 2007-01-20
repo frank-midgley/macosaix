@@ -16,8 +16,6 @@
 		<string>384 400 103 87 0 0 1152 746 </string>
 		<key>200</key>
 		<string>374 403 171 87 0 0 1152 746 </string>
-		<key>353</key>
-		<string>551 567 251 200 0 0 1280 1002 </string>
 		<key>67</key>
 		<string>406 500 111 48 0 0 1152 746 </string>
 		<key>841</key>
@@ -38,6 +36,6 @@
 		<integer>8</integer>
 	</array>
 	<key>IBSystem Version</key>
-	<string>8I127</string>
+	<string>8L127</string>
 </dict>
 </plist>
