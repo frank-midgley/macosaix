@@ -131,7 +131,7 @@
 		// Build the data source for the plug-ins table.
 	plugIns = [[NSMutableArray array] retain];
 	MacOSaiX		*appDelegate = [NSApp delegate];
-	NSArray			*plugInClasses = [[appDelegate tileShapesClasses] arrayByAddingObjectsFromArray:[appDelegate imageSourceClasses]];
+	NSArray			*plugInClasses = [appDelegate allPlugIns];
 	NSEnumerator	*plugInClassEnumerator = [plugInClasses objectEnumerator];
 	Class			plugInClass = nil;
 	while ((plugInClass = [plugInClassEnumerator nextObject]))

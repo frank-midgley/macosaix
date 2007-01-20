@@ -6,10 +6,7 @@
 //  Copyright (c) 2001 Frank M. Midgley. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
-
-#import "MacOSaiXFullScreenController.h"
-#import "MacOSaiXKioskController.h"
+@class MacOSaiXFullScreenController, MacOSaiXKioskController;
 
 
 @interface MacOSaiX : NSObject
@@ -17,8 +14,9 @@
 	IBOutlet NSMenu			*mosaicMenu, 
 							*viewMenu;
 	
-	NSMutableArray			*tileShapesClasses,
-							*imageSourceClasses,
+	NSMutableArray			*tileShapesPlugIns, 
+							*imageOrientationsPlugIns, 
+							*imageSourcePlugIns, 
 							*loadedPlugInPaths;
 	BOOL					quitting;
 	
@@ -28,9 +26,13 @@
 }
 
 - (IBAction)openPreferences:(id)sender;
+
 - (void)discoverPlugIns;
-- (NSArray *)tileShapesClasses;
-- (NSArray *)imageSourceClasses;
+- (NSArray *)tileShapesPlugIns;
+- (NSArray *)imageOrientationsPlugIns;
+- (NSArray *)imageSourcePlugIns;
+- (NSArray *)allPlugIns;
+- (Class)plugInForDataSourceClass:(Class)dataSourceClass;
 
 - (BOOL)isQuitting;
 

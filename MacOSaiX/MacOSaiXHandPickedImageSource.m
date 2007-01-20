@@ -24,7 +24,7 @@
 }
 
 
-+ (Class)editorClass
++ (Class)dataSourceEditorClass
 {
 	return nil;
 }
@@ -89,15 +89,15 @@
 }
 
 
-- (id)descriptor
+- (id)briefDescription
 {
 	return [[self class] name];
 }
 
 
-- (float)aspectRatio
+- (NSNumber *)aspectRatio
 {
-	return 0.0;
+	return nil;
 }
 
 

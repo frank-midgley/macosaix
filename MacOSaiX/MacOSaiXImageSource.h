@@ -6,38 +6,16 @@
 //  Copyright (c) 2004 Frank M. Midgley. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
+#import "MacOSaiXPlugIn.h"
 
 
-#define kMacOSaiXImageSourceSettingType @"Element Type"
-#define kMacOSaiXImageSourceSettingText @"Element Text"
-
-
-@protocol MacOSaiXImageSource <NSObject, NSCopying>
-
-	// The image for a generic source of this type.
-+ (NSImage *)image;
-
-	// A class conforming to the MacOSaiXImageSourceController protocol for editing the settings of an instance of this class of plug-in.  Return nil if there are no settings instances of this plug-in.
-+ (Class)editorClass;
-
-	// A class conforming to the MacOSaiXPreferencesController protocol for editing preferences for this class of plug-in.  Return nil if there are no preferences for this plug-in.
-+ (Class)preferencesControllerClass;
+@protocol MacOSaiXImageSource <MacOSaiXDataSource>
 
 	// Whether multiple sources of this type can be added to the same mosaic.
 + (BOOL)allowMultipleImageSources;
 
-	// Methods called to save and load settings.
-- (BOOL)saveSettingsToFileAtPath:(NSString *)path;
-- (BOOL)loadSettingsFromFileAtPath:(NSString *)path;
-
-	// An image representing this specific source (may be the same image returned by +image)
-- (NSImage *)image;
-
-- (id)descriptor;	// either an NSString or an NSAttributedString
-
-	// The aspect ratio (width / height) of the images in this source.  If the ratio is not known or is variable then return 0.0.
-- (float)aspectRatio;
+	// The aspect ratio (width / height) of the images in this source.  If the ratio is not known or is variable then return nil.
+- (NSNumber *)aspectRatio;
 
 	// This method should return whether there are any images remaining in the source.
 	// TBD: is this needed or is nil from -nextImageAndIdentifier: enough?
@@ -81,32 +59,5 @@
 	// modifies the settings of this source.  The image source should set the image
 	// count back to zero and, if appropriate, start over.
 - (void)reset;
-
-@end
-
-
-@protocol MacOSaiXImageSourceController <NSObject>
-
-	// This method should return the view used to edit an image source.
-- (NSView *)editorView;
-
-	// These methods should return the minimum and maximum sizes of the editor view.
-	// If no limit is desired then return NSZeroSize from either method.
-- (NSSize)minimumSize;
-- (NSSize)maximumSize;
-
-	// This method should return the control of the editor view that should initially receive focus.
-- (NSResponder *)firstResponder;
-
-	// This method is called whenever an image source is to be edited.  The controller 
-	// should populate its controls with the values from the image source and update the 
-	// source when the user makes changes to the controls.
-- (void)editImageSource:(id<MacOSaiXImageSource>)imageSource;
-
-	// This method should indicate whether the current state of the editing controls 
-	// represents a valid image source.  If NO then the OK button will be disabled.
-- (BOOL)settingsAreValid;
-
-- (void)editingComplete;
 
 @end

@@ -11,16 +11,21 @@
 #import "MacOSaiXAboutBoxController.h"
 #import "MacOSaiXCrashReporterController.h"
 #import "MacOSaiXDocument.h"
+#import "MacOSaiXFullScreenController.h"
 #import "MacOSaiXFullScreenWindow.h"
 #import "MacOSaiXImageCache.h"
-#import "MacOSaiXImageSource.h"
+#import "MacOSaiXImageOrientations.h"
 #import "MacOSaiXKioskController.h"
 #import "MacOSaiXKioskSetupController.h"
 #import "MacOSaiXScreenSetupController.h"
-#import "MacOSaiXTileShapes.h"
 #import "MacOSaiXUpdateAvailableController.h"
 #import "MacPADSocket.h"
 #import "PreferencesController.h"
+
+#import "MacOSaiXPlugIn.h"
+#import "MacOSaiXImageOrientations.h"
+#import "MacOSaiXImageSource.h"
+#import "MacOSaiXTileShapes.h"
 
 #import <Carbon/Carbon.h>
 #import <pthread.h>
@@ -43,8 +48,9 @@
 {
 	if (self = [super init])
 	{
-		tileShapesClasses = [[NSMutableArray array] retain];
-		imageSourceClasses = [[NSMutableArray array] retain];
+		tileShapesPlugIns = [[NSMutableArray array] retain];
+		imageOrientationsPlugIns = [[NSMutableArray array] retain];
+		imageSourcePlugIns = [[NSMutableArray array] retain];
 		loadedPlugInPaths = [[NSMutableArray array] retain];
 		kioskMosaicControllers = [[NSMutableArray array] retain];
 	}
@@ -88,8 +94,6 @@
 		}
 	}
 	
-	[self discoverPlugIns];
-	
 	if ([defaults boolForKey:@"Check For Crash at Launch"])
 		[MacOSaiXCrashReporterController checkForCrash];
 }
@@ -119,8 +123,7 @@
 			break;
 		case kMacPADResultNewVersion:		// New version is available.
 		{
-			MacOSaiXUpdateAvailableController	*controller = [[MacOSaiXUpdateAvailableController alloc] 
-																	initWithMacPADSocket:macPAD];
+			MacOSaiXUpdateAvailableController	*controller = [[MacOSaiXUpdateAvailableController alloc] initWithMacPADSocket:macPAD];
 			[controller showWindow:self];
 			break;
 		}
@@ -149,11 +152,10 @@
 	
 	if ([image isValid])
 	{
-		MacOSaiXDocument	*newDocument = [[NSDocumentController sharedDocumentController] 
-												openUntitledDocumentOfType:@"MacOSaiX Project" display:NO];
+		MacOSaiXDocument	*newDocument = [[NSDocumentController sharedDocumentController] openUntitledDocumentOfType:@"MacOSaiX Project" display:NO];
 		
-		[newDocument setOriginalImagePath:filename];
-		[[newDocument mosaic] setOriginalImage:image];
+		[newDocument setTargetImagePath:filename];
+		[[newDocument mosaic] setTargetImage:image];
 		[newDocument showWindows];
 		
 		return YES;
@@ -226,10 +228,10 @@
 	NSString				*plugInsPath = [[NSBundle mainBundle] builtInPlugInsPath];
 	NSDirectoryEnumerator	*pathEnumerator = [[NSFileManager defaultManager] enumeratorAtPath:plugInsPath];
 	NSString				*plugInSubPath;
-	BOOL					newPlugInWasDiscovered = NO;
 	
-	[tileShapesClasses removeAllObjects];
-	[imageSourceClasses removeAllObjects];
+	[tileShapesPlugIns removeAllObjects];
+	[imageOrientationsPlugIns removeAllObjects];
+	[imageSourcePlugIns removeAllObjects];
 	
 	while (plugInSubPath = [pathEnumerator nextObject])
 	{
@@ -273,21 +275,28 @@
 				
 				if (plugInCompatible)
 				{
-					Class	plugInPrincipalClass = [plugInBundle principalClass];
+					Class	plugInClass = [plugInBundle principalClass];
 					
-					if (plugInPrincipalClass && [plugInPrincipalClass conformsToProtocol:@protocol(MacOSaiXTileShapes)])
+					if ([plugInClass conformsToProtocol:@protocol(MacOSaiXPlugIn)])
 					{
-						[tileShapesClasses addObject:plugInPrincipalClass];
-						[loadedPlugInPaths addObject:plugInsPath];
-					}
+						if ([[plugInClass dataSourceClass] conformsToProtocol:@protocol(MacOSaiXTileShapes)])
+						{
+							[tileShapesPlugIns addObject:plugInClass];
+							[loadedPlugInPaths addObject:plugInsPath];
+						}
 
-					if (plugInPrincipalClass && [plugInPrincipalClass conformsToProtocol:@protocol(MacOSaiXImageSource)])
-					{
-						[imageSourceClasses addObject:plugInPrincipalClass];
-						[loadedPlugInPaths addObject:plugInsPath];
+						if ([[plugInClass dataSourceClass] conformsToProtocol:@protocol(MacOSaiXImageOrientations)])
+						{
+							[imageOrientationsPlugIns addObject:plugInClass];
+							[loadedPlugInPaths addObject:plugInsPath];
+						}
+
+						if ([[plugInClass dataSourceClass] conformsToProtocol:@protocol(MacOSaiXImageSource)])
+						{
+							[imageSourcePlugIns addObject:plugInClass];
+							[loadedPlugInPaths addObject:plugInsPath];
+						}
 					}
-					
-					newPlugInWasDiscovered = YES;
 				}
 
 					// don't look inside this bundle for other bundles
@@ -295,52 +304,48 @@
 			}
 		}
 	}
+}
+
+
+- (NSArray *)tileShapesPlugIns
+{
+	[self discoverPlugIns];
 	
-	if (newPlugInWasDiscovered)
-	{
-			// Populate the "Add New Source..." pop-up menu with the names of the image sources.
-			// The represented object of each menu item will be the image source's class.
-		NSMenu			*addImageSourceMenu = [[[self valueForKey:@"mosaicMenu"] itemWithTag:3] submenu];
-		while ([addImageSourceMenu numberOfItems] > 0)
-			[addImageSourceMenu removeItemAtIndex:0];
-		
-		NSEnumerator	*enumerator = [imageSourceClasses objectEnumerator];
-		Class			imageSourceClass = nil;
-		while (imageSourceClass = [enumerator nextObject])
-		{
-			NSBundle		*plugInBundle = [NSBundle bundleForClass:imageSourceClass];
-			NSString		*plugInName = [plugInBundle objectForInfoDictionaryKey:@"CFBundleName"];
-			NSMenuItem		*menuItem = [[[NSMenuItem alloc] initWithTitle:[NSString stringWithFormat:@"%@...", plugInName] 
-																	action:@selector(addNewImageSource:) 
-															 keyEquivalent:@""] autorelease];
-			[menuItem setRepresentedObject:imageSourceClass];
-			
-			NSImage	*image = [[[imageSourceClass image] copy] autorelease];
-			[image setScalesWhenResized:YES];
-			if ([image size].width > [image size].height)
-				[image setSize:NSMakeSize(16.0, 16.0 * [image size].height / [image size].width)];
-			else
-				[image setSize:NSMakeSize(16.0 * [image size].width / [image size].height, 16.0)];
-			[image lockFocus];	// force the image to be scaled
-			[image unlockFocus];
-			[menuItem setImage:image];
-			
-			[addImageSourceMenu addItem:menuItem];
-		}
-	}
+	return tileShapesPlugIns;
 }
 
 
-- (NSArray *)tileShapesClasses
+- (NSArray *)imageOrientationsPlugIns
 {
-	return tileShapesClasses;
+	[self discoverPlugIns];
+	
+	return imageOrientationsPlugIns;
 }
 
 
-- (NSArray *)imageSourceClasses
+- (NSArray *)imageSourcePlugIns
 {
-	return imageSourceClasses;
+	[self discoverPlugIns];
+	
+	return imageSourcePlugIns;
 }
+
+
+- (NSArray *)allPlugIns
+{
+	[self discoverPlugIns];
+	
+	return [[tileShapesPlugIns arrayByAddingObjectsFromArray:imageSourcePlugIns] arrayByAddingObjectsFromArray:imageSourcePlugIns];
+}
+
+
+- (Class)plugInForDataSourceClass:(Class)dataSourceClass
+{
+	return [[NSBundle bundleForClass:dataSourceClass] principalClass];
+}
+
+
+#pragma mark
 
 
 - (BOOL)isQuitting
