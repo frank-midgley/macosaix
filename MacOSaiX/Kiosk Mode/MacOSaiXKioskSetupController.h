@@ -12,7 +12,7 @@
 
 @interface MacOSaiXKioskSetupController : NSWindowController
 {
-	IBOutlet NSMatrix					*originalImageMatrix,
+	IBOutlet NSMatrix					*targetImageMatrix,
 										*windowTypeMatrix;
 	IBOutlet NSButton					*requirePasswordButton;
 	IBOutlet NSSecureTextField			*passwordField,
@@ -29,7 +29,7 @@
 
 - (void)setNonMainSetupControllers:(NSArray *)array;
 
-- (IBAction)chooseOriginalImage:(id)sender;
+- (IBAction)chooseTargetImage:(id)sender;
 
 - (IBAction)setWindowType:(id)sender;
 - (BOOL)shouldDisplayMosaicAndSettings;

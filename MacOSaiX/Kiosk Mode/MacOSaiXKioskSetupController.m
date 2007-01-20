@@ -30,14 +30,14 @@
 		warningString = NSLocalizedString(@"The Google Image Source plug-in is missing.", @"");
 	else
 	{
-			// Make sure there is at least one original image chosen.
+			// Make sure there is at least one target image chosen.
 		BOOL	atLeastOneImage = NO;
 		int		column = 0;
-		for (column = 0; column < [originalImageMatrix numberOfColumns]; column++)
-			if ([[originalImageMatrix cellAtRow:0 column:column] imagePosition] == NSImageOnly)
+		for (column = 0; column < [targetImageMatrix numberOfColumns]; column++)
+			if ([[targetImageMatrix cellAtRow:0 column:column] imagePosition] == NSImageOnly)
 				atLeastOneImage = YES;
 		if (!atLeastOneImage)
-			warningString = NSLocalizedString(@"Please choose at least one original image.", @"");
+			warningString = NSLocalizedString(@"Please choose at least one target image.", @"");
 		else
 		{
 			NSString	*password = [passwordField stringValue];
@@ -83,35 +83,35 @@
 {
 	NSDictionary	*kioskSettings = [[NSUserDefaults standardUserDefaults] objectForKey:@"Kiosk Settings"];
 	
-		// Populate the original image buttons
-	NSArray			*originalImagePaths = [kioskSettings objectForKey:@"Original Image Paths"];
-	if (!originalImagePaths)
+		// Populate the target image buttons
+	NSArray			*targetImagePaths = [kioskSettings objectForKey:@"Target Image Paths"];
+	if (!targetImagePaths)
 	{
-		originalImagePaths = [[NSUserDefaults standardUserDefaults] arrayForKey:@"Original Image Paths"];
-		if (originalImagePaths)
+		targetImagePaths = [[NSUserDefaults standardUserDefaults] arrayForKey:@"Target Image Paths"];
+		if (targetImagePaths)
 		{
-				// Move the original paths to the new key path.
+				// Move the target paths to the new key path.
 			NSMutableDictionary	*newSettings = [NSMutableDictionary dictionary];
 			if (kioskSettings)
 				[newSettings addEntriesFromDictionary:kioskSettings];
-			[newSettings setObject:originalImagePaths forKey:@"Original Image Paths"];
+			[newSettings setObject:targetImagePaths forKey:@"Target Image Paths"];
 			[[NSUserDefaults standardUserDefaults] setObject:newSettings forKey:@"Kiosk Settings"];
-			[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"Original Image Paths"];
+			[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"Target Image Paths"];
 			[[NSUserDefaults standardUserDefaults] synchronize];
 		}
 	}
 	int				column = 0;
-	for (column = 0; column < [originalImageMatrix numberOfColumns]; column++)
+	for (column = 0; column < [targetImageMatrix numberOfColumns]; column++)
 	{
-		NSButtonCell	*buttonCell = [originalImageMatrix cellAtRow:0 column:column];
-		NSString		*imagePath = (column < [originalImagePaths count] ? [originalImagePaths objectAtIndex:column] : nil);
+		NSButtonCell	*buttonCell = [targetImageMatrix cellAtRow:0 column:column];
+		NSString		*imagePath = (column < [targetImagePaths count] ? [targetImagePaths objectAtIndex:column] : nil);
 		NSImage			*image = nil;
 		
 		if ([[NSFileManager defaultManager] fileExistsAtPath:imagePath] &&
 			(image = [[NSImage alloc] initWithContentsOfFile:imagePath]))
 		{
 			[image setScalesWhenResized:YES];
-			[image setSize:[originalImageMatrix cellSize]];
+			[image setSize:[targetImageMatrix cellSize]];
 			[buttonCell setTitle:imagePath];
 			[buttonCell setImage:image];
 			[buttonCell setImagePosition:NSImageOnly];
@@ -188,10 +188,10 @@
 }
 
 
-- (IBAction)chooseOriginalImage:(id)sender
+- (IBAction)chooseTargetImage:(id)sender
 {
 		// Get the path of the button's current image.
-	NSButtonCell	*buttonCell = [originalImageMatrix selectedCell];
+	NSButtonCell	*buttonCell = [targetImageMatrix selectedCell];
 	NSString		*imagePath = ([buttonCell imagePosition] == NSImageOnly ? [buttonCell title] : nil);
 	
 		// Drop an open panel.
@@ -204,17 +204,17 @@
 								types:[NSImage imageFileTypes] 
 					   modalForWindow:[self window] 
 					    modalDelegate:self 
-					   didEndSelector:@selector(chooseOriginalImagePanelDidEnd:returnCode:contextInfo:) 
-						  contextInfo:(void *)[originalImageMatrix selectedColumn]];
+					   didEndSelector:@selector(chooseTargetImagePanelDidEnd:returnCode:contextInfo:) 
+						  contextInfo:(void *)[targetImageMatrix selectedColumn]];
 }
 
 
-- (void)chooseOriginalImagePanelDidEnd:(NSOpenPanel *)openPanel returnCode:(int)returnCode contextInfo:(void *)contextInfo
+- (void)chooseTargetImagePanelDidEnd:(NSOpenPanel *)openPanel returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
 	if (returnCode == NSOKButton)
 	{
 		int				column = (int)contextInfo;
-		NSButtonCell	*buttonCell = [originalImageMatrix cellAtRow:0 column:column];
+		NSButtonCell	*buttonCell = [targetImageMatrix cellAtRow:0 column:column];
 		NSString		*imagePath = [[openPanel filenames] lastObject];
 		NSImage			*image = [[NSImage alloc] initWithContentsOfFile:imagePath];
 		
@@ -222,7 +222,7 @@
 		{
 				// Update the GUI.
 			[image setScalesWhenResized:YES];
-			[image setSize:[originalImageMatrix cellSize]];
+			[image setSize:[targetImageMatrix cellSize]];
 			[buttonCell setTitle:imagePath];
 			[buttonCell setImage:image];
 			[buttonCell setImagePosition:NSImageOnly];
@@ -232,15 +232,15 @@
 			NSMutableDictionary	*kioskSettings = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Kiosk Settings"] mutableCopy] autorelease];
 			if (!kioskSettings)
 				kioskSettings = [NSMutableDictionary dictionary];
-			NSMutableArray		*originalImagePaths = [[[kioskSettings objectForKey:@"Original Image Paths"] mutableCopy] autorelease];
-			if (!originalImagePaths)
-				originalImagePaths = [[[[NSUserDefaults standardUserDefaults] arrayForKey:@"Original Image Paths"] mutableCopy] autorelease];
-			if (!originalImagePaths)
-				originalImagePaths = [NSMutableArray array];
-			while ([originalImagePaths count] < [originalImageMatrix numberOfColumns])
-				[originalImagePaths addObject:@""];
-			[originalImagePaths replaceObjectAtIndex:column withObject:imagePath];
-			[kioskSettings setObject:originalImagePaths forKey:@"Original Image Paths"];
+			NSMutableArray		*targetImagePaths = [[[kioskSettings objectForKey:@"Target Image Paths"] mutableCopy] autorelease];
+			if (!targetImagePaths)
+				targetImagePaths = [[[[NSUserDefaults standardUserDefaults] arrayForKey:@"Target Image Paths"] mutableCopy] autorelease];
+			if (!targetImagePaths)
+				targetImagePaths = [NSMutableArray array];
+			while ([targetImagePaths count] < [targetImageMatrix numberOfColumns])
+				[targetImagePaths addObject:@""];
+			[targetImagePaths replaceObjectAtIndex:column withObject:imagePath];
+			[kioskSettings setObject:targetImagePaths forKey:@"Target Image Paths"];
 			[[NSUserDefaults standardUserDefaults] setObject:kioskSettings forKey:@"Kiosk Settings"];
 			[[NSUserDefaults standardUserDefaults] synchronize];
 		}

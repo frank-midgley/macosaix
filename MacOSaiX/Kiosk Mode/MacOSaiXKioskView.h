@@ -13,7 +13,7 @@
 
 @interface MacOSaiXKioskView : NSView
 {
-	IBOutlet NSMatrix		*originalImageMatrix;
+	IBOutlet NSMatrix		*targetImageMatrix;
 	IBOutlet MosaicView		*mosaicView;
 	IBOutlet NSView			*imageSourcesView;
 

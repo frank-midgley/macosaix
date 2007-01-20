@@ -11,11 +11,13 @@
 #import "GoogleImageSource.h"
 #import "MacOSaiXDocument.h"
 #import "MacOSaiXFullScreenController.h"
+#import "MacOSaiXImageMatch.h"
 #import "MacOSaiXKioskMessageView.h"
 #import "MacOSaiXKioskView.h"
 #import "MacOSaiXMosaic.h"
 #import "MosaicView.h"
 #import "RectangularTileShapes.h"
+#import "Tiles.h"
 
 #import <pthread.h>
 
@@ -97,7 +99,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 			MacOSaiXDocument	*tempDocument = [[MacOSaiXDocument alloc] init];
 			[tempDocument setMosaic:currentMosaic];
 			int					currentIndex = [mosaics indexOfObjectIdenticalTo:currentMosaic];
-			[tempDocument setOriginalImagePath:[[originalImageMatrix cellAtRow:0 column:currentIndex] title]];
+			[tempDocument setTargetImagePath:[[targetImageMatrix cellAtRow:0 column:currentIndex] title]];
 			[tempDocument threadedSaveWithParameters:[NSDictionary dictionaryWithObjectsAndKeys:
 														saveFilePath, @"Save Path", 
 														[NSNumber numberWithBool:YES], @"Was Paused", 
@@ -143,21 +145,21 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 
 - (void)awakeFromNib
 {
-		// Populate the original image buttons
-	NSArray			*originalImagePaths = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Kiosk Settings"]
-																				  objectForKey:@"Original Image Paths"];
+		// Populate the target image buttons
+	NSArray			*targetImagePaths = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Kiosk Settings"]
+																				  objectForKey:@"Target Image Paths"];
 	int				column = 0;
-	for (column = 0; column < [originalImageMatrix numberOfColumns]; column++)
+	for (column = 0; column < [targetImageMatrix numberOfColumns]; column++)
 	{
-		NSButtonCell	*buttonCell = [originalImageMatrix cellAtRow:0 column:column];
-		NSString		*imagePath = (column < [originalImagePaths count] ? [originalImagePaths objectAtIndex:column] : nil);
+		NSButtonCell	*buttonCell = [targetImageMatrix cellAtRow:0 column:column];
+		NSString		*imagePath = (column < [targetImagePaths count] ? [targetImagePaths objectAtIndex:column] : nil);
 		NSImage			*image = nil;
 		
 		if ([[NSFileManager defaultManager] fileExistsAtPath:imagePath] &&
 			(image = [[NSImage alloc] initWithContentsOfFile:imagePath]))
 		{
 			MacOSaiXMosaic	*mosaic = [[MacOSaiXMosaic alloc] init];
-			[mosaic setOriginalImage:image];
+			[mosaic setTargetImage:image];
 			[mosaic setImageUseCount:0];
 			[mosaic setImageReuseDistance:10];
 			[mosaic setImageCropLimit:25];
@@ -178,19 +180,17 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 	
 	[messageView setEditable:NO];
 	
-	[mosaicView setFade:1.0];
-	
 	[self useMosaicAtIndex:0];
 }
 
 
-- (IBAction)setOriginalImage:(id)sender
+- (IBAction)setTargetImage:(id)sender
 {
-	[self useMosaicAtIndex:[originalImageMatrix selectedColumn]];
+	[self useMosaicAtIndex:[targetImageMatrix selectedColumn]];
 	[kioskView setNeedsDisplayInRect:NSMakeRect(NSMinX([mosaicView frame]), 
 														NSMaxY([mosaicView frame]), 
 														NSWidth([mosaicView frame]), 
-														NSMinY([originalImageMatrix frame]) - 
+														NSMinY([targetImageMatrix frame]) - 
 															NSMaxY([mosaicView frame]))];
 }
 
@@ -292,7 +292,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 
 - (void)windowDidResize:(NSNotification *)notification
 {
-		// Resize all of the views so that the original images and the mosaic maintain a 4x3 aspect ratio.
+		// Resize all of the views so that the target images and the mosaic maintain a 4x3 aspect ratio.
 	NSWindow	*window = [notification object];
 	float		windowHeight = NSHeight([window frame]), 
 				windowWidth = NSWidth([window frame]), 
@@ -314,9 +314,9 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 		settingsWidth = 180.0;
 	}
 	
-		// Position the original image matrix in the upper left corner of the window.
-	[originalImageMatrix setCellSize:NSMakeSize(matrixWidth / 6.0, matrixHeight)];
-	[originalImageMatrix setFrame:NSMakeRect(0.0, mosaicHeight + transitionHeight, matrixWidth, matrixHeight)];
+		// Position the target image matrix in the upper left corner of the window.
+	[targetImageMatrix setCellSize:NSMakeSize(matrixWidth / 6.0, matrixHeight)];
+	[targetImageMatrix setFrame:NSMakeRect(0.0, mosaicHeight + transitionHeight, matrixWidth, matrixHeight)];
 	
 		// Position the message view in the upper right corner of the window.
 	[messageView setFrame:NSMakeRect(matrixWidth + transitionWidth, mosaicHeight + transitionHeight, 
@@ -334,18 +334,18 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 	[vanityView setFrameOrigin:NSMakePoint(windowWidth - vanitySize.width - 4.0, 
 										   mosaicHeight + (transitionHeight - vanitySize.height) / 2.0)];
 	
-		// Populate the original image buttons now that we know what size they are.
+		// Populate the target image buttons now that we know what size they are.
 	int		column = 0;
-	for (column = 0; column < [originalImageMatrix numberOfColumns]; column++)
+	for (column = 0; column < [targetImageMatrix numberOfColumns]; column++)
 	{
-		NSButtonCell	*buttonCell = [originalImageMatrix cellAtRow:0 column:column];
+		NSButtonCell	*buttonCell = [targetImageMatrix cellAtRow:0 column:column];
 		
 		if ([buttonCell imagePosition] == NSImageOnly)
 		{
-			NSImage	*image = [[[mosaics objectAtIndex:column] originalImage] copy];
+			NSImage	*image = [[[mosaics objectAtIndex:column] targetImage] copy];
 			
 			[image setScalesWhenResized:YES];
-			[image setSize:[originalImageMatrix cellSize]];
+			[image setSize:[targetImageMatrix cellSize]];
 			[buttonCell setAlternateImage:image];
 			
 			NSImage	*darkenedImage = [image copy];
@@ -386,7 +386,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 		if ([[tableColumn identifier] isEqualToString:@"Count"])
 			return [NSNumber numberWithUnsignedLong:[currentMosaic countOfImagesFromSource:imageSource]];
 		else
-			objectValue = [imageSource descriptor];
+			objectValue = [imageSource briefDescription];
     }
 
 	return objectValue;

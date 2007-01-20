@@ -38,34 +38,34 @@
 	NSColor			*transitionBackgroundColor = [NSColor colorWithCalibratedRed:0.75 green:0.80 blue:1.0 alpha:1.0],
 					*transitionForegroundColor = [transitionBackgroundColor shadowWithLevel:0.5];
 	
-		// Draw the transition from the original image to the mosaic.
-	NSRect			originalTransitionRect = NSMakeRect(NSMinX([mosaicView frame]), 
-														NSMaxY([mosaicView frame]), 
-														NSWidth([mosaicView frame]), 
-														NSMinY([originalImageMatrix frame]) - 
+		// Draw the transition from the target image to the mosaic.
+	NSRect			targetTransitionRect = NSMakeRect(NSMinX([mosaicView frame]), 
+													  NSMaxY([mosaicView frame]), 
+													  NSWidth([mosaicView frame]), 
+													  NSMinY([targetImageMatrix frame]) - 
 															NSMaxY([mosaicView frame]));
-	if (NSIntersectsRect(rect, originalTransitionRect))
+	if (NSIntersectsRect(rect, targetTransitionRect))
 	{
 		[[NSGraphicsContext currentContext] saveGraphicsState];
 		
 		NSBezierPath	*transitionPath = [NSBezierPath bezierPath];
-		float			totalWidth = NSWidth(originalTransitionRect), 
+		float			totalWidth = NSWidth(targetTransitionRect), 
 						wideStripeWidth = totalWidth / tileCount, 
-						originalWidth = totalWidth / [originalImageMatrix numberOfColumns], 
-						narrowStripeWidth = originalWidth / tileCount, 
-						startX = NSMinX(originalTransitionRect) + [originalImageMatrix selectedColumn] * originalWidth, 
-						endX = startX + originalWidth;
+						targetWidth = totalWidth / [targetImageMatrix numberOfColumns], 
+						narrowStripeWidth = targetWidth / tileCount, 
+						startX = NSMinX(targetTransitionRect) + [targetImageMatrix selectedColumn] * targetWidth, 
+						endX = startX + targetWidth;
 		
 			// Fill the entire transition path with the background color.
-		[transitionPath moveToPoint:NSMakePoint(NSMinX(originalTransitionRect), NSMinY(originalTransitionRect))];
-		[transitionPath lineToPoint:NSMakePoint(NSMaxX(originalTransitionRect), NSMinY(originalTransitionRect))];
-		[transitionPath curveToPoint:NSMakePoint(endX, NSMaxY(originalTransitionRect)) 
-					   controlPoint1:NSMakePoint(NSMaxX(originalTransitionRect), NSMidY(originalTransitionRect)) 
-					   controlPoint2:NSMakePoint(endX, NSMidY(originalTransitionRect))];
-		[transitionPath lineToPoint:NSMakePoint(startX, NSMaxY(originalTransitionRect))];
-		[transitionPath curveToPoint:NSMakePoint(NSMinX(originalTransitionRect), NSMinY(originalTransitionRect)) 
-					   controlPoint1:NSMakePoint(startX, NSMidY(originalTransitionRect)) 
-					   controlPoint2:NSMakePoint(NSMinX(originalTransitionRect), NSMidY(originalTransitionRect))];
+		[transitionPath moveToPoint:NSMakePoint(NSMinX(targetTransitionRect), NSMinY(targetTransitionRect))];
+		[transitionPath lineToPoint:NSMakePoint(NSMaxX(targetTransitionRect), NSMinY(targetTransitionRect))];
+		[transitionPath curveToPoint:NSMakePoint(endX, NSMaxY(targetTransitionRect)) 
+					   controlPoint1:NSMakePoint(NSMaxX(targetTransitionRect), NSMidY(targetTransitionRect)) 
+					   controlPoint2:NSMakePoint(endX, NSMidY(targetTransitionRect))];
+		[transitionPath lineToPoint:NSMakePoint(startX, NSMaxY(targetTransitionRect))];
+		[transitionPath curveToPoint:NSMakePoint(NSMinX(targetTransitionRect), NSMinY(targetTransitionRect)) 
+					   controlPoint1:NSMakePoint(startX, NSMidY(targetTransitionRect)) 
+					   controlPoint2:NSMakePoint(NSMinX(targetTransitionRect), NSMidY(targetTransitionRect))];
 		[transitionBackgroundColor set];
 		[transitionPath fill];
 		
@@ -74,24 +74,24 @@
 		[transitionPath removeAllPoints];
 		int				i = 0;
 		float	narrowX = startX,
-				wideX = NSMinX(originalTransitionRect);
+				wideX = NSMinX(targetTransitionRect);
 		for (i = 0; i < tileCount + 1; i++, narrowX += narrowStripeWidth, wideX += wideStripeWidth)
 		{
-			[transitionPath moveToPoint:NSMakePoint(narrowX, NSMaxY(originalTransitionRect))];
-			[transitionPath curveToPoint:NSMakePoint(wideX, NSMinY(originalTransitionRect)) 
-						   controlPoint1:NSMakePoint(narrowX, NSMidY(originalTransitionRect)) 
-						   controlPoint2:NSMakePoint(wideX, NSMidY(originalTransitionRect))];
+			[transitionPath moveToPoint:NSMakePoint(narrowX, NSMaxY(targetTransitionRect))];
+			[transitionPath curveToPoint:NSMakePoint(wideX, NSMinY(targetTransitionRect)) 
+						   controlPoint1:NSMakePoint(narrowX, NSMidY(targetTransitionRect)) 
+						   controlPoint2:NSMakePoint(wideX, NSMidY(targetTransitionRect))];
 		}
 		[transitionForegroundColor set];
 		[transitionPath stroke];
 		
 		float			stripeHeight = 10.0, 
 						y = 0.0;
-		for (y = NSMinY(originalTransitionRect); 
-			 y < NSMaxY(originalTransitionRect); 
+		for (y = NSMinY(targetTransitionRect); 
+			 y < NSMaxY(targetTransitionRect); 
 			 y += stripeHeight, stripeHeight *= 0.9)
-			[NSBezierPath strokeLineFromPoint:NSMakePoint(NSMinX(originalTransitionRect), y)
-									  toPoint:NSMakePoint(NSMaxX(originalTransitionRect), y)];
+			[NSBezierPath strokeLineFromPoint:NSMakePoint(NSMinX(targetTransitionRect), y)
+									  toPoint:NSMakePoint(NSMaxX(targetTransitionRect), y)];
 		
 		[[NSGraphicsContext currentContext] restoreGraphicsState];
 	}

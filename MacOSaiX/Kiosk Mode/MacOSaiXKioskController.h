@@ -15,7 +15,7 @@
 {
 		// The six top level views
 	IBOutlet MacOSaiXKioskView			*kioskView;	// content view of the window
-	IBOutlet NSMatrix					*originalImageMatrix;
+	IBOutlet NSMatrix					*targetImageMatrix;
 	IBOutlet MacOSaiXKioskMessageView	*messageView;
 	IBOutlet NSBox						*vanityView;
 	IBOutlet MosaicView					*mosaicView;
@@ -45,7 +45,7 @@
 - (void)setMessage:(NSAttributedString *)message;
 - (void)setMessageBackgroundColor:(NSColor *)color;
 
-- (IBAction)setOriginalImage:(id)sender;
+- (IBAction)setTargetImage:(id)sender;
 - (IBAction)addKeyword:(id)sender;
 - (IBAction)removeKeyword:(id)sender;
 
