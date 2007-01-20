@@ -1,0 +1,14 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            CLASS = MacOSaiXEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {editorView = NSView; }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = MacOSaiXPopUpButton; LANGUAGE = ObjC; SUPERCLASS = NSButton; }, 
+        {CLASS = MacOSaiXTileEditor; LANGUAGE = ObjC; SUPERCLASS = MacOSaiXEditor; }
+    ); 
+    IBVersion = 1; 
+}

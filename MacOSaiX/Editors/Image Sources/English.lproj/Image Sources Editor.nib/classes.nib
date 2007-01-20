@@ -1,0 +1,37 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            CLASS = MacOSaiXEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {editorView = NSView; }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            ACTIONS = {
+                addImageSource = id; 
+                editImageSource = id; 
+                removeImageSource = id; 
+                showImageSources = id; 
+            }; 
+            CLASS = MacOSaiXImageSourcesEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                addSourceButton = MacOSaiXPopUpButton; 
+                editSourceButton = NSButton; 
+                imageSourcesTable = NSTableView; 
+                removeSourceButton = NSButton; 
+                showSourcesButton = NSButton; 
+                tabView = NSTabView; 
+            }; 
+            SUPERCLASS = MacOSaiXEditor; 
+        }, 
+        {CLASS = MacOSaiXPopUpButton; LANGUAGE = ObjC; SUPERCLASS = NSButton; }, 
+        {
+            CLASS = MacOSaiXTextFieldCell; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = NSTextFieldCell; 
+        }
+    ); 
+    IBVersion = 1; 
+}

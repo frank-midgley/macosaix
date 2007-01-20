@@ -1,0 +1,20 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            CLASS = MacOSaiXEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {editorView = NSView; }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            ACTIONS = {discardChanges = id; saveChanges = id; }; 
+            CLASS = MacOSaiXImageOrientationsEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {discardChangesButton = NSButton; saveChangesButton = NSButton; }; 
+            SUPERCLASS = MacOSaiXEditor; 
+        }, 
+        {CLASS = MacOSaiXPopUpButton; LANGUAGE = ObjC; SUPERCLASS = NSButton; }
+    ); 
+    IBVersion = 1; 
+}

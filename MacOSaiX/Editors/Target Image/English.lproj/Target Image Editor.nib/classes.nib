@@ -1,0 +1,25 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            CLASS = MacOSaiXEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {editorView = NSView; }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = MacOSaiXPopUpButton; LANGUAGE = ObjC; SUPERCLASS = NSButton; }, 
+        {
+            ACTIONS = {addTargetImage = id; removeTargetImage = id; }; 
+            CLASS = MacOSaiXTargetImageEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                addTargetImageButton = NSButton; 
+                openTargetImageAccessoryView = NSView; 
+                removeTargetImageButton = NSButton; 
+                targetImagesTableView = NSTableView; 
+            }; 
+            SUPERCLASS = MacOSaiXEditor; 
+        }
+    ); 
+    IBVersion = 1; 
+}

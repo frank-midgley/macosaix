@@ -1,0 +1,27 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            CLASS = MacOSaiXEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {editorView = NSView; }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = MacOSaiXPopUpButton; LANGUAGE = ObjC; SUPERCLASS = NSButton; }, 
+        {
+            ACTIONS = {setTileShapesClass = id; }; 
+            CLASS = MacOSaiXTileShapesEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                acceptChangesButton = NSButton; 
+                discardChangesButton = NSButton; 
+                tileShapesBeingEdited = id; 
+                tileShapesEditor = id; 
+                tileShapesEditorBox = NSBox; 
+                tileShapesPlugInPopUp = NSPopUpButton; 
+            }; 
+            SUPERCLASS = MacOSaiXEditor; 
+        }
+    ); 
+    IBVersion = 1; 
+}
