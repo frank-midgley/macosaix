@@ -1,9 +1,16 @@
-#import <Cocoa/Cocoa.h>
+/*
+	MacOSaiXWindowController.h
+	MacOSaiX
+ 
+	Created by Frank Midgley on Sun Oct 24 2004.
+	Copyright (c) 2004-2006 Frank M. Midgley. All rights reserved.
+ */
 
-#import "MosaicView.h"
-
-@class OriginalView, Tiles, MacOSaiXExportController, MacOSaiXImageSource, MacOSaiXTileShapes, 
+@class MacOSaiXMosaic, MosaicView, Tiles, MacOSaiXEditorsView, MacOSaiXExportController, MacOSaiXImageSource, MacOSaiXTileShapes, 
        MacOSaiXPopUpButton, MacOSaiXDocument, MacOSaiXTilesSetupController, MacOSaiXImageSourceEditor;
+@class MacOSaiXTargetImageEditor, MacOSaiXTileShapesEditor, MacOSaiXImageUsageEditor, MacOSaiXImageSourcesEditor, 
+       MacOSaiXImageOrientationsEditor, MacOSaiXTileEditor, MacOSaiXViewOptionsEditor;
+@protocol MacOSaiXImageSource;
 
 
 @interface MacOSaiXWindowController : NSWindowController 
@@ -18,10 +25,10 @@
 										*statusField;
 	IBOutlet NSProgressIndicator		*statusProgressIndicator;
 	
-	IBOutlet NSMenu						*recentOriginalsMenu;
+	IBOutlet NSMenu						*recentTargetsMenu;
 	
 	IBOutlet NSView						*fadeToolbarView;
-	IBOutlet NSButton					*fadeOriginalButton,
+	IBOutlet NSButton					*fadeTargetButton,
 										*fadeMosaicButton;
 	IBOutlet NSSlider					*fadeSlider;
 	
@@ -29,27 +36,29 @@
 	IBOutlet NSSlider					*zoomSlider;
     IBOutlet NSMenu						*zoomToolbarSubmenu;
 	
-	IBOutlet NSView						*openOriginalAccessoryView;
-	MacOSaiXPopUpButton					*originalImageToolbarView;
+	MacOSaiXPopUpButton					*targetImageToolbarView;
 	
-	MacOSaiXTilesSetupController		*tilesSetupController;
+	id		tilesSetupController;
 	
-		// Image Sources
-    IBOutlet NSDrawer					*imageSourcesDrawer;
-	IBOutlet NSTableView				*imageSourcesTableView;
-	IBOutlet MacOSaiXPopUpButton		*imageSourcesPopUpButton;
-	IBOutlet NSButton					*imageSourcesRemoveButton;
-	MacOSaiXImageSourceEditor			*imageSourceEditor;
+	IBOutlet MacOSaiXEditorsView		*editorsView;
+	
+		// Editors
+	MacOSaiXTargetImageEditor			*targetImageEditor;
+	MacOSaiXTileShapesEditor			*tileShapesEditor;
+	MacOSaiXImageUsageEditor			*imageUsageEditor;
+	MacOSaiXImageSourcesEditor			*imageSourcesEditor;
+	MacOSaiXImageOrientationsEditor		*imageOrientationsEditor;
+	MacOSaiXTileEditor					*tileEditor;
+	MacOSaiXViewOptionsEditor			*viewOptionsEditor;
 	
 	MacOSaiXExportController			*exportController;
-    NSTimer								*fadeTimer,
-										*animateTileTimer;
+    NSTimer								*animateTileTimer;
     NSMutableDictionary					*toolbarItems;
-    NSToolbarItem						*toggleOriginalToolbarItem, 
+    NSToolbarItem						*toggleTargetToolbarItem, 
 										*pauseToolbarItem, 
 										*setupTilesToolbarItem, 
 										*saveAsToolbarItem;
-	NSImage								*originalToolbarImage,
+	NSImage								*targetToolbarImage,
 										*mosaicToolbarImage;
     BOOL								statusBarShowing,
 										fadeWasAdjusted, 
@@ -80,34 +89,14 @@
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
 - (MacOSaiXMosaic *)mosaic;
 
-	// Original image methods
-- (IBAction)chooseOriginalImage:(id)sender;
-- (IBAction)clearRecentOriginalImages:(id)sender;
-
 	// View methods
-- (IBAction)setViewOriginalImage:(id)sender;
-- (IBAction)setViewMosaic:(id)sender;
-- (IBAction)setViewFade:(id)sender;
-- (BOOL)viewingOriginal;
-- (IBAction)toggleTileOutlines:(id)sender;
 - (IBAction)setShowNonUniqueMatches:(id)sender;
 - (IBAction)setZoom:(id)sender;
 - (IBAction)setMinimumZoom:(id)sender;
 - (IBAction)setMaximumZoom:(id)sender;
 - (IBAction)toggleStatusBar:(id)sender;
-- (IBAction)toggleImageSourcesDrawer:(id)sender;
 - (IBAction)togglePause:(id)sender;
 - (IBAction)viewFullScreen:(id)sender;
-- (void)setBackgroundMode:(MacOSaiXBackgroundMode)mode;
-- (MacOSaiXBackgroundMode)backgroundMode;
-
-	// Image sources drawer
-- (IBAction)addNewImageSource:(id)sender;
-- (IBAction)removeImageSource:(id)sender;
-
-	// Tile editor
-- (IBAction)chooseImageForSelectedTile:(id)sender;
-- (IBAction)removeChosenImageForSelectedTile:(id)sender;
 
 	// Save As methods
 - (IBAction)saveMosaicAs:(id)sender;
@@ -115,4 +104,4 @@
 @end
 
 
-extern NSString	*MacOSaiXRecentOriginalImagesDidChangeNotification;
+extern NSString	*MacOSaiXRecentTargetImagesDidChangeNotification;
