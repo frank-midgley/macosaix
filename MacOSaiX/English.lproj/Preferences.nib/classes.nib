@@ -17,6 +17,7 @@
                 autoSaveFrequencyField = NSTextField; 
                 autoStartCheckBox = NSButton; 
                 currentController = id; 
+                editorsPreferencesView = NSView; 
                 preferenceBox = NSBox; 
                 preferenceTable = NSTableView; 
                 reportCrashesCheckBox = NSButton; 
