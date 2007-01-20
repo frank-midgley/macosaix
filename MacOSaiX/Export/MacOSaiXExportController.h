@@ -23,7 +23,7 @@
 	
 	IBOutlet NSMatrix			*formatMatrix;
 	IBOutlet NSButton			*createWebPageButton, 
-								*includeOriginalButton;
+								*includeTargetButton;
 	
 	IBOutlet NSTextField		*widthField, 
 								*heightField;
@@ -40,7 +40,7 @@
 	
     int							imageFormat;
 	BOOL						createWebPage, 
-								includeOriginalImage, 
+								includeTargetImage, 
 								openWhenComplete, 
 								exportCancelled;
 	
@@ -63,7 +63,7 @@
 
 - (IBAction)setImageFormat:(id)sender;
 - (IBAction)setCreateWebPage:(id)sender;
-- (IBAction)setIncludeOriginalImage:(id)sender;
+- (IBAction)setIncludeTargetImage:(id)sender;
 
 - (IBAction)setOpenImageWhenComplete:(id)sender;
 

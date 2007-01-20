@@ -8,7 +8,7 @@
                 setCreateWebPage = id; 
                 setFade = id; 
                 setImageFormat = id; 
-                setIncludeOriginalImage = id; 
+                setIncludeTargetImage = id; 
                 setOpenImageWhenComplete = id; 
                 setResolution = id; 
                 setShowNonUniqueMatches = id; 
@@ -24,7 +24,7 @@
                 fadeSlider = NSSlider; 
                 formatMatrix = NSMatrix; 
                 heightField = NSTextField; 
-                includeOriginalButton = NSButton; 
+                includeTargetButton = NSButton; 
                 mosaicView = MosaicView; 
                 openWhenCompleteButton = NSButton; 
                 resolutionPopUp = NSPopUpButton; 

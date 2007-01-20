@@ -11,10 +11,12 @@
 #import <ApplicationServices/ApplicationServices.h>
 
 #import "MacOSaiXImageCache.h"
+#import "MacOSaiXImageMatch.h"
 #import "MacOSaiXMosaic.h"
 #import "MacOSaiXProgressController.h"
 #import "MosaicView.h"
 #import "NSBezierPath+MacOSaiX.h"
+#import "Tiles.h"
 
 
 enum { jpegFormat, pngFormat, tiffFormat };
@@ -42,7 +44,7 @@ static NSArray	*formatExtensions = nil;
 	NSNumber		*unitsTag = [exportDefaults objectForKey:@"Units"], 
 					*resolutionTag = [exportDefaults objectForKey:@"Resolution"], 
 					*createWebPageBool = [exportDefaults objectForKey:@"Wrap in Web Page"], 
-					*includeOriginalBool = [exportDefaults objectForKey:@"Include Original in Web Page"], 
+					*includeTargetBool = [exportDefaults objectForKey:@"Include Target in Web Page"], 
 					*openWhenCompleteBool = [exportDefaults objectForKey:@"Open When Complete"];
 	NSString		*formatExtension = [exportDefaults objectForKey:@"Image Format"];
 	
@@ -52,8 +54,8 @@ static NSArray	*formatExtensions = nil;
 		[resolutionPopUp selectItemAtIndex:[resolutionPopUp indexOfItemWithTag:[resolutionTag intValue]]];
 	if (createWebPageBool)
 		[createWebPageButton setState:((createWebPage = [createWebPageBool boolValue]) ? NSOnState : NSOffState)];
-	if (includeOriginalBool)
-		[includeOriginalButton setState:((includeOriginalImage = [includeOriginalBool boolValue]) ? NSOnState : NSOffState)];
+	if (includeTargetBool)
+		[includeTargetButton setState:((includeTargetImage = [includeTargetBool boolValue]) ? NSOnState : NSOffState)];
 	if (openWhenCompleteBool)
 		[openWhenCompleteButton setState:((openWhenComplete = [openWhenCompleteBool boolValue]) ? NSOnState : NSOffState)];
 	if (formatExtension && [formatExtensions containsObject:formatExtension])
@@ -77,8 +79,8 @@ static NSArray	*formatExtensions = nil;
 	[mosaicView setMosaic:mosaic];
 	[mosaicView setMainImage:[inMosaicView mainImage]];
 	[mosaicView setBackgroundImage:[inMosaicView backgroundImage]];
-	[mosaicView setFade:[inMosaicView fade]];
-	[fadeSlider setFloatValue:[mosaicView fade]];
+	[mosaicView setTargetImageFraction:[inMosaicView targetImageFraction]];
+	[fadeSlider setFloatValue:[mosaicView targetImageFraction]];
 	[showNonUniqueMatchesButton	setState:([mosaicView showNonUniqueMatches] ? NSOnState : NSOffState)];
 	
 	delegate = inDelegate;
@@ -94,23 +96,23 @@ static NSArray	*formatExtensions = nil;
     NSSavePanel	*savePanel = [NSSavePanel savePanel];
     if ([widthField floatValue] == 0.0)
     {
-		NSSize	originalSize = [[mosaic originalImage] size];
+		NSSize	targetSize = [[mosaic targetImage] size];
 		float	scale = 4.0;
 		
-		if (originalSize.width * scale > 10000.0)
-			scale = 10000.0 / originalSize.width;
-		if (originalSize.height * scale > 10000.0)
-			scale = 10000.0 / originalSize.height;
+		if (targetSize.width * scale > 10000.0)
+			scale = 10000.0 / targetSize.width;
+		if (targetSize.height * scale > 10000.0)
+			scale = 10000.0 / targetSize.height;
 		
 		if ([unitsPopUp selectedTag] == 0)
 		{
-			[widthField setFloatValue:originalSize.width * scale / [resolutionPopUp selectedTag]];
-			[heightField setFloatValue:originalSize.height * scale / [resolutionPopUp selectedTag]];
+			[widthField setFloatValue:targetSize.width * scale / [resolutionPopUp selectedTag]];
+			[heightField setFloatValue:targetSize.height * scale / [resolutionPopUp selectedTag]];
 		}
 		else
 		{
-			[widthField setIntValue:(int)(originalSize.width * scale + 0.5)];
-			[heightField setIntValue:(int)(originalSize.height * scale + 0.5)];
+			[widthField setIntValue:(int)(targetSize.width * scale + 0.5)];
+			[heightField setIntValue:(int)(targetSize.height * scale + 0.5)];
 		}
     }
 	[savePanel setCanSelectHiddenExtension:YES];
@@ -138,7 +140,7 @@ static NSArray	*formatExtensions = nil;
 
 - (IBAction)setFade:(id)sender
 {
-	[mosaicView setFade:[fadeSlider floatValue]];
+	[mosaicView setTargetImageFraction:1.0 - [fadeSlider floatValue]];
 }
 
 
@@ -186,9 +188,9 @@ static NSArray	*formatExtensions = nil;
 }
 
 
-- (IBAction)setIncludeOriginalImage:(id)sender
+- (IBAction)setIncludeTargetImage:(id)sender
 {
-	includeOriginalImage = ([includeOriginalButton state] == NSOnState);
+	includeTargetImage = ([includeTargetButton state] == NSOnState);
 }
 
 
@@ -271,7 +273,7 @@ static NSArray	*formatExtensions = nil;
 												[NSNumber numberWithInt:[resolutionPopUp selectedTag]], @"Resolution", 
 												[formatExtensions objectAtIndex:imageFormat], @"Image Format", 
 												[NSNumber numberWithBool:createWebPage], @"Wrap in Web Page", 
-												[NSNumber numberWithBool:includeOriginalImage], @"Include Original in Web Page", 
+												[NSNumber numberWithBool:includeTargetImage], @"Include Target in Web Page", 
 												[NSNumber numberWithBool:openWhenComplete], @"Open When Complete", 
 												nil];
 		[[NSUserDefaults standardUserDefaults] setObject:exportDefaults forKey:@"Export Defaults"];
@@ -328,29 +330,29 @@ static NSArray	*formatExtensions = nil;
 														  cgColorSpace, 
 														  kCGImageAlphaPremultipliedLast);
 	CGContextSetInterpolationQuality(cgContext, kCGInterpolationHigh);
-	NSBitmapImageRep	*originalImageRep = nil;
+	NSBitmapImageRep	*targetImageRep = nil;
 	CGDataProviderRef	cgDataProvider = NULL;
-	CGImageRef			cgOriginalImage	= NULL;
+	CGImageRef			cgTargetImage	= NULL;
 	
-	if (createWebPage || [mosaicView backgroundMode] == originalMode)
+	if (createWebPage || [mosaicView backgroundMode] == targetMode)
 	{
-			// Create a CG version of the original image.
+			// Create a CG version of the target image.
 		NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
-		NSData				*tiffData = [[mosaic originalImage] TIFFRepresentation];
+		NSData				*tiffData = [[mosaic targetImage] TIFFRepresentation];
 		
-		originalImageRep = [[NSBitmapImageRep alloc] initWithData:tiffData];
+		targetImageRep = [[NSBitmapImageRep alloc] initWithData:tiffData];
 		cgDataProvider = CGDataProviderCreateWithData(NULL, 
-													  [originalImageRep bitmapData], 
-													  [originalImageRep bytesPerRow] * 
-													  [originalImageRep pixelsHigh], 
+													  [targetImageRep bitmapData], 
+													  [targetImageRep bytesPerRow] * 
+													  [targetImageRep pixelsHigh], 
 													  NULL);
-		cgOriginalImage = CGImageCreate([originalImageRep pixelsWide], 
-										[originalImageRep pixelsHigh], 
-										[originalImageRep bitsPerSample], 
-										[originalImageRep bitsPerPixel], 
-										[originalImageRep bytesPerRow], 
+		cgTargetImage = CGImageCreate([targetImageRep pixelsWide], 
+										[targetImageRep pixelsHigh], 
+										[targetImageRep bitsPerSample], 
+										[targetImageRep bitsPerPixel], 
+										[targetImageRep bytesPerRow], 
 										cgColorSpace, 
-										([originalImageRep hasAlpha] ? kCGImageAlphaPremultipliedLast : 
+										([targetImageRep hasAlpha] ? kCGImageAlphaPremultipliedLast : 
 											kCGImageAlphaNone), 
 										cgDataProvider, 
 										NULL, 
@@ -393,34 +395,34 @@ static NSArray	*formatExtensions = nil;
 										  toPath:[filename stringByAppendingPathComponent:@"Loading.png"] 
 										 handler:nil];
 		
-		if (includeOriginalImage)
+		if (includeTargetImage)
 		{
 			#if USE_CG
-				CGContextDrawImage(cgContext, cgExportRect, cgOriginalImage);
-				NSBitmapImageRep	*originalRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&bitmapBuffer 
-																						   pixelsWide:exportWidth 
-																						   pixelsHigh:exportHeight 
-																						bitsPerSample:8 
-																					  samplesPerPixel:4 
-																							 hasAlpha:YES 
-																							 isPlanar:NO 
-																					   colorSpaceName:NSDeviceRGBColorSpace 
-																						  bytesPerRow:0 
-																						 bitsPerPixel:0];
+				CGContextDrawImage(cgContext, cgExportRect, cgTargetImage);
+				NSBitmapImageRep	*targetRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&bitmapBuffer 
+																						 pixelsWide:exportWidth 
+																						 pixelsHigh:exportHeight 
+																					  bitsPerSample:8 
+																					samplesPerPixel:4 
+																						   hasAlpha:YES 
+																						   isPlanar:NO 
+																					 colorSpaceName:NSDeviceRGBColorSpace 
+																						bytesPerRow:0 
+																					   bitsPerPixel:0];
 			#else
-				[[mosaic originalImage] drawInRect:exportRect 
+				[[mosaic targetImage] drawInRect:exportRect 
 										  fromRect:NSZeroRect 
 										 operation:NSCompositeCopy 
 										  fraction:1.0];
-				NSBitmapImageRep	*originalRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:exportRect];
+				NSBitmapImageRep	*targetRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:exportRect];
 			#endif
 			
-			NSData				*originalData = [originalRep representationUsingType:exportImageType properties:properties];
+			NSData				*targetData = [targetRep representationUsingType:exportImageType properties:properties];
 			
-			[originalData writeToFile:[[filename stringByAppendingPathComponent:@"Original"] 
+			[targetData writeToFile:[[filename stringByAppendingPathComponent:@"Target"] 
 													stringByAppendingPathExtension:exportExtension] 
-						   atomically:NO];
-			[originalRep release];
+						 atomically:NO];
+			[targetRep release];
 		}
 	}
 	
@@ -435,11 +437,11 @@ static NSArray	*formatExtensions = nil;
 	
 	switch ([mosaicView backgroundMode])
 	{
-		case originalMode:
+		case targetMode:
 			#if USE_CG
-				CGContextDrawImage(cgContext, cgExportRect, cgOriginalImage);
+				CGContextDrawImage(cgContext, cgExportRect, cgTargetImage);
 			#else
-				[[mosaic originalImage] drawInRect:exportRect 
+				[[mosaic targetImage] drawInRect:exportRect 
 									  fromRect:NSZeroRect 
 									 operation:NSCompositeCopy 
 									  fraction:1.0];
@@ -462,15 +464,15 @@ static NSArray	*formatExtensions = nil;
 			;
 	}
 	
-	if (originalImageRep)
+	if (targetImageRep)
 	{
-		[originalImageRep release];
-		originalImageRep = nil;
+		[targetImageRep release];
+		targetImageRep = nil;
 	}
-	if (cgOriginalImage)
+	if (cgTargetImage)
 	{
-		CGImageRelease(cgOriginalImage);
-		cgOriginalImage = nil;
+		CGImageRelease(cgTargetImage);
+		cgTargetImage = nil;
 	}
 	if (cgDataProvider)
 	{
@@ -592,7 +594,7 @@ static NSArray	*formatExtensions = nil;
 //					CGImageDestinationAddImage(cgImageDest, cgTileImage, NULL);
 //					CGImageDestinationFinalize(cgImageDest);
 //					CFRelease(cgImageDest);
-					CGContextSetAlpha(cgContext, [mosaicView fade]);
+					CGContextSetAlpha(cgContext, 1.0 - [mosaicView targetImageFraction]);
 					CGContextDrawImage(cgContext, cgTileRect, cgTileImage);
 					CGDataProviderRelease(cgDataProvider);
 				#else
@@ -767,8 +769,8 @@ static NSArray	*formatExtensions = nil;
 				NSString		*export2HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export2" ofType:@"html"];
 				[exportHTML appendString:[NSString stringWithContentsOfFile:export2HTMLPath]];
 				NSString		*export3HTMLPath = nil;
-				if (includeOriginalImage)
-					export3HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export3+Original" ofType:@"html"];
+				if (includeTargetImage)
+					export3HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export3+Target" ofType:@"html"];
 				else
 					export3HTMLPath = [[NSBundle mainBundle] pathForResource:@"Export3" ofType:@"html"];
 				NSMutableString	*export3HTML = [NSMutableString stringWithContentsOfFile:export3HTMLPath];
@@ -849,8 +851,8 @@ static NSArray	*formatExtensions = nil;
 
 - (void)controlTextDidChange:(NSNotification *)notification
 {
-	NSSize	originalImageSize = [[mosaic originalImage] size];
-	float	originalAspectRatio = originalImageSize.width / originalImageSize.height, 
+	NSSize	targetImageSize = [[mosaic targetImage] size];
+	float	targetAspectRatio = targetImageSize.width / targetImageSize.height, 
 			width = 0.0, 
 			height = 0.0;
 	
@@ -860,7 +862,7 @@ static NSArray	*formatExtensions = nil;
 		if ([[widthField formatter] isPartialStringValid:widthString newEditingString:nil errorDescription:nil])
 		{
 			width = [widthString floatValue];
-			[heightField setFloatValue:width / originalAspectRatio];
+			[heightField setFloatValue:width / targetAspectRatio];
 		}
 	}
 	else
@@ -872,7 +874,7 @@ static NSArray	*formatExtensions = nil;
 		if ([[heightField formatter] isPartialStringValid:heightString newEditingString:nil errorDescription:nil])
 		{
 			height = [heightString floatValue];
-			[widthField setFloatValue:height * originalAspectRatio];
+			[widthField setFloatValue:height * targetAspectRatio];
 		}
 	}
 	else
