@@ -1,6 +1,7 @@
 #import "Tiles.h"
 
 #import "MacOSaiXDocument.h"
+#import "MacOSaiXImageOrientations.h"
 #import "NSBezierPath+MacOSaiX.h"
 
 
@@ -13,13 +14,14 @@
 
 
 - (id)initWithUnitOutline:(NSBezierPath *)outline 
-		 imageOrientation:(float)angle
+		 imageOrientation:(NSNumber *)angle
 				   mosaic:(MacOSaiXMosaic *)inMosaic;
 {
 	if (self = [super init])
 	{
 		[self setUnitOutline:outline];
-		[self setImageOrientation:angle];
+		if (angle)
+			[self setImageOrientation:[angle floatValue]];
 		[self setMosaic:inMosaic];
 	}
 	return self;
@@ -28,7 +30,7 @@
 
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic
 {
-		mosaic = inMosaic;	// non-retained, it retains us
+	mosaic = inMosaic;	// non-retained, it retains us
 }
 
 
@@ -50,40 +52,49 @@
 }
 
 
-- (NSBezierPath *)originalOutline
+- (NSBezierPath *)targetOutline
 {
-		// Scale our unit-square-based outline to the original image's dimensions.
-	NSSize				originalImageSize = [[mosaic originalImage] size];
+		// Scale our unit-square-based outline to the target image's dimensions.
+	NSSize				targetImageSize = [[mosaic targetImage] size];
 	NSAffineTransform	*transform = [NSAffineTransform transform];
-	[transform scaleXBy:originalImageSize.width yBy:originalImageSize.height];
+	[transform scaleXBy:targetImageSize.width yBy:targetImageSize.height];
 	
 	return [transform transformBezierPath:[self unitOutline]];
 }
 
 
-- (NSBezierPath *)rotatedOriginalOutline
+- (NSBezierPath *)rotatedTargetOutline
 {
 		// Rotate the outline to offset the tile's image orientation.  The rotated outline will be centered at the origin.
-	NSBezierPath		*originalOutline = [self originalOutline];
+	NSBezierPath		*targetOutline = [self targetOutline];
 	NSAffineTransform	*transform = [NSAffineTransform transform];
 	
-	[transform translateXBy:NSMidX([originalOutline bounds]) yBy:NSMidY([originalOutline bounds])];
+	[transform translateXBy:NSMidX([targetOutline bounds]) yBy:NSMidY([targetOutline bounds])];
 	[transform rotateByDegrees:-[self imageOrientation]];
-	[transform translateXBy:-NSMidX([originalOutline bounds]) yBy:-NSMidY([originalOutline bounds])];
+	[transform translateXBy:-NSMidX([targetOutline bounds]) yBy:-NSMidY([targetOutline bounds])];
 	
-	return [transform transformBezierPath:originalOutline];
+	return [transform transformBezierPath:targetOutline];
 }
 
 
 - (void)setImageOrientation:(float)angle
 {
-	imageOrientation = angle;
+	[imageOrientation release];
+	imageOrientation = [[NSNumber numberWithFloat:angle] retain];
 }
 
 
 - (float)imageOrientation
 {
-	return imageOrientation;
+	float	angle = 0.0;
+	
+	if (imageOrientation)
+		angle = [imageOrientation floatValue];
+	else
+		angle = [[mosaic imageOrientations] imageOrientationAtPoint:NSMakePoint(NSMidX([[self targetOutline] bounds]), NSMidY([[self targetOutline] bounds])) 
+													   inRectOfSize:[[mosaic targetImage] size]];
+	
+	return angle;
 }
 
 
@@ -96,7 +107,7 @@
 - (void)resetBitmapRepAndMask
 {
 		// TODO: this should not be called from outside.  we should listen for notifications 
-		// that the original image or tile shapes changed for our mosaic and reset at that
+		// that the target image or tile shapes changed for our mosaic and reset at that
 		// point.
     [bitmapRep autorelease];
     bitmapRep = nil;
@@ -107,7 +118,7 @@
 
 - (void)createBitmapRep
 {
-	NSBezierPath		*rotatedOutline = [self rotatedOriginalOutline];
+	NSBezierPath		*rotatedOutline = [self rotatedTargetOutline];
 	NSRect				rotatedBounds = [rotatedOutline bounds];
 	BOOL				widthLimited = (NSWidth(rotatedBounds) > NSHeight(rotatedBounds));
 	
@@ -137,7 +148,7 @@
 		[[NSColor clearColor] set];
 		[[NSBezierPath bezierPathWithRect:NSMakeRect(0.0, 0.0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE)] fill];
 		
-			// Draw the original image so that the correct portion of the image is rendered at the correct orientation inside the working image.
+			// Draw the target image so that the correct portion of the image is rendered at the correct orientation inside the working image.
 		[[NSGraphicsContext currentContext] saveGraphicsState];
 			NSAffineTransform	*transform = [NSAffineTransform transform];
 			[transform translateXBy:TILE_BITMAP_SIZE / 2.0 yBy:TILE_BITMAP_SIZE / 2.0];
@@ -146,10 +157,10 @@
 			[transform translateXBy:-NSMidX(rotatedBounds) yBy:-NSMidY(rotatedBounds)];
 			[transform concat];
 			
-			NSImage				*originalImage = [mosaic originalImage];
-			NSRect				originalImageBounds = NSMakeRect(0.0, 0.0, [originalImage size].width, [originalImage size].height);
-			[originalImage drawInRect:originalImageBounds 
-							 fromRect:originalImageBounds 
+			NSImage				*targetImage = [mosaic targetImage];
+			NSRect				targetImageBounds = NSMakeRect(0.0, 0.0, [targetImage size].width, [targetImage size].height);
+			[targetImage drawInRect:targetImageBounds 
+							 fromRect:targetImageBounds 
 							operation:NSCompositeCopy 
 							 fraction:1.0];
 		[[NSGraphicsContext currentContext] restoreGraphicsState];
@@ -157,7 +168,7 @@
 		bitmapRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:bitmapBounds];
 		#ifdef DEBUG
 			if (bitmapRep == nil)
-				NSLog(@"Could not extract tile image from original.");
+				NSLog(@"Could not extract tile image from target.");
 		#endif
 	NS_HANDLER
 		#ifdef DEBUG
@@ -170,11 +181,8 @@
 	
 	[workingImage release];
 
-		// Calculate a mask image using the tile's outline that is the same size as the image
-		// extracted from the original.  The mask will be white for pixels that are inside the 
-		// tile and black outside.
-		// (This would work better if we could just replace the previous rep's alpha channel
-		//  but I haven't figured out an easy way to do that yet.)
+		// Calculate a mask image using the tile's outline that is the same size as the image extracted from the target.  The mask will be white for pixels that are inside the tile and black outside.
+		// (This would work better if we could just replace the previous rep's alpha channel but I haven't figured out an easy way to do that yet.)
 	maskRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nil 
 													   pixelsWide:[bitmapRep size].width
 													   pixelsHigh:[bitmapRep size].height 
