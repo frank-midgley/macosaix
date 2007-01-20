@@ -10,7 +10,9 @@
 #import "MacOSaiXDocument.h"
 
 #import "MacOSaiX.h"
+#import "MacOSaiXHandPickedImageSource.h"
 #import "MacOSaiXProgressController.h"
+#import "MacOSaiXTileShapes.h"
 #import "Tiles.h"
 #import "NSImage+MacOSaiX.h"
 #import "NSString+MacOSaiX.h"
@@ -31,7 +33,7 @@
 - (void)spawnImageSourceThreads;
 - (void)setImageCount:(unsigned long)imageCount forImageSource:(id<MacOSaiXImageSource>)imageSource;
 
-- (void)extractTileImagesFromOriginalImage;
+- (void)extractTileImagesFromTargetImage;
 - (void)calculateImageMatches:(id)path;
 
 - (void)updateEditor;
@@ -84,9 +86,12 @@
 	if (![self fileName])
 	{
 			// This is a new document, not one loaded from disk.
-		NSString	*defaultShapesClassString = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Chosen Tile Shapes Class"];
+		[(MacOSaiX *)[NSApp delegate] discoverPlugIns];
+		NSString	*defaultShapesClassString = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Chosen Tile Shapes Class"], 
+					*defaultOrientationsClassString = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Chosen Image Orientations Class"];
 		[[self mosaic] setTileShapes:[[[NSClassFromString(defaultShapesClassString) alloc] init] autorelease]
 					   creatingTiles:YES];
+		[[self mosaic] setImageOrientations:[[[NSClassFromString(defaultOrientationsClassString) alloc] init] autorelease]];
 		
 			// Create a temporary cache directory until we get saved.
 		FSRef	chewableItemsRef;
@@ -161,22 +166,22 @@
 
 
 #pragma mark -
-#pragma mark Original image path
+#pragma mark Target image path
 
 
-- (void)setOriginalImagePath:(NSString *)path
+- (void)setTargetImagePath:(NSString *)path
 {
-	if (![originalImagePath isEqualToString:path])
+	if (![targetImagePath isEqualToString:path])
 	{
-		[originalImagePath release];
-		originalImagePath = [path copy];
+		[targetImagePath release];
+		targetImagePath = [path copy];
 	}
 }
 
 
-- (NSString *)originalImagePath
+- (NSString *)targetImagePath
 {
-	return originalImagePath;
+	return targetImagePath;
 }
 
 
@@ -445,9 +450,9 @@
 
 			[fileHandle writeData:[@"<MOSAIC>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 
-				// Write out the path to the original image
-			[fileHandle writeData:[[NSString stringWithFormat:@"<ORIGINAL_IMAGE PATH=\"%@\" ASPECT_RATIO=\"%f\"/>\n\n", 
-												[[self originalImagePath] stringByEscapingXMLEntites], 
+				// Write out the path to the target image
+			[fileHandle writeData:[[NSString stringWithFormat:@"<TARGET_IMAGE PATH=\"%@\" ASPECT_RATIO=\"%f\"/>\n\n", 
+												[[self targetImagePath] stringByEscapingXMLEntites], 
 												[[self mosaic] aspectRatio]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
 			
@@ -713,8 +718,8 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 		[self performSelectorOnMainThread:@selector(presentFailedLoadSheet:) 
 							   withObject:errorMessage 
 						    waitUntilDone:NO];
-	else if (![[self mosaic] originalImage])
-		[self performSelectorOnMainThread:@selector(presentOriginalImageIsMissingSheet) 
+	else if (![[self mosaic] targetImage])
+		[self performSelectorOnMainThread:@selector(presentTargetImageIsMissingSheet) 
 							   withObject:nil 
 							waitUntilDone:NO];
 	
@@ -760,11 +765,11 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					{
 						newObject = mosaic;
 					}
-					else if ([elementType isEqualToString:@"ORIGINAL_IMAGE"])
+					else if ([elementType isEqualToString:@"TARGET_IMAGE"] || [elementType isEqualToString:@"ORIGINAL_IMAGE"])
 					{
 						NSString	*path = [[nodeAttributes objectForKey:@"PATH"] stringByUnescapingXMLEntites];
 						
-						[document setOriginalImagePath:path];
+						[document setTargetImagePath:path];
 						
 						NSImage	*image = [[NSImage alloc] initWithContentsOfFile:path];
 						if (!image)
@@ -782,7 +787,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						
 						if (image)
 						{
-							[mosaic setOriginalImage:image];
+							[mosaic setTargetImage:image];
 							[image release];
 						}
 					}
@@ -870,7 +875,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 							imageOrientation = @"0.0";
 						
 						newObject = [[MacOSaiXTile alloc] initWithUnitOutline:nil 
-															 imageOrientation:[imageOrientation floatValue] 
+															 imageOrientation:[NSNumber numberWithFloat:[imageOrientation floatValue]] 
 																	   mosaic:mosaic];
 					}
 					else if ([elementType isEqualToString:@"OUTLINE"])
@@ -887,10 +892,11 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					}
 					else if ([elementType isEqualToString:@"BEST_MATCH"])
 					{
-						if ([[document mainWindowController] viewingOriginal])
-							[[document mainWindowController] performSelectorOnMainThread:@selector(setViewMosaic:) 
-																			  withObject:nil 
-																		   waitUntilDone:NO];
+// TODO: choose one editor over another instead?
+//						if ([[document mainWindowController] viewingTarget])
+//							[[document mainWindowController] performSelectorOnMainThread:@selector(setViewMosaic:) 
+//																			  withObject:nil 
+//																		   waitUntilDone:NO];
 						
 						int					sourceIndex = [[nodeAttributes objectForKey:@"SOURCE"] intValue];
 						if (sourceIndex >= 0 && sourceIndex < [[mosaic imageSources] count])
@@ -908,10 +914,11 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					}
 					else if ([elementType isEqualToString:@"UNIQUE_MATCH"])
 					{
-						if ([[document mainWindowController] viewingOriginal])
-							[[document mainWindowController] performSelectorOnMainThread:@selector(setViewMosaic:) 
-																			  withObject:nil 
-																		   waitUntilDone:NO];
+// TODO: choose one editor over another instead?
+//						if ([[document mainWindowController] viewingTarget])
+//							[[document mainWindowController] performSelectorOnMainThread:@selector(setViewMosaic:) 
+//																			  withObject:nil 
+//																		   waitUntilDone:NO];
 						
 						int					sourceIndex = [[nodeAttributes objectForKey:@"SOURCE"] intValue];
 						if (sourceIndex >= 0 && sourceIndex < [[mosaic imageSources] count])
@@ -948,7 +955,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 				case kCFXMLNodeTypeText:
 					if ([[stack lastObject] isKindOfClass:[NSMutableDictionary class]])
 						[[stack lastObject] setObject:(NSString *)CFXMLNodeGetString(node) 
-											   forKey:kMacOSaiXImageSourceSettingText];
+											   forKey:@"Element Text"];
 					break;
 				
 				default:
@@ -1122,17 +1129,17 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 }
 
 
-- (void)presentOriginalImageIsMissingSheet
+- (void)presentTargetImageIsMissingSheet
 {
-	NSBeginAlertSheet(NSLocalizedString(@"The mosaic's original image could not be opened.", @""), 
+	NSBeginAlertSheet(NSLocalizedString(@"The mosaic's target image could not be opened.", @""), 
 					  NSLocalizedString(@"Close", @""), NSLocalizedString(@"Open", @""), nil, [mainWindowController window], 
-					  self, nil, @selector(originalMissingSheetDidDismiss:returnCode:contextInfo:), nil, 
+					  self, nil, @selector(targetMissingSheetDidDismiss:returnCode:contextInfo:), nil, 
 					  NSLocalizedString(@"You can open the project and save it in another format but you will not be able to " \
-					  @"make any changes until you switch to another original image.", @""));
+					  @"make any changes until you switch to another target image.", @""));
 }
 
 
-- (void)originalMissingSheetDidDismiss:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+- (void)targetMissingSheetDidDismiss:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
 	if (returnCode == NSAlertDefaultReturn)
 		[self close];

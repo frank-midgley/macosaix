@@ -2,7 +2,7 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            ACTIONS = {addKeyword = id; removeKeyword = id; setOriginalImage = id; }; 
+            ACTIONS = {addKeyword = id; removeKeyword = id; setTargetImage = id; }; 
             CLASS = MacOSaiXKioskController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
@@ -13,8 +13,8 @@
                 kioskView = MacOSaiXKioskView; 
                 messageView = MacOSaiXKioskMessageView; 
                 mosaicView = MosaicView; 
-                originalImageMatrix = NSMatrix; 
                 removeKeywordButton = NSButton; 
+                targetImageMatrix = NSMatrix; 
                 vanityView = NSBox; 
             }; 
             SUPERCLASS = NSWindowController; 
@@ -26,7 +26,7 @@
             OUTLETS = {
                 imageSourcesView = NSView; 
                 mosaicView = MosaicView; 
-                originalImageMatrix = NSMatrix; 
+                targetImageMatrix = NSMatrix; 
             }; 
             SUPERCLASS = NSView; 
         }, 

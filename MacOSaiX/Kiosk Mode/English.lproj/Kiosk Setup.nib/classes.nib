@@ -4,7 +4,7 @@
         {CLASS = MacOSaiXKioskMessageView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
         {
             ACTIONS = {
-                chooseOriginalImage = id; 
+                chooseTargetImage = id; 
                 quit = id; 
                 setMessageBackgroundColor = id; 
                 setPasswordRequired = id; 
@@ -17,11 +17,11 @@
             OUTLETS = {
                 messageBackgroundColorWell = NSColorWell; 
                 messageView = MacOSaiXKioskMessageView; 
-                originalImageMatrix = NSMatrix; 
                 passwordField = NSSecureTextField; 
                 repeatedPasswordField = NSSecureTextField; 
                 requirePasswordButton = NSButton; 
                 startButton = NSButton; 
+                targetImageMatrix = NSMatrix; 
                 tileCountSlider = NSSlider; 
                 tileCountTextField = NSTextField; 
                 warningField = NSTextField; 
