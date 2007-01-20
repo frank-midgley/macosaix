@@ -48,12 +48,11 @@
 	plugInClasses = [[NSMutableArray array] retain];
 	plugInControllers = [[NSMutableDictionary dictionary] retain];
 	MacOSaiX		*appDelegate = [NSApp delegate];
-	NSArray			*allPlugInClasses = [[appDelegate tileShapesClasses] arrayByAddingObjectsFromArray:
-											[appDelegate imageSourceClasses]];
+	NSArray			*allPlugInClasses = [appDelegate allPlugIns];
 	NSEnumerator	*plugInEnumerator = [allPlugInClasses objectEnumerator];
 	Class			plugInClass = nil;
 	while (plugInClass = [plugInEnumerator nextObject])
-		if ([plugInClass preferencesControllerClass])
+		if ([plugInClass preferencesEditorClass])
 			[plugInClasses addObject:plugInClass];
 	// TODO: sort by plug-in name
 }
@@ -124,7 +123,7 @@
 
 - (int)numberOfRowsInTableView:(NSTableView *)tableView
 {
-	return [plugInClasses count] + 1;
+	return [plugInClasses count] + 2;
 }
 
 
@@ -139,7 +138,9 @@
 		else
 		{
 			if (row == 0)
-				object = NSLocalizedString(@"General Preferences", @"");
+				object = NSLocalizedString(@"General", @"");
+			else if (row == 1)
+				object = NSLocalizedString(@"Editor", @"");
 			else
 			{
 				Class		plugInClass = [plugInClasses objectAtIndex:row - 1];
@@ -176,16 +177,23 @@
 		}
 		// else we're waking up from the nib and the main pref view is already set
 	}
+	else if (selectedRow == 1)
+	{
+		[preferenceBox setContentView:editorsPreferencesView];
+	
+		[[self window] setMinSize:NSMakeSize(minSizeBase.width + editorsViewMinSize.width, 
+											 minSizeBase.height + editorsViewMinSize.height)];
+	}
 	else
 	{
-		Class	plugInClass = [plugInClasses objectAtIndex:selectedRow - 1];
+		Class	plugInClass = [plugInClasses objectAtIndex:selectedRow - 2];
 		
 			// Lookup or create the preference controller for this plug-in.
 		newController = [plugInControllers objectForKey:plugInClass];
 		if (!newController)
 		{
 				// Create and cache a controller.
-			newController = [[[[plugInClass preferencesControllerClass] alloc] init] autorelease];
+			newController = [[[[plugInClass preferencesEditorClass] alloc] init] autorelease];
 			[plugInControllers setObject:newController forKey:plugInClass];
 		}
 		

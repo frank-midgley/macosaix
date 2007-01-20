@@ -15,10 +15,12 @@
 {
 	IBOutlet NSTableView				*preferenceTable;
 	IBOutlet NSBox						*preferenceBox;
-	NSView								*mainPreferencesView;
+	NSView								*mainPreferencesView; 
+	IBOutlet NSView						*editorsPreferencesView;
 
 	NSSize								mainViewMinSize, 
-										minSizeBase;
+										minSizeBase, 
+										editorsViewMinSize;
 	
 	NSMutableArray						*plugInClasses;
 	NSMutableDictionary					*plugInControllers;
