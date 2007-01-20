@@ -27,7 +27,6 @@
 					bottomRightHorizontalCurve:(float)bottomRightHorizontalCurve 
 					  bottomRightVerticalCurve:(float)bottomRightVerticalCurve 
 									alignImage:(BOOL)alignImage 
-							  imageOrientation:(float)angle
 {
 	return [[[self alloc] initWithBounds:tileBounds
 							  topTabType:topTabType 
@@ -42,8 +41,7 @@
 				 bottomLeftVerticalCurve:bottomLeftVerticalCurve 
 			  bottomRightHorizontalCurve:bottomRightHorizontalCurve 
 				bottomRightVerticalCurve:bottomRightVerticalCurve 
-							  alignImage:alignImage 
-						imageOrientation:angle] autorelease];
+							  alignImage:alignImage] autorelease];
 }
 
 
@@ -61,12 +59,9 @@
   bottomRightHorizontalCurve:(float)bottomRightHorizontalCurve 
 	bottomRightVerticalCurve:(float)bottomRightVerticalCurve 
 				  alignImage:(BOOL)alignImage 
-			imageOrientation:(float)angle
 {
 	if (self = [super init])
 	{
-		imageOrientation = angle;
-		
 		outline = [[NSBezierPath bezierPath] retain];
 		
 		float	xSize = NSWidth(tileBounds),
@@ -245,9 +240,9 @@
 }
 
 
-- (float)imageOrientation
+- (NSNumber *)imageOrientation
 {
-	return imageOrientation;
+	return nil;
 }
 
 
@@ -269,64 +264,6 @@
 {
 		// Seed the random number generator
 	srandom(time(NULL));
-}
-
-
-+ (NSImage *)image
-{
-	static	NSImage	*image = nil;
-	
-	if (!image)
-	{
-		MacOSaiXPuzzleTileShape	*tileShape = [MacOSaiXPuzzleTileShape tileShapeWithBounds:NSMakeRect(0.0, 0.0, 22.0, 22.0) 
-																			   topTabType:inwardsTab 
-																			  leftTabType:inwardsTab 
-																			 rightTabType:outwardsTab 
-																			bottomTabType:outwardsTab 
-																   topLeftHorizontalCurve:0.0 
-																	 topLeftVerticalCurve:0.0 
-																  topRightHorizontalCurve:0.0 
-																	topRightVerticalCurve:0.0 
-																bottomLeftHorizontalCurve:0.0 
-																  bottomLeftVerticalCurve:0.0 
-															   bottomRightHorizontalCurve:0.0 
-																 bottomRightVerticalCurve:0.0 
-																			   alignImage:NO 
-																		 imageOrientation:0.0];
-		NSBezierPath			*tileOutline = [tileShape unitOutline];
-		
-		NSAffineTransform		*transform = [NSAffineTransform transform];
-		[transform translateXBy:3.0 yBy:7.0];
-		
-		image = [[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)];
-		[image lockFocus];
-			tileOutline = [transform transformBezierPath:tileOutline];
-			[[NSColor lightGrayColor] set];
-			[tileOutline fill];
-			
-			transform = [NSAffineTransform transform];
-			[transform translateXBy:-1.0 yBy:1.0];
-			tileOutline = [transform transformBezierPath:tileOutline];
-			[[NSColor whiteColor] set];
-			[tileOutline fill];
-			[[NSColor blackColor] set];
-			[tileOutline stroke];
-		[image unlockFocus];
-	}
-	
-	return image;
-}
-
-
-+ (Class)editorClass
-{
-	return [MacOSaiXPuzzleTileShapesEditor class];
-}
-
-
-+ (Class)preferencesControllerClass
-{
-	return nil;
 }
 
 
@@ -372,8 +309,7 @@
 															  bottomLeftVerticalCurve:0.0 
 														   bottomRightHorizontalCurve:0.0 
 															 bottomRightVerticalCurve:0.0 
-																		   alignImage:YES 
-																	 imageOrientation:0.0];
+																		   alignImage:YES];
 	NSBezierPath			*tileOutline = [tileShape unitOutline];
 	
 	NSAffineTransform		*transform = [NSAffineTransform transform];
@@ -490,7 +426,7 @@
 }
 
 
-- (NSString *)briefDescription
+- (id)briefDescription
 {
 	return [NSString stringWithFormat:NSLocalizedString(@"%d by %d puzzle pieces\n%.0f%% tabbed sides\n%.0f%% curviness", @""), 
 									  tilesAcross, tilesDown, tabbedSidesRatio * 100.0, curviness * 100.0];
@@ -601,8 +537,7 @@
 																bottomLeftVerticalCurve:verticalCurviness[x][y] 
 															 bottomRightHorizontalCurve:-horizontalCurviness[x + 1][y] 
 															   bottomRightVerticalCurve:verticalCurviness[x + 1][y] 
-																			 alignImage:alignImages 
-																	   imageOrientation:0.0]];
+																			 alignImage:alignImages]];
 			}
 		
 		tileShapes = [[NSArray arrayWithArray:temporaryShapes] retain];

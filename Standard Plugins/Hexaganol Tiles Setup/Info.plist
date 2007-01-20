@@ -25,6 +25,6 @@
 	<key>CFBundleVersion</key>
 	<string>2.0b1</string>
 	<key>NSPrincipalClass</key>
-	<string>MacOSaiXHexagonalTileShapes</string>
+	<string>MacOSaiXHexagonalTileShapesPlugIn</string>
 </dict>
 </plist>

@@ -6,35 +6,36 @@
 //  Copyright (c) 2003-2004 Frank M. Midgley. All rights reserved.
 //
 
-#import "MacOSaiXTileShapes.h"
 #import "PuzzleTileShapes.h"
 
 
-@interface MacOSaiXPuzzleTileShapesEditor : NSObject <MacOSaiXTileShapesEditor>
+@interface MacOSaiXPuzzleTileShapesEditor : NSObject <MacOSaiXDataSourceEditor>
 {
-	IBOutlet NSView				*editorView;
-    IBOutlet NSTextField		*tilesAcrossTextField,
-								*tilesDownTextField, 
-								*tabbedSidesTextField, 
-								*curvinessTextField;
-	IBOutlet NSSlider			*tilesAcrossSlider,
-								*tilesDownSlider, 
-								*tilesSizeSlider, 
-								*tilesCountSlider, 
-								*tabbedSidesSlider, 
-								*curvinessSlider;
-	IBOutlet NSStepper			*tilesAcrossStepper, 
-								*tilesDownStepper;
-	IBOutlet NSPopUpButton		*tilesSizePopUp;
-	IBOutlet NSMatrix			*alignImagesMatrix;
+	id<MacOSaiXDataSourceEditorDelegate>	delegate;
 	
-	NSSize						originalImageSize;
-	float						minAspectRatio,
-								maxAspectRatio;
-	MacOSaiXPuzzleTileShapes	*currentTileShapes;
+	IBOutlet NSView							*editorView;
+    IBOutlet NSTextField					*tilesAcrossTextField,
+											*tilesDownTextField, 
+											*tabbedSidesTextField, 
+											*curvinessTextField;
+	IBOutlet NSSlider						*tilesAcrossSlider,
+											*tilesDownSlider, 
+											*tilesSizeSlider, 
+											*tilesCountSlider, 
+											*tabbedSidesSlider, 
+											*curvinessSlider;
+	IBOutlet NSStepper						*tilesAcrossStepper, 
+											*tilesDownStepper;
+	IBOutlet NSPopUpButton					*tilesSizePopUp;
+	IBOutlet NSMatrix						*alignImagesMatrix;
 	
-	NSTimer						*previewTimer;
-	MacOSaiXPuzzleTileShape		*previewShape;
+	NSSize									targetImageSize;
+	float									minAspectRatio,
+											maxAspectRatio;
+	MacOSaiXPuzzleTileShapes				*currentTileShapes;
+	
+//	NSTimer									*previewTimer;
+//	MacOSaiXPuzzleTileShape					*previewShape;
 }
 
 - (IBAction)setTilesAcross:(id)sender;

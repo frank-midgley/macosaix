@@ -6,7 +6,6 @@
 //  Copyright (c) 2003-2004 Frank M. Midgley. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
 #import "PuzzleTileShapesEditor.h"
 #import "NSString+MacOSaiX.h"
 
@@ -40,12 +39,18 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (id)initWithOriginalImage:(NSImage *)originalImage
+- (id)initWithDelegate:(id<MacOSaiXDataSourceEditorDelegate>)inDelegate;
 {
 	if (self = [super init])
-		originalImageSize = [originalImage size];
+		delegate = inDelegate;
 	
 	return self;
+}
+
+
+- (id<MacOSaiXDataSourceEditorDelegate>)delegate
+{
+	return delegate;
 }
 
 
@@ -80,15 +85,17 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (void)editTileShapes:(id<MacOSaiXTileShapes>)tilesSetup
+- (void)editDataSource:(id<MacOSaiXTileShapes>)tileShapes
 {
 	[currentTileShapes autorelease];
-	currentTileShapes = [tilesSetup retain];
+	currentTileShapes = [tileShapes retain];
 	
-	minAspectRatio = (originalImageSize.width / [tilesAcrossSlider maxValue]) / 
-					 (originalImageSize.height / [tilesDownSlider minValue]);
-	maxAspectRatio = (originalImageSize.width / [tilesAcrossSlider minValue]) / 
-					 (originalImageSize.height / [tilesDownSlider maxValue]);
+	targetImageSize = [[[self delegate] targetImage] size];
+	
+	minAspectRatio = (targetImageSize.width / [tilesAcrossSlider maxValue]) / 
+					 (targetImageSize.height / [tilesDownSlider minValue]);
+	maxAspectRatio = (targetImageSize.width / [tilesAcrossSlider minValue]) / 
+					 (targetImageSize.height / [tilesDownSlider maxValue]);
 	
 		// Constrain the tiles across value to the stepper's range and update the model and view.
 	int				tilesAcross = MIN(MAX([currentTileShapes tilesAcross], [tilesAcrossSlider minValue]), [tilesAcrossSlider maxValue]);
@@ -116,12 +123,12 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	[curvinessSlider setFloatValue:curviness];
 	[curvinessTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", curviness * 100.0]];
 	
-	[self updatePreview:nil];
-	previewTimer = [[NSTimer scheduledTimerWithTimeInterval:1.0 
-													 target:self 
-												   selector:@selector(updatePreview:) 
-												   userInfo:nil 
-													repeats:YES] retain];
+//	[self updatePreview:nil];
+//	previewTimer = [[NSTimer scheduledTimerWithTimeInterval:1.0 
+//													 target:self 
+//												   selector:@selector(updatePreview:) 
+//												   userInfo:nil 
+//													repeats:YES] retain];
 }
 
 
@@ -151,14 +158,14 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 			minY = [tilesDownSlider minValue], 
 			maxX = [tilesAcrossSlider maxValue], 
 			maxY = [tilesDownSlider maxValue];
-	if (originalImageSize.height * minX * aspectRatio / originalImageSize.width < minY)
-		minX = originalImageSize.width * minY / aspectRatio / originalImageSize.height;
-	if (originalImageSize.width * minY / aspectRatio / originalImageSize.height < minX)
-		minY = minX * originalImageSize.height * aspectRatio / originalImageSize.width;
-	if (originalImageSize.height * maxX * aspectRatio / originalImageSize.width > maxY)
-		maxX = originalImageSize.width * maxY / aspectRatio / originalImageSize.height;
-	if (originalImageSize.width * maxY / aspectRatio / originalImageSize.height > maxX)
-		maxY = maxX * originalImageSize.height * aspectRatio / originalImageSize.width;
+	if (targetImageSize.height * minX * aspectRatio / targetImageSize.width < minY)
+		minX = targetImageSize.width * minY / aspectRatio / targetImageSize.height;
+	if (targetImageSize.width * minY / aspectRatio / targetImageSize.height < minX)
+		minY = minX * targetImageSize.height * aspectRatio / targetImageSize.width;
+	if (targetImageSize.height * maxX * aspectRatio / targetImageSize.width > maxY)
+		maxX = targetImageSize.width * maxY / aspectRatio / targetImageSize.height;
+	if (targetImageSize.width * maxY / aspectRatio / targetImageSize.height > maxX)
+		maxY = maxX * targetImageSize.height * aspectRatio / targetImageSize.width;
 	
 	int		tilesAcross = minX + (maxX - minX) * targetTileCount, 
 			tilesDown = minY + (maxY - minY) * targetTileCount;
@@ -176,8 +183,8 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 {
 	int		tilesAcross = [tilesAcrossSlider intValue], 
 	tilesDown = [tilesDownSlider intValue];
-	float	tileAspectRatio = (originalImageSize.width / tilesAcross) / 
-							  (originalImageSize.height / tilesDown);
+	float	tileAspectRatio = (targetImageSize.width / tilesAcross) / 
+							  (targetImageSize.height / tilesDown);
 	
 		// Update the tile size slider and pop-up.
 	if (tileAspectRatio < 1.0)
@@ -195,11 +202,11 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 			maxY = [tilesDownSlider maxValue], 
 			minTileCount = 0,
 			maxTileCount = 0;
-	if (originalImageSize.height * minX * tileAspectRatio / originalImageSize.width < minY)
+	if (targetImageSize.height * minX * tileAspectRatio / targetImageSize.width < minY)
 		minTileCount = minX * minX / tileAspectRatio;
 	else
 		minTileCount = minY * minY * tileAspectRatio;
-	if (originalImageSize.height * maxX * tileAspectRatio / originalImageSize.width < maxY)
+	if (targetImageSize.height * maxX * tileAspectRatio / targetImageSize.width < maxY)
 		maxTileCount = maxX * maxX / tileAspectRatio;
 	else
 		maxTileCount = maxY * maxY * tileAspectRatio;
@@ -220,7 +227,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[editorView window] sendEvent:nil];
+	[[self delegate] plugInSettingsDidChange:@"Change Tiles Across"];
 }
 
 
@@ -237,7 +244,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[editorView window] sendEvent:nil];
+	[[self delegate] plugInSettingsDidChange:@"Change Tiles Down"];
 }
 
 
@@ -267,7 +274,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[editorView window] sendEvent:nil];
+	[[self delegate] plugInSettingsDidChange:@"Change Tiles Size"];
 }
 
 
@@ -280,7 +287,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[editorView window] sendEvent:nil];
+	[[self delegate] plugInSettingsDidChange:@"Change Number of Tiles"];
 }
 
 
@@ -295,7 +302,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[editorView window] sendEvent:nil];
+	[[self delegate] plugInSettingsDidChange:@"Change Frequency of Tabbed Sides"];
 }
 
 
@@ -306,7 +313,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[editorView window] sendEvent:nil];
+	[[self delegate] plugInSettingsDidChange:@"Change Curviness of Tiles"];
 }
 
 
@@ -318,63 +325,63 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (BOOL)settingsAreValid
+//- (BOOL)settingsAreValid
+//{
+//	return YES;
+//}
+
+
+//- (int)tileCount
+//{
+//	return [tilesAcrossSlider intValue] * [tilesDownSlider intValue];
+//}
+
+
+//- (void)updatePreview:(NSTimer *)timer
+//{
+//		// Pick a new random puzzle piece.
+//	float		tileAspectRatio = (targetImageSize.width / [tilesAcrossSlider intValue]) / 
+//								  (targetImageSize.height / [tilesDownSlider intValue]), 
+//				tabbedSidesRatio = [currentTileShapes tabbedSidesRatio],
+//				curviness = [currentTileShapes curviness];
+//	
+//	[previewShape release];
+//	previewShape = [[MacOSaiXPuzzleTileShape alloc] initWithBounds:NSMakeRect(0.0, 0.0, 1.0, 1.0 / tileAspectRatio) 
+//														topTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
+//													   leftTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
+//													  rightTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
+//													 bottomTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
+//											topLeftHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
+//											  topLeftVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
+//										   topRightHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
+//											 topRightVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
+//										 bottomLeftHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
+//										   bottomLeftVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
+//										bottomRightHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
+//										  bottomRightVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
+//														alignImage:([alignImagesMatrix selectedRow] == 1)];
+//	
+//		// Dummy event to let MacOSaiX know that the preview should be updated.
+//	[[editorView window] sendEvent:nil];
+//}
+
+
+//- (id<MacOSaiXTileShape>)previewShape
+//{
+//	return	previewShape;
+//}
+
+
+- (void)editingDidComplete
 {
-	return YES;
-}
-
-
-- (int)tileCount
-{
-	return [tilesAcrossSlider intValue] * [tilesDownSlider intValue];
-}
-
-
-- (void)updatePreview:(NSTimer *)timer
-{
-		// Pick a new random puzzle piece.
-	float		tileAspectRatio = (originalImageSize.width / [tilesAcrossSlider intValue]) / 
-								  (originalImageSize.height / [tilesDownSlider intValue]), 
-				tabbedSidesRatio = [currentTileShapes tabbedSidesRatio],
-				curviness = [currentTileShapes curviness];
-	
-	float		prevOrient = (previewShape ? [previewShape imageOrientation] : 0.0);
-	
-	[previewShape release];
-	previewShape = [[MacOSaiXPuzzleTileShape alloc] initWithBounds:NSMakeRect(0.0, 0.0, 1.0, 1.0 / tileAspectRatio) 
-														topTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
-													   leftTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
-													  rightTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
-													 bottomTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
-											topLeftHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
-											  topLeftVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
-										   topRightHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
-											 topRightVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
-										 bottomLeftHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
-										   bottomLeftVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
-										bottomRightHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
-										  bottomRightVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
-														alignImage:([alignImagesMatrix selectedRow] == 1) 
-												  imageOrientation:prevOrient + 5.0];
-	
-		// Dummy event to let MacOSaiX know that the preview should be updated.
-	[[editorView window] sendEvent:nil];
-}
-
-
-- (id<MacOSaiXTileShape>)previewShape
-{
-	return	previewShape;
-}
-
-
-- (void)editingComplete
-{
-	[previewTimer invalidate];
-	[previewTimer release];
-	previewTimer = nil;
+//	[previewTimer invalidate];
+//	[previewTimer release];
+//	previewTimer = nil;
 
 	[currentTileShapes release];
+	targetImageSize = NSMakeSize(1.0, 1.0);
+	
+	delegate = nil;
 }
 
 

@@ -7,14 +7,16 @@
 //
 
 #import "FlickrPreferencesController.h"
+
+#import "FlickrImageSourcePlugIn.h"
 #import "FlickrImageSource.h"
 #import <sys/mount.h>
 
 
-@implementation FlickrPreferencesController
+@implementation MacOSaiXFlickrPreferencesController
 
 
-- (NSView *)mainView
+- (NSView *)editorView
 {
 	if (!mainView)
 		[[NSBundle bundleForClass:[self class]] loadNibFile:@"Preferences" 
@@ -40,10 +42,10 @@
 - (void)willSelect
 {
 		// Make sure the nib is loaded.
-	[self mainView];
+	[self editorView];
 	
-	unsigned long long	maxCacheSize = [FlickrImageSource maxCacheSize], 
-						minFreeSpace = [FlickrImageSource minFreeSpace];
+	unsigned long long	maxCacheSize = [MacOSaiXFlickrImageSourcePlugIn maxCacheSize], 
+						minFreeSpace = [MacOSaiXFlickrImageSourcePlugIn minFreeSpace];
 
 	NSEnumerator		*magnitudeEnumerator = [[maxCacheSizePopUp itemArray] reverseObjectEnumerator];
 	NSMenuItem			*item = nil;
@@ -74,7 +76,7 @@
 	
 		// Get the name and icon of the volume the cache lives on.
 	struct statfs	fsStruct;
-	statfs([[[FlickrImageSource class] imageCachePath] fileSystemRepresentation], &fsStruct);
+	statfs([[[MacOSaiXFlickrImageSource class] imageCachePath] fileSystemRepresentation], &fsStruct);
 	NSString		*volumeRootPath = [NSString stringWithCString:fsStruct.f_mntonname];
 	[volumeImageView setImage:[[NSWorkspace sharedWorkspace] iconForFile:volumeRootPath]];
 	[volumeNameField setStringValue:[[NSFileManager defaultManager] displayNameAtPath:volumeRootPath]];
@@ -88,28 +90,28 @@
 
 - (IBAction)setMaxCacheSizeMagnitude:(id)sender
 {
-	[FlickrImageSource setMaxCacheSize:[maxCacheSizeField intValue] * powf(2.0, [[maxCacheSizePopUp selectedItem] tag])];
+	[MacOSaiXFlickrImageSourcePlugIn setMaxCacheSize:[maxCacheSizeField intValue] * powf(2.0, [[maxCacheSizePopUp selectedItem] tag])];
 }
 
 
 - (IBAction)setMinFreeSpaceMagnitude:(id)sender
 {
-	[FlickrImageSource setMinFreeSpace:[minFreeSpaceField intValue] * powf(2.0, [[minFreeSpacePopUp selectedItem] tag])];
+	[MacOSaiXFlickrImageSourcePlugIn setMinFreeSpace:[minFreeSpaceField intValue] * powf(2.0, [[minFreeSpacePopUp selectedItem] tag])];
 }
 
 
 - (void)controlTextDidChange:(NSNotification *)notification
 {
 	if ([notification object] == maxCacheSizeField)
-		[FlickrImageSource setMaxCacheSize:[maxCacheSizeField intValue] * powf(2.0, [[maxCacheSizePopUp selectedItem] tag])];
+		[MacOSaiXFlickrImageSourcePlugIn setMaxCacheSize:[maxCacheSizeField intValue] * powf(2.0, [[maxCacheSizePopUp selectedItem] tag])];
 	else if ([notification object] == minFreeSpaceField)
-		[FlickrImageSource setMinFreeSpace:[minFreeSpaceField intValue] * powf(2.0, [[minFreeSpacePopUp selectedItem] tag])];
+		[MacOSaiXFlickrImageSourcePlugIn setMinFreeSpace:[minFreeSpaceField intValue] * powf(2.0, [[minFreeSpacePopUp selectedItem] tag])];
 }
 
 
 - (IBAction)deleteCachedImages:(id)sender
 {
-	[FlickrImageSource purgeCache];
+	[MacOSaiXFlickrImageSourcePlugIn purgeCache];
 }
 
 

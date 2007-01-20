@@ -11,30 +11,8 @@
 #import "NSString+MacOSaiX.h"
 #import "NSFileManager+MacOSaiX.h"
 
-@implementation DirectoryImageSource
 
-
-+ (NSImage *)image
-{
-	NSImage	*image = [[NSWorkspace sharedWorkspace] iconForFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Pictures"]];
-	
-	if (!image)
-		image = [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode('fldr')];
-	
-	return image;
-}
-
-
-+ (Class)editorClass
-{
-	return [DirectoryImageSourceController class];
-}
-
-
-+ (Class)preferencesControllerClass
-{
-	return nil;
-}
+@implementation MacOSaiXDirectoryImageSource
 
 
 + (BOOL)allowMultipleImageSources
@@ -82,7 +60,7 @@
 
 - (void)useSavedSetting:(NSDictionary *)settingDict
 {
-	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
+	NSString	*settingType = [settingDict objectForKey:@"Element Type"];
 	
 	if ([settingType isEqualToString:@"DIRECTORY"])
 		[self setPath:[[[settingDict objectForKey:@"PATH"] description] stringByUnescapingXMLEntites]];
@@ -145,7 +123,7 @@
 
 - (id)copyWithZone:(NSZone *)zone
 {
-	DirectoryImageSource	*copy = [[DirectoryImageSource allocWithZone:zone] init];
+	MacOSaiXDirectoryImageSource	*copy = [[MacOSaiXDirectoryImageSource allocWithZone:zone] init];
 	
 	[copy setPath:[self path]];
 	[copy setFollowsAliases:[self followsAliases]];
@@ -160,15 +138,15 @@
 }
 
 
-- (id)descriptor
+- (id)briefDescription
 {
 	return [[directoryDescriptor retain] autorelease];
 }
 
 
-- (float)aspectRatio
+- (NSNumber *)aspectRatio
 {
-	return 0.0;
+	return nil;
 }
 
 

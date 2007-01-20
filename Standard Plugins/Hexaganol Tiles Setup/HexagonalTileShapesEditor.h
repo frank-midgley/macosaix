@@ -6,31 +6,31 @@
 //  Copyright (c) 2003-2004 Frank M. Midgley. All rights reserved.
 //
 
-#import "MacOSaiXTileShapes.h"
 #import "HexagonalTileShapes.h"
 
 
-@interface MacOSaiXHexagonalTileShapesEditor : NSObject <MacOSaiXTileShapesEditor>
+@interface MacOSaiXHexagonalTileShapesEditor : NSObject <MacOSaiXDataSourceEditor>
 {
-	IBOutlet NSView					*editorView;
+	id<MacOSaiXDataSourceEditorDelegate>	delegate;
+	IBOutlet NSView							*editorView;
 	
 		// Freeform controls
-	IBOutlet NSSlider				*tilesAcrossSlider,
-									*tilesDownSlider;
-    IBOutlet NSTextField			*tilesAcrossTextField,
-									*tilesDownTextField;
-	IBOutlet NSStepper				*tilesAcrossStepper, 
-									*tilesDownStepper;
-	
+	IBOutlet NSSlider						*tilesAcrossSlider,
+											*tilesDownSlider;
+    IBOutlet NSTextField					*tilesAcrossTextField,
+											*tilesDownTextField;
+	IBOutlet NSStepper						*tilesAcrossStepper, 
+											*tilesDownStepper;
+		
 		// Fixed Size controls
-	IBOutlet NSPopUpButton			*tilesSizePopUp;
-	IBOutlet NSSlider				*tilesSizeSlider,
-									*tilesCountSlider;
+	IBOutlet NSPopUpButton					*tilesSizePopUp;
+	IBOutlet NSSlider						*tilesSizeSlider,
+											*tilesCountSlider;
 	
-	NSSize							originalImageSize;
-	float							minAspectRatio,
-									maxAspectRatio;
-	MacOSaiXHexagonalTileShapes		*currentTileShapes;
+	NSSize									targetImageSize;
+	float									minAspectRatio,
+											maxAspectRatio;
+	MacOSaiXHexagonalTileShapes				*currentTileShapes;
 }
 
 - (IBAction)setTilesAcross:(id)sender;

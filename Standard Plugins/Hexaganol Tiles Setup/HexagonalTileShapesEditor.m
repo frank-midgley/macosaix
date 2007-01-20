@@ -55,12 +55,18 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (id)initWithOriginalImage:(NSImage *)originalImage
+- (id)initWithDelegate:(id<MacOSaiXDataSourceEditorDelegate>)inDelegate;
 {
 	if (self = [super init])
-		originalImageSize = [originalImage size];
+		delegate = inDelegate;
 	
 	return self;
+}
+
+
+- (id<MacOSaiXDataSourceEditorDelegate>)delegate
+{
+	return delegate;
 }
 
 
@@ -74,15 +80,17 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (void)editTileShapes:(id<MacOSaiXTileShapes>)tilesSetup
+- (void)editDataSource:(id<MacOSaiXTileShapes>)tileShapes
 {
 	[currentTileShapes autorelease];
-	currentTileShapes = [tilesSetup retain];
+	currentTileShapes = [tileShapes retain];
 	
-	minAspectRatio = (originalImageSize.width / [tilesAcrossSlider maxValue]) / 
-					 (originalImageSize.height / [tilesDownSlider minValue]);
-	maxAspectRatio = (originalImageSize.width / [tilesAcrossSlider minValue]) / 
-					 (originalImageSize.height / [tilesDownSlider maxValue]);
+	targetImageSize = [[[self delegate] targetImage] size];
+	
+	minAspectRatio = (targetImageSize.width / [tilesAcrossSlider maxValue]) / 
+					 (targetImageSize.height / [tilesDownSlider minValue]);
+	maxAspectRatio = (targetImageSize.width / [tilesAcrossSlider minValue]) / 
+					 (targetImageSize.height / [tilesDownSlider maxValue]);
 	
 	// Constrain the tiles across value to the stepper's range and update the model and view.
 	int	tilesAcross = MIN(MAX([currentTileShapes tilesAcross], [tilesAcrossStepper minValue]), [tilesAcrossStepper maxValue]);
@@ -124,14 +132,14 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 			minY = [tilesDownSlider minValue], 
 			maxX = [tilesAcrossSlider maxValue], 
 			maxY = [tilesDownSlider maxValue];
-	if (originalImageSize.height * minX * aspectRatio / originalImageSize.width < minY)
-		minX = originalImageSize.width * minY / aspectRatio / originalImageSize.height;
-	if (originalImageSize.width * minY / aspectRatio / originalImageSize.height < minX)
-		minY = minX * originalImageSize.height * aspectRatio / originalImageSize.width;
-	if (originalImageSize.height * maxX * aspectRatio / originalImageSize.width > maxY)
-		maxX = originalImageSize.width * maxY / aspectRatio / originalImageSize.height;
-	if (originalImageSize.width * maxY / aspectRatio / originalImageSize.height > maxX)
-		maxY = maxX * originalImageSize.height * aspectRatio / originalImageSize.width;
+	if (targetImageSize.height * minX * aspectRatio / targetImageSize.width < minY)
+		minX = targetImageSize.width * minY / aspectRatio / targetImageSize.height;
+	if (targetImageSize.width * minY / aspectRatio / targetImageSize.height < minX)
+		minY = minX * targetImageSize.height * aspectRatio / targetImageSize.width;
+	if (targetImageSize.height * maxX * aspectRatio / targetImageSize.width > maxY)
+		maxX = targetImageSize.width * maxY / aspectRatio / targetImageSize.height;
+	if (targetImageSize.width * maxY / aspectRatio / targetImageSize.height > maxX)
+		maxY = maxX * targetImageSize.height * aspectRatio / targetImageSize.width;
 	
 	int		tilesAcross = minX + (maxX - minX) * targetTileCount, 
 			tilesDown = minY + (maxY - minY) * targetTileCount;
@@ -149,8 +157,8 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 {
 	int		tilesAcross = [tilesAcrossSlider intValue], 
 			tilesDown = [tilesDownSlider intValue];
-	float	tileAspectRatio = (originalImageSize.width / tilesAcross) / 
-							  (originalImageSize.height / tilesDown);
+	float	tileAspectRatio = (targetImageSize.width / tilesAcross) / 
+							  (targetImageSize.height / tilesDown);
 	
 		// Update the tile size slider and pop-up.
 	if (tileAspectRatio < 1.0)
@@ -168,11 +176,11 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 			maxY = [tilesDownSlider maxValue], 
 			minTileCount = 0,
 			maxTileCount = 0;
-	if (originalImageSize.height * minX * tileAspectRatio / originalImageSize.width < minY)
+	if (targetImageSize.height * minX * tileAspectRatio / targetImageSize.width < minY)
 		minTileCount = minX * minX / tileAspectRatio;
 	else
 		minTileCount = minY * minY * tileAspectRatio;
-	if (originalImageSize.height * maxX * tileAspectRatio / originalImageSize.width < maxY)
+	if (targetImageSize.height * maxX * tileAspectRatio / targetImageSize.width < maxY)
 		maxTileCount = maxX * maxX / tileAspectRatio;
 	else
 		maxTileCount = maxY * maxY * tileAspectRatio;
@@ -257,39 +265,42 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (BOOL)settingsAreValid
-{
-	return YES;
-}
+//- (BOOL)settingsAreValid
+//{
+//	return YES;
+//}
 
 
-- (int)tileCount
-{
-	return [tilesAcrossTextField intValue] * [tilesDownTextField intValue] + [tilesDownTextField intValue] / 2;
-}
+//- (int)tileCount
+//{
+//	return [tilesAcrossTextField intValue] * [tilesDownTextField intValue] + [tilesDownTextField intValue] / 2;
+//}
 
 
-- (id<MacOSaiXTileShape>)previewShape
-{
-	float			unitHeight = (originalImageSize.height / [tilesDownTextField intValue]) / 
-								 (originalImageSize.width / [tilesAcrossTextField intValue]);
-	NSBezierPath	*previewPath = [NSBezierPath bezierPath];
-	
-	[previewPath moveToPoint:NSMakePoint(1.0 / 3.0, 0.0)];
-	[previewPath lineToPoint:NSMakePoint(1.0, 0.0)];
-	[previewPath lineToPoint:NSMakePoint(4.0 / 3.0, unitHeight / 2.0)];
-	[previewPath lineToPoint:NSMakePoint(1.0, unitHeight)];
-	[previewPath lineToPoint:NSMakePoint(1.0 / 3.0, unitHeight)];
-	[previewPath lineToPoint:NSMakePoint(0.0, unitHeight / 2.0)];
-	[previewPath lineToPoint:NSMakePoint(1.0 / 3.0, 0.0)];
-	
-	return [MacOSaiXHexagonalTileShape tileShapeWithOutline:previewPath imageOrientation:0.0];
-}
+//- (id<MacOSaiXTileShape>)previewShape
+//{
+//	float			unitHeight = (targetImageSize.height / [tilesDownTextField intValue]) / 
+//								 (targetImageSize.width / [tilesAcrossTextField intValue]);
+//	NSBezierPath	*previewPath = [NSBezierPath bezierPath];
+//	
+//	[previewPath moveToPoint:NSMakePoint(1.0 / 3.0, 0.0)];
+//	[previewPath lineToPoint:NSMakePoint(1.0, 0.0)];
+//	[previewPath lineToPoint:NSMakePoint(4.0 / 3.0, unitHeight / 2.0)];
+//	[previewPath lineToPoint:NSMakePoint(1.0, unitHeight)];
+//	[previewPath lineToPoint:NSMakePoint(1.0 / 3.0, unitHeight)];
+//	[previewPath lineToPoint:NSMakePoint(0.0, unitHeight / 2.0)];
+//	[previewPath lineToPoint:NSMakePoint(1.0 / 3.0, 0.0)];
+//	
+//	return [MacOSaiXHexagonalTileShape tileShapeWithOutline:previewPath];
+//}
 
 
-- (void)editingComplete
+- (void)editingDidComplete
 {
 	[currentTileShapes release];
+	targetImageSize = NSMakeSize(1.0, 1.0);
+	
+	delegate = nil;
 }
 
 

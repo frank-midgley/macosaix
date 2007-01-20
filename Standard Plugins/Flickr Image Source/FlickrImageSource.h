@@ -6,14 +6,13 @@
 	Copyright (c) 2005 Frank M. Midgley. All rights reserved.
 */
 
-#import <Foundation/Foundation.h>
 #import "MacOSaiXImageSource.h"
 
 
 typedef enum { matchAllTags, matchAnyTag, matchTitlesTagsOrDescriptions } FlickrQueryType;
 
 
-@interface FlickrImageSource : NSObject <MacOSaiXImageSource>
+@interface MacOSaiXFlickrImageSource : NSObject <MacOSaiXImageSource>
 {
     NSString				*queryString;
 	FlickrQueryType			queryType;
@@ -22,14 +21,6 @@ typedef enum { matchAllTags, matchAnyTag, matchTitlesTagsOrDescriptions } Flickr
 	NSString				*lastUploadTimeStamp;
 	NSMutableArray			*identifierQueue;
 }
-
-+ (NSString *)imageCachePath;
-+ (void)purgeCache;
-
-+ (void)setMaxCacheSize:(unsigned long long)maxCacheSize;
-+ (unsigned long long)maxCacheSize;
-+ (void)setMinFreeSpace:(unsigned long long)minFreeSpace;
-+ (unsigned long long)minFreeSpace;
 
 - (void)setQueryString:(NSString *)string;
 - (NSString *)queryString;

@@ -7,27 +7,12 @@
 */
 
 #import "FlickrImageSource.h"
+#import "FlickrImageSourcePlugIn.h"
 #import "FlickrImageSourceController.h"
 #import "FlickrPreferencesController.h"
 #import "NSString+MacOSaiX.h"
 #import <CoreFoundation/CoreFoundation.h>
 #import <CoreServices/CoreServices.h>
-#import <sys/time.h>
-#import <sys/stat.h>
-#import <sys/mount.h>
-
-
-	// The image cache is shared between all instances so we need a class level lock.
-static NSLock				*sImageCacheLock = nil;
-static NSString				*sImageCachePath = nil;
-static BOOL					sPruningCache = NO, 
-							sPurgeCache = NO;
-static unsigned long long	sCacheSize = 0, 
-							sMaxCacheSize = 128 * 1024 * 1024,
-							sMinFreeSpace = 1024 * 1024 * 1024;
-
-static NSImage				*fIcon = nil,
-							*flickrIcon = nil;
 
 
 NSString *escapedNSString(NSString *string)
@@ -38,65 +23,7 @@ NSString *escapedNSString(NSString *string)
 }
 
 
-static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
-{
-	return [(NSNumber *)[dict1 objectForKey:context] compare:(NSNumber *)[dict2 objectForKey:context]];
-}
-
-
-@interface FlickrImageSource (PrivateMethods)
-+ (void)pruneCache;
-+ (id)preferredValueForKey:(NSString *)key;
-@end
-
-
-@implementation FlickrImageSource
-
-
-+ (void)load
-{
-	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	
-	sImageCachePath = [[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"] 
-											stringByAppendingPathComponent:@"Caches"]
-											stringByAppendingPathComponent:@"MacOSaiX Flickr Images"] retain];
-	if (![[NSFileManager defaultManager] fileExistsAtPath:sImageCachePath])
-		[[NSFileManager defaultManager] createDirectoryAtPath:sImageCachePath attributes:nil];
-	
-	sImageCacheLock = [[NSLock alloc] init];
-	
-	NSString	*iconPath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"f"];
-	fIcon = [[NSImage alloc] initWithContentsOfFile:iconPath];
-	
-	iconPath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"flickr"];
-	flickrIcon = [[NSImage alloc] initWithContentsOfFile:iconPath];
-	
-	NSNumber	*maxCacheSize = [self preferredValueForKey:@"Maximum Cache Size"],
-				*minFreeSpace = [self preferredValueForKey:@"Minimum Free Space On Cache Volume"];
-	
-	if (maxCacheSize)
-		sMaxCacheSize = [maxCacheSize unsignedLongLongValue];
-	if (minFreeSpace)
-		sMinFreeSpace = [minFreeSpace unsignedLongLongValue];
-	
-		// Do an initial prune which also gets the current size of the cache.
-		// No new images can be cached until this completes but images can be read from the cache.
-	[self pruneCache];
-	
-	[pool release];
-}
-
-
-+ (NSImage *)image;
-{
-    return fIcon;
-}
-
-
-+ (Class)editorClass
-{
-	return [FlickrImageSourceController class];
-}
+@implementation MacOSaiXFlickrImageSource
 
 
 + (BOOL)allowMultipleImageSources
@@ -105,248 +32,11 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
-#pragma mark
-#pragma mark Image cache
-
-
-+ (NSString *)imageCachePath
-{
-	return sImageCachePath;
-}
-
-
-+ (NSString *)cachedFileNameForIdentifier:(NSString *)identifier thumbnail:(BOOL)thumbnail
-{
-	NSArray		*identifierComponents = [identifier componentsSeparatedByString:@"\t"];
-	NSString	*serverID = [identifierComponents objectAtIndex:0], 
-				*photoID = [identifierComponents objectAtIndex:1];
-	
-	return [NSString stringWithFormat:@"%@-%@%@.jpg", serverID, photoID, (thumbnail ? @" thumb" : @"")];
-}
-
-
-+ (void)cacheImageData:(NSData *)imageData withIdentifier:(NSString *)identifier isThumbnail:(BOOL)isThumbnail
-{
-	if (!sPruningCache)
-	{
-		NSString	*imageFileName = [self cachedFileNameForIdentifier:identifier thumbnail:isThumbnail];
-
-		[sImageCacheLock lock];
-			[imageData writeToFile:[[self imageCachePath] stringByAppendingPathComponent:imageFileName] atomically:NO];
-			
-				// Spawn a cache pruning thread if called for.
-			sCacheSize += [imageData length];
-			unsigned long long	freeSpace = [[[[NSFileManager defaultManager] fileSystemAttributesAtPath:[self imageCachePath]] 
-													objectForKey:NSFileSystemFreeSize] unsignedLongLongValue];
-			if (sCacheSize > sMaxCacheSize || freeSpace < sMinFreeSpace)
-				[self pruneCache];
-		[sImageCacheLock unlock];
-	}
-}
-
-
-+ (NSImage *)cachedImageWithIdentifier:(NSString *)identifier getThumbnail:(BOOL)thumbnail
-{
-	NSImage		*cachedImage = nil;
-	NSString	*imageFileName = [self cachedFileNameForIdentifier:identifier thumbnail:thumbnail];
-	NSData		*imageData = nil;
-	
-	imageData = [[NSData alloc] initWithContentsOfFile:[[self imageCachePath] stringByAppendingPathComponent:imageFileName]];
-	if (imageData)
-	{
-		cachedImage = [[[NSImage alloc] initWithData:imageData] autorelease];
-		[imageData release];
-	}
-	
-	if (!sPruningCache)
-	{
-			// Spawn a cache pruning thread if called for.
-		unsigned long long	freeSpace = [[[[NSFileManager defaultManager] fileSystemAttributesAtPath:[self imageCachePath]] 
-												objectForKey:NSFileSystemFreeSize] unsignedLongLongValue];
-		if (freeSpace < sMinFreeSpace)
-			[self pruneCache];
-	}
-	
-	return cachedImage;
-}
-
-
-+ (void)pruneCache
-{
-	if (!sPruningCache)
-		[NSThread detachNewThreadSelector:@selector(pruneCacheInThread) toTarget:self withObject:nil];
-}
-
-
-+ (void)pruneCacheInThread
-{
-	sPruningCache = YES;
-	
-	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	
-	NSFileManager		*fileManager = [NSFileManager defaultManager];
-	NSString			*cachePath = [self imageCachePath];
-
-	unsigned long long	freeSpace = [[[fileManager fileSystemAttributesAtPath:cachePath] objectForKey:NSFileSystemFreeSize] 
-										unsignedLongLongValue];
-	
-	[sImageCacheLock lock];
-			// Get the size and last access date of every image in the cache.
-		NSEnumerator		*imageNameEnumerator = [[fileManager directoryContentsAtPath:cachePath] objectEnumerator];
-		NSString			*imageName = nil;
-		NSMutableArray		*imageArray = [NSMutableArray array];
-		sCacheSize = 0;
-		while (!sPurgeCache && (imageName = [imageNameEnumerator nextObject]))
-		{
-			NSString	*imagePath = [cachePath stringByAppendingPathComponent:imageName];
-			struct stat	fileStat;
-			if (lstat([imagePath fileSystemRepresentation], &fileStat) == 0)
-			{
-				NSDictionary	*attributes = [NSDictionary dictionaryWithObjectsAndKeys:
-												imagePath, @"Path", 
-												[NSNumber numberWithUnsignedLong:fileStat.st_size], @"Size", 
-												[NSNumber numberWithUnsignedLong:fileStat.st_atimespec.tv_sec], @"Last Access",
-												nil];
-				[imageArray addObject:attributes];
-				sCacheSize += fileStat.st_size;
-			}
-		}
-			
-			// Sort the images by the date/time they were last accessed.
-		if (!sPurgeCache)
-			[imageArray sortUsingFunction:compareWithKey context:@"Last Access"];
-		
-			// Remove the least recently accessed image until we satisfy the user's prefs.
-		unsigned long long	targetSize = sMaxCacheSize * 0.9;
-		int					purgeCount = 0;
-		while (!sPurgeCache && (sCacheSize > targetSize || freeSpace < sMinFreeSpace) && [imageArray count] > 0)
-		{
-			NSDictionary		*imageToDelete = [imageArray objectAtIndex:0];
-			unsigned long long	fileSize = [[imageToDelete objectForKey:@"Size"] unsignedLongLongValue];
-			
-			[fileManager removeFileAtPath:[imageToDelete objectForKey:@"Path"] handler:nil];
-			sCacheSize -= fileSize;
-			freeSpace += fileSize;
-			
-			[imageArray removeObjectAtIndex:0];
-			purgeCount++;
-		}
-		#ifdef DEBUG
-			if (purgeCount > 0)
-				NSLog(@"Purged %d images from the flickr cache.", purgeCount);
-		#endif
-		
-		if (sPurgeCache)
-		{
-			[fileManager removeFileAtPath:cachePath handler:nil];
-			[fileManager createDirectoryAtPath:cachePath attributes:nil];
-			sCacheSize = 0;
-			sPurgeCache = NO;
-		}
-	[sImageCacheLock unlock];
-
-	[pool release];
-	
-	sPruningCache = NO;
-}
-
-
-+ (void)purgeCache
-{
-	if (sPruningCache)
-		sPurgeCache = YES;	// let the pruning thread handle the purge
-	else
-	{
-		[sImageCacheLock lock];
-			NSFileManager	*fileManager = [NSFileManager defaultManager];
-			NSString		*cachePath = [self imageCachePath];
-			
-			[fileManager removeFileAtPath:cachePath handler:nil];
-			[fileManager createDirectoryAtPath:cachePath attributes:nil];
-			
-			sCacheSize = 0;
-		[sImageCacheLock unlock];
-	}
-}
-
-
-#pragma mark
-#pragma mark Preferences
-
-
-+ (Class)preferencesControllerClass
-{
-	return [FlickrPreferencesController class];
-}
-
-
-+ (void)setPreferredValue:(id)value forKey:(NSString *)key
-{
-		// NSUserDefaults is not thread safe.  Make sure we set the default on the main thread.
-	[self performSelectorOnMainThread:@selector(setPreferredValueOnMainThread:) 
-						   withObject:[NSDictionary dictionaryWithObject:value forKey:key] 
-						waitUntilDone:NO];
-}
-
-
-+ (void)setPreferredValueOnMainThread:(NSDictionary *)keyValuePair
-{
-		// Save all of the preferences for this plug-in in a dictionary within the main prefs dictionary.
-	NSMutableDictionary	*flickrPrefs = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Flickr Image Source"] mutableCopy] autorelease];
-	if (!flickrPrefs)
-		flickrPrefs = [NSMutableDictionary dictionary];
-	
-	NSString	*key = [[keyValuePair allKeys] lastObject];
-	[flickrPrefs setObject:[keyValuePair objectForKey:key] forKey:key];
-	
-	[[NSUserDefaults standardUserDefaults] setObject:flickrPrefs forKey:@"Flickr Image Source"];
-	[[NSUserDefaults standardUserDefaults] synchronize];
-}
-
-
-+ (id)preferredValueForKey:(NSString *)key
-{
-		// This should be done on the main thread, too, but it could deadlock since we would need to wait for return.
-	return [[[NSUserDefaults standardUserDefaults] objectForKey:@"Flickr Image Source"] objectForKey:key];
-}
-
-
-+ (void)setMaxCacheSize:(unsigned long long)maxCacheSize
-{
-	[self setPreferredValue:[NSNumber numberWithUnsignedLongLong:maxCacheSize] 
-					 forKey:@"Maximum Cache Size"];
-	sMaxCacheSize = maxCacheSize;
-}
-
-
-+ (unsigned long long)maxCacheSize
-{
-	return sMaxCacheSize;
-}
-
-
-+ (void)setMinFreeSpace:(unsigned long long)minFreeSpace
-{
-	[self setPreferredValue:[NSNumber numberWithUnsignedLongLong:minFreeSpace] 
-					 forKey:@"Minimum Free Space On Cache Volume"];
-	sMinFreeSpace = minFreeSpace;
-}
-
-
-+ (unsigned long long)minFreeSpace
-{
-	return sMinFreeSpace;
-}
-
-
-#pragma mark
-
-
 - (id)init
 {
 	if (self = [super init])
 	{
-		if ([[NSFileManager defaultManager] fileExistsAtPath:[[self class] imageCachePath]])
+		if ([[NSFileManager defaultManager] fileExistsAtPath:[MacOSaiXFlickrImageSourcePlugIn imageCachePath]])
 		{
 			identifierQueue = [[NSMutableArray array] retain];
 			haveMoreImages = YES;
@@ -442,11 +132,11 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 
 - (NSImage *)image;
 {
-    return flickrIcon;
+    return [MacOSaiXFlickrImageSourcePlugIn flickrIcon];
 }
 
 
-- (id)descriptor
+- (id)briefDescription
 {
 	NSString	*descriptor = nil;
 	
@@ -482,15 +172,15 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
-- (float)aspectRatio
+- (NSNumber *)aspectRatio
 {
-	return 0.0;
+	return nil;
 }
 
 
 - (id)copyWithZone:(NSZone *)zone
 {
-	FlickrImageSource	*copy = [[FlickrImageSource allocWithZone:zone] init];
+	MacOSaiXFlickrImageSource	*copy = [[MacOSaiXFlickrImageSource allocWithZone:zone] init];
 	
 	[copy setQueryString:queryString];
 	[copy setQueryType:queryType];
@@ -499,7 +189,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
-// Parser callback prototypes.
+	// XML parser callback prototypes.
 void	*createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info);
 void	addChild(CFXMLParserRef parser, void *parent, void *child, void *info);
 void	endStructure(CFXMLParserRef parser, void *xmlType, void *info);
@@ -713,11 +403,11 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 - (NSImage *)thumbnailForIdentifier:(NSString *)identifier
 {
 		// First check if we have this thumbnail in the disk cache.
-	NSImage		*image = [[self class] cachedImageWithIdentifier:identifier getThumbnail:YES];
+	NSImage		*image = [MacOSaiXFlickrImageSourcePlugIn cachedImageWithIdentifier:identifier getThumbnail:YES];
 	
 		// Next go for the full size image in the cache.
 	if (!image)
-		image = [[self class] cachedImageWithIdentifier:identifier getThumbnail:NO];
+		image = [MacOSaiXFlickrImageSourcePlugIn cachedImageWithIdentifier:identifier getThumbnail:NO];
 	
 		// If it's not in the cache then fetch the thumbnail from flickr.
 	if (!image)
@@ -734,7 +424,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 		{
 			image = [[[NSImage alloc] initWithData:imageData] autorelease];
 			if (image)
-				[[self class] cacheImageData:imageData withIdentifier:identifier isThumbnail:YES];
+				[MacOSaiXFlickrImageSourcePlugIn cacheImageData:imageData withIdentifier:identifier isThumbnail:YES];
 		}
 	}
 	
@@ -745,7 +435,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 		// First check if we have this image in the disk cache.
-	NSImage		*image = [[self class] cachedImageWithIdentifier:identifier getThumbnail:NO];
+	NSImage		*image = [MacOSaiXFlickrImageSourcePlugIn cachedImageWithIdentifier:identifier getThumbnail:NO];
 	
 		// If it's not in the cache then fetch the image from flickr.
 	if (!image)
@@ -756,7 +446,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 		{
 			image = [[[NSImage alloc] initWithData:imageData] autorelease];
 			if (image)
-				[[self class] cacheImageData:imageData withIdentifier:identifier isThumbnail:NO];
+				[MacOSaiXFlickrImageSourcePlugIn cacheImageData:imageData withIdentifier:identifier isThumbnail:NO];
 		}
 	}
 	

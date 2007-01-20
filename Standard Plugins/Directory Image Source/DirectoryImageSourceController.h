@@ -6,25 +6,24 @@
 //  Copyright (c) 2003-2005 Frank M. Midgley. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
-
-#import "MacOSaiXImageSource.h"
-#import "DirectoryImageSource.h"
+@class MacOSaiXDirectoryImageSource;
 
 
-@interface DirectoryImageSourceController : NSObject <MacOSaiXImageSourceController>
+@interface MacOSaiXDirectoryImageSourceEditor : NSObject <MacOSaiXDataSourceEditor>
 {
-	IBOutlet NSView			*editorView;
+	id<MacOSaiXDataSourceEditorDelegate>	delegate;
 	
-	IBOutlet NSTableView	*folderTableView;
-	IBOutlet NSButton		*chooseFolderButton, 
-							*clearFolderListButton, 
-							*followsAliasesButton;
+	IBOutlet NSView							*editorView;
 	
-	NSMutableArray			*folderList;
+	IBOutlet NSTableView					*folderTableView;
+	IBOutlet NSButton						*chooseFolderButton, 
+											*clearFolderListButton, 
+											*followsAliasesButton;
+	
+	NSMutableArray							*folderList;
 	
 		// The image source instance currently being edited.
-	DirectoryImageSource	*currentImageSource;
+	MacOSaiXDirectoryImageSource	*currentImageSource;
 }
 
 - (IBAction)chooseFolder:(id)sender;

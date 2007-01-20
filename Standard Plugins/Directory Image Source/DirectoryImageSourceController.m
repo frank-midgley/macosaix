@@ -7,6 +7,7 @@
 //
 
 #import "DirectoryImageSourceController.h"
+
 #import "DirectoryImageSource.h"
 #import "NSFileManager+MacOSaiX.h"
 
@@ -21,7 +22,7 @@
 @end
 
 
-@implementation DirectoryImageSourceController
+@implementation MacOSaiXDirectoryImageSourceEditor
 
 
 + (void)initialize
@@ -44,6 +45,21 @@
 		[[NSUserDefaults standardUserDefaults] setObject:plugInDefaults forKey:@"Folder Image Source"];
 		[[NSUserDefaults standardUserDefaults] synchronize];
 	}
+}
+
+
+- (id)initWithDelegate:(id<MacOSaiXDataSourceEditorDelegate>)inDelegate;
+{
+	if (self = [super init])
+		delegate = inDelegate;
+	
+	return self;
+}
+
+
+- (id<MacOSaiXDataSourceEditorDelegate>)delegate
+{
+	return delegate;
 }
 
 
@@ -140,7 +156,7 @@
 }
 
 
-- (void)setCurrentImageSource:(DirectoryImageSource *)imageSource
+- (void)setCurrentImageSource:(MacOSaiXDirectoryImageSource *)imageSource
 {
 	[currentImageSource autorelease];
 	currentImageSource = [imageSource retain];
@@ -153,9 +169,9 @@
 }
 
 
-- (void)editImageSource:(id<MacOSaiXImageSource>)imageSource
+- (void)editDataSource:(MacOSaiXDirectoryImageSource *)imageSource
 {
-	if (![(DirectoryImageSource *)imageSource path])
+	if (![imageSource path])
 	{
 			// Default to the last directory chosen by the user.
 		NSString	*lastChosenDirectory = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] 
@@ -168,20 +184,20 @@
 			!isDirectory)
 			lastChosenDirectory = NSHomeDirectory();
 		
-		[(DirectoryImageSource *)imageSource setPath:lastChosenDirectory];
+		[imageSource setPath:lastChosenDirectory];
 	}
 	
-	[self setCurrentImageSource:(DirectoryImageSource *)imageSource];
+	[self setCurrentImageSource:imageSource];
 }
 
 
-- (BOOL)settingsAreValid
-{
-	return ([currentImageSource path] != nil);
-}
+//- (BOOL)settingsAreValid
+//{
+//	return ([currentImageSource path] != nil);
+//}
 
 
-- (void)editingComplete
+- (void)editingDidComplete
 {
 }
 

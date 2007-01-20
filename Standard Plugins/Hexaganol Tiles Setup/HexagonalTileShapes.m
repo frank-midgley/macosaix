@@ -13,18 +13,17 @@
 @implementation MacOSaiXHexagonalTileShape
 
 
-+ (MacOSaiXHexagonalTileShape *)tileShapeWithOutline:(NSBezierPath *)inOutline imageOrientation:(float)angle
++ (MacOSaiXHexagonalTileShape *)tileShapeWithOutline:(NSBezierPath *)inOutline
 {
-	return [[[MacOSaiXHexagonalTileShape alloc] initWithOutline:inOutline imageOrientation:angle] autorelease];
+	return [[[MacOSaiXHexagonalTileShape alloc] initWithOutline:inOutline] autorelease];
 }
 
 
-- (id)initWithOutline:(NSBezierPath *)inOutline imageOrientation:(float)angle
+- (id)initWithOutline:(NSBezierPath *)inOutline
 {
 	if (self = [super init])
 	{
 		outline = [inOutline retain];
-		imageOrientation = angle;
 	}
 	
 	return self;
@@ -37,9 +36,9 @@
 }
 
 
-- (float)imageOrientation
+- (NSNumber *)imageOrientation
 {
-	return imageOrientation;
+	return nil;
 }
 
 
@@ -55,54 +54,6 @@
 
 
 @implementation MacOSaiXHexagonalTileShapes
-
-
-+ (NSImage *)image
-{
-	static	NSImage	*image = nil;
-	
-	if (!image)
-	{
-		NSBezierPath	*path = [NSBezierPath bezierPath];
-		[path moveToPoint:NSMakePoint(1.5, 15.5)];
-		[path lineToPoint:NSMakePoint(9.5, 0.5)];
-		[path lineToPoint:NSMakePoint(23.5, 0.5)];
-		[path lineToPoint:NSMakePoint(31.5, 15.5)];
-		[path lineToPoint:NSMakePoint(23.5, 30.5)];
-		[path lineToPoint:NSMakePoint(9.5, 30.5)];
-		[path lineToPoint:NSMakePoint(1.5, 15.5)];
-		[path closePath];
-		
-		NSAffineTransform	*transform = [NSAffineTransform transform];
-		[transform translateXBy:-1.0 yBy:1.0];
-		
-		image = [[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)];
-		[image lockFocus];
-			[[NSColor lightGrayColor] set];
-			[path fill];
-			
-			path = [transform transformBezierPath:path];
-			[[NSColor whiteColor] set];
-			[path fill];
-			[[NSColor blackColor] set];
-			[path stroke];
-		[image unlockFocus];
-	}
-	
-	return image;
-}
-
-
-+ (Class)editorClass
-{
-	return [MacOSaiXHexagonalTileShapesEditor class];
-}
-
-
-+ (Class)preferencesControllerClass
-{
-	return nil;
-}
 
 
 - (id)init
@@ -182,7 +133,7 @@
 }
 
 
-- (NSString *)briefDescription
+- (id)briefDescription
 {
 	return [NSString stringWithFormat:NSLocalizedString(@"%d by %d hexagons", @""), tilesAcross, tilesDown];
 }

@@ -9,17 +9,13 @@
 #import "MacOSaiXTileShapes.h"
 
 
-typedef enum { normalImageOrientation, radialInImageOrientation, radialOutImageOrientation } MacOSaiXImageOrientation;
-
-
 @interface MacOSaiXRectangularTileShape : NSObject <MacOSaiXTileShape>
 {
 	NSBezierPath	*outline;
-	float			imageOrientation;
 }
 
-+ (MacOSaiXRectangularTileShape *)tileShapeWithOutline:(NSBezierPath *)outline imageOrientation:(float)angle;
-- (id)initWithOutline:(NSBezierPath *)outline imageOrientation:(float)angle;
++ (MacOSaiXRectangularTileShape *)tileShapeWithOutline:(NSBezierPath *)outline;
+- (id)initWithOutline:(NSBezierPath *)outline;
 
 @end
 
@@ -28,9 +24,6 @@ typedef enum { normalImageOrientation, radialInImageOrientation, radialOutImageO
 {
 	unsigned int				tilesAcross, 
 								tilesDown;
-	
-	MacOSaiXImageOrientation	imageOrientationType;
-	NSPoint						imageOrientationFocusPoint;
 }
 
 - (void)setTilesAcross:(unsigned int)count;
@@ -38,11 +31,5 @@ typedef enum { normalImageOrientation, radialInImageOrientation, radialOutImageO
 
 - (void)setTilesDown:(unsigned int)count;
 - (unsigned int)tilesDown;
-
-- (void)setImageOrientationType:(MacOSaiXImageOrientation)orientation;
-- (MacOSaiXImageOrientation)imageOrientationType;
-
-- (void)setImageOrientationFocusPoint:(NSPoint)point;
-- (NSPoint)imageOrientationFocusPoint;
 
 @end

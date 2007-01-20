@@ -6,12 +6,8 @@
 //  Copyright 2006 Frank M. Midgley. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
 
-#import "MacOSaiXPreferencesController.h"
-
-
-@interface FlickrPreferencesController : NSObject <MacOSaiXPreferencesController>
+@interface MacOSaiXFlickrPreferencesController : NSObject <MacOSaiXPlugInPreferencesEditor>
 {
 	IBOutlet NSView			*mainView;
 	

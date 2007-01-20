@@ -6,8 +6,9 @@
 //  Copyright (c) 2003-2004 Frank M. Midgley. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
 #import "RectangularTileShapesEditor.h"
+
+#import "RectangularTileShapes.h"
 #import "NSString+MacOSaiX.h"
 
 
@@ -28,27 +29,25 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (id)initWithOriginalImage:(NSImage *)image
+- (id)initWithDelegate:(id<MacOSaiXDataSourceEditorDelegate>)inDelegate;
 {
 	if (self = [super init])
-	{
-		[originalImage release];
-		originalImage = [image retain];
-		originalImageSize = [originalImage size];
-	}
+		delegate = inDelegate;
 	
 	return self;
+}
+
+
+- (id<MacOSaiXDataSourceEditorDelegate>)delegate
+{
+	return delegate;
 }
 
 
 - (NSView *)editorView
 {
 	if (!editorView)
-	{
 		[NSBundle loadNibNamed:@"RectangularTileShapes" owner:self];
-		[imageOrientationView setImage:originalImage];
-		[imageOrientationView setDelegate:self];
-	}
 	
 	return editorView;
 }
@@ -82,15 +81,17 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (void)editTileShapes:(id<MacOSaiXTileShapes>)tilesSetup
+- (void)editDataSource:(id<MacOSaiXTileShapes>)tilesSetup
 {
 	[currentTileShapes autorelease];
 	currentTileShapes = [tilesSetup retain];
 	
-	minAspectRatio = (originalImageSize.width / [tilesAcrossSlider maxValue]) / 
-					 (originalImageSize.height / [tilesDownSlider minValue]);
-	maxAspectRatio = (originalImageSize.width / [tilesAcrossSlider minValue]) / 
-					 (originalImageSize.height / [tilesDownSlider maxValue]);
+	targetImageSize = [[[self delegate] targetImage] size];
+	
+	minAspectRatio = (targetImageSize.width / [tilesAcrossSlider maxValue]) / 
+					 (targetImageSize.height / [tilesDownSlider minValue]);
+	maxAspectRatio = (targetImageSize.width / [tilesAcrossSlider minValue]) / 
+					 (targetImageSize.height / [tilesDownSlider maxValue]);
 	
 		// Constrain the tiles across value to the stepper's range and update the model and view.
 	int	tilesAcross = MIN(MAX([currentTileShapes tilesAcross], [tilesAcrossSlider minValue]), [tilesAcrossSlider maxValue]);
@@ -107,10 +108,6 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	[tilesDownStepper setIntValue:tilesDown];
 	
 	[self setFixedSizeControlsBasedOnFreeformControls];
-	
-	[imageOrientationMatrix selectCellAtRow:[currentTileShapes imageOrientationType] column:0];
-	[imageOrientationView setOrientationType:[currentTileShapes imageOrientationType]];
-	[imageOrientationView setFocusPoint:[currentTileShapes imageOrientationFocusPoint]];
 }
 
 
@@ -136,14 +133,14 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 			minY = [tilesDownSlider minValue], 
 			maxX = [tilesAcrossSlider maxValue], 
 			maxY = [tilesDownSlider maxValue];
-	if (originalImageSize.height * minX * aspectRatio / originalImageSize.width < minY)
-		minX = originalImageSize.width * minY / aspectRatio / originalImageSize.height;
-	if (originalImageSize.width * minY / aspectRatio / originalImageSize.height < minX)
-		minY = minX * originalImageSize.height * aspectRatio / originalImageSize.width;
-	if (originalImageSize.height * maxX * aspectRatio / originalImageSize.width > maxY)
-		maxX = originalImageSize.width * maxY / aspectRatio / originalImageSize.height;
-	if (originalImageSize.width * maxY / aspectRatio / originalImageSize.height > maxX)
-		maxY = maxX * originalImageSize.height * aspectRatio / originalImageSize.width;
+	if (targetImageSize.height * minX * aspectRatio / targetImageSize.width < minY)
+		minX = targetImageSize.width * minY / aspectRatio / targetImageSize.height;
+	if (targetImageSize.width * minY / aspectRatio / targetImageSize.height < minX)
+		minY = minX * targetImageSize.height * aspectRatio / targetImageSize.width;
+	if (targetImageSize.height * maxX * aspectRatio / targetImageSize.width > maxY)
+		maxX = targetImageSize.width * maxY / aspectRatio / targetImageSize.height;
+	if (targetImageSize.width * maxY / aspectRatio / targetImageSize.height > maxX)
+		maxY = maxX * targetImageSize.height * aspectRatio / targetImageSize.width;
 	
 	int		tilesAcross = minX + (maxX - minX) * targetTileCount, 
 			tilesDown = minY + (maxY - minY) * targetTileCount;
@@ -161,8 +158,8 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 {
 	int		tilesAcross = [tilesAcrossSlider intValue], 
 			tilesDown = [tilesDownSlider intValue];
-	float	tileAspectRatio = (originalImageSize.width / tilesAcross) / 
-							  (originalImageSize.height / tilesDown);
+	float	tileAspectRatio = (targetImageSize.width / tilesAcross) / 
+							  (targetImageSize.height / tilesDown);
 	
 		// Update the tile size slider and pop-up.
 	if (tileAspectRatio < 1.0)
@@ -180,11 +177,11 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 			maxY = [tilesDownSlider maxValue], 
 			minTileCount = 0,
 			maxTileCount = 0;
-	if (originalImageSize.height * minX * tileAspectRatio / originalImageSize.width < minY)
+	if (targetImageSize.height * minX * tileAspectRatio / targetImageSize.width < minY)
 		minTileCount = minX * minX / tileAspectRatio;
 	else
 		minTileCount = minY * minY * tileAspectRatio;
-	if (originalImageSize.height * maxX * tileAspectRatio / originalImageSize.width < maxY)
+	if (targetImageSize.height * maxX * tileAspectRatio / targetImageSize.width < maxY)
 		maxTileCount = maxX * maxX / tileAspectRatio;
 	else
 		maxTileCount = maxY * maxY * tileAspectRatio;
@@ -205,7 +202,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[editorView window] sendEvent:nil];
+	[delegate plugInSettingsDidChange:NSLocalizedString(@"Change Tiles Across", @"")];
 }
 
 
@@ -222,7 +219,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[editorView window] sendEvent:nil];
+	[delegate plugInSettingsDidChange:NSLocalizedString(@"Change Tiles Down", @"")];
 }
 
 
@@ -252,7 +249,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[editorView window] sendEvent:nil];
+	[delegate plugInSettingsDidChange:NSLocalizedString(@"Change Tiles Size", @"")];
 }
 
 
@@ -265,54 +262,42 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[editorView window] sendEvent:nil];
+	[delegate plugInSettingsDidChange:NSLocalizedString(@"Change Number of Tiles", @"")];
 }
 
 
-
-- (IBAction)setImageOrientation:(id)sender
-{
-	[currentTileShapes setImageOrientationType:[imageOrientationMatrix selectedRow]];
-	[imageOrientationView setOrientationType:[imageOrientationMatrix selectedRow]];
-}
+//- (BOOL)settingsAreValid
+//{
+//	return YES;
+//}
 
 
-- (void)orientationViewDidChangeFocusPoint:(MacOSaiXRectangularTilesOrientationView *)orientationView
-{
-	[currentTileShapes setImageOrientationFocusPoint:[orientationView focusPoint]];
-}
+//- (int)tileCount
+//{
+//	return [tilesAcrossSlider intValue] * [tilesDownSlider intValue];
+//}
 
 
-- (BOOL)settingsAreValid
-{
-	return YES;
-}
+//- (id<MacOSaiXTileShape>)previewShape
+//{
+//	NSBezierPath	*previewPath = [NSBezierPath bezierPathWithRect:NSMakeRect(0.0, 0.0, 100.0, 100.0 / [self aspectRatio])];
+//	
+//	return [MacOSaiXRectangularTileShape tileShapeWithOutline:previewPath];
+//}
 
 
-- (int)tileCount
-{
-	return [tilesAcrossSlider intValue] * [tilesDownSlider intValue];
-}
-
-
-- (id<MacOSaiXTileShape>)previewShape
-{
-	NSBezierPath	*previewPath = [NSBezierPath bezierPathWithRect:NSMakeRect(0.0, 0.0, 100.0, 100.0 / [self aspectRatio])];
-	
-	return [MacOSaiXRectangularTileShape tileShapeWithOutline:previewPath imageOrientation:random() % 360];
-}
-
-
-- (void)editingComplete
+- (void)editingDidComplete
 {
 	[currentTileShapes release];
+	targetImageSize = NSMakeSize(1.0, 1.0);
+	
+	delegate = nil;
 }
 
 
 - (void)dealloc
 {
 	[editorView release];	// we are responsible for releasing any top-level objects in the nib
-	[originalImage release];
 	
 	[super dealloc];
 }

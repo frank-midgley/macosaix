@@ -8,13 +8,30 @@
 
 #import "FlickrImageSourceController.h"
 
+#import "FlickrImageSource.h"
 
-@interface FlickrImageSourceController (PrivateMethods)
+
+@interface MacOSaiXFlickrImageSourceEditor (PrivateMethods)
 - (void)getCountOfMatchingPhotos;
 @end
 
 
-@implementation FlickrImageSourceController
+@implementation MacOSaiXFlickrImageSourceEditor
+
+
+- (id)initWithDelegate:(id<MacOSaiXDataSourceEditorDelegate>)inDelegate;
+{
+	if (self = [super init])
+		delegate = inDelegate;
+	
+	return self;
+}
+
+
+- (id<MacOSaiXDataSourceEditorDelegate>)delegate
+{
+	return delegate;
+}
 
 
 - (NSView *)editorView
@@ -44,9 +61,9 @@
 }
 
 
-- (void)editImageSource:(id<MacOSaiXImageSource>)imageSource
+- (void)editDataSource:(id<MacOSaiXImageSource>)imageSource
 {
-	currentImageSource = (FlickrImageSource *)imageSource;
+	currentImageSource = (MacOSaiXFlickrImageSource *)imageSource;
 	
 	if ([currentImageSource queryString])
 	{
@@ -61,14 +78,15 @@
 }
 
 
-- (BOOL)settingsAreValid
-{
-	return ([[currentImageSource queryString] length] > 0);
-}
+//- (BOOL)settingsAreValid
+//{
+//	return ([[currentImageSource queryString] length] > 0);
+//}
 
 
-- (void)editingComplete
+- (void)editingDidComplete
 {
+	delegate = nil;
 }
 
 

@@ -6,20 +6,21 @@
 	Copyright (c) 2005 Frank M. Midgley. All rights reserved.
 */
 
-#import <Cocoa/Cocoa.h>
-#import "FlickrImageSource.h"
+@class MacOSaiXFlickrImageSource;
 
-@interface FlickrImageSourceController : NSObject <MacOSaiXImageSourceController>
+@interface MacOSaiXFlickrImageSourceEditor : NSObject <MacOSaiXDataSourceEditor>
 {
-	IBOutlet NSView					*editorView;
-	IBOutlet NSTextField			*queryField;
-	IBOutlet NSMatrix				*queryTypeMatrix;
+	id<MacOSaiXDataSourceEditorDelegate>	delegate;
 	
-	IBOutlet NSTextField			*matchingPhotosCount;
-	IBOutlet NSProgressIndicator	*matchingPhotosIndicator;
-	NSTimer							*matchingPhotosTimer;
+	IBOutlet NSView							*editorView;
+	IBOutlet NSTextField					*queryField;
+	IBOutlet NSMatrix						*queryTypeMatrix;
 	
-	FlickrImageSource				*currentImageSource;
+	IBOutlet NSTextField					*matchingPhotosCount;
+	IBOutlet NSProgressIndicator			*matchingPhotosIndicator;
+	NSTimer									*matchingPhotosTimer;
+	
+	MacOSaiXFlickrImageSource				*currentImageSource;
 }
 
 - (IBAction)visitFlickr:(id)sender;
