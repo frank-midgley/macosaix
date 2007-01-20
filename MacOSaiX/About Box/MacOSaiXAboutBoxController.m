@@ -10,6 +10,7 @@
 
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXMosaic.h"
+#import "MacOSaiXTileShapes.h"
 #import "MosaicView.h"
 
 #import <AddressBook/AddressBook.h>
@@ -44,7 +45,7 @@ static MacOSaiXAboutBoxController	*sharedController;
 	NSArray		*personNames = [personImages allKeys];
 	
 	NSString	*newPersonName = [personNames objectAtIndex:random() % [personNames count]];
-	[[mosaicView mosaic] setOriginalImage:[personImages objectForKey:newPersonName]];
+	[[mosaicView mosaic] setTargetImage:[personImages objectForKey:newPersonName]];
 
 	[mosaicView setToolTip:newPersonName];
 	
@@ -76,9 +77,7 @@ static MacOSaiXAboutBoxController	*sharedController;
 		[homePageButton setImage:browserIcon];
 	}
 	
-	[mosaicView setAllowsTileSelection:NO];
 	[mosaicView setBackgroundMode:clearMode];
-	[mosaicView setFade:1.0];
 	
 	MacOSaiXMosaic			*mosaic = [[[MacOSaiXMosaic alloc] init] autorelease];
 	[mosaic setImageUseCount:1];
