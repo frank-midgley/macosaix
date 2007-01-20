@@ -39,11 +39,12 @@ Riemersma metric:
 ¥	Streaming QT source
 ¥	Save a low-res version of the mosaic image in the document
 ¥	Add a default background mode pref
-¥	Allow specifying an original or hand-picked image by URL
+¥	Allow specifying a target or hand-picked image by URL
 	Flickr source:
 ¥		Show count remaining
 ¥	Allow image sources to be weighted
-¥	Investigate edge detecting original and weighting matches by tile detail
+¥	Investigate edge detecting target and weighting matches by tile detail
+¥	Auto-discover plug-ins x minutes after the last discovery or if the plug-ins folder was modified.
 
 
 2.0x To Do:
@@ -72,8 +73,8 @@ Riemersma metric:
 ¥		dialogs on secondary monitors not ordering out
 ¥		Don't really quit
 ¥	Enable cancelling of document load
-¥	Copy original image to doc bundle? or open mosaic read-only if original missing?
-¥	Preserve mosaic area (w*h) when changing original
+¥	Copy target image to doc bundle? or open mosaic read-only if target missing?
+¥	Preserve mosaic area (w*h) when changing target
 ¥	Save&restore background mode?
 ¥	Clear selected source when drawer closed
 ¥	Fade too bright at 50%
@@ -84,7 +85,7 @@ Riemersma metric:
 ¥	Keep tile tooltip from going offscreen
 ¥	Don't re-extract tile images when changing image reuse rules
 	Tile Editor
-¥		Show more of the original image
+¥		Show more of the target image
 ¥		Fetch description and URL off the main thread
 ¥		Fix the match percentage so at least some images are <90%
 ¥	Check if mosaic state should be paused or done on load
@@ -112,8 +113,8 @@ Riemersma metric:
 Ã	Replace image re-use distance pop-up with slider
 ¥	Clean up about box
 Ã	Tooltip for tile images
-¥	Lock down GUI when original image not loaded
-Ã	Store original image size in XML
+¥	Lock down GUI when target image not loaded
+Ã	Store target image size in XML
 Ã	Add "Report Crashes" option
 Ã	Break out tile editor into its own controller
 	Image source editor
