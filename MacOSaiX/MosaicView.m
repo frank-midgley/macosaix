@@ -7,11 +7,17 @@
 //
 
 #import "MosaicView.h"
+
+#import "MacOSaiXEditor.h"
 #import "MacOSaiXFullScreenWindow.h"
-#import "MacOSaiXWindowController.h"
 #import "MacOSaiXImageCache.h"
+#import "MacOSaiXImageOrientations.h"
+#import "MacOSaiXMosaic.h"
 #import "MacOSaiXTextFieldCell.h"
+#import "MacOSaiXTileShapes.h"
+#import "MacOSaiXWindowController.h"
 #import "NSImage+MacOSaiX.h"
+#import "Tiles.h"
 
 #import <Carbon/Carbon.h>
 #import <pthread.h>
@@ -20,11 +26,10 @@
 NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicViewDidChangeBusyStateNotification";
 
 @interface MosaicView (PrivateMethods)
-- (void)originalImageDidChange:(NSNotification *)notification;
+- (void)targetImageDidChange:(NSNotification *)notification;
 - (void)tileShapesDidChange:(NSNotification *)notification;
-- (void)updateTileOutlinesImage;
 - (void)createHighlightedImageSourcesOutline;
-- (NSRect)boundsForOriginalImage:(NSImage *)originalImage;
+- (NSRect)boundsForTargetImage:(NSImage *)targetImage;
 @end
 
 
@@ -39,9 +44,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		tileMatchTypesToRefresh = [[NSMutableArray alloc] init];
 		tileRefreshLock = [[NSLock alloc] init];
 		
-		backgroundMode = originalMode;
-		
-		allowsTileSelection = YES;
+		backgroundMode = targetMode;
 	}
 	
 	return self;
@@ -54,8 +57,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	backgroundImageLock = [[NSLock alloc] init];
 	tilesNeedingDisplay = [[NSMutableArray alloc] init];
 	tilesNeedDisplayLock = [[NSLock alloc] init];
-	
-	highlightedImageSourcesLock = [[NSLock alloc] init];
 }
 
 
@@ -72,8 +73,8 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		if (mosaic)
 		{
 			[[NSNotificationCenter defaultCenter] addObserver:self 
-													 selector:@selector(originalImageDidChange:) 
-														 name:MacOSaiXOriginalImageDidChangeNotification
+													 selector:@selector(targetImageDidChange:) 
+														 name:MacOSaiXTargetImageDidChangeNotification
 													   object:mosaic];
 			[[NSNotificationCenter defaultCenter] addObserver:self 
 													 selector:@selector(tileShapesDidChange:) 
@@ -85,7 +86,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 													   object:mosaic];
 		}
 		
-		[self originalImageDidChange:nil];
+		[self targetImageDidChange:nil];
 		[self tileShapesDidChange:nil];
 	}
 }
@@ -103,81 +104,79 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
-- (void)originalImageDidChange:(NSNotification *)notification
+- (void)targetImageDidChange:(NSNotification *)notification
 {
-	NSImage	*originalImage = [mosaic originalImage];
+	previousTargetImage = [[[notification userInfo] objectForKey:@"Previous Image"] retain];
 	
-		// Phase out the previous image.
-	if (previousOriginalImage && originalImage != previousOriginalImage)
+	if (previousTargetImage)
 	{
-		[originalFadeStartTime release];
-		originalFadeStartTime = [[NSDate alloc] init];
-		if ([originalFadeTimer isValid])
-			[originalFadeTimer invalidate];
-		[originalFadeTimer release];
-		originalFadeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1 
+		// Phase out the previous image.
+		
+		[targetFadeStartTime release];
+		targetFadeStartTime = [[NSDate alloc] init];
+		if ([targetFadeTimer isValid])
+			[targetFadeTimer invalidate];
+		[targetFadeTimer release];
+		targetFadeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.01 
 															  target:self 
-															selector:@selector(completeFadeToNewOriginalImage:) 
+															selector:@selector(fadeToNewTargetImage:) 
 															userInfo:nil 
 															 repeats:YES] retain];
 		
-			// De-queue any pending tile refreshes for the previous original image.
+			// De-queue any pending tile refreshes for the previous target image.
 		[tilesNeedDisplayLock lock];
 			[tilesNeedingDisplay removeAllObjects];
 		[tilesNeedDisplayLock unlock];
 	}
 	
 		// Phase in the new image.
-	if (!originalImage || originalImage != previousOriginalImage)
-	{
-			// Pick a size for the main and background images.
-			// (somewhat arbitrary but large enough for decent zooming)
-		float	bitmapSize = 10.0 * 1024.0 * 1024.0;
-		mainImageSize.width = floorf(sqrtf([mosaic aspectRatio] * bitmapSize));
-		mainImageSize.height = floorf(bitmapSize / mainImageSize.width);
+		// Pick a size for the main and background images.
+		// (somewhat arbitrary but large enough for decent zooming)
+	float	bitmapSize = 10.0 * 1024.0 * 1024.0;
+	mainImageSize.width = floorf(sqrtf([mosaic aspectRatio] * bitmapSize));
+	mainImageSize.height = floorf(bitmapSize / mainImageSize.width);
+	
+	[mainImageLock lock];
+			// Release the current main image.  A new one will be created later off the main thread.
+		[mainImage autorelease];
+		mainImage = nil;
 		
-		[mainImageLock lock];
-				// Release the current main image.  A new one will be created later off the main thread.
-			[mainImage autorelease];
-			mainImage = nil;
-			
-				// Set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined on a unit square)
-			[mainImageTransform autorelease];
-			mainImageTransform = [[NSAffineTransform alloc] init];
-			[mainImageTransform scaleXBy:mainImageSize.width yBy:mainImageSize.height];
-		[mainImageLock unlock];
-		
-			// Release the current background image.  A new one will be created later if needed off the main thread.
-		[backgroundImageLock lock];
-				[backgroundImage autorelease];
-				backgroundImage = nil;
-		[backgroundImageLock unlock];
-		
-		if (viewTileOutlines)
-			[self updateTileOutlinesImage];
-	}
+			// Set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined on a unit square)
+		[mainImageTransform autorelease];
+		mainImageTransform = [[NSAffineTransform alloc] init];
+		[mainImageTransform scaleXBy:mainImageSize.width yBy:mainImageSize.height];
+	[mainImageLock unlock];
+	
+		// Release the current background image.  A new one will be created later if needed off the main thread.
+	[backgroundImageLock lock];
+			[backgroundImage autorelease];
+			backgroundImage = nil;
+	[backgroundImageLock unlock];
 }
 
 
-- (void)setOriginalFadeTime:(float)seconds
+- (void)setTargetFadeTime:(float)seconds
 {
-	originalFadeTime = seconds;
+	targetFadeTime = seconds;
 }
 
 
-- (void)completeFadeToNewOriginalImage:(NSTimer *)timer
+- (void)fadeToNewTargetImage:(NSTimer *)timer
 {
-	if (!originalFadeStartTime || [[NSDate date] timeIntervalSinceDate:originalFadeStartTime] > originalFadeTime)
+	if (!targetFadeStartTime || [[NSDate date] timeIntervalSinceDate:targetFadeStartTime] > targetFadeTime)
 	{
 		[timer invalidate];
 		
-		if (timer == originalFadeTimer)
+		if (timer == targetFadeTimer)
 		{
-			[originalFadeTimer release];
-			originalFadeTimer = nil;
+			[targetFadeTimer release];
+			targetFadeTimer = nil;
+			
 			[self setNeedsDisplay:YES];
 		}
 	}
+	else if (timer == targetFadeTimer)
+		[self setNeedsDisplay:YES];
 }
 
 
@@ -239,9 +238,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 			[backgroundImage unlockFocus];
 		}
 	[backgroundImageLock unlock];
-	
-	if (viewTileOutlines)
-		[self updateTileOutlinesImage];
 	
 		// TODO: main thread?
 	[self setNeedsDisplay:YES];
@@ -322,13 +318,13 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		
 		if (tileToRefresh)
 		{
-			NSBezierPath		*rotatedOutline = [tileToRefresh rotatedOriginalOutline];
+			NSBezierPath		*rotatedOutline = [tileToRefresh rotatedTargetOutline];
 			
 			if (rotatedOutline)
 			{
 				NSAffineTransform	*transform = [NSAffineTransform transform];
 				[transform translateXBy:NSMidX([rotatedOutline bounds]) yBy:NSMidY([rotatedOutline bounds])];
-				[transform scaleBy:mainImageSize.width / [[mosaic originalImage] size].width];
+				[transform scaleBy:mainImageSize.width / [[mosaic targetImage] size].width];
 				[transform translateXBy:-NSMidX([rotatedOutline bounds]) yBy:-NSMidY([rotatedOutline bounds])];
 				NSBezierPath		*mainOutline = [transform transformBezierPath:rotatedOutline];
 				
@@ -475,16 +471,16 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		NSImageRep			*imageRep = [tileDict objectForKey:@"Image Rep"];
 		BOOL				redrawMain = [[tileDict objectForKey:@"Layer"] isEqualToString:@"Main"];
 		NSBezierPath		*clipPath = [mainImageTransform transformBezierPath:[tile unitOutline]], 
-							*originalOutline = [tile originalOutline];
-		NSRect				originalBounds = [originalOutline bounds];
-
+							*targetOutline = [tile targetOutline];
+		NSRect				targetBounds = [targetOutline bounds];
+		
 			// Rotate the outline to offset the tile's image orientation.
 		NSAffineTransform	*transform = [NSAffineTransform transform];
 		[transform translateXBy:NSMidX([clipPath bounds]) yBy:NSMidY([clipPath bounds])];
-		[transform scaleBy:mainImageSize.width / [[mosaic originalImage] size].width];
+		[transform scaleBy:mainImageSize.width / [[mosaic targetImage] size].width];
 		[transform rotateByDegrees:-[tile imageOrientation]];
-		[transform translateXBy:-NSMidX(originalBounds) yBy:-NSMidY(originalBounds)];
-		NSBezierPath		*rotatedOutline = [transform transformBezierPath:originalOutline];
+		[transform translateXBy:-NSMidX(targetBounds) yBy:-NSMidY(targetBounds)];
+		NSBezierPath		*rotatedOutline = [transform transformBezierPath:targetOutline];
 		NSRect				rotatedBounds = [rotatedOutline bounds];
 		
 		BOOL				widthLimited = (([imageRep size].width / NSWidth(rotatedBounds)) < 
@@ -601,7 +597,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 - (void)setTilesNeedDisplay:(NSTimer *)timer
 {
-	NSRect				mosaicBounds = [self boundsForOriginalImage:[mosaic originalImage]];
+	NSRect				mosaicBounds = [self boundsForTargetImage:[mosaic targetImage]];
 	NSAffineTransform	*transform = [NSAffineTransform transform];
 	[transform translateXBy:NSMinX(mosaicBounds) yBy:NSMinY(mosaicBounds)];
 	[transform scaleXBy:NSWidth(mosaicBounds) yBy:NSHeight(mosaicBounds)];
@@ -620,11 +616,11 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
-- (void)setFade:(float)fade;
+- (void)setTargetImageFraction:(float)fraction
 {
-	if (viewFade != fade)
+	if (targetImageFraction != fraction)
 	{
-		viewFade = fade;
+		targetImageFraction = fraction;
 		
 		[self setNeedsDisplay:YES];
 		
@@ -633,71 +629,9 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
-- (float)fade
+- (float)targetImageFraction
 {
-    return viewFade;
-}
-
-
-- (void)updateTileOutlinesImage
-{
-	NSEnumerator		*tileEnumerator = nil;
-	MacOSaiXTile		*tile = nil;
-	NSAffineTransform	*darkenTransform = [NSAffineTransform transform], 
-						*lightenTransform = [NSAffineTransform transform];
-	
-	[darkenTransform translateXBy:1.0 yBy:-1.0];
-	[darkenTransform scaleXBy:mainImageSize.width yBy:mainImageSize.height];
-	[lightenTransform translateXBy:0.0 yBy:0.0];
-	[lightenTransform scaleXBy:mainImageSize.width yBy:mainImageSize.height];
-	
-	[tileOutlinesImage release];
-	tileOutlinesImage = [[NSImage alloc] initWithSize:mainImageSize];
-	[tileOutlinesImage lockFocus];
-		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];	// darken
-		tileEnumerator = [[mosaic tiles] objectEnumerator];
-		while (tile = [tileEnumerator nextObject])
-		{
-			NSBezierPath	*transformedPath = [darkenTransform transformBezierPath:[tile unitOutline]];
-			[transformedPath setLineWidth:3.0];
-			[transformedPath stroke];
-		}
-		
-		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
-		tileEnumerator = [[mosaic tiles] objectEnumerator];
-		while (tile = [tileEnumerator nextObject])
-		{
-			NSBezierPath	*transformedPath = [lightenTransform transformBezierPath:[tile unitOutline]];
-			[transformedPath setLineWidth:3.0];
-			[transformedPath stroke];
-		}
-		[tileOutlinesImage unlockFocus];
-}
-
-
-- (void)setViewTileOutlines:(BOOL)inViewTileOutlines
-{
-	if (inViewTileOutlines != viewTileOutlines)
-	{
-		viewTileOutlines = inViewTileOutlines;
-		
-		if (viewTileOutlines)
-			[self updateTileOutlinesImage];
-		else
-		{
-			[tileOutlinesImage release];
-			tileOutlinesImage = nil;
-		}
-		
-		[self setNeedsDisplay:YES];
-	}
-	
-}
-
-	
-- (BOOL)viewTileOutlines;
-{
-	return viewTileOutlines;
+    return targetImageFraction;
 }
 
 
@@ -775,11 +709,11 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
-- (NSRect)boundsForOriginalImage:(NSImage *)originalImage
+- (NSRect)boundsForTargetImage:(NSImage *)targetImage
 {
 	NSRect	viewBounds = [self bounds],
 			mosaicBounds = viewBounds;
-	NSSize	imageSize = [originalImage size];
+	NSSize	imageSize = [targetImage size];
 	
 	if ((NSWidth(viewBounds) / imageSize.width) < (NSHeight(viewBounds) / imageSize.height))
 	{
@@ -796,24 +730,16 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
+- (NSRect)imageBounds
+{
+	return [self boundsForTargetImage:[mosaic targetImage]];
+}
+
+
 - (void)drawRect:(NSRect)theRect
 {
-	float	originalFade = 1.0;
-	if (originalFadeStartTime)
-	{
-		originalFade = ([[NSDate date] timeIntervalSinceDate:originalFadeStartTime] / originalFadeTime);
-		if (originalFade > 1.0)
-			originalFade = 1.0;
-	}
-	if (originalFade == 1.0)
-	{
-		[previousOriginalImage release];
-		previousOriginalImage = [[mosaic originalImage] retain];
-		[originalFadeStartTime release];
-		originalFadeStartTime = nil;
-	}
-	
-	BOOL	drawLoRes = ([self inLiveResize] || inLiveRedraw || originalFade < 1.0);
+	BOOL			targetImageIsChanging = (previousTargetImage != nil), 
+					drawLoRes = ([self inLiveResize] || inLiveRedraw || targetImageIsChanging);
 	[[NSGraphicsContext currentContext] setImageInterpolation:drawLoRes ? NSImageInterpolationNone : NSImageInterpolationHigh];
 	
 		// Get the list of rectangles that need to be redrawn.
@@ -829,10 +755,25 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		drawRectCount = 1;
 	}
 	
-	NSImage	*originalImage = [mosaic originalImage];
-	NSRect	mosaicBounds = [self boundsForOriginalImage:originalImage], 
-			previousMosaicBounds = (originalFade < 1.0) ? [self boundsForOriginalImage:previousOriginalImage] : NSZeroRect;
-	int		index = 0;
+	float	previousTargetFraction = 0.0;
+	if (targetFadeStartTime)
+	{
+		previousTargetFraction = 1.0 - ([[NSDate date] timeIntervalSinceDate:targetFadeStartTime] / targetFadeTime);
+		if (previousTargetFraction < 0.0)
+			previousTargetFraction = 0.0;
+	}
+	if (previousTargetFraction == 0.0)
+	{
+		[previousTargetImage release];
+		previousTargetImage = nil;
+		[targetFadeStartTime release];
+		targetFadeStartTime = nil;
+	}
+					
+		// Redraw the image layers within the rects to update.
+	NSImage			*targetImage = [mosaic targetImage];
+	NSRect			mosaicBounds = [self boundsForTargetImage:targetImage];
+	int				index = 0;
 	for (; index < drawRectCount; index++)
 	{
 		NSRect	drawRect = NSIntersectionRect(drawRects[index], mosaicBounds), 
@@ -840,61 +781,73 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 										   (NSMinY(drawRect) - NSMinY(mosaicBounds)) / NSHeight(mosaicBounds), 
 										   NSWidth(drawRect) / NSWidth(mosaicBounds), 
 										   NSHeight(drawRect) / NSHeight(mosaicBounds)), 
-				originalRect = NSMakeRect(NSMinX(drawUnitRect) * [originalImage size].width, 
-										  NSMinY(drawUnitRect) * [originalImage size].height, 
-										  NSWidth(drawUnitRect) * [originalImage size].width,
-										  NSHeight(drawUnitRect) * [originalImage size].height), 
+				targetRect = NSMakeRect(NSMinX(drawUnitRect) * [targetImage size].width, 
+										NSMinY(drawUnitRect) * [targetImage size].height, 
+										NSWidth(drawUnitRect) * [targetImage size].width,
+										NSHeight(drawUnitRect) * [targetImage size].height), 
 				mainImageRect = NSMakeRect(NSMinX(drawUnitRect) * mainImageSize.width, 
 										   NSMinY(drawUnitRect) * mainImageSize.height, 
 										   NSWidth(drawUnitRect) * mainImageSize.width,
-										   NSHeight(drawUnitRect) * mainImageSize.height), 
-				previousDrawRect = NSIntersectionRect(drawRects[index], previousMosaicBounds), 
-				previousDrawUnitRect = NSMakeRect((NSMinX(previousDrawRect) - NSMinX(previousMosaicBounds)) / NSWidth(previousMosaicBounds), 
-												  (NSMinY(previousDrawRect) - NSMinY(previousMosaicBounds)) / NSHeight(previousMosaicBounds), 
-												  NSWidth(previousDrawRect) / NSWidth(previousMosaicBounds), 
-												  NSHeight(previousDrawRect) / NSHeight(previousMosaicBounds)), 
-				previousOriginalRect = NSMakeRect(NSMinX(previousDrawUnitRect) * [previousOriginalImage size].width, 
-												  NSMinY(previousDrawUnitRect) * [previousOriginalImage size].height, 
-												  NSWidth(previousDrawUnitRect) * [previousOriginalImage size].width,
-												  NSHeight(previousDrawUnitRect) * [previousOriginalImage size].height);
+										   NSHeight(drawUnitRect) * mainImageSize.height);
 		
-			// Draw the user selected background.
-		switch (backgroundMode)
+		if (backgroundMode == targetMode || targetImageFraction > 0.0)
 		{
-			case originalMode:
-				[originalImage drawInRect:drawRect 
-								 fromRect:originalRect 
-								operation:NSCompositeSourceOver 
-								 fraction:1.0];
-				break;
-			case blackMode:
-				[[NSColor colorWithDeviceWhite:0.0 alpha:1.0] set];
-				NSRectFill(drawRect);
-				break;
-			default:
-				;	// TODO: draw a user specified solid color...
+			if (targetImageIsChanging && previousTargetFraction > 0.0)
+			{
+					// Animate the previous target turning into the current target.
+				NSRect	previousMosaicBounds = [self boundsForTargetImage:previousTargetImage],
+						previousDrawRect = NSIntersectionRect(drawRects[index], previousMosaicBounds), 
+						previousDrawUnitRect = NSMakeRect((NSMinX(previousDrawRect) - NSMinX(previousMosaicBounds)) / NSWidth(previousMosaicBounds), 
+														  (NSMinY(previousDrawRect) - NSMinY(previousMosaicBounds)) / NSHeight(previousMosaicBounds), 
+														  NSWidth(previousDrawRect) / NSWidth(previousMosaicBounds), 
+														  NSHeight(previousDrawRect) / NSHeight(previousMosaicBounds)), 
+						previousTargetRect = NSMakeRect(NSMinX(previousDrawUnitRect) * [previousTargetImage size].width, 
+														  NSMinY(previousDrawUnitRect) * [previousTargetImage size].height, 
+														  NSWidth(previousDrawUnitRect) * [previousTargetImage size].width,
+														  NSHeight(previousDrawUnitRect) * [previousTargetImage size].height);
+				
+				[previousTargetImage drawInRect:previousDrawRect 
+										 fromRect:previousTargetRect 
+										operation:NSCompositeSourceOver 
+										 fraction:previousTargetFraction];
+				
+				[[mosaic targetImage] drawInRect:drawRect 
+										  fromRect:targetRect 
+										 operation:NSCompositeSourceOver 
+										  fraction:1.0 - previousTargetFraction];
+			}
+			else if ([mosaic targetImage])
+			{
+					// Draw just the current target image.
+				[[mosaic targetImage] drawInRect:drawRect 
+										  fromRect:targetRect 
+										 operation:NSCompositeSourceOver 
+										  fraction:targetImageFraction];
+			}
+			else
+			{
+				NSString		*noTargetMessage = NSLocalizedString(@"No target image has been selected.", @"");
+				NSDictionary	*attributes = [NSDictionary dictionaryWithObject:[NSColor blackColor] 
+																		  forKey:NSFontColorAttribute];
+				NSSize			stringSize = [noTargetMessage sizeWithAttributes:attributes];
+					
+				[noTargetMessage drawAtPoint:NSMakePoint(NSMidX([self bounds]) - stringSize.width / 2.0, 
+														 NSMidY([self bounds]) - stringSize.height / 2.0) 
+							  withAttributes:attributes];
+			}
+		}
+		else if (backgroundMode == blackMode)
+		{
+			[[NSColor colorWithDeviceWhite:0.0 alpha:1.0] set];
+			NSRectFill(drawRect);
 		}
 		
-			// Draw the mosaic itself.
 		[mainImageLock lock];
 			[mainImage drawInRect:drawRect 
 						 fromRect:mainImageRect 
 						operation:NSCompositeSourceOver 
-						 fraction:viewFade];
+						 fraction:1.0 - targetImageFraction];
 		[mainImageLock unlock];
-		
-			// Overlay the faded original if appropriate and if it's not already there.
-		if (viewFade < 1.0 && backgroundMode == originalMode)
-		{
-			[previousOriginalImage drawInRect:previousDrawRect 
-									 fromRect:previousOriginalRect 
-									operation:NSCompositeSourceOver 
-									 fraction:(1.0 - viewFade) * (1.0 - originalFade)];
-			[[mosaic originalImage] drawInRect:drawRect 
-									  fromRect:originalRect 
-									 operation:NSCompositeSourceOver 
-									  fraction:(1.0 - viewFade) * originalFade];
-		}
 		
 		if (showNonUniqueMatches)
 		{
@@ -902,84 +855,11 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 				[backgroundImage drawInRect:drawRect 
 								   fromRect:mainImageRect 
 								  operation:NSCompositeSourceOver 
-								   fraction:viewFade];
+								   fraction:1.0 - targetImageFraction];
 			[backgroundImageLock unlock];
 		}
 		
-		if (viewTileOutlines && !drawLoRes)
-			[tileOutlinesImage drawInRect:drawRect 
-								 fromRect:mainImageRect 
-								operation:NSCompositeSourceOver 
-								 fraction:1.0];
-		
-	}
-	
-		// Highlight the selected image sources.
-	[highlightedImageSourcesLock lock];
-	if (highlightedImageSourcesOutline && !drawLoRes)
-	{
-		NSSize				boundsSize = mosaicBounds.size;
-		NSAffineTransform	*transform = [NSAffineTransform transform];
-		[transform translateXBy:0.5 yBy:0.5];
-		[transform scaleXBy:boundsSize.width yBy:boundsSize.height];
-		NSBezierPath		*transformedOutline = [transform transformBezierPath:highlightedImageSourcesOutline];
-		
-			// Lighten the tiles not displaying images from the highlighted image sources.
-		NSBezierPath		*lightenOutline = [NSBezierPath bezierPath];
-		[lightenOutline moveToPoint:NSMakePoint(0, 0)];
-		[lightenOutline lineToPoint:NSMakePoint(0, boundsSize.height)];
-		[lightenOutline lineToPoint:NSMakePoint(boundsSize.width, boundsSize.height)];
-		[lightenOutline lineToPoint:NSMakePoint(boundsSize.width, 0)];
-		[lightenOutline closePath];
-		[lightenOutline appendBezierPath:transformedOutline];
-		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
-		[lightenOutline fill];
-		
-			// Darken the outline of the tile.
-		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
-		[transformedOutline stroke];
-	}
-	[highlightedImageSourcesLock unlock];
-	
-		// Highlight the selected tile.
-	if (highlightedTile)
-	{
-		float	minX = NSMinX(mosaicBounds), 
-				minY = NSMinY(mosaicBounds), 
-				width = NSWidth(mosaicBounds), 
-				height = NSHeight(mosaicBounds);
-		
-			// Draw the tile's outline with a 4pt thick dashed line.
-		NSAffineTransform	*transform = [NSAffineTransform transform];
-		[transform translateXBy:minX yBy:minY];
-		[transform scaleXBy:width yBy:height];
-		NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile unitOutline]];
-		[bezierPath setLineWidth:4];
-		
-		float				dashes[2] = {5.0, 5.0};
-		[bezierPath setLineDash:dashes count:2 phase:phase];
-		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
-		[bezierPath stroke];
-		
-		[bezierPath setLineDash:dashes count:2 phase:(phase + 5) % 10];
-		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
-		[bezierPath stroke];
-		
-		// Make sure to draw the tile's outline which gives the animated highlight a 3-D look.
-		if (!viewTileOutlines)
-		{
-			transform = [NSAffineTransform transform];
-			[transform translateXBy:minX + 0.5 yBy:minY - 0.5];
-			[transform scaleXBy:width yBy:height];
-			[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];	// darken
-			[[transform transformBezierPath:[highlightedTile unitOutline]] stroke];
-			
-			transform = [NSAffineTransform transform];
-			[transform translateXBy:minX - 0.5 yBy:minY + 0.5];
-			[transform scaleXBy:width yBy:height];
-			[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
-			[[transform transformBezierPath:[highlightedTile unitOutline]] stroke];
-		}
+		[activeEditor embellishMosaicViewInRect:drawRect];
 	}
 }
 
@@ -1017,6 +897,28 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	[nibWindow release];
 	
 	[imageSourceTextField setCell:[[[MacOSaiXTextFieldCell alloc] initTextCell:@""] autorelease]];
+}
+
+
+#pragma mark -
+#pragma mark Active Editor
+
+
+- (void)setActiveEditor:(MacOSaiXEditor *)editor
+{
+	if (editor != activeEditor)
+	{
+		[activeEditor release];
+		activeEditor = [editor retain];
+		
+		[self setNeedsDisplay:YES];
+	}
+}
+
+
+- (MacOSaiXEditor *)activeEditor
+{
+	return activeEditor;
 }
 
 
@@ -1091,7 +993,9 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 - (void)updateTooltip:(NSTimer *)timer
 {
-	if (tooltipTile || GetCurrentEventTime() > [[[self window] currentEvent] timestamp] + 1)
+	if (![[self window] isMainWindow] || [[self window] attachedSheet])
+		[self setTooltipsEnabled:NO animateHiding:YES];
+	else if (tooltipTile || GetCurrentEventTime() > [[[self window] currentEvent] timestamp] + 1)
 	{
 		NSPoint					screenPoint = [NSEvent mouseLocation],
 								windowPoint = [[self window] convertScreenToBase:screenPoint];
@@ -1124,7 +1028,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 				[sourceImage setSize:NSMakeSize(32.0, 32.0 * [sourceImage size].height / [sourceImage size].width)];
 				[imageSourceImageView setImage:sourceImage];
 				
-				id						sourceDescription = [imageSource descriptor];
+				id						sourceDescription = [imageSource briefDescription];
 				if ([sourceDescription isKindOfClass:[NSAttributedString class]])
 					[imageSourceTextField setAttributedStringValue:sourceDescription];
 				else if ([sourceDescription isKindOfClass:[NSString class]])
@@ -1221,116 +1125,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 
 #pragma mark -
-#pragma mark Highlight methods
-
-
-- (void)setAllowsTileSelection:(BOOL)flag
-{
-	if (!flag)
-		[self setHighlightedTile:nil];
-	
-	allowsTileSelection = flag;
-}
-
-
-- (BOOL)allowsTileSelection
-{
-	return allowsTileSelection;
-}
-
-
-- (void)setHighlightedTile:(MacOSaiXTile *)tile
-{
-	NSRect				mosaicBounds = [self boundsForOriginalImage:[mosaic originalImage]];
-    NSAffineTransform	*transform = [NSAffineTransform transform];
-	[transform translateXBy:NSMinX(mosaicBounds) yBy:NSMinY(mosaicBounds)];
-	[transform scaleXBy:NSWidth(mosaicBounds) yBy:NSHeight(mosaicBounds)];
-	
-    if (highlightedTile)
-    {
-			// Mark the previously highlighted area for re-display.
-		NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile unitOutline]];
-		[self setNeedsDisplayInRect:NSInsetRect([bezierPath bounds], -2.0, -2.0)];
-	}
-	
-	[highlightedTile autorelease];
-	highlightedTile = [tile retain];
-	
-    if (highlightedTile)
-    {
-			// Mark the newly highlighted area for re-display.
-		NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile unitOutline]];
-		[self setNeedsDisplayInRect:NSInsetRect([bezierPath bounds], -2.0, -2.0)];
-	}
-}
-
-
-- (MacOSaiXTile *)highlightedTile
-{
-	return highlightedTile;
-}
-
-
-- (void)createHighlightedImageSourcesOutline
-{
-	NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
-	MacOSaiXTile	*tile = nil;
-	while (tile = [tileEnumerator nextObject])
-	{
-		id<MacOSaiXImageSource>	displayedSource = [[tile userChosenImageMatch] imageSource];
-		if (!displayedSource)
-			displayedSource = [[tile uniqueImageMatch] imageSource];
-		if (!displayedSource && showNonUniqueMatches)
-			displayedSource = [[tile bestImageMatch] imageSource];
-		
-		if (displayedSource && [highlightedImageSources containsObject:displayedSource])
-		{
-			if (!highlightedImageSourcesOutline)
-				highlightedImageSourcesOutline = [[NSBezierPath bezierPath] retain];
-			[highlightedImageSourcesOutline appendBezierPath:[tile unitOutline]];
-		}
-	}
-}
-
-
-- (void)highlightImageSources:(NSArray *)imageSources
-{
-	[highlightedImageSourcesLock lock];
-		if (highlightedImageSourcesOutline)
-			[self setNeedsDisplay:YES];
-		
-		[highlightedImageSources release];
-		highlightedImageSources = [imageSources retain];
-		
-		[highlightedImageSourcesOutline release];
-		highlightedImageSourcesOutline = nil;
-		
-			// Create a combined path for all tiles of our document that are not
-			// currently displaying an image from any of the sources.
-		if ([imageSources count] > 0)
-			[self createHighlightedImageSourcesOutline];
-		
-		if (highlightedImageSourcesOutline)
-			[self setNeedsDisplay:YES];
-	[highlightedImageSourcesLock unlock];
-}
-
-
-- (void)animateHighlightedTile:(NSTimer *)timer
-{
-    phase = ++phase % 10;
-	
-	NSRect				mosaicBounds = [self boundsForOriginalImage:[mosaic originalImage]];
-    NSAffineTransform	*transform = [NSAffineTransform transform];
-	[transform translateXBy:NSMinX(mosaicBounds) yBy:NSMinY(mosaicBounds)];
-	[transform scaleXBy:NSWidth(mosaicBounds) yBy:NSHeight(mosaicBounds)];
-    NSBezierPath		*bezierPath = [transform transformBezierPath:[highlightedTile unitOutline]];
-
-    [self setNeedsDisplayInRect:NSInsetRect([bezierPath bounds], -2.0, -2.0)];
-}
-
-
-#pragma mark -
 
 
 - (NSImage *)image
@@ -1339,7 +1133,14 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
-- (void)mouseDown:(NSEvent *)theEvent
+- (void)mouseEntered:(NSEvent *)event
+{
+	if ([[self window] isKeyWindow] && ![[self window] attachedSheet])
+		[self setTooltipsEnabled:YES animateHiding:YES];
+}
+
+
+- (void)mouseDown:(NSEvent *)event
 {
 	if (tooltipTile)
 	{
@@ -1347,51 +1148,19 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		tooltipTile = nil;
 	}
 	
-	MacOSaiXTile	*clickedTile = [self tileAtPoint:[self convertPoint:[theEvent locationInWindow] fromView:nil]];
-	
-	if ([theEvent clickCount] == 1 && [self allowsTileSelection])
-	{
-			// Change the selection.
-		if (clickedTile == highlightedTile)
-		{
-			[self setHighlightedTile:nil];
-			
-				// Get rid of the timer when no tile is selected.
-			[animateHighlightedTileTimer invalidate];
-			[animateHighlightedTileTimer release];
-			animateHighlightedTileTimer = nil;
-		}
-		else
-		{
-			[self setHighlightedTile:clickedTile];
-			
-			if (!animateHighlightedTileTimer)
-			{
-					// Create a timer to animate the selected tile ten times per second.
-				animateHighlightedTileTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1
-																				target:(id)self
-																			  selector:@selector(animateHighlightedTile:)
-																			  userInfo:nil
-																			   repeats:YES] retain];
-			}
-		}
-	}
-	else if ([theEvent clickCount] == 2)
-	{
-			// Edit the tile.
-		[self setHighlightedTile:clickedTile];
-		
-		MacOSaiXWindowController	*controller = [[self window] windowController];
-		if ([controller isKindOfClass:[MacOSaiXWindowController class]])
-			[controller chooseImageForSelectedTile:self];
-	}
+	[activeEditor handleEventInMosaicView:event];
 }
 
 
-- (void)mouseEntered:(NSEvent *)event
+- (void)mouseDragged:(NSEvent *)event
 {
-	if ([[self window] isKeyWindow] && ![[self window] attachedSheet])
-		[self setTooltipsEnabled:YES animateHiding:YES];
+	[activeEditor handleEventInMosaicView:event];
+}
+
+
+- (void)mouseUp:(NSEvent *)event
+{
+	[activeEditor handleEventInMosaicView:event];
 }
 
 
@@ -1457,20 +1226,10 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 - (NSMenu *)menuForEvent:(NSEvent *)event;
 {
-	if ([self allowsTileSelection])
-	{
-		[self setHighlightedTile:[self tileAtPoint:[self convertPoint:[event locationInWindow] fromView:nil]]];
-		
-		if (!contextualMenu)
-			[self loadNib];
-		
-		return contextualMenu;
-	}
-	else
-	{
-		[self setHighlightedTile:nil];
-		return nil;
-	}
+	if (!contextualMenu)
+		[self loadNib];
+	
+	return contextualMenu;
 }
 
 
@@ -1487,27 +1246,22 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	
 //	[self tileShapesDidChange:nil];
 	
-	if ([originalFadeTimer isValid])
-		[originalFadeTimer invalidate];
-	[originalFadeTimer release];
-	if ([animateHighlightedTileTimer isValid])
-		[animateHighlightedTileTimer invalidate];
-	[animateHighlightedTileTimer release];
+	if ([targetFadeTimer isValid])
+		[targetFadeTimer invalidate];
+	[targetFadeTimer release];
 	if ([tilesNeedDisplayTimer isValid])
 		[tilesNeedDisplayTimer invalidate];
 	[tilesNeedDisplayTimer release];
 	
 	[self setTooltipsEnabled:NO animateHiding:NO];
 	
+	[activeEditor release];
+	
 	[mainImage release];
 	[mainImageLock release];
 	[mainImageTransform release];
 	[backgroundImage release];
 	[backgroundImageLock release];
-	[tileOutlinesImage release];
-	[highlightedImageSources release];
-	[highlightedImageSourcesLock release];
-	[highlightedImageSourcesOutline release];
 	[contextualMenu release];
 	if ([tilesNeedDisplayTimer isValid])
 		[tilesNeedDisplayTimer invalidate];
@@ -1515,8 +1269,8 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	[tilesNeedingDisplay release];
 	[tilesToRefresh release];
 	[tileMatchTypesToRefresh release];
-	[previousOriginalImage release];
-
+	[previousTargetImage release];
+	
 	[mosaic release];
 	mosaic = nil;
 
