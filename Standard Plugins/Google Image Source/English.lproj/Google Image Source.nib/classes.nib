@@ -2,14 +2,24 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            ACTIONS = {setAdultContentFiltering = id; setColorSpace = id; }; 
-            CLASS = GoogleImageSourceController; 
+            ACTIONS = {
+                cancelMoreOptions = id; 
+                saveMoreOptions = id; 
+                setKeywordsMatching = id; 
+                showMoreOptions = id; 
+            }; 
+            CLASS = MacOSaiXGoogleImageSourceEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 adultContentFilteringPopUpButton = NSPopUpButton; 
                 colorSpacePopUpButton = NSPopUpButton; 
                 editorView = NSView; 
                 excludedTermsTextField = NSTextField; 
+                keywordsMatchingMatrix = NSMatrix; 
+                keywordsTextField = NSTextField; 
+                moreOptionsPanel = NSPanel; 
+                moreOptionsTextFIield = NSTextField; 
+                okButton = NSButton; 
                 optionalTermsTextField = NSTextField; 
                 requiredTermsTextField = NSTextField; 
                 siteTextField = NSTextField; 

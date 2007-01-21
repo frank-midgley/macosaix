@@ -8,20 +8,21 @@
 
 #import "GooglePreferencesController.h"
 #import "GoogleImageSource.h"
+#import "GoogleImageSourcePlugIn.h"
 #import <sys/mount.h>
 
 
-@implementation GooglePreferencesController
+@implementation MacOSaiXGooglePreferencesEditor
 
 
-- (NSView *)mainView
+- (NSView *)editorView
 {
-	if (!mainView)
+	if (!editorView)
 		[[NSBundle bundleForClass:[self class]] loadNibFile:@"Preferences" 
 										  externalNameTable:[NSDictionary dictionaryWithObject:self forKey:@"NSOwner"] 
 												   withZone:[self zone]];
 	
-	return mainView;
+	return editorView;
 }
 
 
@@ -40,10 +41,10 @@
 - (void)willSelect
 {
 		// Make sure the nib is loaded.
-	[self mainView];
+	[self editorView];
 	
-	unsigned long long	maxCacheSize = [GoogleImageSource maxCacheSize], 
-						minFreeSpace = [GoogleImageSource minFreeSpace];
+	unsigned long long	maxCacheSize = [MacOSaiXGoogleImageSourcePlugIn maxCacheSize], 
+						minFreeSpace = [MacOSaiXGoogleImageSourcePlugIn minFreeSpace];
 
 	NSEnumerator		*magnitudeEnumerator = [[maxCacheSizePopUp itemArray] reverseObjectEnumerator];
 	NSMenuItem			*item = nil;
@@ -74,7 +75,7 @@
 	
 		// Get the name and icon of the volume the cache lives on.
 	struct statfs	fsStruct;
-	statfs([[[GoogleImageSource class] imageCachePath] fileSystemRepresentation], &fsStruct);
+	statfs([[MacOSaiXGoogleImageSourcePlugIn imageCachePath] fileSystemRepresentation], &fsStruct);
 	NSString		*volumeRootPath = [NSString stringWithCString:fsStruct.f_mntonname];
 	[volumeImageView setImage:[[NSWorkspace sharedWorkspace] iconForFile:volumeRootPath]];
 	[volumeNameField setStringValue:[[NSFileManager defaultManager] displayNameAtPath:volumeRootPath]];
@@ -88,28 +89,28 @@
 
 - (IBAction)setMaxCacheSizeMagnitude:(id)sender
 {
-	[GoogleImageSource setMaxCacheSize:[maxCacheSizeField intValue] * powf(2.0, [[maxCacheSizePopUp selectedItem] tag])];
+	[MacOSaiXGoogleImageSourcePlugIn setMaxCacheSize:[maxCacheSizeField intValue] * powf(2.0, [[maxCacheSizePopUp selectedItem] tag])];
 }
 
 
 - (IBAction)setMinFreeSpaceMagnitude:(id)sender
 {
-	[GoogleImageSource setMinFreeSpace:[minFreeSpaceField intValue] * powf(2.0, [[minFreeSpacePopUp selectedItem] tag])];
+	[MacOSaiXGoogleImageSourcePlugIn setMinFreeSpace:[minFreeSpaceField intValue] * powf(2.0, [[minFreeSpacePopUp selectedItem] tag])];
 }
 
 
 - (void)controlTextDidChange:(NSNotification *)notification
 {
 	if ([notification object] == maxCacheSizeField)
-		[GoogleImageSource setMaxCacheSize:[maxCacheSizeField intValue] * powf(2.0, [[maxCacheSizePopUp selectedItem] tag])];
+		[MacOSaiXGoogleImageSourcePlugIn setMaxCacheSize:[maxCacheSizeField intValue] * powf(2.0, [[maxCacheSizePopUp selectedItem] tag])];
 	else if ([notification object] == minFreeSpaceField)
-		[GoogleImageSource setMinFreeSpace:[minFreeSpaceField intValue] * powf(2.0, [[minFreeSpacePopUp selectedItem] tag])];
+		[MacOSaiXGoogleImageSourcePlugIn setMinFreeSpace:[minFreeSpaceField intValue] * powf(2.0, [[minFreeSpacePopUp selectedItem] tag])];
 }
 
 
 - (IBAction)deleteCachedImages:(id)sender
 {
-	[GoogleImageSource purgeCache];
+	[MacOSaiXGoogleImageSourcePlugIn purgeCache];
 }
 
 

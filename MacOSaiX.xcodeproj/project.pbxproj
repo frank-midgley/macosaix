@@ -18,6 +18,7 @@
 				011C7D7B0A1D76C50023CD62 /* PBXTargetDependency */,
 				011C7D7F0A1D76C50023CD62 /* PBXTargetDependency */,
 				011C7D7D0A1D76C50023CD62 /* PBXTargetDependency */,
+				014557E40B640E520007DDF9 /* PBXTargetDependency */,
 				014F185C0B2CCEA10023D2D2 /* PBXTargetDependency */,
 			);
 			name = "Standard Plug-Ins";
@@ -73,6 +74,9 @@
 		012FD2DA0A50F839004495DC /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F599E5560266AAD101000103 /* Carbon.framework */; };
 		013605270B286CDD0078BCF7 /* MacOSaiXImageOrientations.h in Headers */ = {isa = PBXBuildFile; fileRef = 013605260B286CDD0078BCF7 /* MacOSaiXImageOrientations.h */; };
 		013FD51B0B424EE80015015E /* UniqueX.tif in Resources */ = {isa = PBXBuildFile; fileRef = 013FD51A0B424EE80015015E /* UniqueX.tif */; };
+		014557D90B640C960007DDF9 /* GoogleImageSourcePlugIn.h in Headers */ = {isa = PBXBuildFile; fileRef = 014557D70B640C960007DDF9 /* GoogleImageSourcePlugIn.h */; };
+		014557DA0B640C960007DDF9 /* GoogleImageSourcePlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 014557D80B640C960007DDF9 /* GoogleImageSourcePlugIn.m */; };
+		014558820B641A3C0007DDF9 /* Google Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 928489D406611CE6003B3514 /* Google Image Source.plugin */; };
 		01495B6E0B549ED600D11987 /* DirectoryImageSourcePlugIn.h in Headers */ = {isa = PBXBuildFile; fileRef = 01495B6C0B549ED600D11987 /* DirectoryImageSourcePlugIn.h */; };
 		01495B6F0B549ED600D11987 /* DirectoryImageSourcePlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 01495B6D0B549ED600D11987 /* DirectoryImageSourcePlugIn.m */; };
 		01495BC00B54A29A00D11987 /* ConstantImageOrientationsPlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 01495BBF0B54A29A00D11987 /* ConstantImageOrientationsPlugIn.m */; };
@@ -389,6 +393,13 @@
 			remoteGlobalIDString = 011C7D730A1D76AE0023CD62;
 			remoteInfo = "Standard Plug-Ins";
 		};
+		014557E30B640E520007DDF9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 928489C506611CE6003B3514 /* Google Image Source */;
+			remoteInfo = "Google Image Source";
+		};
 		014F185B0B2CCEA10023D2D2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
@@ -409,8 +420,9 @@
 				922683A8092687A900BF4EF7 /* Puzzle Tiles.plugin in CopyFiles */,
 				92848A1A06611CE6003B3514 /* Rectangular Tiles.plugin in CopyFiles */,
 				014F189E0B2CD1410023D2D2 /* Constant Image Orientations.plugin in CopyFiles */,
-				92848A1706611CE6003B3514 /* Directory Image Source.plugin in CopyFiles */,
 				01DCB2F5092C2508008345F3 /* Flickr Image Source.plugin in CopyFiles */,
+				92848A1706611CE6003B3514 /* Directory Image Source.plugin in CopyFiles */,
+				014558820B641A3C0007DDF9 /* Google Image Source.plugin in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -482,6 +494,8 @@
 		013FD51A0B424EE80015015E /* UniqueX.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = UniqueX.tif; sourceTree = "<group>"; };
 		01453D4A071B6F2D00BCEC7C /* Puzzle Tiles.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Puzzle Tiles.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		01453D51071B6F8000BCEC7C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
+		014557D70B640C960007DDF9 /* GoogleImageSourcePlugIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GoogleImageSourcePlugIn.h; path = "Standard Plugins/Google Image Source/GoogleImageSourcePlugIn.h"; sourceTree = "<group>"; };
+		014557D80B640C960007DDF9 /* GoogleImageSourcePlugIn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GoogleImageSourcePlugIn.m; path = "Standard Plugins/Google Image Source/GoogleImageSourcePlugIn.m"; sourceTree = "<group>"; };
 		01495B6C0B549ED600D11987 /* DirectoryImageSourcePlugIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DirectoryImageSourcePlugIn.h; path = "Standard Plugins/Directory Image Source/DirectoryImageSourcePlugIn.h"; sourceTree = "<group>"; };
 		01495B6D0B549ED600D11987 /* DirectoryImageSourcePlugIn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DirectoryImageSourcePlugIn.m; path = "Standard Plugins/Directory Image Source/DirectoryImageSourcePlugIn.m"; sourceTree = "<group>"; };
 		01495BBE0B54A29A00D11987 /* ConstantImageOrientationsPlugIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstantImageOrientationsPlugIn.h; sourceTree = "<group>"; };
@@ -1220,6 +1234,8 @@
 		927FA75D03FA3614000A0D3F /* Google */ = {
 			isa = PBXGroup;
 			children = (
+				014557D70B640C960007DDF9 /* GoogleImageSourcePlugIn.h */,
+				014557D80B640C960007DDF9 /* GoogleImageSourcePlugIn.m */,
 				F540721D023FE6E00100010A /* GoogleImageSource.h */,
 				F540721E023FE6E00100010A /* GoogleImageSource.m */,
 				F514D5A203949AA801B25AF1 /* GoogleImageSourceController.h */,
@@ -1516,6 +1532,7 @@
 				928489C906611CE6003B3514 /* GoogleImageSourceController.h in Headers */,
 				9286575A0734584600EFC32A /* MacOSaiXImageSource.h in Headers */,
 				018F9A630964BE2F00CABB48 /* GooglePreferencesController.h in Headers */,
+				014557D90B640C960007DDF9 /* GoogleImageSourcePlugIn.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2328,6 +2345,7 @@
 				928489CD06611CE6003B3514 /* GoogleImageSource.m in Sources */,
 				928489CE06611CE6003B3514 /* GoogleImageSourceController.m in Sources */,
 				018F9A640964BE2F00CABB48 /* GooglePreferencesController.m in Sources */,
+				014557DA0B640C960007DDF9 /* GoogleImageSourcePlugIn.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2402,6 +2420,11 @@
 			isa = PBXTargetDependency;
 			target = 011C7D730A1D76AE0023CD62 /* Standard Plug-Ins */;
 			targetProxy = 011C7D8A0A1D76D10023CD62 /* PBXContainerItemProxy */;
+		};
+		014557E40B640E520007DDF9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 928489C506611CE6003B3514 /* Google Image Source */;
+			targetProxy = 014557E30B640E520007DDF9 /* PBXContainerItemProxy */;
 		};
 		014F185C0B2CCEA10023D2D2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

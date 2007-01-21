@@ -6,14 +6,10 @@
 //  Copyright 2005 Frank M. Midgley. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
 
-#import "MacOSaiXPreferencesController.h"
-
-
-@interface GooglePreferencesController : NSObject <MacOSaiXPreferencesController>
+@interface MacOSaiXGooglePreferencesEditor : NSObject <MacOSaiXPlugInPreferencesEditor>
 {
-	IBOutlet NSView			*mainView;
+	IBOutlet NSView			*editorView;
 	
 	IBOutlet NSTextField	*maxCacheSizeField, 
 							*minFreeSpaceField;

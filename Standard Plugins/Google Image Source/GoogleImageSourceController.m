@@ -8,8 +8,25 @@
 
 #import "GoogleImageSourceController.h"
 
+#import "GoogleImageSource.h"
 
-@implementation GoogleImageSourceController
+
+@implementation MacOSaiXGoogleImageSourceEditor
+
+
+- (id)initWithDelegate:(id<MacOSaiXDataSourceEditorDelegate>)inDelegate;
+{
+	if (self = [super init])
+		delegate = inDelegate;
+	
+	return self;
+}
+
+
+- (id<MacOSaiXDataSourceEditorDelegate>)delegate
+{
+	return delegate;
+}
 
 
 - (NSView *)editorView
@@ -39,9 +56,11 @@
 }
 
 
-- (void)editImageSource:(id<MacOSaiXImageSource>)imageSource
+- (void)editDataSource:(id<MacOSaiXImageSource>)imageSource
 {
-	currentImageSource = (GoogleImageSource *)imageSource;
+	currentImageSource = (MacOSaiXGoogleImageSource *)imageSource;
+	
+	// TODO: deal with simple options fields
 	
 	[requiredTermsTextField setStringValue:([currentImageSource requiredTerms] ? [currentImageSource requiredTerms] : @"")];
 	[optionalTermsTextField setStringValue:([currentImageSource optionalTerms] ? [currentImageSource optionalTerms] : @"")];
@@ -52,42 +71,83 @@
 }
 
 
-- (BOOL)settingsAreValid
+- (IBAction)setKeywordsMatching:(id)sender
 {
-	return ([[currentImageSource requiredTerms] length] > 0 || 
-			[[currentImageSource optionalTerms] length] > 0 || 
-			[[currentImageSource excludedTerms] length] > 0 || 
-			[[currentImageSource siteString] length] > 0);
+	if ([keywordsMatchingMatrix selectedRow] == 0)
+	{
+		[currentImageSource setRequiredTerms:[keywordsTextField stringValue]];
+		[currentImageSource setOptionalTerms:nil];
+	}
+	else
+	{
+		[currentImageSource setRequiredTerms:nil];
+		[currentImageSource setOptionalTerms:[keywordsTextField stringValue]];
+	}
 }
 
 
-- (void)editingComplete
+- (IBAction)showMoreOptions:(id)sender
 {
+	[NSApp beginSheet:moreOptionsPanel 
+	   modalForWindow:[[self editorView] window] 
+		modalDelegate:self 
+	   didEndSelector:@selector(moreOptionsSheetDidEnd:returnCode:contextInfo:) 
+		  contextInfo:nil];
 }
 
 
 - (void)controlTextDidChange:(NSNotification *)notification
 {
-	if ([notification object] == requiredTermsTextField)
+	if ([notification object] == keywordsTextField)
+	{
+		if ([keywordsMatchingMatrix selectedRow] == 0)
+		{
+			[currentImageSource setRequiredTerms:[keywordsTextField stringValue]];
+			[currentImageSource setOptionalTerms:nil];
+		}
+		else
+		{
+			[currentImageSource setRequiredTerms:nil];
+			[currentImageSource setOptionalTerms:[keywordsTextField stringValue]];
+		}
+	}
+	else
+		[okButton setEnabled:([[currentImageSource requiredTerms] length] > 0 || 
+							  [[currentImageSource optionalTerms] length] > 0 || 
+							  [[currentImageSource excludedTerms] length] > 0 || 
+							  [[currentImageSource siteString] length] > 0)];
+}
+
+
+- (IBAction)saveMoreOptions:(id)sender
+{
+	[NSApp endSheet:moreOptionsPanel returnCode:NSOKButton];
+}
+
+
+- (IBAction)cancelMoreOptions:(id)sender
+{
+	[NSApp endSheet:moreOptionsPanel returnCode:NSCancelButton];
+}
+
+
+- (void)moreOptionsSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+	if (returnCode == NSOKButton)
+	{
 		[currentImageSource setRequiredTerms:[requiredTermsTextField stringValue]];
-	else if ([notification object] == optionalTermsTextField)
 		[currentImageSource setOptionalTerms:[optionalTermsTextField stringValue]];
-	else if ([notification object] == excludedTermsTextField)
 		[currentImageSource setExcludedTerms:[excludedTermsTextField stringValue]];
-	else if ([notification object] == siteTextField)
+		[currentImageSource setColorSpace:[colorSpacePopUpButton indexOfSelectedItem]];
 		[currentImageSource setSiteString:[siteTextField stringValue]];
+		[currentImageSource setAdultContentFiltering:[adultContentFilteringPopUpButton indexOfSelectedItem]];
+	}
 }
 
 
-- (IBAction)setColorSpace:(id)sender
+- (void)editingDidComplete
 {
-	[currentImageSource setColorSpace:[colorSpacePopUpButton indexOfSelectedItem]];
-}
-
-
-- (IBAction)setAdultContentFiltering:(id)sender
-{
-	[currentImageSource setAdultContentFiltering:[adultContentFilteringPopUpButton indexOfSelectedItem]];
+	delegate = nil;
 }
 
 

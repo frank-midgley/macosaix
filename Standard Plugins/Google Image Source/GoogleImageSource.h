@@ -6,13 +6,14 @@
 	Copyright (c) 2002-2004 Frank M. Midgley. All rights reserved.
 */
 
-#import <Foundation/Foundation.h>
 #import "MacOSaiXImageSource.h"
+
 
 typedef enum { anyColorSpace, rgbColorSpace, grayscaleColorSpace, blackAndWhiteColorSpace } GoogleColorSpace;
 typedef enum { strictFiltering, moderateFiltering, noFiltering } GoogleAdultContentFiltering;
 
-@interface GoogleImageSource : NSObject <MacOSaiXImageSource>
+
+@interface MacOSaiXGoogleImageSource : NSObject <MacOSaiXImageSource>
 {
     NSString					*requiredTerms,
 								*optionalTerms,
@@ -26,14 +27,6 @@ typedef enum { strictFiltering, moderateFiltering, noFiltering } GoogleAdultCont
 								*descriptor;
 	NSMutableArray				*imageURLQueue;
 }
-
-+ (NSString *)imageCachePath;
-+ (void)purgeCache;
-
-+ (void)setMaxCacheSize:(unsigned long long)maxCacheSize;
-+ (unsigned long long)maxCacheSize;
-+ (void)setMinFreeSpace:(unsigned long long)minFreeSpace;
-+ (unsigned long long)minFreeSpace;
 
 - (void)setRequiredTerms:(NSString *)terms;
 - (NSString *)requiredTerms;
