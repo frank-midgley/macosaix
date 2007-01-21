@@ -134,7 +134,14 @@
 	if (tableView == preferenceTable)
 	{
 		if ([[tableColumn identifier] isEqualToString:@"Icon"])
-			object = (row == 0) ? [NSApp applicationIconImage] : [[plugInClasses objectAtIndex:row - 1] image];
+		{
+			if (row == 0)
+				object = [NSApp applicationIconImage];
+			else if (row == 1)
+				object = nil;
+			else
+				object = [[plugInClasses objectAtIndex:row - 2] image];
+		}
 		else
 		{
 			if (row == 0)
@@ -143,7 +150,7 @@
 				object = NSLocalizedString(@"Editor", @"");
 			else
 			{
-				Class		plugInClass = [plugInClasses objectAtIndex:row - 1];
+				Class		plugInClass = [plugInClasses objectAtIndex:row - 2];
 				NSBundle	*plugInBundle = [NSBundle bundleForClass:plugInClass];
 				
 				object = [plugInBundle objectForInfoDictionaryKey:@"CFBundleName"];
