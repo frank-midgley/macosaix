@@ -360,42 +360,45 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	NSRect				mosaicBounds = [[self mosaicView] imageBounds];
 	float				width = NSWidth(mosaicBounds);
 	NSString			*imagePath = [[targetImageDicts objectAtIndex:[targetImagesTableView selectedRow]] objectForKey:@"Path"];
-	NSAttributedString	*attributedPath = [[NSFileManager defaultManager] attributedPath:imagePath wraps:YES];
+	NSAttributedString	*attributedPath = [[NSFileManager defaultManager] attributedPath:imagePath wraps:NO];
 	NSSize				size = [attributedPath size];
 	
 	if (size.width > width - 20.0)
 		size.width = width - 20.0;
 	
-	NSRect				pathBounds = NSMakeRect(NSMidX(mosaicBounds) - size.width / 2.0 - 5.0, 
-												NSMinY(mosaicBounds) + 5.0, 
-												size.width + 10.0, 
+	NSRect				pathBounds = NSMakeRect(NSMidX(mosaicBounds) - size.width / 2.0 - 10.0, 
+												NSMinY(mosaicBounds) - 10.0 - size.height - 10.0, 
+												size.width + 20.0, 
 												size.height + 10.0);
+	if (NSMinY(pathBounds) < NSMinY([[self mosaicView] bounds]) + 10.0)
+		pathBounds.origin.y = NSMinY([[self mosaicView] bounds]) + 10.0;
+	
 	NSBezierPath		*pathPath = [NSBezierPath bezierPath];
 	
-	[pathPath moveToPoint:NSMakePoint(NSMinX(pathBounds) + 16.0, NSMinY(pathBounds))];
-	[pathPath lineToPoint:NSMakePoint(NSMaxX(pathBounds) - 16.0, NSMinY(pathBounds))];
-	[pathPath curveToPoint:NSMakePoint(NSMaxX(pathBounds), NSMinY(pathBounds) + 16.0) 
-			 controlPoint1:NSMakePoint(NSMaxX(pathBounds), NSMinY(pathBounds)) 
-			 controlPoint2:NSMakePoint(NSMaxX(pathBounds), NSMinY(pathBounds))];
-	[pathPath lineToPoint:NSMakePoint(NSMaxX(pathBounds), NSMaxY(pathBounds) - 16.0)];
-	[pathPath curveToPoint:NSMakePoint(NSMaxX(pathBounds) - 16.0, NSMaxY(pathBounds)) 
-			 controlPoint1:NSMakePoint(NSMaxX(pathBounds), NSMaxY(pathBounds)) 
-			 controlPoint2:NSMakePoint(NSMaxX(pathBounds), NSMaxY(pathBounds))];
-	[pathPath lineToPoint:NSMakePoint(NSMinX(pathBounds) + 16.0, NSMaxY(pathBounds))];
-	[pathPath curveToPoint:NSMakePoint(NSMinX(pathBounds), NSMaxY(pathBounds) - 16.0) 
-			 controlPoint1:NSMakePoint(NSMinX(pathBounds), NSMaxY(pathBounds)) 
-			 controlPoint2:NSMakePoint(NSMinX(pathBounds), NSMaxY(pathBounds))];
-	[pathPath lineToPoint:NSMakePoint(NSMinX(pathBounds), NSMinY(pathBounds) + 16.0)];
-	[pathPath curveToPoint:NSMakePoint(NSMinX(pathBounds) + 16.0, NSMinY(pathBounds)) 
-			 controlPoint1:NSMakePoint(NSMinX(pathBounds), NSMinY(pathBounds)) 
-			 controlPoint2:NSMakePoint(NSMinX(pathBounds), NSMinY(pathBounds))];
+	[pathPath moveToPoint:NSMakePoint(NSMinX(pathBounds) + 13.0, NSMinY(pathBounds))];
+	[pathPath lineToPoint:NSMakePoint(NSMaxX(pathBounds) - 13.0, NSMinY(pathBounds))];
+	[pathPath curveToPoint:NSMakePoint(NSMaxX(pathBounds), NSMinY(pathBounds) + 13.0) 
+			 controlPoint1:NSMakePoint(NSMaxX(pathBounds) - 6.5, NSMinY(pathBounds)) 
+			 controlPoint2:NSMakePoint(NSMaxX(pathBounds), NSMinY(pathBounds) + 6.5)];
+	[pathPath lineToPoint:NSMakePoint(NSMaxX(pathBounds), NSMaxY(pathBounds) - 13.0)];
+	[pathPath curveToPoint:NSMakePoint(NSMaxX(pathBounds) - 13.0, NSMaxY(pathBounds)) 
+			 controlPoint1:NSMakePoint(NSMaxX(pathBounds), NSMaxY(pathBounds) - 6.5) 
+			 controlPoint2:NSMakePoint(NSMaxX(pathBounds) - 6.5, NSMaxY(pathBounds))];
+	[pathPath lineToPoint:NSMakePoint(NSMinX(pathBounds) + 13.0, NSMaxY(pathBounds))];
+	[pathPath curveToPoint:NSMakePoint(NSMinX(pathBounds), NSMaxY(pathBounds) - 13.0) 
+			 controlPoint1:NSMakePoint(NSMinX(pathBounds) + 6.5, NSMaxY(pathBounds)) 
+			 controlPoint2:NSMakePoint(NSMinX(pathBounds), NSMaxY(pathBounds) - 6.5)];
+	[pathPath lineToPoint:NSMakePoint(NSMinX(pathBounds), NSMinY(pathBounds) + 13.0)];
+	[pathPath curveToPoint:NSMakePoint(NSMinX(pathBounds) + 13.0, NSMinY(pathBounds)) 
+			 controlPoint1:NSMakePoint(NSMinX(pathBounds), NSMinY(pathBounds) + 6.5) 
+			 controlPoint2:NSMakePoint(NSMinX(pathBounds) + 6.5, NSMinY(pathBounds))];
 	
 	[[NSColor colorWithCalibratedWhite:1.0 alpha:.75] set];
 	[pathPath fill];
 	[[NSColor colorWithCalibratedWhite:0.0 alpha:.5] set];
 	[pathPath stroke];
 	
-	[attributedPath drawInRect:NSInsetRect(pathBounds, 5.0, 5.0)];
+	[attributedPath drawInRect:NSInsetRect(pathBounds, 10.0, 5.0)];
 }
 
 
