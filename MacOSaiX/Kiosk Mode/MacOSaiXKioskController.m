@@ -240,15 +240,15 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 	
 	while (keyword = [keywordEnumerator nextObject])
 	{
-		BOOL				imageSourceExists = NO;
-		NSEnumerator		*imageSourceEnumerator = [[currentMosaic imageSources] objectEnumerator];
-		GoogleImageSource	*imageSource = nil;
+		BOOL						imageSourceExists = NO;
+		NSEnumerator				*imageSourceEnumerator = [[currentMosaic imageSources] objectEnumerator];
+		MacOSaiXGoogleImageSource	*imageSource = nil;
 		while (!imageSourceExists && (imageSource = [imageSourceEnumerator nextObject]))
 			imageSourceExists = [[imageSource requiredTerms] isEqualToString:keyword];
 		
 		if (!imageSourceExists)
 		{
-			GoogleImageSource	*newSource = [[NSClassFromString(@"GoogleImageSource") alloc] init];
+			MacOSaiXGoogleImageSource	*newSource = [[NSClassFromString(@"MacOSaiXGoogleImageSource") alloc] init];
 			[newSource setAdultContentFiltering:strictFiltering];
 			[newSource setRequiredTerms:keyword];
 			
