@@ -8,25 +8,22 @@
 
 #import "MacOSaiXEditor.h"
 
+#import "MacOSaiXPlugIn.h"
+
 @class MacOSaiXPopUpButton;
 @protocol MacOSaiXImageSource;
 
 
-@interface MacOSaiXImageSourcesEditor : MacOSaiXEditor
+@interface MacOSaiXImageSourcesEditor : MacOSaiXEditor <MacOSaiXDataSourceEditorDelegate>
 {
-	IBOutlet NSTabView				*tabView;
-	
-		// Image source list tab
 	IBOutlet NSTableView			*imageSourcesTable;
 	IBOutlet MacOSaiXPopUpButton	*addSourceButton;
 	IBOutlet NSButton				*editSourceButton, 
 									*removeSourceButton;
 	
-		// Image source editor tab
-	IBOutlet NSTableView			*imageSourceTable;
-	IBOutlet NSButton				*showSourcesButton;
 	NSBox							*editorBox;
 	id<MacOSaiXImageSource>			imageSourceBeingEdited;
+	id<MacOSaiXDataSourceEditor>	imageSourceEditor;
 	
 	NSTimer							*animationTimer;
 	

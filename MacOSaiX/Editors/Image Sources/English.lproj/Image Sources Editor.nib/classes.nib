@@ -21,8 +21,6 @@
                 editSourceButton = NSButton; 
                 imageSourcesTable = NSTableView; 
                 removeSourceButton = NSButton; 
-                showSourcesButton = NSButton; 
-                tabView = NSTabView; 
             }; 
             SUPERCLASS = MacOSaiXEditor; 
         }, 
