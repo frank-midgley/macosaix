@@ -18,7 +18,7 @@
                 keywordsMatchingMatrix = NSMatrix; 
                 keywordsTextField = NSTextField; 
                 moreOptionsPanel = NSPanel; 
-                moreOptionsTextFIield = NSTextField; 
+                moreOptionsTextField = NSTextField; 
                 okButton = NSButton; 
                 optionalTermsTextField = NSTextField; 
                 requiredTermsTextField = NSTextField; 

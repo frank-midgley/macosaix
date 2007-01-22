@@ -16,7 +16,7 @@
 	IBOutlet NSView							*editorView;
 	IBOutlet NSTextField					*keywordsTextField;
 	IBOutlet NSMatrix						*keywordsMatchingMatrix;
-	IBOutlet NSTextField					*moreOptionsTextFIield;
+	IBOutlet NSTextField					*moreOptionsTextField;
 	
 		// More options panel
 	IBOutlet NSPanel						*moreOptionsPanel;
