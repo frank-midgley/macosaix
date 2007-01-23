@@ -13,13 +13,13 @@
 @implementation MacOSaiXTile
 
 
-- (id)initWithUnitOutline:(NSBezierPath *)outline 
-		 imageOrientation:(NSNumber *)angle
-				   mosaic:(MacOSaiXMosaic *)inMosaic;
+- (id)initWithOutline:(NSBezierPath *)inOutline 
+	 imageOrientation:(NSNumber *)angle
+			   mosaic:(MacOSaiXMosaic *)inMosaic;
 {
 	if (self = [super init])
 	{
-		[self setUnitOutline:outline];
+		[self setOutline:inOutline];
 		if (angle)
 			[self setImageOrientation:[angle floatValue]];
 		[self setMosaic:inMosaic];
@@ -39,41 +39,30 @@
 	return mosaic;
 }
 
-- (void)setUnitOutline:(NSBezierPath *)outline
+- (void)setOutline:(NSBezierPath *)inOutline
 {
-    [unitOutline autorelease];
-    unitOutline = [outline retain];
+    [outline autorelease];
+    outline = [inOutline retain];
 }
 
 
-- (NSBezierPath *)unitOutline
+- (NSBezierPath *)outline
 {
-    return unitOutline;
+    return outline;
 }
 
 
-- (NSBezierPath *)targetOutline
-{
-		// Scale our unit-square-based outline to the target image's dimensions.
-	NSSize				targetImageSize = [[mosaic targetImage] size];
-	NSAffineTransform	*transform = [NSAffineTransform transform];
-	[transform scaleXBy:targetImageSize.width yBy:targetImageSize.height];
-	
-	return [transform transformBezierPath:[self unitOutline]];
-}
-
-
-- (NSBezierPath *)rotatedTargetOutline
+- (NSBezierPath *)rotatedOutline
 {
 		// Rotate the outline to offset the tile's image orientation.  The rotated outline will be centered at the origin.
-	NSBezierPath		*targetOutline = [self targetOutline];
 	NSAffineTransform	*transform = [NSAffineTransform transform];
+	NSPoint				rotationPoint = NSMakePoint(NSMidX([outline bounds]), NSMidY([outline bounds]));
 	
-	[transform translateXBy:NSMidX([targetOutline bounds]) yBy:NSMidY([targetOutline bounds])];
+	[transform translateXBy:rotationPoint.x yBy:rotationPoint.y];
 	[transform rotateByDegrees:-[self imageOrientation]];
-	[transform translateXBy:-NSMidX([targetOutline bounds]) yBy:-NSMidY([targetOutline bounds])];
+	[transform translateXBy:-rotationPoint.x yBy:-rotationPoint.y];
 	
-	return [transform transformBezierPath:targetOutline];
+	return [transform transformBezierPath:outline];
 }
 
 
@@ -91,7 +80,7 @@
 	if (imageOrientation)
 		angle = [imageOrientation floatValue];
 	else
-		angle = [[mosaic imageOrientations] imageOrientationAtPoint:NSMakePoint(NSMidX([[self targetOutline] bounds]), NSMidY([[self targetOutline] bounds])) 
+		angle = [[mosaic imageOrientations] imageOrientationAtPoint:NSMakePoint(NSMidX([[self outline] bounds]), NSMidY([[self outline] bounds])) 
 													   inRectOfSize:[[mosaic targetImage] size]];
 	
 	return angle;
@@ -118,7 +107,7 @@
 
 - (void)createBitmapRep
 {
-	NSBezierPath		*rotatedOutline = [self rotatedTargetOutline];
+	NSBezierPath		*rotatedOutline = [self rotatedOutline];
 	NSRect				rotatedBounds = [rotatedOutline bounds];
 	BOOL				widthLimited = (NSWidth(rotatedBounds) > NSHeight(rotatedBounds));
 	
@@ -327,7 +316,7 @@
 
 - (void)dealloc
 {
-    [unitOutline release];
+    [outline release];
     [bitmapRep release];
 	[maskRep release];
 	[uniqueImageMatch release];

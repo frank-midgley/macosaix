@@ -481,7 +481,9 @@ static NSArray	*formatExtensions = nil;
 	}
 
 	NSAffineTransform	*transform = [NSAffineTransform transform];
-	[transform scaleXBy:exportWidth yBy:exportHeight];
+	NSSize				targetImageSize = [[mosaic targetImage] size];
+	[transform scaleXBy:exportWidth / targetImageSize.width 
+					yBy:exportHeight / targetImageSize.height];
 	
 	#if USE_CG
 		;	// TBD: set up CG transform?
@@ -518,7 +520,7 @@ static NSArray	*formatExtensions = nil;
 		{
 			NS_DURING
 					// Clip the tile's image to the outline of the tile.
-				NSBezierPath	*clipPath = [transform transformBezierPath:[tile unitOutline]];
+				NSBezierPath	*clipPath = [transform transformBezierPath:[tile outline]];
 				
 				#if USE_CG
 					CGContextSaveGState(cgContext);
@@ -539,7 +541,7 @@ static NSArray	*formatExtensions = nil;
 																	   forIdentifier:imageIdentifier 
 																		  fromSource:imageSource];
 				
-					// Translate the tile's outline (in unit space) to the size of the exported image.
+					// Translate the tile's outline (in the target image space) to the size of the exported image.
 				NSRect		drawRect;
 				NSSize		clipSize = [clipPath bounds].size,
 							pixletSize = [pixletImageRep size];

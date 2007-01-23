@@ -15,7 +15,7 @@
 
 @interface MacOSaiXTile : NSObject
 {
-	NSBezierPath		*unitOutline;			// The shape of this tile
+	NSBezierPath		*outline;				// The shape of this tile
 	NSNumber			*imageOrientation;		// The orientation of this tile (in degrees), nil if not defined.
 	
 	NSBitmapImageRep	*bitmapRep,				// The portion of the target image that is in this tile
@@ -29,9 +29,9 @@
 }
 
 	// designated initializer
-- (id)initWithUnitOutline:(NSBezierPath *)outline 
-		 imageOrientation:(NSNumber *)angle
-				   mosaic:(MacOSaiXMosaic *)mosaic;
+- (id)initWithOutline:(NSBezierPath *)outline 
+	 imageOrientation:(NSNumber *)angle
+			   mosaic:(MacOSaiXMosaic *)mosaic;
 
 - (void)setImageOrientation:(float)angle;
 - (float)imageOrientation;
@@ -39,10 +39,9 @@
 - (void)setMosaic:(MacOSaiXMosaic *)mosaic;
 - (MacOSaiXMosaic *)mosaic;
 
-- (void)setUnitOutline:(NSBezierPath *)outline;
-- (NSBezierPath *)unitOutline;
-- (NSBezierPath *)targetOutline;
-- (NSBezierPath *)rotatedTargetOutline;
+- (void)setOutline:(NSBezierPath *)outline;
+- (NSBezierPath *)outline;
+- (NSBezierPath *)rotatedOutline;
 
 - (NSBitmapImageRep *)bitmapRep;
 - (NSBitmapImageRep *)maskRep;

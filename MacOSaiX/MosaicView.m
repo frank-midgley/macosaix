@@ -110,8 +110,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	
 	if (previousTargetImage)
 	{
-		// Phase out the previous image.
-		
+			// Phase out the previous image.
 		[targetFadeStartTime release];
 		targetFadeStartTime = [[NSDate alloc] init];
 		if ([targetFadeTimer isValid])
@@ -141,10 +140,12 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		[mainImage autorelease];
 		mainImage = nil;
 		
-			// Set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined on a unit square)
+			// Set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined the target image's space)
+		NSSize	targetImageSize = [[[self mosaic] targetImage] size];
 		[mainImageTransform autorelease];
 		mainImageTransform = [[NSAffineTransform alloc] init];
-		[mainImageTransform scaleXBy:mainImageSize.width yBy:mainImageSize.height];
+		[mainImageTransform scaleXBy:mainImageSize.width / targetImageSize.width 
+								 yBy:mainImageSize.height / targetImageSize.height];
 	[mainImageLock unlock];
 	
 		// Release the current background image.  A new one will be created later if needed off the main thread.
@@ -318,7 +319,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		
 		if (tileToRefresh)
 		{
-			NSBezierPath		*rotatedOutline = [tileToRefresh rotatedTargetOutline];
+			NSBezierPath		*rotatedOutline = [tileToRefresh rotatedOutline];
 			
 			if (rotatedOutline)
 			{
@@ -470,8 +471,8 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		MacOSaiXTile		*tile = [tileDict objectForKey:@"Tile"];
 		NSImageRep			*imageRep = [tileDict objectForKey:@"Image Rep"];
 		BOOL				redrawMain = [[tileDict objectForKey:@"Layer"] isEqualToString:@"Main"];
-		NSBezierPath		*clipPath = [mainImageTransform transformBezierPath:[tile unitOutline]], 
-							*targetOutline = [tile targetOutline];
+		NSBezierPath		*clipPath = [mainImageTransform transformBezierPath:[tile outline]], 
+							*targetOutline = [tile outline];
 		NSRect				targetBounds = [targetOutline bounds];
 		
 			// Rotate the outline to offset the tile's image orientation.
@@ -598,15 +599,17 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 - (void)setTilesNeedDisplay:(NSTimer *)timer
 {
 	NSRect				mosaicBounds = [self boundsForTargetImage:[mosaic targetImage]];
+	NSSize				targetImageSize = [[[self mosaic] targetImage] size];
 	NSAffineTransform	*transform = [NSAffineTransform transform];
 	[transform translateXBy:NSMinX(mosaicBounds) yBy:NSMinY(mosaicBounds)];
-	[transform scaleXBy:NSWidth(mosaicBounds) yBy:NSHeight(mosaicBounds)];
+	[transform scaleXBy:NSWidth(mosaicBounds) / targetImageSize.width 
+					yBy:NSHeight(mosaicBounds) / targetImageSize.height];
 	
 	[tilesNeedDisplayLock lock];
 		NSEnumerator	*tileEnumerator = [tilesNeedingDisplay objectEnumerator];
 		MacOSaiXTile	*tileNeedingDisplay = nil;
 		while (tileNeedingDisplay = [tileEnumerator nextObject])
-			[self setNeedsDisplayInRect:NSInsetRect([[transform transformBezierPath:[tileNeedingDisplay unitOutline]] bounds], -1.0, -1.0)];
+			[self setNeedsDisplayInRect:NSInsetRect([[transform transformBezierPath:[tileNeedingDisplay outline]] bounds], -1.0, -1.0)];
 		
 		[tilesNeedingDisplay removeAllObjects];
 		
@@ -694,15 +697,16 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 - (MacOSaiXTile *)tileAtPoint:(NSPoint)thePoint
 {
-		// Convert the point to the unit square system that the tile outlines are in.
-    thePoint.x = thePoint.x / [self frame].size.width;
-    thePoint.y = thePoint.y / [self frame].size.height;
+		// Convert the point to the units system that the tile outlines are in.
+	NSSize	targetImageSize = [[[self mosaic] targetImage] size];
+    thePoint.x = thePoint.x / [self frame].size.width * targetImageSize.width;
+    thePoint.y = thePoint.y / [self frame].size.height * targetImageSize.height;
     
 		// TBD: this isn't terribly efficient...
 	NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
 	MacOSaiXTile	*tile = nil;
 	while (tile = [tileEnumerator nextObject])
-        if ([[tile unitOutline] containsPoint:thePoint])
+        if ([[tile outline] containsPoint:thePoint])
 			break;
 	
 	return tile;
