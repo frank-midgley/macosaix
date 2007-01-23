@@ -12,6 +12,7 @@
             LANGUAGE = ObjC; 
             OUTLETS = {
                 editorView = NSView; 
+                sizingTabView = NSTabView; 
                 tilesAcrossSlider = NSSlider; 
                 tilesAcrossStepper = NSStepper; 
                 tilesAcrossTextField = NSTextField; 

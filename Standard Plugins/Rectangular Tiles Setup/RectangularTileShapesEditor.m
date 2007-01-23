@@ -17,6 +17,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 @interface MacOSaiXRectangularTileShapesEditor (PrivateMethods)
 - (void)setFixedSizeControlsBasedOnFreeformControls;
+- (void)setFreeFormControlsBasedOnFixedSizeControls;
 @end
 
 
@@ -55,7 +56,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(400.0, 256.0);
+	return NSMakeSize(300.0, 132.0);
 }
 
 
@@ -73,10 +74,22 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 - (void)updatePlugInDefaults
 {
-	[[NSUserDefaults standardUserDefaults] setObject:[NSDictionary dictionaryWithObjectsAndKeys:
-														[NSNumber numberWithInt:[currentTileShapes tilesAcross]], @"Tiles Across", 
-														[NSNumber numberWithInt:[currentTileShapes tilesDown]], @"Tiles Down", 
-														nil]
+	NSMutableDictionary	*settings =[NSMutableDictionary dictionary];
+	
+	if ([currentTileShapes isFreeForm])
+	{
+		[settings setObject:@"Free-form" forKey:@"Sizing"];
+		[settings setObject:[NSNumber numberWithInt:[currentTileShapes tilesAcross]] forKey:@"Tiles Across"];
+		[settings setObject:[NSNumber numberWithInt:[currentTileShapes tilesDown]] forKey:@"Tiles Across"];
+	}
+	else
+	{
+		[settings setObject:@"Fixed Size" forKey:@"Sizing"];
+		[settings setObject:[NSNumber numberWithFloat:[currentTileShapes tileAspectRatio]] forKey:@"Tile Aspect Ratio"];
+		[settings setObject:[NSNumber numberWithFloat:[currentTileShapes tileCount]] forKey:@"Tile Count"];
+	}
+
+	[[NSUserDefaults standardUserDefaults] setObject:settings
 											  forKey:@"Rectangular Tile Shapes"];
 }
 
@@ -93,21 +106,38 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	maxAspectRatio = (targetImageSize.width / [tilesAcrossSlider minValue]) / 
 					 (targetImageSize.height / [tilesDownSlider maxValue]);
 	
-		// Constrain the tiles across value to the stepper's range and update the model and view.
-	int	tilesAcross = MIN(MAX([currentTileShapes tilesAcross], [tilesAcrossSlider minValue]), [tilesAcrossSlider maxValue]);
-	[currentTileShapes setTilesAcross:tilesAcross];
-	[tilesAcrossSlider setIntValue:tilesAcross];
-	[tilesAcrossTextField setIntValue:tilesAcross];
-	[tilesAcrossStepper setIntValue:tilesAcross];
-	
-		// Constrain the tiles down value to the stepper's range and update the model and view.
-	int	tilesDown = MIN(MAX([currentTileShapes tilesDown], [tilesDownSlider minValue]), [tilesDownSlider maxValue]);
-	[currentTileShapes setTilesDown:tilesDown];
-	[tilesDownSlider setIntValue:tilesDown];
-	[tilesDownTextField setIntValue:tilesDown];
-	[tilesDownStepper setIntValue:tilesDown];
-	
-	[self setFixedSizeControlsBasedOnFreeformControls];
+	if ([currentTileShapes isFreeForm])
+	{
+		[sizingTabView selectTabViewItemAtIndex:0];
+		
+			// Constrain the tiles across value to the stepper's range and update the model and view.
+		int	tilesAcross = MIN(MAX([currentTileShapes tilesAcross], [tilesAcrossSlider minValue]), [tilesAcrossSlider maxValue]);
+		[currentTileShapes setTilesAcross:tilesAcross];
+		[tilesAcrossSlider setIntValue:tilesAcross];
+		[tilesAcrossTextField setIntValue:tilesAcross];
+		[tilesAcrossStepper setIntValue:tilesAcross];
+		
+			// Constrain the tiles down value to the stepper's range and update the model and view.
+		int	tilesDown = MIN(MAX([currentTileShapes tilesDown], [tilesDownSlider minValue]), [tilesDownSlider maxValue]);
+		[currentTileShapes setTilesDown:tilesDown];
+		[tilesDownSlider setIntValue:tilesDown];
+		[tilesDownTextField setIntValue:tilesDown];
+		[tilesDownStepper setIntValue:tilesDown];
+		
+		[self setFixedSizeControlsBasedOnFreeformControls];
+	}
+	else
+	{
+		[sizingTabView selectTabViewItemAtIndex:1];
+		
+		float	aspectRatio = [currentTileShapes tileAspectRatio];
+		[tilesSizeSlider setFloatValue:aspectRatio];
+		[[tilesSizePopUp itemAtIndex:0] setTitle:[NSString stringWithAspectRatio:aspectRatio]];
+		
+		[tilesCountSlider setFloatValue:[currentTileShapes tileCount]];
+		
+		[self setFreeFormControlsBasedOnFixedSizeControls];
+	}
 }
 
 
@@ -244,8 +274,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	[self setFreeFormControlsBasedOnFixedSizeControls];
 	[[tilesSizePopUp itemAtIndex:0] setTitle:[NSString stringWithAspectRatio:[self aspectRatio]]];
 	
-	[currentTileShapes setTilesAcross:[tilesAcrossSlider intValue]];
-	[currentTileShapes setTilesDown:[tilesDownSlider intValue]];
+	[currentTileShapes setTileAspectRatio:[self aspectRatio]];
 	
 	[self updatePlugInDefaults];
 	
@@ -257,8 +286,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 {
 	[self setFreeFormControlsBasedOnFixedSizeControls];
 	
-	[currentTileShapes setTilesAcross:[tilesAcrossSlider intValue]];
-	[currentTileShapes setTilesDown:[tilesDownSlider intValue]];
+	[currentTileShapes setTileCount:[tilesCountSlider floatValue]];
 	
 	[self updatePlugInDefaults];
 	

@@ -16,6 +16,8 @@
 	
 	IBOutlet NSView							*editorView;
 	
+	IBOutlet NSTabView						*sizingTabView;
+	
 		// Freeform controls
 	IBOutlet NSSlider						*tilesAcrossSlider,
 											*tilesDownSlider;

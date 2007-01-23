@@ -22,14 +22,29 @@
 
 @interface MacOSaiXRectangularTileShapes : NSObject <MacOSaiXTileShapes>
 {
-	unsigned int				tilesAcross, 
-								tilesDown;
+	BOOL			isFreeForm;
+	
+		// Freeform tiles
+	unsigned int	tilesAcross, 
+					tilesDown;
+	
+		// Fixed size tiles
+	float			tileAspectRatio, 
+					tileCount;
 }
+
+- (BOOL)isFreeForm;
 
 - (void)setTilesAcross:(unsigned int)count;
 - (unsigned int)tilesAcross;
 
 - (void)setTilesDown:(unsigned int)count;
 - (unsigned int)tilesDown;
+
+- (void)setTileAspectRatio:(float)aspectRatio;
+- (float)tileAspectRatio;
+
+- (void)setTileCount:(float)count;
+- (float)tileCount;
 
 @end

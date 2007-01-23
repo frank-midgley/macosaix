@@ -30,7 +30,7 @@
 }
 
 
-- (NSBezierPath *)unitOutline
+- (NSBezierPath *)outline
 {
 	return outline;
 }
@@ -62,6 +62,7 @@
 	{
 		NSDictionary	*plugInDefaults = [[NSUserDefaults standardUserDefaults] objectForKey:@"Rectangular Tile Shapes"];
 		
+		isFreeForm = YES;
 		[self setTilesAcross:[[plugInDefaults objectForKey:@"Tiles Across"] intValue]];
 		[self setTilesDown:[[plugInDefaults objectForKey:@"Tiles Down"] intValue]];
 	}
@@ -74,8 +75,16 @@
 {
 	MacOSaiXRectangularTileShapes	*copy = [[MacOSaiXRectangularTileShapes allocWithZone:zone] init];
 	
-	[copy setTilesAcross:[self tilesAcross]];
-	[copy setTilesDown:[self tilesDown]];
+	if (isFreeForm)
+	{
+		[copy setTilesAcross:[self tilesAcross]];
+		[copy setTilesDown:[self tilesDown]];
+	}
+	else
+	{
+		[copy setTileAspectRatio:[self tileAspectRatio]];
+		[copy setTileCount:[self tileCount]];
+	}
 	
 	return copy;
 }
@@ -117,8 +126,16 @@
 }
 
 
+- (BOOL)isFreeForm
+{
+	return isFreeForm;
+}
+
+
 - (void)setTilesAcross:(unsigned int)count
 {
+	isFreeForm = YES;
+	
     tilesAcross = (count > 0 ? count : 40);
 }
 
@@ -131,6 +148,8 @@
 
 - (void)setTilesDown:(unsigned int)count
 {
+	isFreeForm = YES;
+	
     tilesDown = (count > 0 ? count : 40);
 }
 
@@ -140,20 +159,61 @@
 	return tilesDown;
 }
 
+- (void)setTileAspectRatio:(float)aspectRatio
+{
+	isFreeForm = NO;
+	
+	tileAspectRatio = aspectRatio;
+}
+
+
+- (float)tileAspectRatio
+{
+	return tileAspectRatio;
+}
+
+
+- (void)setTileCount:(float)count
+{
+	isFreeForm = NO;
+	
+	tileCount = count;
+}
+
+
+- (float)tileCount
+{
+	return tileCount;
+}
+
 
 - (id)briefDescription
 {
-	return [NSString stringWithFormat:NSLocalizedString(@"%d by %d rectangles", @""), tilesAcross, tilesDown];
+	if (isFreeForm)
+		return [NSString stringWithFormat:NSLocalizedString(@"%d by %d rectangles", @""), tilesAcross, tilesDown];
+	else
+		return [NSString stringWithFormat:NSLocalizedString(@"%d by %d rectangles", @""), tilesAcross, tilesDown];
 }
 
 
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
-	return [[NSDictionary dictionaryWithObjectsAndKeys:
-								[NSNumber numberWithInt:tilesAcross], @"Tiles Across", 
-								[NSNumber numberWithInt:tilesDown], @"Tiles Down", 
-								nil] 
-				writeToFile:path atomically:NO];
+	NSMutableDictionary	*settings =[NSMutableDictionary dictionary];
+	
+	if ([self isFreeForm])
+	{
+		[settings setObject:@"Free-form" forKey:@"Sizing"];
+		[settings setObject:[NSNumber numberWithInt:[self tilesAcross]] forKey:@"Tiles Across"];
+		[settings setObject:[NSNumber numberWithInt:[self tilesDown]] forKey:@"Tiles Across"];
+	}
+	else
+	{
+		[settings setObject:@"Fixed Size" forKey:@"Sizing"];
+		[settings setObject:[NSNumber numberWithFloat:[self tileAspectRatio]] forKey:@"Tile Aspect Ratio"];
+		[settings setObject:[NSNumber numberWithFloat:[self tileCount]] forKey:@"Tile Count"];
+	}
+	
+	return [settings writeToFile:path atomically:NO];
 }
 
 
@@ -161,8 +221,18 @@
 {
 	NSDictionary	*settings = [NSDictionary dictionaryWithContentsOfFile:path];
 	
-	[self setTilesAcross:[[settings objectForKey:@"Tiles Across"] intValue]];
-	[self setTilesDown:[[settings objectForKey:@"Tiles Down"] intValue]];
+	isFreeForm = (![settings objectForKey:@"Sizing"] || [[settings objectForKey:@"Sizing"] isEqualToString:@"Free-form"]);
+	
+	if (isFreeForm)
+	{
+		[self setTilesAcross:[[settings objectForKey:@"Tiles Across"] intValue]];
+		[self setTilesDown:[[settings objectForKey:@"Tiles Down"] intValue]];
+	}
+	else
+	{
+		[self setTileAspectRatio:[[settings objectForKey:@"Tile Aspect Ratio"] floatValue]];
+		[self setTileCount:[[settings objectForKey:@"Tile Count"] floatValue]];
+	}
 	
 	return YES;
 }
@@ -192,14 +262,40 @@
 }
 
 
-- (NSArray *)shapes
+- (NSArray *)shapesForMosaicOfSize:(NSSize)mosaicSize
 {
-	int				x, y;
-	NSRect			tileRect = NSMakeRect(0.0, 0.0, 1.0 / tilesAcross, 1.0 / tilesDown);
-	NSMutableArray	*tileOutlines = [NSMutableArray arrayWithCapacity:(tilesAcross * tilesDown)];
+	int				xCount, yCount;
+	
+	if (isFreeForm)
+	{
+		xCount = [self tilesAcross];
+		yCount = [self tilesDown];
+	}
+	else
+	{
+		int		minX = 10, 
+				minY = 10, 
+				maxX = 200, 
+				maxY = 200;
 		
-	for (x = 0; x < tilesAcross; x++)
-		for (y = tilesDown - 1; y >= 0; y--)
+		if (mosaicSize.height * [self tileAspectRatio] / mosaicSize.width < 1.0)
+			minX = mosaicSize.width * minY / [self tileAspectRatio] / mosaicSize.height;
+		if (mosaicSize.width / [self tileAspectRatio] / mosaicSize.height < 1.0)
+			minY = minX * mosaicSize.height * [self tileAspectRatio] / mosaicSize.width;
+		if (mosaicSize.height * [self tileAspectRatio] / mosaicSize.width > 1.0)
+			maxX = mosaicSize.width * maxY / [self tileAspectRatio] / mosaicSize.height;
+		if (mosaicSize.width / [self tileAspectRatio] / mosaicSize.height > 1.0)
+			maxY = maxX * mosaicSize.height * [self tileAspectRatio] / mosaicSize.width;
+		
+		xCount = minX + (maxX - minX) * [self tileCount];
+		yCount = minY + (maxY - minY) * [self tileCount];
+	}
+	
+	NSMutableArray	*tileOutlines = [NSMutableArray arrayWithCapacity:(xCount * yCount)];
+	NSRect			tileRect = NSMakeRect(0.0, 0.0, mosaicSize.width / xCount, mosaicSize.height / yCount);
+	int				x, y;
+	for (x = 0; x < xCount; x++)
+		for (y = yCount - 1; y >= 0; y--)
 			{
 				tileRect.origin.x = x * tileRect.size.width;
 				tileRect.origin.y = y * tileRect.size.height;
