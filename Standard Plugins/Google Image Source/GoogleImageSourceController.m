@@ -56,18 +56,48 @@
 }
 
 
+- (void)populateSimpleOptions
+{
+	if ([[currentImageSource requiredTerms] length] > 0 && [[currentImageSource optionalTerms] length] == 0)
+	{
+		[keywordsTextField setStringValue:[currentImageSource requiredTerms]];
+		[keywordsMatchingMatrix selectCellAtRow:0 column:0];
+	}
+	else if ([[currentImageSource requiredTerms] length] == 0 && [[currentImageSource optionalTerms] length] > 0)
+	{
+		[keywordsTextField setStringValue:[currentImageSource optionalTerms]];
+		[keywordsMatchingMatrix selectCellAtRow:1 column:0];
+	}
+	
+	NSMutableArray	*moreOptions = [NSMutableArray array];
+	
+	if ([[currentImageSource excludedTerms] length] > 0)
+		[moreOptions addObject:[NSString stringWithFormat:NSLocalizedString(@"Excluded: %@", @""), [currentImageSource excludedTerms]]];
+	
+	if ([currentImageSource colorSpace] == rgbColorSpace)
+		[moreOptions addObject:NSLocalizedString(@"Color only", @"")];
+	else if ([currentImageSource colorSpace] == grayscaleColorSpace)
+		[moreOptions addObject:NSLocalizedString(@"Grayscale only", @"")];
+	else if ([currentImageSource colorSpace] == blackAndWhiteColorSpace)
+		[moreOptions addObject:NSLocalizedString(@"B&W only", @"")];
+	
+	if ([[currentImageSource siteString] length] > 0)
+		[moreOptions addObject:[NSString stringWithFormat:NSLocalizedString(@"Site: %@", @""), [currentImageSource siteString]]];
+	
+	if ([currentImageSource adultContentFiltering] == moderateFiltering)
+		[moreOptions addObject:NSLocalizedString(@"Mild adult content allowed", @"")];
+	else if ([currentImageSource adultContentFiltering] == noFiltering)
+		[moreOptions addObject:NSLocalizedString(@"Adult content allowed", @"")];
+	
+	[moreOptionsTextField setStringValue:[moreOptions componentsJoinedByString:@", "]];
+}
+
+
 - (void)editDataSource:(id<MacOSaiXImageSource>)imageSource
 {
 	currentImageSource = (MacOSaiXGoogleImageSource *)imageSource;
 	
-	// TODO: deal with simple options fields
-	
-	[requiredTermsTextField setStringValue:([currentImageSource requiredTerms] ? [currentImageSource requiredTerms] : @"")];
-	[optionalTermsTextField setStringValue:([currentImageSource optionalTerms] ? [currentImageSource optionalTerms] : @"")];
-	[excludedTermsTextField setStringValue:([currentImageSource excludedTerms] ? [currentImageSource excludedTerms] : @"")];
-	[colorSpacePopUpButton selectItemAtIndex:[currentImageSource colorSpace]];
-	[siteTextField setStringValue:([currentImageSource siteString] ? [currentImageSource siteString] : @"")];
-	[adultContentFilteringPopUpButton selectItemAtIndex:[currentImageSource adultContentFiltering]];
+	[self populateSimpleOptions];
 }
 
 
@@ -88,6 +118,13 @@
 
 - (IBAction)showMoreOptions:(id)sender
 {
+	[requiredTermsTextField setStringValue:([currentImageSource requiredTerms] ? [currentImageSource requiredTerms] : @"")];
+	[optionalTermsTextField setStringValue:([currentImageSource optionalTerms] ? [currentImageSource optionalTerms] : @"")];
+	[excludedTermsTextField setStringValue:([currentImageSource excludedTerms] ? [currentImageSource excludedTerms] : @"")];
+	[colorSpacePopUpButton selectItemAtIndex:[currentImageSource colorSpace]];
+	[siteTextField setStringValue:([currentImageSource siteString] ? [currentImageSource siteString] : @"")];
+	[adultContentFilteringPopUpButton selectItemAtIndex:[currentImageSource adultContentFiltering]];
+	
 	[NSApp beginSheet:moreOptionsPanel 
 	   modalForWindow:[[self editorView] window] 
 		modalDelegate:self 
@@ -133,6 +170,8 @@
 
 - (void)moreOptionsSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
+	[sheet orderOut:self];
+	
 	if (returnCode == NSOKButton)
 	{
 		[currentImageSource setRequiredTerms:[requiredTermsTextField stringValue]];
@@ -141,6 +180,8 @@
 		[currentImageSource setColorSpace:[colorSpacePopUpButton indexOfSelectedItem]];
 		[currentImageSource setSiteString:[siteTextField stringValue]];
 		[currentImageSource setAdultContentFiltering:[adultContentFilteringPopUpButton indexOfSelectedItem]];
+		
+		[self populateSimpleOptions];
 	}
 }
 
