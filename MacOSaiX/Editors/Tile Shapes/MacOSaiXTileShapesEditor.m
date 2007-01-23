@@ -127,12 +127,10 @@
 		
 			// Get the existing tile shapes from our mosaic.
 			// If they are not of the class the user just chose then create a new one with default settings.
-		if ([[[[self mosaicView] mosaic] tileShapes] class] == tileShapesClass)
-			tileShapesBeingEdited = [[[[self mosaicView] mosaic] tileShapes] copyWithZone:[self zone]];
-		else
-			tileShapesBeingEdited = [[tileShapesClass alloc] init];
+		if ([[[[self mosaicView] mosaic] tileShapes] class] != tileShapesClass)
+				[[[self mosaicView] mosaic] setTileShapes:[[[tileShapesClass alloc] init] autorelease] creatingTiles:YES];
 		
-		[tileShapesEditor editDataSource:tileShapesBeingEdited];
+		[tileShapesEditor editDataSource:[[[self mosaicView] mosaic] tileShapes]];
 	}
 	else
 	{
@@ -153,18 +151,21 @@
 	[[self mosaicView] lockFocus];
 	
 	NSRect					imageBounds = [[self mosaicView] imageBounds];
+	NSSize					targetImageSize = [[[[self mosaicView] mosaic] targetImage] size];
 	NSAffineTransform		*darkenTransform = [NSAffineTransform transform], 
 							*lightenTransform = [NSAffineTransform transform];
 	[darkenTransform translateXBy:NSMinX(imageBounds) - 0.5 yBy:NSMinY(imageBounds) + 0.5];
-	[darkenTransform scaleXBy:NSWidth(imageBounds) yBy:NSHeight(imageBounds)];
+	[darkenTransform scaleXBy:NSWidth(imageBounds) / targetImageSize.width 
+						  yBy:NSHeight(imageBounds) / targetImageSize.height];
 	[lightenTransform translateXBy:NSMinX(imageBounds) + 0.5 yBy:NSMinY(imageBounds) - 0.5];
-	[lightenTransform scaleXBy:NSWidth(imageBounds) yBy:NSHeight(imageBounds)];
+	[lightenTransform scaleXBy:NSWidth(imageBounds) / targetImageSize.width 
+						   yBy:NSHeight(imageBounds) / targetImageSize.height];
 	NSColor					*darkenColor = [NSColor colorWithCalibratedWhite:0.0 alpha:0.25], 
 							*lightenColor = [NSColor colorWithCalibratedWhite:1.0 alpha:0.25];
 	
 	while ([tileShapesToDraw count] > 0 && [startTime timeIntervalSinceNow] > -0.05)
 	{
-		NSBezierPath	*tileOutline = [[tileShapesToDraw objectAtIndex:0] unitOutline];
+		NSBezierPath	*tileOutline = [[tileShapesToDraw objectAtIndex:0] outline];
 		
 		[darkenColor set];
 		[[darkenTransform transformBezierPath:tileOutline] stroke];
@@ -187,8 +188,10 @@
 {
 	if (![[self mosaicView] inLiveResize])
 	{
+		NSSize	targetImageSize = [[[[self mosaicView] mosaic] targetImage] size];
+		
 		[tileShapesToDraw removeAllObjects];
-		[tileShapesToDraw addObjectsFromArray:[tileShapesBeingEdited shapes]];
+		[tileShapesToDraw addObjectsFromArray:[[[[self mosaicView] mosaic] tileShapes] shapesForMosaicOfSize:targetImageSize]];
 		
 		[self continueEmbellishingMosaicView];
 	}
@@ -203,11 +206,11 @@
 
 - (void)plugInSettingsDidChange:(NSString *)description
 {
-	[[mosaicView mosaic] setTileShapes:tileShapesBeingEdited creatingTiles:YES];
+	[[[self mosaicView] mosaic] setTileShapes:[[[self mosaicView] mosaic] tileShapes] creatingTiles:YES];
 	
 	//[self populateTileAreas];
 	
-	[mosaicView setNeedsDisplay:YES];
+	[[self mosaicView] setNeedsDisplay:YES];
 }
 
 
@@ -215,8 +218,6 @@
 {
 	[tileShapesToDraw removeAllObjects];
 	
-	[tileShapesBeingEdited release];
-	tileShapesBeingEdited = nil;
 	[tileShapesEditor release];
 	tileShapesEditor = nil;
 }

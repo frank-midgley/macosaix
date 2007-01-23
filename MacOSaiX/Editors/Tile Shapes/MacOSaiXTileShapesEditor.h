@@ -19,7 +19,6 @@
 	IBOutlet NSButton				*acceptChangesButton, 
 									*discardChangesButton;
 	
-	id<MacOSaiXTileShapes>			tileShapesBeingEdited;
 	id<MacOSaiXDataSourceEditor>	tileShapesEditor;
 	
 	NSMutableArray					*tileShapesToDraw;
