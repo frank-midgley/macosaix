@@ -13,6 +13,7 @@
 @interface MacOSaiXMosaic : NSObject
 {
     NSImage							*targetImage;
+	NSString						*targetImagePath;
 	float							targetImageAspectRatio;
 	
     NSMutableArray					*imageSources,
@@ -23,7 +24,7 @@
 	id<MacOSaiXTileShapes>			tileShapes;
 	id<MacOSaiXImageOrientations>	imageOrientations;
 	
-	NSSize							averageUnitTileSize;
+	NSSize							averageTileSize;
 	
 	int								imageUseCount,
 									imageReuseDistance,
@@ -58,12 +59,15 @@
 - (void)setTargetImage:(NSImage *)image;
 - (NSImage *)targetImage;
 
+- (void)setTargetImagePath:(NSString *)path;
+- (NSString *)targetImagePath;
+
 - (void)setAspectRatio:(float)ratio;
 - (float)aspectRatio;
 
 - (void)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes creatingTiles:(BOOL)createTiles;
 - (id<MacOSaiXTileShapes>)tileShapes;
-- (NSSize)averageUnitTileSize;
+- (NSSize)averageTileSize;
 
 - (void)setImageOrientations:(id<MacOSaiXImageOrientations>)imageOrientations;
 - (id<MacOSaiXImageOrientations>)imageOrientations;

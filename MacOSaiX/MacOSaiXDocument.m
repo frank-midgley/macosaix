@@ -166,26 +166,6 @@
 
 
 #pragma mark -
-#pragma mark Target image path
-
-
-- (void)setTargetImagePath:(NSString *)path
-{
-	if (![targetImagePath isEqualToString:path])
-	{
-		[targetImagePath release];
-		targetImagePath = [path copy];
-	}
-}
-
-
-- (NSString *)targetImagePath
-{
-	return targetImagePath;
-}
-
-
-#pragma mark -
 #pragma mark Autosave
 
 
@@ -452,7 +432,7 @@
 
 				// Write out the path to the target image
 			[fileHandle writeData:[[NSString stringWithFormat:@"<TARGET_IMAGE PATH=\"%@\" ASPECT_RATIO=\"%f\"/>\n\n", 
-												[[self targetImagePath] stringByEscapingXMLEntites], 
+												[[[self mosaic] targetImagePath] stringByEscapingXMLEntites], 
 												[[self mosaic] aspectRatio]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
 			
@@ -500,12 +480,12 @@
 				
 					// First write out the tile's outline
 				[buffer appendString:@"\t\t<OUTLINE>\n"];
-				int elementCount = [[tile unitOutline] elementCount], 
+				int elementCount = [[tile outline] elementCount], 
 					index;
 				for (index = 0; index < elementCount; index++)
 				{
 					NSPoint points[3];
-					switch ([[tile unitOutline] elementAtIndex:index associatedPoints:points])
+					switch ([[tile outline] elementAtIndex:index associatedPoints:points])
 					{
 						case NSMoveToBezierPathElement:
 							[buffer appendFormat:@"\t\t\t<MOVE_TO X=\"%g\" Y=\"%g\"/>\n", points[0].x, points[0].y];
@@ -769,7 +749,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					{
 						NSString	*path = [[nodeAttributes objectForKey:@"PATH"] stringByUnescapingXMLEntites];
 						
-						[document setTargetImagePath:path];
+						[mosaic setTargetImagePath:path];
 						
 						NSImage	*image = [[NSImage alloc] initWithContentsOfFile:path];
 						if (!image)
@@ -874,9 +854,9 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						if (!imageOrientation)
 							imageOrientation = @"0.0";
 						
-						newObject = [[MacOSaiXTile alloc] initWithUnitOutline:nil 
-															 imageOrientation:[NSNumber numberWithFloat:[imageOrientation floatValue]] 
-																	   mosaic:mosaic];
+						newObject = [[MacOSaiXTile alloc] initWithOutline:nil 
+														 imageOrientation:[NSNumber numberWithFloat:[imageOrientation floatValue]] 
+																   mosaic:mosaic];
 					}
 					else if ([elementType isEqualToString:@"OUTLINE"])
 					{
@@ -1016,7 +996,7 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[NSBezierPath class]])
 	{
 			// Add the bezier path outline for a tile.
-		[(MacOSaiXTile *)parent setUnitOutline:(NSBezierPath *)child];
+		[(MacOSaiXTile *)parent setOutline:(NSBezierPath *)child];
 	}
 	else if ([(id)parent isKindOfClass:[NSBezierPath class]] && [(id)child isKindOfClass:[NSDictionary class]])
 	{

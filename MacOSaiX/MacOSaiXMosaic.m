@@ -131,6 +131,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 		[targetRep setSize:NSMakeSize([targetRep pixelsWide], [targetRep pixelsHigh])];
 		[targetImage setSize:NSMakeSize([targetRep pixelsWide], [targetRep pixelsHigh])];
 		
+		[self setTileShapes:[self tileShapes] creatingTiles:YES];
+		
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTargetImageDidChangeNotification 
 															object:self 
 														  userInfo:userInfo];
@@ -141,6 +143,19 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 - (NSImage *)targetImage
 {
 	return [[targetImage retain] autorelease];
+}
+
+
+- (void)setTargetImagePath:(NSString *)path
+{
+	[targetImagePath autorelease];
+	targetImagePath = [path copy];
+}
+
+
+- (NSString *)targetImagePath
+{
+	return [[targetImagePath retain] autorelease];
 }
 
 
@@ -182,7 +197,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	
 	if (createTiles)
 	{
-		NSArray	*shapesArray = [tileShapes shapes];
+		NSArray	*shapesArray = [tileShapes shapesForMosaicOfSize:[[self targetImage] size]];
 		
 			// Discard any tiles created from a previous set of outlines.
 		if (!tiles)
@@ -194,12 +209,12 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 		NSEnumerator			*tileShapeEnumerator = [shapesArray objectEnumerator];
 		id<MacOSaiXTileShape>	tileShape = nil;
 		while (tileShape = [tileShapeEnumerator nextObject])
-			[self addTile:[[[MacOSaiXTile alloc] initWithUnitOutline:[tileShape unitOutline] 
-													imageOrientation:[tileShape imageOrientation]
-															  mosaic:self] autorelease]];
+			[self addTile:[[[MacOSaiXTile alloc] initWithOutline:[tileShape outline] 
+												imageOrientation:[tileShape imageOrientation]
+														  mosaic:self] autorelease]];
 		
 			// Indicate that the average tile size needs to be recalculated.
-		averageUnitTileSize = NSZeroSize;
+		averageTileSize = NSZeroSize;
 		
 		[self reset];
 	}
@@ -217,24 +232,23 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 }
 
 
-- (NSSize)averageUnitTileSize
+- (NSSize)averageTileSize
 {
-	if (NSEqualSizes(averageUnitTileSize, NSZeroSize) && [tiles count] > 0)
+	if (NSEqualSizes(averageTileSize, NSZeroSize) && [tiles count] > 0)
 	{
 			// Calculate the average size of the tiles.
-			// TBD: should this be in unit or target space?
 		NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
 		MacOSaiXTile	*tile = nil;
 		while (tile = [tileEnumerator nextObject])
 		{
-			averageUnitTileSize.width += NSWidth([[tile unitOutline] bounds]);
-			averageUnitTileSize.height += NSHeight([[tile unitOutline] bounds]);
+			averageTileSize.width += NSWidth([[tile outline] bounds]);
+			averageTileSize.height += NSHeight([[tile outline] bounds]);
 		}
-		averageUnitTileSize.width /= [tiles count];
-		averageUnitTileSize.height /= [tiles count];
+		averageTileSize.width /= [tiles count];
+		averageTileSize.height /= [tiles count];
 	}
 	
-	return averageUnitTileSize;
+	return averageTileSize;
 }
 
 
@@ -979,10 +993,10 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 						float				closestDistance = INFINITY;
 						while (matchToUpdate = [matchesToUpdateEnumerator nextObject])
 						{
-							float	widthDiff = NSMidX([[betterMatchTile targetOutline] bounds]) - 
-												NSMidX([[[matchToUpdate tile] targetOutline] bounds]), 
-									heightDiff = NSMidY([[betterMatchTile targetOutline] bounds]) - 
-												 NSMidY([[[matchToUpdate tile] targetOutline] bounds]), 
+							float	widthDiff = NSMidX([[betterMatchTile outline] bounds]) - 
+												NSMidX([[[matchToUpdate tile] outline] bounds]), 
+									heightDiff = NSMidY([[betterMatchTile outline] bounds]) - 
+												 NSMidY([[[matchToUpdate tile] outline] bounds]), 
 									distanceSquared = widthDiff * widthDiff + heightDiff * heightDiff;
 							
 							closestDistance = MIN(closestDistance, distanceSquared);
