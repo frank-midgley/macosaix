@@ -249,21 +249,17 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 {
 	[[self mosaicView] setTargetImageFraction:1.0];
 	
-	if ([[[self mosaicView] mosaic] targetImage])
+	if ([[[self mosaicView] mosaic] targetImagePath])
 	{
-		MacOSaiXWindowController	*windowController = [[[self mosaicView] window] windowController];
-		if ([windowController isKindOfClass:[MacOSaiXWindowController class]])
+		NSString		*targetImagePath = [[[self mosaicView] mosaic] targetImagePath];
+		NSEnumerator	*targetEnumerator = [targetImageDicts objectEnumerator];
+		NSDictionary	*targetDict = nil;
+		while (targetDict = [targetEnumerator nextObject])
 		{
-			NSString		*targetImagePath = [[windowController document] targetImagePath];
-			NSEnumerator	*targetEnumerator = [targetImageDicts objectEnumerator];
-			NSDictionary	*targetDict = nil;
-			while (targetDict = [targetEnumerator nextObject])
+			if ([[targetDict objectForKey:@"Path"] isEqualToString:targetImagePath])
 			{
-				if ([[targetDict objectForKey:@"Path"] isEqualToString:targetImagePath])
-				{
-					[targetImagesTableView selectRow:[targetImageDicts indexOfObject:targetDict] byExtendingSelection:NO];
-					break;
-				}
+				[targetImagesTableView selectRow:[targetImageDicts indexOfObject:targetDict] byExtendingSelection:NO];
+				break;
 			}
 		}
 	}
@@ -431,7 +427,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 			NSDictionary	*imageDict = [targetImageDicts objectAtIndex:index];
 			
 			NSString	*targetImagePath = [imageDict objectForKey:@"Path"];
-// TODO:		[[self document] setTargetImagePath:targetImagePath];
+			[[[self mosaicView] mosaic] setTargetImagePath:targetImagePath];
 			
 			[[NSUserDefaults standardUserDefaults] setObject:targetImagePath forKey:@"Last Chosen Target Image Path"];
 			

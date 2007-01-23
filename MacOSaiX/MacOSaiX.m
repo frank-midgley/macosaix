@@ -154,8 +154,8 @@
 	{
 		MacOSaiXDocument	*newDocument = [[NSDocumentController sharedDocumentController] openUntitledDocumentOfType:@"MacOSaiX Project" display:NO];
 		
-		[newDocument setTargetImagePath:filename];
 		[[newDocument mosaic] setTargetImage:image];
+		[[newDocument mosaic] setTargetImagePath:filename];
 		[newDocument showWindows];
 		
 		return YES;

@@ -89,6 +89,9 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 		
 		if ([[currentMosaic imageSources] count] > 0)
 		{
+			int					currentIndex = [mosaics indexOfObjectIdenticalTo:currentMosaic];
+			[currentMosaic setTargetImagePath:[[targetImageMatrix cellAtRow:0 column:currentIndex] title]];
+			
 				// Save the current mosaic for posterity.
 			NSString			*saveFilePath = [[NSHomeDirectory() stringByAppendingPathComponent:@"Desktop"]
 																	stringByAppendingPathComponent:@"Kiosk Mosaics"];
@@ -98,8 +101,6 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 											stringByAppendingPathExtension:@"mosaic"];
 			MacOSaiXDocument	*tempDocument = [[MacOSaiXDocument alloc] init];
 			[tempDocument setMosaic:currentMosaic];
-			int					currentIndex = [mosaics indexOfObjectIdenticalTo:currentMosaic];
-			[tempDocument setTargetImagePath:[[targetImageMatrix cellAtRow:0 column:currentIndex] title]];
 			[tempDocument threadedSaveWithParameters:[NSDictionary dictionaryWithObjectsAndKeys:
 														saveFilePath, @"Save Path", 
 														[NSNumber numberWithBool:YES], @"Was Paused", 
