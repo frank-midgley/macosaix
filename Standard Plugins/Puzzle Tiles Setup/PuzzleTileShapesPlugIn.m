@@ -34,7 +34,7 @@
 															   bottomRightHorizontalCurve:0.0 
 																 bottomRightVerticalCurve:0.0 
 																			   alignImage:NO];
-		NSBezierPath			*tileOutline = [tileShape unitOutline];
+		NSBezierPath			*tileOutline = [tileShape outline];
 		
 		NSAffineTransform		*transform = [NSAffineTransform transform];
 		[transform translateXBy:3.0 yBy:7.0];

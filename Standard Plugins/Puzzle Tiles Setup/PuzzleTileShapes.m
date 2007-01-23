@@ -234,7 +234,7 @@
 }
 
 
-- (NSBezierPath *)unitOutline
+- (NSBezierPath *)outline
 {
 	return outline;
 }
@@ -310,7 +310,7 @@
 														   bottomRightHorizontalCurve:0.0 
 															 bottomRightVerticalCurve:0.0 
 																		   alignImage:YES];
-	NSBezierPath			*tileOutline = [tileShape unitOutline];
+	NSBezierPath			*tileOutline = [tileShape outline];
 	
 	NSAffineTransform		*transform = [NSAffineTransform transform];
 	[transform translateXBy:4.5 yBy:5.5];
@@ -487,7 +487,7 @@
 }
 
 
-- (NSArray *)shapes
+- (NSArray *)shapesForMosaicOfSize:(NSSize)mosaicSize
 {
 	if (!tileShapes)
 	{

@@ -105,8 +105,8 @@
 	
 	if ([[imageSourcePlugIn dataSourceClass] conformsToProtocol:@protocol(MacOSaiXImageSource)])
 	{
-		imageSourceBeingEdited = [[[[imageSourcePlugIn dataSourceClass] alloc] init] autorelease];
-		[[[self mosaicView] mosaic] addImageSource:imageSourceBeingEdited];
+		id<MacOSaiXImageSource>		newSource = [[[[imageSourcePlugIn dataSourceClass] alloc] init] autorelease];
+		[[[self mosaicView] mosaic] addImageSource:newSource];
 		[imageSourcesTable reloadData];
 		[imageSourcesTable selectRow:([[[[self mosaicView] mosaic] imageSources] count] - 1) byExtendingSelection:NO];
 		[self editImageSource:self];
@@ -122,6 +122,7 @@
 	{
 		imageSourceBeingEdited = [[[[self mosaicView] mosaic] imageSources] objectAtIndex:selectedRowIndex];
 		
+		[imageSourcesTable deselectAll:self];
 		[[imageSourcesTable enclosingScrollView] setHasVerticalScroller:NO];
 		[[imageSourcesTable enclosingScrollView] setAutoresizingMask:(NSViewWidthSizable | NSViewMinYMargin)];
 		
@@ -233,11 +234,14 @@
 - (IBAction)showImageSources:(id)sender
 {
 	[[imageSourcesTable enclosingScrollView] setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+	
 	[editorBox setAutoresizingMask:(NSViewWidthSizable | NSViewMaxYMargin)];
 	[editorBox setContentView:nil];
 	
 	[imageSourceEditor editingDidComplete];
 	[imageSourceEditor release];
+	
+	int	rowIndex = [[[[self mosaicView] mosaic] imageSources] indexOfObjectIdenticalTo:imageSourceBeingEdited];
 	imageSourceBeingEdited = nil;
 	
 	NSDictionary	*userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -251,6 +255,7 @@
 													  repeats:YES] retain];
 	
 	[imageSourcesTable reloadData];
+	[imageSourcesTable selectRow:rowIndex byExtendingSelection:NO];
 }
 
 
@@ -288,7 +293,7 @@
 		{
 			if (!highlightedImageSourcesOutline)
 				highlightedImageSourcesOutline = [[NSBezierPath bezierPath] retain];
-			[highlightedImageSourcesOutline appendBezierPath:[tile unitOutline]];
+			[highlightedImageSourcesOutline appendBezierPath:[tile outline]];
 		}
 	}
 }
@@ -326,7 +331,9 @@
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
-	if (!imageSourceBeingEdited)
+	if (imageSourceBeingEdited)
+		[imageSourcesTable deselectAll:self];
+	else
 	{
 		[highlightedImageSourcesLock lock];
 		

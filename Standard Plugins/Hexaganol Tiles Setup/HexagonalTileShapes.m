@@ -30,7 +30,7 @@
 }
 
 
-- (NSBezierPath *)unitOutline
+- (NSBezierPath *)outline
 {
 	return outline;
 }
@@ -184,7 +184,7 @@
 }
 
 
-- (NSArray *)shapes
+- (NSArray *)shapesForMosaicOfSize:(NSSize)mosaicSize
 {
     int				x, y;
     float			xSize = 1.0 / (tilesAcross - 1.0/3.0), ySize = 1.0 / tilesDown, originX, originY;
