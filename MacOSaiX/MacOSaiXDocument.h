@@ -22,8 +22,6 @@
 	MacOSaiXWindowController	*mainWindowController;
 	MacOSaiXProgressController	*progressController;
 	
-	NSString					*targetImagePath;
-	
 		// Document state
     BOOL						documentIsClosing,	// flag set to true when document is closing
 								autoSaveEnabled,
@@ -39,9 +37,6 @@
 
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
 - (MacOSaiXMosaic *)mosaic;
-
-- (void)setTargetImagePath:(NSString *)path;
-- (NSString *)targetImagePath;
 
 - (BOOL)isSaving;
 - (BOOL)isClosing;

@@ -135,7 +135,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 		NSImage		*lastImage = [[NSImage alloc] initWithContentsOfFile:lastPath];
 		if (lastImage)
 		{
-			[[self document] setTargetImagePath:lastPath];
+			[[self mosaic] setTargetImagePath:lastPath];
 			[[self mosaic] setTargetImage:lastImage];
 			[lastImage release];
 		}
