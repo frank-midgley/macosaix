@@ -25,22 +25,6 @@
 #define MAX_REFRESH_THREAD_COUNT 1
 
 
-NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *context)
-{
-	MacOSaiXImageMatch	*thisMatch = [[tileDict1 objectForKey:@"Tile"] displayedImageMatch], 
-						*otherMatch = [[tileDict2 objectForKey:@"Tile"] displayedImageMatch];
-	float				thisValue = (thisMatch ? [thisMatch matchValue] : MAXFLOAT), 
-						otherValue = (otherMatch ? [otherMatch matchValue] : MAXFLOAT);
-	
-	if (thisValue == otherValue)
-		return NSOrderedSame;
-	else if (thisValue < otherValue)
-		return NSOrderedAscending;
-	else
-		return NSOrderedDescending;
-}
-
-
 @interface MacOSaiXDocument (PrivateMethods)
 - (void)threadedSaveWithParameters:(NSDictionary *)parameters;
 @end
