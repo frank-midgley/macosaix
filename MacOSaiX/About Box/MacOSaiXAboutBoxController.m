@@ -77,8 +77,6 @@ static MacOSaiXAboutBoxController	*sharedController;
 		[homePageButton setImage:browserIcon];
 	}
 	
-	[mosaicView setBackgroundMode:clearMode];
-	
 	MacOSaiXMosaic			*mosaic = [[[MacOSaiXMosaic alloc] init] autorelease];
 	[mosaic setImageUseCount:1];
 	[mosaic setImageCropLimit:100.0];
@@ -86,7 +84,7 @@ static MacOSaiXAboutBoxController	*sharedController;
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self 
 											 selector:@selector(tileImageDidChange:) 
-												 name:MacOSaiXTileImageDidChangeNotification 
+												 name:MacOSaiXTileContentsDidChangeNotification 
 											   object:mosaic];
 	
 	id<MacOSaiXImageSource>	imageSource = [[NSClassFromString(@"MacOSaiXGlyphImageSource") alloc] init];
