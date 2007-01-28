@@ -6,9 +6,7 @@
 //  Copyright (c) 2001 __MyCompanyName__. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
-
-#import "MacOSaiXPreferencesController.h"
+@protocol MacOSaiXPlugInPreferencesEditor;
 
 
 @interface MacOSaiXPreferencesController : NSWindowController
@@ -25,7 +23,7 @@
 	NSMutableArray						*plugInClasses;
 	NSMutableDictionary					*plugInControllers;
 	
-	id<MacOSaiXPreferencesController>	currentController;
+	id<MacOSaiXPlugInPreferencesEditor>	currentController;
 	
 		// MacOSaiX preferences GUI
 	IBOutlet NSButton					*updateCheckBox, 

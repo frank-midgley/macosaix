@@ -9,6 +9,7 @@
 #import "PreferencesController.h"
 
 #import "MacOSaiX.h"
+#import "MacOSaiXPlugIn.h"
 #import "MacOSaiXTileShapes.h"
 #import "MacOSaiXImageSource.h"
 #import "MacOSaiXWarningController.h"
@@ -52,7 +53,7 @@
 	NSEnumerator	*plugInEnumerator = [allPlugInClasses objectEnumerator];
 	Class			plugInClass = nil;
 	while (plugInClass = [plugInEnumerator nextObject])
-		if ([plugInClass preferencesEditorClass])
+		if ([[plugInClass preferencesEditorClass] conformsToProtocol:@protocol(MacOSaiXPlugInPreferencesEditor)])
 			[plugInClasses addObject:plugInClass];
 	// TODO: sort by plug-in name
 }
@@ -170,7 +171,7 @@
 	// TODO: call -willUnselect and -didUnselect on the current controller
 	
 	int									selectedRow = [preferenceTable selectedRow];
-	id<MacOSaiXPreferencesController>	newController = nil;
+	id<MacOSaiXPlugInPreferencesEditor>	newPrefsEditor = nil;
 	
 	[currentController willUnselect];
 	if (selectedRow == 0)
@@ -195,18 +196,18 @@
 	{
 		Class	plugInClass = [plugInClasses objectAtIndex:selectedRow - 2];
 		
-			// Lookup or create the preference controller for this plug-in.
-		newController = [plugInControllers objectForKey:plugInClass];
-		if (!newController)
+			// Lookup or create the preferences editor for this plug-in.
+		newPrefsEditor = [plugInControllers objectForKey:plugInClass];
+		if (!newPrefsEditor)
 		{
-				// Create and cache a controller.
-			newController = [[[[plugInClass preferencesEditorClass] alloc] init] autorelease];
-			[plugInControllers setObject:newController forKey:plugInClass];
+				// Create and cache an editor.
+			newPrefsEditor = [[[[plugInClass preferencesEditorClass] alloc] init] autorelease];
+			[plugInControllers setObject:newPrefsEditor forKey:plugInClass];
 		}
 		
 			// Enlarge the window if needed.
 		NSSize	currentViewSize = [[preferenceBox contentView] frame].size, 
-				minViewSize = [newController minimumSize];
+				minViewSize = [newPrefsEditor minimumSize];
 		minViewSize.width = MAX(mainViewMinSize.width, minViewSize.width);
 		minViewSize.height = MAX(mainViewMinSize.height, minViewSize.height);
 		float	widthDiff = MAX(0.0, minViewSize.width - currentViewSize.width), 
@@ -229,13 +230,13 @@
 											 minSizeBase.height + minViewSize.height)];
 			
 			// Swap in the new view.
-		[newController willSelect];
-		[preferenceBox setContentView:[newController mainView]];
-		[newController didSelect];
+		[newPrefsEditor willSelect];
+		[preferenceBox setContentView:[newPrefsEditor editorView]];
+		[newPrefsEditor didSelect];
 	}
 	[currentController didUnselect];
 	
-	currentController = newController;
+	currentController = newPrefsEditor;
 }
 
 
