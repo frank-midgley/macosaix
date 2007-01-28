@@ -8,6 +8,7 @@
 
 #import "MacOSaiXTileEditor.h"
 
+#import "MacOSaiXImageCache.h"
 #import "MacOSaiXMosaic.h"
 #import "Tiles.h"
 
@@ -43,7 +44,7 @@
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self 
 											 selector:@selector(tileImageDidChange:) 
-												 name:MacOSaiXTileImageDidChangeNotification 
+												 name:MacOSaiXTileContentsDidChangeNotification 
 											   object:[[self mosaicView] mosaic]];
 }
 
@@ -67,33 +68,88 @@
 					yBy:height / targetImageSize.height];
 	NSBezierPath		*bezierPath = [transform transformBezierPath:outline];
 	[bezierPath setLineWidth:4];
-	
-	float				dashes[2] = {5.0, 5.0};
-	[bezierPath setLineDash:dashes count:2 phase:animationPhase];
 	[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
 	[bezierPath stroke];
 	
-	[bezierPath setLineDash:dashes count:2 phase:(animationPhase + 5) % 10];
-	[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
-	[bezierPath stroke];
-	
-	transform = [NSAffineTransform transform];
-	[transform translateXBy:minX + 0.5 yBy:minY - 0.5];
-	[transform scaleXBy:width yBy:height];
-	[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];	// darken
-	[[transform transformBezierPath:outline] stroke];
-	
-	transform = [NSAffineTransform transform];
-	[transform translateXBy:minX - 0.5 yBy:minY + 0.5];
-	[transform scaleXBy:width yBy:height];
-	[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];	// lighten
-	[[transform transformBezierPath:outline] stroke];
+	// TODO: dim the rest of the mosaic view
 }
 
 
 - (void)handleEventInMosaicView:(NSEvent *)event
 {
 	[self setSelectedTile:[[self mosaicView] tileAtPoint:[[self mosaicView] convertPoint:[event locationInWindow] fromView:nil]]];
+}
+
+
+- (void)populateGUI
+{
+	MacOSaiXTileFillStyle	fillStyle = [selectedTile fillStyle];
+	
+	[fillStylePopUp selectItemWithTag:fillStyle];
+	
+	[fillStyleTabView selectTabViewItemWithIdentifier:[NSString stringWithFormat:@"%d", fillStyle]];
+	
+	switch (fillStyle)
+	{
+		case fillWithUniqueMatch:
+		{
+			MacOSaiXImageMatch	*bestMatch = [[self selectedTile] uniqueImageMatch];
+			
+			if (bestMatch)
+			{
+				NSImageRep			*bestMatchRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:NSZeroSize 
+																							forIdentifier:[bestMatch imageIdentifier] 
+																							   fromSource:[bestMatch imageSource]];
+				NSImage				*bestMatchImage = [[[NSImage alloc] initWithSize:[bestMatchRep size]] autorelease];
+				[bestMatchImage addRepresentation:bestMatchRep];
+				
+				[bestMatchImageView setImage:bestMatchImage];
+			}
+			
+			break;
+		}
+		case fillWithHandPicked:
+		{
+			MacOSaiXImageMatch	*handPickedMatch = [[self selectedTile] userChosenImageMatch];
+			
+			if (handPickedMatch)
+			{
+				NSImageRep			*handPickedRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:NSZeroSize 
+																							 forIdentifier:[handPickedMatch imageIdentifier] 
+																								fromSource:[handPickedMatch imageSource]];
+				NSImage				*handPickedImage = [[[NSImage alloc] initWithSize:[handPickedRep size]] autorelease];
+				[handPickedImage addRepresentation:handPickedRep];
+				
+				[handPickedImageView setImage:handPickedImage];
+			}
+			
+			break;
+		}
+		case fillWithTargetImage:
+		{
+			// TODO: create the image that shows the portion of the target image
+			
+			break;
+		}
+		case fillWithSolidColor:
+		{
+			NSColor	*tileColor = [selectedTile fillColor];
+			
+			if (!tileColor)
+				tileColor = [NSColor blackColor];
+			
+			if ([tileColor isEqualTo:[NSColor blackColor]])
+				[solidColorMatrix selectCellAtRow:0 column:0];
+			else if ([tileColor isEqualTo:[NSColor clearColor]])
+				[solidColorMatrix selectCellAtRow:1 column:0];
+			else
+				[solidColorMatrix selectCellAtRow:2 column:0];
+			
+			[solidColorWell setColor:tileColor];
+			
+			break;
+		}
+	}
 }
 
 
@@ -122,11 +178,51 @@
 		NSBezierPath		*bezierPath = [transform transformBezierPath:[selectedTile outline]];
 		[[self mosaicView] setNeedsDisplayInRect:NSInsetRect([bezierPath bounds], -2.0, -2.0)];
 	}
-	else
-	{
-	}
+	
+	[self populateGUI];
 }
 
+
+- (IBAction)setFillStyle:(id)sender
+{
+	[selectedTile setFillStyle:[[fillStylePopUp selectedItem] tag]];
+	
+	[self populateGUI];
+}
+
+
+- (IBAction)dontUseThisImage:(id)sender
+{
+	
+}
+
+
+- (IBAction)chooseImageForTile:(id)sender
+{
+	
+}
+
+
+- (IBAction)setSolidColor:(id)sender
+{
+	if (sender == solidColorMatrix)
+	{
+		if ([solidColorMatrix selectedRow] == 0)
+		{
+			[selectedTile setFillColor:[NSColor blackColor]];
+			[solidColorWell setColor:[NSColor blackColor]];
+		}
+		else if ([solidColorMatrix selectedRow] == 1)
+		{
+			[selectedTile setFillColor:[NSColor clearColor]];
+			[solidColorWell setColor:[NSColor clearColor]];
+		}
+	}
+	else if (sender == solidColorWell)
+	{
+		[selectedTile setFillColor:[solidColorWell color]];
+	}
+}
 
 - (MacOSaiXTile *)selectedTile
 {
@@ -202,7 +298,7 @@
 	// TBD: close NSOpenPanel?
 	
 	[[NSNotificationCenter defaultCenter] removeObserver:self 
-													name:MacOSaiXTileImageDidChangeNotification 
+													name:MacOSaiXTileContentsDidChangeNotification 
 												  object:[[self mosaicView] mosaic]];
 	
 	[self setSelectedTile:nil];

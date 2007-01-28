@@ -8,7 +8,28 @@
             SUPERCLASS = NSObject; 
         }, 
         {CLASS = MacOSaiXPopUpButton; LANGUAGE = ObjC; SUPERCLASS = NSButton; }, 
-        {CLASS = MacOSaiXTileEditor; LANGUAGE = ObjC; SUPERCLASS = MacOSaiXEditor; }
+        {
+            ACTIONS = {
+                chooseImageForTile = id; 
+                dontUseThisImage = id; 
+                setFillStyle = id; 
+                setSolidColor = id; 
+            }; 
+            CLASS = MacOSaiXTileEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                bestMatchImageView = NSImageView; 
+                chooseImageButton = NSButton; 
+                dontUseThisImagePopUp = NSPopUpButton; 
+                fillStylePopUp = NSPopUpButton; 
+                fillStyleTabView = NSTabView; 
+                handPickedImageView = NSImageView; 
+                portionOfTargetImageView = NSImageView; 
+                solidColorMatrix = NSMatrix; 
+                solidColorWell = NSColorWell; 
+            }; 
+            SUPERCLASS = MacOSaiXEditor; 
+        }
     ); 
     IBVersion = 1; 
 }
