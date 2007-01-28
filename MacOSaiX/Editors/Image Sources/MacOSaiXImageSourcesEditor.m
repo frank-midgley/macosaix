@@ -286,8 +286,6 @@
 		id<MacOSaiXImageSource>	displayedSource = [[tile userChosenImageMatch] imageSource];
 		if (!displayedSource)
 			displayedSource = [[tile uniqueImageMatch] imageSource];
-		if (!displayedSource && [mosaicView showNonUniqueMatches])
-			displayedSource = [[tile bestImageMatch] imageSource];
 		
 		if (displayedSource && [highlightedImageSources containsObject:displayedSource])
 		{
