@@ -13,19 +13,24 @@
 @class MacOSaiXMosaic;
 
 
+typedef enum { fillWithUniqueMatch, fillWithHandPicked, fillWithTargetImage, fillWithSolidColor } MacOSaiXTileFillStyle;
+
+
 @interface MacOSaiXTile : NSObject
 {
-	NSBezierPath		*outline;				// The shape of this tile
-	NSNumber			*imageOrientation;		// The orientation of this tile (in degrees), nil if not defined.
+	NSBezierPath			*outline;				// The shape of this tile
+	NSNumber				*imageOrientation;		// The orientation of this tile (in degrees), nil if not defined.
 	
-	NSBitmapImageRep	*bitmapRep,				// The portion of the target image that is in this tile
-						*maskRep;
+	NSBitmapImageRep		*bitmapRep,				// The portion of the target image that is in this tile
+							*maskRep;
 	
-	MacOSaiXImageMatch	*uniqueImageMatch,
-						*bestImageMatch,
-						*userChosenImageMatch;	// will be nil if user has not choosen an image
+	MacOSaiXTileFillStyle	fillStyle;
+	MacOSaiXImageMatch		*uniqueImageMatch,
+							*bestImageMatch,
+							*userChosenImageMatch;	// will be nil if user has not choosen an image
+	NSColor					*fillColor;
 	
-	MacOSaiXMosaic		*mosaic;				// The mosaic this tile is a part of (non-retained)
+	MacOSaiXMosaic			*mosaic;				// The mosaic this tile is a part of (non-retained)
 }
 
 	// designated initializer
@@ -47,15 +52,19 @@
 - (NSBitmapImageRep *)maskRep;
 - (void)resetBitmapRepAndMask;
 
-- (MacOSaiXImageMatch *)uniqueImageMatch;
-- (void)setUniqueImageMatch:(MacOSaiXImageMatch *)match;
+- (void)setFillStyle:(MacOSaiXTileFillStyle)style;
+- (MacOSaiXTileFillStyle)fillStyle;
 
-- (MacOSaiXImageMatch *)bestImageMatch;
+- (void)setUniqueImageMatch:(MacOSaiXImageMatch *)match;
+- (MacOSaiXImageMatch *)uniqueImageMatch;
+
 - (void)setBestImageMatch:(MacOSaiXImageMatch *)match;
+- (MacOSaiXImageMatch *)bestImageMatch;
 
 - (void)setUserChosenImageMatch:(MacOSaiXImageMatch *)match;
 - (MacOSaiXImageMatch *)userChosenImageMatch;
 
-- (MacOSaiXImageMatch *)displayedImageMatch;
+- (void)setFillColor:(NSColor *)color;
+- (NSColor *)fillColor;
 
 @end

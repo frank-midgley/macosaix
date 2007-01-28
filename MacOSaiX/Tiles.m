@@ -229,15 +229,38 @@
 }
 
 
-- (void)sendNotificationThatImageMatch:(NSString *)matchType changedFrom:(MacOSaiXImageMatch *)previousMatch
+- (void)sendNotificationThatImageContentsChangedFromPreviousMatch:(MacOSaiXImageMatch *)previousMatch
 {
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileImageDidChangeNotification
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileContentsDidChangeNotification
 														object:mosaic 
 													  userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
 																	self, @"Tile", 
-																	matchType, @"Match Type", 
 																	previousMatch, @"Previous Match",
 																	nil]];
+}
+
+
+- (void)setFillStyle:(MacOSaiXTileFillStyle)style
+{
+	if (style != fillStyle)
+	{
+		MacOSaiXImageMatch	*previousMatch = nil;
+		
+		if (style == fillWithUniqueMatch)
+			previousMatch = uniqueImageMatch;
+		else if (style == fillWithHandPicked)
+			previousMatch = userChosenImageMatch;
+		
+		fillStyle = style;
+		
+		[self sendNotificationThatImageContentsChangedFromPreviousMatch:previousMatch];
+	}
+}
+
+
+- (MacOSaiXTileFillStyle)fillStyle
+{
+	return fillStyle;
 }
 
 
@@ -250,7 +273,8 @@
 		[uniqueImageMatch autorelease];
 		uniqueImageMatch = [match retain];
 		
-		[self sendNotificationThatImageMatch:@"Unique" changedFrom:previousMatch];
+		if ([self fillStyle] == fillWithUniqueMatch)
+			[self sendNotificationThatImageContentsChangedFromPreviousMatch:previousMatch];
 	}
 }
 
@@ -265,12 +289,8 @@
 {
 	if (match != bestImageMatch)
 	{
-		MacOSaiXImageMatch	*previousMatch = bestImageMatch;
-		
 		[bestImageMatch autorelease];
 		bestImageMatch = [match retain];
-		
-		[self sendNotificationThatImageMatch:@"Best" changedFrom:previousMatch];
 	}
 }
 
@@ -290,7 +310,8 @@
 		[userChosenImageMatch autorelease];
 		userChosenImageMatch = [match retain];
 		
-		[self sendNotificationThatImageMatch:@"User Chosen" changedFrom:previousMatch];
+		if ([self fillStyle] == fillWithHandPicked)
+			[self sendNotificationThatImageContentsChangedFromPreviousMatch:previousMatch];
 	}
 }
 
@@ -301,16 +322,22 @@
 }
 
 
-- (MacOSaiXImageMatch *)displayedImageMatch
+- (void)setFillColor:(NSColor *)color
 {
-	if (userChosenImageMatch)
-		return userChosenImageMatch;
-	else if (uniqueImageMatch)
-		return uniqueImageMatch;
-	else if (bestImageMatch)
-		return bestImageMatch;
-	else
-		return nil;
+	if (![color isEqualTo:fillColor])
+	{
+		[fillColor release];
+		fillColor = [color retain];
+		
+		if ([self fillStyle] == fillWithSolidColor)
+			[self sendNotificationThatImageContentsChangedFromPreviousMatch:nil];
+	}
+}
+
+
+- (NSColor *)fillColor
+{
+	return fillColor;
 }
 
 
@@ -322,6 +349,7 @@
 	[uniqueImageMatch release];
     [userChosenImageMatch release];
 	[bestImageMatch release];
+	[fillColor release];
 	
     [super dealloc];
 }
