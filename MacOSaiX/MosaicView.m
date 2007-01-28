@@ -41,10 +41,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	if (self = [super initWithFrame:frameRect])
 	{
 		tilesToRefresh = [[NSMutableArray alloc] init];
-		tileMatchTypesToRefresh = [[NSMutableArray alloc] init];
 		tileRefreshLock = [[NSLock alloc] init];
-		
-		backgroundMode = targetMode;
 	}
 	
 	return self;
@@ -54,7 +51,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 - (void)awakeFromNib
 {
 	mainImageLock = [[NSLock alloc] init];
-	backgroundImageLock = [[NSLock alloc] init];
 	tilesNeedingDisplay = [[NSMutableArray alloc] init];
 	tilesNeedDisplayLock = [[NSLock alloc] init];
 }
@@ -82,7 +78,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 													   object:mosaic];
 			[[NSNotificationCenter defaultCenter] addObserver:self 
 													 selector:@selector(tileImageDidChange:) 
-														 name:MacOSaiXTileImageDidChangeNotification 
+														 name:MacOSaiXTileContentsDidChangeNotification 
 													   object:mosaic];
 		}
 		
@@ -129,8 +125,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	}
 	
 		// Phase in the new image.
-		// Pick a size for the main and background images.
-		// (somewhat arbitrary but large enough for decent zooming)
+		// Pick a size for the main image.  (somewhat arbitrary but large enough for decent zooming)
 	float	bitmapSize = 10.0 * 1024.0 * 1024.0;
 	mainImageSize.width = floorf(sqrtf([mosaic aspectRatio] * bitmapSize));
 	mainImageSize.height = floorf(bitmapSize / mainImageSize.width);
@@ -147,12 +142,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		[mainImageTransform scaleXBy:mainImageSize.width / targetImageSize.width 
 								 yBy:mainImageSize.height / targetImageSize.height];
 	[mainImageLock unlock];
-	
-		// Release the current background image.  A new one will be created later if needed off the main thread.
-	[backgroundImageLock lock];
-			[backgroundImage autorelease];
-			backgroundImage = nil;
-	[backgroundImageLock unlock];
 }
 
 
@@ -197,27 +186,10 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
-- (void)setBackgroundImage:(NSImage *)image
-{
-	if (image != backgroundImage)
-	{
-		[backgroundImage autorelease];
-		backgroundImage = [image retain];
-	}
-}
-
-
-- (NSImage *)backgroundImage
-{
-	return backgroundImage;
-}
-
-
 - (void)tileShapesDidChange:(NSNotification *)notification
 {
 	[tileRefreshLock lock];
 		[tilesToRefresh removeAllObjects];
-		[tileMatchTypesToRefresh removeAllObjects];
 	[tileRefreshLock unlock];
 	
 	[mainImageLock lock];
@@ -230,16 +202,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		}
 	[mainImageLock unlock];
 	
-	[backgroundImageLock lock];
-		if (backgroundImage)
-		{
-			[backgroundImage lockFocus];
-				[[NSColor clearColor] set];
-				NSRectFill(NSMakeRect(0.0, 0.0, [backgroundImage size].width, [backgroundImage size].height));
-			[backgroundImage unlockFocus];
-		}
-	[backgroundImageLock unlock];
-	
 		// TODO: main thread?
 	[self setNeedsDisplay:YES];
 }
@@ -247,31 +209,23 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 - (void)refreshTile:(NSDictionary *)tileDict
 {
-		// Add the tile to the queue of tiles to be refreshed and start the refresh 
-		// thread if it isn't already running.
+		// Add the tile to the queue of tiles to be refreshed and start the refresh thread if it isn't already running.
+		// TODO: handle new fill types
 	MacOSaiXTile		*tile = [tileDict objectForKey:@"Tile"];
-	NSString			*matchType = [tileDict objectForKey:@"Match Type"];
 //	MacOSaiXImageMatch	*previousMatch = [tileDict objectForKey:@"Previous Match"];
 	
 	[tileRefreshLock lock];
 		unsigned	index= [tilesToRefresh indexOfObject:tile];
 		if (index != NSNotFound)
 		{
-				// Add the match type for the tile.
-			NSMutableSet	*matchTypesToRefresh = [[[tileMatchTypesToRefresh objectAtIndex:index] retain] autorelease];
-			[matchTypesToRefresh addObject:matchType];
-			
 				// Move the tile to the head of the refresh queue.
 			[tilesToRefresh removeObjectAtIndex:index];
 			[tilesToRefresh addObject:tile];
-			[tileMatchTypesToRefresh removeObjectAtIndex:index];
-			[tileMatchTypesToRefresh addObject:matchTypesToRefresh];
 		}
 		else
 		{
 				// Add the tile to the head of the refresh queue.
 			[tilesToRefresh addObject:tile];
-			[tileMatchTypesToRefresh addObject:[NSMutableSet setWithObject:matchType]];
 		}
 		
 		if (!refreshingTiles)
@@ -295,7 +249,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	MacOSaiXTile		*tileToRefresh = nil;
-	NSMutableSet		*matchTypesToRefresh = nil;
 	NSDate				*lastRedraw = [NSDate date];
 	NSMutableArray		*tilesToRedraw = [NSMutableArray array];
 	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
@@ -312,8 +265,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 			{
 				tileToRefresh = [[[tilesToRefresh lastObject] retain] autorelease];
 				[tilesToRefresh removeLastObject];
-				matchTypesToRefresh = [[[tileMatchTypesToRefresh lastObject] retain] autorelease];
-				[tileMatchTypesToRefresh removeLastObject];
 			}
 		[tileRefreshLock unlock];
 		
@@ -329,87 +280,39 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 				[transform translateXBy:-NSMidX([rotatedOutline bounds]) yBy:-NSMidY([rotatedOutline bounds])];
 				NSBezierPath		*mainOutline = [transform transformBezierPath:rotatedOutline];
 				
-				MacOSaiXImageMatch	*mainImageMatch = ([tileToRefresh userChosenImageMatch] ? [tileToRefresh userChosenImageMatch] :
-																							  [tileToRefresh uniqueImageMatch]), 
-									*backgroundImageMatch = [tileToRefresh bestImageMatch];
-				NSImageRep			*mainImageRep = nil,
-									*backgroundImageRep = nil;
-				BOOL				redrawMain = ([matchTypesToRefresh containsObject:@"User Chosen"] || 
-												  [matchTypesToRefresh containsObject:@"Unique"]), 
-									redrawBackground = [matchTypesToRefresh containsObject:@"Best"];
+					// Get the image rep, if any, to draw for this tile.
+					// These steps are the primary reason we're in a separate thread because the cache may have to get the images from the sources which might have to hit the network, etc.
+				MacOSaiXImageMatch	*imageMatch = nil;
+				if ([tileToRefresh fillStyle] == fillWithUniqueMatch)
+					imageMatch = [tileToRefresh uniqueImageMatch];
+				else if ([tileToRefresh fillStyle] == fillWithHandPicked)
+					imageMatch = [tileToRefresh userChosenImageMatch];
 				
-					// Get the image rep(s) to draw for this tile.
-					// These steps are the primary reason we're in a separate thread because 
-					// the cache may have to get the images from the sources which might have 
-					// to hit the network, etc.
-				if (redrawMain && mainImageMatch)
-				{
-						// The tile in main will draw over it so there's no need to redraw the background.
-						// TBD: But what if the image rep isn't opaque?
-					redrawBackground = NO;
-					
-					mainImageRep = [imageCache imageRepAtSize:NSIntegralRect([mainOutline bounds]).size
-												forIdentifier:[mainImageMatch imageIdentifier] 
-												   fromSource:[mainImageMatch imageSource]];
-				}
-				
-					// If no image will be displayed for the tile in the main layer then 
-					// the background layer may need to be redrawn.
-				if (redrawMain && !mainImageMatch)
-					redrawBackground = YES;
-				
-					// TODO: background should not be redrawn if all tiles have a unique match.
-				if (showNonUniqueMatches && redrawBackground && backgroundImageMatch)
-					backgroundImageRep = [imageCache imageRepAtSize:NSIntegralRect([mainOutline bounds]).size
-													  forIdentifier:[backgroundImageMatch imageIdentifier] 
-														 fromSource:[backgroundImageMatch imageSource]];
+				NSImageRep			*imageRep = nil;
+				if (imageMatch)
+					imageRep = [imageCache imageRepAtSize:NSIntegralRect([mainOutline bounds]).size
+											forIdentifier:[imageMatch imageIdentifier] 
+											   fromSource:[imageMatch imageSource]];
 				
 				[tileRefreshLock lock];
-					if (redrawMain)
-					{
-						[tilesToRedraw addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-														@"Main", @"Layer", 
-														tileToRefresh, @"Tile", 
-														mainImageRep, @"Image Rep", // could be nil
-														nil]];
-						
-							// Create an image to hold the mosaic if needed.
-						[mainImageLock lock];
-							if (!mainImage)
-							{
-								mainImage = [[NSImage alloc] initWithSize:mainImageSize];
-								[mainImage setCachedSeparately:YES];
-								
-								[mainImage lockFocus];
-									[[NSColor clearColor] set];
-									NSRectFill(NSMakeRect(0.0, 0.0, mainImageSize.width, mainImageSize.height));
-								[mainImage unlockFocus];
-							}
-						[mainImageLock unlock];
-					}
+					[tilesToRedraw addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+													tileToRefresh, @"Tile", 
+													imageRep, @"Image Rep", // could be nil so last
+													nil]];
 					
-					if (showNonUniqueMatches && redrawBackground)
-					{
-						[tilesToRedraw addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-														@"Background", @"Layer", 
-														tileToRefresh, @"Tile", 
-														backgroundImageRep, @"Image Rep",  // could be nil
-														nil]];
-						
-						
-							// Create a new background image if needed.
-						[backgroundImageLock lock];
-							if (!backgroundImage)
-							{
-								backgroundImage = [[NSImage alloc] initWithSize:mainImageSize];
-								[backgroundImage setCachedSeparately:YES];
-								[backgroundImage lockFocus];
-									[[NSColor clearColor] set];
-									NSRectFill(NSMakeRect(0.0, 0.0, [backgroundImage size].width, [backgroundImage size].height));
-								[backgroundImage unlockFocus];
-							}
-						[backgroundImageLock unlock];
-					}
+						// Create an image to hold the mosaic if needed.
+					[mainImageLock lock];
+						if (!mainImage)
+						{
+							mainImage = [[NSImage alloc] initWithSize:mainImageSize];
+							[mainImage setCachedSeparately:YES];
+							
+							[mainImage lockFocus];
+								[[NSColor clearColor] set];
+								NSRectFill(NSMakeRect(0.0, 0.0, mainImageSize.width, mainImageSize.height));
+							[mainImage unlockFocus];
+						}
+					[mainImageLock unlock];
 					
 					if ([tilesToRedraw count] > 0 && [lastRedraw timeIntervalSinceNow] < -0.2)
 					{
@@ -470,7 +373,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	{
 		MacOSaiXTile		*tile = [tileDict objectForKey:@"Tile"];
 		NSImageRep			*imageRep = [tileDict objectForKey:@"Image Rep"];
-		BOOL				redrawMain = [[tileDict objectForKey:@"Layer"] isEqualToString:@"Main"];
 		NSBezierPath		*clipPath = [mainImageTransform transformBezierPath:[tile outline]], 
 							*targetOutline = [tile outline];
 		NSRect				targetBounds = [targetOutline bounds];
@@ -496,61 +398,42 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		[transform rotateByDegrees:[tile imageOrientation]];
 		[transform translateXBy:-[imageRep size].width / 2.0 yBy:-[imageRep size].height / 2.0];
 		
-		if (redrawMain)
-		{
-			[mainImageLock lock];
-				if (mainImage)
-				{
-					NS_DURING
-						[mainImage lockFocus];
-							[clipPath setClip];
-							
-							if (imageRep)
-							{
-								[transform concat];
-								[imageRep drawAtPoint:NSZeroPoint];
-							}
-							else
-							{
-								[[NSColor clearColor] set];
+		[mainImageLock lock];
+			if (mainImage)
+			{
+				NS_DURING
+					[mainImage lockFocus];
+						[clipPath setClip];
+						
+						switch ([tile fillStyle])
+						{
+							case fillWithUniqueMatch:
+							case fillWithHandPicked:
+								if (imageRep)
+								{
+									[transform concat];
+									[imageRep drawAtPoint:NSZeroPoint];
+								}
+								break;
+							case fillWithTargetImage:
+								[[[self mosaic] targetImage] drawInRect:NSMakeRect(0.0, 0.0, [mainImage size].width, [mainImage size].height)
+															   fromRect:NSZeroRect 
+															  operation:NSCompositeSourceOver 
+															   fraction:1.0];
+								break;
+							case fillWithSolidColor:
+								[[tile fillColor] set];
 								NSRectFillUsingOperation([clipPath bounds], NSCompositeSourceOver);
-							}
-						[mainImage unlockFocus];
-					NS_HANDLER
-						#ifdef DEBUG
-							NSLog(@"Could not lock focus on mosaic image");
-						#endif
-					NS_ENDHANDLER
-				}
-			[mainImageLock unlock];
-		}
-		else
-		{
-			[backgroundImageLock lock];
-				if (backgroundImage)
-				{
-					NS_DURING
-						[backgroundImage lockFocus];
-							[clipPath setClip];
-							if (imageRep)
-							{
-								[transform concat];
-								[imageRep drawAtPoint:NSZeroPoint];
-							}
-							else
-							{
-								[[NSColor clearColor] set];
-								NSRectFillUsingOperation([clipPath bounds], NSCompositeSourceOver);
-							}
-						[backgroundImage unlockFocus];
-					NS_HANDLER
-						#ifdef DEBUG
-							NSLog(@"Could not lock focus on non-unique image");
-						#endif
-					NS_ENDHANDLER
-				}
-			[backgroundImageLock unlock];
-		}
+								break;
+						}
+					[mainImage unlockFocus];
+				NS_HANDLER
+					#ifdef DEBUG
+						NSLog(@"Could not lock focus on mosaic image");
+					#endif
+				NS_ENDHANDLER
+			}
+		[mainImageLock unlock];
 		
 		[tilesNeedDisplayLock lock];
 			[tilesNeedingDisplay addObject:tile];
@@ -638,69 +521,13 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
-- (void)setShowNonUniqueMatches:(BOOL)flag
-{
-	if (showNonUniqueMatches != flag)
-	{
-		showNonUniqueMatches = flag;
-		
-		if (showNonUniqueMatches)
-		{
-				// Queue the refresh of all tiles that don't have an image in the main layer.
-			NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
-			MacOSaiXTile	*tile = nil;
-			while (tile = [tileEnumerator nextObject])
-				if (![tile userChosenImageMatch] && ![tile uniqueImageMatch])
-					[self refreshTile:[NSDictionary dictionaryWithObjectsAndKeys:
-											tile, @"Tile", 
-											@"Best", @"Match Type", 
-											nil]];
-		}
-		else
-		{
-				// Get rid of the memory consuming background image since it's no longer needed.
-				// A new one will be created if the mode is switched back to best match.
-				// TODO: do this after a 10-15 second delay in case the user switches back.
-			[backgroundImageLock lock];
-				[backgroundImage autorelease];
-				backgroundImage = nil;
-			[backgroundImageLock unlock];
-		}
-		
-		[self setNeedsDisplay:YES];
-	}
-}
-
-
-- (BOOL)showNonUniqueMatches
-{
-	return showNonUniqueMatches;
-}
-
-
-- (void)setBackgroundMode:(MacOSaiXBackgroundMode)mode
-{
-	if (mode != backgroundMode)
-	{
-		backgroundMode = mode;
-		
-		[self setNeedsDisplay:YES];
-	}
-}
-
-
-- (MacOSaiXBackgroundMode)backgroundMode
-{
-	return backgroundMode;
-}
-
-
 - (MacOSaiXTile *)tileAtPoint:(NSPoint)thePoint
 {
 		// Convert the point to the units system that the tile outlines are in.
+	NSRect	imageBounds = [self imageBounds];
 	NSSize	targetImageSize = [[[self mosaic] targetImage] size];
-    thePoint.x = thePoint.x / [self frame].size.width * targetImageSize.width;
-    thePoint.y = thePoint.y / [self frame].size.height * targetImageSize.height;
+    thePoint.x = (thePoint.x - NSMinX(imageBounds)) / NSWidth(imageBounds) * targetImageSize.width;
+    thePoint.y = (thePoint.y - NSMinY(imageBounds)) / NSHeight(imageBounds) * targetImageSize.height;
     
 		// TBD: this isn't terribly efficient...
 	NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
@@ -794,7 +621,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 										   NSWidth(drawUnitRect) * mainImageSize.width,
 										   NSHeight(drawUnitRect) * mainImageSize.height);
 		
-		if (backgroundMode == targetMode || targetImageFraction > 0.0)
+		if (targetImageFraction > 0.0)
 		{
 			if (targetImageIsChanging && previousTargetFraction > 0.0)
 			{
@@ -840,11 +667,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 							  withAttributes:attributes];
 			}
 		}
-		else if (backgroundMode == blackMode)
-		{
-			[[NSColor colorWithDeviceWhite:0.0 alpha:1.0] set];
-			NSRectFill(drawRect);
-		}
 		
 		[mainImageLock lock];
 			[mainImage drawInRect:drawRect 
@@ -852,16 +674,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 						operation:NSCompositeSourceOver 
 						 fraction:1.0 - targetImageFraction];
 		[mainImageLock unlock];
-		
-		if (showNonUniqueMatches)
-		{
-			[backgroundImageLock lock];
-				[backgroundImage drawInRect:drawRect 
-								   fromRect:mainImageRect 
-								  operation:NSCompositeSourceOver 
-								   fraction:1.0 - targetImageFraction];
-			[backgroundImageLock unlock];
-		}
 		
 		[activeEditor embellishMosaicViewInRect:drawRect];
 	}
@@ -997,7 +809,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 - (void)updateTooltip:(NSTimer *)timer
 {
-	if (![[self window] isMainWindow] || [[self window] attachedSheet])
+	if (![[self window] isMainWindow] || [[self window] attachedSheet] || [self activeEditor])
 		[self setTooltipsEnabled:NO animateHiding:YES];
 	else if (tooltipTile || GetCurrentEventTime() > [[[self window] currentEvent] timestamp] + 1)
 	{
@@ -1139,7 +951,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 - (void)mouseEntered:(NSEvent *)event
 {
-	if ([[self window] isKeyWindow] && ![[self window] attachedSheet])
+	if ([[self window] isKeyWindow] && ![[self window] attachedSheet] && ![self activeEditor])
 		[self setTooltipsEnabled:YES animateHiding:YES];
 }
 
@@ -1264,15 +1076,12 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	[mainImage release];
 	[mainImageLock release];
 	[mainImageTransform release];
-	[backgroundImage release];
-	[backgroundImageLock release];
 	[contextualMenu release];
 	if ([tilesNeedDisplayTimer isValid])
 		[tilesNeedDisplayTimer invalidate];
 	[tilesNeedDisplayTimer release];
 	[tilesNeedingDisplay release];
 	[tilesToRefresh release];
-	[tileMatchTypesToRefresh release];
 	[previousTargetImage release];
 	
 	[mosaic release];

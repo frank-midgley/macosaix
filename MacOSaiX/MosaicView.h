@@ -9,17 +9,12 @@
 @class MacOSaiXMosaic, MacOSaiXTile, MacOSaiXEditor;
 
 
-typedef enum { clearMode, blackMode, targetMode } MacOSaiXBackgroundMode;
-
-
 @interface MosaicView : NSView
 {
 	MacOSaiXMosaic			*mosaic;
-	NSImage					*mainImage, 
-							*backgroundImage;
+	NSImage					*mainImage;
 	NSSize					mainImageSize;
-	NSLock					*mainImageLock, 
-							*backgroundImageLock;
+	NSLock					*mainImageLock;
 	NSAffineTransform		*mainImageTransform;
 	float					targetImageFraction, 
 							targetFadeTime;
@@ -37,8 +32,7 @@ typedef enum { clearMode, blackMode, targetMode } MacOSaiXBackgroundMode;
 	IBOutlet NSMenu			*contextualMenu;
 	
 		// Tile refreshing
-	NSMutableArray			*tilesToRefresh, 
-							*tileMatchTypesToRefresh;
+	NSMutableArray			*tilesToRefresh;
 	NSLock					*tileRefreshLock;
 	BOOL					refreshingTiles;
 	
@@ -46,8 +40,6 @@ typedef enum { clearMode, blackMode, targetMode } MacOSaiXBackgroundMode;
 	NSMutableArray			*tilesNeedingDisplay;
 	NSLock					*tilesNeedDisplayLock;
 	NSTimer					*tilesNeedDisplayTimer;
-	
-	MacOSaiXBackgroundMode	backgroundMode;
 	
 		// Custom tooltip window
 	NSTimer					*tooltipTimer, 
@@ -67,8 +59,6 @@ typedef enum { clearMode, blackMode, targetMode } MacOSaiXBackgroundMode;
 
 - (void)setMainImage:(NSImage *)image;
 - (NSImage *)mainImage;
-- (void)setBackgroundImage:(NSImage *)image;
-- (NSImage *)backgroundImage;
 
 - (void)setTargetImageFraction:(float)fraction;
 - (float)targetImageFraction;
@@ -79,12 +69,6 @@ typedef enum { clearMode, blackMode, targetMode } MacOSaiXBackgroundMode;
 
 - (void)setActiveEditor:(MacOSaiXEditor *)editor;
 - (MacOSaiXEditor *)activeEditor;
-
-- (void)setShowNonUniqueMatches:(BOOL)flag;
-- (BOOL)showNonUniqueMatches;
-
-- (void)setBackgroundMode:(MacOSaiXBackgroundMode)mode;
-- (MacOSaiXBackgroundMode)backgroundMode;
 
 - (MacOSaiXTile *)tileAtPoint:(NSPoint)thePoint;
 
