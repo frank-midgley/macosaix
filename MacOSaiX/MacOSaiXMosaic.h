@@ -115,6 +115,6 @@
 extern NSString	*MacOSaiXMosaicDidChangeStateNotification;
 extern NSString	*MacOSaiXMosaicDidChangeBusyStateNotification;
 extern NSString	*MacOSaiXTargetImageDidChangeNotification;
-extern NSString *MacOSaiXTileImageDidChangeNotification;
+extern NSString *MacOSaiXTileContentsDidChangeNotification;
 extern NSString *MacOSaiXTileShapesDidChangeStateNotification;
 extern NSString *MacOSaiXImageOrientationsDidChangeStateNotification;
