@@ -78,10 +78,8 @@ static NSArray	*formatExtensions = nil;
 
 	[mosaicView setMosaic:mosaic];
 	[mosaicView setMainImage:[inMosaicView mainImage]];
-	[mosaicView setBackgroundImage:[inMosaicView backgroundImage]];
 	[mosaicView setTargetImageFraction:[inMosaicView targetImageFraction]];
 	[fadeSlider setFloatValue:[mosaicView targetImageFraction]];
-	[showNonUniqueMatchesButton	setState:([mosaicView showNonUniqueMatches] ? NSOnState : NSOffState)];
 	
 	delegate = inDelegate;
 	didEndSelector = ([delegate respondsToSelector:inDidEndSelector] ? inDidEndSelector : nil);
@@ -132,21 +130,9 @@ static NSArray	*formatExtensions = nil;
 }
 
 
-- (IBAction)setBackground:(id)sender
-{
-	[mosaicView setBackgroundMode:[sender selectedTag]];
-}
-
-
 - (IBAction)setFade:(id)sender
 {
 	[mosaicView setTargetImageFraction:1.0 - [fadeSlider floatValue]];
-}
-
-
-- (IBAction)setShowNonUniqueMatches:(id)sender
-{
-	[mosaicView setShowNonUniqueMatches:([showNonUniqueMatchesButton state] == NSOnState)];
 }
 
 
@@ -334,7 +320,7 @@ static NSArray	*formatExtensions = nil;
 	CGDataProviderRef	cgDataProvider = NULL;
 	CGImageRef			cgTargetImage	= NULL;
 	
-	if (createWebPage || [mosaicView backgroundMode] == targetMode)
+	if (createWebPage)
 	{
 			// Create a CG version of the target image.
 		NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
@@ -434,51 +420,6 @@ static NSArray	*formatExtensions = nil;
 		[[NSColor clearColor] set];
 		NSRectFill(exportRect);
 	#endif
-	
-	switch ([mosaicView backgroundMode])
-	{
-		case targetMode:
-			#if USE_CG
-				CGContextDrawImage(cgContext, cgExportRect, cgTargetImage);
-			#else
-				[[mosaic targetImage] drawInRect:exportRect 
-									  fromRect:NSZeroRect 
-									 operation:NSCompositeCopy 
-									  fraction:1.0];
-			#endif
-			break;
-		case blackMode:
-		{
-			#if USE_CG
-				float	blackColorComponents[2] = {0.0, 1.0};
-				CGContextSetFillColor(cgContext, blackColorComponents);
-				CGContextFillRect(cgContext, cgExportRect);
-			#else
-				[[NSColor colorWithDeviceWhite:0.0 alpha:1.0] set];
-				NSRectFillUsingOperation(exportRect, NSCompositeSourceOver);
-			#endif
-			break;
-		}
-		// TODO: draw a user specified solid color...
-		default:
-			;
-	}
-	
-	if (targetImageRep)
-	{
-		[targetImageRep release];
-		targetImageRep = nil;
-	}
-	if (cgTargetImage)
-	{
-		CGImageRelease(cgTargetImage);
-		cgTargetImage = nil;
-	}
-	if (cgDataProvider)
-	{
-		CGDataProviderRelease(cgDataProvider);
-		cgDataProvider = nil;
-	}
 
 	NSAffineTransform	*transform = [NSAffineTransform transform];
 	NSSize				targetImageSize = [[mosaic targetImage] size];
@@ -510,11 +451,10 @@ static NSArray	*formatExtensions = nil;
         NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
 		
 			// Get the image to show in this tile.
+			// TODO: handle new fill styles
 		MacOSaiXImageMatch	*match = [tile userChosenImageMatch];
 		if (!match)
 			match = [tile uniqueImageMatch];
-		if (!match && [mosaicView showNonUniqueMatches])
-			match = [tile bestImageMatch];
 		
 		if (match)
 		{
@@ -707,6 +647,22 @@ static NSArray	*formatExtensions = nil;
         [pool2 release];
     }
 	
+	if (targetImageRep)
+	{
+		[targetImageRep release];
+		targetImageRep = nil;
+	}
+	if (cgTargetImage)
+	{
+		CGImageRelease(cgTargetImage);
+		cgTargetImage = nil;
+	}
+	if (cgDataProvider)
+	{
+		CGDataProviderRelease(cgDataProvider);
+		cgDataProvider = nil;
+	}
+		
 	if (exportCancelled)
 		#if USE_CG
 			;

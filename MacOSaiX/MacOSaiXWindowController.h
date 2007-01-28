@@ -89,7 +89,6 @@
 - (MacOSaiXMosaic *)mosaic;
 
 	// View methods
-- (IBAction)setShowNonUniqueMatches:(id)sender;
 - (IBAction)setZoom:(id)sender;
 - (IBAction)setMinimumZoom:(id)sender;
 - (IBAction)setMaximumZoom:(id)sender;
@@ -101,6 +100,3 @@
 - (IBAction)saveMosaicAs:(id)sender;
 
 @end
-
-
-extern NSString	*MacOSaiXRecentTargetImagesDidChangeNotification;

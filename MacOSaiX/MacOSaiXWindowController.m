@@ -420,13 +420,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 #pragma mark View methods
 
 
-- (IBAction)setShowNonUniqueMatches:(id)sender
-{
-	[mosaicView setShowNonUniqueMatches:![mosaicView showNonUniqueMatches]];
-	[self synchronizeMenus];
-}
-
-
 - (IBAction)setZoom:(id)sender
 {
 		// Calculate the currently centered point of the mosaic image independent of the zoom factor.
@@ -559,13 +552,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 }
 
 
-- (IBAction)setBackground:(id)sender
-{
-	if ([sender isKindOfClass:[NSMenuItem class]])
-		[mosaicView setBackgroundMode:[(NSMenuItem *)sender tag]];
-}
-
-
 #pragma mark -
 #pragma mark Utility methods
 
@@ -577,10 +563,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	
 	if (actionToValidate == @selector(togglePause:))
 		valid = ([[[self mosaic] imageSources] count] > 0);
-	else if (actionToValidate == @selector(setShowNonUniqueMatches:))
-		[menuItem setState:([mosaicView showNonUniqueMatches] ? NSOnState : NSOffState)];
-	else if (actionToValidate == @selector(setBackground:))
-		[menuItem setState:([menuItem tag] == [mosaicView backgroundMode] ? NSOnState : NSOffState)];
 	
 	return valid;
 }
