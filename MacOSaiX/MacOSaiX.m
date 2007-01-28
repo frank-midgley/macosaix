@@ -335,7 +335,7 @@
 {
 	[self discoverPlugIns];
 	
-	return [[tileShapesPlugIns arrayByAddingObjectsFromArray:imageSourcePlugIns] arrayByAddingObjectsFromArray:imageSourcePlugIns];
+	return [[tileShapesPlugIns arrayByAddingObjectsFromArray:imageSourcePlugIns] arrayByAddingObjectsFromArray:imageOrientationsPlugIns];
 }
 
 
