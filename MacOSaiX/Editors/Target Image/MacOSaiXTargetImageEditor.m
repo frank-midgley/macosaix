@@ -32,6 +32,12 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 @implementation MacOSaiXTargetImageEditor
 
 
+- (NSImage *)image
+{
+	return [NSImage imageNamed:@"Target Image"];
+}
+
+
 - (void)addTargetImage:(NSImage *)targetImage fromPath:(NSString *)targetImagePath
 {
 	NSImage			*thumbnailImage = [[targetImage copyWithLargestDimension:32.0] autorelease];
