@@ -223,6 +223,7 @@
 		92B4091B0B0D437F00BB3981 /* MacOSaiXAboutBoxController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B409190B0D437E00BB3981 /* MacOSaiXAboutBoxController.m */; };
 		92B409210B0D448500BB3981 /* About Box.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92B4091F0B0D448400BB3981 /* About Box.nib */; };
 		92B409800B0D4FB400BB3981 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92B4097F0B0D4FB300BB3981 /* AddressBook.framework */; };
+		92B7989D0B6D303D0034AF82 /* Target Image.png in Resources */ = {isa = PBXBuildFile; fileRef = 92B7989C0B6D303C0034AF82 /* Target Image.png */; };
 		92B9087C08C25F0600D621F5 /* MacOSaiXImageMatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */; };
 		92C8AAF2080870100073045F /* GlyphTableColumn.h in Headers */ = {isa = PBXBuildFile; fileRef = 92C8AAF0080870100073045F /* GlyphTableColumn.h */; };
 		92C8AAF3080870100073045F /* GlyphTableColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92C8AAF1080870100073045F /* GlyphTableColumn.m */; };
@@ -397,7 +398,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 928489C506611CE6003B3514 /* Google Image Source */;
+			remoteGlobalIDString = 928489C506611CE6003B3514;
 			remoteInfo = "Google Image Source";
 		};
 		014F185B0B2CCEA10023D2D2 /* PBXContainerItemProxy */ = {
@@ -637,6 +638,7 @@
 		92B45F71041A9DF1006867F5 /* DirectoryImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DirectoryImageSourceController.m; path = "Standard Plugins/Directory Image Source/DirectoryImageSourceController.m"; sourceTree = "<group>"; };
 		92B45F74041A9E78006867F5 /* GlyphImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlyphImageSourceController.h; path = "Standard Plugins/Glyph Image Source/GlyphImageSourceController.h"; sourceTree = "<group>"; };
 		92B45F75041A9E78006867F5 /* GlyphImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GlyphImageSourceController.m; path = "Standard Plugins/Glyph Image Source/GlyphImageSourceController.m"; sourceTree = "<group>"; };
+		92B7989C0B6D303C0034AF82 /* Target Image.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Target Image.png"; sourceTree = "<group>"; };
 		92B9087908C25F0500D621F5 /* MacOSaiXImageMatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageMatcher.h; sourceTree = "<group>"; };
 		92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXImageMatcher.m; sourceTree = "<group>"; };
 		92C8AAF0080870100073045F /* GlyphTableColumn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlyphTableColumn.h; path = "Standard Plugins/Glyph Image Source/GlyphTableColumn.h"; sourceTree = "<group>"; };
@@ -1020,6 +1022,7 @@
 				017C213E0B3BB8DC00457AC9 /* MacOSaiXTargetImageEditor.h */,
 				017C213F0B3BB8DC00457AC9 /* MacOSaiXTargetImageEditor.m */,
 				014960DD0B59797500D11987 /* Target Image Editor.nib */,
+				92B7989C0B6D303C0034AF82 /* Target Image.png */,
 			);
 			path = "Target Image";
 			sourceTree = "<group>";
@@ -1979,6 +1982,7 @@
 				0110D28E0B3FA13700DF6753 /* Tile Editor.nib in Resources */,
 				013FD51B0B424EE80015015E /* UniqueX.tif in Resources */,
 				014960E30B59797500D11987 /* Target Image Editor.nib in Resources */,
+				92B7989D0B6D303D0034AF82 /* Target Image.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
