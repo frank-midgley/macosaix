@@ -21,6 +21,7 @@
 		// Best match from sources tab
 	IBOutlet NSImageView	*bestMatchImageView;
 	IBOutlet NSPopUpButton	*dontUseThisImagePopUp;
+	NSButton				*openBestMatchInBrowserButton;
 	
 		// Hand-picked image tab
 	IBOutlet NSImageView	*handPickedImageView;
@@ -32,6 +33,8 @@
 		// Solid color tab
 	IBOutlet NSMatrix		*solidColorMatrix;
 	IBOutlet NSColorWell	*solidColorWell;
+	
+	NSImage					*browserIcon;
 }
 
 - (void)setSelectedTile:(MacOSaiXTile *)tile;

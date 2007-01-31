@@ -16,10 +16,20 @@
 @implementation MacOSaiXTileEditor
 
 
-- (id)initWithMosaic:(MosaicView *)inMosaic
+- (id)initWithMosaicView:(MosaicView *)inMosaic
 {
 	if (self = [super initWithMosaicView:inMosaic])
 	{
+		CFURLRef	browserURL = nil;
+		OSStatus	status = LSGetApplicationForURL((CFURLRef)[NSURL URLWithString:@"http://www.apple.com/"], 
+													kLSRolesViewer,
+													NULL,
+													&browserURL);
+		if (status == noErr)
+		{
+			browserIcon = [[[NSWorkspace sharedWorkspace] iconForFile:[(NSURL *)browserURL path]] retain];
+			[browserIcon setSize:NSMakeSize(16.0, 16.0)];
+		}
 	}
 	
 	return self;
@@ -105,6 +115,29 @@
 				
 				[bestMatchImageView setImage:bestMatchImage];
 			}
+			else
+				[bestMatchImageView setImage:nil];
+			
+			if ([[bestMatch imageSource] contextURLForIdentifier:[bestMatch imageIdentifier]])
+			{
+				if (!openBestMatchInBrowserButton)
+				{
+					openBestMatchInBrowserButton = [[[NSButton alloc] initWithFrame:NSMakeRect(NSMaxX([bestMatchImageView frame]) - 28.0, 5.0, 16.0, 16.0)] autorelease];
+					[openBestMatchInBrowserButton setBordered:NO];
+					[openBestMatchInBrowserButton setTitle:nil];
+					[openBestMatchInBrowserButton setImage:browserIcon];
+					[openBestMatchInBrowserButton setImagePosition:NSImageOnly];
+					[openBestMatchInBrowserButton setAutoresizingMask:(NSViewMinXMargin | NSViewMaxYMargin)];
+					[openBestMatchInBrowserButton setTarget:self];
+					[openBestMatchInBrowserButton setAction:@selector(openWebPageForCurrentImage:)];
+					[bestMatchImageView addSubview:openBestMatchInBrowserButton];
+				}
+			}
+			else if (openBestMatchInBrowserButton)
+			{
+				[openBestMatchInBrowserButton removeFromSuperview];
+				openBestMatchInBrowserButton = nil;
+			}
 			
 			break;
 		}
@@ -183,6 +216,12 @@
 }
 
 
+- (MacOSaiXTile *)selectedTile
+{
+	return selectedTile;
+}
+
+
 - (IBAction)setFillStyle:(id)sender
 {
 	[selectedTile setFillStyle:[[fillStylePopUp selectedItem] tag]];
@@ -224,9 +263,18 @@
 	}
 }
 
-- (MacOSaiXTile *)selectedTile
+
+- (IBAction)openWebPageForCurrentImage:(id)sender
 {
-	return selectedTile;
+	MacOSaiXImageMatch	*imageMatch = nil;
+	
+	if ([selectedTile fillStyle] == fillWithUniqueMatch)
+		imageMatch = [selectedTile uniqueImageMatch];
+	else if ([selectedTile fillStyle] == fillWithHandPicked)
+		imageMatch = [selectedTile userChosenImageMatch];
+
+	if (imageMatch)
+		[[NSWorkspace sharedWorkspace] openURL:[[imageMatch imageSource] contextURLForIdentifier:[imageMatch imageIdentifier]]];
 }
 
 
