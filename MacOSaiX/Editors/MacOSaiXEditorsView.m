@@ -171,7 +171,7 @@
 - (void)drawRect:(NSRect)rect
 {
 	[[NSColor grayColor] set];
-	NSFrameRect(rect);
+	NSFrameRect([self bounds]);
 	
 	[super drawRect:rect];
 }
