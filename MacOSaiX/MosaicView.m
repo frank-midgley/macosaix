@@ -607,6 +607,9 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	int				index = 0;
 	for (; index < drawRectCount; index++)
 	{
+		[[NSColor grayColor] set];
+		NSRectFill(drawRects[index]);
+		
 		NSRect	drawRect = NSIntersectionRect(drawRects[index], mosaicBounds), 
 				drawUnitRect = NSMakeRect((NSMinX(drawRect) - NSMinX(mosaicBounds)) / NSWidth(mosaicBounds), 
 										   (NSMinY(drawRect) - NSMinY(mosaicBounds)) / NSHeight(mosaicBounds), 
