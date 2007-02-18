@@ -11,7 +11,7 @@
 
 @interface MacOSaiX : NSObject
 {
-	IBOutlet NSMenu			*mosaicMenu, 
+	IBOutlet NSMenu			*editMenu, 
 							*viewMenu;
 	
 	NSMutableArray			*tileShapesPlugIns, 

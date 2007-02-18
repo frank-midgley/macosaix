@@ -167,8 +167,28 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
+	NSEnumerator	*itemEnumerator = [[editMenu itemArray] objectEnumerator];
+	NSMenuItem		*item = nil;
+	while (item = [itemEnumerator nextObject])
+	{
+		SEL	itemAction = [item action];
+		
+		if (itemAction == @selector(editTargetImage:))
+			[item setImage:[MacOSaiXTargetImageEditor image]];
+		else if (itemAction == @selector(editImageSources:))
+			[item setImage:[MacOSaiXImageSourcesEditor image]];
+		else if (itemAction == @selector(editTileShapes:))
+			[item setImage:[MacOSaiXTileShapesEditor image]];
+		else if (itemAction == @selector(editImageUsage:))
+			[item setImage:[MacOSaiXImageUsageEditor image]];
+		else if (itemAction == @selector(editImageOrientations:))
+			[item setImage:[MacOSaiXImageOrientationsEditor image]];
+		else if (itemAction == @selector(editTileContent:))
+			[item setImage:[MacOSaiXTileContentEditor image]];
+	}
+	
 		// To provide a service:
-    //[NSApp setServicesProvider:[[EncryptoClass alloc] init]];
+    //[NSApp setServicesProvider:[[MacOSaiXClass alloc] init]];
 	
 	#ifdef DEBUG
 		[NSTimer scheduledTimerWithTimeInterval:15.0 
