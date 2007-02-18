@@ -39,6 +39,12 @@
 {
 	[[self mosaicView] setTargetImageFraction:1.0];
 	
+	MacOSaiXMosaic	*mosaic = [[self mosaicView] mosaic];
+	
+	[imageUseCountPopUp selectItemWithTag:[mosaic imageUseCount]];
+	[imageReuseSlider setIntValue:[mosaic imageReuseDistance]];
+	[imageCropLimitSlider setIntValue:[mosaic imageCropLimit]];
+	
 	samplePoint = NSMakePoint(0.5, 0.5);
 }
 
@@ -81,42 +87,62 @@
 
 - (void)handleEventInMosaicView:(NSEvent *)event
 {
-	NSPoint	mouseLocation = [[self mosaicView] convertPoint:[event locationInWindow] fromView:nil];
 	NSRect	imageBounds = [[self mosaicView] imageBounds];
+	NSPoint	mouseLocation = [[self mosaicView] convertPoint:[event locationInWindow] fromView:nil], 
+			scaledSamplePoint = NSMakePoint(samplePoint.x * NSWidth(imageBounds), 
+											samplePoint.y * NSHeight(imageBounds));
 	
 	if ([event type] == NSLeftMouseDown)
 	{
-		samplePoint = NSMakePoint((mouseLocation.x - NSMinX(imageBounds)) / NSWidth(imageBounds), 
-								  (mouseLocation.y - NSMinY(imageBounds)) / NSHeight(imageBounds));
+		float	maxDragDistance = sqrtf(powf(NSWidth(imageBounds), 2.0) + 
+										powf(NSHeight(imageBounds), 2.0)), 
+				currentReuseDistance = [[[self mosaicView] mosaic] imageReuseDistance] / 100.0 * maxDragDistance, 
+				clickDistance = sqrtf(powf(mouseLocation.x - NSMinX(imageBounds) - scaledSamplePoint.x, 2.0) + 
+									  powf(mouseLocation.y - NSMinY(imageBounds) - scaledSamplePoint.y, 2.0));
 		
-		if (samplePoint.x < 0.0)
-			samplePoint.x = 0.0;
-		if (samplePoint.x > 1.0)
-			samplePoint.x = 1.0;
-		if (samplePoint.y < 0.0)
-			samplePoint.y = 0.0;
-		if (samplePoint.y > 1.0)
-			samplePoint.y = 1.0;
-		
-		[[self mosaicView] setNeedsDisplay:YES];
+		if (fabsf(clickDistance) < 5.0 || clickDistance < currentReuseDistance - 5.0)
+			moving = YES;
+		else if (fabsf(currentReuseDistance - clickDistance) < 5.0)
+			resizing = YES;
 	}
 	else if ([event type] == NSLeftMouseDragged)
 	{
-		NSPoint	scaledSamplePoint = NSMakePoint(samplePoint.x * NSWidth(imageBounds) + NSMinX(imageBounds), 
-												samplePoint.y * NSHeight(imageBounds) + NSMinY(imageBounds));
-		float	dragDistance = sqrtf(powf(mouseLocation.x - NSMinX(imageBounds) - scaledSamplePoint.x, 2.0) + 
-									 powf(mouseLocation.y - NSMinY(imageBounds) - scaledSamplePoint.y, 2.0)), 
-				maxDragDistance = sqrtf(powf(NSWidth(imageBounds), 2.0) + 
-										powf(NSHeight(imageBounds), 2.0));
-		
-		if (dragDistance >= maxDragDistance)
-			[imageReuseSlider setFloatValue:100.0];
-		else
-			[imageReuseSlider setFloatValue:dragDistance / maxDragDistance * 100.0];
-		
-		[self setImageReuseDistance:self];
+		if (moving)
+		{
+			samplePoint = NSMakePoint((mouseLocation.x - NSMinX(imageBounds)) / NSWidth(imageBounds), 
+									  (mouseLocation.y - NSMinY(imageBounds)) / NSHeight(imageBounds));
+			
+			if (samplePoint.x < 0.0)
+				samplePoint.x = 0.0;
+			if (samplePoint.x > 1.0)
+				samplePoint.x = 1.0;
+			if (samplePoint.y < 0.0)
+				samplePoint.y = 0.0;
+			if (samplePoint.y > 1.0)
+				samplePoint.y = 1.0;
+			
+			[[self mosaicView] setNeedsDisplay:YES];
+		}
+		else if (resizing)
+		{
+			float	dragDistance = sqrtf(powf(mouseLocation.x - NSMinX(imageBounds) - scaledSamplePoint.x, 2.0) + 
+										 powf(mouseLocation.y - NSMinY(imageBounds) - scaledSamplePoint.y, 2.0)), 
+					maxDragDistance = sqrtf(powf(NSWidth(imageBounds), 2.0) + 
+											powf(NSHeight(imageBounds), 2.0));
+			
+			if (dragDistance >= maxDragDistance)
+				[imageReuseSlider setFloatValue:100.0];
+			else
+				[imageReuseSlider setFloatValue:dragDistance / maxDragDistance * 100.0];
+			
+			[self setImageReuseDistance:self];
+		}
 	}
-
+	else if ([event type] == NSLeftMouseUp)
+	{
+		moving = NO;
+		resizing = NO;
+	}
 }
 
 

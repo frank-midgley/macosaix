@@ -15,7 +15,10 @@
 	IBOutlet NSSlider		*imageReuseSlider, 
 							*imageCropLimitSlider;
 	
-	NSPoint					samplePoint;
+	NSPoint					samplePoint, 
+							dragStartPoint;
+	BOOL					moving, 
+							resizing;
 }
 
 - (IBAction)setImageUseCount:(id)sender;
