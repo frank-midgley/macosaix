@@ -9,7 +9,7 @@
 @class MacOSaiXMosaic, MosaicView, Tiles, MacOSaiXEditorsView, MacOSaiXExportController, MacOSaiXImageSource, MacOSaiXTileShapes, 
        MacOSaiXPopUpButton, MacOSaiXDocument, MacOSaiXTilesSetupController, MacOSaiXImageSourceEditor;
 @class MacOSaiXTargetImageEditor, MacOSaiXTileShapesEditor, MacOSaiXImageUsageEditor, MacOSaiXImageSourcesEditor, 
-       MacOSaiXImageOrientationsEditor, MacOSaiXTileEditor;
+       MacOSaiXImageOrientationsEditor, MacOSaiXTileContentEditor;
 @protocol MacOSaiXImageSource;
 
 
@@ -21,9 +21,9 @@
 	IBOutlet NSScrollView				*mosaicScrollView;
 	
     IBOutlet NSView						*statusBarView;
-	IBOutlet NSTextField				*imagesFoundField, 
-										*statusField;
 	IBOutlet NSProgressIndicator		*statusProgressIndicator;
+	IBOutlet NSTextField				*statusField, 
+										*imagesFoundField;
 	
 	IBOutlet NSMenu						*recentTargetsMenu;
 	
@@ -48,7 +48,7 @@
 	MacOSaiXImageUsageEditor			*imageUsageEditor;
 	MacOSaiXImageSourcesEditor			*imageSourcesEditor;
 	MacOSaiXImageOrientationsEditor		*imageOrientationsEditor;
-	MacOSaiXTileEditor					*tileEditor;
+	MacOSaiXTileContentEditor			*tileContentEditor;
 	
 	MacOSaiXExportController			*exportController;
     NSTimer								*animateTileTimer;
