@@ -12,6 +12,19 @@
 @implementation MacOSaiXEditor
 
 
++ (NSImage *)image
+{
+	NSImage	*image = [[[NSImage alloc] initWithSize:NSMakeSize(24.0, 16.0)] autorelease];
+	
+	[image lockFocus];
+		[[NSColor blackColor] set];
+		NSFrameRect(NSMakeRect(0.0, 0.0, 24.0, 16.0));
+	[image unlockFocus];
+	
+	return image;
+}
+
+
 - (id)initWithMosaicView:(MosaicView *)inMosaicView
 {
 	if (self = [super init])
@@ -26,19 +39,6 @@
 - (MosaicView *)mosaicView
 {
 	return mosaicView;
-}
-
-
-- (NSImage *)image
-{
-	NSImage	*image = [[[NSImage alloc] initWithSize:NSMakeSize(24.0, 16.0)] autorelease];
-	
-	[image lockFocus];
-		[[NSColor blackColor] set];
-		NSFrameRect(NSMakeRect(0.0, 0.0, 24.0, 16.0));
-	[image unlockFocus];
-	
-	return image;
 }
 
 

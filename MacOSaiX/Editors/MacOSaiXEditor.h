@@ -16,10 +16,10 @@
 	MosaicView		*mosaicView;
 }
 
++ (NSImage *)image;
+
 - (id)initWithMosaicView:(MosaicView *)mosaicView;
 - (MosaicView *)mosaicView;
-
-- (NSImage *)image;
 
 - (NSString *)title;
 
