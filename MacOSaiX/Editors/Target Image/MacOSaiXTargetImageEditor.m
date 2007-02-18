@@ -13,6 +13,7 @@
 #import "MacOSaiXWarningController.h"
 #import "MacOSaiXWindowController.h"
 
+#import "NSBezierPath+MacOSaiX.h"
 #import "NSFileManager+MacOSaiX.h"
 #import "NSImage+MacOSaiX.h"
 
@@ -32,7 +33,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 @implementation MacOSaiXTargetImageEditor
 
 
-- (NSImage *)image
++ (NSImage *)image
 {
 	return [NSImage imageNamed:@"Target Image"];
 }
@@ -375,26 +376,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	if (NSMinY(pathBounds) < NSMinY([[self mosaicView] bounds]) + 10.0)
 		pathBounds.origin.y = NSMinY([[self mosaicView] bounds]) + 10.0;
 	
-	NSBezierPath		*pathPath = [NSBezierPath bezierPath];
-	
-	[pathPath moveToPoint:NSMakePoint(NSMinX(pathBounds) + 13.0, NSMinY(pathBounds))];
-	[pathPath lineToPoint:NSMakePoint(NSMaxX(pathBounds) - 13.0, NSMinY(pathBounds))];
-	[pathPath curveToPoint:NSMakePoint(NSMaxX(pathBounds), NSMinY(pathBounds) + 13.0) 
-			 controlPoint1:NSMakePoint(NSMaxX(pathBounds) - 6.5, NSMinY(pathBounds)) 
-			 controlPoint2:NSMakePoint(NSMaxX(pathBounds), NSMinY(pathBounds) + 6.5)];
-	[pathPath lineToPoint:NSMakePoint(NSMaxX(pathBounds), NSMaxY(pathBounds) - 13.0)];
-	[pathPath curveToPoint:NSMakePoint(NSMaxX(pathBounds) - 13.0, NSMaxY(pathBounds)) 
-			 controlPoint1:NSMakePoint(NSMaxX(pathBounds), NSMaxY(pathBounds) - 6.5) 
-			 controlPoint2:NSMakePoint(NSMaxX(pathBounds) - 6.5, NSMaxY(pathBounds))];
-	[pathPath lineToPoint:NSMakePoint(NSMinX(pathBounds) + 13.0, NSMaxY(pathBounds))];
-	[pathPath curveToPoint:NSMakePoint(NSMinX(pathBounds), NSMaxY(pathBounds) - 13.0) 
-			 controlPoint1:NSMakePoint(NSMinX(pathBounds) + 6.5, NSMaxY(pathBounds)) 
-			 controlPoint2:NSMakePoint(NSMinX(pathBounds), NSMaxY(pathBounds) - 6.5)];
-	[pathPath lineToPoint:NSMakePoint(NSMinX(pathBounds), NSMinY(pathBounds) + 13.0)];
-	[pathPath curveToPoint:NSMakePoint(NSMinX(pathBounds) + 13.0, NSMinY(pathBounds)) 
-			 controlPoint1:NSMakePoint(NSMinX(pathBounds), NSMinY(pathBounds) + 6.5) 
-			 controlPoint2:NSMakePoint(NSMinX(pathBounds) + 6.5, NSMinY(pathBounds))];
-	
+	NSBezierPath		*pathPath = [NSBezierPath bezierPathWithRoundedRect:pathBounds radius:10.0];
 	[[NSColor colorWithCalibratedWhite:1.0 alpha:.75] set];
 	[pathPath fill];
 	[[NSColor colorWithCalibratedWhite:0.0 alpha:.5] set];
