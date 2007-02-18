@@ -1011,7 +1011,7 @@
 				926F90DC0B3DC0C90089017E /* Image Sources */,
 				017C223E0B3BC8C500457AC9 /* Image Orientations */,
 				926F90DE0B3DC1540089017E /* Image Usage */,
-				926F90DD0B3DC0FF0089017E /* Tile Editor */,
+				926F90DD0B3DC0FF0089017E /* Tile Content */,
 			);
 			path = Editors;
 			sourceTree = "<group>";
@@ -1183,13 +1183,14 @@
 			path = "Image Sources";
 			sourceTree = "<group>";
 		};
-		926F90DD0B3DC0FF0089017E /* Tile Editor */ = {
+		926F90DD0B3DC0FF0089017E /* Tile Content */ = {
 			isa = PBXGroup;
 			children = (
 				0110D2820B3FA12500DF6753 /* MacOSaiXTileEditor.h */,
 				0110D2830B3FA12500DF6753 /* MacOSaiXTileEditor.m */,
 				0110D2880B3FA13700DF6753 /* Tile Editor.nib */,
 			);
+			name = "Tile Content";
 			path = "Tile Editor";
 			sourceTree = "<group>";
 		};
