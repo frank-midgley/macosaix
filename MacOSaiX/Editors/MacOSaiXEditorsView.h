@@ -26,6 +26,7 @@
 
 - (NSArray *)editors;
 
+- (void)setActiveEditor:(MacOSaiXEditor *)editor;
 - (MacOSaiXEditor *)activeEditor;
 
 @end

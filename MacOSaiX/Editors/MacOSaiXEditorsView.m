@@ -90,7 +90,7 @@
 	[editorButton setTitle:[editor title]];
 	[editorButton setAlignment:NSLeftTextAlignment];
 	[editorButton setImagePosition:NSImageLeft];
-	[editorButton setImage:[editor image]];
+	[editorButton setImage:[[editor class] image]];
 	[editorButton setBezelStyle:NSShadowlessSquareBezelStyle];
 	[editorButton setTarget:self];
 	[editorButton setAction:@selector(showEditor:)];
@@ -107,17 +107,10 @@
 }
 
 
-- (MacOSaiXEditor *)activeEditor
-{
-	return activeEditor;
-}
-
-
-- (IBAction)showEditor:(id)sender
+- (void)setActiveEditor:(MacOSaiXEditor *)newEditor
 {
 	// TODO: animate
 	
-	MacOSaiXEditor	*newEditor = [editors objectAtIndex:[editorButtons indexOfObjectIdenticalTo:sender]];
 	int				previousEditorIndex = [editors indexOfObjectIdenticalTo:activeEditor], 
 					newEditorIndex = [editors indexOfObjectIdenticalTo:newEditor];
 	float			editorViewHeight = NSHeight([[activeEditor view] frame]);
@@ -165,6 +158,18 @@
 	[self setNeedsDisplay:YES];
 	
 	[[self mosaicView] setActiveEditor:activeEditor];
+}
+
+
+- (MacOSaiXEditor *)activeEditor
+{
+	return activeEditor;
+}
+
+
+- (IBAction)showEditor:(id)sender
+{
+	[self setActiveEditor:[editors objectAtIndex:[editorButtons indexOfObjectIdenticalTo:sender]]];
 }
 
 
