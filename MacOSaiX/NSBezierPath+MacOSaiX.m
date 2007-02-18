@@ -12,6 +12,34 @@
 @implementation NSBezierPath (MacOSaiX)
 
 
++ (NSBezierPath *)bezierPathWithRoundedRect:(NSRect)rect radius:(float)radius
+{
+	NSBezierPath	*path = [NSBezierPath bezierPath];
+	float			halfRadius = radius / 2.0;
+	
+	[path moveToPoint:NSMakePoint(NSMinX(rect) + radius, NSMinY(rect))];
+	[path lineToPoint:NSMakePoint(NSMaxX(rect) - radius, NSMinY(rect))];
+	[path curveToPoint:NSMakePoint(NSMaxX(rect), NSMinY(rect) + radius) 
+		 controlPoint1:NSMakePoint(NSMaxX(rect) - halfRadius, NSMinY(rect)) 
+		 controlPoint2:NSMakePoint(NSMaxX(rect), NSMinY(rect) + halfRadius)];
+	[path lineToPoint:NSMakePoint(NSMaxX(rect), NSMaxY(rect) - radius)];
+	[path curveToPoint:NSMakePoint(NSMaxX(rect) - radius, NSMaxY(rect)) 
+		 controlPoint1:NSMakePoint(NSMaxX(rect), NSMaxY(rect) - halfRadius) 
+		 controlPoint2:NSMakePoint(NSMaxX(rect) - halfRadius, NSMaxY(rect))];
+	[path lineToPoint:NSMakePoint(NSMinX(rect) + radius, NSMaxY(rect))];
+	[path curveToPoint:NSMakePoint(NSMinX(rect), NSMaxY(rect) - radius) 
+		 controlPoint1:NSMakePoint(NSMinX(rect) + halfRadius, NSMaxY(rect)) 
+		 controlPoint2:NSMakePoint(NSMinX(rect), NSMaxY(rect) - halfRadius)];
+	[path lineToPoint:NSMakePoint(NSMinX(rect), NSMinY(rect) + radius)];
+	[path curveToPoint:NSMakePoint(NSMinX(rect) + radius, NSMinY(rect)) 
+		 controlPoint1:NSMakePoint(NSMinX(rect), NSMinY(rect) + halfRadius) 
+		 controlPoint2:NSMakePoint(NSMinX(rect) + halfRadius, NSMinY(rect))];
+	[path closePath];
+	
+	return path;
+}
+
+
 - (CGPathRef)quartzPath
 {
     int			i, numElements = [self elementCount];

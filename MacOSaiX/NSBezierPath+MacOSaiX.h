@@ -9,6 +9,8 @@
 
 @interface NSBezierPath (MacOSaiX)
 
++ (NSBezierPath *)bezierPathWithRoundedRect:(NSRect)rect radius:(float)radius;
+
 - (CGPathRef)quartzPath;
 
 @end
