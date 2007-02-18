@@ -13,7 +13,7 @@
 #import "Tiles.h"
 
 
-@implementation MacOSaiXTileEditor
+@implementation MacOSaiXTileContentEditor
 
 
 - (id)initWithMosaicView:(MosaicView *)inMosaic
@@ -44,7 +44,7 @@
 
 - (NSString *)title
 {
-	return NSLocalizedString(@"Tile Editor", @"");
+	return NSLocalizedString(@"Tile Content", @"");
 }
 
 

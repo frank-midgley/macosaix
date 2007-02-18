@@ -11,7 +11,7 @@
 @class MacOSaiXTile;
 
 
-@interface MacOSaiXTileEditor : MacOSaiXEditor
+@interface MacOSaiXTileContentEditor : MacOSaiXEditor
 {
     MacOSaiXTile			*selectedTile;
 	
