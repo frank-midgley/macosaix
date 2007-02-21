@@ -489,10 +489,13 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 					yBy:NSHeight(mosaicBounds) / targetImageSize.height];
 	
 	[tilesNeedDisplayLock lock];
-		NSEnumerator	*tileEnumerator = [tilesNeedingDisplay objectEnumerator];
-		MacOSaiXTile	*tileNeedingDisplay = nil;
-		while (tileNeedingDisplay = [tileEnumerator nextObject])
-			[self setNeedsDisplayInRect:NSInsetRect([[transform transformBezierPath:[tileNeedingDisplay outline]] bounds], -1.0, -1.0)];
+		if ([self targetImageFraction] < 1.0)
+		{
+			NSEnumerator	*tileEnumerator = [tilesNeedingDisplay objectEnumerator];
+			MacOSaiXTile	*tileNeedingDisplay = nil;
+			while (tileNeedingDisplay = [tileEnumerator nextObject])
+				[self setNeedsDisplayInRect:NSInsetRect([[transform transformBezierPath:[tileNeedingDisplay outline]] bounds], -1.0, -1.0)];
+		}
 		
 		[tilesNeedingDisplay removeAllObjects];
 		
