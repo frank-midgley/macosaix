@@ -141,12 +141,6 @@
 }
 
 
-- (NSImage *)targetImage
-{
-	return [[[self mosaicView] mosaic] targetImage];
-}
-
-
 - (void)plugInSettingsDidChange:(NSString *)changeDescription
 {
 	// TBD

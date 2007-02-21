@@ -14,7 +14,7 @@
 @protocol MacOSaiXImageSource;
 
 
-@interface MacOSaiXImageSourcesEditor : MacOSaiXEditor <MacOSaiXDataSourceEditorDelegate>
+@interface MacOSaiXImageSourcesEditor : MacOSaiXEditor
 {
 	IBOutlet NSTableView			*imageSourcesTable;
 	IBOutlet MacOSaiXPopUpButton	*addSourceButton;
