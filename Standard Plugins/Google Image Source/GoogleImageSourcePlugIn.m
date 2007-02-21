@@ -111,13 +111,18 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
-+ (NSString *)cachedFileNameForIdentifier:(NSString *)identifier thumbnail:(BOOL)thumbnail
++ (NSString *)cachedFileNameForIdentifier:(NSString *)identifier thumbnail:(BOOL)isThumbnail
 {
-	NSArray		*identifierComponents = [identifier componentsSeparatedByString:@"\t"];
-	NSString	*serverID = [identifierComponents objectAtIndex:0], 
-				*photoID = [identifierComponents objectAtIndex:1];
+	NSString	*imageID = [identifier substringToIndex:[identifier rangeOfString:@":"].location];
 	
-	return [NSString stringWithFormat:@"%@-%@%@.jpg", serverID, photoID, (thumbnail ? @" thumb" : @"")];
+	return [NSString stringWithFormat:@"%x%x%x%x%x%x%x%x%x%x%x%x%@.jpg",
+									  [imageID characterAtIndex:0], [imageID characterAtIndex:1],
+									  [imageID characterAtIndex:2], [imageID characterAtIndex:3],
+									  [imageID characterAtIndex:4], [imageID characterAtIndex:5],
+									  [imageID characterAtIndex:6], [imageID characterAtIndex:7],
+									  [imageID characterAtIndex:8], [imageID characterAtIndex:9],
+									  [imageID characterAtIndex:10], [imageID characterAtIndex:11],
+									  (isThumbnail ? @" Thumbnail" : @"")];
 }
 
 
@@ -229,7 +234,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 		}
 		#ifdef DEBUG
 			if (purgeCount > 0)
-				NSLog(@"Purged %d images from the flickr cache.", purgeCount);
+				NSLog(@"Purged %d images from the Google cache.", purgeCount);
 		#endif
 		
 		if (purgeCache)
