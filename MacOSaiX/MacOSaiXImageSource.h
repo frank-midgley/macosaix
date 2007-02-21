@@ -44,14 +44,14 @@
 - (NSImage *)imageForIdentifier:(NSString *)identifier;
 
 	// This method should return a URL that points to the identified image.
-	// Return nil if there is no appropirate URL.
+	// Return nil if there is no appropriate URL.
 - (NSURL *)urlForIdentifier:(NSString *)identifier;
 
 	// This method should return a URL that points to a web page that describes the image.
 	// Return nil if there is no appropriate URL.
 - (NSURL *)contextURLForIdentifier:(NSString *)identifier;
 
-	// This method should return a URL that points to a web page that describes the image.
+	// This method should return a string that describes the image.
 	// Return nil if there is no description currently available.
 - (NSString *)descriptionForIdentifier:(NSString *)identifier;
 
