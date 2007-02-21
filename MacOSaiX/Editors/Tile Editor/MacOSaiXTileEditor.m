@@ -10,6 +10,7 @@
 
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXMosaic.h"
+#import "NSImage+MacOSaiX.h"
 #import "Tiles.h"
 
 
@@ -63,25 +64,123 @@
 {
 	[super embellishMosaicViewInRect:rect];
 	
-	NSRect				mosaicBounds = [[self mosaicView] imageBounds];
-	NSSize				targetImageSize = [[[[self mosaicView] mosaic] targetImage] size];
-	float				minX = NSMinX(mosaicBounds), 
-						minY = NSMinY(mosaicBounds), 
-						width = NSWidth(mosaicBounds), 
-						height = NSHeight(mosaicBounds);
-	NSBezierPath		*outline = [[self selectedTile] outline];
-	
-		// Draw the tile's outline with a 4pt thick dashed line.
-	NSAffineTransform	*transform = [NSAffineTransform transform];
-	[transform translateXBy:minX yBy:minY];
-	[transform scaleXBy:width / targetImageSize.width 
-					yBy:height / targetImageSize.height];
-	NSBezierPath		*bezierPath = [transform transformBezierPath:outline];
-	[bezierPath setLineWidth:4];
-	[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
-	[bezierPath stroke];
-	
-	// TODO: dim the rest of the mosaic view
+	if ([self selectedTile])
+	{
+		NSRect				mosaicBounds = [[self mosaicView] imageBounds];
+		NSSize				targetImageSize = [[[[self mosaicView] mosaic] targetImage] size];
+		float				minX = NSMinX(mosaicBounds), 
+							minY = NSMinY(mosaicBounds), 
+							width = NSWidth(mosaicBounds), 
+							height = NSHeight(mosaicBounds);
+		NSBezierPath		*outline = [[self selectedTile] outline];
+		
+			// Draw the tile's outline with a 4pt thick dashed line.
+		NSAffineTransform	*transform = [NSAffineTransform transform];
+		[transform translateXBy:minX yBy:minY];
+		[transform scaleXBy:width / targetImageSize.width 
+						yBy:height / targetImageSize.height];
+		NSBezierPath		*tileOutline = [transform transformBezierPath:outline];
+		[tileOutline setLineWidth:4];
+		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
+		[tileOutline stroke];
+		
+			// Dim the rest of the mosaic view
+		NSBezierPath		*dimPath = [NSBezierPath bezierPathWithRect:mosaicBounds];
+		[dimPath appendBezierPath:[tileOutline bezierPathByReversingPath]];
+		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.75] set];
+		[dimPath fill];
+		
+		switch ([selectedTile fillStyle])
+		{
+			case fillWithUniqueMatch:
+			{
+				MacOSaiXImageMatch	*bestMatch = [[self selectedTile] uniqueImageMatch];
+				float				curY = NSMinY([tileOutline bounds]) - 18.0;
+				
+				if (bestMatch)
+				{
+						// Display the description of the image being displayed.
+					NSString	*matchName = [[bestMatch imageSource] descriptionForIdentifier:[bestMatch imageIdentifier]];
+					if (!matchName)
+						matchName = NSLocalizedString(@"No description available", @"");
+					NSDictionary	*attributes = [NSDictionary dictionaryWithObject:[NSFont boldSystemFontOfSize:0.0] 
+																			  forKey:NSFontAttributeName];
+					NSSize		stringSize = [matchName sizeWithAttributes:attributes];
+					[matchName drawAtPoint:NSMakePoint(NSMidX([tileOutline bounds]) - stringSize.width / 2.0, curY) withAttributes:attributes];
+					curY -= 18.0;
+					
+						// Display the source of the image being displayed.
+					NSString	*sourceLabel = NSLocalizedString(@"Source: ", @"");
+					stringSize = [sourceLabel sizeWithAttributes:nil];
+					float		sourceWidth = stringSize.width + 2.0;
+					NSImage		*sourceImage = [[[[bestMatch imageSource] image] copy] autorelease];
+					[sourceImage setScalesWhenResized:YES];
+					[sourceImage setSize:NSMakeSize([sourceImage size].width / [sourceImage size].height * 16.0, 16.0)];
+					sourceWidth += [sourceImage size].width + 4.0;
+					id			sourceDescription = [[bestMatch imageSource] briefDescription];
+					if ([sourceDescription isKindOfClass:[NSString class]])
+						sourceWidth += [(NSString *)sourceDescription sizeWithAttributes:nil].width;
+					else
+						sourceWidth += [(NSAttributedString *)sourceDescription size].width;
+					float		leftEdge = NSMidX([tileOutline bounds]) - sourceWidth / 2.0;
+					[sourceLabel drawAtPoint:NSMakePoint(leftEdge, curY) withAttributes:nil];
+					[sourceImage drawAtPoint:NSMakePoint(leftEdge + stringSize.width + 2.0, curY - 0.0) 
+									fromRect:NSZeroRect 
+								   operation:NSCompositeSourceOver 
+									fraction:1.0];
+					if ([sourceDescription isKindOfClass:[NSString class]])
+						[(NSString *)sourceDescription drawAtPoint:NSMakePoint(leftEdge + stringSize.width + 2.0 + [sourceImage size].width + 4.0, curY) 
+													withAttributes:nil];
+					else
+						[(NSAttributedString *)sourceDescription drawAtPoint:NSMakePoint(leftEdge + stringSize.width + 4.0 + [sourceImage size].width + 4.0, curY)];
+					curY -= 14.0;
+					
+						// Display the match value of the image being displayed.
+					[[NSString stringWithFormat:NSLocalizedString(@"Match: %.0f%%", @""), [bestMatch matchValue]] drawAtPoint:NSMakePoint(leftEdge, curY) 
+																											  withAttributes:nil];
+					curY -= 14.0;
+					
+						// Display the crop amount of the image being displayed.
+					float	imageArea = NSWidth(mosaicBounds) * NSHeight(mosaicBounds), 
+							tileArea = NSWidth([tileOutline bounds]) * NSHeight([tileOutline bounds]);
+					[[NSString stringWithFormat:NSLocalizedString(@"Cropping: %.0f%%", @""), (imageArea - tileArea) / imageArea * 100.0] drawAtPoint:NSMakePoint(leftEdge, curY) withAttributes:nil];
+				}
+				else
+				{
+					NSString	*noMatchString = NSLocalizedString(@"No match available", @"");
+					NSSize		stringSize = [noMatchString sizeWithAttributes:nil];
+					[noMatchString drawAtPoint:NSMakePoint(NSMidX([tileOutline bounds]) - stringSize.width / 2.0, curY) withAttributes:nil];
+				}
+				
+				break;
+			}
+			case fillWithHandPicked:
+			{
+				MacOSaiXImageMatch	*handPickedMatch = [[self selectedTile] userChosenImageMatch];
+				
+				if (handPickedMatch)
+				{
+				}
+				
+				break;
+			}
+			case fillWithTargetImage:
+			{
+				// TODO: create the image that shows the portion of the target image
+				
+				break;
+			}
+			case fillWithSolidColor:
+			{
+				NSColor	*tileColor = [selectedTile fillColor];
+				
+				if (!tileColor)
+					tileColor = [NSColor blackColor];
+				
+				break;
+			}
+		}
+	}
 }
 
 
@@ -188,31 +287,43 @@
 
 - (void)setSelectedTile:(MacOSaiXTile *)tile
 {
-	NSRect				mosaicBounds = [[self mosaicView] imageBounds];
-	NSSize				targetImageSize = [[[[self mosaicView] mosaic] targetImage] size];
-    NSAffineTransform	*transform = [NSAffineTransform transform];
-	[transform translateXBy:NSMinX(mosaicBounds) yBy:NSMinY(mosaicBounds)];
-	[transform scaleXBy:NSWidth(mosaicBounds) / targetImageSize.width 
-					yBy:NSHeight(mosaicBounds) / targetImageSize.height];
-	
-    if (selectedTile)
-    {
-		// Mark the previously highlighted area for re-display.
-		NSBezierPath		*bezierPath = [transform transformBezierPath:[selectedTile outline]];
-		[[self mosaicView] setNeedsDisplayInRect:NSInsetRect([bezierPath bounds], -2.0, -2.0)];
+	if (tile != selectedTile)
+	{
+		[selectedTile autorelease];
+		selectedTile = [tile retain];
+		
+//		NSRect				mosaicBounds = [[self mosaicView] imageBounds];
+//		NSSize				targetImageSize = [[[[self mosaicView] mosaic] targetImage] size];
+//		NSAffineTransform	*transform = [NSAffineTransform transform];
+//		[transform translateXBy:NSMinX(mosaicBounds) yBy:NSMinY(mosaicBounds)];
+//		[transform scaleXBy:NSWidth(mosaicBounds) / targetImageSize.width 
+//						yBy:NSHeight(mosaicBounds) / targetImageSize.height];
+		
+		if (NO)
+		{
+//			// Calculate the currently centered point of the mosaic image independent of the zoom factor.
+//			NSRect	frame = [[[[self mosaicView] enclosingScrollView] contentView] frame],
+//					visibleRect = [mosaicView visibleRect];
+//			
+//			// TODO: Sync the slider with the current zoom setting.
+//			
+//			// Update the frame and bounds of the mosaic view.
+//			frame.size.width *= zoom;
+//			frame.size.height *= zoom;
+//			[mosaicView setFrame:frame];
+//			[mosaicView setBounds:frame];
+//			
+//			// Reset the scroll position so that the previous center point is as close to the center as possible.
+//			[[[self mosaicView] enclosingScrollView] scrollRectToVisible:];
+//			
+//			[mosaicView setInLiveRedraw:[NSNumber numberWithBool:YES]];
+//			[mosaicView performSelector:@selector(setInLiveRedraw:) withObject:[NSNumber numberWithBool:NO] afterDelay:0.0];
+		}
+		
+		[[self mosaicView] setNeedsDisplay:YES];
+		
+		[self populateGUI];
 	}
-	
-	[selectedTile autorelease];
-	selectedTile = [tile retain];
-	
-    if (selectedTile)
-    {
-		// Mark the newly highlighted area for re-display.
-		NSBezierPath		*bezierPath = [transform transformBezierPath:[selectedTile outline]];
-		[[self mosaicView] setNeedsDisplayInRect:NSInsetRect([bezierPath bounds], -2.0, -2.0)];
-	}
-	
-	[self populateGUI];
 }
 
 
