@@ -7,13 +7,20 @@
 //
 
 #import "MosaicView.h"
+#import "MacOSaiXPlugIn.h"
 
 
-@interface MacOSaiXEditor : NSObject
+@interface MacOSaiXEditor : NSObject <MacOSaiXDataSourceEditorDelegate>
 {
-	IBOutlet NSView	*editorView;
+	IBOutlet NSView					*editorView;
+	IBOutlet NSPopUpButton			*plugInPopUpButton;
+	IBOutlet NSBox					*plugInEditorBox;
+	IBOutlet NSView					*plugInEditorPreviousKeyView, 
+									*plugInEditorNextKeyView;
 	
-	MosaicView		*mosaicView;
+	MosaicView						*mosaicView;
+	
+	id<MacOSaiXDataSourceEditor>	plugInEditor;
 }
 
 + (NSImage *)image;
@@ -26,6 +33,14 @@
 - (NSString *)editorNibName;
 
 - (NSView *)view;
+
+- (NSArray *)plugInClasses;
+- (NSString *)plugInTitleFormat;
+
+- (void)setMosaicDataSource:(id<MacOSaiXDataSource>)dataSource;
+- (id<MacOSaiXDataSource>)mosaicDataSource;
+
+- (IBAction)setPlugInClass:(id)sender;
 
 - (void)beginEditing;
 
