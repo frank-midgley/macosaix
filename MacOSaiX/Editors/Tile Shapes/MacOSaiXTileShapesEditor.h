@@ -12,18 +12,9 @@
 @protocol MacOSaiXTileShapes, MacOSaiXTileShapesEditor;
 
 
-@interface MacOSaiXTileShapesEditor : MacOSaiXEditor <MacOSaiXDataSourceEditorDelegate>
+@interface MacOSaiXTileShapesEditor : MacOSaiXEditor
 {
-	IBOutlet NSPopUpButton			*tileShapesPlugInPopUp;
-	IBOutlet NSBox					*tileShapesEditorBox;
-	IBOutlet NSButton				*acceptChangesButton, 
-									*discardChangesButton;
-	
-	id<MacOSaiXDataSourceEditor>	tileShapesEditor;
-	
 	NSMutableArray					*tileShapesToDraw;
 }
-
-- (IBAction)setTileShapesClass:(id)sender;
 
 @end
