@@ -788,15 +788,15 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	
 	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
 	BOOL				revisit = NO;
-	int					revisitStep = 0;
+	int					revisitStep = 0, 
+						maxBetterMatches = 4 + ([tiles count] / 2.0 * (100.0 - [self imageReuseDistance]) / 100.0);
 	
 	[imageQueueLock lock];
 	while (!pausing && ([imageQueue count] > 0 || [revisitQueue count] > 0))
 	{
 		while (!pausing && ([imageQueue count] > 0 || [revisitQueue count] > 0))
 		{
-				// As long as the image source threads are feeding images into the queue this loop
-				// will continue running so create a pool just for this pass through the loop.
+				// As long as the image source threads are feeding images into the queue this loop will continue running so create a pool just for this pass through the loop.
 			NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
 			BOOL				queueLocked = NO;
 			
@@ -833,25 +833,20 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 				NSImage					*pixletImage = [nextImageDict objectForKey:@"Image"];
 				id<MacOSaiXImageSource>	pixletImageSource = [nextImageDict objectForKey:@"Image Source"];
 				NSString				*pixletImageIdentifier = [nextImageDict objectForKey:@"Image Identifier"];
+				id<NSCopying>			pixelImageUniversalIdentifier = [pixletImageSource universalIdentifierForIdentifier:pixletImageIdentifier];
 				BOOL					pixletImageInUse = NO;
 				
 				if (pixletImage)
 				{
-						// Add this image to the in-memory cache.  If the image source does not support refetching 
-						// images then the image will be also be saved into this mosaic's document.
+						// Add this image to the in-memory cache.  If the image source does not support refetching images then the image will be also be saved into this mosaic's document.
 					[imageCache cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
 				}
 				
 					// Find the tiles that match this image better than their current image.
-				NSString		*pixletKey = [NSString stringWithFormat:@"%p %@", pixletImageSource, pixletImageIdentifier];
-				NSMutableArray	*betterMatches = [betterMatchesCache objectForKey:pixletKey];
+				NSMutableArray	*betterMatches = [betterMatchesCache objectForKey:pixelImageUniversalIdentifier];
 				if (betterMatches)
 				{
-						// The cache contains the list of tiles which could be improved by using this image.
-						// Remove any tiles from the list that have gotten a better match since the list was cached.
-						// Also remove any tiles that have the exact same match value but for a different image.  This 
-						// avoids infinite loop conditions if you have multiple image that have the exact same match 
-						// value (typically when there are multiple files containing the exact same image).
+						// The cache contains the list of tiles which could be improved by using this image.  Remove any tiles from the list that have gotten a better match since the list was cached.  Also remove any tiles that have the exact same match value but for a different image.  This avoids infinite loop conditions if you have multiple image that have the exact same match value (typically when there are multiple files containing the exact same image).
 					NSEnumerator		*betterMatchEnumerator = [betterMatches objectEnumerator];
 					MacOSaiXImageMatch	*betterMatch = nil;
 					unsigned			currentIndex = 0,
@@ -862,8 +857,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 						MacOSaiXImageMatch	*currentMatch = [[betterMatch tile] uniqueImageMatch];
 						if (currentMatch && ([currentMatch matchValue] < [betterMatch matchValue] || 
 											 ([currentMatch matchValue] == [betterMatch matchValue] && 
-												([currentMatch imageSource] != [betterMatch imageSource] || 
-												 [currentMatch imageIdentifier] != [betterMatch imageIdentifier]))))
+											  ([currentMatch imageSource] != [betterMatch imageSource] || 
+											   [currentMatch imageIdentifier] != [betterMatch imageIdentifier]))))
 							indicesToRemove[countOfIndicesToRemove++] = currentIndex;
 						currentIndex++;
 					}
@@ -872,7 +867,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 						// If only the dummy entry is left then we need to rematch.
 					if ([betterMatches count] == 1 && ![(MacOSaiXImageMatch *)[betterMatches objectAtIndex:0] tile])
 					{
-		//				NSLog(@"Didn't cache enough matches...");
+						//NSLog(@"Didn't cache enough matches...");
 						betterMatches = nil;
 					}
 				}
@@ -939,9 +934,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 																					 forImageIdentifier:pixletImageIdentifier 
 																						fromImageSource:pixletImageSource
 																								forTile:tile];
-									// If this image matches better than the tile's current best or
-									//    this image is the same as the tile's current best
-									// then add it to the list of tile's that might get this image.
+									// If this image matches better than the tile's current best or this image is the same as the tile's current best then add it to the list of tile's that might get this image.
 								if (matchValue < previousBest ||
 									([[tile uniqueImageMatch] imageSource] == pixletImageSource && 
 									 [[[tile uniqueImageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier]))
@@ -968,7 +961,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 				if ([betterMatches count] == 0)
 				{
 	//				NSLog(@"%@ from %@ is no longer needed", pixletImageIdentifier, pixletImageSource);
-					[betterMatchesCache removeObjectForKey:pixletKey];
+					[betterMatchesCache removeObjectForKey:pixelImageUniversalIdentifier];
 				}
 				else
 				{
@@ -979,8 +972,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 					if (useCount == 0)
 						useCount = [betterMatches count];
 					
-						// Loop through the list of better matches and pick the first items (up to the use count) 
-						// that aren't too close together.
+						// Loop through the list of better matches and pick the first items (up to the use count) that aren't too close together.
 					float				minDistanceApart = powf([self imageReuseDistance] * 0.95 / 100.0, 2.0);
 					NSMutableArray		*matchesToUpdate = [NSMutableArray array];
 					NSEnumerator		*betterMatchEnumerator = [betterMatches objectEnumerator];
@@ -1035,19 +1027,16 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 							[[matchToUpdate tile] setUniqueImageMatch:matchToUpdate];
 						}
 						
-							// Only remember a reasonable number of the best matches.
-							// TODO: cache this since it never changes
-						int	roughUpperBound = 4 + ([tiles count] / 2.0 * (100.0 - [self imageReuseDistance]) / 100.0);
-						if ([betterMatches count] > roughUpperBound)
+						if ([betterMatches count] > maxBetterMatches)
 						{
-							[betterMatches removeObjectsInRange:NSMakeRange(roughUpperBound, [betterMatches count] - roughUpperBound)];
+							[betterMatches removeObjectsInRange:NSMakeRange(maxBetterMatches, [betterMatches count] - maxBetterMatches)];
 							
 								// Add a dummy entry with a nil tile on the end so we know that entries were removed.
 							[betterMatches addObject:[[[MacOSaiXImageMatch alloc] init] autorelease]];
 						}
 							
-							// Remember this list so we don't have to do all of the matches again.
-						[betterMatchesCache setObject:betterMatches forKey:pixletKey];
+							// Remember which tiles matched better so we don't have to do all of the matching again.
+						[betterMatchesCache setObject:betterMatches forKey:pixelImageUniversalIdentifier];
 						
 						pixletImageInUse = YES;
 					}
@@ -1055,7 +1044,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 					{
 							// There weren't enough matches in the cache to satisfy the user's prefs 
 							// so we need to re-calculate the matches.
-						[betterMatchesCache removeObjectForKey:pixletKey];
+						[betterMatchesCache removeObjectForKey:pixelImageUniversalIdentifier];
 						betterMatches = nil;	// The betterMatchesCache had the last retain on the array.
 						
 						NSDictionary	*newQueueEntry = [NSDictionary dictionaryWithObjectsAndKeys:
