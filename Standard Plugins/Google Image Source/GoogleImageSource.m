@@ -442,8 +442,9 @@ NSString *escapedNSString(NSString *string)
 				
 					// If the URL has the expected prefix then add it to the queue.
 				NSString	*imageURL = [tag substringWithRange:src];
-				if ([imageURL hasPrefix:@"/images?q=tbn:"])
-					[imageURLQueue addObject:[imageURL substringFromIndex:14]];
+				NSRange		thumbnailIDLoc = [imageURL rangeOfString:@"/images?q=tbn:"];
+				if (thumbnailIDLoc.location != NSNotFound)
+					[imageURLQueue addObject:[imageURL substringFromIndex:thumbnailIDLoc.location + 14]];
 			}
 			
 				// Check if there are any more pages of search results.
@@ -488,6 +489,12 @@ NSString *escapedNSString(NSString *string)
 - (BOOL)canRefetchImages
 {
 	return YES;
+}
+
+
+- (id<NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
+{
+	return [self urlForIdentifier:identifier];
 }
 
 
@@ -553,7 +560,7 @@ NSString *escapedNSString(NSString *string)
 
 - (NSURL *)urlForIdentifier:(NSString *)identifier
 {
-	return [NSURL URLWithString:[identifier substringFromIndex:[identifier rangeOfString:@":"].location + 1]];
+	return [NSURL URLWithString:[NSString stringWithFormat:@"http://tbn0.google.com/images?q=tbn:%@", identifier]];
 }	
 
 
