@@ -177,6 +177,8 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 
 			// Cache the image in memory for efficient retrieval.
 		[self cacheImageRep:fullSizeRep withIdentifier:imageIdentifier fromSource:imageSource];
+		
+			// Remember the native size of the image.
 		NSValue				*imageSourceKey = [NSValue valueWithPointer:imageSource];
 		NSMutableDictionary	*sourceNativeImageSizeDict = [nativeImageSizeDict objectForKey:imageSourceKey];
 		if (!sourceNativeImageSizeDict)
@@ -186,6 +188,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		}
 		[sourceNativeImageSizeDict setObject:[NSValue valueWithSize:[fullSizeRep size]] forKey:imageIdentifier];
 		
+			// Save the image to disk if its source can't refetch.
 		if (![imageSource canRefetchImages])
 		{
 			NSString	*imagePath = [self cachePathForIdentifier:imageIdentifier forSource:imageSource];
