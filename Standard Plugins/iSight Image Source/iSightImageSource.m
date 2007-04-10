@@ -414,6 +414,12 @@
 }
 
 
+- (id<NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
+{
+	return identifier;
+}
+
+
 - (NSImage *)thumbnailForIdentifier:(NSString *)identifier
 {
 	return nil;

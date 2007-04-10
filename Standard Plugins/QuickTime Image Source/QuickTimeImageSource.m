@@ -566,6 +566,12 @@ static NSImage			*sQuickTimeImage = nil;
 }
 
 
+- (id<NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
+{
+	return [NSString stringWithFormat:@"%@:%@", [self path], identifier];
+}
+
+
 - (NSImage *)thumbnailForIdentifier:(NSString *)identifier
 {
 	return [self imageForIdentifier:identifier thumbnail:YES];

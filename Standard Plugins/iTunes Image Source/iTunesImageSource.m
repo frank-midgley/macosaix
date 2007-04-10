@@ -241,6 +241,12 @@ static NSImage	*iTunesImage = nil,
 }
 
 
+- (id<NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
+{
+	return identifier;
+}
+
+
 - (NSImage *)thumbnailForIdentifier:(NSString *)identifier
 {
 	return nil;

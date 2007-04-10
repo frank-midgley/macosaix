@@ -400,6 +400,12 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 }
 
 
+- (id<NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
+{
+	return [self urlForIdentifier:identifier];
+}
+
+
 - (NSImage *)thumbnailForIdentifier:(NSString *)identifier
 {
 		// First check if we have this thumbnail in the disk cache.

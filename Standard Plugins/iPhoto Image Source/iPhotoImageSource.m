@@ -330,6 +330,12 @@ static NSImage	*iPhotoImage = nil,
 }
 
 
+- (id<NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
+{
+	return identifier;
+}
+
+
 - (NSImage *)thumbnailForIdentifier:(NSString *)identifier
 {
 	NSImage		*image = nil;

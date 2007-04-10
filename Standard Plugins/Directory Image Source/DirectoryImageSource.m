@@ -252,6 +252,14 @@
 }
 
 
+- (id<NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
+{
+	NSString	*fullPath = [[NSFileManager defaultManager] pathByResolvingAliasesInPath:[directoryPath stringByAppendingPathComponent:identifier]];
+	
+	return [NSURL fileURLWithPath:fullPath];
+}
+
+
 - (NSImage *)thumbnailForIdentifier:(NSString *)identifier
 {
 	NSImage	*thumbnail = nil;
