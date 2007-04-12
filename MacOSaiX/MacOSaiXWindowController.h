@@ -17,30 +17,20 @@
 {
 	MacOSaiXMosaic						*mosaic;
 	
+		// Minimal view
+	BOOL								viewIsMinimal;
+	IBOutlet NSView						*minimalContentView;
     IBOutlet MosaicView					*mosaicView;
-	IBOutlet NSScrollView				*mosaicScrollView;
-	
-    IBOutlet NSView						*statusBarView;
-	IBOutlet NSProgressIndicator		*statusProgressIndicator;
+	IBOutlet NSButton					*pauseButton;
 	IBOutlet NSTextField				*statusField, 
 										*imagesFoundField;
 	
-	IBOutlet NSMenu						*recentTargetsMenu;
-	
-	IBOutlet NSView						*fadeToolbarView;
-	IBOutlet NSButton					*fadeTargetButton,
-										*fadeMosaicButton;
-	IBOutlet NSSlider					*fadeSlider;
-	
-    IBOutlet NSView						*zoomToolbarView;
-	IBOutlet NSSlider					*zoomSlider;
-    IBOutlet NSMenu						*zoomToolbarSubmenu;
-	
-	MacOSaiXPopUpButton					*targetImageToolbarView;
-	
-	id		tilesSetupController;
-	
+		// Editing layout
+	IBOutlet NSView						*editingContentView;
 	IBOutlet MacOSaiXEditorsView		*editorsView;
+	IBOutlet NSBox						*minimalViewBox;
+	IBOutlet NSSlider					*blendSlider, 
+										*zoomSlider;
 	
 		// Editors
 	MacOSaiXTargetImageEditor			*targetImageEditor;
@@ -52,11 +42,6 @@
 	
 	MacOSaiXExportController			*exportController;
     NSTimer								*animateTileTimer;
-    NSMutableDictionary					*toolbarItems;
-    NSToolbarItem						*toggleTargetToolbarItem, 
-										*pauseToolbarItem, 
-										*setupTilesToolbarItem, 
-										*saveAsToolbarItem;
 	NSImage								*targetToolbarImage,
 										*mosaicToolbarImage;
     BOOL								statusBarShowing,
@@ -65,16 +50,12 @@
 										finishLoading;	// flag to indicate doc was not new,
 														// so perform second phase of initializing
     NSArray								*removedSubviews;
-    NSMenu								*mosaicMenu, 
-										*viewMenu;
     float								overallMatch, 
 										lastDisplayMatch, 
 										zoom;
 	NSPoint								tileSelectionPoint;
     NSWindow							*mainWindow, 
 										*mosaicImageDrawWindow;
-    NSMenuItem							*zoomToolbarMenuItem, 
-										*viewToolbarMenuItem;
     NSMutableArray						*tileImages;
 	id<MacOSaiXImageSource>				*manualImageSource;
 	
@@ -89,10 +70,12 @@
 - (MacOSaiXMosaic *)mosaic;
 
 	// View methods
+- (void)setViewIsMinimal:(BOOL)flag;
+- (BOOL)viewIsMinimal;
 - (IBAction)setZoom:(id)sender;
 - (IBAction)setMinimumZoom:(id)sender;
 - (IBAction)setMaximumZoom:(id)sender;
-- (IBAction)toggleStatusBar:(id)sender;
+- (IBAction)setBlend:(id)sender;
 - (IBAction)togglePause:(id)sender;
 - (IBAction)viewFullScreen:(id)sender;
 

@@ -10,36 +10,27 @@
         }, 
         {
             ACTIONS = {
-                chooseOriginalImage = id; 
-                clearRecentOriginalImages = id; 
                 saveMosaicAs = id; 
+                setBlend = id; 
                 setMaximumZoom = id; 
                 setMinimumZoom = id; 
-                setShowNonUniqueMatches = id; 
                 setZoom = id; 
                 togglePause = id; 
-                toggleStatusBar = id; 
                 viewFullScreen = id; 
             }; 
             CLASS = MacOSaiXWindowController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                blendSlider = NSSlider; 
+                editingContentView = NSView; 
                 editorsView = MacOSaiXEditorsView; 
-                fadeMosaicButton = NSButton; 
-                fadeOriginalButton = NSButton; 
-                fadeSlider = NSSlider; 
-                fadeToolbarView = NSView; 
                 imagesFoundField = NSTextField; 
-                mosaicScrollView = NSScrollView; 
+                minimalContentView = NSView; 
+                minimalViewBox = NSBox; 
                 mosaicView = MosaicView; 
-                openOriginalAccessoryView = NSView; 
-                recentOriginalsMenu = NSMenu; 
-                statusBarView = NSView; 
+                pauseButton = NSButton; 
                 statusField = NSTextField; 
-                statusProgressIndicator = NSProgressIndicator; 
                 zoomSlider = NSSlider; 
-                zoomToolbarSubmenu = NSMenu; 
-                zoomToolbarView = NSView; 
             }; 
             SUPERCLASS = NSWindowController; 
         }, 

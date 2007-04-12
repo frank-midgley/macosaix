@@ -49,7 +49,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 - (IBAction)setTargetImageFromMenu:(id)sender;
 - (void)updateRecentTargetImages;
 - (void)mosaicDidChangeState:(NSNotification *)notification;
-- (void)synchronizeMenus;
 - (void)updateEditor;
 - (BOOL)showTileMatchInEditor:(MacOSaiXImageMatch *)tileMatch selecting:(BOOL)selecting;
 - (void)allowUserToChooseImageOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
@@ -80,29 +79,29 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 
 - (void)awakeFromNib
 {
-    viewMenu = [[NSApp delegate] valueForKey:@"viewMenu"];
-//    mosaicMenu = [[NSApp delegate] valueForKey:@"mosaicMenu"];
-
-		// set up the toolbar
-	targetImageToolbarView = [[MacOSaiXPopUpButton alloc] initWithFrame:NSMakeRect(0.0, 0.0, 44.0, 32.0)];
-	[targetImageToolbarView setBordered:NO];
-	[targetImageToolbarView setImagePosition:NSImageOnly];
-	[targetImageToolbarView setMenu:recentTargetsMenu];
-	[targetImageToolbarView setImage:[NSImage imageNamed:@"NoTarget"]];
-    zoomToolbarMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Zoom", @"") action:nil keyEquivalent:@""];
-    [zoomToolbarMenuItem setSubmenu:zoomToolbarSubmenu];
-    toolbarItems = [[NSMutableDictionary dictionary] retain];
-    NSToolbar   *toolbar = [[[NSToolbar alloc] initWithIdentifier:@"MacOSaiXDocument"] autorelease];
-    [toolbar setDelegate:self];
-    [toolbar setAllowsUserCustomization:YES];
-    [[self window] setToolbar:toolbar];
-    
-	[statusProgressIndicator retain];
+	[editingContentView retain];
+	[minimalViewBox setContentView:minimalContentView];
+	
+	[[self window] setToolbar:[[[NSToolbar alloc] initWithIdentifier:@"Mosaic"] autorelease]];
+	[[self window] toggleToolbarShown:self];
+	
+	NSButton	*toolbarButton = [[self window] standardWindowButton:NSWindowToolbarButton];
+	[toolbarButton setTarget:self];
+	[toolbarButton setAction:@selector(toggleMinimalView:)];
+//	NSButton	*toolbarButton = [NSWindow standardWindowButton:NSWindowToolbarButton forStyleMask:[[self window] styleMask]], 
+//				*closeButton = [[self window] standardWindowButton:NSWindowCloseButton];
+//	[toolbarButton setTarget:self];
+//	[toolbarButton setAction:@selector(toggleMinimalView:)];
+//	NSRect		frame = [toolbarButton frame];
+//	frame.origin.y = NSMinY([closeButton frame]);
+//	frame.origin.x = NSMaxX([[closeButton superview] frame]) - NSWidth(frame) - ;
+//	[[closeButton superview] addSubview:toolbarButton];
+	
 	[self updateStatus];
 
 	{
 			// Fill in the description of the current tile shapes.
-			// TBD: move description to toolbar icon's tooltip?
+			// TBD: show in tooltip over closed editor?
 //		id	tileShapesDescription = [[[self mosaic] tileShapes] briefDescription];
 //		if ([tileShapesDescription isKindOfClass:[NSString class]])
 //			[tileShapesDescriptionField setStringValue:tileShapesDescription];
@@ -118,8 +117,8 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 //			[tileShapesDescriptionField setStringValue:NSLocalizedString(@"No description available", @"")];
 	}
 	
-	[mosaicScrollView setDrawsBackground:NO];
-	[[mosaicScrollView contentView] setDrawsBackground:NO];
+	[[mosaicView enclosingScrollView] setDrawsBackground:NO];
+	[[[mosaicView enclosingScrollView] contentView] setDrawsBackground:NO];
 	[mosaicView setMosaic:[self mosaic]];
 	[mosaicView setTargetFadeTime:0.5];
 	[[NSNotificationCenter defaultCenter] addObserver:self 
@@ -138,11 +137,8 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 			[[self mosaic] setTargetImage:lastImage];
 			[lastImage release];
 		}
-		else if ([[targetImageToolbarView menu] numberOfItems] > 4)
-		{
-				// The last chosen image is not available, pick the first recent target in the list.
-			[self setTargetImageFromMenu:[[targetImageToolbarView menu] itemAtIndex:2]];
-		}
+		
+		// FMM TODO: The last chosen image is not available, pick the first recent target in the list.
 	}
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self 
@@ -150,7 +146,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 												 name:MacOSaiXRecentTargetImagesDidChangeNotification 
 											   object:nil];
 	
-	mosaicTrackingRectTag = [[[self window] contentView] addTrackingRect:[mosaicScrollView frame] 
+	mosaicTrackingRectTag = [[[self window] contentView] addTrackingRect:[[mosaicView enclosingScrollView] frame] 
 																   owner:mosaicView 
 																userData:nil 
 															assumeInside:NO];
@@ -189,66 +185,11 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 //							waitUntilDone:YES];
 //	else
 //	{
-//		NSImage			*targetImage = [[self mosaic] targetImage];
-//		
-//		if (targetImage)
-//		{
-//			[self window];	// Make sure the nib is loaded.
-//			
-//			[targetImageToolbarView setImage:targetImage];
-//		}
-//		
 //			// Set the zoom so that all of the new image is displayed.
 //		[zoomSlider setFloatValue:0.0];
 //		[self setZoom:self];
 //		
 //		[self mosaicDidChangeState:nil];
-//		
-//			// Resize the window to respect the target image's aspect ratio
-//		NSSize		currentWindowSize = [[self window] frame].size;
-//		windowResizeTargetSize = [self windowWillResize:[self window] toSize:currentWindowSize];
-//		windowResizeStartTime = [[NSDate date] retain];
-//		windowResizeDifference = NSMakeSize(windowResizeTargetSize.width - currentWindowSize.width,
-//											windowResizeTargetSize.height - currentWindowSize.height);
-//		[mosaicView setInLiveRedraw:[NSNumber numberWithBool:YES]];
-//		[NSTimer scheduledTimerWithTimeInterval:0.01 
-//										 target:self 
-//									   selector:@selector(animateWindowResize:) 
-//									   userInfo:nil 
-//										repeats:YES];
-//	}
-//}
-//
-//
-//- (void)animateWindowResize:(NSTimer *)timer
-//{
-//	float	resizePhase = 1.0;
-//	
-//	if (windowResizeStartTime)
-//	{
-//		resizePhase = [[NSDate date] timeIntervalSinceDate:windowResizeStartTime] * 2.0;
-//		if (resizePhase > 1.0)
-//			resizePhase = 1.0;
-//		
-//		NSSize	newSize = NSMakeSize(windowResizeTargetSize.width - windowResizeDifference.width * (1.0 - resizePhase), 
-//									 windowResizeTargetSize.height - windowResizeDifference.height * (1.0 - resizePhase));
-//		NSRect	currentFrame = [[self window] frame];
-//		
-//		[[self window] setFrame:NSMakeRect(NSMinX(currentFrame), 
-//										   NSMinY(currentFrame) + NSHeight(currentFrame) - newSize.height, 
-//										   newSize.width, 
-//										   newSize.height)
-//						display:YES
-//						animate:NO];
-//	}
-//	
-//	if (resizePhase == 1.0)
-//	{
-//		[timer invalidate];
-//		[windowResizeStartTime release];
-//		windowResizeStartTime = nil;
-//		
-//		[mosaicView setInLiveRedraw:[NSNumber numberWithBool:NO]];
 //	}
 //}
 
@@ -286,27 +227,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 		status = NSLocalizedString(@"Done", @"");
 	
 	[statusField setStringValue:status];
-	
-	if (busy && ![statusProgressIndicator superview])
-	{
-		NSRect	statusFrame = [statusField frame];
-		statusFrame.origin.x += NSWidth([statusProgressIndicator frame]) + 2.0;
-		statusFrame.size.width -= NSWidth([statusProgressIndicator frame]) + 2.0;
-		[statusField setFrame:statusFrame];
-		
-		[statusBarView addSubview:statusProgressIndicator];
-		[statusProgressIndicator startAnimation:self];
-	}
-	else if (!busy && [statusProgressIndicator superview])
-	{
-		[statusProgressIndicator stopAnimation:self];
-		[statusProgressIndicator removeFromSuperview];
-		
-		NSRect	statusFrame = [statusField frame];
-		statusFrame.origin.x -= NSWidth([statusProgressIndicator frame]) + 2.0;
-		statusFrame.size.width += NSWidth([statusProgressIndicator frame]) + 2.0;
-		[statusField setFrame:statusFrame];
-	}
 }
 
 
@@ -352,20 +272,11 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 		[imagesFoundField setIntValue:[[self mosaic] imagesFound]];
 		[self updateStatus];
 		
-			// Update the menus.
-		[self synchronizeMenus];
-		
 			// Update the toolbar.
 		if (![[self mosaic] wasStarted] || [[self mosaic] isPaused])
-		{
-			[pauseToolbarItem setLabel:NSLocalizedString(@"Start", @"")];
-			[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
-		}
+			[pauseButton setImage:[NSImage imageNamed:@"Resume"]];
 		else
-		{
-			[pauseToolbarItem setLabel:NSLocalizedString(@"Pause", @"")];
-			[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
-		}
+			[pauseButton setImage:[NSImage imageNamed:@"Pause"]];
 	}
 }
 
@@ -379,21 +290,39 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 }
 
 
-- (void)synchronizeMenus
+#pragma mark -
+#pragma mark Minimal view methods
+
+
+- (void)setViewIsMinimal:(BOOL)flag
 {
-//	if ([[self mosaic] isPaused])
-//		[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:NSLocalizedString(@"Resume Matching", @"")];
-//	else if ([[self mosaic] wasStarted])
-//		[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:NSLocalizedString(@"Pause Matching", @"")];
-//	else
-//		[[mosaicMenu itemWithTag:kMatchingMenuItemTag] setTitle:NSLocalizedString(@"Start Matching", @"")];
+	if (viewIsMinimal != flag)
+	{
+		if (viewIsMinimal)
+		{
+			[[self window] setContentView:editingContentView];
+			[minimalViewBox setContentView:minimalContentView];
+		}
+		else
+		{
+			[minimalViewBox setContentView:nil];
+			[[self window] setContentView:minimalContentView];
+		}
+		
+		viewIsMinimal = flag;
+	}
+}
 
-	[[viewMenu itemWithTag:0] setState:([mosaicView targetImageFraction] == 0.0 ? NSOnState : NSOffState)];
-	[[viewMenu itemWithTag:1] setState:([mosaicView targetImageFraction] == 1.0 ? NSOnState : NSOffState)];
 
-	[[viewMenu itemAtIndex:[viewMenu indexOfItemWithTarget:nil andAction:@selector(toggleStatusBar:)]] 
-		setTitle:(statusBarShowing ? NSLocalizedString(@"Hide Status Bar", @"") : 
-								     NSLocalizedString(@"Show Status Bar", @""))];
+- (BOOL)viewIsMinimal
+{
+	return viewIsMinimal;
+}
+
+
+- (IBAction)toggleMinimalView:(id)sender
+{
+	[self setViewIsMinimal:![self viewIsMinimal]];
 }
 
 
@@ -445,7 +374,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 - (IBAction)setZoom:(id)sender
 {
 		// Calculate the currently centered point of the mosaic image independent of the zoom factor.
-	NSRect	frame = [[mosaicScrollView contentView] frame],
+	NSRect	frame = [[[mosaicView enclosingScrollView] contentView] frame],
 			visibleRect = [mosaicView visibleRect];
 	NSPoint	centerPoint = NSMakePoint(NSMidX(visibleRect) / zoom, NSMidY(visibleRect) / zoom);
 	
@@ -489,45 +418,53 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 }
 
 
-- (void)toggleStatusBar:(id)sender
+- (IBAction)setBlend:(id)sender
 {
-    NSRect	newFrame = [[self window] frame];
-    int		i;
-    
-    if (statusBarShowing)
-    {
-		statusBarShowing = NO;
-		removedSubviews = [[statusBarView subviews] copy];
-		for (i = 0; i < [removedSubviews count]; i++)
-			[[removedSubviews objectAtIndex:i] removeFromSuperview];
-		[statusBarView retain];
-		[statusBarView removeFromSuperview];
-		newFrame.origin.y += [statusBarView frame].size.height;
-		newFrame.size.height -= [statusBarView frame].size.height;
-		newFrame.size = [self windowWillResize:[self window] toSize:newFrame.size];
-		[[self window] setFrame:newFrame display:YES animate:YES];
-    }
-    else
-    {
-		statusBarShowing = YES;
-		newFrame.origin.y -= [statusBarView frame].size.height;
-		newFrame.size.height += [statusBarView frame].size.height;
-		newFrame.size = [self windowWillResize:[self window] toSize:newFrame.size];
-		[[self window] setFrame:newFrame display:YES animate:YES];
-	
-		[statusBarView setFrame:NSMakeRect(0, [[mosaicScrollView superview] frame].size.height - [statusBarView frame].size.height, [[mosaicScrollView superview] frame].size.width, [statusBarView frame].size.height)];
-		[[mosaicScrollView superview] addSubview:statusBarView];
-		[statusBarView release];
-		for (i = 0; i < [removedSubviews count]; i++)
-		{
-			[[removedSubviews objectAtIndex:i] setFrameSize:NSMakeSize([statusBarView frame].size.width,[[removedSubviews objectAtIndex:i] frame].size.height)];
-			[statusBarView addSubview:[removedSubviews objectAtIndex:i]];
-		}
-		[removedSubviews release]; removedSubviews = nil;
-    }
-	
-	[self synchronizeMenus];
+	[mosaicView setTargetImageFraction:1.0 - [blendSlider floatValue]];
 }
+
+
+//- (void)toggleStatusBar:(id)sender
+//{
+//    NSRect	newFrame = [[self window] frame];
+//    int		i;
+//    
+//    if (statusBarShowing)
+//    {
+//		statusBarShowing = NO;
+//		removedSubviews = [[statusBarView subviews] copy];
+//		for (i = 0; i < [removedSubviews count]; i++)
+//			[[removedSubviews objectAtIndex:i] removeFromSuperview];
+//		[statusBarView retain];
+//		[statusBarView removeFromSuperview];
+//		newFrame.origin.y += [statusBarView frame].size.height;
+//		newFrame.size.height -= [statusBarView frame].size.height;
+//		newFrame.size = [self windowWillResize:[self window] toSize:newFrame.size];
+//		[[self window] setFrame:newFrame display:YES animate:YES];
+//    }
+//    else
+//    {
+//		statusBarShowing = YES;
+//		newFrame.origin.y -= [statusBarView frame].size.height;
+//		newFrame.size.height += [statusBarView frame].size.height;
+//		newFrame.size = [self windowWillResize:[self window] toSize:newFrame.size];
+//		[[self window] setFrame:newFrame display:YES animate:YES];
+//	
+//		[statusBarView setFrame:NSMakeRect(0, [[[mosaicView enclosingScrollView] superview] frame].size.height - [statusBarView frame].size.height, [[[mosaicView enclosingScrollView] superview] frame].size.width, [statusBarView frame].size.height)];
+//		[[[mosaicView enclosingScrollView] superview] addSubview:statusBarView];
+//		[statusBarView release];
+//		for (i = 0; i < [removedSubviews count]; i++)
+//		{
+//			[[removedSubviews objectAtIndex:i] setFrameSize:NSMakeSize([statusBarView frame].size.width,[[removedSubviews objectAtIndex:i] frame].size.height)];
+//			[statusBarView addSubview:[removedSubviews objectAtIndex:i]];
+//		}
+//		[removedSubviews release]; removedSubviews = nil;
+//    }
+//}
+
+
+#pragma mark -
+#pragma mark Full screen viewing
 
 
 - (IBAction)viewFullScreen:(id)sender
@@ -560,7 +497,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 - (void)fullScreenWindowDidClose:(NSNotification *)notification
 {
 		// Switch back to the document window.
-	[mosaicScrollView setDocumentView:mosaicView];
+	[[mosaicView enclosingScrollView] setDocumentView:mosaicView];
 	[mosaicView release];
 	[[(NSWindow *)[notification object] windowController] release];
 	[self setZoom:self];
@@ -626,11 +563,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 		[self performSelectorOnMainThread:_cmd withObject:errorString waitUntilDone:NO];
 	else
 	{
-		NSString	*exportFormat = [exportController exportFormat];
-		if (!exportFormat)
-			exportFormat = @"html";
-		[saveAsToolbarItem setImage:[[NSWorkspace sharedWorkspace] iconForFileType:exportFormat]];
-		
 		if (errorString)
 			NSBeginAlertSheet(NSLocalizedString(@"The mosaic could not be saved.", @""), 
 							  NSLocalizedString(@"OK", @""), nil, nil, [self window], 
@@ -655,12 +587,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 
 #pragma mark -
 #pragma mark Window delegate methods
-
-
-- (void)windowDidBecomeMain:(NSNotification *)aNotification
-{
-    [self synchronizeMenus];
-}
 
 
 - (NSSize)windowWillResize:(NSWindow *)resizingWindow toSize:(NSSize)proposedFrameSize
@@ -708,7 +634,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 		defaultFrame.origin.y += NSHeight(defaultFrame) - size.height;
 		defaultFrame.size = size;
 
-		[mosaicScrollView setNeedsDisplay:YES];
+		[[mosaicView enclosingScrollView] setNeedsDisplay:YES];
 	}
     
     return defaultFrame;
@@ -722,7 +648,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 		[self setZoom:self];
 		
 		[[[self window] contentView] removeTrackingRect:mosaicTrackingRectTag];
-		mosaicTrackingRectTag = [[[self window] contentView] addTrackingRect:[mosaicScrollView frame] 
+		mosaicTrackingRectTag = [[[self window] contentView] addTrackingRect:[[mosaicView enclosingScrollView] frame] 
 																	   owner:mosaicView 
 																	userData:nil 
 																assumeInside:NO];
@@ -742,119 +668,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 }
 
 
-#pragma mark -
-#pragma mark Toolbar delegate methods
-
-
-- (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier
-    willBeInsertedIntoToolbar:(BOOL)flag;
-{
-    NSToolbarItem	*toolbarItem = [toolbarItems objectForKey:itemIdentifier];
-
-    if (toolbarItem)
-		return toolbarItem;
-    
-    toolbarItem = [[[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier] autorelease];
-    
-	if ([itemIdentifier isEqualToString:@"Target"])
-    {
-		[toolbarItem setMinSize:NSMakeSize(44.0, 32.0)];
-		[toolbarItem setMaxSize:NSMakeSize(44.0, 32.0)];
-		[toolbarItem setLabel:NSLocalizedString(@"Target", @"")];
-		[toolbarItem setPaletteLabel:[toolbarItem label]];
-		[toolbarItem setView:targetImageToolbarView];
-// TODO:		[toolbarItem setMenuFormRepresentation:[targetImagePopUpButton menu]];
-    }
-	else if ([itemIdentifier isEqualToString:@"Tiles"])
-    {
-		NSImage	*shapesImage = [[[self mosaic] tileShapes] image];
-		if (shapesImage)
-			[toolbarItem setImage:shapesImage];
-		[toolbarItem setLabel:NSLocalizedString(@"Tiles", @"")];
-		[toolbarItem setPaletteLabel:[toolbarItem label]];
-		[toolbarItem setTarget:self];
-		[toolbarItem setAction:@selector(setupTiles:)];
-		[toolbarItem setToolTip:NSLocalizedString(@"Change the tile shapes or image use rules", @"")];
-		setupTilesToolbarItem = toolbarItem;
-    }
-	else if ([itemIdentifier isEqualToString:@"Full Screen"])
-    {
-		[toolbarItem setImage:[NSImage imageNamed:@"FullScreen"]];
-		[toolbarItem setLabel:NSLocalizedString(@"Full Screen", @"")];
-		[toolbarItem setPaletteLabel:[toolbarItem label]];
-		[toolbarItem setTarget:self];
-		[toolbarItem setAction:@selector(viewFullScreen:)];
-		[toolbarItem setToolTip:NSLocalizedString(@"View the mosaic in full screen mode", @"")];
-    }
-	else if ([itemIdentifier isEqualToString:@"Save As"])
-    {
-		[toolbarItem setImage:[[NSWorkspace sharedWorkspace] iconForFileType:@"jpg"]];
-		[toolbarItem setLabel:NSLocalizedString(@"Save As", @"")];
-		[toolbarItem setPaletteLabel:[toolbarItem label]];
-		[toolbarItem setTarget:self];
-		[toolbarItem setAction:@selector(saveMosaicAs:)];
-		[toolbarItem setToolTip:NSLocalizedString(@"Save the mosaic as an image or web page", @"")];
-		saveAsToolbarItem = toolbarItem;
-    }
-	else if ([itemIdentifier isEqualToString:@"Pause"])
-    {
-		[toolbarItem setImage:[NSImage imageNamed:@"Pause"]];
-		[toolbarItem setLabel:NSLocalizedString(([[self mosaic] isPaused] ? @"Resume" : @"Pause"), @"")];
-		[toolbarItem setPaletteLabel:NSLocalizedString(@"Pause/Resume", @"")];
-		[toolbarItem setTarget:self];
-		[toolbarItem setAction:@selector(togglePause:)];
-		pauseToolbarItem = toolbarItem;
-    }
-	else if ([itemIdentifier isEqualToString:@"Blend"])
-    {
-		[toolbarItem setMinSize:[fadeToolbarView frame].size];
-		[toolbarItem setMaxSize:[fadeToolbarView frame].size];
-		[toolbarItem setLabel:NSLocalizedString(@"Blend", @"")];
-		[toolbarItem setPaletteLabel:[toolbarItem label]];
-		[toolbarItem setView:fadeToolbarView];
-// TODO:		[toolbarItem setMenuFormRepresentation:blendToolbarMenuItem];
-    }
-    else if ([itemIdentifier isEqualToString:@"Zoom"])
-    {
-		[toolbarItem setMinSize:[zoomToolbarView frame].size];
-		[toolbarItem setMaxSize:[zoomToolbarView frame].size];
-		[toolbarItem setLabel:NSLocalizedString(@"Zoom", @"")];
-		[toolbarItem setPaletteLabel:[toolbarItem label]];
-		[toolbarItem setView:zoomToolbarView];
-		[toolbarItem setMenuFormRepresentation:zoomToolbarMenuItem];
-    }
-    
-    [toolbarItems setObject:toolbarItem forKey:itemIdentifier];
-    
-    return toolbarItem;
-}
-
-
-- (BOOL)validateToolbarItem:(NSToolbarItem *)theItem
-{
-    if ([[theItem itemIdentifier] isEqualToString:@"Pause"])
-		return ([[[self mosaic] tiles] count] > 0 && [[[self mosaic] imageSources] count] > 0);
-    else
-		return YES;
-}
-
-
-- (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar;
-{
-    return [NSArray arrayWithObjects:@"Pause", @"Full Screen", @"Save As", @"Fade", @"Zoom", 
-									 NSToolbarCustomizeToolbarItemIdentifier, NSToolbarSpaceItemIdentifier,
-									 NSToolbarFlexibleSpaceItemIdentifier, NSToolbarSeparatorItemIdentifier,
-									 nil];
-}
-
-
-- (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar;
-{
-    return [NSArray arrayWithObjects:@"Pause", @"Save As", 
-									 NSToolbarFlexibleSpaceItemIdentifier, @"Zoom", @"Blend", nil];
-}
-
-
 #pragma mark
 
 
@@ -863,15 +676,10 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	[[[self window] contentView] removeTrackingRect:mosaicTrackingRectTag];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	
-    [toolbarItems release];
 	[mosaicToolbarImage release];
     [removedSubviews release];
-	[statusProgressIndicator release];
-    [zoomToolbarMenuItem release];
-    [viewToolbarMenuItem release];
     [tileImages release];
     
-	[tilesSetupController release];
 	[exportController release];
 	
 	[targetImageEditor release];
@@ -880,6 +688,8 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	[imageSourcesEditor release];
 	[imageOrientationsEditor release];
 	[tileContentEditor release];
+
+	[editingContentView release];
 	
     [super dealloc];
 }
