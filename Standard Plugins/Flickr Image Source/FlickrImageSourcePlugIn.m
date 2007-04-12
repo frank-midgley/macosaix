@@ -213,9 +213,10 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 			[imageArray sortUsingFunction:compareWithKey context:@"Last Access"];
 		
 			// Remove the least recently accessed image until we satisfy the user's prefs.
-		unsigned long long	targetSize = maxImageCacheSize * 0.9;
+		unsigned long long	targetCacheSize = maxImageCacheSize * 0.9, 
+							targetFreeSpace = minDiskFreeSpace * 1.1;
 		int					purgeCount = 0;
-		while (!purgeCache && (imageCacheSize > targetSize || freeSpace < minDiskFreeSpace) && [imageArray count] > 0)
+		while (!purgeCache && (imageCacheSize > targetCacheSize || freeSpace < targetFreeSpace) && [imageArray count] > 0)
 		{
 			NSDictionary		*imageToDelete = [imageArray objectAtIndex:0];
 			unsigned long long	fileSize = [[imageToDelete objectForKey:@"Size"] unsignedLongLongValue];
