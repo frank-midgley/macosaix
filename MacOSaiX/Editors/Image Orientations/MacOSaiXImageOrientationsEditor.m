@@ -8,6 +8,7 @@
 
 #import "MacOSaiXImageOrientationsEditor.h"
 
+#import "MacOSaiX.h"
 #import "MacOSaiXMosaic.h"
 #import "MacOSaiXImageOrientations.h"
 
@@ -37,8 +38,34 @@
 }
 
 
+- (NSArray *)plugInClasses
+{
+	return [(MacOSaiX *)[NSApp delegate] imageOrientationsPlugIns];
+}
+
+
+- (NSString *)plugInTitleFormat
+{
+	return NSLocalizedString(@"%@ Image Orientations", @"");
+}
+
+
+- (void)setMosaicDataSource:(id<MacOSaiXDataSource>)dataSource
+{
+	[[[self mosaicView] mosaic] setImageOrientations:(id<MacOSaiXImageOrientations>)dataSource];
+}
+
+
+- (id<MacOSaiXDataSource>)mosaicDataSource
+{
+	return [[[self mosaicView] mosaic] imageOrientations];
+}
+
+
 - (void)beginEditing
 {
+	[super beginEditing];
+	
 	[[self mosaicView] setTargetImageFraction:1.0];
 }
 
