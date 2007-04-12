@@ -11,11 +11,6 @@
 
 @interface MacOSaiXImageOrientationsEditor : MacOSaiXEditor
 {
-	IBOutlet NSButton		*saveChangesButton, 
-							*discardChangesButton;
 }
-
-- (IBAction)saveChanges:(id)sender;
-- (IBAction)discardChanges:(id)sender;
 
 @end
