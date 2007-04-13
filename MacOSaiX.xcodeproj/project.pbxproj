@@ -3116,7 +3116,7 @@
 					"-Wno-four-char-constants",
 					"-Wno-unknown-pragmas",
 				);
-				ZERO_LINK = NO;
+				ZERO_LINK = YES;
 			};
 			name = Debug;
 		};
