@@ -23,13 +23,17 @@
             OUTLETS = {
                 blendSlider = NSSlider; 
                 editingContentView = NSView; 
+                editingMosaicScrollView = NSScrollView; 
+                editingStatusViewBox = NSBox; 
                 editorsView = MacOSaiXEditorsView; 
                 imagesFoundField = NSTextField; 
                 minimalContentView = NSView; 
-                minimalViewBox = NSBox; 
+                minimalMosaicScrollView = NSScrollView; 
+                minimalStatusViewBox = NSBox; 
                 mosaicView = MosaicView; 
                 pauseButton = NSButton; 
                 statusField = NSTextField; 
+                statusView = NSView; 
                 zoomSlider = NSSlider; 
             }; 
             SUPERCLASS = NSWindowController; 

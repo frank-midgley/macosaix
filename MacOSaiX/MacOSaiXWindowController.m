@@ -64,7 +64,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 {
     if (self = [super initWithWindow:window])
     {
-		statusBarShowing = YES;
 	}
 	
     return self;
@@ -79,23 +78,14 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 
 - (void)awakeFromNib
 {
-	[editingContentView retain];
-	[minimalViewBox setContentView:minimalContentView];
-	
+		// Add and hide a dummy toolbar just to get the toolbar button to show.
 	[[self window] setToolbar:[[[NSToolbar alloc] initWithIdentifier:@"Mosaic"] autorelease]];
 	[[self window] toggleToolbarShown:self];
 	
+		// Have the toolbar button call our custom action.
 	NSButton	*toolbarButton = [[self window] standardWindowButton:NSWindowToolbarButton];
 	[toolbarButton setTarget:self];
-	[toolbarButton setAction:@selector(toggleMinimalView:)];
-//	NSButton	*toolbarButton = [NSWindow standardWindowButton:NSWindowToolbarButton forStyleMask:[[self window] styleMask]], 
-//				*closeButton = [[self window] standardWindowButton:NSWindowCloseButton];
-//	[toolbarButton setTarget:self];
-//	[toolbarButton setAction:@selector(toggleMinimalView:)];
-//	NSRect		frame = [toolbarButton frame];
-//	frame.origin.y = NSMinY([closeButton frame]);
-//	frame.origin.x = NSMaxX([[closeButton superview] frame]) - NSWidth(frame) - ;
-//	[[closeButton superview] addSubview:toolbarButton];
+	[toolbarButton setAction:@selector(toggleWindowLayout:)];
 	
 	[self updateStatus];
 
@@ -117,8 +107,9 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 //			[tileShapesDescriptionField setStringValue:NSLocalizedString(@"No description available", @"")];
 	}
 	
-	[[mosaicView enclosingScrollView] setDrawsBackground:NO];
-	[[[mosaicView enclosingScrollView] contentView] setDrawsBackground:NO];
+//	[[mosaicView enclosingScrollView] setDrawsBackground:NO];
+//	[[[mosaicView enclosingScrollView] contentView] setDrawsBackground:NO];
+
 	[mosaicView setMosaic:[self mosaic]];
 	[mosaicView setTargetFadeTime:0.5];
 	[[NSNotificationCenter defaultCenter] addObserver:self 
@@ -146,12 +137,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 												 name:MacOSaiXRecentTargetImagesDidChangeNotification 
 											   object:nil];
 	
-	mosaicTrackingRectTag = [[[self window] contentView] addTrackingRect:[[mosaicView enclosingScrollView] frame] 
-																   owner:mosaicView 
-																userData:nil 
-															assumeInside:NO];
-	[[self window] setAcceptsMouseMovedEvents:YES];
-	
 	[self mosaicDidChangeState:nil];
 	
 	[editorsView setMosaicView:mosaicView];
@@ -169,6 +154,9 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	[editorsView addEditor:imageOrientationsEditor];
 	tileContentEditor = [[MacOSaiXTileContentEditor alloc] initWithMosaicView:mosaicView];
 	[editorsView addEditor:tileContentEditor];
+	
+	windowLayoutIsMinimal = YES;
+	[self setWindowLayoutIsMinimal:NO];
 }
 
 
@@ -291,38 +279,81 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 
 
 #pragma mark -
-#pragma mark Minimal view methods
+#pragma mark Window layout methods
 
 
-- (void)setViewIsMinimal:(BOOL)flag
+- (void)setWindowLayoutIsMinimal:(BOOL)flag
 {
-	if (viewIsMinimal != flag)
+	if (windowLayoutIsMinimal != flag)
 	{
-		if (viewIsMinimal)
+		if (windowLayoutIsMinimal)
 		{
+				// Switch to the editing layout.
+			[minimalMosaicScrollView setDocumentView:nil];
+			[minimalStatusViewBox setContentView:nil];
+			[mosaicView setFrame:[editingMosaicScrollView frame]];
+			[editingMosaicScrollView setDocumentView:mosaicView];
+			[editingStatusViewBox setContentView:statusView];
 			[[self window] setContentView:editingContentView];
-			[minimalViewBox setContentView:minimalContentView];
+			
+			[minimalContentView removeTrackingRect:mosaicTrackingRectTag];
+			[[self window] setAcceptsMouseMovedEvents:NO];
+			
+			[[NSNotificationCenter defaultCenter] removeObserver:self 
+															name:NSViewFrameDidChangeNotification 
+														  object:minimalMosaicScrollView];
+			[[NSNotificationCenter defaultCenter] addObserver:self 
+													 selector:@selector(mosaicScrollViewDidChangeFrame:) 
+														 name:NSViewFrameDidChangeNotification 
+													   object:editingMosaicScrollView];
 		}
 		else
 		{
-			[minimalViewBox setContentView:nil];
+				// Switch to the minimal layout.
+			[editingMosaicScrollView setDocumentView:nil];
+			[editingStatusViewBox setContentView:nil];
+			[mosaicView setFrame:[minimalMosaicScrollView frame]];
+			[minimalMosaicScrollView setDocumentView:mosaicView];
+			[minimalStatusViewBox setContentView:statusView];
 			[[self window] setContentView:minimalContentView];
+			
+			mosaicTrackingRectTag = [minimalContentView addTrackingRect:[[mosaicView enclosingScrollView] frame] 
+																  owner:mosaicView 
+															   userData:nil 
+														   assumeInside:NO];
+			[[self window] setAcceptsMouseMovedEvents:YES];
+			
+			[[NSNotificationCenter defaultCenter] removeObserver:self 
+															name:NSViewFrameDidChangeNotification 
+														  object:editingMosaicScrollView];
+			[[NSNotificationCenter defaultCenter] addObserver:self 
+													 selector:@selector(mosaicScrollViewDidChangeFrame:) 
+														 name:NSViewFrameDidChangeNotification 
+													   object:minimalMosaicScrollView];
 		}
 		
-		viewIsMinimal = flag;
+		windowLayoutIsMinimal = flag;
+		
+		[self setZoom:self];
 	}
 }
 
 
-- (BOOL)viewIsMinimal
+- (BOOL)windowLayoutIsMinimal
 {
-	return viewIsMinimal;
+	return windowLayoutIsMinimal;
 }
 
 
-- (IBAction)toggleMinimalView:(id)sender
+- (IBAction)toggleWindowLayout:(id)sender
 {
-	[self setViewIsMinimal:![self viewIsMinimal]];
+	[self setWindowLayoutIsMinimal:![self windowLayoutIsMinimal]];
+}
+
+
+- (void)mosaicScrollViewDidChangeFrame:(NSNotification *)notification
+{
+	[self setZoom:self];
 }
 
 
@@ -399,8 +430,8 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	centerPoint.y *= zoom;
 	[mosaicView scrollPoint:NSMakePoint(centerPoint.x - NSWidth(visibleRect) / 2.0, 
 										centerPoint.y - NSHeight(visibleRect) / 2.0)];
-	[mosaicView setInLiveRedraw:[NSNumber numberWithBool:YES]];
-	[mosaicView performSelector:@selector(setInLiveRedraw:) withObject:[NSNumber numberWithBool:NO] afterDelay:0.0];
+//	[mosaicView setInLiveRedraw:[NSNumber numberWithBool:YES]];
+//	[mosaicView performSelector:@selector(setInLiveRedraw:) withObject:[NSNumber numberWithBool:NO] afterDelay:0.0];
 }
 
 
@@ -422,45 +453,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 {
 	[mosaicView setTargetImageFraction:1.0 - [blendSlider floatValue]];
 }
-
-
-//- (void)toggleStatusBar:(id)sender
-//{
-//    NSRect	newFrame = [[self window] frame];
-//    int		i;
-//    
-//    if (statusBarShowing)
-//    {
-//		statusBarShowing = NO;
-//		removedSubviews = [[statusBarView subviews] copy];
-//		for (i = 0; i < [removedSubviews count]; i++)
-//			[[removedSubviews objectAtIndex:i] removeFromSuperview];
-//		[statusBarView retain];
-//		[statusBarView removeFromSuperview];
-//		newFrame.origin.y += [statusBarView frame].size.height;
-//		newFrame.size.height -= [statusBarView frame].size.height;
-//		newFrame.size = [self windowWillResize:[self window] toSize:newFrame.size];
-//		[[self window] setFrame:newFrame display:YES animate:YES];
-//    }
-//    else
-//    {
-//		statusBarShowing = YES;
-//		newFrame.origin.y -= [statusBarView frame].size.height;
-//		newFrame.size.height += [statusBarView frame].size.height;
-//		newFrame.size = [self windowWillResize:[self window] toSize:newFrame.size];
-//		[[self window] setFrame:newFrame display:YES animate:YES];
-//	
-//		[statusBarView setFrame:NSMakeRect(0, [[[mosaicView enclosingScrollView] superview] frame].size.height - [statusBarView frame].size.height, [[[mosaicView enclosingScrollView] superview] frame].size.width, [statusBarView frame].size.height)];
-//		[[[mosaicView enclosingScrollView] superview] addSubview:statusBarView];
-//		[statusBarView release];
-//		for (i = 0; i < [removedSubviews count]; i++)
-//		{
-//			[[removedSubviews objectAtIndex:i] setFrameSize:NSMakeSize([statusBarView frame].size.width,[[removedSubviews objectAtIndex:i] frame].size.height)];
-//			[statusBarView addSubview:[removedSubviews objectAtIndex:i]];
-//		}
-//		[removedSubviews release]; removedSubviews = nil;
-//    }
-//}
 
 
 #pragma mark -
@@ -602,7 +594,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 //		
 //		proposedFrameSize.width = MIN(MAX(proposedFrameSize.width, 132),
 //									  screenFrame.size.width - [resizingWindow frame].origin.x) - diff.width;
-//		windowTop -= diff.height + 16 + (statusBarShowing ? [statusBarView frame].size.height : 0);
+//		windowTop -= diff.height + 16 + [statusView frame].size.height;
 //		
 //			// Calculate the height of the window based on the proposed width
 //			//   and preserve the aspect ratio of the mosaic image.
@@ -615,7 +607,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 //		}
 //		
 //			// Add height of scroll bar and status bar (if showing)
-//		proposedFrameSize.height += 16 + (statusBarShowing ? [statusBarView frame].size.height : 0);
+//		proposedFrameSize.height += 16 + [statusView frame].size.height;
 //		
 //		proposedFrameSize.height += diff.height;
 //		proposedFrameSize.width += diff.width;
@@ -643,15 +635,13 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 
 - (void)windowDidResize:(NSNotification *)notification
 {
-	if ([notification object] == [self window])
+	if ([notification object] == [self window] && [self windowLayoutIsMinimal])
 	{
-		[self setZoom:self];
-		
-		[[[self window] contentView] removeTrackingRect:mosaicTrackingRectTag];
-		mosaicTrackingRectTag = [[[self window] contentView] addTrackingRect:[[mosaicView enclosingScrollView] frame] 
-																	   owner:mosaicView 
-																	userData:nil 
-																assumeInside:NO];
+		[minimalContentView removeTrackingRect:mosaicTrackingRectTag];
+		mosaicTrackingRectTag = [minimalContentView addTrackingRect:[[mosaicView enclosingScrollView] frame] 
+															  owner:mosaicView 
+														   userData:nil 
+													   assumeInside:NO];
 	}
 }
 
@@ -677,7 +667,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	
 	[mosaicToolbarImage release];
-    [removedSubviews release];
     [tileImages release];
     
 	[exportController release];
@@ -688,8 +677,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	[imageSourcesEditor release];
 	[imageOrientationsEditor release];
 	[tileContentEditor release];
-
-	[editingContentView release];
 	
     [super dealloc];
 }

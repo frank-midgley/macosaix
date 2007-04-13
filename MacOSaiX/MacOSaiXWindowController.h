@@ -17,20 +17,25 @@
 {
 	MacOSaiXMosaic						*mosaic;
 	
-		// Minimal view
-	BOOL								viewIsMinimal;
-	IBOutlet NSView						*minimalContentView;
+		// Views shared between layouts
     IBOutlet MosaicView					*mosaicView;
+	IBOutlet NSView						*statusView;
 	IBOutlet NSButton					*pauseButton;
 	IBOutlet NSTextField				*statusField, 
 										*imagesFoundField;
 	
+		// Minimal layout
+	IBOutlet NSView						*minimalContentView;
+	IBOutlet NSScrollView				*minimalMosaicScrollView;
+	IBOutlet NSBox						*minimalStatusViewBox;
+	
 		// Editing layout
 	IBOutlet NSView						*editingContentView;
 	IBOutlet MacOSaiXEditorsView		*editorsView;
-	IBOutlet NSBox						*minimalViewBox;
 	IBOutlet NSSlider					*blendSlider, 
 										*zoomSlider;
+	IBOutlet NSScrollView				*editingMosaicScrollView;
+	IBOutlet NSBox						*editingStatusViewBox;
 	
 		// Editors
 	MacOSaiXTargetImageEditor			*targetImageEditor;
@@ -40,20 +45,13 @@
 	MacOSaiXImageOrientationsEditor		*imageOrientationsEditor;
 	MacOSaiXTileContentEditor			*tileContentEditor;
 	
+	BOOL								windowLayoutIsMinimal;
 	MacOSaiXExportController			*exportController;
-    NSTimer								*animateTileTimer;
 	NSImage								*targetToolbarImage,
 										*mosaicToolbarImage;
-    BOOL								statusBarShowing,
-										fadeWasAdjusted, 
-										windowFinishedLoading,	// flag to indicate nib was loaded
-										finishLoading;	// flag to indicate doc was not new,
-														// so perform second phase of initializing
-    NSArray								*removedSubviews;
     float								overallMatch, 
 										lastDisplayMatch, 
 										zoom;
-	NSPoint								tileSelectionPoint;
     NSWindow							*mainWindow, 
 										*mosaicImageDrawWindow;
     NSMutableArray						*tileImages;
@@ -70,8 +68,8 @@
 - (MacOSaiXMosaic *)mosaic;
 
 	// View methods
-- (void)setViewIsMinimal:(BOOL)flag;
-- (BOOL)viewIsMinimal;
+- (void)setWindowLayoutIsMinimal:(BOOL)flag;
+- (BOOL)windowLayoutIsMinimal;
 - (IBAction)setZoom:(id)sender;
 - (IBAction)setMinimumZoom:(id)sender;
 - (IBAction)setMaximumZoom:(id)sender;
