@@ -257,7 +257,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	else
 	{
 			// Update the status bar.
-		[imagesFoundField setIntValue:[[self mosaic] imagesFound]];
+		[imagesFoundField setStringValue:[NSString stringWithFormat:@"Images found: %d", [[self mosaic] imagesFound]]];
 		[self updateStatus];
 		
 			// Update the toolbar.
@@ -430,8 +430,10 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	centerPoint.y *= zoom;
 	[mosaicView scrollPoint:NSMakePoint(centerPoint.x - NSWidth(visibleRect) / 2.0, 
 										centerPoint.y - NSHeight(visibleRect) / 2.0)];
-//	[mosaicView setInLiveRedraw:[NSNumber numberWithBool:YES]];
-//	[mosaicView performSelector:@selector(setInLiveRedraw:) withObject:[NSNumber numberWithBool:NO] afterDelay:0.0];
+	[mosaicView setInLiveRedraw:[NSNumber numberWithBool:YES]];
+	[mosaicView performSelector:@selector(setInLiveRedraw:) withObject:[NSNumber numberWithBool:NO] afterDelay:0.0];
+	
+	[mosaicView setNeedsDisplay:YES];
 }
 
 
