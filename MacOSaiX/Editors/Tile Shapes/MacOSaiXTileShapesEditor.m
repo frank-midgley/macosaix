@@ -17,6 +17,12 @@
 @implementation MacOSaiXTileShapesEditor
 
 
++ (NSImage *)image
+{
+	return [NSImage imageNamed:@"Tile Shapes"];
+}
+
+
 - (id)initWithMosaicView:(MosaicView *)inMosaicView
 {
 	if (self = [super initWithMosaicView:inMosaicView])
