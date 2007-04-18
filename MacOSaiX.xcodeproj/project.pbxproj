@@ -88,6 +88,7 @@
 		014F189E0B2CD1410023D2D2 /* Constant Image Orientations.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 014F184E0B2CCDD40023D2D2 /* Constant Image Orientations.plugin */; };
 		014F1C660B3BAF6B0023D2D2 /* MacOSaiXEditorsView.h in Headers */ = {isa = PBXBuildFile; fileRef = 014F1C640B3BAF6B0023D2D2 /* MacOSaiXEditorsView.h */; };
 		014F1C670B3BAF6B0023D2D2 /* MacOSaiXEditorsView.m in Sources */ = {isa = PBXBuildFile; fileRef = 014F1C650B3BAF6B0023D2D2 /* MacOSaiXEditorsView.m */; };
+		01660B190BD434B100D95052 /* Tile Shapes.png in Resources */ = {isa = PBXBuildFile; fileRef = 01660B180BD434B100D95052 /* Tile Shapes.png */; };
 		016A242308D7C952009A93BF /* ZoomIn.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242208D7C952009A93BF /* ZoomIn.png */; };
 		016A242508D7C975009A93BF /* ZoomOut.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242408D7C975009A93BF /* ZoomOut.png */; };
 		016A248208D7D8E2009A93BF /* HandPicked.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A248108D7D8E2009A93BF /* HandPicked.png */; };
@@ -506,6 +507,7 @@
 		014F184E0B2CCDD40023D2D2 /* Constant Image Orientations.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Constant Image Orientations.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		014F1C640B3BAF6B0023D2D2 /* MacOSaiXEditorsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXEditorsView.h; sourceTree = "<group>"; };
 		014F1C650B3BAF6B0023D2D2 /* MacOSaiXEditorsView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXEditorsView.m; sourceTree = "<group>"; };
+		01660B180BD434B100D95052 /* Tile Shapes.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Tile Shapes.png"; sourceTree = "<group>"; };
 		016A242208D7C952009A93BF /* ZoomIn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ZoomIn.png; sourceTree = "<group>"; };
 		016A242408D7C975009A93BF /* ZoomOut.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ZoomOut.png; sourceTree = "<group>"; };
 		016A248108D7D8E2009A93BF /* HandPicked.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = HandPicked.png; sourceTree = "<group>"; };
@@ -1169,6 +1171,7 @@
 				926F90F80B3DC5100089017E /* MacOSaiXTileShapesEditor.h */,
 				926F90F90B3DC5100089017E /* MacOSaiXTileShapesEditor.m */,
 				926F90FC0B3DC5610089017E /* Tile Shapes Editor.nib */,
+				01660B180BD434B100D95052 /* Tile Shapes.png */,
 			);
 			path = "Tile Shapes";
 			sourceTree = "<group>";
@@ -1984,6 +1987,7 @@
 				013FD51B0B424EE80015015E /* UniqueX.tif in Resources */,
 				014960E30B59797500D11987 /* Target Image Editor.nib in Resources */,
 				92B7989D0B6D303D0034AF82 /* Target Image.png in Resources */,
+				01660B190BD434B100D95052 /* Tile Shapes.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
