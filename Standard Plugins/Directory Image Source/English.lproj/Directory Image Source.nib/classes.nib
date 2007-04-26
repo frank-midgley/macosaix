@@ -1,19 +1,25 @@
 {
     IBClasses = (
         {
-            ACTIONS = {chooseFolder = id; clearFolderList = id; setFollowsAliases = id; }; 
-            CLASS = DirectoryImageSourceController; 
+            ACTIONS = {"" = id; }; 
+            CLASS = FirstResponder; 
             LANGUAGE = ObjC; 
-            OUTLETS = {
-                chooseFolderButton = NSButton; 
-                clearFolderListButton = NSButton; 
-                editorView = NSView; 
-                folderTableView = NSTableView; 
-                followsAliasesButton = NSButton; 
-            }; 
             SUPERCLASS = NSObject; 
         }, 
-        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }
+        {
+            ACTIONS = {chooseFolder = id; clearFolderList = id; setFollowsAliases = id; }; 
+            CLASS = MacOSaiXDirectoryImageSourceEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                editorView = NSView; 
+                folderPopUp = NSPopUpButton; 
+                followsAliasesButton = NSButton; 
+                imageCountTextField = NSTextField; 
+                locationImageView = NSImageView; 
+                locationTextField = NSTextField; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }
     ); 
     IBVersion = 1; 
 }

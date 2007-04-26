@@ -15,15 +15,14 @@
 	
 	IBOutlet NSView							*editorView;
 	
-	IBOutlet NSTableView					*folderTableView;
-	IBOutlet NSButton						*chooseFolderButton, 
-											*clearFolderListButton, 
-											*followsAliasesButton;
-	
-	NSMutableArray							*folderList;
+	IBOutlet NSPopUpButton					*folderPopUp;
+	IBOutlet NSImageView					*locationImageView;
+	IBOutlet NSTextField					*locationTextField, 
+											*imageCountTextField;
+	IBOutlet NSButton						*followsAliasesButton;
 	
 		// The image source instance currently being edited.
-	MacOSaiXDirectoryImageSource	*currentImageSource;
+	MacOSaiXDirectoryImageSource			*currentImageSource;
 }
 
 - (IBAction)chooseFolder:(id)sender;
