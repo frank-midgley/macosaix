@@ -59,7 +59,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	{
 		// Update the recent targets in the user's defaults.
 		
-		NSMutableArray	*recentTargetImageDicts = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Targets"] mutableCopy];
+		NSMutableArray	*recentTargetImageDicts = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Target Images"] mutableCopy];
 		if (recentTargetImageDicts)
 		{
 				// Remove any previous entry from the defaults for the image at this path.
@@ -121,7 +121,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	{
 		// Update the recent targets in the user's defaults.
 		
-		NSMutableArray	*recentTargetImageDicts = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Targets"] mutableCopy];
+		NSMutableArray	*recentTargetImageDicts = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Target Images"] mutableCopy];
 		
 		if (recentTargetImageDicts)
 		{
@@ -166,7 +166,19 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	{
 		targetImageDicts = [[NSMutableArray alloc] initWithCapacity:16];
 		
-		NSArray			*recentTargetImageDicts = [[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Targets"];
+		NSArray			*recentTargetImageDicts = [[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Target Images"];
+		
+		if (!recentTargetImageDicts)
+		{
+				// Check for the old key.
+			recentTargetImageDicts = [[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"];
+			if (recentTargetImageDicts)
+			{
+				[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"Recent Originals"];
+				[[NSUserDefaults standardUserDefaults] setObject:recentTargetImageDicts forKey:@"Recent Target Images"];
+				[[NSUserDefaults standardUserDefaults] synchronize];
+			}
+		}
 		
 		if (!recentTargetImageDicts)
 		{
@@ -281,7 +293,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 //	[self removeRecentTargetImages];
 //	
 //	NSMenu			*mainRecentTargetsMenu = [[mosaicMenu itemWithTag:kTargetImageItemTag] submenu];
-//	NSArray			*recentTargetDicts = [[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Targets"], 
+//	NSArray			*recentTargetDicts = [[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Targets Images"], 
 //		*sortedRecents = [recentTargetDicts sortedArrayUsingFunction:compareWithKey context:@"Name"];
 //	NSEnumerator	*targetEnumerator = [sortedRecents reverseObjectEnumerator];
 //	NSDictionary	*targetDict = nil;
