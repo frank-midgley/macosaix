@@ -61,8 +61,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 	   withIdentifier:(NSString *)imageIdentifier 
 		   fromSource:(id<MacOSaiXImageSource>)imageSource
 {
-		// Remove the least recently accessed image rep from the memory cache until we have
-		// enough room to store the new rep.
+		// Remove the least recently accessed image rep from the memory cache until we have enough room to store the new rep.
 	unsigned long long	imageRepSize = [imageRep bytesPerRow] * [imageRep pixelsHigh];
 	while ([memoryCache count] > 0 && (currentMemoryCacheSize + imageRepSize) > maxMemoryCacheSize)
 	{
@@ -71,14 +70,20 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		NSValue					*oldestSourceKey = [NSValue valueWithPointer:oldestSource];
 		NSBitmapImageRep		*oldestRep = [imageRepRecencyArray lastObject];
 		unsigned long long		oldestRepSize = [oldestRep bytesPerRow] * [oldestRep pixelsHigh];
-		NSMutableArray			*oldestRepArray = [[memoryCache objectForKey:oldestSourceKey] objectForKey:oldestIdentifier];
+		NSMutableDictionary		*oldestImageSourceCache = [memoryCache objectForKey:oldestSourceKey];
+		NSMutableArray			*oldestRepArray = [oldestImageSourceCache objectForKey:oldestIdentifier];
 		
 		[oldestRepArray removeObjectIdenticalTo:oldestRep];
 		if ([oldestRepArray count] == 0)
 		{
-			[memoryCache removeObjectForKey:oldestSourceKey];
+			[oldestImageSourceCache removeObjectForKey:oldestIdentifier];
+			
+				// Remove the native size of the oldest image unless it's the source of the new rep being cached.
 			if (![oldestIdentifier isEqualToString:imageIdentifier] || oldestSource != imageSource)
 				[[nativeImageSizeDict objectForKey:oldestSourceKey] removeObjectForKey:oldestIdentifier];
+			
+			if ([oldestImageSourceCache count] == 0)
+				[memoryCache removeObjectForKey:oldestSourceKey];
 		}
 		
 		[imageIdentifierRecencyArray removeLastObject];
@@ -89,7 +94,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		cachedImageCount--;
 	}
 
-		// Get the existing array for this key or create a new array.
+		// Get the existing cache for this image source or create a new one.
 	NSValue				*imageSourceKey = [NSValue valueWithPointer:imageSource];
 	NSMutableDictionary	*imageSourceCache = [memoryCache objectForKey:imageSourceKey];
 	if (!imageSourceCache)
@@ -97,6 +102,8 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		imageSourceCache = [NSMutableDictionary dictionary];
 		[memoryCache setObject:imageSourceCache forKey:imageSourceKey];
 	}
+	
+		// Get the existing set of reps for this image or create a new one.
 	NSMutableArray		*keyRepArray = [imageSourceCache objectForKey:imageIdentifier];
 	if (!keyRepArray)
 	{
@@ -108,8 +115,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 	[keyRepArray addObject:imageRep];
 	currentMemoryCacheSize += imageRepSize;
 	
-		// Remember how recently we last saw this rep.
-		// The newest items are closest to index 0.
+		// Remember how recently we last saw this rep.  The newest items are closest to index 0.
 	[imageRepRecencyArray insertObject:imageRep atIndex:0];
 	[imageIdentifierRecencyArray insertObject:imageIdentifier atIndex:0];
 	[imageSourceRecencyArray insertObject:imageSourceKey atIndex:0];
