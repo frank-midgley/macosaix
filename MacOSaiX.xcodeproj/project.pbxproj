@@ -120,6 +120,8 @@
 		01DDE1B50A2E8756004F1F4E /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01DDE1950A2E8755004F1F4E /* QuartzCore.framework */; };
 		01FE978E08E8EDFE00E4AC7C /* MacOSaiXKioskController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE978C08E8EDFE00E4AC7C /* MacOSaiXKioskController.m */; };
 		01FE981308F365C600E4AC7C /* MacOSaiXMosaic.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */; };
+		92006EB50BDE5677004DED2C /* DirectoryImageSourceDirectory.h in Headers */ = {isa = PBXBuildFile; fileRef = 92006EB30BDE5677004DED2C /* DirectoryImageSourceDirectory.h */; };
+		92006EB60BDE5677004DED2C /* DirectoryImageSourceDirectory.m in Sources */ = {isa = PBXBuildFile; fileRef = 92006EB40BDE5677004DED2C /* DirectoryImageSourceDirectory.m */; };
 		9211A5E50A17DA3A0021A583 /* Mosaic View.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9211A5E30A17DA3A0021A583 /* Mosaic View.nib */; };
 		9211A6840A17F7A80021A583 /* MacOSaiXToolTipView.h in Headers */ = {isa = PBXBuildFile; fileRef = 9211A6820A17F7A70021A583 /* MacOSaiXToolTipView.h */; };
 		9211A6850A17F7A80021A583 /* MacOSaiXToolTipView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9211A6830A17F7A70021A583 /* MacOSaiXToolTipView.m */; };
@@ -550,6 +552,8 @@
 		01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXMosaic.m; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		92006EB30BDE5677004DED2C /* DirectoryImageSourceDirectory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DirectoryImageSourceDirectory.h; path = "Standard Plugins/Directory Image Source/DirectoryImageSourceDirectory.h"; sourceTree = "<group>"; };
+		92006EB40BDE5677004DED2C /* DirectoryImageSourceDirectory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DirectoryImageSourceDirectory.m; path = "Standard Plugins/Directory Image Source/DirectoryImageSourceDirectory.m"; sourceTree = "<group>"; };
 		920F9A120A0D54E8006007C1 /* MacOSaiXPrefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXPrefix.h; sourceTree = "<group>"; };
 		9211A5E40A17DA3A0021A583 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Mosaic View.nib"; sourceTree = "<group>"; };
 		9211A6820A17F7A70021A583 /* MacOSaiXToolTipView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXToolTipView.h; sourceTree = "<group>"; };
@@ -1232,6 +1236,8 @@
 				F540721A023FE6860100010A /* DirectoryImageSource.m */,
 				92B45F70041A9DF1006867F5 /* DirectoryImageSourceController.h */,
 				92B45F71041A9DF1006867F5 /* DirectoryImageSourceController.m */,
+				92006EB30BDE5677004DED2C /* DirectoryImageSourceDirectory.h */,
+				92006EB40BDE5677004DED2C /* DirectoryImageSourceDirectory.m */,
 				928F72990661226000873AE2 /* Directory Image Source.nib */,
 				928F72D80661230700873AE2 /* Info.plist */,
 			);
@@ -1528,6 +1534,7 @@
 				923384DC072180700010BE04 /* MacOSaiXImageSource.h in Headers */,
 				921607B208E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h in Headers */,
 				01495B6E0B549ED600D11987 /* DirectoryImageSourcePlugIn.h in Headers */,
+				92006EB50BDE5677004DED2C /* DirectoryImageSourceDirectory.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2344,6 +2351,7 @@
 				928489BE06611CE6003B3514 /* DirectoryImageSourceController.m in Sources */,
 				9216086708E5DC9F0018C4C1 /* DirectoryImageSource.m in Sources */,
 				01495B6F0B549ED600D11987 /* DirectoryImageSourcePlugIn.m in Sources */,
+				92006EB60BDE5677004DED2C /* DirectoryImageSourceDirectory.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
