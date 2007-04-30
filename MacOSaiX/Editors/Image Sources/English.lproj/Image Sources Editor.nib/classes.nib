@@ -8,22 +8,21 @@
             SUPERCLASS = NSObject; 
         }, 
         {
-            ACTIONS = {
-                addImageSource = id; 
-                editImageSource = id; 
-                removeImageSource = id; 
-                showImageSources = id; 
-            }; 
+            ACTIONS = {addImageSource = id; removeImageSource = id; }; 
             CLASS = MacOSaiXImageSourcesEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 addSourceButton = MacOSaiXPopUpButton; 
-                editSourceButton = NSButton; 
-                imageSourcesTable = NSTableView; 
+                auxiliaryView = NSView; 
+                imageSourcesMatrix = NSMatrix; 
+                imageSourcesScrollView = NSScrollView; 
+                imageSourcesView = MacOSaiXImageSourcesView; 
+                initialView = NSView; 
                 removeSourceButton = NSButton; 
             }; 
             SUPERCLASS = MacOSaiXEditor; 
         }, 
+        {CLASS = MacOSaiXImageSourcesView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
         {CLASS = MacOSaiXPopUpButton; LANGUAGE = ObjC; SUPERCLASS = NSButton; }, 
         {
             CLASS = MacOSaiXTextFieldCell; 
