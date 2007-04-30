@@ -22,7 +22,7 @@
 
 - (void)awakeFromNib
 {
-	[mosaicView setFade:1.0];
+	[mosaicView setTargetImageFraction:1.0];
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self 
 											 selector:@selector(scrollFrameDidChange:) 
