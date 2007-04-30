@@ -112,6 +112,7 @@
 
 
 	// Notifications
+extern NSString	*MacOSaiXMosaicDidChangeImageSourcesNotification;
 extern NSString	*MacOSaiXMosaicDidChangeStateNotification;
 extern NSString	*MacOSaiXMosaicDidChangeBusyStateNotification;
 extern NSString	*MacOSaiXTargetImageDidChangeNotification;
