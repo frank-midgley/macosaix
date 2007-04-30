@@ -89,6 +89,11 @@
 		014F1C660B3BAF6B0023D2D2 /* MacOSaiXEditorsView.h in Headers */ = {isa = PBXBuildFile; fileRef = 014F1C640B3BAF6B0023D2D2 /* MacOSaiXEditorsView.h */; };
 		014F1C670B3BAF6B0023D2D2 /* MacOSaiXEditorsView.m in Sources */ = {isa = PBXBuildFile; fileRef = 014F1C650B3BAF6B0023D2D2 /* MacOSaiXEditorsView.m */; };
 		01660B190BD434B100D95052 /* Tile Shapes.png in Resources */ = {isa = PBXBuildFile; fileRef = 01660B180BD434B100D95052 /* Tile Shapes.png */; };
+		01660E520BE1375000D95052 /* MacOSaiXImageSourcesView.h in Headers */ = {isa = PBXBuildFile; fileRef = 01660E4E0BE1375000D95052 /* MacOSaiXImageSourcesView.h */; };
+		01660E530BE1375000D95052 /* MacOSaiXImageSourcesView.m in Sources */ = {isa = PBXBuildFile; fileRef = 01660E4F0BE1375000D95052 /* MacOSaiXImageSourcesView.m */; };
+		01660E540BE1375000D95052 /* MacOSaiXImageSourceView.h in Headers */ = {isa = PBXBuildFile; fileRef = 01660E500BE1375000D95052 /* MacOSaiXImageSourceView.h */; };
+		01660E550BE1375000D95052 /* MacOSaiXImageSourceView.m in Sources */ = {isa = PBXBuildFile; fileRef = 01660E510BE1375000D95052 /* MacOSaiXImageSourceView.m */; };
+		01660ECD0BE2526400D95052 /* Image Sources.png in Resources */ = {isa = PBXBuildFile; fileRef = 01660ECC0BE2526300D95052 /* Image Sources.png */; };
 		016A242308D7C952009A93BF /* ZoomIn.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242208D7C952009A93BF /* ZoomIn.png */; };
 		016A242508D7C975009A93BF /* ZoomOut.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242408D7C975009A93BF /* ZoomOut.png */; };
 		016A248208D7D8E2009A93BF /* HandPicked.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A248108D7D8E2009A93BF /* HandPicked.png */; };
@@ -510,6 +515,11 @@
 		014F1C640B3BAF6B0023D2D2 /* MacOSaiXEditorsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXEditorsView.h; sourceTree = "<group>"; };
 		014F1C650B3BAF6B0023D2D2 /* MacOSaiXEditorsView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXEditorsView.m; sourceTree = "<group>"; };
 		01660B180BD434B100D95052 /* Tile Shapes.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Tile Shapes.png"; sourceTree = "<group>"; };
+		01660E4E0BE1375000D95052 /* MacOSaiXImageSourcesView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageSourcesView.h; sourceTree = "<group>"; };
+		01660E4F0BE1375000D95052 /* MacOSaiXImageSourcesView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXImageSourcesView.m; sourceTree = "<group>"; };
+		01660E500BE1375000D95052 /* MacOSaiXImageSourceView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageSourceView.h; sourceTree = "<group>"; };
+		01660E510BE1375000D95052 /* MacOSaiXImageSourceView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXImageSourceView.m; sourceTree = "<group>"; };
+		01660ECC0BE2526300D95052 /* Image Sources.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Image Sources.png"; sourceTree = "<group>"; };
 		016A242208D7C952009A93BF /* ZoomIn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ZoomIn.png; sourceTree = "<group>"; };
 		016A242408D7C975009A93BF /* ZoomOut.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ZoomOut.png; sourceTree = "<group>"; };
 		016A248108D7D8E2009A93BF /* HandPicked.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = HandPicked.png; sourceTree = "<group>"; };
@@ -1185,7 +1195,12 @@
 			children = (
 				0110D1BD0B3F8E7B00DF6753 /* MacOSaiXImageSourcesEditor.h */,
 				0110D1BE0B3F8E7B00DF6753 /* MacOSaiXImageSourcesEditor.m */,
+				01660E4E0BE1375000D95052 /* MacOSaiXImageSourcesView.h */,
+				01660E4F0BE1375000D95052 /* MacOSaiXImageSourcesView.m */,
+				01660E500BE1375000D95052 /* MacOSaiXImageSourceView.h */,
+				01660E510BE1375000D95052 /* MacOSaiXImageSourceView.m */,
 				0110D1C10B3F8E8200DF6753 /* Image Sources Editor.nib */,
+				01660ECC0BE2526300D95052 /* Image Sources.png */,
 			);
 			path = "Image Sources";
 			sourceTree = "<group>";
@@ -1522,6 +1537,8 @@
 				0110D24B0B3F980400DF6753 /* MacOSaiXImageUsageEditor.h in Headers */,
 				0110D2840B3FA12500DF6753 /* MacOSaiXTileEditor.h in Headers */,
 				01046CE30B4DE71B0084049A /* MacOSaiXPlugIn.h in Headers */,
+				01660E520BE1375000D95052 /* MacOSaiXImageSourcesView.h in Headers */,
+				01660E540BE1375000D95052 /* MacOSaiXImageSourceView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1995,6 +2012,7 @@
 				014960E30B59797500D11987 /* Target Image Editor.nib in Resources */,
 				92B7989D0B6D303D0034AF82 /* Target Image.png in Resources */,
 				01660B190BD434B100D95052 /* Tile Shapes.png in Resources */,
+				01660ECD0BE2526400D95052 /* Image Sources.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2341,6 +2359,8 @@
 				0110D1C00B3F8E7B00DF6753 /* MacOSaiXImageSourcesEditor.m in Sources */,
 				0110D24C0B3F980400DF6753 /* MacOSaiXImageUsageEditor.m in Sources */,
 				0110D2850B3FA12500DF6753 /* MacOSaiXTileEditor.m in Sources */,
+				01660E530BE1375000D95052 /* MacOSaiXImageSourcesView.m in Sources */,
+				01660E550BE1375000D95052 /* MacOSaiXImageSourceView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
