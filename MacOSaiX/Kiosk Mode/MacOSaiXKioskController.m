@@ -101,6 +101,9 @@
 		[[NSNotificationCenter defaultCenter] removeObserver:self 
 														name:MacOSaiXMosaicDidChangeStateNotification 
 													  object:currentMosaic];
+		[[NSNotificationCenter defaultCenter] removeObserver:self 
+														name:MacOSaiXMosaicDidChangeImageSourcesNotification 
+													  object:currentMosaic];
 	}
 	
 	{
@@ -112,6 +115,10 @@
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(mosaicDidChangeState:) 
 													 name:MacOSaiXMosaicDidChangeStateNotification 
+												   object:currentMosaic];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(mosaicDidChangeState:) 
+													 name:MacOSaiXMosaicDidChangeImageSourcesNotification 
 												   object:currentMosaic];
 		
 			// Tell all of the "mosaic only" windows to show this mosaic.
