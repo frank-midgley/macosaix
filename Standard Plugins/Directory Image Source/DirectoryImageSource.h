@@ -10,9 +10,9 @@
 @interface MacOSaiXDirectoryImageSource : NSObject <MacOSaiXImageSource>
 {
     NSString				*directoryPath, 
-							*lastEnumeratedPath;
+							*lastEnumeratedPath, 
+							*directoryName;
 	NSImage					*directoryImage;
-	NSAttributedString		*directoryDescriptor;
     NSDirectoryEnumerator	*directoryEnumerator;
 	BOOL					followAliases, 
 							haveMoreImages, 

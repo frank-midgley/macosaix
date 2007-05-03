@@ -101,8 +101,8 @@
 	[directoryImage autorelease];
 	directoryImage = (directoryPath ? [[[NSWorkspace sharedWorkspace] iconForFile:directoryPath] retain] : nil);
 	
-	[directoryDescriptor autorelease];
-    directoryDescriptor = [[[NSFileManager defaultManager] attributedPath:directoryPath wraps:YES] retain];
+	[directoryName autorelease];
+    directoryName = [[[NSFileManager defaultManager] displayNameAtPath:directoryPath] retain];
 	
 	haveMoreImages = YES;
 	imageCount = 0;
@@ -140,7 +140,7 @@
 
 - (id)briefDescription
 {
-	return [[directoryDescriptor retain] autorelease];
+	return [[directoryName retain] autorelease];
 }
 
 
@@ -385,7 +385,7 @@
 	[directoryPath release];
 	[lastEnumeratedPath release];
 	[directoryImage release];
-	[directoryDescriptor release];
+	[directoryName release];
 	[directoryEnumerator release];
 	
 	[super dealloc];
