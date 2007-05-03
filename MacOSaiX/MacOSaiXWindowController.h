@@ -7,7 +7,7 @@
  */
 
 @class MacOSaiXMosaic, MosaicView, Tiles, MacOSaiXEditorsView, MacOSaiXExportController, MacOSaiXImageSource, MacOSaiXTileShapes, 
-       MacOSaiXPopUpButton, MacOSaiXDocument, MacOSaiXTilesSetupController, MacOSaiXImageSourceEditor;
+       MacOSaiXPopUpButton, MacOSaiXDocument, MacOSaiXSplitView, MacOSaiXTilesSetupController, MacOSaiXImageSourceEditor;
 @class MacOSaiXTargetImageEditor, MacOSaiXTileShapesEditor, MacOSaiXImageUsageEditor, MacOSaiXImageSourcesEditor, 
        MacOSaiXImageOrientationsEditor, MacOSaiXTileContentEditor;
 @protocol MacOSaiXImageSource;
@@ -31,7 +31,9 @@
 	
 		// Editing layout
 	IBOutlet NSView						*editingContentView;
+	IBOutlet MacOSaiXSplitView			*editingSplitView;
 	IBOutlet MacOSaiXEditorsView		*editorsView;
+	IBOutlet NSView						*editingView;
 	IBOutlet NSSlider					*blendSlider, 
 										*zoomSlider;
 	IBOutlet NSScrollView				*editingMosaicScrollView;
@@ -46,6 +48,7 @@
 	MacOSaiXTileContentEditor			*tileContentEditor;
 	
 	BOOL								windowLayoutIsMinimal;
+	NSSize								minEditorsViewSize;
 	MacOSaiXExportController			*exportController;
 	NSImage								*targetToolbarImage,
 										*mosaicToolbarImage;
@@ -76,6 +79,7 @@
 - (IBAction)setBlend:(id)sender;
 - (IBAction)togglePause:(id)sender;
 - (IBAction)viewFullScreen:(id)sender;
+- (void)setMinimumEditorsViewSize:(NSSize)minSize;
 
 	// Save As methods
 - (IBAction)saveMosaicAs:(id)sender;

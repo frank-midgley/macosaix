@@ -17,6 +17,7 @@
 #import "MacOSaiXImageSource.h"
 #import "MacOSaiXFullScreenController.h"
 #import "MacOSaiXPopUpButton.h"
+#import "MacOSaiXSplitView.h"
 #import "MacOSaiXTileShapes.h"
 #import "MacOSaiXWarningController.h"
 #import "MosaicView.h"
@@ -139,6 +140,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	
 	[self mosaicDidChangeState:nil];
 	
+	[editingSplitView setAdjustsLastViewOnly:YES];
 	[editorsView setMosaicView:mosaicView];
 	
 		// Add the editors.
@@ -354,6 +356,29 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 - (void)mosaicScrollViewDidChangeFrame:(NSNotification *)notification
 {
 	[self setZoom:self];
+}
+
+
+- (void)setMinimumEditorsViewSize:(NSSize)minSize
+{
+	NSRect	frameRect = [editorsView frame];
+	float	widthDiff = minSize.width - NSWidth(frameRect);
+	
+	if (widthDiff > 0.0)
+	{
+			// Grow the editors view.
+		frameRect.size.width += widthDiff;
+		[editorsView setFrame:frameRect];
+		
+			// Shrink the editing view.
+		frameRect = [editingView frame];
+		frameRect.size.width -= widthDiff;
+		[editingView setFrame:frameRect];
+	}
+	
+	minEditorsViewSize = minSize;
+	
+	// TODO: set minimum window size
 }
 
 
@@ -580,40 +605,63 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 
 
 #pragma mark -
+#pragma mark Split view delegate methods
+
+
+- (float)splitView:(NSSplitView *)sender constrainMinCoordinate:(float)proposedCoord ofSubviewAt:(int)offset
+{
+	float	width = proposedCoord;
+	
+	if (offset == 0)
+		width = MAX(proposedCoord, minEditorsViewSize.width);
+	
+	return width;
+}
+
+
+//- (float)splitView:(NSSplitView *)sender constrainMaxCoordinate:(float)proposedCoord ofSubviewAt:(int)offset
+
+
+#pragma mark -
 #pragma mark Window delegate methods
 
 
-- (NSSize)windowWillResize:(NSWindow *)resizingWindow toSize:(NSSize)proposedFrameSize
+- (NSSize)windowWillResize:(NSWindow *)window toSize:(NSSize)proposedFrameSize
 {
-//	if (resizingWindow == [self window])
-//	{
-//		float	aspectRatio = [[self mosaic] aspectRatio],
-//				windowTop = NSMaxY([resizingWindow frame]), 
-//				minHeight = 200;	// TODO: get this from nib setting
-//		NSSize	diff = NSMakeSize([resizingWindow frame].size.width - [[resizingWindow contentView] frame].size.width, 
-//								  [resizingWindow frame].size.height - [[resizingWindow contentView] frame].size.height);
-//		NSRect	screenFrame = [[resizingWindow screen] frame];
-//		
-//		proposedFrameSize.width = MIN(MAX(proposedFrameSize.width, 132),
-//									  screenFrame.size.width - [resizingWindow frame].origin.x) - diff.width;
-//		windowTop -= diff.height + 16 + [statusView frame].size.height;
-//		
-//			// Calculate the height of the window based on the proposed width
-//			//   and preserve the aspect ratio of the mosaic image.
-//			// If the height is too big for the screen, lower the width.
-//		proposedFrameSize.height = (proposedFrameSize.width - 16) / aspectRatio;
-//		if (proposedFrameSize.height > windowTop || proposedFrameSize.height < minHeight)
-//		{
-//			proposedFrameSize.height = (proposedFrameSize.height < minHeight) ? minHeight : windowTop;
-//			proposedFrameSize.width = proposedFrameSize.height * aspectRatio + 16;
-//		}
-//		
-//			// Add height of scroll bar and status bar (if showing)
-//		proposedFrameSize.height += 16 + [statusView frame].size.height;
-//		
-//		proposedFrameSize.height += diff.height;
-//		proposedFrameSize.width += diff.width;
-//	}
+	if (window == [self window])
+	{
+		if (windowLayoutIsMinimal)
+		{
+//			float	aspectRatio = [[self mosaic] aspectRatio],
+//					windowTop = NSMaxY([window frame]), 
+//					minHeight = 200;	// TODO: get this from nib setting
+//			NSSize	diff = NSMakeSize([window frame].size.width - [[window contentView] frame].size.width, 
+//									  [window frame].size.height - [[window contentView] frame].size.height);
+//			NSRect	screenFrame = [[window screen] frame];
+//			
+//			proposedFrameSize.width = MIN(MAX(proposedFrameSize.width, 132),
+//										  screenFrame.size.width - [window frame].origin.x) - diff.width;
+//			windowTop -= diff.height + 16 + [statusView frame].size.height;
+//			
+//				// Calculate the height of the window based on the proposed width and preserve the aspect ratio of the mosaic image.  If the height is too big for the screen, lower the width.
+//			proposedFrameSize.height = (proposedFrameSize.width - 16) / aspectRatio;
+//			if (proposedFrameSize.height > windowTop || proposedFrameSize.height < minHeight)
+//			{
+//				proposedFrameSize.height = (proposedFrameSize.height < minHeight) ? minHeight : windowTop;
+//				proposedFrameSize.width = proposedFrameSize.height * aspectRatio + 16;
+//			}
+//			
+//				// Add height of scroll bar and status bar (if showing)
+//			proposedFrameSize.height += 16 + [statusView frame].size.height;
+//			
+//			proposedFrameSize.height += diff.height;
+//			proposedFrameSize.width += diff.width;
+		}
+		else
+		{
+			// TODO: don't let the window get narrower than the min editor size plus the min editing view size.  can handle by setting window min?
+		}
+	}
 
     return proposedFrameSize;
 }
