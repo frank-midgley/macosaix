@@ -9,6 +9,7 @@
 #import "MacOSaiXEditor.h"
 
 #import "MacOSaiX.h"
+#import "MacOSaiXEditorsView.h"
 #import "MacOSaiXMosaic.h"
 
 
@@ -63,6 +64,27 @@
 		[NSBundle loadNibNamed:[self editorNibName] owner:self];
 	
 	return editorView;
+}
+
+
+- (void)updateMinimumViewSize
+{
+	[(MacOSaiXEditorsView *)[[self view] superview] updateMinimumViewSize];
+}
+
+
+- (NSSize)minimumViewSize
+{
+	return NSZeroSize;
+}
+
+
+- (NSView *)auxiliaryView
+{
+	if (!editorView)
+		[NSBundle loadNibNamed:[self editorNibName] owner:self];
+	
+	return auxiliaryView;
 }
 
 

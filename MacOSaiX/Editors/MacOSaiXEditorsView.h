@@ -22,6 +22,8 @@
 - (void)setMosaicView:(MosaicView *)view;
 - (MosaicView *)mosaicView;
 
+- (void)updateMinimumViewSize;
+
 - (void)addEditor:(MacOSaiXEditor *)editor;
 
 - (NSArray *)editors;

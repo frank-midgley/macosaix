@@ -9,6 +9,7 @@
 #import "MacOSaiXEditorsView.h"
 
 #import "MacOSaiXEditor.h"
+#import "MacOSaiXWindowController.h"
 #import "MosaicView.h"
 
 
@@ -47,6 +48,23 @@
 
 #define HEADER_HEIGHT 26.0
 
+
+- (void)updateMinimumViewSize
+{
+	NSSize	minSize = [activeEditor minimumViewSize];
+	
+	if (!NSEqualSizes(minSize, NSZeroSize))
+	{
+		// Add the height of the editor buttons.
+		// TODO: make sure the width is large enough for the buttons.
+		minSize.height += HEADER_HEIGHT * [editorButtons count];
+		
+		MacOSaiXWindowController	*controller = [[self window] windowController];
+		[controller setMinimumEditorsViewSize:minSize];
+	}
+}
+
+
 - (void)addEditor:(MacOSaiXEditor *)editor
 {
 	[editors addObject:editor];
@@ -59,6 +77,8 @@
 		
 		editorButton = [[NSButton alloc] initWithFrame:NSMakeRect(0.0, NSMaxY([self bounds]) - HEADER_HEIGHT, NSWidth([self bounds]), HEADER_HEIGHT)];
 		[editorButton setAutoresizingMask:(NSViewWidthSizable | NSViewMinYMargin)];
+		
+		[self updateMinimumViewSize];
 		
 		[[activeEditor view] setFrame:NSMakeRect(0.0, 0.0, NSWidth([self bounds]), NSHeight([self bounds]) - HEADER_HEIGHT)];
 		[[activeEditor view] setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
@@ -73,11 +93,13 @@
 		editorButton = [[NSButton alloc] initWithFrame:NSMakeRect(0.0, 0.0, NSWidth([self bounds]), HEADER_HEIGHT)];
 		[editorButton setAutoresizingMask:(NSViewWidthSizable | NSViewMaxYMargin)];
 		
+			// Shrink the active editor view to make room for the new editor's button.
 		NSRect	frame = [[activeEditor view] frame];
 		frame.size.height -= HEADER_HEIGHT - 1.0;
 		frame.origin.y += HEADER_HEIGHT - 1.0;
 		[[activeEditor view] setFrame:frame];
 		
+			// Move the existing editor buttons to make room for the new one.
 		int		index = [editors indexOfObjectIdenticalTo:activeEditor] + 1;
 		for (; index < [editors count] - 1; index++)
 		{
@@ -97,6 +119,18 @@
 	[self addSubview:editorButton];
 	[editorButtons addObject:editorButton];
 	
+	if ([editor auxiliaryView])
+	{
+		NSView	*auxiliaryView = [editor auxiliaryView];
+		float	viewWidth = NSWidth([auxiliaryView frame]), 
+				viewHeight = NSHeight([auxiliaryView frame]);
+		
+		[auxiliaryView setFrame:NSMakeRect(NSMaxX([editorButton bounds]) - viewWidth, (HEADER_HEIGHT - viewHeight) / 2.0, viewWidth, viewHeight)];
+		[auxiliaryView setAutoresizingMask:(NSViewMinXMargin | NSViewMinYMargin | NSViewMaxYMargin)];
+		
+		[editorButton addSubview:auxiliaryView];
+	}
+	
 	[self setNeedsDisplay:YES];
 }
 
@@ -109,55 +143,59 @@
 
 - (void)setActiveEditor:(MacOSaiXEditor *)newEditor
 {
-	// TODO: animate
-	
-	int				previousEditorIndex = [editors indexOfObjectIdenticalTo:activeEditor], 
-					newEditorIndex = [editors indexOfObjectIdenticalTo:newEditor];
-	float			editorViewHeight = NSHeight([[activeEditor view] frame]);
-	
-	[activeEditor endEditing];
-	
-	[[activeEditor view] removeFromSuperview];
-	
-	if (previousEditorIndex < newEditorIndex)
+	if (newEditor != activeEditor)
 	{
-		int		editorIndex;
-		for (editorIndex = previousEditorIndex + 1; editorIndex <= newEditorIndex; editorIndex++)
+		// TODO: animate
+		
+		int				previousEditorIndex = [editors indexOfObjectIdenticalTo:activeEditor], 
+						newEditorIndex = [editors indexOfObjectIdenticalTo:newEditor];
+		float			editorViewHeight = NSHeight([[activeEditor view] frame]);
+		
+		[activeEditor endEditing];
+		
+		[[activeEditor view] removeFromSuperview];
+		
+			// Move editor buttons up or down to make room for the new editor.
+		if (previousEditorIndex < newEditorIndex)
 		{
-			NSButton	*editorButton = [editorButtons objectAtIndex:editorIndex];
-			
-			[editorButton setFrame:NSOffsetRect([editorButton frame], 0.0, editorViewHeight)];
-			[editorButton setAutoresizingMask:(NSViewWidthSizable | NSViewMinYMargin)];
+			int		editorIndex;
+			for (editorIndex = previousEditorIndex + 1; editorIndex <= newEditorIndex; editorIndex++)
+			{
+				NSButton	*editorButton = [editorButtons objectAtIndex:editorIndex];
+				
+				[editorButton setFrame:NSOffsetRect([editorButton frame], 0.0, editorViewHeight)];
+				[editorButton setAutoresizingMask:(NSViewWidthSizable | NSViewMinYMargin)];
+			}
 		}
-	}
-	else
-	{
-		int		editorIndex;
-		for (editorIndex = newEditorIndex + 1; editorIndex <= previousEditorIndex; editorIndex++)
+		else
 		{
-			NSButton	*editorButton = [editorButtons objectAtIndex:editorIndex];
-			
-			[editorButton setFrame:NSOffsetRect([editorButton frame], 0.0, -editorViewHeight)];
-			[editorButton setAutoresizingMask:(NSViewWidthSizable | NSViewMaxYMargin)];
+			int		editorIndex;
+			for (editorIndex = newEditorIndex + 1; editorIndex <= previousEditorIndex; editorIndex++)
+			{
+				NSButton	*editorButton = [editorButtons objectAtIndex:editorIndex];
+				
+				[editorButton setFrame:NSOffsetRect([editorButton frame], 0.0, -editorViewHeight)];
+				[editorButton setAutoresizingMask:(NSViewWidthSizable | NSViewMaxYMargin)];
+			}
 		}
+		
+		activeEditor = newEditor;
+		
+		[self updateMinimumViewSize];
+		
+		[[activeEditor view] setFrame:NSMakeRect(0.0, 
+												 NSMinY([[editorButtons objectAtIndex:newEditorIndex] frame]) - editorViewHeight, 
+												 NSWidth([self bounds]), 
+												 editorViewHeight)];
+		[[activeEditor view] setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+		[self addSubview:[activeEditor view]];
+		
+		[activeEditor beginEditing];
+		
+		[self setNeedsDisplay:YES];
+		
+		[[self mosaicView] setActiveEditor:activeEditor];
 	}
-	
-	activeEditor = newEditor;
-	
-	// TODO: make self and/or window larger if needed.
-	
-	[[activeEditor view] setFrame:NSMakeRect(0.0, 
-											 NSMinY([[editorButtons objectAtIndex:newEditorIndex] frame]) - editorViewHeight, 
-											 NSWidth([self bounds]), 
-											 editorViewHeight)];
-	[[activeEditor view] setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
-	[self addSubview:[activeEditor view]];
-	
-	[activeEditor beginEditing];
-	
-	[self setNeedsDisplay:YES];
-	
-	[[self mosaicView] setActiveEditor:activeEditor];
 }
 
 

@@ -12,7 +12,8 @@
 
 @interface MacOSaiXEditor : NSObject <MacOSaiXDataSourceEditorDelegate>
 {
-	IBOutlet NSView					*editorView;
+	IBOutlet NSView					*editorView, 
+									*auxiliaryView;
 	IBOutlet NSPopUpButton			*plugInPopUpButton;
 	IBOutlet NSBox					*plugInEditorBox;
 	IBOutlet NSView					*plugInEditorPreviousKeyView, 
@@ -33,6 +34,11 @@
 - (NSString *)editorNibName;
 
 - (NSView *)view;
+
+- (void)updateMinimumViewSize;
+- (NSSize)minimumViewSize;
+
+- (NSView *)auxiliaryView;
 
 - (NSArray *)plugInClasses;
 - (NSString *)plugInTitleFormat;
