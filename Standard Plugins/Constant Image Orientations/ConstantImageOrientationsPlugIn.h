@@ -7,7 +7,7 @@
 //
 
 
-@interface MacOSaiXConstantImageOrientationsPlugIn : NSObject
+@interface MacOSaiXConstantImageOrientationsPlugIn : NSObject <MacOSaiXPlugIn>
 {
 
 }
