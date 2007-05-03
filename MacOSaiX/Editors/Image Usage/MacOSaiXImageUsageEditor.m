@@ -35,6 +35,13 @@
 	return NSLocalizedString(@"Image Usage", @"");
 }
 
+
+- (NSSize)minimumViewSize
+{
+	return NSMakeSize(230.0, 269.0);
+}
+
+
 - (void)beginEditing
 {
 	[[self mosaicView] setTargetImageFraction:1.0];
