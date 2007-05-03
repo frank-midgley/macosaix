@@ -3,6 +3,7 @@
         {CLASS = MacOSaiXEditorsView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
         {CLASS = MacOSaiXEventCatchingPanel; LANGUAGE = ObjC; SUPERCLASS = NSWindow; }, 
         {CLASS = MacOSaiXPopUpButton; LANGUAGE = ObjC; SUPERCLASS = NSButton; }, 
+        {CLASS = MacOSaiXSplitView; LANGUAGE = ObjC; SUPERCLASS = NSSplitView; }, 
         {
             CLASS = MacOSaiXTextFieldCell; 
             LANGUAGE = ObjC; 
@@ -24,7 +25,9 @@
                 blendSlider = NSSlider; 
                 editingContentView = NSView; 
                 editingMosaicScrollView = NSScrollView; 
+                editingSplitView = NSSplitView; 
                 editingStatusViewBox = NSBox; 
+                editingView = NSView; 
                 editorsView = MacOSaiXEditorsView; 
                 imagesFoundField = NSTextField; 
                 minimalContentView = NSView; 
