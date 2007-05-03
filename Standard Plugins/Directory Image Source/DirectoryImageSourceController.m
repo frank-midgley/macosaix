@@ -226,6 +226,7 @@
 	{
 		[currentImageSource setPath:[directory path]];
 		[self populateGUI];
+		[[self delegate] plugInSettingsDidChange:NSLocalizedString(@"Change Folder", @"")];
 	}
 	else
 	{
@@ -287,6 +288,8 @@
 		[[NSUserDefaults standardUserDefaults] synchronize];
 		
 		[self populateGUI];
+		
+		[[self delegate] plugInSettingsDidChange:NSLocalizedString(@"Change Folder", @"")];
 	}
 }
 
@@ -313,6 +316,8 @@
 - (IBAction)setFollowsAliases:(id)sender
 {
 	[currentImageSource setFollowsAliases:([followsAliasesButton state] == NSOnState)];
+	
+	[[self delegate] plugInSettingsDidChange:NSLocalizedString(@"Set Follows Aliases", @"")];
 }
 
 
