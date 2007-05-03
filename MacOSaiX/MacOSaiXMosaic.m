@@ -974,7 +974,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 						useCount = [betterMatches count];
 					
 						// Loop through the list of better matches and pick the first items (up to the use count) that aren't too close together.
-					float				minDistanceApart = powf([self imageReuseDistance] * 0.95 / 100.0, 2.0);
+					float				scaledReuseDistance = [self imageReuseDistance] * 0.95 / 100.0, 
+										minDistanceApart = (powf([targetImage size].width, 2.0) + powf([targetImage size].height, 2.0)) * powf(scaledReuseDistance, 2.0);
 					NSMutableArray		*matchesToUpdate = [NSMutableArray array];
 					NSEnumerator		*betterMatchEnumerator = [betterMatches objectEnumerator];
 					MacOSaiXImageMatch	*betterMatch = nil;
