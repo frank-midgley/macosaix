@@ -127,6 +127,8 @@
 		01FE981308F365C600E4AC7C /* MacOSaiXMosaic.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */; };
 		92006EB50BDE5677004DED2C /* DirectoryImageSourceDirectory.h in Headers */ = {isa = PBXBuildFile; fileRef = 92006EB30BDE5677004DED2C /* DirectoryImageSourceDirectory.h */; };
 		92006EB60BDE5677004DED2C /* DirectoryImageSourceDirectory.m in Sources */ = {isa = PBXBuildFile; fileRef = 92006EB40BDE5677004DED2C /* DirectoryImageSourceDirectory.m */; };
+		920072C10BEA89DA004DED2C /* MacOSaiXSplitView.h in Headers */ = {isa = PBXBuildFile; fileRef = 920072BF0BEA89DA004DED2C /* MacOSaiXSplitView.h */; };
+		920072C20BEA89DA004DED2C /* MacOSaiXSplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = 920072C00BEA89DA004DED2C /* MacOSaiXSplitView.m */; };
 		9211A5E50A17DA3A0021A583 /* Mosaic View.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9211A5E30A17DA3A0021A583 /* Mosaic View.nib */; };
 		9211A6840A17F7A80021A583 /* MacOSaiXToolTipView.h in Headers */ = {isa = PBXBuildFile; fileRef = 9211A6820A17F7A70021A583 /* MacOSaiXToolTipView.h */; };
 		9211A6850A17F7A80021A583 /* MacOSaiXToolTipView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9211A6830A17F7A70021A583 /* MacOSaiXToolTipView.m */; };
@@ -564,6 +566,8 @@
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		92006EB30BDE5677004DED2C /* DirectoryImageSourceDirectory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DirectoryImageSourceDirectory.h; path = "Standard Plugins/Directory Image Source/DirectoryImageSourceDirectory.h"; sourceTree = "<group>"; };
 		92006EB40BDE5677004DED2C /* DirectoryImageSourceDirectory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DirectoryImageSourceDirectory.m; path = "Standard Plugins/Directory Image Source/DirectoryImageSourceDirectory.m"; sourceTree = "<group>"; };
+		920072BF0BEA89DA004DED2C /* MacOSaiXSplitView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXSplitView.h; sourceTree = "<group>"; };
+		920072C00BEA89DA004DED2C /* MacOSaiXSplitView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXSplitView.m; sourceTree = "<group>"; };
 		920F9A120A0D54E8006007C1 /* MacOSaiXPrefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXPrefix.h; sourceTree = "<group>"; };
 		9211A5E40A17DA3A0021A583 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Mosaic View.nib"; sourceTree = "<group>"; };
 		9211A6820A17F7A70021A583 /* MacOSaiXToolTipView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXToolTipView.h; sourceTree = "<group>"; };
@@ -855,6 +859,8 @@
 				92DA0D8E0A32243C0064E69E /* MacOSaiXPopUpButton.m */,
 				0109D41309E084D8008290BE /* MacOSaiXEventCatchingPanel.h */,
 				0109D41409E084D8008290BE /* MacOSaiXEventCatchingPanel.m */,
+				920072BF0BEA89DA004DED2C /* MacOSaiXSplitView.h */,
+				920072C00BEA89DA004DED2C /* MacOSaiXSplitView.m */,
 			);
 			name = Document;
 			sourceTree = "<group>";
@@ -1539,6 +1545,7 @@
 				01046CE30B4DE71B0084049A /* MacOSaiXPlugIn.h in Headers */,
 				01660E520BE1375000D95052 /* MacOSaiXImageSourcesView.h in Headers */,
 				01660E540BE1375000D95052 /* MacOSaiXImageSourceView.h in Headers */,
+				920072C10BEA89DA004DED2C /* MacOSaiXSplitView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2361,6 +2368,7 @@
 				0110D2850B3FA12500DF6753 /* MacOSaiXTileEditor.m in Sources */,
 				01660E530BE1375000D95052 /* MacOSaiXImageSourcesView.m in Sources */,
 				01660E550BE1375000D95052 /* MacOSaiXImageSourceView.m in Sources */,
+				920072C20BEA89DA004DED2C /* MacOSaiXSplitView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
