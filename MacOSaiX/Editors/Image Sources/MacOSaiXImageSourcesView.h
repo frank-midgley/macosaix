@@ -7,15 +7,19 @@
 //
 
 
-@class MacOSaiXMosaic, MacOSaiXImageSourceView;
+@class MacOSaiXImageSourcesEditor, MacOSaiXImageSourceView, MacOSaiXMosaic;
 @protocol MacOSaiXImageSource;
 
 
 @interface MacOSaiXImageSourcesView : NSView
 {
-	MacOSaiXMosaic	*mosaic;
-	NSMutableArray	*imageSourceViews;
+	MacOSaiXImageSourcesEditor *imageSourcesEditor;
+	MacOSaiXMosaic				*mosaic;
+	NSMutableArray				*imageSourceViews;
 }
+
+- (void)setImageSourcesEditor:(MacOSaiXImageSourcesEditor *)editor;
+- (MacOSaiXImageSourcesEditor *)imageSourcesEditor;
 
 - (void)setMosaic:(MacOSaiXMosaic *)mosaic;
 - (MacOSaiXMosaic *)mosaic;
@@ -23,5 +27,10 @@
 - (MacOSaiXImageSourceView *)viewForImageSource:(id<MacOSaiXImageSource>)imageSource;
 
 - (void)updateImageSourceViews;
+
+- (void)tile;
+
+- (NSArray *)viewsWithVisibleEditors;
+- (NSArray *)selectedImageSources;
 
 @end

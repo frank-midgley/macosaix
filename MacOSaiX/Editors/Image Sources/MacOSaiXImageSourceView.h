@@ -27,4 +27,6 @@
 - (void)setEditorVisible:(BOOL)flag;
 - (BOOL)editorVisible;
 
+- (NSSize)minimumEditorSize;
+
 @end

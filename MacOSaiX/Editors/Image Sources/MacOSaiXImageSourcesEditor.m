@@ -51,8 +51,27 @@
 {
 	[imageSourcesView retain];
 	[imageSourcesView setMosaic:[[self mosaicView] mosaic]];
+	[imageSourcesView setImageSourcesEditor:self];
 	
+	NSMenu			*popUpMenu = [[[NSMenu alloc] initWithTitle:@""] autorelease];
+	NSEnumerator	*plugInEnumerator = [[[NSApp delegate] imageSourcePlugIns] objectEnumerator];
+	Class			imageSourcePlugIn = nil;
+	while (imageSourcePlugIn = [plugInEnumerator nextObject])
+	{
+		NSBundle		*plugInBundle = [NSBundle bundleForClass:imageSourcePlugIn];
+		NSString		*plugInName = [plugInBundle objectForInfoDictionaryKey:@"CFBundleName"];
+		NSMenuItem		*menuItem = [[[NSMenuItem alloc] initWithTitle:plugInName action:@selector(addImageSource:) keyEquivalent:@""] autorelease];
+		
+		[menuItem setImage:[[[imageSourcePlugIn image] copyWithLargestDimension:32] autorelease]];
+		[menuItem setRepresentedObject:imageSourcePlugIn];
+		[menuItem setTarget:self];
+		
+		[popUpMenu addItem:menuItem];
+	}
+	[addSourceButton setMenu:popUpMenu];
 	[addSourceButton setIndicatorColor:[NSColor colorWithCalibratedWhite:0.3 alpha:1.0]];
+	
+	[removeSourceButton setEnabled:NO];
 }
 
 
@@ -73,7 +92,6 @@
 			// Populate the matrix with the known image source types.
 		NSArray			*knownPlugIns = [[NSApp delegate] imageSourcePlugIns];
 		int				sourceTypeCount = [knownPlugIns count];
-		float			maxY = NSMaxY([imageSourcesMatrix frame]);
 		
 		[imageSourcesMatrix renewRows:1 columns:1];	// make sure the blank cell gets removed
 		[imageSourcesMatrix renewRows:(sourceTypeCount + 1) / 2 columns:2];
@@ -98,9 +116,20 @@
 		
 		[imageSourcesMatrix sizeToFit];
 		
-		NSRect			matrixFrame = [imageSourcesMatrix frame];
-		matrixFrame.origin.y += maxY - NSMaxY(matrixFrame);
+		NSRect			matrixFrame = [imageSourcesMatrix frame], 
+						labelFrame = [labelTextField frame];
+		
+		labelFrame.origin.y = 6.0;
+		[labelTextField setFrame:labelFrame];
+		
+		matrixFrame.origin.y = NSMaxY(labelFrame) + 10.0;
 		[imageSourcesMatrix setFrame:matrixFrame];
+		
+		[initialView setFrame:NSMakeRect(0.0, 0.0, 
+										 MAX(NSMaxX(matrixFrame), NSMaxX(labelFrame)) + 10.0, 
+										 NSMaxY(matrixFrame) + 10.0)];
+		
+		[self updateMinimumViewSize];
 	}
 	else
 	{
@@ -114,11 +143,37 @@
 }
 
 
+- (NSSize)minimumViewSize
+{
+	NSSize	minSize = NSMakeSize(100.0, 100.0);
+	
+	if ([[[[self mosaicView] mosaic] imageSources] count] == 0)
+	{
+		if ([imageSourcesScrollView documentView] != initialView)
+			[self loadImageSources];
+		
+		minSize.width = NSWidth([initialView frame]);
+	}
+	else
+	{
+		NSEnumerator			*viewEnumerator = [[imageSourcesView viewsWithVisibleEditors] objectEnumerator];
+		MacOSaiXImageSourceView	*imageSourceView = nil;
+		
+		while (imageSourceView = [viewEnumerator nextObject])
+			minSize.width = MAX(minSize.width, [imageSourceView minimumEditorSize].width);
+	}
+	
+	return minSize;
+}
+
+
 - (void)beginEditing
 {
 	[[self mosaicView] setTargetImageFraction:0.0];
 	
 	[self loadImageSources];
+
+	[removeSourceButton setEnabled:NO];
 }
 
 
@@ -141,8 +196,8 @@
 {
 	Class	imageSourcePlugIn = nil;
 	
-	if ([sender isKindOfClass:[NSPopUpButton class]])
-		imageSourcePlugIn = [[sender selectedItem] representedObject];
+	if ([sender isKindOfClass:[NSMenuItem class]])
+		imageSourcePlugIn = [sender representedObject];
 	else if ([sender isKindOfClass:[NSMatrix class]])
 		imageSourcePlugIn = [[sender selectedCell] representedObject];
 	
@@ -155,6 +210,8 @@
 			[self loadImageSources];
 		
 		[[imageSourcesView viewForImageSource:newSource] setEditorVisible:YES];
+		
+		[self updateMinimumViewSize];
 	}
 }
 
@@ -439,6 +496,20 @@
 
 - (void)handleEventInMosaicView:(NSEvent *)event
 {
+}
+
+
+- (void)imageSourcesSelectionDidChange
+{
+	[removeSourceButton setEnabled:([[imageSourcesView selectedImageSources] count] > 0)];
+}
+
+
+- (void)endEditing
+{
+	[removeSourceButton setEnabled:NO];
+	
+	[super endEditing];
 }
 
 

@@ -8,6 +8,7 @@
 
 #import "MacOSaiXImageSourcesView.h"
 
+#import "MacOSaiXImageSourcesEditor.h"
 #import "MacOSaiXImageSourceView.h"
 #import "MacOSaiXMosaic.h"
 
@@ -16,11 +17,24 @@
 
 - (id)initWithFrame:(NSRect)frame
 {
-    self = [super initWithFrame:frame];
-    if (self) {
-        // Initialization code here.
+    if (self = [super initWithFrame:frame])
+	{
+        imageSourceViews = [[NSMutableArray array] retain];
     }
+	
     return self;
+}
+
+
+- (void)setImageSourcesEditor:(MacOSaiXImageSourcesEditor *)editor
+{
+	imageSourcesEditor = editor;
+}
+
+
+- (MacOSaiXImageSourcesEditor *)imageSourcesEditor
+{
+	return imageSourcesEditor;
 }
 
 
@@ -32,7 +46,58 @@
 
 - (void)drawRect:(NSRect)rect
 {
-    // Drawing code here.
+//	[[NSColor redColor] set];
+//	NSRectFill(rect);
+	
+	[super drawRect:rect];
+}
+
+
+- (NSArray *)viewsWithVisibleEditors
+{
+	NSMutableArray			*visibleEditors = [NSMutableArray array];
+	NSEnumerator			*subViewEnumerator = [imageSourceViews objectEnumerator];
+	MacOSaiXImageSourceView	*subView = nil;
+	
+	while (subView = [subViewEnumerator nextObject])
+		if ([subView editorVisible])
+			[visibleEditors addObject:subView];
+	
+	return visibleEditors;
+}
+
+
+- (NSArray *)selectedImageSources
+{
+	NSMutableArray			*selectedImageSources = [NSMutableArray array];
+	NSEnumerator			*subViewEnumerator = [imageSourceViews objectEnumerator];
+	MacOSaiXImageSourceView	*subView = nil;
+	
+	while (subView = [subViewEnumerator nextObject])
+		if ([subView selected])
+			[selectedImageSources addObject:[subView imageSource]];
+	
+	return selectedImageSources;
+}
+
+
+- (void)mouseDown:(NSEvent *)event
+{
+	NSPoint					mousePoint = [self convertPoint:[event locationInWindow] fromView:nil];
+	NSEnumerator			*subViewEnumerator = [imageSourceViews objectEnumerator];
+	MacOSaiXImageSourceView	*subView = nil;
+	
+	while (subView = [subViewEnumerator nextObject])
+	{
+		BOOL	subViewClicked = NSPointInRect(mousePoint, [subView frame]);
+		
+		if (([event modifierFlags] & NSCommandKeyMask) == 0)
+			[subView setSelected:subViewClicked];
+		else if (subViewClicked)
+			[subView setSelected:![subView selected]];
+	}
+	
+	[[self imageSourcesEditor] imageSourcesSelectionDidChange];
 }
 
 
@@ -98,12 +163,10 @@
 		else
 		{
 			imageSourceView = [[MacOSaiXImageSourceView alloc] initWithFrame:NSMakeRect(0.0, 0.0, NSWidth(frameRect), 42.0)];
+			[imageSourceView setAutoresizingMask:NSViewWidthSizable];
 			[imageSourceView setImageSource:imageSource];
 			[self addSubview:imageSourceView];
-			[[NSNotificationCenter defaultCenter] addObserver:self 
-													 selector:@selector(imageSourceViewDidChangeFrame:) 
-														 name:NSViewFrameDidChangeNotification 
-													   object:imageSourceView];
+			[imageSourceView setPostsFrameChangedNotifications:YES];
 		}
 		
 		frameRect.origin.y = curY;
@@ -123,19 +186,44 @@
 	NSEnumerator			*viewEnumerator = [imageSourceViews objectEnumerator];
 	MacOSaiXImageSourceView	*view = nil;
 	while (view = [viewEnumerator nextObject])
-	{
-		[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:view];
 		[view removeFromSuperview];
-	}
 		
 	[imageSourceViews removeAllObjects];
 	[imageSourceViews addObjectsFromArray:newImageSourceViews];
+	
+	[self scrollPoint:NSZeroPoint];
 }
 
 
-- (void)imageSourceViewDidChangeFrame:(NSNotification *)notification
+- (void)tile
 {
+	NSEnumerator	*subViewEnumerator = [[self subviews] objectEnumerator];
+	NSView			*subView = nil, 
+					*previousSubView = nil;
 	
+	while (subView = [subViewEnumerator nextObject])
+	{
+		if (!previousSubView)
+			[subView setFrameOrigin:NSMakePoint(NSMinX([subView frame]), 0.0)];
+		else
+			[subView setFrameOrigin:NSMakePoint(NSMinX([subView frame]), NSMaxY([previousSubView frame]))];
+		
+		previousSubView = subView;
+	}
+	
+	NSRect			frameRect = [self frame];
+	frameRect.size.height = NSMaxY([previousSubView frame]);
+	[self setFrame:frameRect];
+	
+	[self setNeedsDisplay:YES];
+}
+
+
+- (void)dealloc
+{
+	[imageSourceViews release];
+	
+	[super dealloc];
 }
 
 

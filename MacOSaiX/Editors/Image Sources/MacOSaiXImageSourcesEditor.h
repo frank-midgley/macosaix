@@ -19,6 +19,7 @@
 	
 		// Initial view
 	IBOutlet NSView						*initialView;
+	IBOutlet NSTextField				*labelTextField;
 	IBOutlet NSMatrix					*imageSourcesMatrix;
 	
 		// Editing view
@@ -26,7 +27,6 @@
 	NSMutableArray						*imageSourceViews;
 	
 		// Auxiliary view
-	IBOutlet NSView						*auxiliaryView;
 	IBOutlet MacOSaiXPopUpButton		*addSourceButton;
 	IBOutlet NSButton					*removeSourceButton;
 	
@@ -38,5 +38,7 @@
 
 - (IBAction)addImageSource:(id)sender;
 - (IBAction)removeImageSource:(id)sender;
+
+- (void)imageSourcesSelectionDidChange;
 
 @end
