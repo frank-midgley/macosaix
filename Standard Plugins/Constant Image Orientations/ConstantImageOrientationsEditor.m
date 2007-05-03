@@ -70,15 +70,17 @@
 	float	angle = 0;
 	
 	if (sender == angleSlider)
-		angle = [angleSlider floatValue];
+		angle = -[angleSlider floatValue];
 	else if (sender == angleTextField)
 		angle = [angleTextField floatValue];
 	
-	angle = fmodf(angle, 360.0);
+	angle = fmodf(angle + 360.0, 360.0);
 	
 	[currentImageOrientations setConstantAngle:angle];
-	[angleSlider setFloatValue:angle];
+	[angleSlider setFloatValue:fmodf(-angle + 360.0, 360.0)];
 	[angleTextField setFloatValue:angle];
+	
+	[[self delegate] plugInSettingsDidChange:NSLocalizedString(@"Change Constant Angle", @"")];
 }
 
 
@@ -96,13 +98,15 @@
 
 - (void)editingDidComplete
 {
+	[currentImageOrientations release];
+	currentImageOrientations = nil;
+	
+	delegate = nil;
 }
 
 
 - (void)dealloc
 {
-	[currentImageOrientations release];
-	
 	[super dealloc];
 }
 
