@@ -70,16 +70,6 @@
 }
 
 
-- (IBAction)saveChanges:(id)sender
-{
-}
-
-
-- (IBAction)discardChanges:(id)sender
-{
-}
-
-
 - (void)embellishMosaicViewInRect:(NSRect)rect
 {
 	[super embellishMosaicViewInRect:rect];
@@ -125,6 +115,14 @@
 - (void)handleEventInMosaicView:(NSEvent *)event
 {
 	// TODO: change the focus point
+}
+
+
+- (void)plugInSettingsDidChange:(NSString *)description
+{
+//	[[[self mosaicView] mosaic] setTileShapes:[[[self mosaicView] mosaic] tileShapes] creatingTiles:YES];
+	
+	[[self mosaicView] setNeedsDisplay:YES];
 }
 
 
