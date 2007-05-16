@@ -13,7 +13,7 @@
 @class MacOSaiXMosaic;
 
 
-typedef enum { fillWithUniqueMatch, fillWithHandPicked, fillWithTargetImage, fillWithSolidColor } MacOSaiXTileFillStyle;
+typedef enum { fillWithUniqueMatch, fillWithHandPicked, fillWithTargetImage, fillWithColor } MacOSaiXTileFillStyle;
 
 
 @interface MacOSaiXTile : NSObject

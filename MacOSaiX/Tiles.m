@@ -329,7 +329,7 @@
 		[fillColor release];
 		fillColor = [color retain];
 		
-		if ([self fillStyle] == fillWithSolidColor)
+		if ([self fillStyle] == fillWithColor)
 			[self sendNotificationThatImageContentsChangedFromPreviousMatch:nil];
 	}
 }
