@@ -16,6 +16,21 @@
 @implementation MacOSaiXFlickrPreferencesController
 
 
+- (id)initWithDelegate:(id<MacOSaiXEditorDelegate>)inDelegate;
+{
+	if (self = [super init])
+		delegate = inDelegate;
+	
+	return self;
+}
+
+
+- (id<MacOSaiXEditorDelegate>)delegate
+{
+	return delegate;
+}
+
+
 - (NSView *)editorView
 {
 	if (!mainView)
@@ -30,6 +45,12 @@
 - (NSSize)minimumSize
 {
 	return NSMakeSize(392.0, 145.0);
+}
+
+
+- (NSSize)maximumSize
+{
+	return NSZeroSize;
 }
 
 

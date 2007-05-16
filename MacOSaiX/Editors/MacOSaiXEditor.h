@@ -10,7 +10,7 @@
 #import "MacOSaiXPlugIn.h"
 
 
-@interface MacOSaiXEditor : NSObject <MacOSaiXDataSourceEditorDelegate>
+@interface MacOSaiXEditor : NSObject <MacOSaiXEditorDelegate>
 {
 	IBOutlet NSView					*editorView, 
 									*auxiliaryView;

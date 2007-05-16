@@ -12,29 +12,29 @@
 
 @interface MacOSaiXRectangularTileShapesEditor : NSObject <MacOSaiXDataSourceEditor>
 {
-	id<MacOSaiXDataSourceEditorDelegate>	delegate;
+	id<MacOSaiXEditorDelegate>		delegate;
 	
-	IBOutlet NSView							*editorView;
+	IBOutlet NSView					*editorView;
 	
-	IBOutlet NSTabView						*sizingTabView;
+	IBOutlet NSTabView				*sizingTabView;
 	
 		// Freeform controls
-	IBOutlet NSSlider						*tilesAcrossSlider,
-											*tilesDownSlider;
-    IBOutlet NSTextField					*tilesAcrossTextField,
-											*tilesDownTextField;
-	IBOutlet NSStepper						*tilesAcrossStepper, 
-											*tilesDownStepper;
+	IBOutlet NSSlider				*tilesAcrossSlider,
+									*tilesDownSlider;
+    IBOutlet NSTextField			*tilesAcrossTextField,
+									*tilesDownTextField;
+	IBOutlet NSStepper				*tilesAcrossStepper, 
+									*tilesDownStepper;
 
 		// Fixed Size controls
-	IBOutlet NSPopUpButton					*tilesSizePopUp;
-	IBOutlet NSSlider						*tilesSizeSlider,
-											*tilesCountSlider;
+	IBOutlet NSPopUpButton			*tilesSizePopUp;
+	IBOutlet NSSlider				*tilesSizeSlider,
+									*tilesCountSlider;
 	
-	NSSize									targetImageSize;
-	float									minAspectRatio,
-											maxAspectRatio;
-	MacOSaiXRectangularTileShapes			*currentTileShapes;
+	NSSize							targetImageSize;
+	float							minAspectRatio,
+									maxAspectRatio;
+	MacOSaiXRectangularTileShapes	*currentTileShapes;
 }
 
 - (IBAction)setTilesAcross:(id)sender;

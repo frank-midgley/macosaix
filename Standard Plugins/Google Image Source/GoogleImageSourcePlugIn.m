@@ -89,7 +89,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
-+ (Class)dataSourceEditorClass
++ (Class)editorClass
 {
 	return [MacOSaiXGoogleImageSourceEditor class];
 }

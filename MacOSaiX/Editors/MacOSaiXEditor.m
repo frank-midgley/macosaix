@@ -127,7 +127,7 @@
 {
 	Class	plugInClass = [[plugInPopUpButton selectedItem] representedObject],
 			dataSourceClass = [plugInClass dataSourceClass],
-			editorClass = [plugInClass dataSourceEditorClass];
+			editorClass = [plugInClass editorClass];
 	
 	if (editorClass)
 	{

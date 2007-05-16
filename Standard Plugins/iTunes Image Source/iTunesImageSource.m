@@ -43,7 +43,7 @@ static NSImage	*iTunesImage = nil,
 }
 
 
-+ (Class)dataSourceEditorClass
++ (Class)editorClass
 {
 	return [MacOSaiXiTunesImageSourceController class];
 }

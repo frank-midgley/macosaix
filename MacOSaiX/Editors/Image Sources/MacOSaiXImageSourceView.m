@@ -125,7 +125,7 @@
 			
 				// Create an editor for the image source.
 			Class		plugIn = [(MacOSaiX *)[NSApp delegate] plugInForDataSourceClass:[imageSource class]];
-			imageSourceEditor = [[[plugIn dataSourceEditorClass] alloc] initWithDelegate:self];
+			imageSourceEditor = [[[plugIn editorClass] alloc] initWithDelegate:self];
 			
 				// Size the box to fit the editor view and install it.
 			NSView		*editorView = [imageSourceEditor editorView];

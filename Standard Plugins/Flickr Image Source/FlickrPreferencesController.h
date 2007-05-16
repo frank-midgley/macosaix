@@ -9,14 +9,16 @@
 
 @interface MacOSaiXFlickrPreferencesController : NSObject <MacOSaiXPlugInPreferencesEditor>
 {
-	IBOutlet NSView			*mainView;
+	id<MacOSaiXEditorDelegate>	delegate;
 	
-	IBOutlet NSTextField	*maxCacheSizeField, 
-							*minFreeSpaceField;
-	IBOutlet NSPopUpButton	*maxCacheSizePopUp, 
-							*minFreeSpacePopUp;
-	IBOutlet NSImageView	*volumeImageView;
-	IBOutlet NSTextField	*volumeNameField;
+	IBOutlet NSView				*mainView;
+	
+	IBOutlet NSTextField		*maxCacheSizeField, 
+								*minFreeSpaceField;
+	IBOutlet NSPopUpButton		*maxCacheSizePopUp, 
+								*minFreeSpacePopUp;
+	IBOutlet NSImageView		*volumeImageView;
+	IBOutlet NSTextField		*volumeNameField;
 }
 
 - (IBAction)setMaxCacheSizeMagnitude:(id)sender;

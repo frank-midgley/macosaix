@@ -280,7 +280,7 @@
 //		[editorBox setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 //		
 //		Class	plugIn = [(MacOSaiX *)[NSApp delegate] plugInForDataSourceClass:[imageSourceBeingEdited class]];
-//		imageSourceEditor = [[[plugIn dataSourceEditorClass] alloc] initWithDelegate:self];
+//		imageSourceEditor = [[[plugIn editorClass] alloc] initWithDelegate:self];
 //		[editorBox setContentView:[imageSourceEditor editorView]];
 //		
 //		// TODO: deal with min/max editor sizes

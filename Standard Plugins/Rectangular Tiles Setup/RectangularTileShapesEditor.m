@@ -30,7 +30,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (id)initWithDelegate:(id<MacOSaiXDataSourceEditorDelegate>)inDelegate;
+- (id)initWithDelegate:(id<MacOSaiXEditorDelegate>)inDelegate;
 {
 	if (self = [super init])
 		delegate = inDelegate;
@@ -39,7 +39,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (id<MacOSaiXDataSourceEditorDelegate>)delegate
+- (id<MacOSaiXEditorDelegate>)delegate
 {
 	return delegate;
 }

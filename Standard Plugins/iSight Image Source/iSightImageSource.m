@@ -55,7 +55,7 @@
 }
 
 
-+ (Class)dataSourceEditorClass
++ (Class)editorClass
 {
 	return [MacOSaiXiSightImageSourceController class];
 }

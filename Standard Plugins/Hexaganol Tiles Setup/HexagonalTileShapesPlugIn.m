@@ -56,7 +56,7 @@
 }
 
 
-+ (Class)dataSourceEditorClass
++ (Class)editorClass
 {
 	return [MacOSaiXHexagonalTileShapesEditor class];
 }

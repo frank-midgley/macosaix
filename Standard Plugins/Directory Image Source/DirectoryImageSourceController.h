@@ -11,18 +11,18 @@
 
 @interface MacOSaiXDirectoryImageSourceEditor : NSObject <MacOSaiXDataSourceEditor>
 {
-	id<MacOSaiXDataSourceEditorDelegate>	delegate;
+	id<MacOSaiXEditorDelegate>		delegate;
 	
-	IBOutlet NSView							*editorView;
+	IBOutlet NSView					*editorView;
 	
-	IBOutlet NSPopUpButton					*folderPopUp;
-	IBOutlet NSImageView					*locationImageView;
-	IBOutlet NSTextField					*locationTextField, 
-											*imageCountTextField;
-	IBOutlet NSButton						*followsAliasesButton;
+	IBOutlet NSPopUpButton			*folderPopUp;
+	IBOutlet NSImageView			*locationImageView;
+	IBOutlet NSTextField			*locationTextField, 
+									*imageCountTextField;
+	IBOutlet NSButton				*followsAliasesButton;
 	
 		// The image source instance currently being edited.
-	MacOSaiXDirectoryImageSource			*currentImageSource;
+	MacOSaiXDirectoryImageSource	*currentImageSource;
 }
 
 - (IBAction)chooseFolder:(id)sender;

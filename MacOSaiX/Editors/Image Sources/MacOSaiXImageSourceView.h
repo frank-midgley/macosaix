@@ -6,9 +6,9 @@
 //  Copyright 2007 Frank M. Midgley. All rights reserved.
 //
 
-@protocol MacOSaiXDataSourceEditor, MacOSaiXDataSourceEditorDelegate, MacOSaiXImageSource;
+@protocol MacOSaiXDataSourceEditor, MacOSaiXEditorDelegate, MacOSaiXImageSource;
 
-@interface MacOSaiXImageSourceView : NSView <MacOSaiXDataSourceEditorDelegate>
+@interface MacOSaiXImageSourceView : NSView <MacOSaiXEditorDelegate>
 {
 	NSButton						*disclosureButton;
 	NSBox							*editorBox;

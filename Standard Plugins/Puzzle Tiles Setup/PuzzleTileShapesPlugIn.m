@@ -65,7 +65,7 @@
 }
 
 
-+ (Class)dataSourceEditorClass
++ (Class)editorClass
 {
 	return [MacOSaiXPuzzleTileShapesEditor class];
 }

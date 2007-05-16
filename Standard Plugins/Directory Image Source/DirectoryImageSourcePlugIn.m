@@ -11,6 +11,7 @@
 #import "DirectoryImageSource.h"
 #import "DirectoryImageSourceController.h"
 
+
 @implementation MacOSaiXDirectoryImageSourcePlugIn
 
 
@@ -31,7 +32,7 @@
 }
 
 
-+ (Class)dataSourceEditorClass
++ (Class)editorClass
 {
 	return [MacOSaiXDirectoryImageSourceEditor class];
 }

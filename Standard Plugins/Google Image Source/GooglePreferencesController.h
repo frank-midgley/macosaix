@@ -9,14 +9,15 @@
 
 @interface MacOSaiXGooglePreferencesEditor : NSObject <MacOSaiXPlugInPreferencesEditor>
 {
-	IBOutlet NSView			*editorView;
+	id<MacOSaiXEditorDelegate>	delegate;
+	IBOutlet NSView				*editorView;
 	
-	IBOutlet NSTextField	*maxCacheSizeField, 
-							*minFreeSpaceField;
-	IBOutlet NSPopUpButton	*maxCacheSizePopUp, 
-							*minFreeSpacePopUp;
-	IBOutlet NSImageView	*volumeImageView;
-	IBOutlet NSTextField	*volumeNameField;
+	IBOutlet NSTextField		*maxCacheSizeField, 
+								*minFreeSpaceField;
+	IBOutlet NSPopUpButton		*maxCacheSizePopUp, 
+								*minFreeSpacePopUp;
+	IBOutlet NSImageView		*volumeImageView;
+	IBOutlet NSTextField		*volumeNameField;
 }
 
 - (IBAction)setMaxCacheSizeMagnitude:(id)sender;

@@ -7,7 +7,6 @@
 //
 
 
-
 @interface MacOSaiXDirectoryImageSourcePlugIn : NSObject <MacOSaiXPlugIn>
 {
 

@@ -3,7 +3,7 @@
 //  MacOSaiX
 //
 //  Created by Frank Midgley on 12/29/05.
-//  Copyright 2005 __MyCompanyName__. All rights reserved.
+//  Copyright 2005 Frank M. Midgley. All rights reserved.
 //
 
 #import "GooglePreferencesController.h"
@@ -13,6 +13,21 @@
 
 
 @implementation MacOSaiXGooglePreferencesEditor
+
+
+- (id)initWithDelegate:(id<MacOSaiXEditorDelegate>)inDelegate;
+{
+	if (self = [super init])
+		delegate = inDelegate;
+	
+	return self;
+}
+
+
+- (id<MacOSaiXEditorDelegate>)delegate
+{
+	return delegate;
+}
 
 
 - (NSView *)editorView
@@ -29,6 +44,12 @@
 - (NSSize)minimumSize
 {
 	return NSMakeSize(392.0, 145.0);
+}
+
+
+- (NSSize)maximumSize
+{
+	return NSZeroSize;
 }
 
 

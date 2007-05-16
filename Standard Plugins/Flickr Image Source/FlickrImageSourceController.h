@@ -10,17 +10,17 @@
 
 @interface MacOSaiXFlickrImageSourceEditor : NSObject <MacOSaiXDataSourceEditor>
 {
-	id<MacOSaiXDataSourceEditorDelegate>	delegate;
+	id<MacOSaiXEditorDelegate>		delegate;
 	
-	IBOutlet NSView							*editorView;
-	IBOutlet NSTextField					*queryField;
-	IBOutlet NSMatrix						*queryTypeMatrix;
+	IBOutlet NSView					*editorView;
+	IBOutlet NSTextField			*queryField;
+	IBOutlet NSMatrix				*queryTypeMatrix;
 	
-	IBOutlet NSTextField					*matchingPhotosCount;
-	IBOutlet NSProgressIndicator			*matchingPhotosIndicator;
-	NSTimer									*matchingPhotosTimer;
+	IBOutlet NSTextField			*matchingPhotosCount;
+	IBOutlet NSProgressIndicator	*matchingPhotosIndicator;
+	NSTimer							*matchingPhotosTimer;
 	
-	MacOSaiXFlickrImageSource				*currentImageSource;
+	MacOSaiXFlickrImageSource		*currentImageSource;
 }
 
 - (IBAction)visitFlickr:(id)sender;

@@ -10,25 +10,25 @@
 
 @interface MacOSaiXGoogleImageSourceEditor : NSObject <MacOSaiXDataSourceEditor>
 {
-	id<MacOSaiXDataSourceEditorDelegate>	delegate;
+	id<MacOSaiXEditorDelegate>	delegate;
 	
 		// Simple view
-	IBOutlet NSView							*editorView;
-	IBOutlet NSTextField					*keywordsTextField;
-	IBOutlet NSMatrix						*keywordsMatchingMatrix;
-	IBOutlet NSTextField					*moreOptionsTextField;
+	IBOutlet NSView				*editorView;
+	IBOutlet NSTextField		*keywordsTextField;
+	IBOutlet NSMatrix			*keywordsMatchingMatrix;
+	IBOutlet NSTextField		*moreOptionsTextField;
 	
 		// More options panel
-	IBOutlet NSPanel						*moreOptionsPanel;
-	IBOutlet NSTextField					*requiredTermsTextField,
-											*optionalTermsTextField,
-											*excludedTermsTextField,
-											*siteTextField;
-	IBOutlet NSPopUpButton					*colorSpacePopUpButton,
-											*adultContentFilteringPopUpButton;
-	IBOutlet NSButton						*okButton;
+	IBOutlet NSPanel			*moreOptionsPanel;
+	IBOutlet NSTextField		*requiredTermsTextField,
+								*optionalTermsTextField,
+								*excludedTermsTextField,
+								*siteTextField;
+	IBOutlet NSPopUpButton		*colorSpacePopUpButton,
+								*adultContentFilteringPopUpButton;
+	IBOutlet NSButton			*okButton;
 
-	MacOSaiXGoogleImageSource				*currentImageSource;
+	MacOSaiXGoogleImageSource	*currentImageSource;
 }
 
 - (IBAction)setKeywordsMatching:(id)sender;

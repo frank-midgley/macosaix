@@ -24,7 +24,7 @@
 }
 
 
-+ (Class)dataSourceEditorClass
++ (Class)editorClass
 {
 	return nil;
 }

@@ -11,31 +11,31 @@
 
 @interface MacOSaiXPuzzleTileShapesEditor : NSObject <MacOSaiXDataSourceEditor>
 {
-	id<MacOSaiXDataSourceEditorDelegate>	delegate;
+	id<MacOSaiXEditorDelegate>	delegate;
 	
-	IBOutlet NSView							*editorView;
-    IBOutlet NSTextField					*tilesAcrossTextField,
-											*tilesDownTextField, 
-											*tabbedSidesTextField, 
-											*curvinessTextField;
-	IBOutlet NSSlider						*tilesAcrossSlider,
-											*tilesDownSlider, 
-											*tilesSizeSlider, 
-											*tilesCountSlider, 
-											*tabbedSidesSlider, 
-											*curvinessSlider;
-	IBOutlet NSStepper						*tilesAcrossStepper, 
-											*tilesDownStepper;
-	IBOutlet NSPopUpButton					*tilesSizePopUp;
-	IBOutlet NSMatrix						*alignImagesMatrix;
+	IBOutlet NSView				*editorView;
+    IBOutlet NSTextField		*tilesAcrossTextField,
+								*tilesDownTextField, 
+								*tabbedSidesTextField, 
+								*curvinessTextField;
+	IBOutlet NSSlider			*tilesAcrossSlider,
+								*tilesDownSlider, 
+								*tilesSizeSlider, 
+								*tilesCountSlider, 
+								*tabbedSidesSlider, 
+								*curvinessSlider;
+	IBOutlet NSStepper			*tilesAcrossStepper, 
+								*tilesDownStepper;
+	IBOutlet NSPopUpButton		*tilesSizePopUp;
+	IBOutlet NSMatrix			*alignImagesMatrix;
 	
-	NSSize									targetImageSize;
-	float									minAspectRatio,
-											maxAspectRatio;
-	MacOSaiXPuzzleTileShapes				*currentTileShapes;
+	NSSize						targetImageSize;
+	float						minAspectRatio,
+								maxAspectRatio;
+	MacOSaiXPuzzleTileShapes	*currentTileShapes;
 	
-//	NSTimer									*previewTimer;
-//	MacOSaiXPuzzleTileShape					*previewShape;
+//	NSTimer						*previewTimer;
+//	MacOSaiXPuzzleTileShape		*previewShape;
 }
 
 - (IBAction)setTilesAcross:(id)sender;

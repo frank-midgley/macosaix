@@ -43,7 +43,7 @@
 }
 
 
-+ (Class)dataSourceEditorClass
++ (Class)editorClass
 {
 	return [MacOSaiXRectangularTileShapesEditor class];
 }

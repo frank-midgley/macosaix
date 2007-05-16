@@ -14,7 +14,7 @@
 @implementation MacOSaiXGoogleImageSourceEditor
 
 
-- (id)initWithDelegate:(id<MacOSaiXDataSourceEditorDelegate>)inDelegate;
+- (id)initWithDelegate:(id<MacOSaiXEditorDelegate>)inDelegate;
 {
 	if (self = [super init])
 		delegate = inDelegate;
@@ -23,7 +23,7 @@
 }
 
 
-- (id<MacOSaiXDataSourceEditorDelegate>)delegate
+- (id<MacOSaiXEditorDelegate>)delegate
 {
 	return delegate;
 }
