@@ -18,8 +18,8 @@
 	// This method should return a class that conforms to the MacOSaiXDataSource protocol.
 + (Class)dataSourceClass;
 
-	// This method should return a class that conforms to the MacOSaiXDataSourceEditor protocol.
-+ (Class)dataSourceEditorClass;
+	// This method should return a class that conforms to the MacOSaiXEditor protocol.
++ (Class)editorClass;
 
 	// This method can return a class that conforms to the MacOSaiXPlugInPreferencesEditor protocol.  Return nil if there are no editable preferences for this plug-in.
 + (Class)preferencesEditorClass;
@@ -27,9 +27,39 @@
 @end
 
 
+@protocol MacOSaiXEditorDelegate
+
+	// This method returns the target image being used for the current mosaic.
+- (NSImage *)targetImage;
+
+	// Call this method when the settings managed by the plug-in have been changed by the user.  The change description will be used as part of the Undo item in the Edit menu, e.g. "Undo Change Tiles Across".
+- (void)plugInSettingsDidChange:(NSString *)changeDescription;
+
+@end
+
+
+@protocol MacOSaiXEditor <NSObject>
+
+- (id)initWithDelegate:(id<MacOSaiXEditorDelegate>)delegate;
+
+- (id<MacOSaiXEditorDelegate>)delegate;
+
+	// The view containing the editing controls.
+- (NSView *)editorView;
+
+	// These methods should return the minimum and maximum sizes of the editor view.  If no limit is desired then return NSZeroSize from either method.
+- (NSSize)minimumSize;
+- (NSSize)maximumSize;
+
+	// The first responder of the editor view.
+- (NSResponder *)firstResponder;
+
+@end
+
+
 @protocol MacOSaiXDataSource <NSObject, NSCopying>
 
-	// This method should return an image appropriate for this instance of the tile shapes.  This image is used for the "Tiles Setup" toolbar icon (32x32).
+	// This method should return an image appropriate for this instance of the data source.
 - (NSImage *)image;
 
 	// This method should return a human-readable string or attributed string that briefly describes this instance's settings.
@@ -42,32 +72,7 @@
 @end
 
 
-@protocol MacOSaiXDataSourceEditorDelegate
-
-	// This method returns the target image being used for the current mosaic.
-- (NSImage *)targetImage;
-
-	// Call this method when the settings have been changed by the user.  The change description will be used as part of the Undo item in the Edit menu, e.g. "Undo Change Tiles Across".
-- (void)plugInSettingsDidChange:(NSString *)changeDescription;
-
-@end
-
-
-@protocol MacOSaiXDataSourceEditor <NSObject>
-
-- (id)initWithDelegate:(id<MacOSaiXDataSourceEditorDelegate>)delegate;
-
-- (id<MacOSaiXDataSourceEditorDelegate>)delegate;
-
-	// The view containing the editing controls.
-- (NSView *)editorView;
-
-	// These methods should return the minimum and maximum sizes of the editor view.  If no limit is desired then return NSZeroSize from either method.
-- (NSSize)minimumSize;
-- (NSSize)maximumSize;
-
-	// The first responder of the editor view.
-- (NSResponder *)firstResponder;
+@protocol MacOSaiXDataSourceEditor <MacOSaiXEditor>
 
 - (void)editDataSource:(id<MacOSaiXDataSource>)dataSource;
 
@@ -76,22 +81,13 @@
 @end
 
 
-@protocol MacOSaiXPlugInPreferencesEditor <NSObject>
-
-	// The view containing the preference controls.
-- (NSView *)editorView;
-
-	// The minimum size of the main view.
-- (NSSize)minimumSize;
-
-	// The first control in the key view loop of the main view.
-- (NSResponder *)firstResponder;
+@protocol MacOSaiXPlugInPreferencesEditor <MacOSaiXEditor>
 
 	// These messages get sent to a preference pane just before and just after it becomes the currently selected preference pane.
 - (void)willSelect;
 - (void)didSelect;
 
-	// The willUnselect message gets sent to the currently selected preference pane just before and just after it gets swapped out for another preference pane.
+	// These messages get sent to the currently selected preference pane just before and just after it gets swapped out for another preference pane.
 - (void)willUnselect;
 - (void)didUnselect;
 
