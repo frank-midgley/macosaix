@@ -44,7 +44,7 @@
 }
 
 
-+ (Class)dataSourceEditorClass
++ (Class)editorClass
 {
 	return [MacOSaiXConstantImageOrientationsEditor class];
 }

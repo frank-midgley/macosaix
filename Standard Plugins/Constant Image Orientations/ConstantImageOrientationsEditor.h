@@ -11,11 +11,11 @@
 
 @interface MacOSaiXConstantImageOrientationsEditor : NSObject <MacOSaiXDataSourceEditor>
 {
-	id<MacOSaiXDataSourceEditorDelegate>	delegate;
+	id<MacOSaiXEditorDelegate>	delegate;
 	
-	IBOutlet NSView							*editorView;
-	IBOutlet NSSlider						*angleSlider;
-	IBOutlet NSTextField					*angleTextField;
+	IBOutlet NSView				*editorView;
+	IBOutlet NSSlider			*angleSlider;
+	IBOutlet NSTextField		*angleTextField;
 	
 		// The image orientations instance currently being edited.
 	MacOSaiXConstantImageOrientations		*currentImageOrientations;
