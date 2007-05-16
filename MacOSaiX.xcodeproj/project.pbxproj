@@ -20,6 +20,7 @@
 				011C7D7D0A1D76C50023CD62 /* PBXTargetDependency */,
 				014557E40B640E520007DDF9 /* PBXTargetDependency */,
 				014F185C0B2CCEA10023D2D2 /* PBXTargetDependency */,
+				92D5930E0BF8F5A600FBA68C /* PBXTargetDependency */,
 			);
 			name = "Standard Plug-Ins";
 			productName = "Standard Plug-Ins";
@@ -77,7 +78,6 @@
 		014557D90B640C960007DDF9 /* GoogleImageSourcePlugIn.h in Headers */ = {isa = PBXBuildFile; fileRef = 014557D70B640C960007DDF9 /* GoogleImageSourcePlugIn.h */; };
 		014557DA0B640C960007DDF9 /* GoogleImageSourcePlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 014557D80B640C960007DDF9 /* GoogleImageSourcePlugIn.m */; };
 		014558820B641A3C0007DDF9 /* Google Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 928489D406611CE6003B3514 /* Google Image Source.plugin */; };
-		01495B6E0B549ED600D11987 /* DirectoryImageSourcePlugIn.h in Headers */ = {isa = PBXBuildFile; fileRef = 01495B6C0B549ED600D11987 /* DirectoryImageSourcePlugIn.h */; };
 		01495B6F0B549ED600D11987 /* DirectoryImageSourcePlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 01495B6D0B549ED600D11987 /* DirectoryImageSourcePlugIn.m */; };
 		01495BC00B54A29A00D11987 /* ConstantImageOrientationsPlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 01495BBF0B54A29A00D11987 /* ConstantImageOrientationsPlugIn.m */; };
 		014960E30B59797500D11987 /* Target Image Editor.nib in Resources */ = {isa = PBXBuildFile; fileRef = 014960DD0B59797500D11987 /* Target Image Editor.nib */; };
@@ -125,14 +125,12 @@
 		01DDE1B50A2E8756004F1F4E /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01DDE1950A2E8755004F1F4E /* QuartzCore.framework */; };
 		01FE978E08E8EDFE00E4AC7C /* MacOSaiXKioskController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE978C08E8EDFE00E4AC7C /* MacOSaiXKioskController.m */; };
 		01FE981308F365C600E4AC7C /* MacOSaiXMosaic.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */; };
-		92006EB50BDE5677004DED2C /* DirectoryImageSourceDirectory.h in Headers */ = {isa = PBXBuildFile; fileRef = 92006EB30BDE5677004DED2C /* DirectoryImageSourceDirectory.h */; };
 		92006EB60BDE5677004DED2C /* DirectoryImageSourceDirectory.m in Sources */ = {isa = PBXBuildFile; fileRef = 92006EB40BDE5677004DED2C /* DirectoryImageSourceDirectory.m */; };
 		920072C10BEA89DA004DED2C /* MacOSaiXSplitView.h in Headers */ = {isa = PBXBuildFile; fileRef = 920072BF0BEA89DA004DED2C /* MacOSaiXSplitView.h */; };
 		920072C20BEA89DA004DED2C /* MacOSaiXSplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = 920072C00BEA89DA004DED2C /* MacOSaiXSplitView.m */; };
 		9211A5E50A17DA3A0021A583 /* Mosaic View.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9211A5E30A17DA3A0021A583 /* Mosaic View.nib */; };
 		9211A6840A17F7A80021A583 /* MacOSaiXToolTipView.h in Headers */ = {isa = PBXBuildFile; fileRef = 9211A6820A17F7A70021A583 /* MacOSaiXToolTipView.h */; };
 		9211A6850A17F7A80021A583 /* MacOSaiXToolTipView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9211A6830A17F7A70021A583 /* MacOSaiXToolTipView.m */; };
-		921607B208E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */; };
 		9216086708E5DC9F0018C4C1 /* DirectoryImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = F540721A023FE6860100010A /* DirectoryImageSource.m */; };
 		9216086A08E5DCA70018C4C1 /* NSFileManager+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */; };
 		9226836409267C1B00BF4EF7 /* PuzzleTileShapes.m in Sources */ = {isa = PBXBuildFile; fileRef = 9226836009267C1B00BF4EF7 /* PuzzleTileShapes.m */; };
@@ -147,7 +145,9 @@
 		92319CA309A7D656007CA9CD /* Export5.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319CA109A7D656007CA9CD /* Export5.html */; };
 		92319CA809A7D6AA007CA9CD /* Export3+Original.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319CA609A7D6AA007CA9CD /* Export3+Original.html */; };
 		92319CAB09A7D6C5007CA9CD /* Export3.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319CA909A7D6C5007CA9CD /* Export3.html */; };
-		923384DC072180700010BE04 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
+		92341CA20BF117370079BFF0 /* MacOSaiXExporter.h in Headers */ = {isa = PBXBuildFile; fileRef = 92341CA10BF117370079BFF0 /* MacOSaiXExporter.h */; };
+		92341E1A0BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.h in Headers */ = {isa = PBXBuildFile; fileRef = 92341E180BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.h */; };
+		92341E290BF8F2050079BFF0 /* MacOSaiXBitmapExportSettings.m in Sources */ = {isa = PBXBuildFile; fileRef = 92341E280BF8F2050079BFF0 /* MacOSaiXBitmapExportSettings.m */; };
 		9236C6560A571FCE00C07601 /* QuickTimeImageSourceMovie.h in Headers */ = {isa = PBXBuildFile; fileRef = 9236C6540A571FCD00C07601 /* QuickTimeImageSourceMovie.h */; };
 		9236C6570A571FCE00C07601 /* QuickTimeImageSourceMovie.m in Sources */ = {isa = PBXBuildFile; fileRef = 9236C6550A571FCE00C07601 /* QuickTimeImageSourceMovie.m */; };
 		9240AE720A4DABAB00759546 /* MacOSaiXProgressController.h in Headers */ = {isa = PBXBuildFile; fileRef = 9240AE700A4DABAB00759546 /* MacOSaiXProgressController.h */; };
@@ -155,6 +155,9 @@
 		9240AE950A4DB11100759546 /* Progress.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9240AE930A4DB11100759546 /* Progress.nib */; };
 		9253016509D611EF001E27F3 /* NoOriginal.png in Resources */ = {isa = PBXBuildFile; fileRef = 9253016409D611EF001E27F3 /* NoOriginal.png */; };
 		9254088D0915741F00384904 /* MacOSaiXKioskMessageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */; };
+		92554D670BFA460200CCF920 /* MacOSaiXBitmapExporterPlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92341E190BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.m */; };
+		92554D960BFA4DB500CCF920 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
+		92554D970BFA4DB500CCF920 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01DDE1950A2E8755004F1F4E /* QuartzCore.framework */; };
 		926F90FA0B3DC5100089017E /* MacOSaiXTileShapesEditor.h in Headers */ = {isa = PBXBuildFile; fileRef = 926F90F80B3DC5100089017E /* MacOSaiXTileShapesEditor.h */; };
 		926F90FB0B3DC5100089017E /* MacOSaiXTileShapesEditor.m in Sources */ = {isa = PBXBuildFile; fileRef = 926F90F90B3DC5100089017E /* MacOSaiXTileShapesEditor.m */; };
 		926F90FE0B3DC5610089017E /* Tile Shapes Editor.nib in Resources */ = {isa = PBXBuildFile; fileRef = 926F90FC0B3DC5610089017E /* Tile Shapes Editor.nib */; };
@@ -172,8 +175,6 @@
 		9284899906611CE5003B3514 /* Tiles.m in Sources */ = {isa = PBXBuildFile; fileRef = 00EAAC6100853DFB7F000001 /* Tiles.m */; };
 		9284899B06611CE5003B3514 /* MosaicView.m in Sources */ = {isa = PBXBuildFile; fileRef = F5517EEF020CD88F01000106 /* MosaicView.m */; };
 		9284899F06611CE5003B3514 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
-		928489B806611CE6003B3514 /* DirectoryImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = F5407219023FE6860100010A /* DirectoryImageSource.h */; };
-		928489B906611CE6003B3514 /* DirectoryImageSourceController.h in Headers */ = {isa = PBXBuildFile; fileRef = 92B45F70041A9DF1006867F5 /* DirectoryImageSourceController.h */; };
 		928489BE06611CE6003B3514 /* DirectoryImageSourceController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B45F71041A9DF1006867F5 /* DirectoryImageSourceController.m */; };
 		928489C006611CE6003B3514 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		928489C806611CE6003B3514 /* GoogleImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = F540721D023FE6E00100010A /* GoogleImageSource.h */; };
@@ -228,6 +229,7 @@
 		9298FEF309955C5A00E7A096 /* Application Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9298FEF109955C5A00E7A096 /* Application Icon.icns */; };
 		9298FEF409955C5A00E7A096 /* Document Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9298FEF209955C5A00E7A096 /* Document Icon.icns */; };
 		9298FF1409955E1500E7A096 /* Export.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FF1209955E1500E7A096 /* Export.nib */; };
+		929DC0980BFB4EFF00024C99 /* Bitmap Exporter.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92341E220BF8F1370079BFF0 /* Bitmap Exporter.bundle */; };
 		92A6B8F80AB4ACFB00298BCF /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92A6B8F70AB4ACFB00298BCF /* ApplicationServices.framework */; };
 		92B4091A0B0D437F00BB3981 /* MacOSaiXAboutBoxController.h in Headers */ = {isa = PBXBuildFile; fileRef = 92B409180B0D437E00BB3981 /* MacOSaiXAboutBoxController.h */; };
 		92B4091B0B0D437F00BB3981 /* MacOSaiXAboutBoxController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B409190B0D437E00BB3981 /* MacOSaiXAboutBoxController.m */; };
@@ -240,6 +242,9 @@
 		92CC1B3E08F9C168004D0C31 /* MacOSaiXFullScreenController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA7B608F87DD200B40FA6 /* MacOSaiXFullScreenController.m */; };
 		92CC1B4008F9C16A004D0C31 /* MacOSaiXKioskSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA7CC08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m */; };
 		92CC1B4208F9C16C004D0C31 /* MacOSaiXScreenSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA87208F89EA400B40FA6 /* MacOSaiXScreenSetupController.m */; };
+		92D5931C0BF8F72A00FBA68C /* MacOSaiXBitmapExportEditor.m in Sources */ = {isa = PBXBuildFile; fileRef = 92D5931B0BF8F72A00FBA68C /* MacOSaiXBitmapExportEditor.m */; };
+		92D593250BF8F83A00FBA68C /* Bitmap Export.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92D593230BF8F83A00FBA68C /* Bitmap Export.nib */; };
+		92D593780BF90C3400FBA68C /* MacOSaiXBitmapExporter.m in Sources */ = {isa = PBXBuildFile; fileRef = 92D593770BF90C3400FBA68C /* MacOSaiXBitmapExporter.m */; };
 		92DA0D510A32192B0064E69E /* Add.png in Resources */ = {isa = PBXBuildFile; fileRef = 92DA0D500A32192B0064E69E /* Add.png */; };
 		92DA0D530A32193D0064E69E /* Remove.png in Resources */ = {isa = PBXBuildFile; fileRef = 92DA0D520A32193D0064E69E /* Remove.png */; };
 		92DA0D8F0A32243C0064E69E /* MacOSaiXPopUpButton.h in Headers */ = {isa = PBXBuildFile; fileRef = 92DA0D8D0A32243C0064E69E /* MacOSaiXPopUpButton.h */; };
@@ -418,6 +423,13 @@
 			remoteGlobalIDString = 014F184D0B2CCDD40023D2D2;
 			remoteInfo = "Constant Image Orientations";
 		};
+		92D5930D0BF8F5A600FBA68C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 92341E210BF8F1370079BFF0;
+			remoteInfo = "Bitmap Exporter";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -430,10 +442,11 @@
 				9227FD5F07E378CC0020C5F4 /* Hexagonal Tiles.plugin in CopyFiles */,
 				922683A8092687A900BF4EF7 /* Puzzle Tiles.plugin in CopyFiles */,
 				92848A1A06611CE6003B3514 /* Rectangular Tiles.plugin in CopyFiles */,
-				014F189E0B2CD1410023D2D2 /* Constant Image Orientations.plugin in CopyFiles */,
 				01DCB2F5092C2508008345F3 /* Flickr Image Source.plugin in CopyFiles */,
 				92848A1706611CE6003B3514 /* Directory Image Source.plugin in CopyFiles */,
 				014558820B641A3C0007DDF9 /* Google Image Source.plugin in CopyFiles */,
+				014F189E0B2CD1410023D2D2 /* Constant Image Orientations.plugin in CopyFiles */,
+				929DC0980BFB4EFF00024C99 /* Bitmap Exporter.bundle in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -589,6 +602,13 @@
 		92319CA709A7D6AA007CA9CD /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = "English.lproj/Export3+Original.html"; sourceTree = "<group>"; };
 		92319CAA09A7D6C5007CA9CD /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export3.html; sourceTree = "<group>"; };
 		923384DB072180700010BE04 /* MacOSaiXImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageSource.h; sourceTree = "<group>"; };
+		92341CA10BF117370079BFF0 /* MacOSaiXExporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXExporter.h; sourceTree = "<group>"; };
+		92341E180BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXBitmapExporterPlugIn.h; sourceTree = "<group>"; };
+		92341E190BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXBitmapExporterPlugIn.m; sourceTree = "<group>"; };
+		92341E220BF8F1370079BFF0 /* Bitmap Exporter.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Bitmap Exporter.bundle"; sourceTree = BUILT_PRODUCTS_DIR; };
+		92341E230BF8F1380079BFF0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
+		92341E270BF8F2050079BFF0 /* MacOSaiXBitmapExportSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXBitmapExportSettings.h; sourceTree = "<group>"; };
+		92341E280BF8F2050079BFF0 /* MacOSaiXBitmapExportSettings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXBitmapExportSettings.m; sourceTree = "<group>"; };
 		9236C6540A571FCD00C07601 /* QuickTimeImageSourceMovie.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTimeImageSourceMovie.h; path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSourceMovie.h"; sourceTree = "<group>"; };
 		9236C6550A571FCE00C07601 /* QuickTimeImageSourceMovie.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = QuickTimeImageSourceMovie.m; path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSourceMovie.m"; sourceTree = "<group>"; };
 		9240AE700A4DABAB00759546 /* MacOSaiXProgressController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXProgressController.h; sourceTree = "<group>"; };
@@ -663,6 +683,11 @@
 		92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXImageMatcher.m; sourceTree = "<group>"; };
 		92C8AAF0080870100073045F /* GlyphTableColumn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlyphTableColumn.h; path = "Standard Plugins/Glyph Image Source/GlyphTableColumn.h"; sourceTree = "<group>"; };
 		92C8AAF1080870100073045F /* GlyphTableColumn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GlyphTableColumn.m; path = "Standard Plugins/Glyph Image Source/GlyphTableColumn.m"; sourceTree = "<group>"; };
+		92D5931A0BF8F72A00FBA68C /* MacOSaiXBitmapExportEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXBitmapExportEditor.h; sourceTree = "<group>"; };
+		92D5931B0BF8F72A00FBA68C /* MacOSaiXBitmapExportEditor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXBitmapExportEditor.m; sourceTree = "<group>"; };
+		92D593240BF8F83A00FBA68C /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Exporters/Bitmap Image/English.lproj/Bitmap Export.nib"; sourceTree = "<group>"; };
+		92D593760BF90C3400FBA68C /* MacOSaiXBitmapExporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXBitmapExporter.h; sourceTree = "<group>"; };
+		92D593770BF90C3400FBA68C /* MacOSaiXBitmapExporter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXBitmapExporter.m; sourceTree = "<group>"; };
 		92DA0D500A32192B0064E69E /* Add.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Add.png; sourceTree = "<group>"; };
 		92DA0D520A32193D0064E69E /* Remove.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Remove.png; sourceTree = "<group>"; };
 		92DA0D8D0A32243C0064E69E /* MacOSaiXPopUpButton.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXPopUpButton.h; sourceTree = "<group>"; };
@@ -770,6 +795,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				01A1978E071A200E00B11558 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		92341E200BF8F1370079BFF0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				92554D960BFA4DB500CCF920 /* Cocoa.framework in Frameworks */,
+				92554D970BFA4DB500CCF920 /* QuartzCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -996,6 +1030,7 @@
 				9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */,
 				013605260B286CDD0078BCF7 /* MacOSaiXImageOrientations.h */,
 				923384DB072180700010BE04 /* MacOSaiXImageSource.h */,
+				92341CA10BF117370079BFF0 /* MacOSaiXExporter.h */,
 			);
 			name = "Plug-in API's";
 			sourceTree = "<group>";
@@ -1134,6 +1169,7 @@
 				011C7D690A1D76460023CD62 /* iTunes Image Source.plugin */,
 				0124FA540A44A6290074777E /* iSight Image Source.plugin */,
 				014F184E0B2CCDD40023D2D2 /* Constant Image Orientations.plugin */,
+				92341E220BF8F1370079BFF0 /* Bitmap Exporter.bundle */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1163,6 +1199,32 @@
 				92F2B1EC048027FA0000011E /* QuickTime.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		92341CA60BF118F30079BFF0 /* Exporters */ = {
+			isa = PBXGroup;
+			children = (
+				92341CA90BF119190079BFF0 /* Bitmap Image */,
+			);
+			name = Exporters;
+			path = "Standard Plugins/Exporters";
+			sourceTree = "<group>";
+		};
+		92341CA90BF119190079BFF0 /* Bitmap Image */ = {
+			isa = PBXGroup;
+			children = (
+				92341E180BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.h */,
+				92341E190BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.m */,
+				92341E270BF8F2050079BFF0 /* MacOSaiXBitmapExportSettings.h */,
+				92341E280BF8F2050079BFF0 /* MacOSaiXBitmapExportSettings.m */,
+				92D5931A0BF8F72A00FBA68C /* MacOSaiXBitmapExportEditor.h */,
+				92D5931B0BF8F72A00FBA68C /* MacOSaiXBitmapExportEditor.m */,
+				92D593760BF90C3400FBA68C /* MacOSaiXBitmapExporter.h */,
+				92D593770BF90C3400FBA68C /* MacOSaiXBitmapExporter.m */,
+				92D593230BF8F83A00FBA68C /* Bitmap Export.nib */,
+				92341E230BF8F1380079BFF0 /* Info.plist */,
+			);
+			path = "Bitmap Image";
 			sourceTree = "<group>";
 		};
 		9240AE6F0A4DAB4A00759546 /* Progress Sheet */ = {
@@ -1490,6 +1552,7 @@
 				01453CA7071B6EED00BCEC7C /* Tile Shapes */,
 				0136052C0B2870600078BCF7 /* Image Orientations */,
 				01453C99071B6EE300BCEC7C /* Image Sources */,
+				92341CA60BF118F30079BFF0 /* Exporters */,
 			);
 			name = "Standard Plugins";
 			sourceTree = "<group>";
@@ -1546,19 +1609,8 @@
 				01660E520BE1375000D95052 /* MacOSaiXImageSourcesView.h in Headers */,
 				01660E540BE1375000D95052 /* MacOSaiXImageSourceView.h in Headers */,
 				920072C10BEA89DA004DED2C /* MacOSaiXSplitView.h in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		928489B706611CE6003B3514 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				928489B806611CE6003B3514 /* DirectoryImageSource.h in Headers */,
-				928489B906611CE6003B3514 /* DirectoryImageSourceController.h in Headers */,
-				923384DC072180700010BE04 /* MacOSaiXImageSource.h in Headers */,
-				921607B208E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h in Headers */,
-				01495B6E0B549ED600D11987 /* DirectoryImageSourcePlugIn.h in Headers */,
-				92006EB50BDE5677004DED2C /* DirectoryImageSourceDirectory.h in Headers */,
+				92341CA20BF117370079BFF0 /* MacOSaiXExporter.h in Headers */,
+				92341E1A0BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1729,6 +1781,24 @@
 			productReference = 01CB07E6071A1F2B00710BCF /* Hexagonal Tiles.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
+		92341E210BF8F1370079BFF0 /* Bitmap Exporter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 92341E240BF8F13C0079BFF0 /* Build configuration list for PBXNativeTarget "Bitmap Exporter" */;
+			buildPhases = (
+				92341E1E0BF8F1370079BFF0 /* Resources */,
+				92341E1F0BF8F1370079BFF0 /* Sources */,
+				92341E200BF8F1370079BFF0 /* Frameworks */,
+				92554D9B0BFA4DCE00CCF920 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Bitmap Exporter";
+			productName = "Bitmap Exporter";
+			productReference = 92341E220BF8F1370079BFF0 /* Bitmap Exporter.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
 		9284897106611CE5003B3514 /* MacOSaiX.app */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0142D72C0895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "MacOSaiX.app" */;
@@ -1756,7 +1826,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0142D7130895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "Directory Image Source" */;
 			buildPhases = (
-				928489B706611CE6003B3514 /* Headers */,
 				928489BA06611CE6003B3514 /* Resources */,
 				928489BC06611CE6003B3514 /* Sources */,
 				928489BF06611CE6003B3514 /* Frameworks */,
@@ -1902,6 +1971,7 @@
 				0124FA430A44A6290074777E /* iSight Image Source */,
 				011C7D580A1D76460023CD62 /* iTunes Image Source */,
 				928489F406611CE6003B3514 /* QuickTime Image Source */,
+				92341E210BF8F1370079BFF0 /* Bitmap Exporter */,
 			);
 		};
 /* End PBXProject section */
@@ -1958,6 +2028,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				9227FD7B07E37A340020C5F4 /* HexagonalTileShapes.nib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		92341E1E0BF8F1370079BFF0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				92D593250BF8F83A00FBA68C /* Bitmap Export.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2258,6 +2336,19 @@
 			shellPath = /bin/sh;
 			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd MacOSaiX\n\tgenstrings -o English.lproj *.m */*.m\n\n\tcd \"$SRCROOT\"\n\tfind . -name \"*.nib\" -o -name \"*.strings\" | grep -v CVS | grep -v \"~\" > Localizable.files\n\ttar cfz Localizable.tgz --files-from Localizable.files\n\t#rm Localizable.files\n\t\n\t# Mock up the contents of the disk image in a new folder.\n\tcd \"$TARGET_BUILD_DIR\"\n\trm -rf MacOSaiX\n\tmkdir -p MacOSaiX\n\tcp -r MacOSaiX.app MacOSaiX\n\t# TODO: add a background image, alias to Applications, etc.\n\t\n\t# Eject any previous disk image and wait for it to unmount completely.\n\twhile test -d /Volumes/MacOSaiX ; do sleep 1; done;\n\tosascript\t -e 'tell application \"Finder\" to if exists disk \"MacOSaiX\" then eject disk \"MacOSaiX\"'\n\t\n\t# Create a modifiable disk image based on the mocked up folder.\n\trm -f MacOSaiX_working.dmg\n\thdiutil create -srcfolder MacOSaiX -format UDRW -attach MacOSaiX_working.dmg\n\t\n\t# Make sure the disk image's window opens in icon view even if the default is column view.\n\tbless --folder \"/Volumes/MacOSaiX\" --openfolder \"/Volumes/MacOSaiX\"\n\t\n\t# Set the visual properties of the folder's window.\n\tosascript\t\t-e\t'tell application \"Finder\"' \\\n\t\t\t\t-e\t\t'tell container window of disk \"MacOSaiX\"' \\\n\t\t\t\t-e\t\t\t'open' \\\n\t\t\t\t-e\t\t\t'set current view to icon view' \\\n\t\t\t\t-e\t\t\t'tell its icon view options' \\\n\t\t\t\t-e\t\t\t\t'set icon size to 128' \\\n\t\t\t\t-e\t\t\t\t'set text size to 16' \\\n\t\t\t\t-e\t\t\t\t'set arrangement to not arranged' \\\n\t\t\t\t-e\t\t\t\t'set background color to {65535, 64352, 52722}' \\\n\t\t\t\t-e\t\t\t'end tell' \\\n\t\t\t\t-e\t\t\t'set toolbar visible to false' \\\n\t\t\t\t-e\t\t\t'set bounds to {100, 100, 348, 296}' \\\n\t\t\t\t-e\t\t\t'set position of item 1 of target to {121, 79}' \\\n\t\t\t\t-e\t\t\t'set toolbar visible to true' \\\n\t\t\t\t-e\t\t\t'set toolbar visible to false' \\\n\t\t\t\t-e\t\t'end tell' \\\n\t\t\t\t-e\t'end tell'\n\t\n\t# Wait for the Finder to update the .DS_Store file.\n\tsleep 6\n\t\n\t# Eject the disk image and wait for it to unmount completely.\n\tosascript\t-e 'tell application \"Finder\" to eject disk \"MacOSaiX\"'\n\twhile test -d /Volumes/MacOSaiX ; do sleep 1; done;\n\t\n\t#exit 0\n\t\n\t# Create the final compressed, read-only version of the disk image.\n\trm -f MacOSaiX.dmg\n\thdiutil convert MacOSaiX_working.dmg -format UDZO -o MacOSaiX.dmg\n\t#hdiutil makehybrid -o MacOSaiX.dmg MacOSaiX_working.dmg -hfs -hfs-openfolder /Volumes/MacOSaiX\t\n\t# Let's have a look...\n\topen MacOSaiX.dmg\nfi";
 		};
+		92554D9B0BFA4DCE00CCF920 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/Exporters/$TARGET_NAME\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -2317,6 +2408,17 @@
 				9227FD7207E37A240020C5F4 /* HexagonalTileShapes.m in Sources */,
 				9227FD7407E37A240020C5F4 /* HexagonalTileShapesEditor.m in Sources */,
 				01046D000B4DEEDB0084049A /* HexagonalTileShapesPlugIn.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		92341E1F0BF8F1370079BFF0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				92341E290BF8F2050079BFF0 /* MacOSaiXBitmapExportSettings.m in Sources */,
+				92D5931C0BF8F72A00FBA68C /* MacOSaiXBitmapExportEditor.m in Sources */,
+				92D593780BF90C3400FBA68C /* MacOSaiXBitmapExporter.m in Sources */,
+				92554D670BFA460200CCF920 /* MacOSaiXBitmapExporterPlugIn.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2475,6 +2577,11 @@
 			isa = PBXTargetDependency;
 			target = 014F184D0B2CCDD40023D2D2 /* Constant Image Orientations */;
 			targetProxy = 014F185B0B2CCEA10023D2D2 /* PBXContainerItemProxy */;
+		};
+		92D5930E0BF8F5A600FBA68C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 92341E210BF8F1370079BFF0 /* Bitmap Exporter */;
+			targetProxy = 92D5930D0BF8F5A600FBA68C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -2833,6 +2940,15 @@
 			);
 			name = "About Box.nib";
 			path = ..;
+			sourceTree = "<group>";
+		};
+		92D593230BF8F83A00FBA68C /* Bitmap Export.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92D593240BF8F83A00FBA68C /* English */,
+			);
+			name = "Bitmap Export.nib";
+			path = ../../..;
 			sourceTree = "<group>";
 		};
 		92DFC50609EDC3EA0076FD93 /* Loading.png */ = {
@@ -3232,6 +3348,28 @@
 			};
 			name = Release;
 		};
+		92341E250BF8F13C0079BFF0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
+				INFOPLIST_FILE = "Standard Plugins/Exporters/Bitmap Image/Info.plist";
+				PRODUCT_NAME = "Bitmap Exporter";
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Debug;
+		};
+		92341E260BF8F13C0079BFF0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
+				INFOPLIST_FILE = "Standard Plugins/Exporters/Bitmap Image/Info.plist";
+				PRODUCT_NAME = "Bitmap Exporter";
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -3366,6 +3504,15 @@
 			buildConfigurations = (
 				01722BA609298D3E00290929 /* Debug */,
 				01722BA709298D3E00290929 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		92341E240BF8F13C0079BFF0 /* Build configuration list for PBXNativeTarget "Bitmap Exporter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				92341E250BF8F13C0079BFF0 /* Debug */,
+				92341E260BF8F13C0079BFF0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
