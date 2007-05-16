@@ -3,7 +3,7 @@
 //  MacOSaiX
 //
 //  Created by Frank Midgley on 5/16/06.
-//  Copyright 2006 __MyCompanyName__. All rights reserved.
+//  Copyright 2006 Frank M. Midgley. All rights reserved.
 //
 
 #import "MacOSaiXTextFieldCell.h"

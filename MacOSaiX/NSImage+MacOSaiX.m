@@ -3,7 +3,7 @@
 //  MacOSaiX
 //
 //  Created by Frank Midgley on 11/13/04.
-//  Copyright 2004 __MyCompanyName__. All rights reserved.
+//  Copyright 2004 Frank M. Midgley. All rights reserved.
 //
 
 #import "NSImage+MacOSaiX.h"

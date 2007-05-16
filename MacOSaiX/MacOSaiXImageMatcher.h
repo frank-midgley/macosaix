@@ -3,7 +3,7 @@
 //  MacOSaiX
 //
 //  Created by Frank Midgley on 8/28/05.
-//  Copyright 2005 __MyCompanyName__. All rights reserved.
+//  Copyright 2005 Frank M. Midgley. All rights reserved.
 //
 
 #import <Cocoa/Cocoa.h>

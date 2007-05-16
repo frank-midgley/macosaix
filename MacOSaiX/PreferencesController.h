@@ -3,7 +3,7 @@
 //  MacOSaiX.app
 //
 //  Created by Frank Midgley on Wed May 01 2002.
-//  Copyright (c) 2001 __MyCompanyName__. All rights reserved.
+//  Copyright (c) 2001 Frank M. Midgley. All rights reserved.
 //
 
 @protocol MacOSaiXPlugInPreferencesEditor;
