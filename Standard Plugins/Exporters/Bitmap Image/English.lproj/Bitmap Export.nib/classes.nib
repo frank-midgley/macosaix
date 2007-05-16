@@ -1,0 +1,20 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {setFormat = id; setResolution = id; setUnits = id; }; 
+            CLASS = MacOSaiXBitmapExportEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                editorView = NSView; 
+                formatMatrix = NSMatrix; 
+                heightField = NSTextField; 
+                resolutionPopUp = NSPopUpButton; 
+                unitsPopUp = NSPopUpButton; 
+                widthField = NSTextField; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}
