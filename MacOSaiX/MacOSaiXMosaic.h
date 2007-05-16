@@ -7,13 +7,15 @@
 //
 
 @class MacOSaiXHandPickedImageSource, MacOSaiXTile;
-@protocol MacOSaiXTileShapes, MacOSaiXImageOrientations, MacOSaiXImageSource;
+@protocol MacOSaiXTileShapes, MacOSaiXImageOrientations, MacOSaiXImageSource, MacOSaiXExportSettings;
 
 
 @interface MacOSaiXMosaic : NSObject
 {
     NSImage							*targetImage;
-	NSString						*targetImagePath;
+	NSString						*targetImagePath, 
+									*targetImageIdentifier;
+	id<MacOSaiXImageSource>			targetImageSource;
 	float							targetImageAspectRatio;
 	
     NSMutableArray					*imageSources,
@@ -23,6 +25,7 @@
 	
 	id<MacOSaiXTileShapes>			tileShapes;
 	id<MacOSaiXImageOrientations>	imageOrientations;
+	id<MacOSaiXExportSettings>		exportSettings;
 	
 	NSSize							averageTileSize;
 	
@@ -62,6 +65,11 @@
 - (void)setTargetImagePath:(NSString *)path;
 - (NSString *)targetImagePath;
 
+- (void)setTargetImageIdentifier:(NSString *)identifier;
+- (NSString *)targetImageIdentifier;
+- (void)setTargetImageSource:(id<MacOSaiXImageSource>)source;
+- (id<MacOSaiXImageSource>)targetImageSource;
+
 - (void)setAspectRatio:(float)ratio;
 - (float)aspectRatio;
 
@@ -71,6 +79,9 @@
 
 - (void)setImageOrientations:(id<MacOSaiXImageOrientations>)imageOrientations;
 - (id<MacOSaiXImageOrientations>)imageOrientations;
+
+- (void)setExportSettings:(id<MacOSaiXExportSettings>)exportSettings;
+- (id<MacOSaiXExportSettings>)exportSettings;
 
 - (int)imageUseCount;
 - (void)setImageUseCount:(int)count;

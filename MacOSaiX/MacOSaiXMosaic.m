@@ -9,9 +9,11 @@
 #import "MacOSaiXMosaic.h"
 
 #import "MacOSaiXHandPickedImageSource.h"
+#import "MacOSaiXExporter.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatcher.h"
 #import "MacOSaiXImageOrientations.h"
+#import "MacOSaiXImageSource.h"
 #import "MacOSaiXTileShapes.h"
 #import "Tiles.h"
 
@@ -157,6 +159,39 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 - (NSString *)targetImagePath
 {
 	return [[targetImagePath retain] autorelease];
+}
+
+
+- (void)setTargetImageIdentifier:(NSString *)identifier
+{
+	[targetImageIdentifier autorelease];
+	targetImageIdentifier = [identifier copy];
+}
+
+
+- (NSString *)targetImageIdentifier
+{
+	return [[self targetImagePath] lastPathComponent];
+//	return targetImageIdentifier;
+}
+
+
+- (void)setTargetImageSource:(id<MacOSaiXImageSource>)source
+{
+	[targetImageSource autorelease];
+	targetImageSource = [source retain];
+}
+
+
+- (id<MacOSaiXImageSource>)targetImageSource
+{
+	if (!targetImageSource)
+	{
+		targetImageSource = [[NSClassFromString(@"DirectoryImageSource") alloc] init];
+	}
+	[(id)targetImageSource setPath:[[self targetImagePath] stringByDeletingLastPathComponent]];
+	
+	return targetImageSource;
 }
 
 
@@ -327,6 +362,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	}
 }
 
+
 - (void)setImageOrientations:(id<MacOSaiXImageOrientations>)inImageOrientations
 {
 	[self pause];
@@ -346,6 +382,19 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 - (id<MacOSaiXImageOrientations>)imageOrientations
 {
 	return imageOrientations;
+}
+
+
+- (void)setExportSettings:(id<MacOSaiXExportSettings>)settings
+{
+	[exportSettings autorelease];
+	exportSettings = [settings retain];
+}
+
+
+- (id<MacOSaiXExportSettings>)exportSettings;
+{
+	return exportSettings;
 }
 
 
