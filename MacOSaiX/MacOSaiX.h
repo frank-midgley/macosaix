@@ -17,6 +17,7 @@
 	NSMutableArray			*tileShapesPlugIns, 
 							*imageOrientationsPlugIns, 
 							*imageSourcePlugIns, 
+							*exporterPlugIns, 
 							*loadedPlugInPaths;
 	BOOL					quitting;
 	
@@ -31,6 +32,7 @@
 - (NSArray *)tileShapesPlugIns;
 - (NSArray *)imageOrientationsPlugIns;
 - (NSArray *)imageSourcePlugIns;
+- (NSArray *)exporterPlugIns;
 - (NSArray *)allPlugIns;
 - (Class)plugInForDataSourceClass:(Class)dataSourceClass;
 

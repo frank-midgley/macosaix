@@ -11,6 +11,7 @@
 #import "MacOSaiXAboutBoxController.h"
 #import "MacOSaiXCrashReporterController.h"
 #import "MacOSaiXDocument.h"
+#import "MacOSaiXExporter.h"
 #import "MacOSaiXFullScreenController.h"
 #import "MacOSaiXFullScreenWindow.h"
 #import "MacOSaiXImageCache.h"
@@ -51,6 +52,7 @@
 		tileShapesPlugIns = [[NSMutableArray array] retain];
 		imageOrientationsPlugIns = [[NSMutableArray array] retain];
 		imageSourcePlugIns = [[NSMutableArray array] retain];
+		exporterPlugIns = [[NSMutableArray array] retain];
 		loadedPlugInPaths = [[NSMutableArray array] retain];
 		kioskMosaicControllers = [[NSMutableArray array] retain];
 	}
@@ -252,6 +254,7 @@
 	[tileShapesPlugIns removeAllObjects];
 	[imageOrientationsPlugIns removeAllObjects];
 	[imageSourcePlugIns removeAllObjects];
+	[exporterPlugIns removeAllObjects];
 	
 	while (plugInSubPath = [pathEnumerator nextObject])
 	{
@@ -316,6 +319,12 @@
 							[imageSourcePlugIns addObject:plugInClass];
 							[loadedPlugInPaths addObject:plugInsPath];
 						}
+
+						if ([[plugInClass dataSourceClass] conformsToProtocol:@protocol(MacOSaiXExportSettings)])
+						{
+							[exporterPlugIns addObject:plugInClass];
+							[loadedPlugInPaths addObject:plugInsPath];
+						}
 					}
 				}
 
@@ -351,11 +360,19 @@
 }
 
 
+- (NSArray *)exporterPlugIns
+{
+	[self discoverPlugIns];
+	
+	return exporterPlugIns;
+}
+
+
 - (NSArray *)allPlugIns
 {
 	[self discoverPlugIns];
 	
-	return [[tileShapesPlugIns arrayByAddingObjectsFromArray:imageSourcePlugIns] arrayByAddingObjectsFromArray:imageOrientationsPlugIns];
+	return [[[tileShapesPlugIns arrayByAddingObjectsFromArray:imageSourcePlugIns] arrayByAddingObjectsFromArray:imageOrientationsPlugIns] arrayByAddingObjectsFromArray:exporterPlugIns];
 }
 
 

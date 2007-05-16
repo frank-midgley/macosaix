@@ -2,37 +2,11 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            ACTIONS = {
-                cancelExport = id; 
-                setBackground = id; 
-                setCreateWebPage = id; 
-                setFade = id; 
-                setImageFormat = id; 
-                setIncludeTargetImage = id; 
-                setOpenImageWhenComplete = id; 
-                setResolution = id; 
-                setShowNonUniqueMatches = id; 
-                setUnits = id; 
-            }; 
+            ACTIONS = {cancelExport = id; setFormat = id; }; 
             CLASS = MacOSaiXExportController; 
             LANGUAGE = ObjC; 
-            OUTLETS = {
-                accessoryView = NSView; 
-                backgroundPopUp = NSPopUpButton; 
-                createWebPageButton = NSButton; 
-                delegate = id; 
-                fadeSlider = NSSlider; 
-                formatMatrix = NSMatrix; 
-                heightField = NSTextField; 
-                includeTargetButton = NSButton; 
-                mosaicView = MosaicView; 
-                openWhenCompleteButton = NSButton; 
-                resolutionPopUp = NSPopUpButton; 
-                showNonUniqueMatchesButton = NSButton; 
-                unitsPopUp = NSPopUpButton; 
-                widthField = NSTextField; 
-            }; 
-            SUPERCLASS = NSWindowController; 
+            OUTLETS = {formatPopUp = NSPopUpButton; sharedView = NSView; }; 
+            SUPERCLASS = NSObject; 
         }, 
         {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSView; }
     ); 
