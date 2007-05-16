@@ -569,7 +569,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	
 	[exportController exportMosaic:[self mosaic]
 						  withName:[[[[self document] displayName] lastPathComponent] stringByDeletingPathExtension] 
-						mosaicView:mosaicView 
 					modalForWindow:[self window] 
 					 modalDelegate:self 
 					didEndSelector:@selector(saveAsDidComplete:)];
