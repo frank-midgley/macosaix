@@ -421,7 +421,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 															  operation:NSCompositeSourceOver 
 															   fraction:1.0];
 								break;
-							case fillWithSolidColor:
+							case fillWithColor:
 								[[tile fillColor] set];
 								NSRectFillUsingOperation([clipPath bounds], NSCompositeSourceOver);
 								break;
