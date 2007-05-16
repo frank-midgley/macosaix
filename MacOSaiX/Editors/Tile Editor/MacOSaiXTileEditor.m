@@ -170,7 +170,7 @@
 				
 				break;
 			}
-			case fillWithSolidColor:
+			case fillWithColor:
 			{
 				NSColor	*tileColor = [selectedTile fillColor];
 				
@@ -263,7 +263,7 @@
 			
 			break;
 		}
-		case fillWithSolidColor:
+		case fillWithColor:
 		{
 			NSColor	*tileColor = [selectedTile fillColor];
 			
