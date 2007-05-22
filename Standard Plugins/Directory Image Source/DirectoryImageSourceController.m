@@ -215,6 +215,7 @@
 
 - (void)editingDidComplete
 {
+	delegate = nil;
 }
 
 
