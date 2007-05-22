@@ -46,7 +46,7 @@
 
 - (NSString *)plugInTitleFormat
 {
-	return NSLocalizedString(@"%@ Image Orientations", @"");
+	return NSLocalizedString(@"%@", @"");
 }
 
 
@@ -103,7 +103,7 @@
 			
 			NSAffineTransform	*transform = [NSAffineTransform transform];
 			[transform translateXBy:x yBy:y];
-			[transform rotateByDegrees:angle];
+			[transform rotateByDegrees:-angle];
 			[[transform transformBezierPath:path] fill];
 		}
 			
