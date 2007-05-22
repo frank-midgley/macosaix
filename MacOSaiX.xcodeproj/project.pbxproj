@@ -19,6 +19,7 @@
 				011C7D7F0A1D76C50023CD62 /* PBXTargetDependency */,
 				011C7D7D0A1D76C50023CD62 /* PBXTargetDependency */,
 				014557E40B640E520007DDF9 /* PBXTargetDependency */,
+				929DC4090BFCE30000024C99 /* PBXTargetDependency */,
 				014F185C0B2CCEA10023D2D2 /* PBXTargetDependency */,
 				92D5930E0BF8F5A600FBA68C /* PBXTargetDependency */,
 			);
@@ -230,6 +231,11 @@
 		9298FEF409955C5A00E7A096 /* Document Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9298FEF209955C5A00E7A096 /* Document Icon.icns */; };
 		9298FF1409955E1500E7A096 /* Export.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FF1209955E1500E7A096 /* Export.nib */; };
 		929DC0980BFB4EFF00024C99 /* Bitmap Exporter.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92341E220BF8F1370079BFF0 /* Bitmap Exporter.bundle */; };
+		929DC4020BFCE0C100024C99 /* iTunesImageSourcePlugIn.h in Headers */ = {isa = PBXBuildFile; fileRef = 929DC4000BFCE0C100024C99 /* iTunesImageSourcePlugIn.h */; };
+		929DC4030BFCE0C100024C99 /* iTunesImageSourcePlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 929DC4010BFCE0C100024C99 /* iTunesImageSourcePlugIn.m */; };
+		929DC4140BFCE31000024C99 /* iTunes Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 011C7D690A1D76460023CD62 /* iTunes Image Source.plugin */; };
+		929DC5290BFD083E00024C99 /* NSData+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 929DC5270BFD083D00024C99 /* NSData+MacOSaiX.h */; };
+		929DC52A0BFD084000024C99 /* NSData+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 929DC5280BFD083D00024C99 /* NSData+MacOSaiX.m */; };
 		92A6B8F80AB4ACFB00298BCF /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92A6B8F70AB4ACFB00298BCF /* ApplicationServices.framework */; };
 		92B4091A0B0D437F00BB3981 /* MacOSaiXAboutBoxController.h in Headers */ = {isa = PBXBuildFile; fileRef = 92B409180B0D437E00BB3981 /* MacOSaiXAboutBoxController.h */; };
 		92B4091B0B0D437F00BB3981 /* MacOSaiXAboutBoxController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B409190B0D437E00BB3981 /* MacOSaiXAboutBoxController.m */; };
@@ -423,6 +429,13 @@
 			remoteGlobalIDString = 014F184D0B2CCDD40023D2D2;
 			remoteInfo = "Constant Image Orientations";
 		};
+		929DC4080BFCE30000024C99 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 011C7D580A1D76460023CD62;
+			remoteInfo = "iTunes Image Source";
+		};
 		92D5930D0BF8F5A600FBA68C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
@@ -445,6 +458,7 @@
 				01DCB2F5092C2508008345F3 /* Flickr Image Source.plugin in CopyFiles */,
 				92848A1706611CE6003B3514 /* Directory Image Source.plugin in CopyFiles */,
 				014558820B641A3C0007DDF9 /* Google Image Source.plugin in CopyFiles */,
+				929DC4140BFCE31000024C99 /* iTunes Image Source.plugin in CopyFiles */,
 				014F189E0B2CD1410023D2D2 /* Constant Image Orientations.plugin in CopyFiles */,
 				929DC0980BFB4EFF00024C99 /* Bitmap Exporter.bundle in CopyFiles */,
 			);
@@ -669,6 +683,10 @@
 		9298FEF109955C5A00E7A096 /* Application Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Application Icon.icns"; path = "../Icon work/Application Icon/Application Icon.icns"; sourceTree = "<group>"; };
 		9298FEF209955C5A00E7A096 /* Document Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Document Icon.icns"; path = "../Icon work/Document Icon/Document Icon.icns"; sourceTree = "<group>"; };
 		9298FF1309955E1500E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = MacOSaiX/Export/English.lproj/Export.nib; sourceTree = "<group>"; };
+		929DC4000BFCE0C100024C99 /* iTunesImageSourcePlugIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iTunesImageSourcePlugIn.h; sourceTree = "<group>"; };
+		929DC4010BFCE0C100024C99 /* iTunesImageSourcePlugIn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iTunesImageSourcePlugIn.m; sourceTree = "<group>"; };
+		929DC5270BFD083D00024C99 /* NSData+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+MacOSaiX.h"; sourceTree = "<group>"; };
+		929DC5280BFD083D00024C99 /* NSData+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+MacOSaiX.m"; sourceTree = "<group>"; };
 		92A6B8F70AB4ACFB00298BCF /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		92B409180B0D437E00BB3981 /* MacOSaiXAboutBoxController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MacOSaiXAboutBoxController.h; path = "About Box/MacOSaiXAboutBoxController.h"; sourceTree = "<group>"; };
 		92B409190B0D437E00BB3981 /* MacOSaiXAboutBoxController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MacOSaiXAboutBoxController.m; path = "About Box/MacOSaiXAboutBoxController.m"; sourceTree = "<group>"; };
@@ -902,6 +920,8 @@
 		011C7D4D0A1D760F0023CD62 /* iTunes */ = {
 			isa = PBXGroup;
 			children = (
+				929DC4000BFCE0C100024C99 /* iTunesImageSourcePlugIn.h */,
+				929DC4010BFCE0C100024C99 /* iTunesImageSourcePlugIn.m */,
 				011C7D540A1D763A0023CD62 /* iTunesImageSource.h */,
 				011C7D550A1D763B0023CD62 /* iTunesImageSource.m */,
 				011C7D560A1D763B0023CD62 /* iTunesImageSourceController.h */,
@@ -1105,6 +1125,8 @@
 				01AB92EA07DB797300DB4B86 /* NSString+MacOSaiX.m */,
 				92E0C5DC0A61C51C003C90CA /* NSBezierPath+MacOSaiX.h */,
 				92E0C5DD0A61C51C003C90CA /* NSBezierPath+MacOSaiX.m */,
+				929DC5270BFD083D00024C99 /* NSData+MacOSaiX.h */,
+				929DC5280BFD083D00024C99 /* NSData+MacOSaiX.m */,
 			);
 			name = "Cocoa Extensions";
 			sourceTree = "<group>";
@@ -1564,6 +1586,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				929DC4020BFCE0C100024C99 /* iTunesImageSourcePlugIn.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1611,6 +1634,7 @@
 				920072C10BEA89DA004DED2C /* MacOSaiXSplitView.h in Headers */,
 				92341CA20BF117370079BFF0 /* MacOSaiXExporter.h in Headers */,
 				92341E1A0BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.h in Headers */,
+				929DC5290BFD083E00024C99 /* NSData+MacOSaiX.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2358,6 +2382,7 @@
 			files = (
 				011C7D8E0A1D76FF0023CD62 /* iTunesImageSource.m in Sources */,
 				011C7D900A1D77000023CD62 /* iTunesImageSourceController.m in Sources */,
+				929DC4030BFCE0C100024C99 /* iTunesImageSourcePlugIn.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2471,6 +2496,7 @@
 				01660E530BE1375000D95052 /* MacOSaiXImageSourcesView.m in Sources */,
 				01660E550BE1375000D95052 /* MacOSaiXImageSourceView.m in Sources */,
 				920072C20BEA89DA004DED2C /* MacOSaiXSplitView.m in Sources */,
+				929DC52A0BFD084000024C99 /* NSData+MacOSaiX.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2577,6 +2603,11 @@
 			isa = PBXTargetDependency;
 			target = 014F184D0B2CCDD40023D2D2 /* Constant Image Orientations */;
 			targetProxy = 014F185B0B2CCEA10023D2D2 /* PBXContainerItemProxy */;
+		};
+		929DC4090BFCE30000024C99 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 011C7D580A1D76460023CD62 /* iTunes Image Source */;
+			targetProxy = 929DC4080BFCE30000024C99 /* PBXContainerItemProxy */;
 		};
 		92D5930E0BF8F5A600FBA68C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
