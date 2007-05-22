@@ -54,7 +54,7 @@
 
 - (NSString *)plugInTitleFormat
 {
-	return NSLocalizedString(@"%@ Tile Shapes", @"");
+	return NSLocalizedString(@"%@", @"");
 }
 
 
