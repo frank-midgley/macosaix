@@ -7,13 +7,12 @@
 */
 
 #import "iTunesImageSource.h"
+
 #import "iTunesImageSourceController.h"
+#import "iTunesImageSourcePlugIn.h"
+#import "NSData+MacOSaiX.h"
 #import "NSString+MacOSaiX.h"
 #import <pthread.h>
-
-
-static NSImage	*iTunesImage = nil,
-				*playlistImage = nil;
 
 
 @interface MacOSaiXiTunesImageSource (PrivateMethods)
@@ -24,46 +23,9 @@ static NSImage	*iTunesImage = nil,
 @implementation MacOSaiXiTunesImageSource
 
 
-+ (void)initialize
-{
-	NSURL		*iTunesAppURL = nil;
-	LSFindApplicationForInfo(kLSUnknownCreator, CFSTR("com.apple.iTunes"), NULL, NULL, (CFURLRef *)&iTunesAppURL);
-	NSBundle	*iTunesBundle = [NSBundle bundleWithPath:[iTunesAppURL path]];
-	
-	iTunesImage = [[NSImage alloc] initWithContentsOfFile:[iTunesBundle pathForImageResource:@"iTunes"]];
-	playlistImage = [[NSImage alloc] initWithContentsOfFile:[iTunesBundle pathForImageResource:@"iTunes-playlist"]];
-	[playlistImage setScalesWhenResized:YES];
-	[playlistImage setSize:NSMakeSize(16.0, 16.0)];
-}
-
-
-+ (NSImage *)image;
-{
-	return iTunesImage;
-}
-
-
-+ (Class)editorClass
-{
-	return [MacOSaiXiTunesImageSourceController class];
-}
-
-
-+ (Class)preferencesControllerClass
-{
-	return nil;
-}
-
-
 + (BOOL)allowMultipleImageSources
 {
 	return YES;
-}
-
-
-+ (NSImage *)playlistImage
-{
-	return playlistImage;
 }
 
 
@@ -85,6 +47,8 @@ static NSImage	*iTunesImage = nil,
 	
 	if ([self playlistName])
 		[settings setObject:[self playlistName] forKey:@"Playlist"];
+	if (artworkChecksums)
+		[settings setObject:artworkChecksums forKey:@"Artwork Checksums"];
 	
 	return [settings writeToFile:path atomically:NO];
 }
@@ -137,15 +101,21 @@ static NSImage	*iTunesImage = nil,
 	[playlistName autorelease];
 	playlistName = [name copy];
 	
-	if (name)
+	[sourceDescription autorelease];
+	
+	if (!name)
+		sourceDescription = nil;
+	else
 	{
-		[sourceDescription autorelease];
 		sourceDescription = [[NSString stringWithFormat:NSLocalizedString(@"Album artwork from \"%@\"", @""), playlistName] retain];
 		
 			// Indicate that the track ID's need to be retrieved.
 		[remainingTrackIDs autorelease];
 		remainingTrackIDs = nil;
 	}
+	
+	[artworkChecksums release];
+	artworkChecksums = [[NSMutableDictionary dictionary] retain];
 }
 
 
@@ -157,11 +127,11 @@ static NSImage	*iTunesImage = nil,
 
 - (NSImage *)image;
 {
-	return ([self playlistName] ? [[self class] playlistImage] : [[self class] image]);
+	return ([self playlistName] ? [MacOSaiXiTunesImageSourcePlugIn playlistImage] : [MacOSaiXiTunesImageSourcePlugIn image]);
 }
 
 
-- (id)descriptor
+- (id)briefDescription
 {
 	if (!sourceDescription)
 		sourceDescription = [[NSString stringWithString:NSLocalizedString(@"All album artwork", @"")] retain];
@@ -170,9 +140,9 @@ static NSImage	*iTunesImage = nil,
 }
 
 
-- (float)aspectRatio
+- (NSNumber *)aspectRatio
 {
-	return 1.0;
+	return [NSNumber numberWithFloat:1.0];
 }
 
 
@@ -212,6 +182,43 @@ static NSImage	*iTunesImage = nil,
 }
 
 
+- (NSData *)artworkDataForTrackID:(NSString *)trackID
+{
+	NSData		*artworkData = nil;
+	
+	if (!pthread_main_np())
+	{
+		NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObject:trackID forKey:@"Track ID"];
+		[self performSelectorOnMainThread:_cmd withObject:parameters waitUntilDone:YES];
+		artworkData = [parameters objectForKey:@"Artwork Data"];
+	}
+	else
+	{
+		BOOL					useDict = [trackID isKindOfClass:[NSDictionary class]];
+		NSString				*realTrackID = (useDict ? [(NSDictionary *)trackID objectForKey:@"Track ID"] : trackID);
+		
+		NSString				*getTrackArtworkText = [NSString stringWithFormat:
+			@"tell application \"iTunes\" to " \
+			@"get data of first artwork of (first track of " \
+			@"first library playlist of (first source whose kind is library) " \
+			@"whose database ID is %@)", realTrackID];
+		NSAppleScript			*getTrackArtworkScript = [[[NSAppleScript alloc] initWithSource:getTrackArtworkText] autorelease];
+		NSDictionary			*scriptError = nil;
+		NSAppleEventDescriptor	*getTrackArtworkResult = [getTrackArtworkScript executeAndReturnError:&scriptError];
+		
+		if (!scriptError)
+		{
+			artworkData = [(NSAppleEventDescriptor *)getTrackArtworkResult data];
+			
+			if (artworkData && useDict)
+				[(NSMutableDictionary *)trackID setObject:artworkData forKey:@"Artwork Data"];
+		}
+	}
+			
+	return artworkData;
+}
+
+
 - (NSImage *)nextImageAndIdentifier:(NSString **)identifier
 {
 	NSImage			*image = nil;
@@ -219,14 +226,57 @@ static NSImage	*iTunesImage = nil,
 	if (!remainingTrackIDs)
 		[self getTrackIDs];
 	
-	if ([remainingTrackIDs count] > 0)
+	while (!image && [remainingTrackIDs count] > 0)
 	{
+			// Get the artwork data for this track.
 		NSString		*trackID = [remainingTrackIDs objectAtIndex:0];
+		NSData			*artworkData = [self artworkDataForTrackID:trackID];
 		
-		image = [self imageForIdentifier:trackID];
-		
-		if (image)
-			*identifier = [[trackID retain] autorelease];
+		if (artworkData)
+		{
+				// Check if we have already used this artwork.
+			NSString		*artworkChecksum = [artworkData checksum];
+			NSMutableArray	*possibleDups = [artworkChecksums objectForKey:artworkChecksum];
+			NSEnumerator	*dupTrackEnumerator = [possibleDups objectEnumerator];
+			NSString		*dupTrackID = nil;
+			
+			while (dupTrackID = [dupTrackEnumerator nextObject])
+			{
+				if ([artworkData isEqualToData:[self artworkDataForTrackID:dupTrackID]]);
+					break;
+			}
+			
+			if (!dupTrackID)
+			{
+					// This is new artwork.
+				NS_DURING
+					image = [[[NSImage alloc] initWithData:[self artworkDataForTrackID:trackID]] autorelease];
+					#ifdef DEBUG
+						if (!image)
+							NSLog(@"Could not create the album image for track ID %@", trackID);
+					#endif
+				NS_HANDLER
+					#ifdef DEBUG
+						NSLog(@"Could not create the album image for track ID %@: %@", trackID, [localException reason]);
+					#endif
+				NS_ENDHANDLER
+					
+				if (image)
+				{
+					*identifier = [[trackID retain] autorelease];
+					
+						// Remember the artwork's checksum and track ID for future comparisons.
+					if (!artworkChecksums)
+						artworkChecksums = [[NSMutableDictionary dictionary] retain];
+					if (!possibleDups)
+					{
+						possibleDups = [NSMutableArray array];
+						[artworkChecksums setObject:possibleDups forKey:artworkChecksum];
+					}
+					[possibleDups addObject:trackID];
+				}
+			}
+		}
 		
 		[remainingTrackIDs removeObjectAtIndex:0];
 	}
@@ -253,46 +303,21 @@ static NSImage	*iTunesImage = nil,
 }
 
 
-- (NSImage *)imageForIdentifier:(NSString *)parameter
+- (NSImage *)imageForIdentifier:(NSString *)trackID
 {
 	NSImage		*image = nil;
 	
-	if (!pthread_main_np())
-	{
-		NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObject:parameter forKey:@"Track ID"];
-		[self performSelectorOnMainThread:_cmd withObject:parameters waitUntilDone:YES];
-		image = [parameters objectForKey:@"Image"];
-	}
-	else
-	{
-		NSString				*trackID = [(NSDictionary *)parameter objectForKey:@"Track ID"];
-		NSString				*getTrackArtworkText = [NSString stringWithFormat:
-										@"tell application \"iTunes\" to " \
-										@"get data of first artwork of (first track of " \
-										@"first library playlist of (first source whose kind is library) " \
-										@"whose database ID is %@)", trackID];
-		NSAppleScript			*getTrackArtworkScript = [[[NSAppleScript alloc] initWithSource:getTrackArtworkText] autorelease];
-		NSDictionary			*scriptError = nil;
-		NSAppleEventDescriptor	*getTrackArtworkResult = [getTrackArtworkScript executeAndReturnError:&scriptError];
-		
-		if (!scriptError)
-		{
-			NSData	*artworkData = [(NSAppleEventDescriptor *)getTrackArtworkResult data];
-		
-			if (artworkData)
-			{
-				NS_DURING
-					image = [[[NSImage alloc] initWithData:artworkData] autorelease];
-					if (image)
-						[(NSMutableDictionary *)parameter setObject:image forKey:@"Image"];
-				NS_HANDLER
-				NS_ENDHANDLER
-				
-				if (!image)
-					NSLog(@"Track ID %@ does not have valid artwork.", trackID);
-			}
-		}
-	}
+	NS_DURING
+		image = [[[NSImage alloc] initWithData:[self artworkDataForTrackID:trackID]] autorelease];
+		#ifdef DEBUG
+			if (!image)
+				NSLog(@"Could not create the album image for track ID %@", trackID);
+		#endif
+	NS_HANDLER
+		#ifdef DEBUG
+			NSLog(@"Could not create the album image for track ID %@: %@", trackID, [localException reason]);
+		#endif
+	NS_ENDHANDLER
 	
     return image;
 }

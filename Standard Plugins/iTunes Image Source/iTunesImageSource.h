@@ -9,12 +9,11 @@
 
 @interface MacOSaiXiTunesImageSource : NSObject <MacOSaiXImageSource>
 {
-    NSString				*playlistName;
-	NSAttributedString		*sourceDescription;
-    NSMutableArray			*remainingTrackIDs;
+    NSString			*playlistName;
+	NSAttributedString	*sourceDescription;
+    NSMutableArray		*remainingTrackIDs;
+	NSMutableDictionary	*artworkChecksums;
 }
-
-+ (NSImage *)playlistImage;
 
 - (NSString *)playlistName;
 - (void)setPlaylistName:(NSString *)name;

@@ -7,10 +7,27 @@
 //
 
 #import "iTunesImageSourceController.h"
+
 #import "iTunesImageSource.h"
+#import "iTunesImageSourcePlugIn.h"
 
 
 @implementation MacOSaiXiTunesImageSourceController
+
+
+- (id)initWithDelegate:(id<MacOSaiXEditorDelegate>)inDelegate;
+{
+	if (self = [super init])
+		delegate = inDelegate;
+	
+	return self;
+}
+
+
+- (id<MacOSaiXEditorDelegate>)delegate
+{
+	return delegate;
+}
 
 
 - (NSView *)editorView
@@ -24,64 +41,55 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(460.0, 66.0);
+	return NSMakeSize(186.0, 120.0);
 }
 
 
 - (NSSize)maximumSize
 {
-	return NSMakeSize(460.0, 66.0);
+	return NSZeroSize;
 }
 
 
 - (NSResponder *)firstResponder
 {
-	return playlistsPopUp;
+	return playlistTable;
 }
 
 
-- (void)editImageSource:(id<MacOSaiXImageSource>)imageSource
+- (void)editDataSource:(MacOSaiXiTunesImageSource *)imageSource
 {
-	[iconView setImage:[imageSource image]];
+	if (!playlistNames)
+		playlistNames = [[NSMutableArray array] retain];
+	else
+		[playlistNames removeAllObjects];
 	
-		// Populate the playlists pop-up with the names of all playlists.
-	NSString				*getPlaylistNamesText = @"tell application \"iTunes\" to get name of user playlists where (special kind of it is not Party Shuffle and special kind of it is not Videos)";
+		// Get the names of all user playlists.
+	NSString				*getPlaylistNamesText = @"tell application \"iTunes\" to get name of user playlists "\
+													 "    where (special kind of it is not Party Shuffle and "\
+													 "           special kind of it is not Videos)";
 	NSAppleScript			*getPlaylistNamesScript = [[[NSAppleScript alloc] initWithSource:getPlaylistNamesText] autorelease];
 	NSDictionary			*getPlaylistNamesError = nil;
 	NSAppleEventDescriptor	*getPlaylistNamesResult = [getPlaylistNamesScript executeAndReturnError:&getPlaylistNamesError];
-	[playlistsPopUp removeAllItems];
-	if (!getPlaylistNamesResult)
-	{
-		[playlistsPopUp addItemWithTitle:NSLocalizedString(@"No playlists available", @"")];
-		[playlistsPopUp setEnabled:NO];
-		[[matrix cellAtRow:1 column:0] setEnabled:NO];
-	}
-	else
+	if (getPlaylistNamesResult)
 	{
 			// Add an item for each playlist.
 		int			playlistCount = [getPlaylistNamesResult numberOfItems],
 					playlistIndex = 1;
 		for (playlistIndex = 1; playlistIndex <= playlistCount; playlistIndex++)
-		{
-			NSMenuItem	*item = [[[NSMenuItem alloc] init] autorelease];
-			[item setTitle:[[getPlaylistNamesResult descriptorAtIndex:playlistIndex] stringValue]];
-			[item setImage:[MacOSaiXiTunesImageSource playlistImage]];
-			[[playlistsPopUp menu] addItem:item];
-		}
-		[playlistsPopUp setEnabled:YES];
-		[[matrix cellAtRow:1 column:0] setEnabled:YES];
+			[playlistNames addObject:[[getPlaylistNamesResult descriptorAtIndex:playlistIndex] stringValue]];
 	}
+	
+	[playlistTable reloadData];
 	
 	NSString	*playlistName = [(MacOSaiXiTunesImageSource *)imageSource playlistName];
-	if (playlistName && [playlistsPopUp indexOfItemWithTitle:playlistName] >= 0)
-	{
-		[playlistsPopUp selectItemWithTitle:playlistName];
-		[matrix selectCellAtRow:1 column:0];
-	}
+	int			playlistIndex = [playlistNames indexOfObject:playlistName];
+	if (playlistIndex == NSNotFound)
+		[playlistTable selectRow:0 byExtendingSelection:NO];
 	else
-		[matrix selectCellAtRow:0 column:0];
+		[playlistTable selectRow:playlistIndex + 1 byExtendingSelection:NO];
 	
-	currentImageSource = (MacOSaiXiTunesImageSource *)imageSource;
+	currentImageSource = imageSource;
 }
 
 
@@ -91,32 +99,51 @@
 }
 
 
-- (void)editingComplete
+- (void)editingDidComplete
 {
+	delegate = nil;
 }
 
 
-- (IBAction)setSourceType:(id)sender
+- (int)numberOfRowsInTableView:(NSTableView *)tableView
 {
-	if ([matrix selectedRow] == 0)
-		[self chooseAllTracks:sender];
-	else if ([matrix selectedRow] == 1)
-		[self choosePlaylist:sender];
+	return [playlistNames count] + 1;
 }
 
 
-- (IBAction)chooseAllTracks:(id)sender
+- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 {
-	[currentImageSource setPlaylistName:nil];
-	[matrix selectCellAtRow:0 column:0];
+	id	object = nil;
+	
+	if ([[tableColumn identifier] isEqualToString:@"Icon"])
+	{
+		if (row == 0)
+			object = [MacOSaiXiTunesImageSourcePlugIn image];
+		else
+			object = [MacOSaiXiTunesImageSourcePlugIn playlistImage];
+	}
+	else
+	{
+		if (row == 0)
+			object = NSLocalizedString(@"Entire Library", @"");
+		else
+			object = [playlistNames objectAtIndex:row - 1];
+	}
+	
+	return object;
 }
 
 
-- (IBAction)choosePlaylist:(id)sender
+- (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
-		// Update the current image source instance.
-	[currentImageSource setPlaylistName:[playlistsPopUp titleOfSelectedItem]];
-	[matrix selectCellAtRow:1 column:0];
+	int	selectedRow = [playlistTable selectedRow];
+	
+	if (selectedRow == 0)
+		[currentImageSource setPlaylistName:nil];
+	else
+		[currentImageSource setPlaylistName:[playlistNames objectAtIndex:selectedRow - 1]];
+	
+	[[self delegate] plugInSettingsDidChange:NSLocalizedString(@"Change Playlist", @"")];
 }
 
 

@@ -9,20 +9,17 @@
 #import "iTunesImageSource.h"
 
 
-@interface MacOSaiXiTunesImageSourceController : NSObject <MacOSaiXImageSourceController>
+@interface MacOSaiXiTunesImageSourceController : NSObject <MacOSaiXDataSourceEditor>
 {
+	id<MacOSaiXEditorDelegate>	delegate;
+	
 	IBOutlet NSView				*editorView;
 
-	IBOutlet NSImageView		*iconView;
-	IBOutlet NSMatrix			*matrix;
-	IBOutlet NSPopUpButton		*playlistsPopUp;
+	IBOutlet NSTableView		*playlistTable;
+	NSMutableArray				*playlistNames;
 	
 		// The image source instance currently being edited.
 	MacOSaiXiTunesImageSource	*currentImageSource;
 }
-
-- (IBAction)setSourceType:(id)sender;
-- (IBAction)chooseAllTracks:(id)sender;
-- (IBAction)choosePlaylist:(id)sender;
 
 @end
