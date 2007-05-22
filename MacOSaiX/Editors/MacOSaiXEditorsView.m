@@ -51,17 +51,36 @@
 
 - (void)updateMinimumViewSize
 {
-	NSSize	minSize = [activeEditor minimumViewSize];
-	
-	if (!NSEqualSizes(minSize, NSZeroSize))
+		// Start with the minimum size needed for all of the editor buttons, including their auxiliary views.
+	NSSize			minSize = NSMakeSize(0.0, HEADER_HEIGHT * [editorButtons count]);
+	NSEnumerator	*editorEnumerator = [editors objectEnumerator];
+	MacOSaiXEditor	*editor = nil;
+	NSButton		*dummyButton = [[[NSButton alloc] initWithFrame:NSMakeRect(0.0, 0.0, 100.0, HEADER_HEIGHT)] autorelease];
+	[dummyButton setAlignment:NSLeftTextAlignment];
+	[dummyButton setImagePosition:NSImageLeft];
+	[dummyButton setBezelStyle:NSShadowlessSquareBezelStyle];
+	while (editor = [editorEnumerator nextObject])
 	{
-		// Add the height of the editor buttons.
-		// TODO: make sure the width is large enough for the buttons.
-		minSize.height += HEADER_HEIGHT * [editorButtons count];
+		[dummyButton setTitle:[editor title]];
+		[dummyButton setImage:[[editor class] image]];
+		[dummyButton sizeToFit];
 		
-		MacOSaiXWindowController	*controller = [[self window] windowController];
-		[controller setMinimumEditorsViewSize:minSize];
+		float	buttonWidth = NSWidth([dummyButton frame]);
+		
+		if ([editor auxiliaryView])
+			buttonWidth += 4.0 + NSWidth([[editor auxiliaryView] frame]);
+		
+		if (buttonWidth > minSize.width)
+			minSize.width = buttonWidth;
 	}
+	
+		// Account for the active editor's space needs.
+	NSSize	editorMinSize = [activeEditor minimumViewSize];
+	minSize.width = MAX(minSize.width, editorMinSize.width);
+	minSize.height += editorMinSize.height;
+	
+	MacOSaiXWindowController	*controller = [[self window] windowController];
+	[controller setMinimumEditorsViewSize:minSize];
 }
 
 
@@ -77,8 +96,6 @@
 		
 		editorButton = [[NSButton alloc] initWithFrame:NSMakeRect(0.0, NSMaxY([self bounds]) - HEADER_HEIGHT, NSWidth([self bounds]), HEADER_HEIGHT)];
 		[editorButton setAutoresizingMask:(NSViewWidthSizable | NSViewMinYMargin)];
-		
-		[self updateMinimumViewSize];
 		
 		[[activeEditor view] setFrame:NSMakeRect(0.0, 0.0, NSWidth([self bounds]), NSHeight([self bounds]) - HEADER_HEIGHT)];
 		[[activeEditor view] setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
