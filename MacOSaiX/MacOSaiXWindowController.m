@@ -143,6 +143,13 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	[editingSplitView setAdjustsLastViewOnly:YES];
 	[editorsView setMosaicView:mosaicView];
 	
+	windowLayoutIsMinimal = YES;
+	[self setWindowLayoutIsMinimal:NO];
+}
+
+
+- (void)windowDidLoad
+{
 		// Add the editors.
 	targetImageEditor = [[MacOSaiXTargetImageEditor alloc] initWithMosaicView:mosaicView];
 	[editorsView addEditor:targetImageEditor];
@@ -157,8 +164,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	tileContentEditor = [[MacOSaiXTileContentEditor alloc] initWithMosaicView:mosaicView];
 	[editorsView addEditor:tileContentEditor];
 	
-	windowLayoutIsMinimal = YES;
-	[self setWindowLayoutIsMinimal:NO];
+	[editorsView updateMinimumViewSize];
 }
 
 
@@ -374,6 +380,8 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 		frameRect = [editingView frame];
 		frameRect.size.width -= widthDiff;
 		[editingView setFrame:frameRect];
+		
+		[editingSplitView setNeedsDisplay:YES];
 	}
 	
 	minEditorsViewSize = minSize;
