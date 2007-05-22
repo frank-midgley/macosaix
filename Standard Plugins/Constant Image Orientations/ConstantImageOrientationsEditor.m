@@ -39,7 +39,7 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(237.0, 34.0);
+	return NSMakeSize(196.0, 54.0);
 }
 
 
@@ -70,14 +70,19 @@
 	float	angle = 0;
 	
 	if (sender == angleSlider)
-		angle = -[angleSlider floatValue];
+	{
+		angle = [angleSlider floatValue];
+		if (angle > 180.0)
+			angle -= 360.0;
+	}
 	else if (sender == angleTextField)
+	{
 		angle = [angleTextField floatValue];
-	
-	angle = fmodf(angle + 360.0, 360.0);
+		angle = MIN(MAX(angle, -180.0), 180.0);
+	}
 	
 	[currentImageOrientations setConstantAngle:angle];
-	[angleSlider setFloatValue:fmodf(-angle + 360.0, 360.0)];
+	[angleSlider setFloatValue:fmodf(angle + 360.0, 360.0)];
 	[angleTextField setFloatValue:angle];
 	
 	[[self delegate] plugInSettingsDidChange:NSLocalizedString(@"Change Constant Angle", @"")];
