@@ -192,6 +192,8 @@
 		
 		[plugInEditorBox setContentView:errorView];
 	}
+	
+	[self updateMinimumViewSize];
 }
 
 
