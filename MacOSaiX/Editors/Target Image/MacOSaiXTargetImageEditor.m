@@ -250,12 +250,10 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 }
 
 
-//- (void)awakeFromNib
-//{
-//	NSImageCell	*imageCell = [[targetImagesTableView tableColumnWithIdentifier:@"Thumbnail"] dataCell];
-//	
-//	[
-//}
+- (NSSize)minimumViewSize
+{
+	return NSMakeSize(200.0, 100.0);
+}
 
 
 - (NSString *)title

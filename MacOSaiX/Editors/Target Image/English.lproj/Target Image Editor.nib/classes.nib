@@ -2,9 +2,18 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
+            ACTIONS = {setPlugInClass = id; }; 
             CLASS = MacOSaiXEditor; 
             LANGUAGE = ObjC; 
-            OUTLETS = {editorView = NSView; }; 
+            OUTLETS = {
+                auxiliaryView = NSView; 
+                editorView = NSView; 
+                plugInEditor = id; 
+                plugInEditorBox = NSBox; 
+                plugInEditorNextKeyView = NSView; 
+                plugInEditorPreviousKeyView = NSView; 
+                plugInPopUpButton = NSPopUpButton; 
+            }; 
             SUPERCLASS = NSObject; 
         }, 
         {CLASS = MacOSaiXPopUpButton; LANGUAGE = ObjC; SUPERCLASS = NSButton; }, 
