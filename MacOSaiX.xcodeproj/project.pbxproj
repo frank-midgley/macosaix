@@ -165,8 +165,6 @@
 		9284898B06611CE5003B3514 /* ExportImage.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F594095502469B3101000104 /* ExportImage.tiff */; };
 		9284898C06611CE5003B3514 /* ImageSources.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F5940957024722BA01000104 /* ImageSources.tiff */; };
 		9284898D06611CE5003B3514 /* Blank.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F594095B02472CFD01000104 /* Blank.tiff */; };
-		9284899006611CE5003B3514 /* Pause.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F558F295027DBB8D01000103 /* Pause.tiff */; };
-		9284899106611CE5003B3514 /* Resume.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F558F297027DBF1B01000103 /* Resume.tiff */; };
 		9284899206611CE5003B3514 /* BadgeRed.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F58E0883028C71BF016CFBE9 /* BadgeRed.tiff */; };
 		9284899306611CE5003B3514 /* BadgeGreen.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F58E0885028C767C016CFBE9 /* BadgeGreen.tiff */; };
 		9284899506611CE5003B3514 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
@@ -230,6 +228,8 @@
 		9298FEF309955C5A00E7A096 /* Application Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9298FEF109955C5A00E7A096 /* Application Icon.icns */; };
 		9298FEF409955C5A00E7A096 /* Document Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9298FEF209955C5A00E7A096 /* Document Icon.icns */; };
 		9298FF1409955E1500E7A096 /* Export.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FF1209955E1500E7A096 /* Export.nib */; };
+		929C538E0C04E8B500D2CE07 /* Pause.png in Resources */ = {isa = PBXBuildFile; fileRef = 929C538C0C04E8B500D2CE07 /* Pause.png */; };
+		929C538F0C04E8B500D2CE07 /* Resume.png in Resources */ = {isa = PBXBuildFile; fileRef = 929C538D0C04E8B500D2CE07 /* Resume.png */; };
 		929DC0980BFB4EFF00024C99 /* Bitmap Exporter.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92341E220BF8F1370079BFF0 /* Bitmap Exporter.bundle */; };
 		929DC4020BFCE0C100024C99 /* iTunesImageSourcePlugIn.h in Headers */ = {isa = PBXBuildFile; fileRef = 929DC4000BFCE0C100024C99 /* iTunesImageSourcePlugIn.h */; };
 		929DC4030BFCE0C100024C99 /* iTunesImageSourcePlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 929DC4010BFCE0C100024C99 /* iTunesImageSourcePlugIn.m */; };
@@ -683,6 +683,8 @@
 		9298FEF109955C5A00E7A096 /* Application Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Application Icon.icns"; path = "../Icon work/Application Icon/Application Icon.icns"; sourceTree = "<group>"; };
 		9298FEF209955C5A00E7A096 /* Document Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Document Icon.icns"; path = "../Icon work/Document Icon/Document Icon.icns"; sourceTree = "<group>"; };
 		9298FF1309955E1500E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = MacOSaiX/Export/English.lproj/Export.nib; sourceTree = "<group>"; };
+		929C538C0C04E8B500D2CE07 /* Pause.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Pause.png; sourceTree = "<group>"; };
+		929C538D0C04E8B500D2CE07 /* Resume.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Resume.png; sourceTree = "<group>"; };
 		929DC4000BFCE0C100024C99 /* iTunesImageSourcePlugIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iTunesImageSourcePlugIn.h; sourceTree = "<group>"; };
 		929DC4010BFCE0C100024C99 /* iTunesImageSourcePlugIn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iTunesImageSourcePlugIn.m; sourceTree = "<group>"; };
 		929DC5270BFD083D00024C99 /* NSData+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+MacOSaiX.h"; sourceTree = "<group>"; };
@@ -748,8 +750,6 @@
 		F54EF786025F976A01000103 /* GlyphImageSource.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = GlyphImageSource.tiff; path = "Standard Plugins/Glyph Image Source/GlyphImageSource.tiff"; sourceTree = "<group>"; };
 		F5517EEE020CD88F01000106 /* MosaicView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MosaicView.h; sourceTree = "<group>"; };
 		F5517EEF020CD88F01000106 /* MosaicView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MosaicView.m; sourceTree = "<group>"; };
-		F558F295027DBB8D01000103 /* Pause.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Pause.tiff; sourceTree = "<group>"; };
-		F558F297027DBF1B01000103 /* Resume.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Resume.tiff; sourceTree = "<group>"; };
 		F5666CC9C5B062B401D943E0 /* MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiX.h; sourceTree = "<group>"; };
 		F5666CCAC5B062B401D943E0 /* MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiX.m; sourceTree = "<group>"; };
 		F566B485028052CF01000108 /* PreferencesController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PreferencesController.h; sourceTree = "<group>"; };
@@ -1510,9 +1510,9 @@
 				F5940957024722BA01000104 /* ImageSources.tiff */,
 				9253016409D611EF001E27F3 /* NoOriginal.png */,
 				92DA0E6F0A3235190064E69E /* PathSeparator.png */,
-				F558F295027DBB8D01000103 /* Pause.tiff */,
+				929C538C0C04E8B500D2CE07 /* Pause.png */,
 				92DA0D520A32193D0064E69E /* Remove.png */,
-				F558F297027DBF1B01000103 /* Resume.tiff */,
+				929C538D0C04E8B500D2CE07 /* Resume.png */,
 				01AC3A3B07B0997C0025F915 /* Settings.png */,
 				92EABC230954D25C007A9EB3 /* Tiles Setup.tiff */,
 				016A242208D7C952009A93BF /* ZoomIn.png */,
@@ -2070,8 +2070,6 @@
 				9284898B06611CE5003B3514 /* ExportImage.tiff in Resources */,
 				9284898C06611CE5003B3514 /* ImageSources.tiff in Resources */,
 				9284898D06611CE5003B3514 /* Blank.tiff in Resources */,
-				9284899006611CE5003B3514 /* Pause.tiff in Resources */,
-				9284899106611CE5003B3514 /* Resume.tiff in Resources */,
 				9284899206611CE5003B3514 /* BadgeRed.tiff in Resources */,
 				9284899306611CE5003B3514 /* BadgeGreen.tiff in Resources */,
 				92951FF1068A7FE600366ACB /* Info.plist in Resources */,
@@ -2122,6 +2120,8 @@
 				92B7989D0B6D303D0034AF82 /* Target Image.png in Resources */,
 				01660B190BD434B100D95052 /* Tile Shapes.png in Resources */,
 				01660ECD0BE2526400D95052 /* Image Sources.png in Resources */,
+				929C538E0C04E8B500D2CE07 /* Pause.png in Resources */,
+				929C538F0C04E8B500D2CE07 /* Resume.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
