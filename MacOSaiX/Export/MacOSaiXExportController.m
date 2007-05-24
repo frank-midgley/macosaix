@@ -190,7 +190,7 @@
 }
 
 
-- (void)plugInSettingsDidChange:(NSString *)changeDescription
+- (void)dataSource:(id<MacOSaiXDataSource>)dataSource settingsDidChange:(NSString *)changeDescription
 {
     [savePanel setRequiredFileType:[exportSettings exportExtension]];
 }

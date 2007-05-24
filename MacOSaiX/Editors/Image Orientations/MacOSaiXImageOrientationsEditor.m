@@ -118,7 +118,7 @@
 }
 
 
-- (void)plugInSettingsDidChange:(NSString *)description
+- (void)dataSource:(id<MacOSaiXDataSource>)dataSource settingsDidChange:(NSString *)changeDescription
 {
 //	[[[self mosaicView] mosaic] setTileShapes:[[[self mosaicView] mosaic] tileShapes] creatingTiles:YES];
 	

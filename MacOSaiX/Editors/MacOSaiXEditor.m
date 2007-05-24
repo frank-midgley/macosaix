@@ -117,7 +117,7 @@
 }
 
 
-- (void)plugInSettingsDidChange:(NSString *)changeDescription
+- (void)dataSource:(id<MacOSaiXDataSource>)dataSource settingsDidChange:(NSString *)changeDescription
 {
 	// Sub-classes to implement.
 }
