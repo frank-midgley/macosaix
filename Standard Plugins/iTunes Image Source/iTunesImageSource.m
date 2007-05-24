@@ -152,6 +152,12 @@
 }
 
 
+- (NSNumber *)imageCount
+{
+	return nil;
+}
+
+
 - (void)getTrackIDs
 {
 	if (!pthread_main_np())
@@ -381,6 +387,12 @@
 - (void)reset
 {
 	[self setPlaylistName:playlistName];
+}
+
+
+- (BOOL)imagesShouldBeRemovedForLastChange
+{
+	return YES;
 }
 
 

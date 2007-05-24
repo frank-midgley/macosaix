@@ -130,6 +130,12 @@ NSString *escapedNSString(NSString *string)
 }
 
 
+- (BOOL)imagesShouldBeRemovedForLastChange
+{
+	return YES;
+}
+
+
 - (NSImage *)image;
 {
     return [MacOSaiXFlickrImageSourcePlugIn flickrIcon];
@@ -367,6 +373,12 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 - (BOOL)hasMoreImages
 {
 	return haveMoreImages;
+}
+
+
+- (NSNumber *)imageCount
+{
+	return nil;
 }
 
 

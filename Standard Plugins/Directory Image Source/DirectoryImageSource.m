@@ -156,6 +156,12 @@
 }
 
 
+- (NSNumber *)imageCount
+{
+	return nil;
+}
+
+
 - (void)updateImageCountInUserDefaults
 {
 	NSMutableDictionary	*plugInDefaults = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] 
@@ -377,6 +383,12 @@
 - (void)reset
 {
 	[self setPath:directoryPath];
+}
+
+
+- (BOOL)imagesShouldBeRemovedForLastChange
+{
+	return YES;
 }
 
 

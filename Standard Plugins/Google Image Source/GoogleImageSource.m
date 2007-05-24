@@ -393,6 +393,12 @@ NSString *escapedNSString(NSString *string)
 }
 
 
+- (BOOL)imagesShouldBeRemovedForLastChange
+{
+	return YES;
+}
+
+
 - (NSImage *)image;
 {
     return [MacOSaiXGoogleImageSourcePlugIn googleIcon];
@@ -413,7 +419,11 @@ NSString *escapedNSString(NSString *string)
 
 - (void)populateImageQueueFromNextPage
 {
-	while ([imageURLQueue count] == 0 && startIndex >= 0)
+	while ([imageURLQueue count] == 0 && startIndex >= 0 && 
+		   ([[self requiredTerms] length] > 0 || 
+		    [[self optionalTerms] length] > 0 || 
+		    [[self excludedTerms] length] > 0 || 
+		    [[self siteString] length] > 0))
 	{
 		NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 		NSString			*nextPage = [urlBase stringByAppendingString:[NSString stringWithFormat:@"%d", startIndex]];
@@ -464,6 +474,12 @@ NSString *escapedNSString(NSString *string)
 }
 
 
+- (NSNumber *)imageCount
+{
+	return nil;
+}
+
+
 - (NSImage *)nextImageAndIdentifier:(NSString **)identifier
 {
 	NSImage		*image = nil;
@@ -508,7 +524,7 @@ NSString *escapedNSString(NSString *string)
 		// If the thumbnail couldn't be read from the cache then fetch it from Google.
 	if (!thumbnail)
 	{
-		NSURL		*thumbnailURL = [NSURL URLWithString:[NSString stringWithFormat:@"http://images.google.com/images?q=tbn:%@", identifier]];
+		NSURL		*thumbnailURL = [NSURL URLWithString:[NSString stringWithFormat:@"http://tbn0.google.com/images?q=tbn:%@", identifier]];
 		NSData		*thumbnailData = [[NSData alloc] initWithContentsOfURL:thumbnailURL];
 		
 		if (thumbnailData)

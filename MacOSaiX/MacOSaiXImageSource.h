@@ -21,6 +21,9 @@
 	// TBD: is this needed or is nil from -nextImageAndIdentifier: enough?
 - (BOOL)hasMoreImages;
 
+	// This method should return the number of images available from this source or nil if the count is not known.  The method will be called frequently so it should be relatively efficient and the returned count can be updated over time if needed.
+- (NSNumber *)imageCount;
+
 	// This method should return the next image along with a string that uniquely identifies the image, e.g. a path, URL, time index, etc.  If -canRefetchImages returns YES then the identifier will be passed to -imageForIdentifier: at a later time and must be able to return the same image.
 - (NSImage *)nextImageAndIdentifier:(NSString **)identifier;
 
@@ -47,5 +50,7 @@
 
 	// This method will be called whenever the user modifies a mosaic's tiles setup or modifies the settings of this source.  The image source should set the image count back to zero and, if appropriate, start over.
 - (void)reset;
+
+- (BOOL)imagesShouldBeRemovedForLastChange;
 
 @end

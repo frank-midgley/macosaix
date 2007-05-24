@@ -107,6 +107,12 @@
 }
 
 
+- (NSNumber *)imageCount
+{
+	return nil;
+}
+
+
 - (NSImage *)nextImageAndIdentifier:(NSString **)identifier
 {
 	*identifier = nil;
@@ -162,6 +168,12 @@
 
 - (void)reset
 {
+}
+
+
+- (BOOL)imagesShouldBeRemovedForLastChange
+{
+	return YES;
 }
 
 
