@@ -1029,8 +1029,6 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 			[(MacOSaiXTile *)parent setUserChosenImageMatch:match];
 		
 		[(MacOSaiXImageMatch *)child setTile:(MacOSaiXTile *)parent];
-		
-		[mosaic setWasStarted:YES];
 	}
 	
 //	NSLog(@"Parent <%@: %p> added child <%@: %p>", NSStringFromClass([parent class]), (void *)parent, NSStringFromClass([child class]), (void *)child);
