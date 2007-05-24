@@ -414,22 +414,25 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	
 	if (index != -1)
 	{
-		if (![[[self mosaicView] mosaic] targetImage] ||
-			![[[self mosaicView] mosaic] wasStarted] || 
-			![MacOSaiXWarningController warningIsEnabled:@"Changing Target Image"] || 
-			[MacOSaiXWarningController runAlertForWarning:@"Changing Target Image" 
-													title:NSLocalizedString(@"Do you wish to change the target image?", @"") 
-												  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
-											 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Change", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
+		NSDictionary	*imageDict = [targetImageDicts objectAtIndex:index];
+		NSString		*existingTargetImagePath = [[[self mosaicView] mosaic] targetImagePath], 
+						*newTargetImagePath = [imageDict objectForKey:@"Path"];
+		BOOL			changeTargetImage = YES;
+		
+		if (existingTargetImagePath && ![existingTargetImagePath isEqualToString:newTargetImagePath] && 
+			[MacOSaiXWarningController warningIsEnabled:@"Changing Target Image"])
+			changeTargetImage = ([MacOSaiXWarningController runAlertForWarning:@"Changing Target Image" 
+																		 title:NSLocalizedString(@"Do you wish to change the target image?", @"") 
+																	   message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
+																  buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Change", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0);
+		
+		if (changeTargetImage)
 		{
-			NSDictionary	*imageDict = [targetImageDicts objectAtIndex:index];
+			[[[self mosaicView] mosaic] setTargetImagePath:newTargetImagePath];
 			
-			NSString	*targetImagePath = [imageDict objectForKey:@"Path"];
-			[[[self mosaicView] mosaic] setTargetImagePath:targetImagePath];
+			[[NSUserDefaults standardUserDefaults] setObject:newTargetImagePath forKey:@"Last Chosen Target Image Path"];
 			
-			[[NSUserDefaults standardUserDefaults] setObject:targetImagePath forKey:@"Last Chosen Target Image Path"];
-			
-			NSImage		*targetImage = [[NSImage alloc] initWithContentsOfFile:targetImagePath];
+			NSImage		*targetImage = [[NSImage alloc] initWithContentsOfFile:newTargetImagePath];
 			[[[self mosaicView] mosaic] setTargetImage:targetImage];
 			[targetImage release];
 		}
