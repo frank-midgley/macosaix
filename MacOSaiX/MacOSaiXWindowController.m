@@ -201,12 +201,10 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	
 	if (![[self mosaic] targetImage])
 		status = NSLocalizedString(@"You have not chosen a target image", @"");
-	else if ([[[self mosaic] tiles] count] == 0)
+	else if (![[self mosaic] tileShapes])
 		status = NSLocalizedString(@"You have not set the tile shapes", @"");
 	else if ([[[self mosaic] imageSources] count] == 0)
 		status = NSLocalizedString(@"You have not added any image sources", @"");
-	else if (![[self mosaic] wasStarted] && ![[self mosaic] imageSourcesExhausted])
-		status = NSLocalizedString(@"Click the Start button in the toolbar to begin.", @"");
 	else if ([[self mosaic] isBusy])
 	{
 		status = [[self mosaic] busyStatus];
@@ -269,7 +267,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 		[self updateStatus];
 		
 			// Update the toolbar.
-		if (![[self mosaic] wasStarted] || [[self mosaic] isPaused])
+		if ([[self mosaic] isPaused])
 			[pauseButton setImage:[NSImage imageNamed:@"Resume"]];
 		else
 			[pauseButton setImage:[NSImage imageNamed:@"Pause"]];

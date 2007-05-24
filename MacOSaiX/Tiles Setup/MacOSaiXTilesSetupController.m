@@ -300,8 +300,7 @@
 - (IBAction)ok:(id)sender;
 {
 		// TBD: some changes may not require resetting
-	if (![[self mosaic] wasStarted] || 
-		![MacOSaiXWarningController warningIsEnabled:@"Changing Tiles Setup"] || 
+	if (![MacOSaiXWarningController warningIsEnabled:@"Changing Tiles Setup"] || 
 		[MacOSaiXWarningController runAlertForWarning:@"Changing Tiles Setup" 
 												title:NSLocalizedString(@"Do you wish to change the tiles setup?", @"") 
 											  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
