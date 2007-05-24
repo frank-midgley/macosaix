@@ -13,7 +13,7 @@
 @class MacOSaiXImageSourcesView, MacOSaiXPopUpButton;
 
 
-@interface MacOSaiXImageSourcesEditor : MacOSaiXEditor
+@interface MacOSaiXImageSourcesEditor : MacOSaiXEditor <MacOSaiXEditorDelegate>
 {
 	IBOutlet NSScrollView				*imageSourcesScrollView;
 	

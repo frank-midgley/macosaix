@@ -6,10 +6,12 @@
 //  Copyright 2007 Frank M. Midgley. All rights reserved.
 //
 
+@class MacOSaiXImageSourcesEditor;
 @protocol MacOSaiXDataSourceEditor, MacOSaiXEditorDelegate, MacOSaiXImageSource;
 
 @interface MacOSaiXImageSourceView : NSView <MacOSaiXEditorDelegate>
 {
+	MacOSaiXImageSourcesEditor		*imageSourcesEditor;
 	NSButton						*disclosureButton;
 	NSBox							*editorBox;
 	NSSize							boxBorderSize;
@@ -17,6 +19,8 @@
 	id<MacOSaiXImageSource>			imageSource;
 	id<MacOSaiXDataSourceEditor>	imageSourceEditor;
 }
+
+- (void)setEditor:(MacOSaiXImageSourcesEditor *)editor;
 
 - (void)setImageSource:(id<MacOSaiXImageSource>)source;
 - (id<MacOSaiXImageSource>)imageSource;

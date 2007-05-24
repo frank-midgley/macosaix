@@ -10,6 +10,7 @@
 
 #import "MacOSaiX.h"
 #import "MacOSaiXImageSource.h"
+#import "MacOSaiXImageSourcesEditor.h"
 #import "MacOSaiXImageSourcesView.h"
 
 
@@ -36,6 +37,12 @@
 - (BOOL)isFlipped
 {
 	return YES;
+}
+
+
+- (void)setEditor:(MacOSaiXImageSourcesEditor *)editor
+{
+	imageSourcesEditor = editor;
 }
 
 
@@ -184,8 +191,10 @@
 }
 
 
-- (void)plugInSettingsDidChange:(NSString *)changeDescription
+- (void)dataSource:(id<MacOSaiXDataSource>)dataSource settingsDidChange:(NSString *)changeDescription
 {
+	[imageSourcesEditor dataSource:dataSource settingsDidChange:changeDescription];
+	
 	[self setNeedsDisplay:YES];
 }
 

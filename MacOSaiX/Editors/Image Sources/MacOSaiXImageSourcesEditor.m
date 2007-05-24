@@ -75,6 +75,12 @@
 }
 
 
+- (NSImage *)targetImage
+{
+	return [[[self mosaicView] mosaic] targetImage];
+}
+
+
 - (NSString *)title
 {
 	return NSLocalizedString(@"Image Sources", @"");
@@ -177,21 +183,6 @@
 }
 
 
-//- (void)imageSourceWasEdited:(id<MacOSaiXImageSource>)editedImageSource 
-//		 originalImageSource:(id<MacOSaiXImageSource>)originalImageSource
-//{
-//	if (editedImageSource)
-//	{
-//		[[[self mosaicView] mosaic] removeImageSource:originalImageSource];
-//		[[[self mosaicView] mosaic] addImageSource:editedImageSource];
-//		
-//		[imageSourcesTable reloadData];
-//	}
-//	
-//	[originalImageSource release];
-//}
-
-
 - (IBAction)addImageSource:(id)sender
 {
 	Class	imageSourcePlugIn = nil;
@@ -209,150 +200,19 @@
 		if ([[[[self mosaicView] mosaic] imageSources] count] == 1)
 			[self loadImageSources];
 		
-		[[imageSourcesView viewForImageSource:newSource] setEditorVisible:YES];
+		MacOSaiXImageSourceView		*imageSourceView = [imageSourcesView viewForImageSource:newSource];
+		[imageSourceView setEditor:self];
+		[imageSourceView setEditorVisible:YES];
 		
 		[self updateMinimumViewSize];
 	}
 }
 
 
-//- (IBAction)editImageSource:(id)sender
-//{
-//	int	selectedRowIndex = [imageSourcesTable selectedRow];
-//	
-//	if (selectedRowIndex >= 0)
-//	{
-//		imageSourceBeingEdited = [[[[self mosaicView] mosaic] imageSources] objectAtIndex:selectedRowIndex];
-//		
-//		[imageSourcesTable deselectAll:self];
-//		[[imageSourcesTable enclosingScrollView] setHasVerticalScroller:NO];
-//		[[imageSourcesTable enclosingScrollView] setAutoresizingMask:(NSViewWidthSizable | NSViewMinYMargin)];
-//		
-//		[editSourceButton setAction:@selector(showImageSources:)];
-//		
-//		NSDictionary	*userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-//										[NSNumber numberWithFloat:NSMinY([[imageSourcesTable enclosingScrollView] frame])], @"Initial Table Min Y", 
-//										[NSDate date], @"Start Date", 
-//										nil];
-//		animationTimer = [[NSTimer scheduledTimerWithTimeInterval:0.01 
-//														   target:self 
-//														 selector:@selector(animateTransition:) 
-//														 userInfo:userInfo 
-//														  repeats:YES] retain];
-//	}
-//}
-
-
-- (void)plugInSettingsDidChange:(NSString *)changeDescription
+- (void)dataSource:(id<MacOSaiXImageSource>)dataSource settingsDidChange:(NSString *)changeDescription
 {
-	// TBD
+	[[[self mosaicView] mosaic] imageSource:dataSource didChangeSettings:changeDescription];
 }
-
-
-//- (void)animateTransition:(NSTimer *)timer
-//{
-//	NSRect	selfBounds = [[self view] bounds];
-//	float	bottomY = NSMaxY([addSourceButton frame]) + 10.0, 
-//			initialY = [[[timer userInfo] objectForKey:@"Initial Table Min Y"] floatValue], 
-//			targetY = (imageSourceBeingEdited ? NSMaxY(selfBounds) - 52.0 - 10.0 : bottomY), 
-//			animationPhase = [[[timer userInfo] objectForKey:@"Start Date"] timeIntervalSinceNow] * -3.0;
-//	
-//	if (animationPhase > 1.0)
-//		animationPhase = 1.0;
-//	
-//	float	currentY = initialY + (targetY - initialY) * animationPhase;
-//	
-//	[[imageSourcesTable enclosingScrollView] setFrame:NSMakeRect(NSMinX(selfBounds) + 10.0, 
-//																 currentY, 
-//																 NSWidth(selfBounds) - 20.0, 
-//																 NSHeight(selfBounds) - currentY - 10.0)];
-//	
-//	float	editorBoxHeight = currentY - bottomY - 10.0;
-//	
-//	if (imageSourceBeingEdited && !editorBox && editorBoxHeight > 24.0)
-//	{
-//		NSBundle	*plugInBundle = [NSBundle bundleForClass:[imageSourceBeingEdited class]];
-//		NSString	*plugInName = [plugInBundle objectForInfoDictionaryKey:@"CFBundleName"], 
-//					*titleFormat = NSLocalizedString(@"%@ Image Source Settings", @"");
-//		
-//		editorBox = [[[NSBox alloc] initWithFrame:NSMakeRect(NSMinX(selfBounds) + 10.0, bottomY, NSWidth(selfBounds) - 20.0, editorBoxHeight)] autorelease];
-//		[editorBox setTitle:[NSString stringWithFormat:titleFormat, plugInName]];
-//		[editorBox setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
-//		
-//		Class	plugIn = [(MacOSaiX *)[NSApp delegate] plugInForDataSourceClass:[imageSourceBeingEdited class]];
-//		imageSourceEditor = [[[plugIn editorClass] alloc] initWithDelegate:self];
-//		[editorBox setContentView:[imageSourceEditor editorView]];
-//		
-//		// TODO: deal with min/max editor sizes
-//		
-//		[[self view] addSubview:editorBox];
-//	}
-//	else
-//		[editorBox setFrame:NSMakeRect(NSMinX(selfBounds) + 10.0, bottomY, NSWidth(selfBounds) - 20.0, editorBoxHeight)];
-//	
-//	[[self view] setNeedsDisplay:YES];
-//	
-//	if (animationPhase == 1.0)
-//	{
-//		// Finish the transition.
-//		
-//		[animationTimer invalidate];
-//		[animationTimer release];
-//		animationTimer = nil;
-//		
-//		if (imageSourceBeingEdited)
-//		{
-//			[imageSourcesTable reloadData];
-//			
-//			[imageSourceEditor editDataSource:imageSourceBeingEdited];
-//			[editSourceButton setTitle:NSLocalizedString(@"Show All Sources", @"")];
-//		}
-//		else
-//		{
-//			[editorBox removeFromSuperview];
-//			editorBox = nil;
-//			
-//			[[imageSourcesTable enclosingScrollView] setHasVerticalScroller:YES];
-//			
-//			[editSourceButton setTitle:NSLocalizedString(@"Edit", @"")];
-//			[editSourceButton setAction:@selector(editImageSource:)];
-//		}
-//		
-//		[editSourceButton sizeToFit];
-//		[editSourceButton setFrame:NSMakeRect(NSMaxX(selfBounds) - 10.0 - NSWidth([editSourceButton frame]), 
-//											  NSMinY([addSourceButton frame]), 
-//											  NSWidth([editSourceButton frame]), 
-//											  NSHeight([addSourceButton frame]))];
-//	}
-//}
-
-
-//- (IBAction)showImageSources:(id)sender
-//{
-//	[[imageSourcesTable enclosingScrollView] setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
-//	
-//	[editorBox setAutoresizingMask:(NSViewWidthSizable | NSViewMaxYMargin)];
-//	[editorBox setContentView:nil];
-//	
-//	[imageSourceEditor editingDidComplete];
-//	[imageSourceEditor release];
-//	
-//	int	rowIndex = [[[[self mosaicView] mosaic] imageSources] indexOfObjectIdenticalTo:imageSourceBeingEdited];
-//	imageSourceBeingEdited = nil;
-//	
-//	NSDictionary	*userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-//									[NSNumber numberWithFloat:NSMinY([[imageSourcesTable enclosingScrollView] frame])], @"Initial Table Min Y", 
-//									[NSDate date], @"Start Date", 
-//									nil];
-//	animationTimer = [[NSTimer scheduledTimerWithTimeInterval:0.01 
-//													   target:self 
-//													 selector:@selector(animateTransition:) 
-//													 userInfo:userInfo 
-//													  repeats:YES] retain];
-//	
-//	[imageSourcesTable reloadData];
-//	[imageSourcesTable selectRow:rowIndex byExtendingSelection:NO];
-//}
 
 
 - (IBAction)removeImageSource:(id)sender
