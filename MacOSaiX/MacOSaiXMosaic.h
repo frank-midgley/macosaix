@@ -33,16 +33,17 @@
 									imageReuseDistance,
 									imageCropLimit;
 	
+	NSLock							*tilesWithoutBitmapsLock;
+	BOOL							tileBitmapExtractionThreadAlive;
 	NSMutableArray					*tilesWithoutBitmaps;
 	
 	NSString						*diskCachePath;
 	NSMutableDictionary				*diskCacheSubPaths;
 	
 		// Image source enumeration
-    NSLock							*enumerationThreadCountLock;
-	int								enumerationThreadCount;
+    NSLock							*enumerationsLock;
+	NSMutableArray					*imageSourceEnumerations;
 	NSMutableDictionary				*enumerationCounts;
-	NSLock							*enumerationCountsLock;
     NSMutableArray					*imageQueue, 
 									*revisitQueue;
     NSLock							*imageQueueLock;
@@ -52,11 +53,15 @@
 	BOOL							calculateImageMatchesThreadAlive;
 	NSMutableDictionary				*betterMatchesCache;
 	
-    BOOL							mosaicStarted, 
-									paused, 
+    BOOL							paused, 
 									pausing;
     float							overallMatch,
 									lastDisplayMatch;
+	
+	id<MacOSaiXImageSource>			probationaryImageSource;
+	NSMutableSet					*probationImageMorgue;
+	NSDate							*probationStartDate;
+	NSRecursiveLock					*probationLock;
 }
 
 - (void)setTargetImage:(NSImage *)image;
@@ -100,6 +105,7 @@
 
 - (NSArray *)imageSources;
 - (void)addImageSource:(id<MacOSaiXImageSource>)imageSource;
+- (void)imageSource:(id<MacOSaiXImageSource>)imageSource didChangeSettings:(NSString *)changeDescription;
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (BOOL)imageSourcesExhausted;
 - (unsigned long)countOfImagesFromSource:(id<MacOSaiXImageSource>)imageSource;
@@ -113,8 +119,6 @@
 - (void)setHandPickedImageAtPath:(NSString *)path withMatchValue:(float)matchValue forTile:(MacOSaiXTile *)tile;
 - (void)removeHandPickedImageForTile:(MacOSaiXTile *)tile;
 
-- (void)setWasStarted:(BOOL)wasStarted;
-- (BOOL)wasStarted;
 - (BOOL)isPaused;
 - (void)pause;
 - (void)resume;
