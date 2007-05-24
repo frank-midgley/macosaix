@@ -232,7 +232,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[delegate plugInSettingsDidChange:NSLocalizedString(@"Change Tiles Across", @"")];
+	[delegate dataSource:currentTileShapes settingsDidChange:NSLocalizedString(@"Change Tiles Across", @"")];
 }
 
 
@@ -249,7 +249,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[delegate plugInSettingsDidChange:NSLocalizedString(@"Change Tiles Down", @"")];
+	[delegate dataSource:currentTileShapes settingsDidChange:NSLocalizedString(@"Change Tiles Down", @"")];
 }
 
 
@@ -278,7 +278,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[delegate plugInSettingsDidChange:NSLocalizedString(@"Change Tiles Size", @"")];
+	[delegate dataSource:currentTileShapes settingsDidChange:NSLocalizedString(@"Change Tiles Size", @"")];
 }
 
 
@@ -290,7 +290,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[delegate plugInSettingsDidChange:NSLocalizedString(@"Change Number of Tiles", @"")];
+	[delegate dataSource:currentTileShapes settingsDidChange:NSLocalizedString(@"Change Number of Tiles", @"")];
 }
 
 

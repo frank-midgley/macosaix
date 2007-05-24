@@ -227,7 +227,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[self delegate] plugInSettingsDidChange:@"Change Tiles Across"];
+	[[self delegate] dataSource:currentTileShapes settingsDidChange:@"Change Tiles Across"];
 }
 
 
@@ -244,7 +244,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[self delegate] plugInSettingsDidChange:@"Change Tiles Down"];
+	[[self delegate] dataSource:currentTileShapes settingsDidChange:@"Change Tiles Down"];
 }
 
 
@@ -274,7 +274,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[self delegate] plugInSettingsDidChange:@"Change Tiles Size"];
+	[[self delegate] dataSource:currentTileShapes settingsDidChange:@"Change Tiles Size"];
 }
 
 
@@ -287,7 +287,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[self delegate] plugInSettingsDidChange:@"Change Number of Tiles"];
+	[[self delegate] dataSource:currentTileShapes settingsDidChange:@"Change Number of Tiles"];
 }
 
 
@@ -302,7 +302,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[self delegate] plugInSettingsDidChange:@"Change Frequency of Tabbed Sides"];
+	[[self delegate] dataSource:currentTileShapes settingsDidChange:@"Change Frequency of Tabbed Sides"];
 }
 
 
@@ -313,7 +313,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[self delegate] plugInSettingsDidChange:@"Change Curviness of Tiles"];
+	[[self delegate] dataSource:currentTileShapes settingsDidChange:@"Change Curviness of Tiles"];
 }
 
 

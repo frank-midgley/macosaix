@@ -227,7 +227,7 @@
 	{
 		[currentImageSource setPath:[directory path]];
 		[self populateGUI];
-		[[self delegate] plugInSettingsDidChange:NSLocalizedString(@"Change Folder", @"")];
+		[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Folder", @"")];
 	}
 	else
 	{
@@ -290,7 +290,7 @@
 		
 		[self populateGUI];
 		
-		[[self delegate] plugInSettingsDidChange:NSLocalizedString(@"Change Folder", @"")];
+		[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Folder", @"")];
 	}
 }
 
@@ -318,7 +318,7 @@
 {
 	[currentImageSource setFollowsAliases:([followsAliasesButton state] == NSOnState)];
 	
-	[[self delegate] plugInSettingsDidChange:NSLocalizedString(@"Set Follows Aliases", @"")];
+	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Set Follows Aliases", @"")];
 }
 
 

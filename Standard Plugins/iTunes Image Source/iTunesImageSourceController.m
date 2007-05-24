@@ -143,7 +143,7 @@
 	else
 		[currentImageSource setPlaylistName:[playlistNames objectAtIndex:selectedRow - 1]];
 	
-	[[self delegate] plugInSettingsDidChange:NSLocalizedString(@"Change Playlist", @"")];
+	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Playlist", @"")];
 }
 
 

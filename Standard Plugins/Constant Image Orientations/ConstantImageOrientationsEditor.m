@@ -85,7 +85,7 @@
 	[angleSlider setFloatValue:fmodf(angle + 360.0, 360.0)];
 	[angleTextField setFloatValue:angle];
 	
-	[[self delegate] plugInSettingsDidChange:NSLocalizedString(@"Change Constant Angle", @"")];
+	[[self delegate] dataSource:currentImageOrientations settingsDidChange:NSLocalizedString(@"Change Constant Angle", @"")];
 }
 
 
