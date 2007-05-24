@@ -10,6 +10,9 @@
 #import <Cocoa/Cocoa.h>
 
 
+@protocol MacOSaiXDataSource;
+
+
 @protocol MacOSaiXPlugIn <NSObject>
 
 	// This method should return a generic image for the plug-in.  This image is used for display in the preferences window (32x32), various pop-up menus (16x16) and the crash reporter window (16x16).
@@ -29,11 +32,11 @@
 
 @protocol MacOSaiXEditorDelegate
 
-	// This method returns the target image being used for the current mosaic.
+	// An editor can call this method to get the target image being used for the current mosaic.
 - (NSImage *)targetImage;
 
-	// Call this method when the settings managed by the plug-in have been changed by the user.  The change description will be used as part of the Undo item in the Edit menu, e.g. "Undo Change Tiles Across".
-- (void)plugInSettingsDidChange:(NSString *)changeDescription;
+	// Call this method when a data source being displayed in an editor has been changed by the user.  The change description may be used as part of the Undo item in the Edit menu, e.g. "Undo Change Tiles Across".
+- (void)dataSource:(id<MacOSaiXDataSource>)dataSource settingsDidChange:(NSString *)changeDescription;
 
 @end
 
