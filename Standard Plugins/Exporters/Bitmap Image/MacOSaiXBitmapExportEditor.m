@@ -83,7 +83,7 @@
 	else if ([formatMatrix selectedRow] == 2)
 		[currentSettings setFormat:@"TIFF"];
 	
-	[[self delegate] plugInSettingsDidChange:@"Change Format"];
+	[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Format"];
 }
 
 
@@ -93,7 +93,7 @@
 	
 	[currentSettings setUnits:[unitsPopUp selectedTag]];
 	
-	[[self delegate] plugInSettingsDidChange:@"Change Units"];
+	[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Units"];
 }
 
 
@@ -101,7 +101,7 @@
 {
 	[currentSettings setPixelsPerInch:[resolutionPopUp selectedTag]];
 	
-	[[self delegate] plugInSettingsDidChange:@"Change Resolution"];
+	[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Resolution"];
 }
 
 
