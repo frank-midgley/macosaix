@@ -221,6 +221,8 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 		status = NSLocalizedString(@"Done", @"");
 	
 	[statusField setStringValue:status];
+	
+	[pauseButton setState:([[self mosaic] isBusy] ? NSOnState : NSOffState)];
 }
 
 
