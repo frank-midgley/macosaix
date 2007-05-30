@@ -163,7 +163,7 @@ static MacOSaiXAboutBoxController	*sharedController;
 
 - (void)tileImageDidChange:(NSNotification *)notification
 {
-	int	currentCount = [[mosaicView mosaic] imagesFound];
+	int	currentCount = [[mosaicView mosaic] numberOfImagesFound];
 	
 //	NSLog(@"%d", currentCount - lastTileChangeCount);
 	
