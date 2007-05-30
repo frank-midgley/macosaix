@@ -98,12 +98,7 @@
 		while (imageSource = [imageSourceEnumerator nextObject])
 			[currentMosaic removeImageSource:imageSource];
 		
-		[[NSNotificationCenter defaultCenter] removeObserver:self 
-														name:MacOSaiXMosaicDidChangeStateNotification 
-													  object:currentMosaic];
-		[[NSNotificationCenter defaultCenter] removeObserver:self 
-														name:MacOSaiXMosaicDidChangeImageSourcesNotification 
-													  object:currentMosaic];
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:currentMosaic];
 	}
 	
 	{
@@ -114,7 +109,7 @@
 		
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(mosaicDidChangeState:) 
-													 name:MacOSaiXMosaicDidChangeStateNotification 
+													 name:MacOSaiXMosaicDidChangeBusyStateNotification 
 												   object:currentMosaic];
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(mosaicDidChangeState:) 
@@ -376,7 +371,7 @@
 		id<MacOSaiXImageSource>	imageSource = [[currentMosaic imageSources] objectAtIndex:rowIndex];
 		
 		if ([[tableColumn identifier] isEqualToString:@"Count"])
-			return [NSNumber numberWithUnsignedLong:[currentMosaic countOfImagesFromSource:imageSource]];
+			return [NSNumber numberWithUnsignedLong:[currentMosaic numberOfImagesFoundFromSource:imageSource]];
 		else
 			objectValue = [imageSource briefDescription];
     }
