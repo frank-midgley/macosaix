@@ -31,7 +31,7 @@
 - (void)updateMosaicImage:(NSMutableArray *)updatedTiles;
 
 - (void)spawnImageSourceThreads;
-- (void)setImageCount:(unsigned long)imageCount forImageSource:(id<MacOSaiXImageSource>)imageSource;
+- (void)setNumberOfImagesFound:(unsigned long)imageCount forImageSource:(id<MacOSaiXImageSource>)imageSource;
 
 - (void)extractTileImagesFromTargetImage;
 - (void)calculateImageMatches:(id)path;
@@ -141,7 +141,7 @@
 	if (mosaic)
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(mosaicDidChangeState:) 
-													 name:MacOSaiXMosaicDidChangeStateNotification 
+													 name:MacOSaiXMosaicDidChangeImageSourcesNotification 
 												   object:mosaic];
 }
 
@@ -451,11 +451,11 @@
 				NSString				*className = NSStringFromClass([imageSource class]);
 				if ([imageSource canRefetchImages])
 					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\" />\n", 
-																	  index, className, [[self mosaic] countOfImagesFromSource:imageSource]] 
+																	  index, className, [[self mosaic] numberOfImagesFoundFromSource:imageSource]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
 				else
 					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\" CACHE_NAME=\"%@\" />\n", 
-																	  index, className, [[self mosaic] countOfImagesFromSource:imageSource],
+																	  index, className, [[self mosaic] numberOfImagesFoundFromSource:imageSource],
 																	  [[self mosaic] diskCacheSubPathForImageSource:imageSource]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
 				NSString	*settingsFileName = [NSString stringWithFormat:@"Image Source %d", index];
@@ -818,7 +818,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						
 						newObject = [[NSClassFromString(className) alloc] init];
 						
-						[mosaic setImageCount:[imageCount intValue] forImageSource:newObject];
+						[mosaic setNumberOfImagesFound:[imageCount intValue] forImageSource:newObject];
 						if (cacheName)
 							[mosaic setDiskCacheSubPath:cacheName forImageSource:newObject];
 						
