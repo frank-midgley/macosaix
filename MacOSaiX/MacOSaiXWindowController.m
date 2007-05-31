@@ -46,7 +46,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 
 
 @interface MacOSaiXWindowController (PrivateMethods)
-- (void)updateStatus;
+- (void)updateStatusView;
 - (IBAction)setTargetImageFromMenu:(id)sender;
 - (void)updateRecentTargetImages;
 - (void)mosaicDidChangeState:(NSNotification *)notification;
@@ -88,7 +88,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	[toolbarButton setTarget:self];
 	[toolbarButton setAction:@selector(toggleWindowLayout:)];
 	
-	[self updateStatus];
+	[self updateStatusView];
 
 	{
 			// Fill in the description of the current tile shapes.
@@ -114,7 +114,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	[mosaicView setMosaic:[self mosaic]];
 	[mosaicView setTargetFadeTime:0.5];
 	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(mosaicViewDidChangeBusyState:) 
+											 selector:@selector(mosaicViewDidChangeState:) 
 												 name:MacOSaiXMosaicViewDidChangeBusyStateNotification 
 											   object:mosaicView];
     
@@ -194,10 +194,14 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 #pragma mark Miscellaneous
 
 
-- (void)updateStatus
+- (void)updateStatusView
 {
 	NSString	*status = @"";
 	BOOL		busy = NO;
+	
+	[pauseButton setEnabled:NO];
+	[pauseButton setImage:[NSImage imageNamed:@"Resume"]];
+	[pauseButton setState:NSOffState];
 	
 	if (![[self mosaic] targetImage])
 		status = NSLocalizedString(@"You have not chosen a target image", @"");
@@ -209,6 +213,9 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	{
 		status = [[self mosaic] busyStatus];
 		busy = YES;
+		[pauseButton setEnabled:YES];
+		[pauseButton setImage:[NSImage imageNamed:@"Pause"]];
+		[pauseButton setState:NSOnState];
 	}
 	else if ([mosaicView isBusy])
 	{
@@ -216,13 +223,17 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 		busy = YES;
 	}
 	else if ([[self mosaic] isPaused])
+	{
 		status = NSLocalizedString(@"Paused", @"");
+		[pauseButton setEnabled:YES];
+	}
 	else
 		status = NSLocalizedString(@"Done", @"");
 	
 	[statusField setStringValue:status];
 	
-	[pauseButton setState:([[self mosaic] isBusy] ? NSOnState : NSOffState)];
+	NSString	*foundFormat = NSLocalizedString(@"Images found/in use: %d/%d", @"");
+	[imagesFoundField setStringValue:[NSString stringWithFormat:foundFormat, [[self mosaic] numberOfImagesFound], [[self mosaic] numberOfImagesInUse]]];
 }
 
 
@@ -242,7 +253,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 //												   object:mosaic];
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(mosaicDidChangeState:) 
-													 name:MacOSaiXMosaicDidChangeStateNotification 
+													 name:MacOSaiXMosaicDidChangeImageSourcesNotification 
 												   object:mosaic];
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(mosaicDidChangeState:) 
@@ -264,25 +275,17 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 		[self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
 	else
 	{
-			// Update the status bar.
-		[imagesFoundField setStringValue:[NSString stringWithFormat:@"Images found: %d", [[self mosaic] imagesFound]]];
-		[self updateStatus];
-		
-			// Update the toolbar.
-		if ([[self mosaic] isPaused])
-			[pauseButton setImage:[NSImage imageNamed:@"Resume"]];
-		else
-			[pauseButton setImage:[NSImage imageNamed:@"Pause"]];
+		[self updateStatusView];
 	}
 }
 
 
-- (void)mosaicViewDidChangeBusyState:(NSNotification *)notification
+- (void)mosaicViewDidChangeState:(NSNotification *)notification
 {
 	if (!pthread_main_np())
 		[self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
 	else
-		[self updateStatus];
+		[self updateStatusView];
 }
 
 
@@ -324,12 +327,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 			[minimalMosaicScrollView setDocumentView:mosaicView];
 			[minimalStatusViewBox setContentView:statusView];
 			[[self window] setContentView:minimalContentView];
-			
-			mosaicTrackingRectTag = [minimalContentView addTrackingRect:[[mosaicView enclosingScrollView] frame] 
-																  owner:mosaicView 
-															   userData:nil 
-														   assumeInside:NO];
-			[[self window] setAcceptsMouseMovedEvents:YES];
+			[[self window] setMinSize:NSZeroSize];
 			
 			[[NSNotificationCenter defaultCenter] removeObserver:self 
 															name:NSViewFrameDidChangeNotification 
@@ -706,12 +704,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 - (void)windowWillClose:(NSNotification *)notification
 {
 	if ([notification object] == [self window])
-	{
-		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXTargetImageDidChangeNotification object:[self mosaic]];
-		[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXMosaicDidChangeStateNotification object:[self mosaic]];
-		
 		[self setMosaic:nil];
-	}
 }
 
 
