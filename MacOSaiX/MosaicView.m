@@ -77,7 +77,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 														 name:MacOSaiXTileShapesDidChangeStateNotification 
 													   object:mosaic];
 			[[NSNotificationCenter defaultCenter] addObserver:self 
-													 selector:@selector(tileImageDidChange:) 
+													 selector:@selector(tileContentsDidChange:) 
 														 name:MacOSaiXTileContentsDidChangeNotification 
 													   object:mosaic];
 		}
@@ -215,7 +215,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 //	MacOSaiXImageMatch	*previousMatch = [tileDict objectForKey:@"Previous Match"];
 	
 	[tileRefreshLock lock];
-		unsigned	index= [tilesToRefresh indexOfObject:tile];
+		unsigned	index= [tilesToRefresh indexOfObjectIdenticalTo:tile];
 		if (index != NSNotFound)
 		{
 				// Move the tile to the head of the refresh queue.
@@ -239,7 +239,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
-- (void)tileImageDidChange:(NSNotification *)notification
+- (void)tileContentsDidChange:(NSNotification *)notification
 {
 	[self refreshTile:[notification userInfo]];
 }
@@ -414,6 +414,11 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 									[transform concat];
 									[imageRep drawAtPoint:NSZeroPoint];
 								}
+								else
+								{
+									[[NSColor clearColor] set];
+									NSRectFill([clipPath bounds]);
+								}
 								break;
 							case fillWithTargetImage:
 								[[[self mosaic] targetImage] drawInRect:NSMakeRect(0.0, 0.0, [mainImage size].width, [mainImage size].height)
@@ -578,12 +583,13 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	
 		// Get the list of rectangles that need to be redrawn.
 		// Especially when !drawLoRes the image rendering is expensive so the less done the better.
+	BOOL			haveDrawRects = [self respondsToSelector:@selector(getRectsBeingDrawn:count:)];
 	NSRect			fallbackDrawRects[1] = { theRect };
 	const NSRect	*drawRects = nil;
 	int				drawRectCount = 0;
-	if ([self respondsToSelector:@selector(getRectsBeingDrawn:count:)])
+	if (haveDrawRects)
 		[self getRectsBeingDrawn:&drawRects count:&drawRectCount];
-	else
+	if (!haveDrawRects || drawRectCount > 64)
 	{
 		drawRects = fallbackDrawRects;
 		drawRectCount = 1;
