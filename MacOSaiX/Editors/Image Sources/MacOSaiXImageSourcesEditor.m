@@ -30,7 +30,7 @@
 }
 
 
-- (id)initWithMosaic:(MosaicView *)inMosaicView
+- (id)initWithMosaicView:(MosaicView *)inMosaicView
 {
 	if (self = [super initWithMosaicView:inMosaicView])
 	{
@@ -180,6 +180,11 @@
 	[self loadImageSources];
 
 	[removeSourceButton setEnabled:NO];
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(imageSourceCountsDidChange:) 
+												 name:MacOSaiXMosaicImageSourceDidChangeCountsNotification 
+											   object:[[self mosaicView] mosaic]];
 }
 
 
@@ -215,20 +220,46 @@
 }
 
 
+- (void)imageSourceCountsDidChange:(NSNotification *)notification
+{
+	if (!pthread_main_np())
+		[self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
+	else
+	{
+		id<MacOSaiXImageSource>		imageSource = [[notification userInfo] objectForKey:@"Image Source"];
+		MacOSaiXImageSourceView		*imageSourceView = [imageSourcesView viewForImageSource:imageSource];
+		
+		[imageSourceView countsDidChange];
+	}
+}
+
+
 - (IBAction)removeImageSource:(id)sender
 {
 	if (![MacOSaiXWarningController warningIsEnabled:@"Removing Image Source"] || 
 		[MacOSaiXWarningController runAlertForWarning:@"Removing Image Source" 
-												title:NSLocalizedString(@"Are you sure you wish to remove the selected image source?", @"") 
-											  message:NSLocalizedString(@"Tiles that were displaying images from this source may no longer have an image.", @"") 
+												title:NSLocalizedString(@"Are you sure you wish to remove the selected image sources?", @"") 
+											  message:NSLocalizedString(@"Tiles that were displaying images from these sources may no longer have an image.", @"") 
 										 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Remove", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
 	{
-//		id<MacOSaiXImageSource>	imageSource = [[[[self mosaicView] mosaic] imageSources] objectAtIndex:[imageSourcesTable selectedRow]];
-//		
-//		[[[self mosaicView] mosaic] removeImageSource:imageSource];
-//		[[MacOSaiXImageCache sharedImageCache] removeCachedImagesFromSource:imageSource];
-//		
-//		[imageSourcesTable reloadData];
+		MacOSaiXMosaic			*mosaic = [[self mosaicView] mosaic];
+		
+		BOOL					wasRunning = ![mosaic isPaused];
+		if (wasRunning)
+			[mosaic pause];
+		
+		NSEnumerator			*imageSourceEnumerator = [[imageSourcesView selectedImageSources] objectEnumerator];
+		id<MacOSaiXImageSource>	imageSource = nil;
+		while (imageSource = [imageSourceEnumerator nextObject])
+			[mosaic removeImageSource:imageSource];
+		
+		if ([[mosaic imageSources] count] == 0)
+			[self loadImageSources];
+		
+		[removeSourceButton setEnabled:NO];
+		
+		if (wasRunning)
+			[mosaic resume];
 	}
 }
 
@@ -367,6 +398,8 @@
 
 - (void)endEditing
 {
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:[[self mosaicView] mosaic]];
+	
 	[removeSourceButton setEnabled:NO];
 	
 	[super endEditing];
