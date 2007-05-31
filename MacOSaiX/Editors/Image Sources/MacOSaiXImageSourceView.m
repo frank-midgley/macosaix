@@ -12,6 +12,7 @@
 #import "MacOSaiXImageSource.h"
 #import "MacOSaiXImageSourcesEditor.h"
 #import "MacOSaiXImageSourcesView.h"
+#import "MacOSaiXMosaic.h"
 
 
 @implementation MacOSaiXImageSourceView
@@ -65,6 +66,7 @@
 - (void)drawRect:(NSRect)rect
 {
 	NSRect			bounds = [self bounds];
+	MacOSaiXMosaic	*mosaic = [(MacOSaiXImageSourcesView *)[self superview] mosaic];
 	
 	if ([self selected])
 	{
@@ -77,21 +79,32 @@
 	[image compositeToPoint:NSMakePoint(NSMinX(bounds) + 26.0, 21.0 + ([image size].height / 2.0)) 
 				  operation:NSCompositeSourceOver];
 	
+		// Draw the image counts.
+	NSDictionary	*attributes = [NSDictionary dictionaryWithObject:[NSFont labelFontOfSize:0.0] forKey:NSFontAttributeName];
+	NSString		*imagesFoundString = [NSString stringWithFormat:@"%d", [mosaic numberOfImagesFoundFromSource:imageSource]], 
+					*imagesInUseString = [NSString stringWithFormat:@"%d", [mosaic numberOfImagesInUseFromSource:imageSource]];
+	NSSize			imagesFoundSize = [imagesFoundString sizeWithAttributes:attributes], 
+					imagesInUseSize = [imagesInUseString sizeWithAttributes:attributes];
+	float			maxCountWidth = MAX(imagesFoundSize.width, imagesInUseSize.width);
+	[[NSImage imageNamed:@"Images Found"] compositeToPoint:NSMakePoint(NSMaxX(bounds) - 5.0 - maxCountWidth - 2.0 - 24.0, 21.0) 
+												 operation:NSCompositeSourceOver];
+	[imagesFoundString drawAtPoint:NSMakePoint(NSMaxX(bounds) - 5.0 - imagesFoundSize.width, 13.0 - imagesFoundSize.height / 2.0) withAttributes:attributes];
+	[[NSImage imageNamed:@"Images In Use"] compositeToPoint:NSMakePoint(NSMaxX(bounds) - 5.0 - maxCountWidth - 2.0 - 24.0, 37.0) 
+												  operation:NSCompositeSourceOver];
+	[imagesInUseString drawAtPoint:NSMakePoint(NSMaxX(bounds) - 5.0 - imagesInUseSize.width, 29.0 - imagesFoundSize.height / 2.0) withAttributes:attributes];
+	
 		// Draw the source's description.
 	id				description = [imageSource briefDescription];
-	
+	NSRect			descriptionFrame = NSMakeRect(NSMinX(bounds) + 63.0, 13.0, NSWidth(bounds) - 68.0 - maxCountWidth, 32.0);
 	if ([description isKindOfClass:[NSString class]])
 	{
 		NSDictionary	*attributes = [NSDictionary dictionaryWithObject:[NSFont systemFontOfSize:0.0] forKey:NSFontAttributeName];
-	//	NSSize			descriptionSize = [description sizeWithAttributes:attributes];
-		[description drawInRect:NSMakeRect(NSMinX(bounds) + 63.0, 13.0, NSWidth(bounds) - 68.0, 32.0) withAttributes:attributes];
+		[description drawInRect:descriptionFrame withAttributes:attributes];
 	}
 	else
 	{
-		[(NSAttributedString *)description drawInRect:NSMakeRect(NSMinX(bounds) + 63.0, 13.0, NSWidth(bounds) - 68.0, 32.0)];
+		[(NSAttributedString *)description drawInRect:descriptionFrame];
 	}
-	
-	// TODO: draw the image count
 	
 	[super drawRect:rect];
 }
@@ -187,7 +200,9 @@
 
 - (NSImage *)targetImage
 {
-	return nil;	//[[self mosaic] targetImage];
+	MacOSaiXMosaic	*mosaic = [(MacOSaiXImageSourcesView *)[self superview] mosaic];
+	
+	return [mosaic targetImage];
 }
 
 
@@ -206,6 +221,16 @@
 	minSize.width += boxBorderSize.width + 31.0;
 	
 	return minSize;
+}
+
+
+- (void)countsDidChange
+{
+	NSRect			descriptionAndCountsFrame = [self bounds];
+	descriptionAndCountsFrame.origin.x += 63.0;
+	descriptionAndCountsFrame.size.width -= 63.0;
+	
+	[self setNeedsDisplayInRect:descriptionAndCountsFrame];
 }
 
 

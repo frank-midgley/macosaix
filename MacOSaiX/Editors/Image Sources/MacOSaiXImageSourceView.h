@@ -33,4 +33,6 @@
 
 - (NSSize)minimumEditorSize;
 
+- (void)countsDidChange;
+
 @end
