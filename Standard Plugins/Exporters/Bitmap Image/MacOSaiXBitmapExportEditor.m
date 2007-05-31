@@ -56,9 +56,9 @@
 }
 
 
-- (void)editDataSource:(MacOSaiXBitmapExportSettings *)settings
+- (void)editDataSource:(id<MacOSaiXDataSource>)dataSource
 {
-	currentSettings = settings;
+	currentSettings = (MacOSaiXBitmapExportSettings *)dataSource;
 	
 		// Populate the GUI
 	if ([[currentSettings format] isEqualToString:@"JPEG"])

@@ -178,8 +178,10 @@
 }
 
 
-- (void)editDataSource:(MacOSaiXDirectoryImageSource *)imageSource
+- (void)editDataSource:(id<MacOSaiXDataSource>)dataSource
 {
+	MacOSaiXDirectoryImageSource	*imageSource = (MacOSaiXDirectoryImageSource *)dataSource;
+	
 	if (![imageSource path])
 	{
 			// Default to the last directory chosen by the user.

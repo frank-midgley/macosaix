@@ -17,10 +17,10 @@
 	
 
 - (id)openFileAtURL:(NSURL *)url 
-	   withSettings:(MacOSaiXBitmapExportSettings *)settings
+	   withSettings:(id<MacOSaiXExportSettings>)settings
 {
 	exportURL = [url retain];
-	exportSettings = settings;
+	exportSettings = (MacOSaiXBitmapExportSettings *)settings;
 	
 	int						exportWidth = [exportSettings pixelWidth], 
 							exportHeight = [exportSettings pixelHeight];
@@ -48,7 +48,8 @@
 	CGContextConcatCTM(cgContext, CGAffineTransformMakeScale(exportWidth / targetImageSize.width, 
 															 exportHeight / targetImageSize.height));
 	
-	if (CGImageDestinationCreateWithURL)
+	// TODO: #ifdef out for i386 build
+	// if (CGImageDestinationCreateWithURL)
 	{
 		CFStringRef	imageType = kUTTypePNG;
 		

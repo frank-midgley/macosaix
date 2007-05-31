@@ -204,7 +204,7 @@
 }
 
 
-- (NSString *)briefDescription
+- (id)briefDescription
 {
 	return nil;
 }

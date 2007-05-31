@@ -57,8 +57,10 @@
 }
 
 
-- (void)editDataSource:(MacOSaiXiTunesImageSource *)imageSource
+- (void)editDataSource:(id<MacOSaiXDataSource>)dataSource
 {
+	MacOSaiXiTunesImageSource	*imageSource = (MacOSaiXiTunesImageSource *)dataSource;
+	
 	if (!playlistNames)
 		playlistNames = [[NSMutableArray array] retain];
 	else
