@@ -104,6 +104,13 @@
 	[directoryName autorelease];
     directoryName = [[[NSFileManager defaultManager] displayNameAtPath:directoryPath] retain];
 	
+	pathsHaveBeenEnumerated = NO;
+	[directoryEnumerator autorelease];
+	directoryEnumerator = nil;
+	
+	[lastEnumeratedPath autorelease];
+	lastEnumeratedPath = nil;
+	
 	haveMoreImages = YES;
 	imageCount = 0;
 }
