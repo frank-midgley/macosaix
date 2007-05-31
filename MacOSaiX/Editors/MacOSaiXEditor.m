@@ -144,9 +144,9 @@
 		NSRect		frame = [window frame], 
 					contentFrame = [[window contentView] frame];
 		float		widthDiff = MAX(0.0, [plugInEditor minimumSize].width - [[plugInEditorBox contentView] frame].size.width),
-					heightDiff = MAX(0.0, [plugInEditor minimumSize].height - [[plugInEditorBox contentView] frame].size.height), 
-					baseHeight = NSHeight(contentFrame) - NSHeight([[plugInEditorBox contentView] frame]) + 0.0, 
-					baseWidth = NSWidth(contentFrame) - NSWidth([[plugInEditorBox contentView] frame]) + 0.0;
+					heightDiff = MAX(0.0, [plugInEditor minimumSize].height - [[plugInEditorBox contentView] frame].size.height);
+//					baseHeight = NSHeight(contentFrame) - NSHeight([[plugInEditorBox contentView] frame]) + 0.0, 
+//					baseWidth = NSWidth(contentFrame) - NSWidth([[plugInEditorBox contentView] frame]) + 0.0;
 		[[plugInEditor editorView] setAutoresizingMask:[[plugInEditorBox contentView] autoresizingMask]];
 		[plugInEditorBox setContentView:[[[NSView alloc] initWithFrame:NSZeroRect] autorelease]];
 		
@@ -159,7 +159,8 @@
 		frame.origin.y -= heightDiff;
 		frame.size.width += widthDiff;
 		frame.size.height += heightDiff;
-		[window setContentMinSize:NSMakeSize(baseWidth + [plugInEditor minimumSize].width, baseHeight + [plugInEditor minimumSize].height)];
+// TODO: shouldn't the window controller be setting this?  And -setContentMinSize is 10.3 and above.
+// [window setContentMinSize:NSMakeSize(baseWidth + [plugInEditor minimumSize].width, baseHeight + [plugInEditor minimumSize].height)];
 		[window setFrame:frame display:YES animate:YES];
 		[plugInEditorBox setContentView:[plugInEditor editorView]];
 		
