@@ -134,6 +134,8 @@
 		9211A6850A17F7A80021A583 /* MacOSaiXToolTipView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9211A6830A17F7A70021A583 /* MacOSaiXToolTipView.m */; };
 		9216086708E5DC9F0018C4C1 /* DirectoryImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = F540721A023FE6860100010A /* DirectoryImageSource.m */; };
 		9216086A08E5DCA70018C4C1 /* NSFileManager+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */; };
+		921B37A50C0CD36A0005287E /* Images In Use.png in Resources */ = {isa = PBXBuildFile; fileRef = 921B37A30C0CD36A0005287E /* Images In Use.png */; };
+		921B37A60C0CD36A0005287E /* Images Found.png in Resources */ = {isa = PBXBuildFile; fileRef = 921B37A40C0CD36A0005287E /* Images Found.png */; };
 		9226836409267C1B00BF4EF7 /* PuzzleTileShapes.m in Sources */ = {isa = PBXBuildFile; fileRef = 9226836009267C1B00BF4EF7 /* PuzzleTileShapes.m */; };
 		9226836609267C1B00BF4EF7 /* PuzzleTileShapesEditor.m in Sources */ = {isa = PBXBuildFile; fileRef = 9226836209267C1B00BF4EF7 /* PuzzleTileShapesEditor.m */; };
 		9226836909267C2600BF4EF7 /* PuzzleTilesSetup.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9226836709267C2600BF4EF7 /* PuzzleTilesSetup.nib */; };
@@ -230,6 +232,7 @@
 		9298FF1409955E1500E7A096 /* Export.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FF1209955E1500E7A096 /* Export.nib */; };
 		929C538E0C04E8B500D2CE07 /* Pause.png in Resources */ = {isa = PBXBuildFile; fileRef = 929C538C0C04E8B500D2CE07 /* Pause.png */; };
 		929C538F0C04E8B500D2CE07 /* Resume.png in Resources */ = {isa = PBXBuildFile; fileRef = 929C538D0C04E8B500D2CE07 /* Resume.png */; };
+		929C55760C05FA5500D2CE07 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 929C55360C05F98100D2CE07 /* libcrypto.dylib */; };
 		929DC0980BFB4EFF00024C99 /* Bitmap Exporter.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92341E220BF8F1370079BFF0 /* Bitmap Exporter.bundle */; };
 		929DC4020BFCE0C100024C99 /* iTunesImageSourcePlugIn.h in Headers */ = {isa = PBXBuildFile; fileRef = 929DC4000BFCE0C100024C99 /* iTunesImageSourcePlugIn.h */; };
 		929DC4030BFCE0C100024C99 /* iTunesImageSourcePlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 929DC4010BFCE0C100024C99 /* iTunesImageSourcePlugIn.m */; };
@@ -601,6 +604,8 @@
 		9211A6830A17F7A70021A583 /* MacOSaiXToolTipView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXToolTipView.m; sourceTree = "<group>"; };
 		921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSFileManager+MacOSaiX.h"; sourceTree = "<group>"; };
 		921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSFileManager+MacOSaiX.m"; sourceTree = "<group>"; };
+		921B37A30C0CD36A0005287E /* Images In Use.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Images In Use.png"; sourceTree = "<group>"; };
+		921B37A40C0CD36A0005287E /* Images Found.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Images Found.png"; sourceTree = "<group>"; };
 		9226835F09267C1B00BF4EF7 /* PuzzleTileShapes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PuzzleTileShapes.h; sourceTree = "<group>"; };
 		9226836009267C1B00BF4EF7 /* PuzzleTileShapes.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = PuzzleTileShapes.m; sourceTree = "<group>"; };
 		9226836109267C1B00BF4EF7 /* PuzzleTileShapesEditor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PuzzleTileShapesEditor.h; sourceTree = "<group>"; };
@@ -685,6 +690,7 @@
 		9298FF1309955E1500E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = MacOSaiX/Export/English.lproj/Export.nib; sourceTree = "<group>"; };
 		929C538C0C04E8B500D2CE07 /* Pause.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Pause.png; sourceTree = "<group>"; };
 		929C538D0C04E8B500D2CE07 /* Resume.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Resume.png; sourceTree = "<group>"; };
+		929C55360C05F98100D2CE07 /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = /usr/lib/libcrypto.dylib; sourceTree = "<absolute>"; };
 		929DC4000BFCE0C100024C99 /* iTunesImageSourcePlugIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iTunesImageSourcePlugIn.h; sourceTree = "<group>"; };
 		929DC4010BFCE0C100024C99 /* iTunesImageSourcePlugIn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iTunesImageSourcePlugIn.m; sourceTree = "<group>"; };
 		929DC5270BFD083D00024C99 /* NSData+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+MacOSaiX.h"; sourceTree = "<group>"; };
@@ -833,6 +839,7 @@
 				01ACC20108FCC0EA0013D213 /* Carbon.framework in Frameworks */,
 				92A6B8F80AB4ACFB00298BCF /* ApplicationServices.framework in Frameworks */,
 				92B409800B0D4FB400BB3981 /* AddressBook.framework in Frameworks */,
+				929C55760C05FA5500D2CE07 /* libcrypto.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1201,7 +1208,7 @@
 			children = (
 				080E96DDFE201D6D7F000001 /* MacOSaiX */,
 				F5EE25FD03901F9D01705684 /* Standard Plugins */,
-				29B97323FDCFA39411CA2CEA /* Frameworks */,
+				29B97323FDCFA39411CA2CEA /* Frameworks & Libraries */,
 				92F00CC907C1AA31004F6D06 /* Third Party Code */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 				F54D1108020F41F001000116 /* To Do */,
@@ -1209,7 +1216,7 @@
 			name = MacOSaiX;
 			sourceTree = "<group>";
 		};
-		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
+		29B97323FDCFA39411CA2CEA /* Frameworks & Libraries */ = {
 			isa = PBXGroup;
 			children = (
 				92B4097F0B0D4FB300BB3981 /* AddressBook.framework */,
@@ -1217,10 +1224,11 @@
 				F599E5560266AAD101000103 /* Carbon.framework */,
 				F514D53C0390266E01B25AF1 /* Cocoa.framework */,
 				29B97325FDCFA39411CA2CEA /* Foundation.framework */,
+				929C55360C05F98100D2CE07 /* libcrypto.dylib */,
 				01DDE1950A2E8755004F1F4E /* QuartzCore.framework */,
 				92F2B1EC048027FA0000011E /* QuickTime.framework */,
 			);
-			name = Frameworks;
+			name = "Frameworks & Libraries";
 			sourceTree = "<group>";
 		};
 		92341CA60BF118F30079BFF0 /* Exporters */ = {
@@ -1291,6 +1299,8 @@
 				01660E510BE1375000D95052 /* MacOSaiXImageSourceView.m */,
 				0110D1C10B3F8E8200DF6753 /* Image Sources Editor.nib */,
 				01660ECC0BE2526300D95052 /* Image Sources.png */,
+				921B37A40C0CD36A0005287E /* Images Found.png */,
+				921B37A30C0CD36A0005287E /* Images In Use.png */,
 			);
 			path = "Image Sources";
 			sourceTree = "<group>";
@@ -2122,6 +2132,8 @@
 				01660ECD0BE2526400D95052 /* Image Sources.png in Resources */,
 				929C538E0C04E8B500D2CE07 /* Pause.png in Resources */,
 				929C538F0C04E8B500D2CE07 /* Resume.png in Resources */,
+				921B37A50C0CD36A0005287E /* Images In Use.png in Resources */,
+				921B37A60C0CD36A0005287E /* Images Found.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2371,7 +2383,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/Exporters/$TARGET_NAME\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/Exporters/Bitmap Image\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
 		};
 /* End PBXShellScriptBuildPhase section */
 
