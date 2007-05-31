@@ -29,6 +29,7 @@
 	
 	NSSize							averageTileSize;
 	
+		// Image usage settings
 	int								imageUseCount,
 									imageReuseDistance,
 									imageCropLimit;
@@ -43,15 +44,16 @@
 		// Image source enumeration
     NSLock							*enumerationsLock;
 	NSMutableArray					*imageSourceEnumerations;
-	NSMutableDictionary				*enumerationCounts;
+	NSMutableDictionary				*imagesFoundCounts;
     NSMutableArray					*imageQueue, 
 									*revisitQueue;
     NSLock							*imageQueueLock;
 	
 		// Image matching
-    NSLock							*calculateImageMatchesThreadLock;
+    NSLock							*calculateImageMatchesLock;
 	BOOL							calculateImageMatchesThreadAlive;
-	NSMutableDictionary				*betterMatchesCache;
+	NSMutableDictionary				*betterMatchesCache, 
+									*imageIdentifiersInUse;
 	
     BOOL							paused, 
 									pausing;
@@ -59,35 +61,37 @@
 									lastDisplayMatch;
 	
 	id<MacOSaiXImageSource>			probationaryImageSource;
-	NSMutableSet					*probationImageMorgue;
+	NSMutableSet					*probationImageQueue;
 	NSDate							*probationStartDate;
 	NSRecursiveLock					*probationLock;
 }
 
+	// Target image
 - (void)setTargetImage:(NSImage *)image;
 - (NSImage *)targetImage;
-
 - (void)setTargetImagePath:(NSString *)path;
 - (NSString *)targetImagePath;
-
-- (void)setTargetImageIdentifier:(NSString *)identifier;
+- (void)setTargetImageIdentifier:(NSString *)identifier source:(id<MacOSaiXImageSource>)source;
 - (NSString *)targetImageIdentifier;
-- (void)setTargetImageSource:(id<MacOSaiXImageSource>)source;
 - (id<MacOSaiXImageSource>)targetImageSource;
 
 - (void)setAspectRatio:(float)ratio;
 - (float)aspectRatio;
 
+	// Tile shapes
 - (void)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes creatingTiles:(BOOL)createTiles;
 - (id<MacOSaiXTileShapes>)tileShapes;
 - (NSSize)averageTileSize;
 
+	// Image orientations
 - (void)setImageOrientations:(id<MacOSaiXImageOrientations>)imageOrientations;
 - (id<MacOSaiXImageOrientations>)imageOrientations;
 
+	// Export settings
 - (void)setExportSettings:(id<MacOSaiXExportSettings>)exportSettings;
 - (id<MacOSaiXExportSettings>)exportSettings;
 
+	// Image usage
 - (int)imageUseCount;
 - (void)setImageUseCount:(int)count;
 - (int)imageReuseDistance;
@@ -101,24 +105,30 @@
 - (BOOL)isBusy;
 - (NSString *)busyStatus;
 
-- (unsigned long)imagesFound;
+- (unsigned long)numberOfImagesFound;
+- (unsigned long)numberOfImagesInUse;
 
+	// Image sources methods
 - (NSArray *)imageSources;
 - (void)addImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (void)imageSource:(id<MacOSaiXImageSource>)imageSource didChangeSettings:(NSString *)changeDescription;
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (BOOL)imageSourcesExhausted;
-- (unsigned long)countOfImagesFromSource:(id<MacOSaiXImageSource>)imageSource;
+- (unsigned long)numberOfImagesFoundFromSource:(id<MacOSaiXImageSource>)imageSource;
+- (unsigned long)numberOfImagesInUseFromSource:(id<MacOSaiXImageSource>)imageSource;
 
+	// Disk cache paths
 - (NSString *)diskCachePath;
 - (void)setDiskCachePath:(NSString *)path;
 - (NSString *)diskCacheSubPathForImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (void)setDiskCacheSubPath:(NSString *)path forImageSource:(id<MacOSaiXImageSource>)imageSource;
 
+	// Hand picked images
 - (MacOSaiXHandPickedImageSource *)handPickedImageSource;
 - (void)setHandPickedImageAtPath:(NSString *)path withMatchValue:(float)matchValue forTile:(MacOSaiXTile *)tile;
 - (void)removeHandPickedImageForTile:(MacOSaiXTile *)tile;
 
+	// Pause/resume
 - (BOOL)isPaused;
 - (void)pause;
 - (void)resume;
@@ -128,9 +138,10 @@
 
 	// Notifications
 extern NSString	*MacOSaiXMosaicDidChangeImageSourcesNotification;
-extern NSString	*MacOSaiXMosaicDidChangeStateNotification;
 extern NSString	*MacOSaiXMosaicDidChangeBusyStateNotification;
 extern NSString	*MacOSaiXTargetImageDidChangeNotification;
 extern NSString *MacOSaiXTileContentsDidChangeNotification;
 extern NSString *MacOSaiXTileShapesDidChangeStateNotification;
 extern NSString *MacOSaiXImageOrientationsDidChangeStateNotification;
+extern NSString *MacOSaiXMosaicImageSourceDidChangeCountsNotification;
+

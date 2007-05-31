@@ -24,19 +24,19 @@
 
 	// Notifications
 NSString	*MacOSaiXMosaicDidChangeImageSourcesNotification = @"MacOSaiXMosaicDidChangeImageSourcesNotification";
-NSString	*MacOSaiXMosaicDidChangeStateNotification = @"MacOSaiXMosaicDidChangeStateNotification";
 NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChangeBusyStateNotification";
 NSString	*MacOSaiXTargetImageWillChangeNotification = @"MacOSaiXTargetImageWillChangeNotification";
 NSString	*MacOSaiXTargetImageDidChangeNotification = @"MacOSaiXTargetImageDidChangeNotification";
 NSString	*MacOSaiXTileContentsDidChangeNotification = @"MacOSaiXTileContentsDidChangeNotification";
 NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDidChangeStateNotification";
 NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageOrientationsDidChangeStateNotification";
+NSString	*MacOSaiXMosaicImageSourceDidChangeCountsNotification = @"MacOSaiXMosaicImageSourceDidChangeCountsNotification";
 
 
 @interface MacOSaiXMosaic (PrivateMethods)
 - (void)addTile:(MacOSaiXTile *)tile;
 - (void)lockWhilePaused;
-- (void)setImageCount:(unsigned long)imageCount forImageSource:(id<MacOSaiXImageSource>)imageSource;
+- (void)setNumberOfImagesFound:(unsigned long)imageCount forImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (void)enumerateImageSource:(id<MacOSaiXImageSource>)imageSource;
 @end
 
@@ -63,12 +63,13 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 		imageQueueLock = [[NSLock alloc] init];
 		revisitQueue = [[NSMutableArray alloc] init];
 		
-		calculateImageMatchesThreadLock = [[NSLock alloc] init];
+		calculateImageMatchesLock = [[NSLock alloc] init];
 		betterMatchesCache = [[NSMutableDictionary alloc] init];
+		imageIdentifiersInUse = [[NSMutableDictionary alloc] init];
 		
 		enumerationsLock = [[NSLock alloc] init];
 		imageSourceEnumerations = [[NSMutableArray alloc] init];
-		enumerationCounts = [[NSMutableDictionary alloc] init];
+		imagesFoundCounts = [[NSMutableDictionary alloc] init];
 		
 		probationLock = [[NSRecursiveLock alloc] init];
 		
@@ -98,7 +99,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	while (imageSource = [imageSourceEnumerator nextObject])
 	{
 		[imageSource reset];
-		[self setImageCount:0 forImageSource:imageSource];
+		[self setNumberOfImagesFound:0 forImageSource:imageSource];
 	}
 	
 		// Clear the cache of better matches
@@ -175,10 +176,14 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 }
 
 
-- (void)setTargetImageIdentifier:(NSString *)identifier
+- (void)setTargetImageIdentifier:(NSString *)imageIdentifier source:(id<MacOSaiXImageSource>)imageSource
 {
 	[targetImageIdentifier autorelease];
-	targetImageIdentifier = [identifier copy];
+	targetImageIdentifier = [imageIdentifier copy];
+	[targetImageSource autorelease];
+	targetImageSource = [imageSource retain];
+	
+	// TBD: all of the reset code in -setTargetImage: should be moved here...
 }
 
 
@@ -186,13 +191,6 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 {
 	return [[self targetImagePath] lastPathComponent];
 //	return targetImageIdentifier;
-}
-
-
-- (void)setTargetImageSource:(id<MacOSaiXImageSource>)source
-{
-	[targetImageSource autorelease];
-	targetImageSource = [source retain];
 }
 
 
@@ -327,7 +325,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 		tileBitmapExtractionThreadAlive = YES;
 		[tilesWithoutBitmapsLock unlock];
 		
-		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification 
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
 															object:self];
 		
 		while (!pausing && (tile = [tileEnumerator nextObject]))
@@ -349,7 +347,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	[tilesWithoutBitmapsLock unlock];
 	
 	if ([self allTilesHaveExtractedBitmaps])
-		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification 
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
 															object:self];
 }
 
@@ -364,7 +362,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 }
 
 
-#pragma mark - 
+#pragma mark -
 #pragma mark Image usage
 
 
@@ -411,6 +409,14 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 															object:self 
 														  userInfo:nil];
 	}
+}
+
+
+- (float)targetImageMinimumReuseDistance
+{
+	float				scaledReuseDistance = [self imageReuseDistance] * 0.95 / 100.0;
+	
+	return (powf([targetImage size].width, 2.0) + powf([targetImage size].height, 2.0)) * powf(scaledReuseDistance, 2.0);
 }
 
 
@@ -510,8 +516,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	{
 		[probationStartDate release];
 		probationStartDate = nil;
-		[probationImageMorgue release];
-		probationImageMorgue = nil;
+		[probationImageQueue release];
+		probationImageQueue = nil;
 	}
 	
 	probationaryImageSource = imageSource;
@@ -519,7 +525,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	if (probationaryImageSource)
 	{
 		probationStartDate = [[NSDate date] retain];
-		probationImageMorgue = [[NSMutableSet set] retain];
+		probationImageQueue = [[NSMutableSet set] retain];
 	}
 	
 	[probationLock unlock];
@@ -597,8 +603,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 		[[NSFileManager defaultManager] removeFileAtPath:sourceCachePath handler:nil];
 	}
 	
-		// Remove the image count for this source
-	[self setImageCount:0 forImageSource:imageSource];
+		// Remove the image count for this source.
+	[self setNumberOfImagesFound:0 forImageSource:imageSource];
 	
 	return tilesWereChanged;
 }
@@ -625,8 +631,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 		{
 				// If the image source that was just edited is on probation then revisit any images removed during the probation period.
 			[imageQueueLock lock];
-				[revisitQueue addObjectsFromArray:[probationImageMorgue allObjects]];
-				[probationImageMorgue removeAllObjects];
+				[revisitQueue addObjectsFromArray:[probationImageQueue allObjects]];
+				[probationImageQueue removeAllObjects];
 			[imageQueueLock unlock];
 		}
 		
@@ -674,8 +680,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 				if (probationaryImageSource == imageSource)
 				{
 					[imageQueueLock lock];
-						[revisitQueue addObjectsFromArray:[probationImageMorgue allObjects]];
-						[probationImageMorgue removeAllObjects];
+						[revisitQueue addObjectsFromArray:[probationImageQueue allObjects]];
+						[probationImageQueue removeAllObjects];
 					[imageQueueLock unlock];
 				}
 			[probationLock unlock];
@@ -724,8 +730,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	{
 			// Increase the image count for the hand picked source.
 		[enumerationsLock lock];
-			unsigned long	currentCount = [[enumerationCounts objectForKey:[NSValue valueWithPointer:handPickedSource]] unsignedLongValue];
-			[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:currentCount + 1] 
+			unsigned long	currentCount = [[imagesFoundCounts objectForKey:[NSValue valueWithPointer:handPickedSource]] unsignedLongValue];
+			[imagesFoundCounts setObject:[NSNumber numberWithUnsignedLong:currentCount + 1] 
 								  forKey:[NSValue valueWithPointer:handPickedSource]];
 		[enumerationsLock unlock];
 	}
@@ -744,8 +750,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 			// Decrease the image count for the hand picked source.
 		MacOSaiXHandPickedImageSource	*handPickedSource = [self handPickedImageSource];
 		[enumerationsLock lock];
-			unsigned long	currentCount = [[enumerationCounts objectForKey:[NSValue valueWithPointer:handPickedSource]] unsignedLongValue];
-			[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:currentCount - 1] 
+			unsigned long	currentCount = [[imagesFoundCounts objectForKey:[NSValue valueWithPointer:handPickedSource]] unsignedLongValue];
+			[imagesFoundCounts setObject:[NSNumber numberWithUnsignedLong:currentCount - 1] 
 								  forKey:[NSValue valueWithPointer:handPickedSource]];
 		[enumerationsLock unlock];
 		
@@ -850,6 +856,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 
 - (void)enumerateImageSourceInNewThread:(id<MacOSaiXImageSource>)imageSource
 {
+	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
 														object:self];
 	
@@ -857,7 +865,6 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	[NSThread setThreadPriority:0.1];
 	
 		// Check if the source has any images left.
-	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	BOOL				sourceHasMoreImages = [[self imageSources] containsObject:imageSource] &&
 											  [imageSource hasMoreImages];
 	
@@ -865,7 +872,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	
 	while (!pausing && sourceHasMoreImages)
 	{
-		NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+		NSAutoreleasePool	*sourcePool = [[NSAutoreleasePool alloc] init];
 		NSImage				*image = nil;
 		NSString			*imageIdentifier = nil;
 		BOOL				imageIsValid = NO;
@@ -915,8 +922,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 												nil]];
 					
 					[enumerationsLock lock];
-						unsigned long	currentCount = [[enumerationCounts objectForKey:[NSValue valueWithPointer:imageSource]] unsignedLongValue];
-						[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:currentCount + 1] 
+						unsigned long	currentCount = [[imagesFoundCounts objectForKey:[NSValue valueWithPointer:imageSource]] unsignedLongValue];
+						[imagesFoundCounts setObject:[NSNumber numberWithUnsignedLong:currentCount + 1] 
 											  forKey:[NSValue valueWithPointer:imageSource]];
 					[enumerationsLock unlock];
 				[imageQueueLock unlock];
@@ -924,14 +931,16 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 				if (!pausing && !calculateImageMatchesThreadAlive)
 					[NSApplication detachDrawingThread:@selector(calculateImageMatches) toTarget:self withObject:nil];
 				
-				[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeStateNotification 
+				[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
 																	object:self];
 			}
 		}
 		sourceHasMoreImages = [[self imageSources] containsObject:imageSource] && [imageSource hasMoreImages];
 		
-		[pool release];
+		[sourcePool release];
 	}
+	
+	pool = [[NSAutoreleasePool alloc] init];
 	
 	[enumerationsLock lock];
 		[imageSourceEnumerations removeObject:imageSource];
@@ -939,42 +948,44 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
 														object:self];
+
+	[pool release];
 }
 
 
-- (void)setImageCount:(unsigned long)imageCount forImageSource:(id<MacOSaiXImageSource>)imageSource
+- (void)setNumberOfImagesFound:(unsigned long)imageCount forImageSource:(id<MacOSaiXImageSource>)imageSource
 {
 	[enumerationsLock lock];
 		if (imageCount > 0)
-			[enumerationCounts setObject:[NSNumber numberWithUnsignedLong:imageCount]
+			[imagesFoundCounts setObject:[NSNumber numberWithUnsignedLong:imageCount]
 								  forKey:[NSValue valueWithPointer:imageSource]];
 		else
-			[enumerationCounts removeObjectForKey:[NSValue valueWithPointer:imageSource]];
+			[imagesFoundCounts removeObjectForKey:[NSValue valueWithPointer:imageSource]];
 	[enumerationsLock unlock];
 }
 
 
-- (unsigned long)countOfImagesFromSource:(id<MacOSaiXImageSource>)imageSource
+- (unsigned long)numberOfImagesFoundFromSource:(id<MacOSaiXImageSource>)imageSource;
 {
 	unsigned long	enumerationCount = 0;
 	
 	[enumerationsLock lock];
-		enumerationCount = [[enumerationCounts objectForKey:[NSValue valueWithPointer:imageSource]] unsignedLongValue];
+		enumerationCount = [[imagesFoundCounts objectForKey:[NSValue valueWithPointer:imageSource]] unsignedLongValue];
 	[enumerationsLock unlock];
 	
 	return enumerationCount;
 }
 
 
-- (unsigned long)imagesFound
+- (unsigned long)numberOfImagesFound
 {
 	unsigned long	totalCount = 0;
 	
 	[enumerationsLock lock];
-		NSEnumerator	*sourceEnumerator = [enumerationCounts keyEnumerator];
+		NSEnumerator	*sourceEnumerator = [imagesFoundCounts keyEnumerator];
 		NSString		*key = nil;
 		while (key = [sourceEnumerator nextObject])
-			totalCount += [[enumerationCounts objectForKey:key] unsignedLongValue];
+			totalCount += [[imagesFoundCounts objectForKey:key] unsignedLongValue];
 	[enumerationsLock unlock];
 	
 	return totalCount;
@@ -985,24 +996,236 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 #pragma mark Image matching
 
 
+- (NSMutableArray *)betterMatchesForImage:(NSImage *)image 
+						   withIdentifier:(NSString *)imageIdentifier 
+							   fromSource:(id<MacOSaiXImageSource>)imageSource
+{
+	NSMutableArray	*betterMatches = [betterMatchesCache objectForKey:imageIdentifier];
+	
+	if (betterMatches)
+	{
+		// The cache contains the list of tiles which could be improved by using this image.  Remove any tiles from the list that have gotten a better match since the list was cached.  Also remove any tiles that have the exact same match value but for a different image.  This avoids infinite loop conditions if you have multiple images that have the exact same match value (typically when there are multiple files containing the exact same image).
+		NSEnumerator		*betterMatchEnumerator = [betterMatches objectEnumerator];
+		MacOSaiXImageMatch	*betterMatch = nil;
+		unsigned			currentIndex = 0,
+							indicesToRemove[[betterMatches count]],
+							countOfIndicesToRemove = 0;
+		while ((betterMatch = [betterMatchEnumerator nextObject]) && !pausing)
+		{
+			MacOSaiXImageMatch	*currentMatch = [[betterMatch tile] uniqueImageMatch];
+			if (currentMatch && ([currentMatch matchValue] < [betterMatch matchValue] || 
+								 ([currentMatch matchValue] == [betterMatch matchValue] && 
+								  ([currentMatch imageSource] != [betterMatch imageSource] || 
+								   [currentMatch imageIdentifier] != [betterMatch imageIdentifier]))))
+				indicesToRemove[countOfIndicesToRemove++] = currentIndex;
+			currentIndex++;
+		}
+		[betterMatches removeObjectsFromIndices:indicesToRemove numIndices:countOfIndicesToRemove];
+		
+			// If only the dummy entry is left then we need to rematch.
+		if ([betterMatches count] == 1 && ![(MacOSaiXImageMatch *)[betterMatches objectAtIndex:0] tile])
+			betterMatches = nil;
+	}
+	
+	if (!betterMatches)
+	{
+			// The better matches for this image are not in the cache so we must calculate them.
+		betterMatches = [NSMutableArray array];
+		
+			// Get the size of the image.
+		NSSize					imageSize;
+		if (image)
+			imageSize = [image size];
+		else
+		{
+				// Get the size from the cache.
+			MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
+			imageSize = [imageCache nativeSizeOfImageWithIdentifier:imageIdentifier fromSource:imageSource];
+			
+			if (NSEqualSizes(imageSize, NSZeroSize))
+			{
+					// The image isn't in the cache.  Force it to load and then get its size.
+				imageSize = [[imageCache imageRepAtSize:NSZeroSize 
+										  forIdentifier:imageIdentifier 
+											 fromSource:imageSource] size];
+			}
+		}
+		
+			// Loop through all of the tiles and calculate how well this image matches.
+		MacOSaiXImageMatcher	*matcher = [MacOSaiXImageMatcher sharedMatcher];
+		NSEnumerator			*tileEnumerator = [tiles objectEnumerator];
+		MacOSaiXTile			*tile = nil;
+		while ((tile = [tileEnumerator nextObject]) && !pausing)
+		{
+			NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+			NSBitmapImageRep	*tileBitmap = [tile bitmapRep];
+			NSSize				tileSize = [tileBitmap size];
+			float				croppedPercentage;
+			
+			// See if the image will be cropped too much.
+			if ((imageSize.width / tileSize.width) < (imageSize.height / tileSize.height))
+				croppedPercentage = (imageSize.width * (imageSize.height - imageSize.width * tileSize.height / tileSize.width)) / 
+					(imageSize.width * imageSize.height) * 100.0;
+			else
+				croppedPercentage = ((imageSize.width - imageSize.height * tileSize.width / tileSize.height) * imageSize.height) / 
+					(imageSize.width * imageSize.height) * 100.0;
+			
+			if (croppedPercentage <= [self imageCropLimit])
+			{
+				// Get a rep for the image scaled to the tile's bitmap size.
+				NSBitmapImageRep	*imageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:tileSize 
+																						forIdentifier:imageIdentifier 
+																						   fromSource:imageSource];
+				
+				if (imageRep)
+				{
+					// Calculate how well this image matches this tile.
+					float	previousBest = ([tile uniqueImageMatch] ? [[tile uniqueImageMatch] matchValue] : 1.0), 
+					matchValue = [matcher compareImageRep:tileBitmap 
+												 withMask:[tile maskRep] 
+											   toImageRep:imageRep
+											 previousBest:previousBest];
+					
+					MacOSaiXImageMatch	*newMatch = [MacOSaiXImageMatch imageMatchWithValue:matchValue 
+																		 forImageIdentifier:imageIdentifier 
+																			fromImageSource:imageSource
+																					forTile:tile];
+					// If this image matches better than the tile's current best or this image is the same as the tile's current best then add it to the list of tile's that might get this image.
+					if (matchValue < previousBest ||
+						([[tile uniqueImageMatch] imageSource] == imageSource && 
+						 [[[tile uniqueImageMatch] imageIdentifier] isEqualToString:imageIdentifier]))
+					{
+						[betterMatches addObject:newMatch];
+					}
+					
+					// Set the tile's best match if appropriate.
+					// TBD: check pref?
+					if (![tile bestImageMatch] || matchValue < [[tile bestImageMatch] matchValue])
+					{
+						[tile setBestImageMatch:newMatch];
+						
+						[probationLock lock];
+						if (probationaryImageSource && [newMatch imageSource] != probationaryImageSource)
+							[probationImageQueue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+								[newMatch imageSource], @"Image Source", 
+								[newMatch imageIdentifier], @"Image Identifier",
+								nil]];
+						[probationLock unlock];
+					}
+				}
+				else
+					;	// anything to do or just lose the chance to match this image to this tile?
+			}
+			
+			[pool release];
+		}
+		
+		// Sort the array with the best matches first.
+		[betterMatches sortUsingSelector:@selector(compare:)];
+	}
+	
+	return betterMatches;
+}
+
+
+- (void)setBetterMatches:(NSArray *)betterMatches 
+	  forImageIdentifier:(NSString *)imageIdentifier 
+			  fromSource:(id<MacOSaiXImageSource>)imageSource
+{
+	NSString	*imageKey = [imageSource universalIdentifierForIdentifier:imageIdentifier];
+	
+		// Limit the number of matches cached otherwise we'll swamp RAM.
+	int			maxBetterMatches = 4 + ([tiles count] / 2.0 * (100.0 - [self imageReuseDistance]) / 100.0);
+	if ([betterMatches count] <= maxBetterMatches)
+		[betterMatchesCache setObject:betterMatches forKey:imageKey];
+	else
+	{
+		NSArray	*croppedMatches = [betterMatches subarrayWithRange:NSMakeRange(0, maxBetterMatches)];
+		
+			// Add a dummy entry with a nil tile on the end so we know that entries were removed.
+		croppedMatches = [croppedMatches arrayByAddingObject:[[[MacOSaiXImageMatch alloc] init] autorelease]];
+		
+		[betterMatchesCache setObject:croppedMatches forKey:imageKey];
+	}
+	
+}
+
+
+- (NSArray *)validMatchesForImageUsageSettings:(NSArray *)matches
+{
+	NSMutableArray		*validMatches = [NSMutableArray array];
+	BOOL				haveAllMatches = ([(MacOSaiXImageMatch *)[matches lastObject] tile] != nil);
+	
+		// A use count of zero means no limit on the number of times an image can be used.
+	int					useCount = [self imageUseCount];
+	if (useCount == 0)
+		useCount = [matches count];
+	
+		// If the list of matches is incomplete and there aren't enough matches to satisfy the settings then don't bother wasting time on the math.
+	if ([matches count] < useCount && !haveAllMatches)
+		matches = nil;
+	
+		// Loop through the list of matches and pick the first items (up to the use count) that aren't too close together.
+	NSEnumerator		*matchEnumerator = [matches objectEnumerator];
+	MacOSaiXImageMatch	*match = nil;
+	while ((match = [matchEnumerator nextObject]) && [validMatches count] < useCount)
+	{
+		if ([validMatches count] == 0)
+		{
+				// Always use the first (best) match.
+			[validMatches addObject:match];
+		}
+		else
+		{
+				// This match is valid if it isn't too close to any of the already valid matches.
+			NSRect				matchTileBounds = [[[match tile] outline] bounds];
+			float				minDistanceApart = [self targetImageMinimumReuseDistance];
+			BOOL				matchTooClose = NO;
+			NSEnumerator		*validMatchesEnumerator = [validMatches objectEnumerator];
+			MacOSaiXImageMatch	*validMatch = nil;
+			
+			while (!matchTooClose && (validMatch = [validMatchesEnumerator nextObject]))
+			{
+				NSRect	validMatchBounds = [[[validMatch tile] outline] bounds];
+				float	widthDiff = NSMidX(matchTileBounds) - NSMidX(validMatchBounds), 
+						heightDiff = NSMidY(matchTileBounds) - NSMidY(validMatchBounds), 
+						distanceSquared = widthDiff * widthDiff + heightDiff * heightDiff;
+				
+				if (distanceSquared < minDistanceApart)
+					matchTooClose = YES;
+			}
+			
+			if (!matchTooClose)
+				[validMatches addObject:match];
+		}
+	}
+	
+		// If more matches could have been used and we were passed an incomplete list of matches then signal that we need a complete list.
+	if ([validMatches count] < useCount && !haveAllMatches)
+		validMatches = nil;
+	
+	return validMatches;
+}
+
+
 - (void)calculateImageMatches
 {
 		// This method is called in a new thread whenever a non-empty image queue is discovered.
 		// It pulls images from the queue and matches them against each tile.  Once the queue
 		// is empty the method will end and the thread is terminated.
-    NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+    NSAutoreleasePool	*threadPool = [[NSAutoreleasePool alloc] init];
 
         // Make sure only one copy of this thread runs at any time.
-	[calculateImageMatchesThreadLock lock];
+	[calculateImageMatchesLock lock];
 		if (calculateImageMatchesThreadAlive)
 		{
                 // Another copy is running, just exit.
-			[calculateImageMatchesThreadLock unlock];
-			[pool release];
+			[calculateImageMatchesLock unlock];
+			[threadPool release];
 			return;
 		}
 		calculateImageMatchesThreadAlive = YES;
-	[calculateImageMatchesThreadLock unlock];
+	[calculateImageMatchesLock unlock];
 	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
 														object:self];
@@ -1011,9 +1234,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	[NSThread setThreadPriority:0.1];
 	
 	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
-	BOOL				revisit = NO;
-	int					revisitStep = 0, 
-						maxBetterMatches = 4 + ([tiles count] / 2.0 * (100.0 - [self imageReuseDistance]) / 100.0);
+	int					revisitStep = 0;
 	
 	[imageQueueLock lock];
 	while (!pausing && ([imageQueue count] > 0 || [revisitQueue count] > 0))
@@ -1021,34 +1242,25 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 		while (!pausing && ([imageQueue count] > 0 || [revisitQueue count] > 0))
 		{
 				// As long as the image source threads are feeding images into the queue this loop will continue running so create a pool just for this pass through the loop.
-			NSAutoreleasePool	*pool2 = [[NSAutoreleasePool alloc] init];
+			NSAutoreleasePool	*imagePool = [[NSAutoreleasePool alloc] init];
 			BOOL				queueLocked = NO;
 			
 			NS_DURING
-					// Pull the next image from one of the queues.
-					// Look at newly found images before revisiting previously found ones.
-				NSDictionary		*nextImageDict = nil;
-				int					newCount = [imageQueue count], 
-									revisitCount = [revisitQueue count];
+					// Pick which queue to draw from preferring new images over previously found ones.
+				NSMutableArray		*chosenQueue = nil;
+				int					newCount = [imageQueue count];
 				if (newCount == 0)
-					revisit = YES;
-				else if (revisitCount == 0)
-					revisit = NO;
+					chosenQueue = revisitQueue;
+				else if ([revisitQueue count] == 0)
+					chosenQueue = imageQueue;
 				else
-					revisit = (revisitStep++ % 16 > 0);
+					chosenQueue = (revisitStep++ % 16 > 0 ? revisitQueue : imageQueue);
 				
-				if (revisit)
-				{
-					nextImageDict = [[[revisitQueue lastObject] retain] autorelease];
-					[revisitQueue removeLastObject];
-				}
-				else
-				{
-					nextImageDict = [[[imageQueue objectAtIndex:0] retain] autorelease];
-					[imageQueue removeObjectAtIndex:0];
-				}
+					// Pull the next image from the queue.
+				NSDictionary		*nextImageDict = [[[chosenQueue objectAtIndex:0] retain] autorelease];
+				[chosenQueue removeObjectAtIndex:0];
 				
-					// let the image source threads add more images if the queue is not full
+					// Let the image source threads add more images if the queue for new images is not full.
 				if (newCount < MAXIMAGEURLS)
 					[imageQueueLock unlock];
 				else
@@ -1057,15 +1269,16 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 				NSImage					*pixletImage = [nextImageDict objectForKey:@"Image"];
 				id<MacOSaiXImageSource>	pixletImageSource = [nextImageDict objectForKey:@"Image Source"];
 				NSString				*pixletImageIdentifier = [nextImageDict objectForKey:@"Image Identifier"];
-				id<NSCopying>			pixelImageUniversalIdentifier = [pixletImageSource universalIdentifierForIdentifier:pixletImageIdentifier];
-				BOOL					pixletImageInUse = NO;
+				id<NSCopying>			pixletImageUniversalIdentifier = [pixletImageSource universalIdentifierForIdentifier:pixletImageIdentifier];
+				BOOL					pixletImageInUse = NO, 
+										pixletImageIsDisplayed = NO;
 				
 					// Check if the probationary period for the most recently added/edited image source has ended.
 				[probationLock lock];
 					if ([probationStartDate timeIntervalSinceNow] < -60)
 						[self setProbationaryImageSource:nil];
 					else if (probationaryImageSource && pixletImageSource != probationaryImageSource)
-						[probationImageMorgue addObject:nextImageDict];
+						[probationImageQueue addObject:nextImageDict];
 				[probationLock unlock];
 				
 				if (pixletImage)
@@ -1074,181 +1287,45 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 					[imageCache cacheImage:pixletImage withIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
 				}
 				
-					// Find the tiles that match this image better than their current image.
-				NSMutableArray	*betterMatches = [betterMatchesCache objectForKey:pixelImageUniversalIdentifier];
-				if (betterMatches)
-				{
-						// The cache contains the list of tiles which could be improved by using this image.  Remove any tiles from the list that have gotten a better match since the list was cached.  Also remove any tiles that have the exact same match value but for a different image.  This avoids infinite loop conditions if you have multiple image that have the exact same match value (typically when there are multiple files containing the exact same image).
-					NSEnumerator		*betterMatchEnumerator = [betterMatches objectEnumerator];
-					MacOSaiXImageMatch	*betterMatch = nil;
-					unsigned			currentIndex = 0,
-										indicesToRemove[[betterMatches count]],
-										countOfIndicesToRemove = 0;
-					while ((betterMatch = [betterMatchEnumerator nextObject]) && !pausing)
-					{
-						MacOSaiXImageMatch	*currentMatch = [[betterMatch tile] uniqueImageMatch];
-						if (currentMatch && ([currentMatch matchValue] < [betterMatch matchValue] || 
-											 ([currentMatch matchValue] == [betterMatch matchValue] && 
-											  ([currentMatch imageSource] != [betterMatch imageSource] || 
-											   [currentMatch imageIdentifier] != [betterMatch imageIdentifier]))))
-							indicesToRemove[countOfIndicesToRemove++] = currentIndex;
-						currentIndex++;
-					}
-					[betterMatches removeObjectsFromIndices:indicesToRemove numIndices:countOfIndicesToRemove];
-					
-						// If only the dummy entry is left then we need to rematch.
-					if ([betterMatches count] == 1 && ![(MacOSaiXImageMatch *)[betterMatches objectAtIndex:0] tile])
-					{
-						//NSLog(@"Didn't cache enough matches...");
-						betterMatches = nil;
-					}
-				}
-				
-				if (!betterMatches)
-				{
-						// The better matches for this pixlet are not in the cache so we must calculate them.
-					betterMatches = [NSMutableArray array];
-					
-						// Get the size of the pixlet image.
-					NSSize					pixletSize;
-					if (pixletImage)
-						pixletSize = [pixletImage size];
-					else
-					{
-							// Get the size from the cache.
-						pixletSize = [imageCache nativeSizeOfImageWithIdentifier:pixletImageIdentifier fromSource:pixletImageSource];
-						
-						if (NSEqualSizes(pixletSize, NSZeroSize))
-						{
-								// The image isn't in the cache.  Force it to load and then get its size.
-							pixletSize = [[imageCache imageRepAtSize:NSZeroSize 
-													   forIdentifier:pixletImageIdentifier 
-														  fromSource:pixletImageSource] size];
-						}
-					}
-
-						// Loop through all of the tiles and calculate how well this image matches.
-					MacOSaiXImageMatcher	*matcher = [MacOSaiXImageMatcher sharedMatcher];
-					NSEnumerator			*tileEnumerator = [tiles objectEnumerator];
-					MacOSaiXTile			*tile = nil;
-					while ((tile = [tileEnumerator nextObject]) && !pausing)
-					{
-						NSAutoreleasePool	*pool3 = [[NSAutoreleasePool alloc] init];
-						NSBitmapImageRep	*tileBitmap = [tile bitmapRep];
-						NSSize				tileSize = [tileBitmap size];
-						float				croppedPercentage;
-						
-							// See if the image will be cropped too much.
-						if ((pixletSize.width / tileSize.width) < (pixletSize.height / tileSize.height))
-							croppedPercentage = (pixletSize.width * (pixletSize.height - pixletSize.width * tileSize.height / tileSize.width)) / 
-												 (pixletSize.width * pixletSize.height) * 100.0;
-						else
-							croppedPercentage = ((pixletSize.width - pixletSize.height * tileSize.width / tileSize.height) * pixletSize.height) / 
-												 (pixletSize.width * pixletSize.height) * 100.0;
-						
-						if (croppedPercentage <= [self imageCropLimit])
-						{
-								// Get a rep for the image scaled to the tile's bitmap size.
-							NSBitmapImageRep	*imageRep = [imageCache imageRepAtSize:tileSize 
-																		 forIdentifier:pixletImageIdentifier 
-																			fromSource:pixletImageSource];
-					
-							if (imageRep)
-							{
-									// Calculate how well this image matches this tile.
-								float	previousBest = ([tile uniqueImageMatch] ? [[tile uniqueImageMatch] matchValue] : 1.0), 
-										matchValue = [matcher compareImageRep:tileBitmap 
-																	 withMask:[tile maskRep] 
-																   toImageRep:imageRep
-																 previousBest:previousBest];
-								
-								MacOSaiXImageMatch	*newMatch = [MacOSaiXImageMatch imageMatchWithValue:matchValue 
-																					 forImageIdentifier:pixletImageIdentifier 
-																						fromImageSource:pixletImageSource
-																								forTile:tile];
-									// If this image matches better than the tile's current best or this image is the same as the tile's current best then add it to the list of tile's that might get this image.
-								if (matchValue < previousBest ||
-									([[tile uniqueImageMatch] imageSource] == pixletImageSource && 
-									 [[[tile uniqueImageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier]))
-								{
-									[betterMatches addObject:newMatch];
-								}
-								
-									// Set the tile's best match if appropriate.
-									// TBD: check pref?
-								if (![tile bestImageMatch] || matchValue < [[tile bestImageMatch] matchValue])
-								{
-									[tile setBestImageMatch:newMatch];
-									
-									[probationLock lock];
-										if (probationaryImageSource && [newMatch imageSource] != probationaryImageSource)
-											[probationImageMorgue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-																				[newMatch imageSource], @"Image Source", 
-																				[newMatch imageIdentifier], @"Image Identifier",
-																				nil]];
-									[probationLock unlock];
-								}
-							}
-							else
-								;	// anything to do or just lose the chance to match this pixlet to this tile?
-						}
-						
-						[pool3 release];
-					}
-					
-						// Sort the array with the best matches first.
-					[betterMatches sortUsingSelector:@selector(compare:)];
-				}
-				
+					// Find the tiles that match this image better than their current image.  The returned array will be sorted by match value with the best match first.
+				NSMutableArray	*betterMatches = [self betterMatchesForImage:pixletImage 
+															  withIdentifier:pixletImageIdentifier 
+																  fromSource:pixletImageSource];
 				if ([betterMatches count] == 0)
 				{
 	//				NSLog(@"%@ from %@ is no longer needed", pixletImageIdentifier, pixletImageSource);
-					[betterMatchesCache removeObjectForKey:pixelImageUniversalIdentifier];
+					[betterMatchesCache removeObjectForKey:pixletImageUniversalIdentifier];
 				}
 				else
 				{
-					// Figure out which tiles should be set to use the image based on the user's settings.
+					// Figure out which tiles should use this image based on the usage settings.
 					
-						// A use count of zero means no limit on the number of times this image can be used.
-					int					useCount = [self imageUseCount];
-					if (useCount == 0)
-						useCount = [betterMatches count];
+					NSArray	*validMatches = [self validMatchesForImageUsageSettings:betterMatches];
 					
-						// Loop through the list of better matches and pick the first items (up to the use count) that aren't too close together.
-					float				scaledReuseDistance = [self imageReuseDistance] * 0.95 / 100.0, 
-										minDistanceApart = (powf([targetImage size].width, 2.0) + powf([targetImage size].height, 2.0)) * powf(scaledReuseDistance, 2.0);
-					NSMutableArray		*matchesToUpdate = [NSMutableArray array];
-					NSEnumerator		*betterMatchEnumerator = [betterMatches objectEnumerator];
-					MacOSaiXImageMatch	*betterMatch = nil;
-					while ((betterMatch = [betterMatchEnumerator nextObject]) && [matchesToUpdate count] < useCount)
+					if (!validMatches)
 					{
-						MacOSaiXTile		*betterMatchTile = [betterMatch tile];
-						NSEnumerator		*matchesToUpdateEnumerator = [matchesToUpdate objectEnumerator];
-						MacOSaiXImageMatch	*matchToUpdate = nil;
-						float				closestDistance = INFINITY;
-						while (matchToUpdate = [matchesToUpdateEnumerator nextObject])
-						{
-							float	widthDiff = NSMidX([[betterMatchTile outline] bounds]) - 
-												NSMidX([[[matchToUpdate tile] outline] bounds]), 
-									heightDiff = NSMidY([[betterMatchTile outline] bounds]) - 
-												 NSMidY([[[matchToUpdate tile] outline] bounds]), 
-									distanceSquared = widthDiff * widthDiff + heightDiff * heightDiff;
-							
-							closestDistance = MIN(closestDistance, distanceSquared);
-						}
+						// There weren't enough matches in the cache to satisfy the image resue settings so we need to re-calculate the matches.
 						
-						if ([matchesToUpdate count] == 0 || closestDistance >= minDistanceApart)
-							[matchesToUpdate addObject:betterMatch];
+						[betterMatchesCache removeObjectForKey:pixletImageUniversalIdentifier];
+						betterMatches = nil;	// The betterMatchesCache had the last retain on the array.
+						
+						NSDictionary	*newQueueEntry = [NSDictionary dictionaryWithObjectsAndKeys:
+							pixletImageSource, @"Image Source", 
+							pixletImageIdentifier, @"Image Identifier",
+							nil];
+						[revisitQueue removeObject:newQueueEntry];
+						[revisitQueue insertObject:newQueueEntry atIndex:0];
+						
+						pixletImageInUse = YES;
 					}
-					
-					if ([matchesToUpdate count] == useCount || [(MacOSaiXImageMatch *)[betterMatches lastObject] tile])
+					else if ([validMatches count] > 0)
 					{
 							// There were enough matches in betterMatches.  Update the winning tiles.
-						NSEnumerator		*matchesToUpdateEnumerator = [matchesToUpdate objectEnumerator];
-						MacOSaiXImageMatch	*matchToUpdate = nil;
-						while (matchToUpdate = [matchesToUpdateEnumerator nextObject])
+						NSEnumerator		*validMatchesEnumerator = [validMatches objectEnumerator];
+						MacOSaiXImageMatch	*validMatch = nil;
+						while (validMatch = [validMatchesEnumerator nextObject])
 						{
-							MacOSaiXImageMatch	*previousMatch = [[matchToUpdate tile] uniqueImageMatch];
+							MacOSaiXImageMatch	*previousMatch = [[validMatch tile] uniqueImageMatch];
 							if (previousMatch)
 							{
 								if ([previousMatch imageSource] != pixletImageSource || 
@@ -1266,51 +1343,34 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 																		[previousMatch imageIdentifier], @"Image Identifier",
 																		nil];
 									[revisitQueue removeObject:newQueueEntry];
-									[revisitQueue addObject:newQueueEntry];
+									[revisitQueue insertObject:newQueueEntry atIndex:0];
 								}
 								
 								[probationLock lock];
 									if (probationaryImageSource && [previousMatch imageSource] != probationaryImageSource)
-										[probationImageMorgue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+										[probationImageQueue addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 																			[previousMatch imageSource], @"Image Source", 
 																			[previousMatch imageIdentifier], @"Image Identifier",
 																			nil]];
 								[probationLock unlock];
 							}
 							
-							[[matchToUpdate tile] setUniqueImageMatch:matchToUpdate];
+							[[validMatch tile] setUniqueImageMatch:validMatch];
+							
+							if ([[validMatch tile] fillStyle] == fillWithUniqueMatch)
+								pixletImageIsDisplayed = YES;
 						}
 						
-						if ([betterMatches count] > maxBetterMatches)
-						{
-							[betterMatches removeObjectsInRange:NSMakeRange(maxBetterMatches, [betterMatches count] - maxBetterMatches)];
-							
-								// Add a dummy entry with a nil tile on the end so we know that entries were removed.
-							[betterMatches addObject:[[[MacOSaiXImageMatch alloc] init] autorelease]];
-						}
-							
 							// Remember which tiles matched better so we don't have to do all of the matching again.
-						[betterMatchesCache setObject:betterMatches forKey:pixelImageUniversalIdentifier];
-						
-						pixletImageInUse = YES;
-					}
-					else
-					{
-							// There weren't enough matches in the cache to satisfy the user's prefs 
-							// so we need to re-calculate the matches.
-						[betterMatchesCache removeObjectForKey:pixelImageUniversalIdentifier];
-						betterMatches = nil;	// The betterMatchesCache had the last retain on the array.
-						
-						NSDictionary	*newQueueEntry = [NSDictionary dictionaryWithObjectsAndKeys:
-															pixletImageSource, @"Image Source", 
-															pixletImageIdentifier, @"Image Identifier",
-															nil];
-						[revisitQueue removeObject:newQueueEntry];
-						[revisitQueue addObject:newQueueEntry];
+						[self setBetterMatches:betterMatches 
+							forImageIdentifier:pixletImageIdentifier 
+									fromSource:pixletImageSource];
 						
 						pixletImageInUse = YES;
 					}
 				}
+				
+				
 				
 				if (!pixletImageInUse && ![pixletImageSource canRefetchImages])
 				{
@@ -1318,17 +1378,46 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 					NSEnumerator			*tileEnumerator = [tiles objectEnumerator];
 					MacOSaiXTile			*tile = nil;
 					while (!pixletImageInUse && (tile = [tileEnumerator nextObject]))
+					{
 						if ([[tile bestImageMatch] imageSource] == pixletImageSource && 
 							[[[tile bestImageMatch] imageIdentifier] isEqualToString:pixletImageIdentifier])
 						{
 							pixletImageInUse = YES;
 							break;
 						}
+					}
 				}
 					
 				if (!pixletImageInUse)
 					[imageCache removeCachedImagesWithIdentifiers:[NSArray arrayWithObject:pixletImageIdentifier] 
 													   fromSource:pixletImageSource];
+				
+				[calculateImageMatchesLock lock];
+				NSValue			*imageSourceKey = [NSValue valueWithPointer:pixletImageSource];
+				NSMutableArray	*imageIdentifiers = [imageIdentifiersInUse objectForKey:imageSourceKey];
+				if (!imageIdentifiers)
+				{
+					imageIdentifiers = [NSMutableArray array];
+					[imageIdentifiersInUse setObject:imageIdentifiers forKey:imageSourceKey];
+				}
+				BOOL			imageAlreadyInUse = [imageIdentifiers containsObject:pixletImageIdentifier], 
+								countChanged = NO;
+				if (pixletImageIsDisplayed && !imageAlreadyInUse)
+				{
+					[imageIdentifiers addObject:pixletImageIdentifier];
+					countChanged = YES;
+				}
+				if (!pixletImageIsDisplayed && imageAlreadyInUse)
+				{
+					[imageIdentifiers removeObject:pixletImageIdentifier];
+					countChanged = YES;
+				}
+				[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicImageSourceDidChangeCountsNotification 
+																	object:self 
+																  userInfo:[NSDictionary dictionaryWithObject:pixletImageSource
+																									   forKey:@"Image Source"]];
+				[calculateImageMatchesLock unlock];
+				
 			NS_HANDLER
 				#ifdef DEBUG
 					NSLog(@"Could not calculate image matches");
@@ -1338,7 +1427,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 			if (!queueLocked)
 				[imageQueueLock lock];
 
-			[pool2 release];
+			[imagePool release];
 		}
 		
 		[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
@@ -1348,15 +1437,42 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 		
 	[imageQueueLock unlock];
 	
-	[calculateImageMatchesThreadLock lock];
+	[calculateImageMatchesLock lock];
 		calculateImageMatchesThreadAlive = NO;
-	[calculateImageMatchesThreadLock unlock];
+	[calculateImageMatchesLock unlock];
 	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
 														object:self];
 
 		// clean up and shutdown this thread
-    [pool release];
+    [threadPool release];
+}
+
+
+- (unsigned long)numberOfImagesInUseFromSource:(id<MacOSaiXImageSource>)imageSource;
+{
+	unsigned long	inUseCount = 0;
+	
+	[calculateImageMatchesLock lock];
+		inUseCount = [(NSArray *)[imageIdentifiersInUse objectForKey:[NSValue valueWithPointer:imageSource]] count];
+	[calculateImageMatchesLock unlock];
+	
+	return inUseCount;
+}
+
+
+- (unsigned long)numberOfImagesInUse
+{
+	unsigned long	totalCount = 0;
+	
+	[calculateImageMatchesLock lock];
+		NSEnumerator	*sourceEnumerator = [imageIdentifiersInUse keyEnumerator];
+		NSString		*key = nil;
+		while (key = [sourceEnumerator nextObject])
+			totalCount += [(NSArray *)[imageIdentifiersInUse objectForKey:key] count];
+	[calculateImageMatchesLock unlock];
+	
+	return totalCount;
 }
 
 
@@ -1427,6 +1543,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 			// Start the worker threads.
 			
 			pausing = NO;
+			paused = NO;
 			
 				// Finish extracting any tile bitmaps.
 			if ([tilesWithoutBitmaps count] > 0)
@@ -1439,8 +1556,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 				if ([imageSource hasMoreImages])
 					[self enumerateImageSource:imageSource];
 		}
-		
-		paused = NO;
+		else
+			paused = NO;
 		
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
 															object:self];
@@ -1466,9 +1583,10 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
     [targetImage release];
 	[enumerationsLock release];
 	[imageSourceEnumerations release];
-	[enumerationCounts release];
+	[imagesFoundCounts release];
+	[imageIdentifiersInUse release];
 	[betterMatchesCache release];
-	[calculateImageMatchesThreadLock release];
+	[calculateImageMatchesLock release];
     [tiles release];
 	[tilesWithoutBitmapsLock release];
 	[tilesWithoutBitmaps release];
