@@ -122,14 +122,12 @@
 	
 	// TBD: pass any NSPDFImageRep straight through?
 	
-//	NSString	*imageStream = [bitmapRep ascii85Stream];
-	NSString	*imageStream = @"zzzzzzzzzzzz";
-	[bitmapRep setSize:NSMakeSize(4.0, 4.0)];
-	long		objectID = [self exportObjectWithFormat:@" << /Type XObject\n"\
+	NSString	*imageStream = [bitmapRep ascii85Stream];
+	long		objectID = [self exportObjectWithFormat:@" << /Type /XObject\n"\
 													     "    /Subtype /Image\n"\
 													     "    /Width %d\n"\
 													     "    /Height %d\n"\
-													     "    /ColorSpace /CalRGB\n"\
+													     "    /ColorSpace /DeviceRGB\n"\
 													     "    /BitsPerComponent 8\n"\
 													     "    /Length %u\n"\
 													     "    /Filter /ASCII85Decode >>\n"\
@@ -160,21 +158,23 @@
 		exportFileHandle = [[NSFileHandle fileHandleForWritingAtPath:exportPath] retain];
 		
 			// Start with the PDF header.
-		float	pointWidth = [exportSettings width] * 72.0, 
-				pointHeight = [exportSettings height] * 72.0;
-		
-		if ([exportSettings units] == cmUnits)
-		{
-			pointWidth *= 2.54;
-			pointHeight *= 2.54;
-		}
-		
 		if (![self exportFormat:@"%%PDF-1.4\n\n"])
 			error = NSLocalizedString(@"Could not add the PDF version to the file", @"");
 		else
 		{
-			// TODO: set up the user space to map to the size of the target image
-			contentStream = [[NSMutableString string] retain];
+			float	pointWidth = [exportSettings width] * 72.0, 
+					pointHeight = [exportSettings height] * 72.0;
+			if ([exportSettings units] == cmUnits)
+			{
+				pointWidth *= 2.54;
+				pointHeight *= 2.54;
+			}
+			
+			NSSize	targetImageSize = [[exportSettings targetImage] size];
+			
+				// Set up the CTM to map the size of the target image to the size of the page's media box.
+			contentStream = [[NSMutableString stringWithFormat:@"%f 0 0 %f 0 0 cm\n\n", pointWidth / targetImageSize.width, 
+																						pointHeight / targetImageSize.height] retain];
 			objectOffsets = [[NSMutableArray array] retain];
 			imageIDs = [[NSMutableDictionary dictionary] retain];
 			
@@ -282,22 +282,13 @@
 	if (!imageID)
 		error = NSLocalizedString(@"Could not save a tile's image to the PDF.", @"");
 	else
-	{
-#if 0
-		[contentStream appendFormat:@"g\n"\
-									 " 0.0 0.0 0.0 rg\n"\
-									 " %@ S\n"\
+		[contentStream appendFormat:@"q\n"\
+									 " %@ W n\n"\
+									 " %f 0 0 %f %f %f cm\n"\
 									 " /Image%@ Do\n"\
-									 "G\n\n", [clipPath pdfPath], imageID];
-#else
-		[contentStream appendFormat:@"10 0 0 10 100 200 cm\n"\
-									 "/Image%@ Do\n\n", imageID];
-#endif
-	}
+									 "Q\n\n", [clipPath pdfPath], [image size].width, [image size].height, centerPoint.x - [image size].width / 2.0, centerPoint.y - [image size].height / 2.0, imageID];
 	
-	// Set the clip path.
-	// Set the rotation.
-	// Draw the image.
+	// TODO: Set the rotation.
 	
 	return error;
 }
@@ -422,6 +413,7 @@
 						byteCount = 0;
 	unsigned long long	metaByte = 0;
 	unsigned char		*rowPointer = bytes;
+	BOOL				skipAlphaByte = [self hasAlpha];
 	
 	for (y = 0; y < pixelsHigh; y++)
 	{
@@ -458,7 +450,8 @@
 				}
 			}
 			
-			pixelPointer++;	// skip the alpha byte
+			if (skipAlphaByte)
+				pixelPointer++;
 		}
 		
 		rowPointer += bytesPerRow;
