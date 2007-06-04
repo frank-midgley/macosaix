@@ -160,8 +160,8 @@
 		frame.size.width += widthDiff;
 		frame.size.height += heightDiff;
 // TODO: shouldn't the window controller be setting this?  And -setContentMinSize is 10.3 and above.
-// [window setContentMinSize:NSMakeSize(baseWidth + [plugInEditor minimumSize].width, baseHeight + [plugInEditor minimumSize].height)];
-		[window setFrame:frame display:YES animate:YES];
+//		[window setContentMinSize:NSMakeSize(baseWidth + [plugInEditor minimumSize].width, baseHeight + [plugInEditor minimumSize].height)];
+//		[window setFrame:frame display:YES animate:YES];
 		[plugInEditorBox setContentView:[plugInEditor editorView]];
 		
 		// Re-establish the key view loop:
