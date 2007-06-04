@@ -122,12 +122,14 @@
 	
 	// TBD: pass any NSPDFImageRep straight through?
 	
-	NSString	*imageStream = [bitmapRep pdfASCII85Stream];
+//	NSString	*imageStream = [bitmapRep ascii85Stream];
+	NSString	*imageStream = @"zzzzzzzzzzzz";
+	[bitmapRep setSize:NSMakeSize(4.0, 4.0)];
 	long		objectID = [self exportObjectWithFormat:@" << /Type XObject\n"\
 													     "    /Subtype /Image\n"\
 													     "    /Width %d\n"\
 													     "    /Height %d\n"\
-													     "    /ColorSpace /DeviceRGB\n"\
+													     "    /ColorSpace /CalRGB\n"\
 													     "    /BitsPerComponent 8\n"\
 													     "    /Length %u\n"\
 													     "    /Filter /ASCII85Decode >>\n"\
@@ -177,7 +179,7 @@
 			imageIDs = [[NSMutableDictionary dictionary] retain];
 			
 				// Add the header objects.
-			long	procSetID = [self exportObjectWithFormat:@"[/PDF]\n"], 
+			long	procSetID = [self exportObjectWithFormat:@"[/PDF /ImageC]\n"], 
 					outlinesID = [self exportObjectWithFormat:@"<< /Type /Outlines\n"\
 															   "   /Count 0\n"\
 															   ">>\n"];
@@ -191,7 +193,7 @@
 														   "   /Contents %d 0 R\n"\
 														   "   /Resources << /ProcSet %d 0 R\n"\
 														   "                 /XObject %d 0 R>>\n"\
-														   ">>\n", pagesID, (int)pointWidth, (int)pointHeight, contentsID, xObjectsID, procSetID];
+														   ">>\n", pagesID, (int)pointWidth, (int)pointHeight, contentsID, procSetID, xObjectsID];
 			
 			rootID = [self exportObjectWithFormat:@"<< /Type /Catalog\n"\
 												   "   /Outlines %d 0 R\n"\
@@ -283,11 +285,14 @@
 	{
 #if 0
 		[contentStream appendFormat:@"g\n"\
-									 " %@ n\n"\
+									 " 0.0 0.0 0.0 rg\n"\
+									 " %@ S\n"\
 									 " /Image%@ Do\n"\
 									 "G\n\n", [clipPath pdfPath], imageID];
+#else
+		[contentStream appendFormat:@"10 0 0 10 100 200 cm\n"\
+									 "/Image%@ Do\n\n", imageID];
 #endif
-		[contentStream appendFormat:@"/Image%@ Do\n\n", imageID];
 	}
 	
 	// Set the clip path.
@@ -404,7 +409,7 @@
 @implementation NSBitmapImageRep (MacOSaiXPDFExporter)
 
 
-- (NSString *)pdfASCII85Stream
+- (NSString *)ascii85Stream
 {
 	NSMutableString		*imageStream = [NSMutableString string];
 	unsigned char		*bytes = [self bitmapData];
@@ -412,9 +417,10 @@
 						pixelsHigh = [self pixelsHigh], 
 						bytesPerRow = [self bytesPerRow], 
 						x = 0, 
-						y = 0; 
-//						byteCount = 0;
-//	unsigned long long	metaByte = 0;
+						y = 0, 
+						c = 0, 
+						byteCount = 0;
+	unsigned long long	metaByte = 0;
 	unsigned char		*rowPointer = bytes;
 	
 	for (y = 0; y < pixelsHigh; y++)
@@ -423,23 +429,65 @@
 		
 		for (x = 0; x < pixelsWide; x++)
 		{
-			unsigned long long	metaByte = *(pixelPointer++)*256*256*256 + *(pixelPointer++)*256*256 + *(pixelPointer++)*256 + *(pixelPointer++);
-			unsigned char		c1 = metaByte / (85*85*85*85);
-			metaByte -= c1*85*85*85*85;
-			unsigned char		c2 = metaByte / (85*85*85);
-			metaByte -= c2*85*85*85;
-			unsigned char		c3 = metaByte / (85*85);
-			metaByte -= c3*85*85;
-			unsigned char		c4 = metaByte / 85, 
-								c5 = metaByte - c4*85;
+			for (c = 0; c < 3; c++)
+			{
+				metaByte = metaByte * 256 + *(pixelPointer++);
+				byteCount++;
+				
+				if (byteCount == 4)
+				{
+					unsigned char		c1 = metaByte / (85*85*85*85);
+					metaByte -= (long long)c1*85*85*85*85;
+					unsigned char		c2 = metaByte / (85*85*85);
+					metaByte -= (long)c2*85*85*85;
+					unsigned char		c3 = metaByte / (85*85);
+					metaByte -= c3*85*85;
+					unsigned char		c4 = metaByte / 85, 
+										c5 = metaByte - c4*85;
+					
+					if (c1 > 84 || c2 > 84 || c3 > 84 || c4 > 84 || c5 > 84)
+						NSLog(@"oops");
+					
+					if (c1 != 0 || c2 != 0 || c3 != 0 || c4 != 0 || c5 != 0)
+						[imageStream appendFormat:@"%c%c%c%c%c", c1 + 33, c2 + 33, c3 + 33, c4 + 33, c5 + 33];
+					else
+						[imageStream appendString:@"z"];
+					
+					metaByte = 0;
+					byteCount = 0;
+				}
+			}
 			
-			if (c1 != 0 || c2 != 0 || c3 != 0 || c4 != 0 || c5 != 0)
-				[imageStream appendFormat:@"%c%c%c%c%c", c1 + 33, c2 + 33, c3 + 33, c4 + 33, c5 + 33];
-			else
-				[imageStream appendString:@"z"];
+			pixelPointer++;	// skip the alpha byte
 		}
 		
 		rowPointer += bytesPerRow;
+	}
+	
+	if (byteCount > 0)
+	{
+			// Pad with zeros.
+		if (byteCount == 1)
+			metaByte *= 256*256*256;
+		else if (byteCount == 2)
+			metaByte *= 256*256;
+		else if (byteCount == 3)
+			metaByte *= 256;
+		
+		unsigned char		c1 = metaByte / (85*85*85*85);
+		metaByte -= (long long)c1*85*85*85*85;
+		unsigned char		c2 = metaByte / (85*85*85);
+		metaByte -= (long)c2*85*85*85;
+		unsigned char		c3 = metaByte / (85*85);
+		metaByte -= c3*85*85;
+		unsigned char		c4 = metaByte / 85;
+		
+		if (byteCount == 1)
+			[imageStream appendFormat:@"%c%c~>", c1 + 33, c2 + 33];
+		else if (byteCount == 2)
+			[imageStream appendFormat:@"%c%c%c~>", c1 + 33, c2 + 33, c3 + 33];
+		else if (byteCount == 3)
+			[imageStream appendFormat:@"%c%c%c%c~>", c1 + 33, c2 + 33, c3 + 33, c4 + 33];
 	}
 	
 	return imageStream;

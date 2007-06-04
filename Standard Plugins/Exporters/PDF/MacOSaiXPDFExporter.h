@@ -32,7 +32,7 @@
 
 
 @interface NSBitmapImageRep (MacOSaiXPDFExporter)
-- (NSString *)pdfASCII85Stream;
+- (NSString *)ascii85Stream;
 @end
 
 
