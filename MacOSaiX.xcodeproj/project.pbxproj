@@ -22,6 +22,7 @@
 				929DC4090BFCE30000024C99 /* PBXTargetDependency */,
 				014F185C0B2CCEA10023D2D2 /* PBXTargetDependency */,
 				92D5930E0BF8F5A600FBA68C /* PBXTargetDependency */,
+				92D94E200C0F3B0400441CE1 /* PBXTargetDependency */,
 			);
 			name = "Standard Plug-Ins";
 			productName = "Standard Plug-Ins";
@@ -254,6 +255,15 @@
 		92D5931C0BF8F72A00FBA68C /* MacOSaiXBitmapExportEditor.m in Sources */ = {isa = PBXBuildFile; fileRef = 92D5931B0BF8F72A00FBA68C /* MacOSaiXBitmapExportEditor.m */; };
 		92D593250BF8F83A00FBA68C /* Bitmap Export.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92D593230BF8F83A00FBA68C /* Bitmap Export.nib */; };
 		92D593780BF90C3400FBA68C /* MacOSaiXBitmapExporter.m in Sources */ = {isa = PBXBuildFile; fileRef = 92D593770BF90C3400FBA68C /* MacOSaiXBitmapExporter.m */; };
+		92D94DCF0C0F34CA00441CE1 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
+		92D94DD00C0F34CA00441CE1 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01DDE1950A2E8755004F1F4E /* QuartzCore.framework */; };
+		92D94E030C0F35A300441CE1 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 92D94DFA0C0F35A300441CE1 /* Info.plist */; };
+		92D94E040C0F35A300441CE1 /* MacOSaiXPDFExportEditor.m in Sources */ = {isa = PBXBuildFile; fileRef = 92D94DFC0C0F35A300441CE1 /* MacOSaiXPDFExportEditor.m */; };
+		92D94E050C0F35A300441CE1 /* MacOSaiXPDFExporter.m in Sources */ = {isa = PBXBuildFile; fileRef = 92D94DFE0C0F35A300441CE1 /* MacOSaiXPDFExporter.m */; };
+		92D94E060C0F35A300441CE1 /* MacOSaiXPDFExporterPlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92D94E000C0F35A300441CE1 /* MacOSaiXPDFExporterPlugIn.m */; };
+		92D94E070C0F35A300441CE1 /* MacOSaiXPDFExportSettings.m in Sources */ = {isa = PBXBuildFile; fileRef = 92D94E020C0F35A300441CE1 /* MacOSaiXPDFExportSettings.m */; };
+		92D94E220C0F3B1400441CE1 /* PDF Exporter.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92D94DD50C0F34CA00441CE1 /* PDF Exporter.bundle */; };
+		92D94ED50C108DEB00441CE1 /* PDF Export.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92D94ED30C108DEB00441CE1 /* PDF Export.nib */; };
 		92DA0D510A32192B0064E69E /* Add.png in Resources */ = {isa = PBXBuildFile; fileRef = 92DA0D500A32192B0064E69E /* Add.png */; };
 		92DA0D530A32193D0064E69E /* Remove.png in Resources */ = {isa = PBXBuildFile; fileRef = 92DA0D520A32193D0064E69E /* Remove.png */; };
 		92DA0D8F0A32243C0064E69E /* MacOSaiXPopUpButton.h in Headers */ = {isa = PBXBuildFile; fileRef = 92DA0D8D0A32243C0064E69E /* MacOSaiXPopUpButton.h */; };
@@ -446,6 +456,13 @@
 			remoteGlobalIDString = 92341E210BF8F1370079BFF0;
 			remoteInfo = "Bitmap Exporter";
 		};
+		92D94E1F0C0F3B0400441CE1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 92D94DC60C0F34CA00441CE1 /* PDF Exporter */;
+			remoteInfo = "PDF Exporter";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -464,6 +481,7 @@
 				929DC4140BFCE31000024C99 /* iTunes Image Source.plugin in CopyFiles */,
 				014F189E0B2CD1410023D2D2 /* Constant Image Orientations.plugin in CopyFiles */,
 				929DC0980BFB4EFF00024C99 /* Bitmap Exporter.bundle in CopyFiles */,
+				92D94E220C0F3B1400441CE1 /* PDF Exporter.bundle in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -714,6 +732,17 @@
 		92D593240BF8F83A00FBA68C /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Exporters/Bitmap Image/English.lproj/Bitmap Export.nib"; sourceTree = "<group>"; };
 		92D593760BF90C3400FBA68C /* MacOSaiXBitmapExporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXBitmapExporter.h; sourceTree = "<group>"; };
 		92D593770BF90C3400FBA68C /* MacOSaiXBitmapExporter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXBitmapExporter.m; sourceTree = "<group>"; };
+		92D94DD50C0F34CA00441CE1 /* PDF Exporter.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "PDF Exporter.bundle"; sourceTree = BUILT_PRODUCTS_DIR; };
+		92D94DFA0C0F35A300441CE1 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
+		92D94DFB0C0F35A300441CE1 /* MacOSaiXPDFExportEditor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXPDFExportEditor.h; sourceTree = "<group>"; };
+		92D94DFC0C0F35A300441CE1 /* MacOSaiXPDFExportEditor.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXPDFExportEditor.m; sourceTree = "<group>"; };
+		92D94DFD0C0F35A300441CE1 /* MacOSaiXPDFExporter.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXPDFExporter.h; sourceTree = "<group>"; };
+		92D94DFE0C0F35A300441CE1 /* MacOSaiXPDFExporter.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXPDFExporter.m; sourceTree = "<group>"; };
+		92D94DFF0C0F35A300441CE1 /* MacOSaiXPDFExporterPlugIn.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXPDFExporterPlugIn.h; sourceTree = "<group>"; };
+		92D94E000C0F35A300441CE1 /* MacOSaiXPDFExporterPlugIn.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXPDFExporterPlugIn.m; sourceTree = "<group>"; };
+		92D94E010C0F35A300441CE1 /* MacOSaiXPDFExportSettings.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXPDFExportSettings.h; sourceTree = "<group>"; };
+		92D94E020C0F35A300441CE1 /* MacOSaiXPDFExportSettings.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXPDFExportSettings.m; sourceTree = "<group>"; };
+		92D94ED40C108DEB00441CE1 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/PDF Export.nib"; sourceTree = "<group>"; };
 		92DA0D500A32192B0064E69E /* Add.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Add.png; sourceTree = "<group>"; };
 		92DA0D520A32193D0064E69E /* Remove.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Remove.png; sourceTree = "<group>"; };
 		92DA0D8D0A32243C0064E69E /* MacOSaiXPopUpButton.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXPopUpButton.h; sourceTree = "<group>"; };
@@ -882,6 +911,15 @@
 			files = (
 				928489FF06611CE6003B3514 /* Cocoa.framework in Frameworks */,
 				92848A0106611CE6003B3514 /* QuickTime.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		92D94DCE0C0F34CA00441CE1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				92D94DCF0C0F34CA00441CE1 /* Cocoa.framework in Frameworks */,
+				92D94DD00C0F34CA00441CE1 /* QuartzCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1199,6 +1237,7 @@
 				0124FA540A44A6290074777E /* iSight Image Source.plugin */,
 				014F184E0B2CCDD40023D2D2 /* Constant Image Orientations.plugin */,
 				92341E220BF8F1370079BFF0 /* Bitmap Exporter.bundle */,
+				92D94DD50C0F34CA00441CE1 /* PDF Exporter.bundle */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1235,6 +1274,7 @@
 			isa = PBXGroup;
 			children = (
 				92341CA90BF119190079BFF0 /* Bitmap Image */,
+				92D94DF40C0F353D00441CE1 /* PDF */,
 			);
 			name = Exporters;
 			path = "Standard Plugins/Exporters";
@@ -1477,6 +1517,23 @@
 				92B4091F0B0D448400BB3981 /* About Box.nib */,
 			);
 			name = "About Box";
+			sourceTree = "<group>";
+		};
+		92D94DF40C0F353D00441CE1 /* PDF */ = {
+			isa = PBXGroup;
+			children = (
+				92D94DFF0C0F35A300441CE1 /* MacOSaiXPDFExporterPlugIn.h */,
+				92D94E000C0F35A300441CE1 /* MacOSaiXPDFExporterPlugIn.m */,
+				92D94E010C0F35A300441CE1 /* MacOSaiXPDFExportSettings.h */,
+				92D94E020C0F35A300441CE1 /* MacOSaiXPDFExportSettings.m */,
+				92D94DFB0C0F35A300441CE1 /* MacOSaiXPDFExportEditor.h */,
+				92D94DFC0C0F35A300441CE1 /* MacOSaiXPDFExportEditor.m */,
+				92D94DFD0C0F35A300441CE1 /* MacOSaiXPDFExporter.h */,
+				92D94DFE0C0F35A300441CE1 /* MacOSaiXPDFExporter.m */,
+				92D94ED30C108DEB00441CE1 /* PDF Export.nib */,
+				92D94DFA0C0F35A300441CE1 /* Info.plist */,
+			);
+			path = PDF;
 			sourceTree = "<group>";
 		};
 		92DCA54D08F871A100B40FA6 /* Common */ = {
@@ -1960,6 +2017,24 @@
 			productReference = 92848A0406611CE6003B3514 /* QuickTime Image Source.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
+		92D94DC60C0F34CA00441CE1 /* PDF Exporter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 92D94DD20C0F34CA00441CE1 /* Build configuration list for PBXNativeTarget "PDF Exporter" */;
+			buildPhases = (
+				92D94DC70C0F34CA00441CE1 /* Resources */,
+				92D94DC90C0F34CA00441CE1 /* Sources */,
+				92D94DCE0C0F34CA00441CE1 /* Frameworks */,
+				92D94DD10C0F34CA00441CE1 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "PDF Exporter";
+			productName = "Bitmap Exporter";
+			productReference = 92D94DD50C0F34CA00441CE1 /* PDF Exporter.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
 		92E3E15207E7BE8C00E62AB8 /* iPhoto Image Source */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0142D7220895BF23007F1FD2 /* Build configuration list for PBXNativeTarget "iPhoto Image Source" */;
@@ -2006,6 +2081,7 @@
 				011C7D580A1D76460023CD62 /* iTunes Image Source */,
 				928489F406611CE6003B3514 /* QuickTime Image Source */,
 				92341E210BF8F1370079BFF0 /* Bitmap Exporter */,
+				92D94DC60C0F34CA00441CE1 /* PDF Exporter */,
 			);
 		};
 /* End PBXProject section */
@@ -2179,6 +2255,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				928F72D5066122D800873AE2 /* QuickTime Image Source.nib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		92D94DC70C0F34CA00441CE1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				92D94E030C0F35A300441CE1 /* Info.plist in Resources */,
+				92D94ED50C108DEB00441CE1 /* PDF Export.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2385,6 +2470,19 @@
 			shellPath = /bin/sh;
 			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/Exporters/Bitmap Image\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
 		};
+		92D94DD10C0F34CA00441CE1 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/Exporters/PDF\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -2564,6 +2662,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		92D94DC90C0F34CA00441CE1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				92D94E060C0F35A300441CE1 /* MacOSaiXPDFExporterPlugIn.m in Sources */,
+				92D94E070C0F35A300441CE1 /* MacOSaiXPDFExportSettings.m in Sources */,
+				92D94E040C0F35A300441CE1 /* MacOSaiXPDFExportEditor.m in Sources */,
+				92D94E050C0F35A300441CE1 /* MacOSaiXPDFExporter.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		92E3E15A07E7BE8C00E62AB8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2625,6 +2734,11 @@
 			isa = PBXTargetDependency;
 			target = 92341E210BF8F1370079BFF0 /* Bitmap Exporter */;
 			targetProxy = 92D5930D0BF8F5A600FBA68C /* PBXContainerItemProxy */;
+		};
+		92D94E200C0F3B0400441CE1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 92D94DC60C0F34CA00441CE1 /* PDF Exporter */;
+			targetProxy = 92D94E1F0C0F3B0400441CE1 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -2992,6 +3106,14 @@
 			);
 			name = "Bitmap Export.nib";
 			path = ../../..;
+			sourceTree = "<group>";
+		};
+		92D94ED30C108DEB00441CE1 /* PDF Export.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92D94ED40C108DEB00441CE1 /* English */,
+			);
+			name = "PDF Export.nib";
 			sourceTree = "<group>";
 		};
 		92DFC50609EDC3EA0076FD93 /* Loading.png */ = {
@@ -3413,6 +3535,28 @@
 			};
 			name = Release;
 		};
+		92D94DD30C0F34CA00441CE1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
+				INFOPLIST_FILE = "Standard Plugins/Exporters/PDF/Info.plist";
+				PRODUCT_NAME = "PDF Exporter";
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Debug;
+		};
+		92D94DD40C0F34CA00441CE1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
+				INFOPLIST_FILE = "Standard Plugins/Exporters/PDF/Info.plist";
+				PRODUCT_NAME = "PDF Exporter";
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -3556,6 +3700,15 @@
 			buildConfigurations = (
 				92341E250BF8F13C0079BFF0 /* Debug */,
 				92341E260BF8F13C0079BFF0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		92D94DD20C0F34CA00441CE1 /* Build configuration list for PBXNativeTarget "PDF Exporter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				92D94DD30C0F34CA00441CE1 /* Debug */,
+				92D94DD40C0F34CA00441CE1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
