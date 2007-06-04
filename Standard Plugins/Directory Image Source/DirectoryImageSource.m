@@ -25,7 +25,13 @@
 {
 	if (self = [super init])
 	{
-		[self setPath:[NSHomeDirectory() stringByAppendingPathComponent:@"Pictures"]];
+		NSString	*initialPath = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] 
+																				objectForKey:@"Last Chosen Folder"];
+		
+		if (!initialPath)
+			initialPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Pictures"];	// TODO: Use FSFindFolder
+		
+		[self setPath:initialPath];
 		[self setFollowsAliases:YES];
 	}
 
