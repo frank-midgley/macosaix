@@ -80,7 +80,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	{
 		[settings setObject:@"Free-form" forKey:@"Sizing"];
 		[settings setObject:[NSNumber numberWithInt:[currentTileShapes tilesAcross]] forKey:@"Tiles Across"];
-		[settings setObject:[NSNumber numberWithInt:[currentTileShapes tilesDown]] forKey:@"Tiles Across"];
+		[settings setObject:[NSNumber numberWithInt:[currentTileShapes tilesDown]] forKey:@"Tiles Down"];
 	}
 	else
 	{
