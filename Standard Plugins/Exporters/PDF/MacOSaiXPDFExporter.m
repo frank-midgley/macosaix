@@ -56,16 +56,10 @@
 }
 
 
-- (BOOL)exportObjectWithID:(long)objectID format:(NSString *)objectFormat, ...
+- (BOOL)exportObjectWithID:(long)objectID body:(NSString *)objectBody
 {
 	BOOL				success = NO;
 	unsigned long long	objectOffset = [exportFileHandle offsetInFile];
-	NSString			*objectBody = nil;
-	va_list				argList;
-	
-	va_start(argList, objectFormat);
-	objectBody = [[[NSString alloc] initWithFormat:objectFormat arguments:argList] autorelease];
-	va_end(argList);
 	
 	if ([self exportFormat:@"%d 0 obj\n"\
 							"%@"\
@@ -83,6 +77,19 @@
 }
 
 
+- (BOOL)exportObjectWithID:(long)objectID format:(NSString *)objectFormat, ...
+{
+	NSString			*objectBody = nil;
+	va_list				argList;
+	
+	va_start(argList, objectFormat);
+	objectBody = [[[NSString alloc] initWithFormat:objectFormat arguments:argList] autorelease];
+	va_end(argList);
+	
+	return [self exportObjectWithID:objectID body:objectBody];
+}
+
+
 - (long)exportObjectWithFormat:(NSString *)objectFormat, ...
 {
 	long		objectID = [self reserveAnObjectID];
@@ -93,7 +100,7 @@
 	objectBody = [[[NSString alloc] initWithFormat:objectFormat arguments:argList] autorelease];
 	va_end(argList);
 	
-	if (![self exportObjectWithID:objectID format:objectBody])
+	if (![self exportObjectWithID:objectID body:objectBody])
 		objectID = -1;
 	
 	return objectID;
@@ -126,7 +133,7 @@
 													     "    /Filter /ASCII85Decode >>\n"\
 													     "stream\n"\
 													     "%@\n"\
-													     "endstream\n", [image size].width, [image size].height, (unsigned long)[imageStream length], imageStream];
+													     "endstream\n", (int)[bitmapRep size].width, (int)[bitmapRep size].height, (unsigned long)[imageStream length], imageStream];
 	if (objectID >= 0)
 		imageNumber = [NSNumber numberWithLong:objectID];
 	
