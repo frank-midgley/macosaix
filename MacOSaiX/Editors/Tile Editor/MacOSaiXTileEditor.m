@@ -349,7 +349,99 @@
 
 - (IBAction)chooseImageForTile:(id)sender
 {
+	NSOpenPanel	*openPanel = [NSOpenPanel openPanel];
+	[openPanel setCanChooseFiles:YES];
+	[openPanel setCanChooseDirectories:NO];
+	if ([openPanel respondsToSelector:@selector(setMessage:)])
+		[openPanel setMessage:NSLocalizedString(@"Choose an image to be displayed in this tile:", @"")];
+	[openPanel setPrompt:NSLocalizedString(@"Choose", @"")];
+	[openPanel setDelegate:self];
 	
+// TODO:
+//	[openPanel setAccessoryView:accessoryView];
+//	NSSize	superSize = [[accessoryView superview] frame].size;
+//	[accessoryView setFrame:NSMakeRect(5.0, 5.0, superSize.width - 10.0, superSize.height - 10.0)];
+//	[accessoryView setAutoresizingMask:NSViewWidthSizable];
+	
+	[openPanel beginSheetForDirectory:nil
+								 file:nil
+								types:[NSImage imageFileTypes]
+					   modalForWindow:[[self mosaicView] window]
+						modalDelegate:self
+					   didEndSelector:@selector(chooseImagePanelDidEnd:returnCode:contextInfo:)
+						  contextInfo:nil];
+}
+
+
+// TODO: show how the chosen image will be cropped and its match value
+//- (void)panelSelectionDidChange:(id)sender
+//{
+//	if ([[sender URLs] count] == 0)
+//	{
+//		[chosenImageBox setTitle:[NSString stringWithFormat:newImageTitleFormat, NSLocalizedString(@"No File Selected", @"")]];
+//		[chosenImageView setImage:nil];
+//		[chosenMatchQualityTextField setStringValue:@"--"];
+//		[chosenPercentCroppedTextField setStringValue:@"--"];
+//	}
+//	else
+//	{
+//		// This shouldn't be necessary but updating the views right away often crashes because of some interaction with the AppKit thread that is creating a preview of the selected image.
+//		[self performSelector:@selector(updateUserChosenViewsForImageAtPath:) withObject:[[sender filenames] objectAtIndex:0] afterDelay:0.0];
+//	}
+//}
+//
+//
+//
+//- (void)updateUserChosenViewsForImageAtPath:(NSString *)imagePath
+//{
+//	NSString			*chosenImageIdentifier = imagePath, 
+//	*chosenImageName = [[NSFileManager defaultManager] displayNameAtPath:chosenImageIdentifier];
+//	
+//	[chosenImageBox setTitle:[NSString stringWithFormat:newImageTitleFormat, chosenImageName]];
+//	
+//	NSImage				*chosenImage = [[[NSImage alloc] initWithContentsOfFile:chosenImageIdentifier] autorelease];
+//	[chosenImage setCachedSeparately:YES];
+//	[chosenImage setCacheMode:NSImageCacheNever];
+//	
+//	if (chosenImage)
+//	{
+//		NSImageRep			*originalRep = [[chosenImage representations] objectAtIndex:0];
+//		NSSize				imageSize = NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh]);
+//		[originalRep setSize:imageSize];
+//		[chosenImage setSize:imageSize];
+//		
+//		float				croppedPercentage = 0.0;
+//		[chosenImageView setImage:[self highlightTileOutlineInImage:chosenImage croppedPercentage:&croppedPercentage]];
+//		
+//		[chosenPercentCroppedTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", croppedPercentage]];
+//		
+//		// Calculate how well the chosen image matches the selected tile.
+//		[[MacOSaiXImageCache sharedImageCache] cacheImage:chosenImage withIdentifier:chosenImageIdentifier fromSource:nil];
+//		NSBitmapImageRep	*chosenImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[[tile bitmapRep] size] 
+//																					  forIdentifier:chosenImageIdentifier 
+//																						 fromSource:nil];
+//		chosenMatchValue = [[MacOSaiXImageMatcher sharedMatcher] compareImageRep:[tile bitmapRep]  
+//																		withMask:[tile maskRep] 
+//																	  toImageRep:chosenImageRep
+//																	previousBest:1.0];
+//		[chosenMatchQualityTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", 100.0 - chosenMatchValue * 100.0]];
+//	}
+//}
+
+
+- (void)chooseImagePanelDidEnd:(NSOpenPanel *)openPanel returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+	[openPanel orderOut:self];
+	
+	if ([openPanel respondsToSelector:@selector(setMessage:)])
+		[openPanel setMessage:@""];
+	
+	if (returnCode == NSOKButton)
+	{
+		[[[self mosaicView] mosaic] setHandPickedImageAtPath:[[openPanel filenames] objectAtIndex:0]
+											  withMatchValue:0.0
+													 forTile:selectedTile];
+	}
 }
 
 
