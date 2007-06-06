@@ -68,14 +68,27 @@
 
 - (void)controlTextDidChange:(NSNotification *)notification
 {
+	NSSize	targetImageSize = [[currentSettings targetImage] size];
+	float	aspectRatio = targetImageSize.width / targetImageSize.height;
+	
 	if ([notification object] == widthField)
 	{
-		[currentSettings setWidth:[widthField floatValue]];
+		float	newWidth = [[[[notification userInfo] objectForKey:@"NSFieldEditor"] string] floatValue], 
+				newHeight = newWidth / aspectRatio;
+		
+		[currentSettings setWidth:newWidth];
+		[currentSettings setWidth:newHeight];
+		[heightField setFloatValue:newHeight];
 		[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Width"];
 	}
 	else if ([notification object] == heightField)
 	{
-		[currentSettings setHeight:[heightField floatValue]];
+		float	newHeight = [[[[notification userInfo] objectForKey:@"NSFieldEditor"] string] floatValue], 
+				newWidth = newHeight * aspectRatio;
+		
+		[currentSettings setWidth:newWidth];
+		[currentSettings setHeight:newHeight];
+		[widthField setFloatValue:newWidth];
 		[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Height"];
 	}
 }
