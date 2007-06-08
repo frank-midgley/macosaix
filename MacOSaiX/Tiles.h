@@ -39,6 +39,7 @@ typedef enum { fillWithUniqueMatch, fillWithHandPicked, fillWithTargetImage, fil
 			   mosaic:(MacOSaiXMosaic *)mosaic;
 
 - (void)setImageOrientation:(float)angle;
+- (BOOL)hasImageOrientation;
 - (float)imageOrientation;
 
 - (void)setMosaic:(MacOSaiXMosaic *)mosaic;

@@ -73,6 +73,12 @@
 }
 
 
+- (BOOL)hasImageOrientation
+{
+	return (imageOrientation != nil);
+}
+
+
 - (float)imageOrientation
 {
 	float	angle = 0.0;
