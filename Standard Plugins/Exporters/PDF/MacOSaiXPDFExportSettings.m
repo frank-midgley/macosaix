@@ -118,6 +118,12 @@
 }
 
 
+- (BOOL)settingsAreValid
+{
+	return YES;
+}
+
+
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
 	return [[NSDictionary dictionaryWithObjectsAndKeys:
