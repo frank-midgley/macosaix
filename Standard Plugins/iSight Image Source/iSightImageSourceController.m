@@ -87,12 +87,6 @@
 }
 
 
-- (BOOL)settingsAreValid
-{
-	return YES;
-}
-
-
 - (void)editingComplete
 {
 //	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:nil];

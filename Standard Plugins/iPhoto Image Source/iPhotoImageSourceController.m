@@ -119,12 +119,6 @@
 }
 
 
-- (BOOL)settingsAreValid
-{
-	return YES;
-}
-
-
 - (void)editingComplete
 {
 }
