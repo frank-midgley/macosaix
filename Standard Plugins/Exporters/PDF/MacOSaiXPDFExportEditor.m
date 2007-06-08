@@ -40,7 +40,7 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(254.0, 72.0);
+	return NSMakeSize(260.0, 72.0);
 }
 
 
@@ -77,7 +77,7 @@
 				newHeight = newWidth / aspectRatio;
 		
 		[currentSettings setWidth:newWidth];
-		[currentSettings setWidth:newHeight];
+		[currentSettings setHeight:newHeight];
 		[heightField setFloatValue:newHeight];
 		[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Width"];
 	}
@@ -99,21 +99,21 @@
 	MacOSaiXPDFUnits	previousUnits = [currentSettings units], 
 						newUnits = [unitsPopUp selectedTag];
 	
-	[currentSettings setUnits:newUnits];
-	
-		// Convert the width and height to the new units if needed.
-	if (previousUnits == inchUnits && newUnits == cmUnits)
+	if (previousUnits != newUnits)
 	{
-		[currentSettings setWidth:[currentSettings width] * 2.54];
-		[currentSettings setHeight:[currentSettings height] * 2.54];
+		[currentSettings setUnits:newUnits];
+		
+			// Convert the width and height to the new units.
+		float	factor = (newUnits == cmUnits ? 2.54 : 1.0 / 2.54), 
+				newWidth = [currentSettings width] * factor, 
+				newHeight = [currentSettings height] * factor;
+		[currentSettings setWidth:newWidth];
+		[widthField setFloatValue:newWidth];
+		[currentSettings setHeight:newHeight];
+		[heightField setFloatValue:newHeight];
+		
+		[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Units"];
 	}
-	else if (previousUnits == cmUnits && newUnits == inchUnits)
-	{
-		[currentSettings setWidth:[currentSettings width] / 2.54];
-		[currentSettings setHeight:[currentSettings height] / 2.54];
-	}
-	
-	[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Units"];
 }
 
 
