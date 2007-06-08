@@ -107,10 +107,11 @@
 		
 		[formatMenu addItem:menuItem];
 		
-		if (!currentClass || [exporterPlugIn dataSourceClass] == currentClass)
+		if ((!currentClass && !currentItem) || [exporterPlugIn dataSourceClass] == currentClass)
 			currentItem = menuItem;
 	}
 	
+	[formatPopUp selectItem:currentItem];
 	[self setFormat:currentItem];
 	
 	NSString	*exportExtension = [exportSettings exportExtension];
@@ -152,7 +153,7 @@
 	NSRect			editorFrame = [editorView frame], 
 					accessoryFrame = NSMakeRect(0.0, 0.0, NSWidth(editorFrame), NSHeight(editorFrame) + NSHeight([sharedView frame]) + 10.0);
 	NSView			*accessoryView = [[[NSView alloc] initWithFrame:accessoryFrame] autorelease];
-	[sharedView setFrame:NSMakeRect(0.0, NSHeight(editorFrame) + 10.0, NSWidth(editorFrame), NSHeight([sharedView frame]))];
+	[sharedView setFrame:NSMakeRect(0.0, NSHeight(editorFrame) + 10.0, NSWidth(accessoryFrame), NSHeight([sharedView frame]))];
 	[accessoryView addSubview:sharedView];
 	[accessoryView addSubview:editorView];
 	[savePanel setAccessoryView:accessoryView];
