@@ -34,8 +34,3 @@
 @interface NSBitmapImageRep (MacOSaiXPDFExporter)
 - (NSString *)ascii85Stream;
 @end
-
-
-@interface NSString (MacOSaiXPDFExporter)
-+ (NSString *)stringWithFloat:(float)floatValue;
-@end
