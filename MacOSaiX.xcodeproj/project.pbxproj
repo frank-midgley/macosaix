@@ -460,7 +460,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 92D94DC60C0F34CA00441CE1 /* PDF Exporter */;
+			remoteGlobalIDString = 92D94DC60C0F34CA00441CE1;
 			remoteInfo = "PDF Exporter";
 		};
 /* End PBXContainerItemProxy section */
@@ -1201,8 +1201,9 @@
 			children = (
 				92911D9B0A23D33500F9C82A /* Application */,
 				010D208D0902BF0600950013 /* Document */,
+				92DCA54D08F871A100B40FA6 /* Core */,
 				017C21390B3BB79000457AC9 /* Editors */,
-				92DCA54D08F871A100B40FA6 /* Common */,
+				92E544D60C189DDF005C3B95 /* Mosaic View */,
 				924E8058099E8BD1006977E3 /* Tiles Setup */,
 				9298FE0A0995594700E7A096 /* Save As */,
 				9240AE6F0A4DAB4A00759546 /* Progress Sheet */,
@@ -1536,7 +1537,7 @@
 			path = PDF;
 			sourceTree = "<group>";
 		};
-		92DCA54D08F871A100B40FA6 /* Common */ = {
+		92DCA54D08F871A100B40FA6 /* Core */ = {
 			isa = PBXGroup;
 			children = (
 				016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */,
@@ -1549,9 +1550,6 @@
 				92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */,
 				01FE981008F365C600E4AC7C /* MacOSaiXMosaic.h */,
 				01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */,
-				F5517EEE020CD88F01000106 /* MosaicView.h */,
-				F5517EEF020CD88F01000106 /* MosaicView.m */,
-				9211A5E30A17DA3A0021A583 /* Mosaic View.nib */,
 				9211A6820A17F7A70021A583 /* MacOSaiXToolTipView.h */,
 				9211A6830A17F7A70021A583 /* MacOSaiXToolTipView.m */,
 				00EAAC6000853DFB7F000001 /* Tiles.h */,
@@ -1559,7 +1557,7 @@
 				011C7CE20A1AADCB0023CD62 /* MacOSaiXTextFieldCell.h */,
 				011C7CE30A1AADCB0023CD62 /* MacOSaiXTextFieldCell.m */,
 			);
-			name = Common;
+			name = Core;
 			sourceTree = "<group>";
 		};
 		92DCA56D08F8726300B40FA6 /* Images */ = {
@@ -1599,6 +1597,16 @@
 				92E3E17407E7BF1B00E62AB8 /* Info.plist */,
 			);
 			name = iPhoto;
+			sourceTree = "<group>";
+		};
+		92E544D60C189DDF005C3B95 /* Mosaic View */ = {
+			isa = PBXGroup;
+			children = (
+				F5517EEE020CD88F01000106 /* MosaicView.h */,
+				F5517EEF020CD88F01000106 /* MosaicView.m */,
+				9211A5E30A17DA3A0021A583 /* Mosaic View.nib */,
+			);
+			name = "Mosaic View";
 			sourceTree = "<group>";
 		};
 		92F00CC907C1AA31004F6D06 /* Third Party Code */ = {
