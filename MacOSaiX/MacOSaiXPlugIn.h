@@ -68,6 +68,9 @@
 	// This method should return a human-readable string or attributed string that briefly describes this instance's settings.
 - (id)briefDescription;
 
+	// This method should return true if the current settings are valid and the data source can be used.
+- (BOOL)settingsAreValid;
+
 	// Methods called to save and load settings.
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path;
 - (BOOL)loadSettingsFromFileAtPath:(NSString *)path;
