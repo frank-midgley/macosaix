@@ -56,7 +56,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(300.0, 132.0);
+	return NSMakeSize(243.0, 158.0);
 }
 
 
@@ -88,7 +88,9 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 		[settings setObject:[NSNumber numberWithFloat:[currentTileShapes tileAspectRatio]] forKey:@"Tile Aspect Ratio"];
 		[settings setObject:[NSNumber numberWithFloat:[currentTileShapes tileCount]] forKey:@"Tile Count"];
 	}
-
+	
+	[settings setObject:[NSNumber numberWithBool:[currentTileShapes useMatrixStyleOrdering]] forKey:@"Use Matrix Style Ordering"];
+	
 	[[NSUserDefaults standardUserDefaults] setObject:settings
 											  forKey:@"Rectangular Tile Shapes"];
 }
@@ -138,6 +140,8 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 		
 		[self setFreeFormControlsBasedOnFixedSizeControls];
 	}
+	
+	[useMatrixStyleButton setState:([currentTileShapes useMatrixStyleOrdering] ? NSOnState : NSOffState)];
 }
 
 
@@ -221,6 +225,15 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 - (IBAction)setTilesAcross:(id)sender
 {
+		// Jump by 10 instead of 1 if the option key is down when the stepper is clicked.
+	if (sender == tilesAcrossStepper && ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0)
+	{
+		if ([currentTileShapes tilesAcross] < [tilesAcrossStepper intValue])
+			[tilesAcrossStepper setIntValue:MIN([currentTileShapes tilesAcross] + 10, [tilesAcrossStepper maxValue])];
+		else
+			[tilesAcrossStepper setIntValue:MAX([currentTileShapes tilesAcross] - 10, [tilesAcrossStepper minValue])];
+	}
+	
     [currentTileShapes setTilesAcross:[sender intValue]];
     [tilesAcrossTextField setIntValue:[sender intValue]];
 	if (sender == tilesAcrossSlider)
@@ -238,6 +251,15 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 - (IBAction)setTilesDown:(id)sender
 {
+		// Jump by 10 instead of 1 if the option key is down when the stepper is clicked.
+	if (sender == tilesDownStepper && ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0)
+	{
+		if ([currentTileShapes tilesDown] < [tilesDownStepper intValue])
+			[tilesDownStepper setIntValue:MIN([currentTileShapes tilesDown] + 10, [tilesDownStepper maxValue])];
+		else
+			[tilesDownStepper setIntValue:MAX([currentTileShapes tilesDown] - 10, [tilesDownStepper minValue])];
+	}
+	
     [currentTileShapes setTilesDown:[sender intValue]];
     [tilesDownTextField setIntValue:[sender intValue]];
 	if (sender == tilesDownSlider)
@@ -294,24 +316,14 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-//- (BOOL)settingsAreValid
-//{
-//	return YES;
-//}
-
-
-//- (int)tileCount
-//{
-//	return [tilesAcrossSlider intValue] * [tilesDownSlider intValue];
-//}
-
-
-//- (id<MacOSaiXTileShape>)previewShape
-//{
-//	NSBezierPath	*previewPath = [NSBezierPath bezierPathWithRect:NSMakeRect(0.0, 0.0, 100.0, 100.0 / [self aspectRatio])];
-//	
-//	return [MacOSaiXRectangularTileShape tileShapeWithOutline:previewPath];
-//}
+- (IBAction)setUseMatrixStyleOrdering:(id)sender
+{
+	[currentTileShapes setUseMatrixStyleOrdering:([useMatrixStyleButton state] == NSOnState)];
+	
+	[self updatePlugInDefaults];
+	
+	[delegate dataSource:currentTileShapes settingsDidChange:NSLocalizedString(@"Use Matrix Style Ordering", @"")];
+}
 
 
 - (void)editingDidComplete

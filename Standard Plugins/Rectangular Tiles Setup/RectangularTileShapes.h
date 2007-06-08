@@ -31,6 +31,8 @@
 		// Fixed size tiles
 	float			tileAspectRatio, 
 					tileCount;
+	
+	BOOL			useMatrixStyleOrdering;
 }
 
 - (BOOL)isFreeForm;
@@ -46,5 +48,8 @@
 
 - (void)setTileCount:(float)count;
 - (float)tileCount;
+
+- (void)setUseMatrixStyleOrdering:(BOOL)flag;
+- (BOOL)useMatrixStyleOrdering;
 
 @end

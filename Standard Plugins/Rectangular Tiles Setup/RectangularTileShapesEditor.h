@@ -31,6 +31,8 @@
 	IBOutlet NSSlider				*tilesSizeSlider,
 									*tilesCountSlider;
 	
+	IBOutlet NSButton				*useMatrixStyleButton;
+	
 	NSSize							targetImageSize;
 	float							minAspectRatio,
 									maxAspectRatio;
@@ -42,5 +44,7 @@
 
 - (IBAction)setTilesSize:(id)sender;
 - (IBAction)setTilesCount:(id)sender;
+
+- (IBAction)setUseMatrixStyleOrdering:(id)sender;
 
 @end
