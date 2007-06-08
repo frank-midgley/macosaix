@@ -40,7 +40,7 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(338.0, 94.0);
+	return NSMakeSize(407.0, 100.0);
 }
 
 
@@ -71,6 +71,8 @@
 	[heightField setFloatValue:[currentSettings height]];
 	[unitsPopUp selectItemWithTag:[currentSettings units]];
 	[resolutionPopUp selectItemWithTag:[currentSettings pixelsPerInch]];
+	
+	[self setUnits:self];
 }
 
 
@@ -87,13 +89,81 @@
 }
 
 
+- (void)controlTextDidChange:(NSNotification *)notification
+{
+	NSSize	targetImageSize = [[currentSettings targetImage] size];
+	float	aspectRatio = targetImageSize.width / targetImageSize.height;
+	
+	if ([notification object] == widthField)
+	{
+		float	newWidth = [[[[notification userInfo] objectForKey:@"NSFieldEditor"] string] floatValue], 
+				newHeight = newWidth / aspectRatio;
+		
+		[currentSettings setWidth:newWidth];
+		[currentSettings setHeight:newHeight];
+		[heightField setFloatValue:newHeight];
+		[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Width"];
+	}
+	else if ([notification object] == heightField)
+	{
+		float	newHeight = [[[[notification userInfo] objectForKey:@"NSFieldEditor"] string] floatValue], 
+				newWidth = newHeight * aspectRatio;
+		
+		[currentSettings setWidth:newWidth];
+		[currentSettings setHeight:newHeight];
+		[widthField setFloatValue:newWidth];
+		[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Height"];
+	}
+}
+
+
+- (float)conversionFactorFrom:(MacOSaiXBitmapUnits)fromUnits to:(MacOSaiXBitmapUnits)toUnits
+{
+	float factor = 1.0;
+	
+	if (fromUnits == pixelUnits && toUnits == inchUnits)
+		factor = 1.0 / [currentSettings pixelsPerInch];
+	else if (fromUnits == pixelUnits && toUnits == cmUnits)
+		factor = 2.54 / [currentSettings pixelsPerInch];
+	else if (fromUnits == inchUnits && toUnits == pixelUnits)
+		factor = [currentSettings pixelsPerInch];
+	else if (fromUnits == inchUnits && toUnits == cmUnits)
+		factor = 2.54;
+	else if (fromUnits == cmUnits && toUnits == pixelUnits)
+		factor = [currentSettings pixelsPerInch] / 2.54;
+	else if (fromUnits == cmUnits && toUnits == inchUnits)
+		factor = 1.0 / 2.54;
+
+	return factor;
+}
+
+
 - (IBAction)setUnits:(id)sender
 {
-	// TBD: convert width & height?
+	MacOSaiXBitmapUnits	currentUnits = [currentSettings units], 
+						newUnits = [unitsPopUp selectedTag];
 	
-	[currentSettings setUnits:[unitsPopUp selectedTag]];
-	
-	[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Units"];
+	if (newUnits != currentUnits)
+	{
+			// Show fractional parts of the width and height for units except pixels.
+		NSString	*floatFormat = @"#,##0.0##; 0.0", 
+					*integerFormat = @"#,##0; 0";
+		[[widthField formatter] setFormat:(newUnits == pixelUnits ? integerFormat : floatFormat)];
+		[[heightField formatter] setFormat:(newUnits == pixelUnits ? integerFormat : floatFormat)];
+
+			// Convert the width and height values to the new units.
+		float		factor = [self conversionFactorFrom:currentUnits to:newUnits], 
+					newWidth = [currentSettings width] * factor, 
+					newHeight = [currentSettings height] * factor;
+		[currentSettings setWidth:newWidth];
+		[widthField setFloatValue:newWidth];
+		[currentSettings setHeight:newHeight];
+		[heightField setFloatValue:newHeight];
+		
+		[currentSettings setUnits:newUnits];
+		
+		[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Units"];
+	}
 }
 
 
