@@ -178,6 +178,12 @@ NSString *escapedNSString(NSString *string)
 }
 
 
+- (BOOL)settingsAreValid
+{
+	return ([[self queryString] length] > 0);
+}
+
+
 - (NSNumber *)aspectRatio
 {
 	return nil;

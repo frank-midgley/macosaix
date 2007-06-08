@@ -45,13 +45,13 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(374.0, 181.0);
+	return NSMakeSize(275.0, 137.0);
 }
 
 
 - (NSSize)maximumSize
 {
-	return NSMakeSize(374.0, 181.0);
+	return NSMakeSize(374.0, 137.0);
 }
 
 
@@ -76,12 +76,6 @@
 	
 	[queryTypeMatrix selectCellAtRow:[currentImageSource queryType] column:0];
 }
-
-
-//- (BOOL)settingsAreValid
-//{
-//	return ([[currentImageSource queryString] length] > 0);
-//}
 
 
 - (void)editingDidComplete
@@ -200,6 +194,8 @@
 		
 		[currentImageSource setQueryString:queryString];
 		
+		[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Query String", @"")];
+		
 		[self getCountOfMatchingPhotos];
 	}
 }
@@ -208,6 +204,8 @@
 - (IBAction)setQueryType:(id)sender
 {
 	[currentImageSource setQueryType:[queryTypeMatrix selectedRow]];
+	
+	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Query Type", @"")];
 	
 	[self getCountOfMatchingPhotos];
 }
