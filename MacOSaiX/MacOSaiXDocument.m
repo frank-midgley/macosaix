@@ -11,6 +11,7 @@
 
 #import "MacOSaiX.h"
 #import "MacOSaiXHandPickedImageSource.h"
+#import "MacOSaiXImageOrientations.h"
 #import "MacOSaiXProgressController.h"
 #import "MacOSaiXTileShapes.h"
 #import "Tiles.h"
@@ -464,10 +465,16 @@
 			}
 			[fileHandle writeData:[@"</IMAGE_SOURCES>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 			
+				// Write out the image orientations.
+			NSString		*className = NSStringFromClass([[[self mosaic] imageOrientations] class]);
+			if (![[[self mosaic] imageOrientations] saveSettingsToFileAtPath:[savePath stringByAppendingPathComponent:@"Image Orientations Settings"]])
+				[NSException raise:@"" format:@"Could not save the image orientations settings."];
+			[fileHandle writeData:[[NSString stringWithFormat:@"<IMAGE_ORIENTATIONS CLASS=\"%@\" />\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
+			
 				// Write out the tiles and the shapes settings.
-			NSString		*className = NSStringFromClass([[[self mosaic] tileShapes] class]);
+			className = NSStringFromClass([[[self mosaic] tileShapes] class]);
 			if (![[[self mosaic] tileShapes] saveSettingsToFileAtPath:[savePath stringByAppendingPathComponent:@"Tile Shapes Settings"]])
-				[NSException raise:@"" format:@"Could not save tile shapes settings."];
+				[NSException raise:@"" format:@"Could not save the tile shapes settings."];
 			[fileHandle writeData:[[NSString stringWithFormat:@"<TILES SHAPES_CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
 			NSMutableString	*buffer = [NSMutableString string];
 			NSEnumerator	*tileEnumerator = [[[self mosaic] tiles] objectEnumerator];
@@ -476,28 +483,41 @@
 			{
 				NSAutoreleasePool	*tilePool = [[NSAutoreleasePool alloc] init];
 				
-				[buffer appendFormat:@"\t<TILE IMAGE_ORIENTATION=\"%g\">\n", [tile imageOrientation]];
+				NSString			*fillStyle = nil;
+				if ([tile fillStyle] == fillWithUniqueMatch)
+					fillStyle = @"Unique Match";
+				else if ([tile fillStyle] == fillWithHandPicked)
+					fillStyle = @"User Chosen Image";
+				else if ([tile fillStyle] == fillWithTargetImage)
+					fillStyle = @"Target Image";
+				else
+					fillStyle = @"Solid Color";
 				
-					// First write out the tile's outline
+				if ([tile hasImageOrientation])
+					[buffer appendFormat:@"\t<TILE FILL_STYLE=\"%@\" IMAGE_ORIENTATION=\"%@\">\n", fillStyle, [NSString stringWithFloat:[tile imageOrientation]]];
+				else
+					[buffer appendFormat:@"\t<TILE FILL_STYLE=\"%@\">\n", fillStyle];
+				
+					// Write out the tile's outline.
 				[buffer appendString:@"\t\t<OUTLINE>\n"];
 				int elementCount = [[tile outline] elementCount], 
 					index;
 				for (index = 0; index < elementCount; index++)
 				{
-					NSPoint points[3];
+					NSPoint	points[3];
 					switch ([[tile outline] elementAtIndex:index associatedPoints:points])
 					{
 						case NSMoveToBezierPathElement:
-							[buffer appendFormat:@"\t\t\t<MOVE_TO X=\"%g\" Y=\"%g\"/>\n", points[0].x, points[0].y];
+							[buffer appendFormat:@"\t\t\t<MOVE_TO X=\"%@\" Y=\"%@\"/>\n", [NSString stringWithFloat:points[0].x], [NSString stringWithFloat:points[0].y]];
 							break;
 						case NSLineToBezierPathElement:
-							[buffer appendFormat:@"\t\t\t<LINE_TO X=\"%g\" Y=\"%g\"/>\n", points[0].x, points[0].y];
+							[buffer appendFormat:@"\t\t\t<LINE_TO X=\"%@\" Y=\"%@\"/>\n", [NSString stringWithFloat:points[0].x], [NSString stringWithFloat:points[0].y]];
 							break;
 						case NSCurveToBezierPathElement:
-							[buffer appendFormat:@"\t\t\t<CURVE_TO X=\"%g\" Y=\"%g\" C1X=\"%g\" C1Y=\"%g\" C2X=\"%g\" C2Y=\"%g\"/>\n", 
-												 points[2].x, points[2].y, 
-												 points[0].x, points[0].y, 
-												 points[1].x, points[1].y];
+							[buffer appendFormat:@"\t\t\t<CURVE_TO X=\"%@\" Y=\"%@\" C1X=\"%@\" C1Y=\"%@\" C2X=\"%@\" C2Y=\"%@\"/>\n", 
+												 [NSString stringWithFloat:points[2].x], [NSString stringWithFloat:points[2].y], 
+												 [NSString stringWithFloat:points[0].x], [NSString stringWithFloat:points[0].y], 
+												 [NSString stringWithFloat:points[1].x], [NSString stringWithFloat:points[1].y]];
 							break;
 						case NSClosePathBezierPathElement:
 							[buffer appendString:@"\t\t\t<CLOSE_PATH/>\n"];
@@ -509,9 +529,9 @@
 					// Now write out the tile's matches.
 				MacOSaiXImageMatch	*userChosenMatch = [tile userChosenImageMatch];
 				if (userChosenMatch)
-					[buffer appendFormat:@"\t\t<USER_CHOSEN_MATCH ID=\"%@\" VALUE=\"%g\"/>\n", 
+					[buffer appendFormat:@"\t\t<USER_CHOSEN_MATCH ID=\"%@\" VALUE=\"%@\"/>\n", 
 										 [[userChosenMatch imageIdentifier] stringByEscapingXMLEntites],
-									     [userChosenMatch matchValue]];
+									     [NSString stringWithFloat:[userChosenMatch matchValue]]];
 				MacOSaiXImageMatch	*uniqueMatch = [tile uniqueImageMatch];
 				if (uniqueMatch)
 				{
@@ -519,10 +539,10 @@
 						// Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
 						// fully working.
 					if (sourceIndex != NSNotFound)
-						[buffer appendFormat:@"\t\t<UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%g\"/>\n", 
+						[buffer appendFormat:@"\t\t<UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%@\"/>\n", 
 											 sourceIndex,
 											 [[uniqueMatch imageIdentifier] stringByEscapingXMLEntites],
-											 [uniqueMatch matchValue]];
+											 [NSString stringWithFloat:[uniqueMatch matchValue]]];
 				}
 				MacOSaiXImageMatch	*bestMatch = [tile bestImageMatch];
 				if (bestMatch)
@@ -531,10 +551,18 @@
 						// Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
 						// fully working.
 					if (sourceIndex != NSNotFound)
-						[buffer appendFormat:@"\t\t<BEST_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%g\"/>\n", 
+						[buffer appendFormat:@"\t\t<BEST_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%@\"/>\n", 
 											 sourceIndex,
 											 [[bestMatch imageIdentifier] stringByEscapingXMLEntites],
-											 [bestMatch matchValue]];
+											 [NSString stringWithFloat:[bestMatch matchValue]]];
+				}
+				NSColor				*fillColor = [tile fillColor];
+				if (fillColor)
+				{
+					[buffer appendFormat:@"\t\t<FILL_COLOR RED=\"%@\" GREEN=\"%@\" BLUE=\"%@\"/>\n", 
+										 [NSString stringWithFloat:[fillColor redComponent]],
+										 [NSString stringWithFloat:[fillColor greenComponent]],
+										 [NSString stringWithFloat:[fillColor blueComponent]]];
 				}
 				
 				[buffer appendString:@"\t</TILE>\n"];
@@ -829,6 +857,24 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 							CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, 
 											 (CFStringRef)[NSString stringWithFormat:NSLocalizedString(@"The settings for image source %@ could not be loaded.", @""), sourceID]);
 					}
+					else if ([elementType isEqualToString:@"IMAGE_ORIENTATIONS"])
+					{
+						NSString	*className = [nodeAttributes objectForKey:@"CLASS"];
+						
+						if (className)
+						{
+							newObject = [[NSClassFromString(className) alloc] init];
+							
+							NSString	*settingsPath = [[document fileName] stringByAppendingPathComponent:@"Image Orientations Settings"];
+							if (![[NSFileManager defaultManager] fileExistsAtPath:settingsPath] || 
+								![newObject loadSettingsFromFileAtPath:settingsPath])
+								CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, (CFStringRef)NSLocalizedString(@"The image orientations settings could not be loaded.", @""));
+							else
+								[mosaic setImageOrientations:(id<MacOSaiXImageOrientations>)newObject];
+						}
+						else
+							newObject = mosaic;
+					}
 					else if ([elementType isEqualToString:@"TILES"])
 					{
 						NSString	*shapesClassName = [nodeAttributes objectForKey:@"SHAPES_CLASS"];
@@ -849,14 +895,22 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					}
 					else if ([elementType isEqualToString:@"TILE"])
 					{
-						NSString	*imageOrientation = [nodeAttributes objectForKey:@"IMAGE_ORIENTATION"];
-						
-						if (!imageOrientation)
-							imageOrientation = @"0.0";
+						NSString	*fillStyle = [nodeAttributes objectForKey:@"FILL_STYLE"],
+									*imageOrientationString = [nodeAttributes objectForKey:@"IMAGE_ORIENTATION"];
+						NSNumber	*imageOrientation = (imageOrientationString ? [NSNumber numberWithFloat:[imageOrientationString floatValue]] : nil);
 						
 						newObject = [[MacOSaiXTile alloc] initWithOutline:nil 
-														 imageOrientation:[NSNumber numberWithFloat:[imageOrientation floatValue]] 
+														 imageOrientation:imageOrientation 
 																   mosaic:mosaic];
+						
+						if ([fillStyle isEqualToString:@"User Chosen Image"])
+							[(MacOSaiXTile *)newObject setFillStyle:fillWithHandPicked];
+						else if ([fillStyle isEqualToString:@"Target Image"])
+							[(MacOSaiXTile *)newObject setFillStyle:fillWithTargetImage];
+						else if ([fillStyle isEqualToString:@"Solid Color"])
+							[(MacOSaiXTile *)newObject setFillStyle:fillWithColor];
+						else
+							[(MacOSaiXTile *)newObject setFillStyle:fillWithUniqueMatch];
 					}
 					else if ([elementType isEqualToString:@"OUTLINE"])
 					{
@@ -872,13 +926,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					}
 					else if ([elementType isEqualToString:@"BEST_MATCH"])
 					{
-// TODO: choose one editor over another instead?
-//						if ([[document mainWindowController] viewingTarget])
-//							[[document mainWindowController] performSelectorOnMainThread:@selector(setViewMosaic:) 
-//																			  withObject:nil 
-//																		   waitUntilDone:NO];
-						
-						int					sourceIndex = [[nodeAttributes objectForKey:@"SOURCE"] intValue];
+						int		sourceIndex = [[nodeAttributes objectForKey:@"SOURCE"] intValue];
 						if (sourceIndex >= 0 && sourceIndex < [[mosaic imageSources] count])
 						{
 							NSString	*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
@@ -894,12 +942,6 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					}
 					else if ([elementType isEqualToString:@"UNIQUE_MATCH"])
 					{
-// TODO: choose one editor over another instead?
-//						if ([[document mainWindowController] viewingTarget])
-//							[[document mainWindowController] performSelectorOnMainThread:@selector(setViewMosaic:) 
-//																			  withObject:nil 
-//																		   waitUntilDone:NO];
-						
 						int					sourceIndex = [[nodeAttributes objectForKey:@"SOURCE"] intValue];
 						if (sourceIndex >= 0 && sourceIndex < [[mosaic imageSources] count])
 						{
@@ -923,6 +965,17 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 																forImageIdentifier:imageIdentifier 
 																   fromImageSource:[mosaic handPickedImageSource] 
 																		   forTile:(MacOSaiXTile *)@"User Chosen"];
+					}
+					else if ([elementType isEqualToString:@"FILL_COLOR"])
+					{
+						NSString	*redString = [nodeAttributes objectForKey:@"RED"], 
+									*greenString = [nodeAttributes objectForKey:@"GREEN"], 
+									*blueString = [nodeAttributes objectForKey:@"BLUE"];
+						
+						newObject = [NSColor colorWithCalibratedRed:[redString floatValue] 
+															  green:[greenString floatValue] 
+															   blue:[blueString floatValue] 
+															  alpha:1.0];
 					}
 					else
 					{
@@ -1030,6 +1083,8 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 		
 		[(MacOSaiXImageMatch *)child setTile:(MacOSaiXTile *)parent];
 	}
+	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[NSColor class]])
+		[(MacOSaiXTile *)parent setFillColor:child];
 	
 //	NSLog(@"Parent <%@: %p> added child <%@: %p>", NSStringFromClass([parent class]), (void *)parent, NSStringFromClass([child class]), (void *)child);
 
@@ -1045,6 +1100,10 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	MacOSaiXMosaic		*mosaic = [stack objectAtIndex:1];
 
 	if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXTileShapes)])
+	{
+		[(id)newObject release];
+	}
+	else if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXImageOrientations)])
 	{
 		[(id)newObject release];
 	}
