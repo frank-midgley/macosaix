@@ -838,7 +838,7 @@ NSString	*MacOSaiXMosaicImageSourceDidChangeCountsNotification = @"MacOSaiXMosai
 
 - (void)enumerateImageSource:(id<MacOSaiXImageSource>)imageSource
 {
-	if (!paused && [self tileShapes] && [tiles count] > 0)
+	if ([imageSource settingsAreValid] && !paused && [self tileShapes] && [tiles count] > 0)
 	{
 		[enumerationsLock lock];
 			if (![imageSourceEnumerations containsObject:imageSource])
