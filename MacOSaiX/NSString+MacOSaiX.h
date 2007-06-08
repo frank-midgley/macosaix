@@ -14,6 +14,7 @@
 - (NSString *)stringByEscapingXMLEntites;
 - (NSString *)stringByUnescapingXMLEntites;
 + (NSString *)stringWithAspectRatio:(float)aspectRatio;
++ (NSString *)stringWithFloat:(float)floatValue;
 
 
 @end

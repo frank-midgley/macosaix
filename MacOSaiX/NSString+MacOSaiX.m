@@ -71,4 +71,16 @@
 }
 
 
++ (NSString *)stringWithFloat:(float)floatValue
+{
+	NSString	*floatString = [NSString stringWithFormat:@"%f", floatValue];
+	
+	while ([floatString length] > 3 && 
+		   [[floatString substringFromIndex:[floatString length] - 1] isEqualToString:@"0"])
+		floatString = [floatString substringToIndex:[floatString length] - 1];
+	
+	return floatString;
+}
+
+
 @end
