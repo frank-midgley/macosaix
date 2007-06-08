@@ -95,12 +95,6 @@
 }
 
 
-- (BOOL)settingsAreValid
-{
-	return YES;
-}
-
-
 - (void)editingDidComplete
 {
 	delegate = nil;

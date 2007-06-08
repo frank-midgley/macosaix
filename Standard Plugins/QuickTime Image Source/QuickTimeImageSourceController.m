@@ -217,12 +217,6 @@
 }
 
 
-- (BOOL)settingsAreValid
-{
-	return ([[moviesController selectedObjects] count] == 1);
-}
-
-
 - (void)editingComplete
 {
 	[movieView setMovie:nil];

@@ -209,12 +209,6 @@
 }
 
 
-//- (BOOL)settingsAreValid
-//{
-//	return ([currentImageSource path] != nil);
-//}
-
-
 - (void)editingDidComplete
 {
 	delegate = nil;

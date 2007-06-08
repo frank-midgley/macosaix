@@ -172,12 +172,6 @@
 }
 
 
-- (BOOL)settingsAreValid
-{
-	return YES;	// TODO: at least one font and one color chosen
-}
-
-
 - (void)editingComplete
 {
 }

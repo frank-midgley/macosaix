@@ -97,6 +97,12 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
+- (BOOL)settingsAreValid
+{
+	return YES;	// TODO: at least one font and one color chosen
+}
+
+
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
 	return [[NSDictionary dictionaryWithObjectsAndKeys:

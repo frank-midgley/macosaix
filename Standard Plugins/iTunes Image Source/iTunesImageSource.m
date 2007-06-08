@@ -40,6 +40,12 @@
 }
 
 
+- (BOOL)settingsAreValid
+{
+	return YES;
+}
+
+
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
 	NSMutableDictionary	*settings = [NSMutableDictionary dictionaryWithObject:remainingTrackIDs

@@ -39,6 +39,12 @@
 }
 
 
+- (BOOL)settingsAreValid
+{
+	return ([[self path] length] > 0);
+}
+
+
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
 	return [[NSDictionary dictionaryWithObjectsAndKeys:

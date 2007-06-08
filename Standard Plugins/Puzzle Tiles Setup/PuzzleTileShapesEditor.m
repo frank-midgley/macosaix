@@ -325,12 +325,6 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-//- (BOOL)settingsAreValid
-//{
-//	return YES;
-//}
-
-
 //- (int)tileCount
 //{
 //	return [tilesAcrossSlider intValue] * [tilesDownSlider intValue];

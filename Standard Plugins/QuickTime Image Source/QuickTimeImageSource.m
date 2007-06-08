@@ -43,7 +43,7 @@ static NSImage			*sQuickTimeImage = nil;
 }
 
 
-+ (Class)dataSourceEditorClass
++ (Class)editorClass
 {
 	return [QuickTimeImageSourceController class];
 }
@@ -88,6 +88,12 @@ static NSImage			*sQuickTimeImage = nil;
 	}
 
     return self;
+}
+
+
+- (BOOL)settingsAreValid
+{
+	return ([[self path] length] > 0);
 }
 
 

@@ -70,6 +70,15 @@ NSString *escapedNSString(NSString *string)
 }
 
 
+- (BOOL)settingsAreValid
+{
+	return ([[self requiredTerms] length] > 0 || 
+			[[self optionalTerms] length] > 0 || 
+			[[self excludedTerms] length] > 0 || 
+			[[self siteString] length] > 0);
+}
+
+
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
 	NSMutableDictionary	*settings = [NSMutableDictionary dictionaryWithObjectsAndKeys:
