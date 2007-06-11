@@ -222,7 +222,7 @@
 	{
 		[settings setObject:@"Free-form" forKey:@"Sizing"];
 		[settings setObject:[NSNumber numberWithInt:[self tilesAcross]] forKey:@"Tiles Across"];
-		[settings setObject:[NSNumber numberWithInt:[self tilesDown]] forKey:@"Tiles Across"];
+		[settings setObject:[NSNumber numberWithInt:[self tilesDown]] forKey:@"Tiles Down"];
 	}
 	else
 	{
