@@ -98,6 +98,8 @@ NSString *escapedNSString(NSString *string)
 {
 	[queryString autorelease];
 	queryString = [string copy];
+	
+	[self reset];
 }
 
 
@@ -110,6 +112,8 @@ NSString *escapedNSString(NSString *string)
 - (void)setQueryType:(FlickrQueryType)type;
 {
 	queryType = type;
+	
+	[self reset];
 }
 
 
