@@ -395,7 +395,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 			[transform scaleBy:NSWidth(rotatedBounds) / [imageRep size].width];
 		else	// height limited
 			[transform scaleBy:NSHeight(rotatedBounds) / [imageRep size].height];
-		[transform rotateByDegrees:[tile imageOrientation]];
+		[transform rotateByDegrees:-[tile imageOrientation]];
 		[transform translateXBy:-[imageRep size].width / 2.0 yBy:-[imageRep size].height / 2.0];
 		
 		[mainImageLock lock];
