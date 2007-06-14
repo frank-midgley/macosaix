@@ -209,12 +209,6 @@
 }
 
 
-- (void)editingDidComplete
-{
-	delegate = nil;
-}
-
-
 - (IBAction)chooseFolder:(id)sender
 {
 	DirectoryImageSourceDirectory	*directory = [sender representedObject];
@@ -315,6 +309,30 @@
 	[currentImageSource setFollowsAliases:([followsAliasesButton state] == NSOnState)];
 	
 	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Set Follows Aliases", @"")];
+}
+
+
+- (BOOL)mouseDownInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (BOOL)mouseDraggedInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (BOOL)mouseUpInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (void)editingDidComplete
+{
+	delegate = nil;
 }
 
 

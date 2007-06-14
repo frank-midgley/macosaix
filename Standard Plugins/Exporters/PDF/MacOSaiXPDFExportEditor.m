@@ -117,6 +117,24 @@
 }
 
 
+- (BOOL)mouseDownInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (BOOL)mouseDraggedInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (BOOL)mouseUpInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
 - (void)editingDidComplete
 {
 	currentSettings = nil;

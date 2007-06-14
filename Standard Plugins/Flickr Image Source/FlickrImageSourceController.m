@@ -78,12 +78,6 @@
 }
 
 
-- (void)editingDidComplete
-{
-	delegate = nil;
-}
-
-
 - (IBAction)visitFlickr:(id)sender
 {
 	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"http://www.flickr.com"]];
@@ -208,6 +202,30 @@
 	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Query Type", @"")];
 	
 	[self getCountOfMatchingPhotos];
+}
+
+
+- (BOOL)mouseDownInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (BOOL)mouseDraggedInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (BOOL)mouseUpInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (void)editingDidComplete
+{
+	delegate = nil;
 }
 
 

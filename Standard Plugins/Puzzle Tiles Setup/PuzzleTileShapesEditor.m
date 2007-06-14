@@ -367,6 +367,9 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
+#pragma mark -
+
+
 //- (int)tileCount
 //{
 //	return [tilesAcrossSlider intValue] * [tilesDownSlider intValue];
@@ -406,6 +409,24 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 //{
 //	return	previewShape;
 //}
+	
+	
+	- (BOOL)mouseDownInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (BOOL)mouseDraggedInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (BOOL)mouseUpInMosaic:(NSEvent *)event
+{
+	return NO;
+}
 
 
 - (void)editingDidComplete

@@ -95,12 +95,6 @@
 }
 
 
-- (void)editingDidComplete
-{
-	delegate = nil;
-}
-
-
 - (int)numberOfRowsInTableView:(NSTableView *)tableView
 {
 	return [playlistNames count] + 1;
@@ -140,6 +134,30 @@
 		[currentImageSource setPlaylistName:[playlistNames objectAtIndex:selectedRow - 1]];
 	
 	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Playlist", @"")];
+}
+
+
+- (BOOL)mouseDownInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (BOOL)mouseDraggedInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (BOOL)mouseUpInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (void)editingDidComplete
+{
+	delegate = nil;
 }
 
 
