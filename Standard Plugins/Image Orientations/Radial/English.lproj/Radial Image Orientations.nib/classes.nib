@@ -2,10 +2,16 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            ACTIONS = {setOffsetAngle = id; }; 
+            ACTIONS = {setOffsetAngle = id; setPresetOrientations = id; }; 
             CLASS = MacOSaiXRadialImageOrientationsEditor; 
             LANGUAGE = ObjC; 
-            OUTLETS = {angleSlider = NSSlider; angleTextField = NSTextField; editorView = NSView; }; 
+            OUTLETS = {
+                angleSlider = NSSlider; 
+                angleTextField = NSTextField; 
+                delegate = id; 
+                editorView = NSView; 
+                presetsPopUp = NSPopUpButton; 
+            }; 
             SUPERCLASS = NSObject; 
         }
     ); 

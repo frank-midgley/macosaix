@@ -9,9 +9,19 @@
 
 @interface MacOSaiXRadialImageOrientations : NSObject <MacOSaiXImageOrientations>
 {
-	NSPoint	focusPoint;
-	float	offsetAngle;
+	NSString	*name;
+	NSPoint		focusPoint;
+	float		offsetAngle;
 }
+
++ (NSArray *)presetOrientations;
+
++ (MacOSaiXRadialImageOrientations *)imageOrientationsWithName:(NSString *)name
+													focusPoint:(NSPoint)focusPoint 
+												   offsetAngle:(float)offsetAngle;
+
+- (void)setName:(NSString *)name;
+- (NSString *)name;
 
 - (void)setFocusPoint:(NSPoint)point;
 - (NSPoint)focusPoint;

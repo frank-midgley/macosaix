@@ -13,10 +13,44 @@
 @implementation MacOSaiXRadialImageOrientations
 
 
++ (NSArray *)presetOrientations
+{
+	return [NSArray arrayWithObjects:
+						[self imageOrientationsWithName:@"Explosion" 
+											 focusPoint:NSMakePoint(0.5, 0.5) 
+											offsetAngle:0.0], 
+						[self imageOrientationsWithName:@"Implosion" 
+											 focusPoint:NSMakePoint(0.5, 0.5) 
+											offsetAngle:180.0], 
+						[self imageOrientationsWithName:@"Sunrise" 
+											 focusPoint:NSMakePoint(0.5, 0.0) 
+											offsetAngle:0.0], 
+						[self imageOrientationsWithName:@"Spiral" 
+											 focusPoint:NSMakePoint(0.5, 0.5) 
+											offsetAngle:-45.0], 
+						nil];
+}
+
+
++ (MacOSaiXRadialImageOrientations *)imageOrientationsWithName:(NSString *)presetName
+													focusPoint:(NSPoint)point 
+												   offsetAngle:(float)angle
+{
+	MacOSaiXRadialImageOrientations	*imageOrientations = [[self alloc] init];
+	
+	[imageOrientations setName:presetName];
+	[imageOrientations setFocusPoint:point];
+	[imageOrientations setOffsetAngle:angle];
+	
+	return [imageOrientations autorelease];
+}
+
+
 - (id)init
 {
 	if (self = [super init])
 	{
+		[self setName:@"Explosion"];
 		[self setFocusPoint:NSMakePoint(0.5, 0.5)];
 	}
 	
@@ -46,8 +80,9 @@
 	NSDictionary	*settings = [NSDictionary dictionaryWithContentsOfFile:path];
 	float			focusPointX = [[settings objectForKey:@"Focus Point X"] floatValue], 
 					focusPointY = [[settings objectForKey:@"Focus Point Y"] floatValue];
-	
-	if (focusPointX >= 0.0 && focusPointX <= 1.0 && focusPointY >= 0.0 && focusPointY <= 1.0)
+
+// TBD: restrict the focus point to be inside the mosaic?
+//	if (focusPointX >= 0.0 && focusPointX <= 1.0 && focusPointY >= 0.0 && focusPointY <= 1.0)
 		[self setFocusPoint:NSMakePoint(focusPointX, focusPointY)];
 	
 	[self setOffsetAngle:[[settings objectForKey:@"Offset Angle"] floatValue]];
@@ -75,7 +110,20 @@
 
 - (id)briefDescription
 {
-	return nil;	// TBD: return preset name?
+	return NSLocalizedString([self name], @"");
+}
+
+
+- (void)setName:(NSString *)string
+{
+	[name release];
+	name = [string retain];
+}
+
+
+- (NSString *)name
+{
+	return name;
 }
 
 

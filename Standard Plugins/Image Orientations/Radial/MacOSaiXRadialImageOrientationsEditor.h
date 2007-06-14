@@ -11,9 +11,10 @@
 
 @interface MacOSaiXRadialImageOrientationsEditor : NSObject <MacOSaiXDataSourceEditor>
 {
-	id<MacOSaiXEditorDelegate>	delegate;
+	id<MacOSaiXEditorDelegate>		delegate;
 	
 	IBOutlet NSView					*editorView;
+	IBOutlet NSPopUpButton			*presetsPopUp;
 	IBOutlet NSSlider				*angleSlider;
 	IBOutlet NSTextField			*angleTextField;
 	
@@ -21,6 +22,7 @@
 	MacOSaiXRadialImageOrientations	*currentImageOrientations;
 }
 
+- (IBAction)setPresetOrientations:(id)sender;
 - (IBAction)setOffsetAngle:(id)sender;
 
 @end
