@@ -236,6 +236,7 @@
 
 - (void)handleEventInMosaicView:(NSEvent *)event
 {
+	// TBD: double click = edit tile?
 }
 
 
