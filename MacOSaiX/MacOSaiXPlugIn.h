@@ -80,8 +80,15 @@
 
 @protocol MacOSaiXDataSourceEditor <MacOSaiXEditor>
 
+	// This method will be called just before the editor is displayed.
 - (void)editDataSource:(id<MacOSaiXDataSource>)dataSource;
 
+	// These methods will be called in response to mouse clicks in the mosaic.  The location of the event will be in the target image's space with the origin at the lower left corner of the mosaic.  The return value should indicate whether or not the editor handled the event.
+- (BOOL)mouseDownInMosaic:(NSEvent *)event;
+- (BOOL)mouseDraggedInMosaic:(NSEvent *)event;
+- (BOOL)mouseUpInMosaic:(NSEvent *)event;
+
+	// This method will be called just after the editor is dismissed.
 - (void)editingDidComplete;
 
 @end
