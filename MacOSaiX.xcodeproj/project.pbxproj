@@ -1133,8 +1133,8 @@
 			children = (
 				01046CE20B4DE71B0084049A /* MacOSaiXPlugIn.h */,
 				9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */,
-				013605260B286CDD0078BCF7 /* MacOSaiXImageOrientations.h */,
 				923384DB072180700010BE04 /* MacOSaiXImageSource.h */,
+				013605260B286CDD0078BCF7 /* MacOSaiXImageOrientations.h */,
 				92341CA10BF117370079BFF0 /* MacOSaiXExporter.h */,
 			);
 			name = "Plug-in API's";
