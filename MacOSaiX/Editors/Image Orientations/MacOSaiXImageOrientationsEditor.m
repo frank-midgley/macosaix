@@ -53,6 +53,8 @@
 - (void)setMosaicDataSource:(id<MacOSaiXDataSource>)dataSource
 {
 	[[[self mosaicView] mosaic] setImageOrientations:(id<MacOSaiXImageOrientations>)dataSource];
+	
+	[[self mosaicView] setNeedsDisplay:YES];
 }
 
 
@@ -77,7 +79,11 @@
 	MacOSaiXMosaic	*mosaic = [[self mosaicView] mosaic];
 	NSRect			imageBounds = [[self mosaicView] imageBounds];
 	
-		// Draw the vector field 
+		// Start by lightening the whole mosaic.
+	[[NSColor colorWithCalibratedWhite:1.0 alpha:0.2] set];
+	NSRectFillUsingOperation(NSIntersectionRect(rect, imageBounds), NSCompositeSourceOver);
+			   
+		// Draw a darkened vector field over the mosaic.
 	NSBezierPath	*path = [NSBezierPath bezierPath];
 	[path moveToPoint:NSMakePoint(-4.0, -4.0)];
 	[path lineToPoint:NSMakePoint(0.0, 4.0)];
@@ -90,7 +96,7 @@
 	[path lineToPoint:NSMakePoint(-12.0, 8.0)];
 	[path lineToPoint:NSMakePoint(-12.0, -8.0)];
 	
-	[[NSColor colorWithCalibratedWhite:0.0 alpha:0.4] set];
+	[[NSColor colorWithCalibratedWhite:0.0 alpha:0.6] set];
 	int		xCount = NSWidth(imageBounds) / 30, 
 			yCount = NSHeight(imageBounds) / 30;
 	float	xSize = NSWidth(imageBounds) / xCount, 
@@ -114,14 +120,55 @@
 
 - (void)handleEventInMosaicView:(NSEvent *)event
 {
-	// TODO: change the focus point
+		// Convert the event location to the target image's space.
+	NSRect	mosaicBounds = [[self mosaicView] imageBounds];
+	NSPoint	targetLocation = [[self mosaicView] convertPoint:[event locationInWindow] fromView:nil];
+	targetLocation.x -= NSMinX(mosaicBounds);
+	targetLocation.y -= NSMinY(mosaicBounds);
+	targetLocation.x *= [[self targetImage] size].width / NSWidth(mosaicBounds);
+	targetLocation.y *= [[self targetImage] size].height / NSHeight(mosaicBounds);
+	
+	NSEvent	*newEvent = [NSEvent mouseEventWithType:[event type] 
+										   location:targetLocation 
+									  modifierFlags:[event modifierFlags] 
+										  timestamp:[event timestamp] 
+									   windowNumber:[event windowNumber] 
+											context:[event context] 
+										eventNumber:[event eventNumber] 
+										 clickCount:[event clickCount] 
+										   pressure:[event pressure]];
+	
+	BOOL	plugInHandledEvent = NO;
+	
+		// Pass along mouse events to the plug in's editor.
+	switch ([event type])
+	{
+		case NSLeftMouseDown:
+		case NSRightMouseDown:
+		case NSOtherMouseDown:
+			plugInHandledEvent = [plugInEditor mouseDownInMosaic:newEvent];
+			break;
+		case NSLeftMouseDragged:
+		case NSRightMouseDragged:
+		case NSOtherMouseDragged:
+			plugInHandledEvent = [plugInEditor mouseDraggedInMosaic:newEvent];
+			break;
+		case NSLeftMouseUp:
+		case NSRightMouseUp:
+		case NSOtherMouseUp:
+			plugInHandledEvent = [plugInEditor mouseUpInMosaic:newEvent];
+			break;
+		default:
+			break;
+	}
+	
+	if (!plugInHandledEvent)
+		[super handleEventInMosaicView:event];
 }
 
 
 - (void)dataSource:(id<MacOSaiXDataSource>)dataSource settingsDidChange:(NSString *)changeDescription
 {
-//	[[[self mosaicView] mosaic] setTileShapes:[[[self mosaicView] mosaic] tileShapes] creatingTiles:YES];
-	
 	[[self mosaicView] setNeedsDisplay:YES];
 }
 
