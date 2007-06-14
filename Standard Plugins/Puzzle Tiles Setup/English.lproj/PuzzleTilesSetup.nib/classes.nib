@@ -10,6 +10,7 @@
                 setTilesCount = id; 
                 setTilesDown = id; 
                 setTilesSize = id; 
+                setTilesSizeType = id; 
             }; 
             CLASS = MacOSaiXPuzzleTileShapesEditor; 
             LANGUAGE = ObjC; 
@@ -17,7 +18,7 @@
                 alignImagesMatrix = NSMatrix; 
                 curvinessSlider = NSSlider; 
                 curvinessTextField = NSTextField; 
-                editorDelegate = id; 
+                delegate = id; 
                 editorView = NSView; 
                 tabbedSidesSlider = NSSlider; 
                 tabbedSidesTextField = NSTextField; 
@@ -28,8 +29,10 @@
                 tilesDownSlider = NSSlider; 
                 tilesDownStepper = NSStepper; 
                 tilesDownTextField = NSTextField; 
+                tilesSizeMatrix = NSMatrix; 
                 tilesSizePopUp = NSPopUpButton; 
                 tilesSizeSlider = NSSlider; 
+                tilesSizeTabView = NSTabView; 
             }; 
             SUPERCLASS = NSObject; 
         }

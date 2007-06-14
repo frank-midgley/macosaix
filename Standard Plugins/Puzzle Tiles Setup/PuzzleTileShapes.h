@@ -56,19 +56,30 @@ typedef enum
 
 @interface MacOSaiXPuzzleTileShapes : NSObject <MacOSaiXTileShapes>
 {
+	BOOL			isFixedSize;
 	NSArray			*tileShapes;
 	unsigned int	tilesAcross, 
 					tilesDown;
-	float			tabbedSidesRatio, 
+	float			tileAspectRatio, 
+					tileCountFraction, 
+					tabbedSidesRatio, 
 					curviness;
 	BOOL			alignImages;
 }
+
+- (BOOL)isFixedSize;
 
 - (void)setTilesAcross:(unsigned int)count;
 - (unsigned int)tilesAcross;
 
 - (void)setTilesDown:(unsigned int)count;
 - (unsigned int)tilesDown;
+
+- (void)setTileAspectRatio:(float)ratio;
+- (float)tileAspectRatio;
+
+- (void)setTileCountFraction:(float)fraction;
+- (float)tileCountFraction;
 
 - (void)setTabbedSidesRatio:(float)ratio;
 - (float)tabbedSidesRatio;

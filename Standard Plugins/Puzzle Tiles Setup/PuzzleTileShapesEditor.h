@@ -14,38 +14,49 @@
 	id<MacOSaiXEditorDelegate>	delegate;
 	
 	IBOutlet NSView				*editorView;
+	
+	IBOutlet NSMatrix			*tilesSizeMatrix;
+	IBOutlet NSTabView			*tilesSizeTabView;
+	
+		// Freeform size pieces
     IBOutlet NSTextField		*tilesAcrossTextField,
-								*tilesDownTextField, 
-								*tabbedSidesTextField, 
-								*curvinessTextField;
+								*tilesDownTextField;
 	IBOutlet NSSlider			*tilesAcrossSlider,
-								*tilesDownSlider, 
-								*tilesSizeSlider, 
-								*tilesCountSlider, 
-								*tabbedSidesSlider, 
-								*curvinessSlider;
+								*tilesDownSlider;
 	IBOutlet NSStepper			*tilesAcrossStepper, 
 								*tilesDownStepper;
+	
+		// Fixed size pieces
+	IBOutlet NSSlider			*tilesSizeSlider, 
+								*tilesCountSlider;
 	IBOutlet NSPopUpButton		*tilesSizePopUp;
+	
+		// Pieces shapes tab
+    IBOutlet NSTextField		*tabbedSidesTextField, 
+								*curvinessTextField;
+	IBOutlet NSSlider			*tabbedSidesSlider, 
+								*curvinessSlider;
 	IBOutlet NSMatrix			*alignImagesMatrix;
 	
 	NSSize						targetImageSize;
 	float						minAspectRatio,
 								maxAspectRatio;
 	MacOSaiXPuzzleTileShapes	*currentTileShapes;
-	
-//	NSTimer						*previewTimer;
-//	MacOSaiXPuzzleTileShape		*previewShape;
 }
 
+- (IBAction)setTilesSizeType:(id)sender;
+
+	// Freeform size pieces
 - (IBAction)setTilesAcross:(id)sender;
 - (IBAction)setTilesDown:(id)sender;
+
+	// Fixed size pieces
 - (IBAction)setTilesSize:(id)sender;
 - (IBAction)setTilesCount:(id)sender;
 
+	// Pieces shapes
 - (IBAction)setTabbedSides:(id)sender;
 - (IBAction)setCurviness:(id)sender;
-
 - (IBAction)setImagesAligned:(id)sender;
 
 @end

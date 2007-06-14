@@ -351,12 +351,23 @@
 }
 
 
+- (BOOL)isFixedSize
+{
+	return isFixedSize;
+}
+
+
 - (void)setTilesAcross:(unsigned int)count
 {
-    tilesAcross = MIN(MAX(10, count), 200);
-	
-	[tileShapes release];
-	tileShapes = nil;
+	if (isFixedSize || tilesAcross != count)
+	{
+		isFixedSize = NO;
+		
+		tilesAcross = MIN(MAX(10, count), 200);
+		
+		[tileShapes release];
+		tileShapes = nil;
+	}
 }
 
 
@@ -368,10 +379,15 @@
 
 - (void)setTilesDown:(unsigned int)count
 {
-    tilesDown = MIN(MAX(10, count), 200);
-	
-	[tileShapes release];
-	tileShapes = nil;
+	if (isFixedSize || tilesDown != count)
+	{
+		isFixedSize = NO;
+		
+		tilesDown = MIN(MAX(10, count), 200);
+		
+		[tileShapes release];
+		tileShapes = nil;
+	}
 }
 
 
@@ -381,12 +397,55 @@
 }
 
 
+- (void)setTileAspectRatio:(float)ratio
+{
+	if (!isFixedSize || tileAspectRatio != ratio)
+	{
+		isFixedSize = YES;
+		
+		tileAspectRatio = ratio;
+		
+		[tileShapes release];
+		tileShapes = nil;
+	}
+}
+
+
+- (float)tileAspectRatio
+{
+	return tileAspectRatio;
+}
+
+
+- (void)setTileCountFraction:(float)fraction
+{
+	if (!isFixedSize || tileCountFraction != fraction)
+	{
+		isFixedSize = YES;
+		
+		tileCountFraction = fraction;
+		
+		[tileShapes release];
+		tileShapes = nil;
+	}
+}
+
+
+- (float)tileCountFraction
+{
+	return tileCountFraction;
+}
+
+
 - (void)setTabbedSidesRatio:(float)ratio
 {
-	tabbedSidesRatio = MIN(MAX(0.0, ratio), 1.0);
-	
-	[tileShapes release];
-	tileShapes = nil;
+	if (tabbedSidesRatio != ratio)
+	{
+		tabbedSidesRatio = MIN(MAX(0.0, ratio), 1.0);
+		
+		[tileShapes release];
+		tileShapes = nil;
+	}
 }
 
 
@@ -398,10 +457,13 @@
 
 - (void)setCurviness:(float)value
 {
-	curviness = MIN(MAX(0.0, value), 1.0);
-	
-	[tileShapes release];
-	tileShapes = nil;
+	if (curviness != value)
+	{
+		curviness = MIN(MAX(0.0, value), 1.0);
+		
+		[tileShapes release];
+		tileShapes = nil;
+	}
 }
 
 
@@ -441,14 +503,25 @@
 
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
-	return [[NSDictionary dictionaryWithObjectsAndKeys:
-								[NSNumber numberWithInt:tilesAcross], @"Tiles Across", 
-								[NSNumber numberWithInt:tilesDown], @"Tiles Down", 
-								[NSNumber numberWithFloat:tabbedSidesRatio], @"Tabbed Sides Ratio", 
-								[NSNumber numberWithFloat:curviness], @"Curviness", 
-								[NSNumber numberWithBool:alignImages], @"Align Images", 
-								nil] 
-				writeToFile:path atomically:NO];
+	NSMutableDictionary	*settings = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+										[NSNumber numberWithBool:isFixedSize], @"Fixed Size Pieces", 
+										[NSNumber numberWithFloat:tabbedSidesRatio * 100.0], @"Tabbed Sides", 
+										[NSNumber numberWithFloat:curviness * 100.0], @"Curviness", 
+										[NSNumber numberWithBool:alignImages], @"Align Images", 
+										nil];
+	
+	if (isFixedSize)
+	{
+		[settings setObject:[NSNumber numberWithFloat:tileAspectRatio] forKey:@"Tile Aspect Ratio"];
+		[settings setObject:[NSNumber numberWithFloat:tileCountFraction] forKey:@"Tile Count"];
+	}
+	else
+	{
+		[settings setObject:[NSNumber numberWithInt:tilesAcross] forKey:@"Tiles Across"];
+		[settings setObject:[NSNumber numberWithInt:tilesDown] forKey:@"Tiles Down"];
+	}
+
+	return [settings writeToFile:path atomically:NO];
 }
 
 
@@ -456,10 +529,20 @@
 {
 	NSDictionary	*settings = [NSDictionary dictionaryWithContentsOfFile:path];
 	
-	[self setTilesAcross:[[settings objectForKey:@"Tiles Across"] intValue]];
-	[self setTilesDown:[[settings objectForKey:@"Tiles Down"] intValue]];
-	[self setTabbedSidesRatio:[[settings objectForKey:@"Tabbed Sides Percentage"] floatValue] / 100.0];
-	[self setCurviness:[[settings objectForKey:@"Curviness Percentage"] floatValue] / 100.0];
+	if ([[settings objectForKey:@"Fixed Size Pieces"] boolValue])
+	{
+		[self setTileAspectRatio:[[settings objectForKey:@"Tile Aspect Ratio"] floatValue]];
+		[self setTileCountFraction:[[settings objectForKey:@"Tile Count"] floatValue]];
+	}
+	else
+	{
+		[self setTilesAcross:[[settings objectForKey:@"Tiles Across"] intValue]];
+		[self setTilesDown:[[settings objectForKey:@"Tiles Down"] intValue]];
+	}
+	
+	[self setTabbedSidesRatio:[[settings objectForKey:@"Tabbed Sides"] floatValue] / 100.0];
+	[self setCurviness:[[settings objectForKey:@"Curviness"] floatValue] / 100.0];
+	[self setImagesAligned:[[settings objectForKey:@"Align Images"] boolValue]];
 	
 	return YES;
 }
@@ -497,13 +580,40 @@
 {
 	if (!tileShapes)
 	{
-		NSMutableArray	*temporaryShapes = [NSMutableArray arrayWithCapacity:(tilesAcross * tilesDown)];
+		int				xCount, 
+						yCount;
+		if (isFixedSize)
+		{
+			int		minX = 10, 
+					minY = 10, 
+					maxX = 200, 
+					maxY = 200;
+			
+			if (mosaicSize.height * minX * tileAspectRatio / mosaicSize.width < minY)
+				minX = mosaicSize.width * minY / tileAspectRatio / mosaicSize.height;
+			if (mosaicSize.width * minY / tileAspectRatio / mosaicSize.height < minX)
+				minY = minX * mosaicSize.height * tileAspectRatio / mosaicSize.width;
+			if (mosaicSize.height * maxX * tileAspectRatio / mosaicSize.width > maxY)
+				maxX = mosaicSize.width * maxY / tileAspectRatio / mosaicSize.height;
+			if (mosaicSize.width * maxY / tileAspectRatio / mosaicSize.height > maxX)
+				maxY = maxX * mosaicSize.height * tileAspectRatio / mosaicSize.width;
+			
+			xCount = minX + (maxX - minX) * tileCountFraction;
+			yCount = minY + (maxY - minY) * tileCountFraction;
+		}
+		else
+		{
+			xCount = tilesAcross;
+			yCount = tilesDown;
+		}
+		
+		NSMutableArray	*temporaryShapes = [NSMutableArray arrayWithCapacity:(xCount * yCount)];
 
 			// Decide which way all of the tabs will point.
-		PuzzleTabType	tabTypes[tilesAcross * 2 + 1][tilesDown];
+		PuzzleTabType	tabTypes[xCount * 2 + 1][yCount];
 		int				x, y;
-		for (x = 0; x < tilesAcross * 2 + 1; x++)
-			for (y = 0; y < tilesDown; y++)
+		for (x = 0; x < xCount * 2 + 1; x++)
+			for (y = 0; y < yCount; y++)
 			{
 				if (random() % 100 >= tabbedSidesRatio * 100.0)
 					tabTypes[x][y] = noTab;
@@ -512,28 +622,28 @@
 			}
 		
 			// Decide the curviness of the sides
-		float			horizontalCurviness[tilesAcross + 1][tilesDown + 1],
-						verticalCurviness[tilesAcross + 1][tilesDown + 1];
-		for (x = 0; x < tilesAcross + 1; x++)
-			for (y = 0; y < tilesDown + 1; y++)
+		float			horizontalCurviness[xCount + 1][yCount + 1],
+						verticalCurviness[xCount + 1][yCount + 1];
+		for (x = 0; x < xCount + 1; x++)
+			for (y = 0; y < yCount + 1; y++)
 			{
-				horizontalCurviness[x][y] = (y == 0 || y == tilesDown) ? 0.0 : (random() % 200 - 100) / 100.0 * curviness;
-				verticalCurviness[x][y] = (x == 0 || x == tilesAcross) ? 0.0 : (random() % 200 - 100) / 100.0 * curviness;
+				horizontalCurviness[x][y] = (y == 0 || y == yCount) ? 0.0 : (random() % 200 - 100) / 100.0 * curviness;
+				verticalCurviness[x][y] = (x == 0 || x == xCount) ? 0.0 : (random() % 200 - 100) / 100.0 * curviness;
 			}
 		
 			// Add a bezier path for each puzzle piece.
-		float			xSize = 1.0 / tilesAcross, 
-						ySize = 1.0 / tilesDown;
-		for (x = 0; x < tilesAcross; x++)
-			for (y = 0; y < tilesDown; y++)
+		float			xSize = mosaicSize.width / xCount, 
+						ySize = mosaicSize.height / yCount;
+		for (y = yCount - 1; y >= 0; y--)
+			for (x = 0; x < xCount; x++)
 			{
 					// Add this piece to the list.
 				NSRect					tileBounds = NSMakeRect(xSize * x, ySize * y, xSize, ySize);
 				
 				[temporaryShapes addObject:[MacOSaiXPuzzleTileShape tileShapeWithBounds:tileBounds 
-																			 topTabType:(y == tilesDown - 1 ? noTab : tabTypes[x * 2][y]) 
+																			 topTabType:(y == yCount - 1 ? noTab : tabTypes[x * 2][y]) 
 																			leftTabType:(x == 0 ? noTab : tabTypes[x * 2 - 1][y]) 
-																		   rightTabType:(x == tilesAcross - 1 ? noTab : -tabTypes[x * 2 + 1][y]) 
+																		   rightTabType:(x == xCount - 1 ? noTab : -tabTypes[x * 2 + 1][y]) 
 																		  bottomTabType:(y == 0 ? noTab : -tabTypes[x * 2][y - 1]) 
 																 topLeftHorizontalCurve:horizontalCurviness[x][y + 1] 
 																   topLeftVerticalCurve:-verticalCurviness[x][y + 1] 
