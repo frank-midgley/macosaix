@@ -96,13 +96,13 @@
 	float	xSize = NSWidth(imageBounds) / xCount, 
 			ySize = NSHeight(imageBounds) / yCount;
 	float	x, y;
-	for (y = ySize / 2.0 + NSMinY(imageBounds); y < NSMaxY(imageBounds); y += ySize)
-		for (x = xSize / 2.0 + NSMinX(imageBounds); x < NSMaxX(imageBounds); x += xSize)
+	for (y = ySize / 2.0; y < NSHeight(imageBounds); y += ySize)
+		for (x = xSize / 2.0; x < NSWidth(imageBounds); x += xSize)
 		{
 			float	angle = [[mosaic imageOrientations] imageOrientationAtPoint:NSMakePoint(x, y) inRectOfSize:imageBounds.size];
 			
 			NSAffineTransform	*transform = [NSAffineTransform transform];
-			[transform translateXBy:x yBy:y];
+			[transform translateXBy:x + NSMinX(imageBounds) yBy:y + NSMinY(imageBounds)];
 			[transform rotateByDegrees:-angle];
 			[[transform transformBezierPath:path] fill];
 		}
