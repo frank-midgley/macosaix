@@ -40,7 +40,7 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(523.0, 290.0);
+	return NSMakeSize(200.0, 130.0);
 }
 
 
@@ -147,12 +147,9 @@
 			[currentImageSource setRequiredTerms:nil];
 			[currentImageSource setOptionalTerms:[keywordsTextField stringValue]];
 		}
+		
+		[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Keywords", @"")];
 	}
-	else
-		[okButton setEnabled:([[currentImageSource requiredTerms] length] > 0 || 
-							  [[currentImageSource optionalTerms] length] > 0 || 
-							  [[currentImageSource excludedTerms] length] > 0 || 
-							  [[currentImageSource siteString] length] > 0)];
 }
 
 
