@@ -364,35 +364,6 @@
 			}
 	}
 
-// TODO: move this to the radial orientations plug-in
-//	int				x, y;
-//	for (x = 0; x < xCount; x++)
-//		for (y = yCount - 1; y >= 0; y--)
-//			{
-//				tileRect.origin.x = x * tileRect.size.width;
-//				tileRect.origin.y = y * tileRect.size.height;
-//				
-////				float	angle = 0.0;
-////				
-////				if (imageOrientationType == radialInImageOrientation || imageOrientationType == radialOutImageOrientation)
-////				{
-////					angle = atanf((NSMidY(tileRect) - imageOrientationFocusPoint.y) / (NSMidX(tileRect) - imageOrientationFocusPoint.x));
-////					if (isnan(angle))
-////						angle = (NSMidY(tileRect) < imageOrientationFocusPoint.y ? 180.0 : 0.0);
-////					else
-////					{
-////						if (NSMidX(tileRect) < imageOrientationFocusPoint.x)
-////							angle += M_PI;
-////						angle = angle / M_PI * 180.0 - 90.0;
-////					}
-////					
-////					if (imageOrientationType == radialInImageOrientation)
-////						angle = fmodf(angle + 180.0, 360.0);
-////				}
-//				
-//				[tileOutlines addObject:[MacOSaiXRectangularTileShape tileShapeWithOutline:[NSBezierPath bezierPathWithRect:tileRect]]];
-//			}
-		
 	return [NSArray arrayWithArray:tileOutlines];
 }
 
