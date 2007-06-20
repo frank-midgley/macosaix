@@ -302,41 +302,35 @@
 						// Fetch the appropriate image from the cache.
 						// TBD: Is there some way to avoid having to pull the full sized image when it's not needed?  
 						//      Additional exporter API that lets us know the rendered size of the tile?
-					NSImageRep	*tileImageRep = [imageCache imageRepAtSize:NSZeroSize 
-															 forIdentifier:imageIdentifier 
-																fromSource:imageSource];
-					NSImage		*tileImage = [[NSImage alloc] initWithSize:[tileImageRep size]];
+					NSSize				nativeSize = [imageCache nativeSizeOfImageWithIdentifier:imageIdentifier 
+																					  fromSource:imageSource];
+					NSImageRep			*tileImageRep = [imageCache imageRepAtSize:nativeSize 
+																	 forIdentifier:imageIdentifier 
+																		fromSource:imageSource];
+					NSImage				*tileImage = [[NSImage alloc] initWithSize:[tileImageRep size]];
 					[tileImage addRepresentation:tileImageRep];
 					[tileImage setScalesWhenResized:NO];
 					
-						// Size the image to fit this tile.
-					NSRect		clipRect = [[tile outline] bounds], 
-								drawRect;
-					NSSize		pixletSize = [tileImageRep size];
-					if (NSWidth(clipRect) / pixletSize.width < NSHeight(clipRect) / pixletSize.height)
-					{
-						drawRect.size = NSMakeSize(NSHeight(clipRect) * pixletSize.width / pixletSize.height,
-												   NSHeight(clipRect));
-						drawRect.origin = NSMakePoint(NSMinX(clipRect) - 
-													  (NSWidth(drawRect) - NSWidth(clipRect)) / 2.0,
-													  NSMinY(clipRect));
-					}
-					else
-					{
-						drawRect.size = NSMakeSize(NSWidth(clipRect),
-												   NSWidth(clipRect) * pixletSize.height / pixletSize.width);
-						drawRect.origin = NSMakePoint(NSMinX(clipRect),
-													  NSMinY(clipRect) - 
-													  (NSHeight(drawRect) - NSHeight(clipRect)) / 2.0);
-					}
-					[tileImage setSize:drawRect.size];
+						// Size the image to fit this tile, accounting for the orientation.  The bitmap rep will not be resized.  The image's size tells the exporter how big the bitmap should be rendered (in the target image's space).
+					NSBezierPath		*targetOutline = [tile outline];
+					NSRect				targetBounds = [targetOutline bounds];
+					NSAffineTransform	*transform = [NSAffineTransform transform];
+					[transform translateXBy:NSMidX(targetBounds) yBy:NSMidY(targetBounds)];
+					[transform rotateByDegrees:-[tile imageOrientation]];
+					[transform translateXBy:-NSMidX(targetBounds) yBy:-NSMidY(targetBounds)];
+					NSBezierPath		*rotatedOutline = [transform transformBezierPath:targetOutline];
+					NSRect				rotatedBounds = [rotatedOutline bounds];
+					BOOL				widthLimited = ((nativeSize.width / NSWidth(rotatedBounds)) < 
+														(nativeSize.height / NSHeight(rotatedBounds)));
+					float				scale = (widthLimited ? NSWidth(rotatedBounds) / nativeSize.width : NSHeight(rotatedBounds) / nativeSize.height);
+					[tileImage setSize:NSMakeSize(nativeSize.width * scale, nativeSize.height * scale)];
 					
 						// Tell the exporter where and how to draw the image.
 					NS_DURING
 						exportError = [exporter fillTileWithImage:tileImage 
 												   withIdentifier:imageIdentifier 
 													   fromSource:imageSource 
-												  centeredAtPoint:NSMakePoint(NSMidX(drawRect), NSMidY(drawRect)) 
+												  centeredAtPoint:NSMakePoint(NSMidX(targetBounds), NSMidY(targetBounds)) 
 														 rotation:[tile imageOrientation] 
 													clippedToPath:[tile outline]];
 					NS_HANDLER
