@@ -459,7 +459,7 @@
 																	  index, className, [[self mosaic] numberOfImagesFoundFromSource:imageSource],
 																	  [[self mosaic] diskCacheSubPathForImageSource:imageSource]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
-				NSString	*settingsFileName = [NSString stringWithFormat:@"Image Source %d", index];
+				NSString	*settingsFileName = [[NSString stringWithFormat:@"Image Source %d", index] stringByAppendingPathExtension:[[imageSource class] settingsExtension]];
 				if (![imageSource saveSettingsToFileAtPath:[savePath stringByAppendingPathComponent:settingsFileName]])
 					[NSException raise:@"" format:@"Could not save the settings for image source %d.", index];
 			}
@@ -467,13 +467,13 @@
 			
 				// Write out the image orientations.
 			NSString		*className = NSStringFromClass([[[self mosaic] imageOrientations] class]);
-			if (![[[self mosaic] imageOrientations] saveSettingsToFileAtPath:[savePath stringByAppendingPathComponent:@"Image Orientations Settings"]])
+			if (![[[self mosaic] imageOrientations] saveSettingsToFileAtPath:[[savePath stringByAppendingPathComponent:@"Image Orientations Settings"] stringByAppendingPathExtension:[[[[self mosaic] imageOrientations] class] settingsExtension]]])
 				[NSException raise:@"" format:@"Could not save the image orientations settings."];
-			[fileHandle writeData:[[NSString stringWithFormat:@"<IMAGE_ORIENTATIONS CLASS=\"%@\" />\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
+			[fileHandle writeData:[[NSString stringWithFormat:@"<IMAGE_ORIENTATIONS CLASS=\"%@\" />\n\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
 			
 				// Write out the tiles and the shapes settings.
 			className = NSStringFromClass([[[self mosaic] tileShapes] class]);
-			if (![[[self mosaic] tileShapes] saveSettingsToFileAtPath:[savePath stringByAppendingPathComponent:@"Tile Shapes Settings"]])
+			if (![[[self mosaic] tileShapes] saveSettingsToFileAtPath:[[savePath stringByAppendingPathComponent:@"Tile Shapes Settings"] stringByAppendingPathExtension:[[[[self mosaic] tileShapes] class] settingsExtension]]])
 				[NSException raise:@"" format:@"Could not save the tile shapes settings."];
 			[fileHandle writeData:[[NSString stringWithFormat:@"<TILES SHAPES_CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
 			NSMutableString	*buffer = [NSMutableString string];
@@ -699,6 +699,8 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 		}
 		
 		CFRelease(parser);
+		
+		[[self mosaic] pause];
 	}
 	else
 		errorMessage = NSLocalizedString(@"The file could not be read.", @"");
@@ -806,7 +808,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						
 						newObject = [[NSClassFromString(className) alloc] init];
 						
-						NSString	*settingsPath = [[document fileName] stringByAppendingPathComponent:@"Tile Shapes Settings"];
+						NSString	*settingsPath = [[[document fileName] stringByAppendingPathComponent:@"Tile Shapes Settings"] stringByAppendingPathExtension:[[newObject class] settingsExtension]];
 						if ([[NSFileManager defaultManager] fileExistsAtPath:settingsPath] && 
 							![newObject loadSettingsFromFileAtPath:settingsPath])
 							CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, CFSTR("The tile shapes settings could not be loaded."));
@@ -850,8 +852,8 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						if (cacheName)
 							[mosaic setDiskCacheSubPath:cacheName forImageSource:newObject];
 						
-						NSString	*settingsPath = [[document fileName] stringByAppendingPathComponent:
-							[NSString stringWithFormat:@"Image Source %@", sourceID]];
+						NSString	*settingsPath = [[[document fileName] stringByAppendingPathComponent:
+							[NSString stringWithFormat:@"Image Source %@", sourceID]] stringByAppendingPathExtension:[[newObject class] settingsExtension]];
 						if ([[NSFileManager defaultManager] fileExistsAtPath:settingsPath] && 
 							![newObject loadSettingsFromFileAtPath:settingsPath])
 							CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, 
@@ -865,7 +867,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						{
 							newObject = [[NSClassFromString(className) alloc] init];
 							
-							NSString	*settingsPath = [[document fileName] stringByAppendingPathComponent:@"Image Orientations Settings"];
+							NSString	*settingsPath = [[[document fileName] stringByAppendingPathComponent:@"Image Orientations Settings"] stringByAppendingPathExtension:[[newObject class] settingsExtension]];
 							if (![[NSFileManager defaultManager] fileExistsAtPath:settingsPath] || 
 								![newObject loadSettingsFromFileAtPath:settingsPath])
 								CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, (CFStringRef)NSLocalizedString(@"The image orientations settings could not be loaded.", @""));
@@ -883,7 +885,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						{
 							newObject = [[NSClassFromString(shapesClassName) alloc] init];
 							
-							NSString	*settingsPath = [[document fileName] stringByAppendingPathComponent:@"Tile Shapes Settings"];
+							NSString	*settingsPath = [[[document fileName] stringByAppendingPathComponent:@"Tile Shapes Settings"] stringByAppendingPathExtension:[[newObject class] settingsExtension]];
 							if (![[NSFileManager defaultManager] fileExistsAtPath:settingsPath] || 
 								![newObject loadSettingsFromFileAtPath:settingsPath])
 								CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, (CFStringRef)NSLocalizedString(@"The tile shapes settings could not be loaded.", @""));
