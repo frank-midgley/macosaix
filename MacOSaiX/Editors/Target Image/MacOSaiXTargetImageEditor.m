@@ -417,10 +417,9 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		NSDictionary	*imageDict = [targetImageDicts objectAtIndex:index];
 		NSString		*existingTargetImagePath = [[[self mosaicView] mosaic] targetImagePath], 
 						*newTargetImagePath = [imageDict objectForKey:@"Path"];
-		BOOL			changeTargetImage = YES;
+		BOOL			changeTargetImage = ![existingTargetImagePath isEqualToString:newTargetImagePath];
 		
-		if (existingTargetImagePath && ![existingTargetImagePath isEqualToString:newTargetImagePath] && 
-			[MacOSaiXWarningController warningIsEnabled:@"Changing Target Image"])
+		if (changeTargetImage && [MacOSaiXWarningController warningIsEnabled:@"Changing Target Image"])
 			changeTargetImage = ([MacOSaiXWarningController runAlertForWarning:@"Changing Target Image" 
 																		 title:NSLocalizedString(@"Do you wish to change the target image?", @"") 
 																	   message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 

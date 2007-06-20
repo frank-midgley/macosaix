@@ -449,15 +449,17 @@ NSString	*MacOSaiXMosaicImageSourceDidChangeCountsNotification = @"MacOSaiXMosai
 
 - (void)setImageOrientations:(id<MacOSaiXImageOrientations>)inImageOrientations
 {
-	BOOL	wasRunning = ![self isPaused];
+	BOOL	wasRunning = ![self isPaused], 
+			needToReset = (imageOrientations != nil);
 	
 	if (wasRunning)
 		[self pause];
 	
 	[imageOrientations autorelease];
 	imageOrientations = [inImageOrientations retain];
-		
-	[self resetIncludingTiles:YES];
+			
+	if (needToReset)
+		[self resetIncludingTiles:YES];
 	
 		// Let anyone who cares know that our image orientations have changed.
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXImageOrientationsDidChangeStateNotification 
