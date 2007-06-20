@@ -76,6 +76,7 @@
 								[NSNumber numberWithFloat:focusPoint.x], @"Focus Point X", 
 								[NSNumber numberWithFloat:focusPoint.y], @"Focus Point Y", 
 								[NSNumber numberWithFloat:[self offsetAngle]], @"Offset Angle", 
+								[self name], @"Name", 
 								nil] 
 				writeToFile:path atomically:NO];
 }
@@ -92,6 +93,8 @@
 		[self setFocusPoint:NSMakePoint(focusPointX, focusPointY)];
 	
 	[self setOffsetAngle:[[settings objectForKey:@"Offset Angle"] floatValue]];
+	
+	[self setName:[settings objectForKey:@"Name"]];
 	
 	return YES;
 }
