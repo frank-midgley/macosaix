@@ -72,6 +72,7 @@
 - (BOOL)settingsAreValid;
 
 	// Methods called to save and load settings.
++ (NSString *)settingsExtension;
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path;
 - (BOOL)loadSettingsFromFileAtPath:(NSString *)path;
 
