@@ -283,13 +283,26 @@
 	if (!imageID)
 		error = NSLocalizedString(@"Could not save a tile's image to the PDF.", @"");
 	else
+	{
+		float	cosValue = cosf(-imageRotation / 360.0 * 2.0 * M_PI), 
+				sinValue = sinf(-imageRotation / 360.0 * 2.0 * M_PI);
+		
+			// Clip to the path, translate to the center point, rotate to the orientation, translate to the image's lower left corner, scale to the image's size and then render the image.
 		[contentStream appendFormat:@"q\n"\
 									 " %@ W n\n"\
-									 " %f 0 0 %f %f %f cm\n"\
+									 " 1 0 0 1 %f %f cm\n"\
+									 " %f %f %f %f 0 0 cm\n"\
+									 " 1 0 0 1 %f %f cm\n"\
+									 " %f 0 0 %f 0 0 cm\n"\
 									 " /Image%@ Do\n"\
-									 "Q\n\n", [clipPath pdfPath], [image size].width, [image size].height, centerPoint.x - [image size].width / 2.0, centerPoint.y - [image size].height / 2.0, imageID];
-	
-	// TODO: Set the rotation.
+									 "Q\n\n", 
+									 [clipPath pdfPath], 
+									 centerPoint.x, centerPoint.y, 
+									 cosValue, sinValue, -sinValue, cosValue, 
+									 -[image size].width / 2.0, -[image size].height / 2.0, 
+									 [image size].width, [image size].height, 
+									 imageID];
+	}
 	
 	return error;
 }
