@@ -52,6 +52,12 @@ NSString *escapedNSString(NSString *string)
 }
 
 
++ (NSString *)settingsExtension
+{
+	return @"plist";
+}
+
+
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
 	NSString		*queryTypeString = nil;

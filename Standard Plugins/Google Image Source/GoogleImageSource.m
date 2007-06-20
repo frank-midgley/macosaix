@@ -79,6 +79,12 @@ NSString *escapedNSString(NSString *string)
 }
 
 
++ (NSString *)settingsExtension
+{
+	return @"plist";
+}
+
+
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
 	NSMutableDictionary	*settings = [NSMutableDictionary dictionaryWithObjectsAndKeys:

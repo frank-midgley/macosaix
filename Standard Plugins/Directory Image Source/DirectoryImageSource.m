@@ -45,6 +45,12 @@
 }
 
 
++ (NSString *)settingsExtension
+{
+	return @"plist";
+}
+
+
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
 	return [[NSDictionary dictionaryWithObjectsAndKeys:
