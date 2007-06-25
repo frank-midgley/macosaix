@@ -6,34 +6,30 @@
 //  Copyright 2005 Frank M. Midgley. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
-
-#import "MacOSaiXImageSource.h"
-
-@class MacOSaiXTile;
+@class MacOSaiXSourceImage, MacOSaiXTile;
 
 
 @interface MacOSaiXImageMatch : NSObject
 {
-    float					matchValue;
-    id<MacOSaiXImageSource>	imageSource;
-	NSString				*imageIdentifier;
-	MacOSaiXTile			*tile;
+    float				matchValue;
+    MacOSaiXSourceImage	*sourceImage;
+	MacOSaiXTile		*tile;
 }
 
 + (id)imageMatchWithValue:(float)value 
-	   forImageIdentifier:(NSString *)identifier 
-		  fromImageSource:(id<MacOSaiXImageSource>)source
+		   forSourceImage:(MacOSaiXSourceImage *)source
 				  forTile:(MacOSaiXTile *)tile;
+
 - (id)initWithMatchValue:(float)inMatchValue 
-	  forImageIdentifier:(NSString *)inImageIdentifier 
-		 fromImageSource:(id<MacOSaiXImageSource>)inImageSource
+		  forSourceImage:(MacOSaiXSourceImage *)source
 				 forTile:(MacOSaiXTile *)inTile;
+
 - (float)matchValue;
-- (id<MacOSaiXImageSource>)imageSource;
-- (NSString *)imageIdentifier;
-- (MacOSaiXTile *)tile;
+- (MacOSaiXSourceImage *)sourceImage;
+
 - (void)setTile:(MacOSaiXTile *)inTile;
+- (MacOSaiXTile *)tile;
+
 - (NSComparisonResult)compare:(MacOSaiXImageMatch *)otherMatch;
 
 @end

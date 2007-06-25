@@ -8,32 +8,30 @@
 
 #import "MacOSaiXImageMatch.h"
 
+#import "MacOSaiXSourceImage.h"
+
 
 @implementation MacOSaiXImageMatch
 
 
 + (id)imageMatchWithValue:(float)inValue 
-	   forImageIdentifier:(NSString *)inIdentifier 
-		  fromImageSource:(id<MacOSaiXImageSource>)inSource
+		   forSourceImage:(MacOSaiXSourceImage *)inImage
 				  forTile:(MacOSaiXTile *)inTile
 {
 	return [[[self alloc] initWithMatchValue:inValue 
-						  forImageIdentifier:inIdentifier 
-							 fromImageSource:inSource 
+							  forSourceImage:inImage 
 									 forTile:inTile] autorelease];
 }
 
 
 - (id)initWithMatchValue:(float)inMatchValue 
-	  forImageIdentifier:(NSString *)inImageIdentifier 
-		 fromImageSource:(id<MacOSaiXImageSource>)inImageSource
+		  forSourceImage:(MacOSaiXSourceImage *)inImage
 				 forTile:(MacOSaiXTile *)inTile
 {
 	if (self = [super init])
 	{
 		matchValue = inMatchValue;
-		imageIdentifier = [inImageIdentifier retain];
-		imageSource = [inImageSource retain];
+		sourceImage = [inImage retain];
 		tile = inTile;
 	}
 	
@@ -47,15 +45,9 @@
 }
 
 
-- (id<MacOSaiXImageSource>)imageSource
+- (MacOSaiXSourceImage *)sourceImage
 {
-	return imageSource;
-}
-
-
-- (NSString *)imageIdentifier
-{
-	return imageIdentifier;
+	return sourceImage;
 }
 
 
@@ -80,14 +72,13 @@
 	else if (matchValue < otherMatchValue)
 		return NSOrderedAscending;
 	else
-		return NSOrderedSame;
+		return NSOrderedSame;	// TBD: return [sourceImage compare:[otherMatch sourceImage]]?
 }
 
 
 - (void)dealloc
 {
-	[imageIdentifier release];
-	[imageSource release];
+	[sourceImage release];
 	
 	[super dealloc];
 }

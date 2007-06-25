@@ -6,7 +6,7 @@
 //  Copyright 2005 Frank M. Midgley. All rights reserved.
 //
 
-@class MacOSaiXHandPickedImageSource, MacOSaiXTile;
+@class MacOSaiXHandPickedImageSource, MacOSaiXImageQueue, MacOSaiXImageSourceEnumerator, MacOSaiXSourceImage, MacOSaiXTile;
 @protocol MacOSaiXTileShapes, MacOSaiXImageOrientations, MacOSaiXImageSource, MacOSaiXExportSettings;
 
 
@@ -18,8 +18,7 @@
 	id<MacOSaiXImageSource>			targetImageSource;
 	float							targetImageAspectRatio;
 	
-    NSMutableArray					*imageSources,
-									*tiles;
+    NSMutableArray					*tiles;
 	
 	NSLock							*imageSourcesLock;
 	
@@ -43,11 +42,8 @@
 	
 		// Image source enumeration
     NSLock							*enumerationsLock;
-	NSMutableArray					*imageSourceEnumerations;
-	NSMutableDictionary				*imagesFoundCounts;
-    NSMutableArray					*imageQueue, 
-									*revisitQueue;
-    NSLock							*imageQueueLock;
+	NSMutableArray					*imageSourceEnumerators;
+	MacOSaiXImageQueue				*imageQueue;
 	
 		// Image matching
     NSLock							*calculateImageMatchesLock;
@@ -59,11 +55,6 @@
 									pausing;
     float							overallMatch,
 									lastDisplayMatch;
-	
-	id<MacOSaiXImageSource>			probationaryImageSource;
-	NSMutableSet					*probationImageQueue;
-	NSDate							*probationStartDate;
-	NSRecursiveLock					*probationLock;
 }
 
 	// Target image
@@ -105,17 +96,17 @@
 - (BOOL)isBusy;
 - (NSString *)busyStatus;
 
+- (MacOSaiXImageQueue *)imageQueue;
+- (void)addSourceImageToQueue:(MacOSaiXSourceImage *)sourceImage;
+
 - (unsigned long)numberOfImagesFound;
 - (unsigned long)numberOfImagesInUse;
 
 	// Image sources methods
-- (NSArray *)imageSources;
+- (NSArray *)imageSourceEnumerators;
 - (void)addImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (void)imageSource:(id<MacOSaiXImageSource>)imageSource didChangeSettings:(NSString *)changeDescription;
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource;
-- (BOOL)imageSourcesExhausted;
-- (unsigned long)numberOfImagesFoundFromSource:(id<MacOSaiXImageSource>)imageSource;
-- (unsigned long)numberOfImagesInUseFromSource:(id<MacOSaiXImageSource>)imageSource;
 
 	// Disk cache paths
 - (NSString *)diskCachePath;
@@ -124,9 +115,9 @@
 - (void)setDiskCacheSubPath:(NSString *)path forImageSource:(id<MacOSaiXImageSource>)imageSource;
 
 	// Hand picked images
-- (MacOSaiXHandPickedImageSource *)handPickedImageSource;
-- (void)setHandPickedImageAtPath:(NSString *)path withMatchValue:(float)matchValue forTile:(MacOSaiXTile *)tile;
-- (void)removeHandPickedImageForTile:(MacOSaiXTile *)tile;
+//- (MacOSaiXHandPickedImageSource *)handPickedImageSource;
+//- (void)setHandPickedImageAtPath:(NSString *)path withMatchValue:(float)matchValue forTile:(MacOSaiXTile *)tile;
+//- (void)removeHandPickedImageForTile:(MacOSaiXTile *)tile;
 
 	// Pause/resume
 - (BOOL)isPaused;
@@ -143,5 +134,4 @@ extern NSString	*MacOSaiXTargetImageDidChangeNotification;
 extern NSString *MacOSaiXTileContentsDidChangeNotification;
 extern NSString *MacOSaiXTileShapesDidChangeStateNotification;
 extern NSString *MacOSaiXImageOrientationsDidChangeStateNotification;
-extern NSString *MacOSaiXMosaicImageSourceDidChangeCountsNotification;
 
