@@ -9,8 +9,8 @@
 #import "MacOSaiXWindowController.h"
 
 #import "MacOSaiX.h"
-#import "MacOSaiXEditorsView.h"
 #import "MacOSaiXDocument.h"
+#import "MacOSaiXEditorsView.h"
 #import "MacOSaiXExportController.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatcher.h"
@@ -134,9 +134,9 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	}
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(recentTargetImagesDidChange:) 
-												 name:MacOSaiXRecentTargetImagesDidChangeNotification 
-											   object:nil];
+											 selector:@selector(statusViewFrameDidChange:) 
+												 name:NSViewFrameDidChangeNotification 
+											   object:statusView];
 	
 	[self mosaicDidChangeState:nil];
 	
@@ -151,17 +151,17 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 - (void)windowDidLoad
 {
 		// Add the editors.
-	targetImageEditor = [[MacOSaiXTargetImageEditor alloc] initWithMosaicView:mosaicView];
+	targetImageEditor = [[MacOSaiXTargetImageEditor alloc] initWithDelegate:editorsView];
 	[editorsView addEditor:targetImageEditor];
-	tileShapesEditor = [[MacOSaiXTileShapesEditor alloc] initWithMosaicView:mosaicView];
+	tileShapesEditor = [[MacOSaiXTileShapesEditor alloc] initWithDelegate:editorsView];
 	[editorsView addEditor:tileShapesEditor];
-	imageSourcesEditor = [[MacOSaiXImageSourcesEditor alloc] initWithMosaicView:mosaicView];
+	imageSourcesEditor = [[MacOSaiXImageSourcesEditor alloc] initWithDelegate:editorsView];
 	[editorsView addEditor:imageSourcesEditor];
-	imageUsageEditor = [[MacOSaiXImageUsageEditor alloc] initWithMosaicView:mosaicView];
+	imageUsageEditor = [[MacOSaiXImageUsageEditor alloc] initWithDelegate:editorsView];
 	[editorsView addEditor:imageUsageEditor];
-	imageOrientationsEditor = [[MacOSaiXImageOrientationsEditor alloc] initWithMosaicView:mosaicView];
+	imageOrientationsEditor = [[MacOSaiXImageOrientationsEditor alloc] initWithDelegate:editorsView];
 	[editorsView addEditor:imageOrientationsEditor];
-	tileContentEditor = [[MacOSaiXTileContentEditor alloc] initWithMosaicView:mosaicView];
+	tileContentEditor = [[MacOSaiXTileContentEditor alloc] initWithDelegate:editorsView];
 	[editorsView addEditor:tileContentEditor];
 	
 	[editorsView updateMinimumViewSize];
@@ -193,6 +193,64 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 #pragma mark -
 #pragma mark Miscellaneous
 
+	
+- (void)updateImageCountFields
+{
+	static NSAttributedString	*shortBase = nil;
+	
+	if (!shortBase)
+	{
+		NSMutableAttributedString	*mutableAS = [[NSMutableAttributedString alloc] initWithString:@""];
+		NSTextAttachment			*ta1 = [[[NSTextAttachment alloc] init] autorelease], 
+									*ta2 = [[[NSTextAttachment alloc] init] autorelease];
+		[(NSCell *)[ta1 attachmentCell] setImage:[NSImage imageNamed:@"Images Found"]];
+		[(NSCell *)[ta2 attachmentCell] setImage:[NSImage imageNamed:@"Images In Use"]];
+		[mutableAS appendAttributedString:[NSMutableAttributedString attributedStringWithAttachment:ta1]];
+		[mutableAS appendAttributedString:[NSMutableAttributedString attributedStringWithAttachment:ta2]];
+		[mutableAS addAttribute:NSBaselineOffsetAttributeName 
+						  value:[NSNumber numberWithInt:-5] 
+						  range:NSMakeRange(0, 2)];
+		NSAttributedString			*separatorAS = [[[NSAttributedString alloc] initWithString:@"/"] autorelease];
+		[mutableAS insertAttributedString:separatorAS atIndex:1];
+		
+		shortBase = mutableAS;
+	}
+	
+	NSRect						statusViewFrame = [statusView frame], 
+								statusFrame = [statusField frame], 
+								countsFrame = [imagesFoundField frame];
+	unsigned long				imagesFound = [[self mosaic] numberOfImagesFound], 
+								imagesInUse = [[self mosaic] numberOfImagesInUse];
+	NSString					*countsString = [NSString stringWithFormat:NSLocalizedString(@"Images found/in use: %u/%u", @""), imagesFound, imagesInUse];
+	NSDictionary				*attributes = [NSDictionary dictionaryWithObject:[imagesFoundField font] forKey:NSFontAttributeName];
+	float						countsWidth = [countsString sizeWithAttributes:attributes].width;
+	
+	if (NSWidth(statusViewFrame) - countsWidth - 8.0 - NSMinX(statusFrame) <  128.0)
+	{
+			// Use the short version.
+		NSMutableAttributedString	*shortAS = [[shortBase mutableCopy] autorelease];
+		NSAttributedString			*countsAS = [[[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@": %u/%u", imagesFound, imagesInUse] attributes:attributes] autorelease];
+		
+		[shortAS appendAttributedString:countsAS];
+		
+		[imagesFoundField setAttributedStringValue:shortAS];
+		
+		countsWidth = [shortAS size].width + 3.0;
+	}
+	else
+	{
+			// There is room for the long version.
+		[imagesFoundField setStringValue:countsString];
+	}
+	
+	statusFrame.size.width = NSWidth(statusViewFrame) - countsWidth - 8.0 - NSMinX(statusFrame);
+	[statusField setFrame:statusFrame];
+	
+	countsFrame.origin.x = NSWidth(statusViewFrame) - countsWidth - 8.0;
+	countsFrame.size.width = countsWidth + 4.0;
+	[imagesFoundField setFrame:countsFrame];
+}
+
 
 - (void)updateStatusView
 {
@@ -207,7 +265,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 		status = NSLocalizedString(@"You have not chosen a target image", @"");
 	else if (![[self mosaic] tileShapes])
 		status = NSLocalizedString(@"You have not set the tile shapes", @"");
-	else if ([[[self mosaic] imageSources] count] == 0)
+	else if ([[[self mosaic] imageSourceEnumerators] count] == 0)
 		status = NSLocalizedString(@"You have not added any image sources", @"");
 	else if ([[self mosaic] isBusy])
 	{
@@ -232,8 +290,13 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	
 	[statusField setStringValue:status];
 	
-	NSString	*foundFormat = NSLocalizedString(@"Images found/in use: %d/%d", @"");
-	[imagesFoundField setStringValue:[NSString stringWithFormat:foundFormat, [[self mosaic] numberOfImagesFound], [[self mosaic] numberOfImagesInUse]]];
+	[self updateImageCountFields];
+}
+
+
+- (void)statusViewFrameDidChange:(NSNotification *)notification
+{
+	[self updateImageCountFields];
 }
 
 
@@ -548,7 +611,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	BOOL	valid = YES;
 	
 	if (actionToValidate == @selector(togglePause:))
-		valid = ([[[self mosaic] imageSources] count] > 0);
+		valid = ([[[self mosaic] imageSourceEnumerators] count] > 0);
 	
 	return valid;
 }
