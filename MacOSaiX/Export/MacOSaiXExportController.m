@@ -14,8 +14,10 @@
 #import "MacOSaiXExporter.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatch.h"
+#import "MacOSaiXImageSourceEnumerator.h"
 #import "MacOSaiXMosaic.h"
 #import "MacOSaiXProgressController.h"
+#import "MacOSaiXSourceImage.h"
 #import "NSImage+MacOSaiX.h"
 //#import "NSBezierPath+MacOSaiX.h"
 #import "Tiles.h"
@@ -231,7 +233,6 @@
     NSAutoreleasePool		*pool = [[NSAutoreleasePool alloc] init];
 	unsigned long			tileCount = [[mosaic tiles] count],
 							tilesExported = 0;
-	MacOSaiXImageCache		*imageCache = [MacOSaiXImageCache sharedImageCache];
 	NSURL					*exportURL = [threadParameters objectForKey:@"Export URL"];
 	Class					exporterPlugInClass = [[NSApp delegate] plugInForDataSourceClass:[exportSettings class]];
 	id<MacOSaiXExporter>	exporter = [[[exporterPlugInClass exporterClass] alloc] init];
@@ -275,38 +276,40 @@
 															 [localException reason]];
 				NS_ENDHANDLER
 			}
+			else if (fillStyle == fillWithTargetImage)
+			{
+				NSImage	*targetImage = [mosaic targetImage];
+				
+				NS_DURING
+					exportError = [exporter fillTileWithImage:targetImage 
+											   withIdentifier:[mosaic targetImageIdentifier] 
+												   fromSource:[mosaic targetImageSource] 
+											  centeredAtPoint:NSMakePoint([targetImage size].width / 2.0, 
+																		  [targetImage size].height / 2.0) 
+													 rotation:0.0 
+												clippedToPath:[tile outline]];
+				NS_HANDLER
+					exportError = [NSString stringWithFormat:NSLocalizedString(@"Could not save one of the tiles.  (%@)", @""), 
+						[localException reason]];
+				NS_ENDHANDLER
+			}
 			else
 			{
-				NSString				*imageIdentifier = nil;
-				id<MacOSaiXImageSource>	imageSource = nil;
+				MacOSaiXSourceImage	*tileSourceImage = nil;
 				
 					// Get the identifier and source of the image with which to fill the tile.
 				if (fillStyle == fillWithUniqueMatch)
-				{
-					imageIdentifier = [[tile uniqueImageMatch] imageIdentifier];
-					imageSource = [[tile uniqueImageMatch] imageSource];
-				}
+					tileSourceImage = [[tile uniqueImageMatch] sourceImage];
 				else if (fillStyle == fillWithHandPicked)
-				{
-					imageIdentifier = [[tile userChosenImageMatch] imageIdentifier];
-					imageSource = [[tile userChosenImageMatch] imageSource];
-				}
-				else if (fillStyle == fillWithTargetImage)
-				{
-					imageIdentifier = [mosaic targetImageIdentifier];
-					imageSource = [mosaic targetImageSource];
-				}
+					tileSourceImage = [[tile userChosenImageMatch] sourceImage];
 				
-				if (imageIdentifier && imageSource)
+				if (tileSourceImage)
 				{
 						// Fetch the appropriate image from the cache.
 						// TBD: Is there some way to avoid having to pull the full sized image when it's not needed?  
 						//      Additional exporter API that lets us know the rendered size of the tile?
-					NSSize				nativeSize = [imageCache nativeSizeOfImageWithIdentifier:imageIdentifier 
-																					  fromSource:imageSource];
-					NSImageRep			*tileImageRep = [imageCache imageRepAtSize:nativeSize 
-																	 forIdentifier:imageIdentifier 
-																		fromSource:imageSource];
+					NSSize				nativeSize = [tileSourceImage nativeSize];
+					NSImageRep			*tileImageRep = [tileSourceImage imageRepAtSize:nativeSize];
 					NSImage				*tileImage = [[NSImage alloc] initWithSize:[tileImageRep size]];
 					[tileImage addRepresentation:tileImageRep];
 					[tileImage setScalesWhenResized:NO];
@@ -328,8 +331,8 @@
 						// Tell the exporter where and how to draw the image.
 					NS_DURING
 						exportError = [exporter fillTileWithImage:tileImage 
-												   withIdentifier:imageIdentifier 
-													   fromSource:imageSource 
+												   withIdentifier:[tileSourceImage imageIdentifier] 
+													   fromSource:[[tileSourceImage enumerator] imageSource] 
 												  centeredAtPoint:NSMakePoint(NSMidX(targetBounds), NSMidY(targetBounds)) 
 														 rotation:[tile imageOrientation] 
 													clippedToPath:[tile outline]];

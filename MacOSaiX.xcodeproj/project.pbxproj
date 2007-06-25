@@ -153,6 +153,12 @@
 		9240AE720A4DABAB00759546 /* MacOSaiXProgressController.h in Headers */ = {isa = PBXBuildFile; fileRef = 9240AE700A4DABAB00759546 /* MacOSaiXProgressController.h */; };
 		9240AE730A4DABAB00759546 /* MacOSaiXProgressController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9240AE710A4DABAB00759546 /* MacOSaiXProgressController.m */; };
 		9240AE950A4DB11100759546 /* Progress.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9240AE930A4DB11100759546 /* Progress.nib */; };
+		924235930C2ACF30003DB124 /* MacOSaiXImageSourceEnumerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 924235910C2ACF30003DB124 /* MacOSaiXImageSourceEnumerator.h */; };
+		924235940C2ACF30003DB124 /* MacOSaiXImageSourceEnumerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 924235920C2ACF30003DB124 /* MacOSaiXImageSourceEnumerator.m */; };
+		924236350C2C4CA6003DB124 /* MacOSaiXImageQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 924236330C2C4CA5003DB124 /* MacOSaiXImageQueue.h */; };
+		924236360C2C4CA6003DB124 /* MacOSaiXImageQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 924236340C2C4CA5003DB124 /* MacOSaiXImageQueue.m */; };
+		924236510C2C58BD003DB124 /* MacOSaiXSourceImage.h in Headers */ = {isa = PBXBuildFile; fileRef = 9242364F0C2C58BD003DB124 /* MacOSaiXSourceImage.h */; };
+		924236520C2C58BD003DB124 /* MacOSaiXSourceImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 924236500C2C58BD003DB124 /* MacOSaiXSourceImage.m */; };
 		9253016509D611EF001E27F3 /* NoOriginal.png in Resources */ = {isa = PBXBuildFile; fileRef = 9253016409D611EF001E27F3 /* NoOriginal.png */; };
 		9254088D0915741F00384904 /* MacOSaiXKioskMessageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */; };
 		92554D670BFA460200CCF920 /* MacOSaiXBitmapExporterPlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92341E190BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.m */; };
@@ -475,7 +481,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 92E5473A0C2069AF005C3B95 /* Radial Image Orientations */;
+			remoteGlobalIDString = 92E5473A0C2069AF005C3B95;
 			remoteInfo = "Radial Image Orientations";
 		};
 /* End PBXContainerItemProxy section */
@@ -662,6 +668,12 @@
 		9240AE700A4DABAB00759546 /* MacOSaiXProgressController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXProgressController.h; sourceTree = "<group>"; };
 		9240AE710A4DABAB00759546 /* MacOSaiXProgressController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXProgressController.m; sourceTree = "<group>"; };
 		9240AE940A4DB11100759546 /* Progress.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = Progress.nib; path = MacOSaiX/English.lproj/Progress.nib; sourceTree = "<group>"; };
+		924235910C2ACF30003DB124 /* MacOSaiXImageSourceEnumerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageSourceEnumerator.h; sourceTree = "<group>"; };
+		924235920C2ACF30003DB124 /* MacOSaiXImageSourceEnumerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXImageSourceEnumerator.m; sourceTree = "<group>"; };
+		924236330C2C4CA5003DB124 /* MacOSaiXImageQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageQueue.h; sourceTree = "<group>"; };
+		924236340C2C4CA5003DB124 /* MacOSaiXImageQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXImageQueue.m; sourceTree = "<group>"; };
+		9242364F0C2C58BD003DB124 /* MacOSaiXSourceImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXSourceImage.h; sourceTree = "<group>"; };
+		924236500C2C58BD003DB124 /* MacOSaiXSourceImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXSourceImage.m; sourceTree = "<group>"; };
 		924E805B099E8C0D006977E3 /* MacOSaiXTilesSetupController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXTilesSetupController.h; sourceTree = "<group>"; };
 		924E805C099E8C0D006977E3 /* MacOSaiXTilesSetupController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXTilesSetupController.m; sourceTree = "<group>"; };
 		924E807D099E9022006977E3 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Tiles Setup.nib"; sourceTree = "<group>"; };
@@ -986,12 +998,6 @@
 				9298FE6909955B2A00E7A096 /* MacOSaiXDocument.nib */,
 				9289DDA5073D713100C88091 /* MacOSaiXWindowController.h */,
 				9289DDA6073D713100C88091 /* MacOSaiXWindowController.m */,
-				92DA0D8D0A32243C0064E69E /* MacOSaiXPopUpButton.h */,
-				92DA0D8E0A32243C0064E69E /* MacOSaiXPopUpButton.m */,
-				0109D41309E084D8008290BE /* MacOSaiXEventCatchingPanel.h */,
-				0109D41409E084D8008290BE /* MacOSaiXEventCatchingPanel.m */,
-				920072BF0BEA89DA004DED2C /* MacOSaiXSplitView.h */,
-				920072C00BEA89DA004DED2C /* MacOSaiXSplitView.m */,
 			);
 			name = Document;
 			sourceTree = "<group>";
@@ -1248,6 +1254,7 @@
 				9240AE6F0A4DAB4A00759546 /* Progress Sheet */,
 				0109CA3609D385A5008290BE /* Warning Controller */,
 				928824890982D05400181817 /* Full Screen Window */,
+				924235540C2ACD23003DB124 /* Widgets */,
 				01AB92ED07DB797E00DB4B86 /* Cocoa Extensions */,
 				928F72460661211600873AE2 /* Crash Reporter */,
 				0165CFD0086DE5490070D6B5 /* Update Window */,
@@ -1345,6 +1352,23 @@
 				9240AE930A4DB11100759546 /* Progress.nib */,
 			);
 			name = "Progress Sheet";
+			sourceTree = "<group>";
+		};
+		924235540C2ACD23003DB124 /* Widgets */ = {
+			isa = PBXGroup;
+			children = (
+				92DA0D8D0A32243C0064E69E /* MacOSaiXPopUpButton.h */,
+				92DA0D8E0A32243C0064E69E /* MacOSaiXPopUpButton.m */,
+				0109D41309E084D8008290BE /* MacOSaiXEventCatchingPanel.h */,
+				0109D41409E084D8008290BE /* MacOSaiXEventCatchingPanel.m */,
+				920072BF0BEA89DA004DED2C /* MacOSaiXSplitView.h */,
+				920072C00BEA89DA004DED2C /* MacOSaiXSplitView.m */,
+				011C7CE20A1AADCB0023CD62 /* MacOSaiXTextFieldCell.h */,
+				011C7CE30A1AADCB0023CD62 /* MacOSaiXTextFieldCell.m */,
+				9211A6820A17F7A70021A583 /* MacOSaiXToolTipView.h */,
+				9211A6830A17F7A70021A583 /* MacOSaiXToolTipView.m */,
+			);
+			name = Widgets;
 			sourceTree = "<group>";
 		};
 		924E8058099E8BD1006977E3 /* Tiles Setup */ = {
@@ -1590,12 +1614,14 @@
 				016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */,
 				92B9087908C25F0500D621F5 /* MacOSaiXImageMatcher.h */,
 				92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */,
+				924236330C2C4CA5003DB124 /* MacOSaiXImageQueue.h */,
+				924236340C2C4CA5003DB124 /* MacOSaiXImageQueue.m */,
+				924235910C2ACF30003DB124 /* MacOSaiXImageSourceEnumerator.h */,
+				924235920C2ACF30003DB124 /* MacOSaiXImageSourceEnumerator.m */,
 				01FE981008F365C600E4AC7C /* MacOSaiXMosaic.h */,
 				01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */,
-				011C7CE20A1AADCB0023CD62 /* MacOSaiXTextFieldCell.h */,
-				011C7CE30A1AADCB0023CD62 /* MacOSaiXTextFieldCell.m */,
-				9211A6820A17F7A70021A583 /* MacOSaiXToolTipView.h */,
-				9211A6830A17F7A70021A583 /* MacOSaiXToolTipView.m */,
+				9242364F0C2C58BD003DB124 /* MacOSaiXSourceImage.h */,
+				924236500C2C58BD003DB124 /* MacOSaiXSourceImage.m */,
 				92E544D60C189DDF005C3B95 /* Mosaic View */,
 				00EAAC6000853DFB7F000001 /* Tiles.h */,
 				00EAAC6100853DFB7F000001 /* Tiles.m */,
@@ -1755,6 +1781,9 @@
 				92341CA20BF117370079BFF0 /* MacOSaiXExporter.h in Headers */,
 				92341E1A0BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.h in Headers */,
 				929DC5290BFD083E00024C99 /* NSData+MacOSaiX.h in Headers */,
+				924235930C2ACF30003DB124 /* MacOSaiXImageSourceEnumerator.h in Headers */,
+				924236350C2C4CA6003DB124 /* MacOSaiXImageQueue.h in Headers */,
+				924236510C2C58BD003DB124 /* MacOSaiXSourceImage.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2701,6 +2730,9 @@
 				01660E550BE1375000D95052 /* MacOSaiXImageSourceView.m in Sources */,
 				920072C20BEA89DA004DED2C /* MacOSaiXSplitView.m in Sources */,
 				929DC52A0BFD084000024C99 /* NSData+MacOSaiX.m in Sources */,
+				924235940C2ACF30003DB124 /* MacOSaiXImageSourceEnumerator.m in Sources */,
+				924236360C2C4CA6003DB124 /* MacOSaiXImageQueue.m in Sources */,
+				924236520C2C58BD003DB124 /* MacOSaiXSourceImage.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

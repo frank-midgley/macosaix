@@ -12,7 +12,9 @@
 #import "MacOSaiX.h"
 #import "MacOSaiXHandPickedImageSource.h"
 #import "MacOSaiXImageOrientations.h"
+#import "MacOSaiXImageSourceEnumerator.h"
 #import "MacOSaiXProgressController.h"
+#import "MacOSaiXSourceImage.h"
 #import "MacOSaiXTileShapes.h"
 #import "Tiles.h"
 #import "NSImage+MacOSaiX.h"
@@ -280,12 +282,12 @@
 		}
 		
 			// Move or copy any image source cache directories to the new file wrapper.
-		NSEnumerator			*imageSourceEnumerator = [[[self mosaic] imageSources] objectEnumerator];
-		id<MacOSaiXImageSource>	imageSource = nil;
-		while (imageSource = [imageSourceEnumerator nextObject])
-			if (![imageSource canRefetchImages])
+		NSEnumerator					*imageSourceEnumeratorEnumerator = [[[self mosaic] imageSourceEnumerators] objectEnumerator];
+		MacOSaiXImageSourceEnumerator	*imageSourceEnumerator = nil;
+		while (imageSourceEnumerator = [imageSourceEnumeratorEnumerator nextObject])
+			if (![[imageSourceEnumerator imageSource] canRefetchImages])
 			{
-				NSString	*subPath = [[self mosaic] diskCacheSubPathForImageSource:imageSource], 
+				NSString	*subPath = [[self mosaic] diskCacheSubPathForImageSource:[imageSourceEnumerator imageSource]], 
 							*oldCachePath = [oldPath stringByAppendingPathComponent:subPath], 
 							*newCachePath = [newPath stringByAppendingPathComponent:subPath];
 				
@@ -444,19 +446,20 @@
 			
 				// Write out the image sources.
 			[fileHandle writeData:[@"<IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			NSArray	*imageSources = [[self mosaic] imageSources];
+			NSArray	*imageSourceEnumerators = [[self mosaic] imageSourceEnumerators];
 			int		index;
-			for (index = 0; index < [imageSources count]; index++)
+			for (index = 0; index < [imageSourceEnumerators count]; index++)
 			{
-				id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:index];
-				NSString				*className = NSStringFromClass([imageSource class]);
+				MacOSaiXImageSourceEnumerator	*imageSourceEnumerator = [imageSourceEnumerators objectAtIndex:index];
+				id<MacOSaiXImageSource>			imageSource = [imageSourceEnumerator imageSource];
+				NSString						*className = NSStringFromClass([imageSource class]);
 				if ([imageSource canRefetchImages])
 					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\" />\n", 
-																	  index, className, [[self mosaic] numberOfImagesFoundFromSource:imageSource]] 
+																	  index, className, [imageSourceEnumerator numberOfImagesFound]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
 				else
 					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\" CACHE_NAME=\"%@\" />\n", 
-																	  index, className, [[self mosaic] numberOfImagesFoundFromSource:imageSource],
+																	  index, className, [imageSourceEnumerator numberOfImagesFound],
 																	  [[self mosaic] diskCacheSubPathForImageSource:imageSource]] 
 												dataUsingEncoding:NSUTF8StringEncoding]];
 				NSString	*settingsFileName = [[NSString stringWithFormat:@"Image Source %d", index] stringByAppendingPathExtension:[[imageSource class] settingsExtension]];
@@ -530,30 +533,29 @@
 				MacOSaiXImageMatch	*userChosenMatch = [tile userChosenImageMatch];
 				if (userChosenMatch)
 					[buffer appendFormat:@"\t\t<USER_CHOSEN_MATCH ID=\"%@\" VALUE=\"%@\"/>\n", 
-										 [[userChosenMatch imageIdentifier] stringByEscapingXMLEntites],
+										 [[[userChosenMatch sourceImage] imageIdentifier] stringByEscapingXMLEntites],
 									     [NSString stringWithFloat:[userChosenMatch matchValue]]];
 				MacOSaiXImageMatch	*uniqueMatch = [tile uniqueImageMatch];
 				if (uniqueMatch)
 				{
-					int	sourceIndex = [imageSources indexOfObjectIdenticalTo:[uniqueMatch imageSource]];
-						// Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
-						// fully working.
+						// TODO: Hack: this check shouldn't be necessary if the "Remove Image Source" code was fully working.
+					int	sourceIndex = [imageSourceEnumerators indexOfObjectIdenticalTo:[[uniqueMatch sourceImage] enumerator]];
 					if (sourceIndex != NSNotFound)
 						[buffer appendFormat:@"\t\t<UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%@\"/>\n", 
 											 sourceIndex,
-											 [[uniqueMatch imageIdentifier] stringByEscapingXMLEntites],
+											 [[[uniqueMatch sourceImage] imageIdentifier] stringByEscapingXMLEntites],
 											 [NSString stringWithFloat:[uniqueMatch matchValue]]];
 				}
 				MacOSaiXImageMatch	*bestMatch = [tile bestImageMatch];
 				if (bestMatch)
 				{
-					int	sourceIndex = [imageSources indexOfObjectIdenticalTo:[bestMatch imageSource]];
-						// Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
+					// TODO: Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
 						// fully working.
+					int	sourceIndex = [imageSourceEnumerators indexOfObjectIdenticalTo:[[bestMatch sourceImage] enumerator]];
 					if (sourceIndex != NSNotFound)
 						[buffer appendFormat:@"\t\t<BEST_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%@\"/>\n", 
 											 sourceIndex,
-											 [[bestMatch imageIdentifier] stringByEscapingXMLEntites],
+											 [[[bestMatch sourceImage] imageIdentifier] stringByEscapingXMLEntites],
 											 [NSString stringWithFloat:[bestMatch matchValue]]];
 				}
 				NSColor				*fillColor = [tile fillColor];
@@ -929,15 +931,17 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					else if ([elementType isEqualToString:@"BEST_MATCH"])
 					{
 						int		sourceIndex = [[nodeAttributes objectForKey:@"SOURCE"] intValue];
-						if (sourceIndex >= 0 && sourceIndex < [[mosaic imageSources] count])
+						if (sourceIndex >= 0 && sourceIndex < [[mosaic imageSourceEnumerators] count])
 						{
-							NSString	*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
-							float		matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
+							NSString			*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
+							float				matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
+							MacOSaiXSourceImage	*sourceImage = [MacOSaiXSourceImage sourceImageWithImage:nil 
+																						  withIdentifier:imageIdentifier 
+																						  fromEnumerator:[[mosaic imageSourceEnumerators] objectAtIndex:sourceIndex]];
 							
 							newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
-																	forImageIdentifier:imageIdentifier 
-																	   fromImageSource:[[mosaic imageSources] objectAtIndex:sourceIndex] 
-																			   forTile:(MacOSaiXTile *)@"Best"];
+																	forSourceImage:sourceImage 
+																		   forTile:(MacOSaiXTile *)@"Best"];
 						}
 						else
 							CFXMLParserAbort(parser,kCFXMLErrorMalformedStartTag, (CFStringRef)NSLocalizedString(@"Tile is using an image from an unknown source.", @""));
@@ -945,14 +949,16 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					else if ([elementType isEqualToString:@"UNIQUE_MATCH"])
 					{
 						int					sourceIndex = [[nodeAttributes objectForKey:@"SOURCE"] intValue];
-						if (sourceIndex >= 0 && sourceIndex < [[mosaic imageSources] count])
+						if (sourceIndex >= 0 && sourceIndex < [[mosaic imageSourceEnumerators] count])
 						{
-							NSString	*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
-							float		matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
+							NSString			*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
+							float				matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
+							MacOSaiXSourceImage	*sourceImage = [MacOSaiXSourceImage sourceImageWithImage:nil 
+																						  withIdentifier:imageIdentifier 
+																						  fromEnumerator:[[mosaic imageSourceEnumerators] objectAtIndex:sourceIndex]];
 							
 							newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
-																	forImageIdentifier:imageIdentifier 
-																	   fromImageSource:[[mosaic imageSources] objectAtIndex:sourceIndex] 
+																		forSourceImage:sourceImage 
 																			   forTile:(MacOSaiXTile *)@"Unique"];
 						}
 						else
@@ -960,12 +966,14 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					}
 					else if ([elementType isEqualToString:@"USER_CHOSEN_MATCH"])
 					{
-						NSString	*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
-						float		matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
+						NSString			*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
+						float				matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
+						MacOSaiXSourceImage	*sourceImage = [MacOSaiXSourceImage sourceImageWithImage:nil 
+																					  withIdentifier:imageIdentifier 
+																					  fromEnumerator:nil];	// TBD: is this right now?
 						
 						newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
-																forImageIdentifier:imageIdentifier 
-																   fromImageSource:[mosaic handPickedImageSource] 
+																	forSourceImage:sourceImage 
 																		   forTile:(MacOSaiXTile *)@"User Chosen"];
 					}
 					else if ([elementType isEqualToString:@"FILL_COLOR"])

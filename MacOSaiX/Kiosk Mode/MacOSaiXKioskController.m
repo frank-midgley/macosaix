@@ -12,6 +12,7 @@
 #import "MacOSaiXDocument.h"
 #import "MacOSaiXFullScreenController.h"
 #import "MacOSaiXImageMatch.h"
+#import "MacOSaiXImageSourceEnumerator.h"
 #import "MacOSaiXKioskMessageView.h"
 #import "MacOSaiXKioskView.h"
 #import "MacOSaiXMosaic.h"
@@ -71,7 +72,7 @@
 			// Stop the previous mosaic.
 		[currentMosaic pause];
 		
-		if ([[currentMosaic imageSources] count] > 0)
+		if ([[currentMosaic imageSourceEnumerators] count] > 0)
 		{
 			int					currentIndex = [mosaics indexOfObjectIdenticalTo:currentMosaic];
 			[currentMosaic setTargetImagePath:[[targetImageMatrix cellAtRow:0 column:currentIndex] title]];
@@ -93,10 +94,10 @@
 		}
 		
 			// Remove all of the image sources.
-		NSEnumerator			*imageSourceEnumerator = [[currentMosaic imageSources] objectEnumerator];
-		id<MacOSaiXImageSource>	imageSource = nil;
-		while (imageSource = [imageSourceEnumerator nextObject])
-			[currentMosaic removeImageSource:imageSource];
+		NSEnumerator					*imageSourceEnumeratorEnumerator = [[currentMosaic imageSourceEnumerators] objectEnumerator];
+		MacOSaiXImageSourceEnumerator	*imageSourceEnumerator = nil;
+		while (imageSourceEnumerator = [imageSourceEnumeratorEnumerator nextObject])
+			[currentMosaic removeImageSource:[imageSourceEnumerator imageSource]];
 		
 		[[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:currentMosaic];
 	}
@@ -227,11 +228,11 @@
 	
 	while (keyword = [keywordEnumerator nextObject])
 	{
-		BOOL						imageSourceExists = NO;
-		NSEnumerator				*imageSourceEnumerator = [[currentMosaic imageSources] objectEnumerator];
-		MacOSaiXGoogleImageSource	*imageSource = nil;
-		while (!imageSourceExists && (imageSource = [imageSourceEnumerator nextObject]))
-			imageSourceExists = [[imageSource requiredTerms] isEqualToString:keyword];
+		BOOL							imageSourceExists = NO;
+		NSEnumerator					*imageSourceEnumeratorEnumerator = [[currentMosaic imageSourceEnumerators] objectEnumerator];
+		MacOSaiXImageSourceEnumerator	*imageSourceEnumerator = nil;
+		while (!imageSourceExists && (imageSourceEnumerator = [imageSourceEnumeratorEnumerator nextObject]))
+			imageSourceExists = [[(MacOSaiXGoogleImageSource *)[imageSourceEnumerator imageSource] requiredTerms] isEqualToString:keyword];
 		
 		if (!imageSourceExists)
 		{
@@ -256,7 +257,7 @@
 	if (selectedRow == -1)
 		NSBeep();
 	else
-		[currentMosaic removeImageSource:[[currentMosaic imageSources] objectAtIndex:selectedRow]];
+		[currentMosaic removeImageSource:[[[currentMosaic imageSourceEnumerators] objectAtIndex:selectedRow] imageSource]];
 }
 
 
@@ -356,7 +357,7 @@
 - (int)numberOfRowsInTableView:(NSTableView *)tableView
 {
     if (tableView == imageSourcesTableView)
-		return [[currentMosaic imageSources] count];
+		return [[currentMosaic imageSourceEnumerators] count];
 	
 	return 0;
 }
@@ -368,12 +369,12 @@
 	
     if (tableView == imageSourcesTableView)
     {
-		id<MacOSaiXImageSource>	imageSource = [[currentMosaic imageSources] objectAtIndex:rowIndex];
+		MacOSaiXImageSourceEnumerator	*imageSourceEnumerator = [[currentMosaic imageSourceEnumerators] objectAtIndex:rowIndex];
 		
 		if ([[tableColumn identifier] isEqualToString:@"Count"])
-			return [NSNumber numberWithUnsignedLong:[currentMosaic numberOfImagesFoundFromSource:imageSource]];
+			return [NSNumber numberWithUnsignedLong:[imageSourceEnumerator numberOfImagesFound]];
 		else
-			objectValue = [imageSource briefDescription];
+			objectValue = [[imageSourceEnumerator imageSource] briefDescription];
     }
 
 	return objectValue;
@@ -383,18 +384,7 @@
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
     if ([notification object] == imageSourcesTableView)
-	{
-		NSMutableArray	*selectedImageSources = [NSMutableArray array];
-		NSEnumerator	*selectedRowNumberEnumerator = [imageSourcesTableView selectedRowEnumerator];
-		NSNumber		*selectedRowNumber = nil;
-		while (selectedRowNumber = [selectedRowNumberEnumerator nextObject])
-		{
-			int	rowIndex = [selectedRowNumber intValue];
-			[selectedImageSources addObject:[[currentMosaic imageSources] objectAtIndex:rowIndex]];
-		}
-		
-		[removeKeywordButton setEnabled:([selectedImageSources count] > 0)];
-	}
+		[removeKeywordButton setEnabled:([imageSourcesTableView numberOfSelectedRows] > 0)];
 }
 
 
