@@ -139,7 +139,7 @@
 		
 			// Set the rotation.  (negated and converted to radians)
 		CGAffineTransform	cgRotationTransform = CGAffineTransformMakeTranslation(centerPoint.x, centerPoint.y);
-		cgRotationTransform = CGAffineTransformRotate(cgRotationTransform, imageRotation / 360.0 * M_PI * 2.0);
+		cgRotationTransform = CGAffineTransformRotate(cgRotationTransform, -imageRotation / 360.0 * M_PI * 2.0);
 		cgRotationTransform = CGAffineTransformTranslate(cgRotationTransform, -centerPoint.x, -centerPoint.y);
 		CGContextConcatCTM(cgContext, cgRotationTransform);
 		
