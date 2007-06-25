@@ -10,11 +10,14 @@
 
 #import "MacOSaiX.h"
 #import "MacOSaiXImageCache.h"
+#import "MacOSaiXImageMatch.h"
 #import "MacOSaiXImageSource.h"
+#import "MacOSaiXImageSourceEnumerator.h"
 #import "MacOSaiXImageSourcesView.h"
 #import "MacOSaiXImageSourceView.h"
 #import "MacOSaiXMosaic.h"
 #import "MacOSaiXPopUpButton.h"
+#import "MacOSaiXSourceImage.h"
 #import "MacOSaiXWarningController.h"
 #import "Tiles.h"
 
@@ -30,9 +33,9 @@
 }
 
 
-- (id)initWithMosaicView:(MosaicView *)inMosaicView
+- (id)initWithDelegate:(id<MacOSaiXMosaicEditorDelegate>)delegate
 {
-	if (self = [super initWithMosaicView:inMosaicView])
+	if (self = [super initWithDelegate:delegate])
 	{
 		highlightedImageSourcesLock = [[NSLock alloc] init];
 	}
@@ -50,7 +53,7 @@
 - (void)awakeFromNib
 {
 	[imageSourcesView retain];
-	[imageSourcesView setMosaic:[[self mosaicView] mosaic]];
+	[imageSourcesView setMosaic:[[self delegate] mosaic]];
 	[imageSourcesView setImageSourcesEditor:self];
 	
 	NSMenu			*popUpMenu = [[[NSMenu alloc] initWithTitle:@""] autorelease];
@@ -77,7 +80,7 @@
 
 - (NSImage *)targetImage
 {
-	return [[[self mosaicView] mosaic] targetImage];
+	return [[[self delegate] mosaic] targetImage];
 }
 
 
@@ -89,9 +92,7 @@
 
 - (void)loadImageSources
 {
-	NSArray	*imageSources = [[[self mosaicView] mosaic] imageSources];
-	
-	if ([imageSources count] == 0)
+	if ([[[[self delegate] mosaic] imageSourceEnumerators] count] == 0)
 	{
 		[imageSourcesScrollView setDocumentView:initialView];
 		
@@ -153,7 +154,7 @@
 {
 	NSSize	minSize = NSMakeSize(100.0, 100.0);
 	
-	if ([[[[self mosaicView] mosaic] imageSources] count] == 0)
+	if ([[[[self delegate] mosaic] imageSourceEnumerators] count] == 0)
 	{
 		if ([imageSourcesScrollView documentView] != initialView)
 			[self loadImageSources];
@@ -175,62 +176,52 @@
 
 - (void)beginEditing
 {
-	[[self mosaicView] setTargetImageFraction:0.0];
+	[super beginEditing];
 	
 	[self loadImageSources];
 
 	[removeSourceButton setEnabled:NO];
-	
-	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(imageSourceCountsDidChange:) 
-												 name:MacOSaiXMosaicImageSourceDidChangeCountsNotification 
-											   object:[[self mosaicView] mosaic]];
 }
 
 
 - (IBAction)addImageSource:(id)sender
 {
-	Class	imageSourcePlugIn = nil;
-	
-	if ([sender isKindOfClass:[NSMenuItem class]])
-		imageSourcePlugIn = [sender representedObject];
-	else if ([sender isKindOfClass:[NSMatrix class]])
-		imageSourcePlugIn = [[sender selectedCell] representedObject];
-	
-	if ([[imageSourcePlugIn dataSourceClass] conformsToProtocol:@protocol(MacOSaiXImageSource)])
+	if (![self isActive])
 	{
-		id<MacOSaiXImageSource>		newSource = [[[[imageSourcePlugIn dataSourceClass] alloc] init] autorelease];
-		[[[self mosaicView] mosaic] addImageSource:newSource];
+		[[self delegate] setActiveEditor:self];
 		
-		if ([[[[self mosaicView] mosaic] imageSources] count] == 1)
-			[self loadImageSources];
+		[self performSelector:_cmd withObject:sender afterDelay:0.0];
+	}
+	else
+	{
+		Class	imageSourcePlugIn = nil;
 		
-		MacOSaiXImageSourceView		*imageSourceView = [imageSourcesView viewForImageSource:newSource];
-		[imageSourceView setEditor:self];
-		[imageSourceView setEditorVisible:YES];
+		if ([sender isKindOfClass:[NSMenuItem class]])
+			imageSourcePlugIn = [sender representedObject];
+		else if ([sender isKindOfClass:[NSMatrix class]])
+			imageSourcePlugIn = [[sender selectedCell] representedObject];
 		
-		[self updateMinimumViewSize];
+		if ([[imageSourcePlugIn dataSourceClass] conformsToProtocol:@protocol(MacOSaiXImageSource)])
+		{
+			id<MacOSaiXImageSource>		newSource = [[[[imageSourcePlugIn dataSourceClass] alloc] init] autorelease];
+			[[[self delegate] mosaic] addImageSource:newSource];
+			
+			if ([[[[self delegate] mosaic] imageSourceEnumerators] count] == 1)
+				[self loadImageSources];
+			
+			MacOSaiXImageSourceView		*imageSourceView = [imageSourcesView viewForImageSource:newSource];
+			[imageSourceView setEditor:self];
+			[imageSourceView setEditorVisible:YES];
+			
+			[self updateMinimumViewSize];
+		}
 	}
 }
 
 
 - (void)dataSource:(id<MacOSaiXImageSource>)dataSource settingsDidChange:(NSString *)changeDescription
 {
-	[[[self mosaicView] mosaic] imageSource:dataSource didChangeSettings:changeDescription];
-}
-
-
-- (void)imageSourceCountsDidChange:(NSNotification *)notification
-{
-	if (!pthread_main_np())
-		[self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
-	else
-	{
-		id<MacOSaiXImageSource>		imageSource = [[notification userInfo] objectForKey:@"Image Source"];
-		MacOSaiXImageSourceView		*imageSourceView = [imageSourcesView viewForImageSource:imageSource];
-		
-		[imageSourceView countsDidChange];
-	}
+	[[[self delegate] mosaic] imageSource:dataSource didChangeSettings:changeDescription];
 }
 
 
@@ -242,18 +233,18 @@
 											  message:NSLocalizedString(@"Tiles that were displaying images from these sources may no longer have an image.", @"") 
 										 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Remove", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
 	{
-		MacOSaiXMosaic			*mosaic = [[self mosaicView] mosaic];
+		MacOSaiXMosaic			*mosaic = [[self delegate] mosaic];
 		
 		BOOL					wasRunning = ![mosaic isPaused];
 		if (wasRunning)
 			[mosaic pause];
 		
-		NSEnumerator			*imageSourceEnumerator = [[imageSourcesView selectedImageSources] objectEnumerator];
-		id<MacOSaiXImageSource>	imageSource = nil;
-		while (imageSource = [imageSourceEnumerator nextObject])
-			[mosaic removeImageSource:imageSource];
+		NSEnumerator					*imageSourceEnumeratorEnumerator = [[imageSourcesView selectedImageSourceEnumerators] objectEnumerator];
+		MacOSaiXImageSourceEnumerator	*imageSourceEnumerator = nil;
+		while (imageSourceEnumerator = [imageSourceEnumeratorEnumerator nextObject])
+			[mosaic removeImageSource:[imageSourceEnumerator imageSource]];
 		
-		if ([[mosaic imageSources] count] == 0)
+		if ([[mosaic imageSourceEnumerators] count] == 0)
 			[self loadImageSources];
 		
 		[removeSourceButton setEnabled:NO];
@@ -266,13 +257,13 @@
 
 - (void)createHighlightedImageSourcesOutline
 {
-	NSEnumerator	*tileEnumerator = [[[[self mosaicView] mosaic] tiles] objectEnumerator];
+	NSEnumerator	*tileEnumerator = [[[[self delegate] mosaic] tiles] objectEnumerator];
 	MacOSaiXTile	*tile = nil;
 	while (tile = [tileEnumerator nextObject])
 	{
-		id<MacOSaiXImageSource>	displayedSource = [[tile userChosenImageMatch] imageSource];
+		id<MacOSaiXImageSource>	displayedSource = [[[[tile userChosenImageMatch] sourceImage] enumerator] imageSource];
 		if (!displayedSource)
-			displayedSource = [[tile uniqueImageMatch] imageSource];
+			displayedSource = [[[[tile uniqueImageMatch] sourceImage] enumerator] imageSource];
 		
 		if (displayedSource && [highlightedImageSources containsObject:displayedSource])
 		{
@@ -287,7 +278,7 @@
 //- (int)numberOfRowsInTableView:(NSTableView *)tableView
 //{
 //	if (animationTimer || !imageSourceBeingEdited)
-//		return [[[[self mosaicView] mosaic] imageSources] count];
+//		return [[[[self delegate] mosaic] imageSources] count];
 //	else
 //		return 1;
 //}
@@ -299,7 +290,7 @@
 //	id<MacOSaiXImageSource>	imageSource = nil;
 //	
 //	if (animationTimer || !imageSourceBeingEdited)
-//		imageSource = [[[[self mosaicView] mosaic] imageSources] objectAtIndex:row];
+//		imageSource = [[[[self delegate] mosaic] imageSources] objectAtIndex:row];
 //	else
 //		imageSource = imageSourceBeingEdited;
 //	
@@ -308,7 +299,7 @@
 //	else if ([[tableColumn identifier] isEqualToString:@"Description"])
 //		value = [imageSource briefDescription];
 //	else if ([[tableColumn identifier] isEqualToString:@"Image Count"])
-//		value = [NSNumber numberWithUnsignedLong:[[[self mosaicView] mosaic] countOfImagesFromSource:imageSource]];
+//		value = [NSNumber numberWithUnsignedLong:[[[self delegate] mosaic] countOfImagesFromSource:imageSource]];
 //	
 //	return value;
 //}
@@ -329,7 +320,7 @@
 //			NSNumber		*index = nil;
 //			
 //			while (index = [indexEnumerator nextObject])
-//				[highlightedImageSources addObject:[[[[self mosaicView] mosaic] imageSources] objectAtIndex:[index intValue]]];
+//				[highlightedImageSources addObject:[[[[self delegate] mosaic] imageSources] objectAtIndex:[index intValue]]];
 //			
 //			if (highlightedImageSourcesOutline)
 //				[[self mosaicView] setNeedsDisplay:YES];
@@ -352,15 +343,15 @@
 //}
 
 
-- (void)embellishMosaicViewInRect:(NSRect)rect
+- (void)embellishMosaicView:(MosaicView *)mosaicView inRect:(NSRect)rect;
 {
-	[super embellishMosaicViewInRect:rect];
+	[super embellishMosaicView:mosaicView inRect:rect];
 	
 		// Highlight the selected image source(s).
 	[highlightedImageSourcesLock lock];
 		if (highlightedImageSourcesOutline)
 		{
-			NSSize				boundsSize = [[self mosaicView] imageBounds].size;
+			NSSize				boundsSize = [mosaicView imageBounds].size;
 			NSAffineTransform	*transform = [NSAffineTransform transform];
 			[transform translateXBy:0.5 yBy:0.5];
 			[transform scaleXBy:boundsSize.width yBy:boundsSize.height];
@@ -385,20 +376,15 @@
 }
 
 
-- (void)handleEventInMosaicView:(NSEvent *)event
-{
-}
-
-
 - (void)imageSourcesSelectionDidChange
 {
-	[removeSourceButton setEnabled:([[imageSourcesView selectedImageSources] count] > 0)];
+	[removeSourceButton setEnabled:([[imageSourcesView selectedImageSourceEnumerators] count] > 0)];
 }
 
 
 - (void)endEditing
 {
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:[[self mosaicView] mosaic]];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:[[self delegate] mosaic]];
 	
 	[removeSourceButton setEnabled:NO];
 	

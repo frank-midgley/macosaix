@@ -8,6 +8,7 @@
 
 #import "MacOSaiXImageSourcesView.h"
 
+#import "MacOSaiXImageSourceEnumerator.h"
 #import "MacOSaiXImageSourcesEditor.h"
 #import "MacOSaiXImageSourceView.h"
 #import "MacOSaiXMosaic.h"
@@ -64,17 +65,17 @@
 }
 
 
-- (NSArray *)selectedImageSources
+- (NSArray *)selectedImageSourceEnumerators
 {
-	NSMutableArray			*selectedImageSources = [NSMutableArray array];
+	NSMutableArray			*selectedImageSourceEnumerators = [NSMutableArray array];
 	NSEnumerator			*subViewEnumerator = [imageSourceViews objectEnumerator];
 	MacOSaiXImageSourceView	*subView = nil;
 	
 	while (subView = [subViewEnumerator nextObject])
 		if ([subView selected])
-			[selectedImageSources addObject:[subView imageSource]];
+			[selectedImageSourceEnumerators addObject:[subView imageSourceEnumerator]];
 	
-	return selectedImageSources;
+	return selectedImageSourceEnumerators;
 }
 
 
@@ -133,7 +134,7 @@
 	MacOSaiXImageSourceView	*view = nil;
 	
 	while (view = [viewEnumerator nextObject])
-		if ([view imageSource] == imageSource)
+		if ([[view imageSourceEnumerator] imageSource] == imageSource)
 			break;
 	
 	return view;
@@ -142,17 +143,17 @@
 
 - (void)updateImageSourceViews
 {
-	NSRect					frameRect = [self frame];
-	float					curY = 0.0;
-	NSMutableArray			*newImageSourceViews = [NSMutableArray array];
-	NSArray					*imageSources = [[self mosaic] imageSources];
-	NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
-	id<MacOSaiXImageSource>	imageSource = nil;
+	NSRect							frameRect = [self frame];
+	float							curY = 0.0;
+	NSMutableArray					*newImageSourceViews = [NSMutableArray array];
+	NSArray							*imageSourceEnumerators = [[self mosaic] imageSourceEnumerators];
+	NSEnumerator					*imageSourceEnumeratorEnumerator = [imageSourceEnumerators objectEnumerator];
+	MacOSaiXImageSourceEnumerator	*imageSourceEnumerator = nil;
 	
 		// Get or create the view for each image source.
-	while (imageSource = [imageSourceEnumerator nextObject])
+	while (imageSourceEnumerator = [imageSourceEnumeratorEnumerator nextObject])
 	{
-		MacOSaiXImageSourceView	*imageSourceView = [self viewForImageSource:imageSource];
+		MacOSaiXImageSourceView	*imageSourceView = [self viewForImageSource:[imageSourceEnumerator imageSource]];
 		
 			// Reuse an existing view if possible otherwise create a new view.
 		if (imageSourceView)
@@ -161,7 +162,7 @@
 		{
 			imageSourceView = [[MacOSaiXImageSourceView alloc] initWithFrame:NSMakeRect(0.0, 0.0, NSWidth(frameRect), 42.0)];
 			[imageSourceView setAutoresizingMask:NSViewWidthSizable];
-			[imageSourceView setImageSource:imageSource];
+			[imageSourceView setImageSourceEnumerator:imageSourceEnumerator];
 			[self addSubview:imageSourceView];
 			[imageSourceView setPostsFrameChangedNotifications:YES];
 		}

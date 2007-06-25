@@ -9,7 +9,7 @@
 #import "MacOSaiXEditor.h"
 
 
-@interface MacOSaiXTargetImageEditor : MacOSaiXEditor
+@interface MacOSaiXTargetImageEditor : MacOSaiXMosaicEditor
 {
 	IBOutlet NSTableView	*targetImagesTableView;
 	IBOutlet NSButton		*addTargetImageButton, 

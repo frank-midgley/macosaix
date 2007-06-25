@@ -10,6 +10,7 @@
 
 #import "MacOSaiX.h"
 #import "MacOSaiXImageSource.h"
+#import "MacOSaiXImageSourceEnumerator.h"
 #import "MacOSaiXImageSourcesEditor.h"
 #import "MacOSaiXImageSourcesView.h"
 #import "MacOSaiXMosaic.h"
@@ -47,26 +48,51 @@
 }
 
 
-- (void)setImageSource:(id<MacOSaiXImageSource>)source
+- (void)setImageSourceEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator
 {
-	if (source != imageSource)
+	if (enumerator != imageSourceEnumerator)
 	{
-		[imageSource release];
-		imageSource = [source retain];
+		if (imageSourceEnumerator)
+			[[NSNotificationCenter defaultCenter] removeObserver:self 
+															name:MacOSaiXImageSourceEnumeratorDidChangeCountNotification 
+														  object:imageSourceEnumerator];
+		
+		[imageSourceEnumerator release];
+		imageSourceEnumerator = [enumerator retain];
+		
+		if (imageSourceEnumerator)
+			[[NSNotificationCenter defaultCenter] addObserver:self 
+													 selector:@selector(imageSourceCountDidChange:) 
+														 name:MacOSaiXImageSourceEnumeratorDidChangeCountNotification 
+													   object:imageSourceEnumerator];
 	}
 }
 
 
-- (id<MacOSaiXImageSource>)imageSource
+- (MacOSaiXImageSourceEnumerator *)imageSourceEnumerator
 {
-	return imageSource;
+	return imageSourceEnumerator;
+}
+
+
+- (void)imageSourceCountDidChange:(NSNotification *)notification
+{
+	if (!pthread_main_np())
+		[self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
+	else
+	{
+		NSRect			descriptionAndCountsFrame = [self bounds];
+		descriptionAndCountsFrame.origin.x += 63.0;
+		descriptionAndCountsFrame.size.width -= 63.0;
+		
+		[self setNeedsDisplayInRect:descriptionAndCountsFrame];
+	}
 }
 
 
 - (void)drawRect:(NSRect)rect
 {
 	NSRect			bounds = [self bounds];
-	MacOSaiXMosaic	*mosaic = [(MacOSaiXImageSourcesView *)[self superview] mosaic];
 	
 	if ([self selected])
 	{
@@ -75,14 +101,14 @@
 	}
 	
 		// Draw the source's image.
-	NSImage			*image = [imageSource image];
+	NSImage			*image = [[imageSourceEnumerator imageSource] image];
 	[image compositeToPoint:NSMakePoint(NSMinX(bounds) + 26.0, 21.0 + ([image size].height / 2.0)) 
 				  operation:NSCompositeSourceOver];
 	
 		// Draw the image counts.
 	NSDictionary	*attributes = [NSDictionary dictionaryWithObject:[NSFont labelFontOfSize:0.0] forKey:NSFontAttributeName];
-	NSString		*imagesFoundString = [NSString stringWithFormat:@"%d", [mosaic numberOfImagesFoundFromSource:imageSource]], 
-					*imagesInUseString = [NSString stringWithFormat:@"%d", [mosaic numberOfImagesInUseFromSource:imageSource]];
+	NSString		*imagesFoundString = [NSString stringWithFormat:@"%d", [imageSourceEnumerator numberOfImagesFound]], 
+					*imagesInUseString = [NSString stringWithFormat:@"%d", [[imageSourceEnumerator imageIdentifiersInUse] count]];
 	NSSize			imagesFoundSize = [imagesFoundString sizeWithAttributes:attributes], 
 					imagesInUseSize = [imagesInUseString sizeWithAttributes:attributes];
 	float			maxCountWidth = MAX(imagesFoundSize.width, imagesInUseSize.width);
@@ -94,7 +120,7 @@
 	[imagesInUseString drawAtPoint:NSMakePoint(NSMaxX(bounds) - 5.0 - imagesInUseSize.width, 29.0 - imagesFoundSize.height / 2.0) withAttributes:attributes];
 	
 		// Draw the source's description.
-	id				description = [imageSource briefDescription];
+	id				description = [[imageSourceEnumerator imageSource] briefDescription];
 	NSRect			descriptionFrame = NSMakeRect(NSMinX(bounds) + 63.0, 13.0, NSWidth(bounds) - 68.0 - maxCountWidth, 32.0);
 	if ([description isKindOfClass:[NSString class]])
 	{
@@ -144,7 +170,7 @@
 									   NSHeight(boxFrame) - NSHeight(contentFrame));
 			
 				// Create an editor for the image source.
-			Class		plugIn = [(MacOSaiX *)[NSApp delegate] plugInForDataSourceClass:[imageSource class]];
+			Class		plugIn = [(MacOSaiX *)[NSApp delegate] plugInForDataSourceClass:[[imageSourceEnumerator imageSource] class]];
 			imageSourceEditor = [[[plugIn editorClass] alloc] initWithDelegate:self];
 			
 				// Size the box to fit the editor view and install it.
@@ -167,7 +193,7 @@
 		
 		[disclosureButton setState:NSOnState];
 		
-		[imageSourceEditor editDataSource:[self imageSource]];
+		[imageSourceEditor editDataSource:[[self imageSourceEnumerator] imageSource]];
 		
 		[(MacOSaiXImageSourcesView *)[self superview] tile];
 	}
@@ -224,18 +250,10 @@
 }
 
 
-- (void)countsDidChange
-{
-	NSRect			descriptionAndCountsFrame = [self bounds];
-	descriptionAndCountsFrame.origin.x += 63.0;
-	descriptionAndCountsFrame.size.width -= 63.0;
-	
-	[self setNeedsDisplayInRect:descriptionAndCountsFrame];
-}
-
-
 - (void)dealloc
 {
+	[self setImageSourceEnumerator:nil];
+	
 	[editorBox release];
 	
 	[super dealloc];

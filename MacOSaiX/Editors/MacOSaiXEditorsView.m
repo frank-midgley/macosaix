@@ -46,16 +46,23 @@
 }
 
 
+- (MacOSaiXMosaic *)mosaic
+{
+	return [mosaicView mosaic];
+}
+
+
+
 #define HEADER_HEIGHT 26.0
 
 
 - (void)updateMinimumViewSize
 {
 		// Start with the minimum size needed for all of the editor buttons, including their auxiliary views.
-	NSSize			minSize = NSMakeSize(0.0, HEADER_HEIGHT * [editorButtons count]);
-	NSEnumerator	*editorEnumerator = [editors objectEnumerator];
-	MacOSaiXEditor	*editor = nil;
-	NSButton		*dummyButton = [[[NSButton alloc] initWithFrame:NSMakeRect(0.0, 0.0, 100.0, HEADER_HEIGHT)] autorelease];
+	NSSize						minSize = NSMakeSize(0.0, HEADER_HEIGHT * [editorButtons count]);
+	NSEnumerator				*editorEnumerator = [editors objectEnumerator];
+	MacOSaiXMosaicEditor		*editor = nil;
+	NSButton					*dummyButton = [[[NSButton alloc] initWithFrame:NSMakeRect(0.0, 0.0, 100.0, HEADER_HEIGHT)] autorelease];
 	[dummyButton setAlignment:NSLeftTextAlignment];
 	[dummyButton setImagePosition:NSImageLeft];
 	[dummyButton setBezelStyle:NSShadowlessSquareBezelStyle];
@@ -75,7 +82,7 @@
 	}
 	
 		// Account for the active editor's space needs.
-	NSSize	editorMinSize = [activeEditor minimumViewSize];
+	NSSize						editorMinSize = [activeEditor minimumViewSize];
 	minSize.width = MAX(minSize.width, editorMinSize.width);
 	minSize.height += editorMinSize.height;
 	
@@ -84,7 +91,7 @@
 }
 
 
-- (void)addEditor:(MacOSaiXEditor *)editor
+- (void)addEditor:(MacOSaiXMosaicEditor *)editor
 {
 	[editors addObject:editor];
 	
@@ -158,7 +165,7 @@
 }
 
 
-- (void)setActiveEditor:(MacOSaiXEditor *)newEditor
+- (void)setActiveEditor:(MacOSaiXMosaicEditor *)newEditor
 {
 	if (newEditor != activeEditor)
 	{
@@ -216,7 +223,7 @@
 }
 
 
-- (MacOSaiXEditor *)activeEditor
+- (MacOSaiXMosaicEditor *)activeEditor
 {
 	return activeEditor;
 }
@@ -228,12 +235,24 @@
 }
 
 
+- (BOOL)makeFirstResponder:(NSResponder *)responder
+{
+	return [[mosaicView window] makeFirstResponder:responder];
+}
+
+
 - (void)drawRect:(NSRect)rect
 {
 	[[NSColor grayColor] set];
 	NSFrameRect([self bounds]);
 	
 	[super drawRect:rect];
+}
+
+
+- (void)embellishmentNeedsDisplay
+{
+	[mosaicView setNeedsDisplay:YES];
 }
 
 

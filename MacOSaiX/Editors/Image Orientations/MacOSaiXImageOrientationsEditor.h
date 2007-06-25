@@ -9,7 +9,7 @@
 #import "MacOSaiXEditor.h"
 
 
-@interface MacOSaiXImageOrientationsEditor : MacOSaiXEditor
+@interface MacOSaiXImageOrientationsEditor : MacOSaiXMosaicEditor
 {
 }
 

@@ -160,9 +160,9 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 }
 
 
-- (id)initWithMosaicView:(MosaicView *)inMosaicView
+- (id)initWithDelegate:(id<MacOSaiXMosaicEditorDelegate>)delegate
 {
-	if (self = [super initWithMosaicView:inMosaicView])
+	if (self = [super initWithDelegate:delegate])
 	{
 		targetImageDicts = [[NSMutableArray alloc] initWithCapacity:16];
 		
@@ -264,11 +264,9 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (void)beginEditing
 {
-	[[self mosaicView] setTargetImageFraction:1.0];
-	
-	if ([[[self mosaicView] mosaic] targetImagePath])
+	if ([[[self delegate] mosaic] targetImagePath])
 	{
-		NSString		*targetImagePath = [[[self mosaicView] mosaic] targetImagePath];
+		NSString		*targetImagePath = [[[self delegate] mosaic] targetImagePath];
 		NSEnumerator	*targetEnumerator = [targetImageDicts objectEnumerator];
 		NSDictionary	*targetDict = nil;
 		while (targetDict = [targetEnumerator nextObject])
@@ -325,7 +323,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	[openPanel beginSheetForDirectory:nil
 								 file:nil
 								types:[NSImage imageFileTypes]
-					   modalForWindow:[[self mosaicView] window]
+					   modalForWindow:[(NSView *)[self delegate] window]	// TODO: modify delegate protocol?
 						modalDelegate:self
 					   didEndSelector:@selector(chooseTargetImagePanelDidEnd:returnCode:contextInfo:)
 						  contextInfo:nil];
@@ -344,7 +342,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[self addTargetImage:targetImage fromPath:targetImagePath];
 		
 // TODO:		[[self document] setTargetImagePath:targetImagePath];
-		[[[self mosaicView] mosaic] setTargetImage:targetImage];
+		[[[self delegate] mosaic] setTargetImage:targetImage];
 		[targetImage release];
 	}
 }
@@ -366,11 +364,11 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 }
 
 
-- (void)embellishMosaicViewInRect:(NSRect)rect
+- (void)embellishMosaicView:(MosaicView *)mosaicView inRect:(NSRect)rect;
 {
-	[super embellishMosaicViewInRect:rect];
+	[super embellishMosaicView:mosaicView inRect:rect];
 	
-	NSRect				mosaicBounds = [[self mosaicView] imageBounds];
+	NSRect				mosaicBounds = [mosaicView imageBounds];
 	float				width = NSWidth(mosaicBounds);
 	NSString			*imagePath = [[targetImageDicts objectAtIndex:[targetImagesTableView selectedRow]] objectForKey:@"Path"];
 	NSAttributedString	*attributedPath = [[NSFileManager defaultManager] attributedPath:imagePath wraps:NO];
@@ -383,8 +381,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 												NSMinY(mosaicBounds) - 10.0 - size.height - 10.0, 
 												size.width + 20.0, 
 												size.height + 10.0);
-	if (NSMinY(pathBounds) < NSMinY([[self mosaicView] bounds]) + 10.0)
-		pathBounds.origin.y = NSMinY([[self mosaicView] bounds]) + 10.0;
+	if (NSMinY(pathBounds) < NSMinY([mosaicView bounds]) + 10.0)
+		pathBounds.origin.y = NSMinY([mosaicView bounds]) + 10.0;
 	
 	NSBezierPath		*pathPath = [NSBezierPath bezierPathWithRoundedRect:pathBounds radius:10.0];
 	[[NSColor colorWithCalibratedWhite:1.0 alpha:.75] set];
@@ -415,7 +413,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	if (index != -1)
 	{
 		NSDictionary	*imageDict = [targetImageDicts objectAtIndex:index];
-		NSString		*existingTargetImagePath = [[[self mosaicView] mosaic] targetImagePath], 
+		NSString		*existingTargetImagePath = [[[self delegate] mosaic] targetImagePath], 
 						*newTargetImagePath = [imageDict objectForKey:@"Path"];
 		BOOL			changeTargetImage = ![existingTargetImagePath isEqualToString:newTargetImagePath];
 		
@@ -427,12 +425,12 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		
 		if (changeTargetImage)
 		{
-			[[[self mosaicView] mosaic] setTargetImagePath:newTargetImagePath];
+			[[[self delegate] mosaic] setTargetImagePath:newTargetImagePath];
 			
 			[[NSUserDefaults standardUserDefaults] setObject:newTargetImagePath forKey:@"Last Chosen Target Image Path"];
 			
 			NSImage		*targetImage = [[NSImage alloc] initWithContentsOfFile:newTargetImagePath];
-			[[[self mosaicView] mosaic] setTargetImage:targetImage];
+			[[[self delegate] mosaic] setTargetImage:targetImage];
 			[targetImage release];
 		}
 	}

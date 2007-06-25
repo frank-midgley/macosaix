@@ -12,7 +12,7 @@
 @protocol MacOSaiXTileShapes, MacOSaiXTileShapesEditor;
 
 
-@interface MacOSaiXTileShapesEditor : MacOSaiXEditor
+@interface MacOSaiXTileShapesEditor : MacOSaiXMosaicEditor
 {
 	NSMutableArray					*tileShapesToDraw;
 }

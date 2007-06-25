@@ -9,7 +9,10 @@
 #import "MacOSaiXTileEditor.h"
 
 #import "MacOSaiXImageCache.h"
+#import "MacOSaiXImageMatch.h"
+#import "MacOSaiXImageSourceEnumerator.h"
 #import "MacOSaiXMosaic.h"
+#import "MacOSaiXSourceImage.h"
 #import "NSImage+MacOSaiX.h"
 #import "Tiles.h"
 
@@ -17,9 +20,9 @@
 @implementation MacOSaiXTileContentEditor
 
 
-- (id)initWithMosaicView:(MosaicView *)inMosaic
+- (id)initWithDelegate:(id<MacOSaiXMosaicEditorDelegate>)delegate
 {
-	if (self = [super initWithMosaicView:inMosaic])
+	if (self = [super initWithDelegate:delegate])
 	{
 		CFURLRef	browserURL = nil;
 		OSStatus	status = LSGetApplicationForURL((CFURLRef)[NSURL URLWithString:@"http://www.apple.com/"], 
@@ -51,23 +54,21 @@
 
 - (void)beginEditing
 {
-	[[self mosaicView] setTargetImageFraction:0.0];
-	
 	[[NSNotificationCenter defaultCenter] addObserver:self 
 											 selector:@selector(tileImageDidChange:) 
 												 name:MacOSaiXTileContentsDidChangeNotification 
-											   object:[[self mosaicView] mosaic]];
+											   object:[[self delegate] mosaic]];
 }
 
 
-- (void)embellishMosaicViewInRect:(NSRect)rect
+- (void)embellishMosaicView:(MosaicView *)mosaicView inRect:(NSRect)rect;
 {
-	[super embellishMosaicViewInRect:rect];
+	[super embellishMosaicView:mosaicView inRect:rect];
 	
 	if ([self selectedTile])
 	{
-		NSRect				mosaicBounds = [[self mosaicView] imageBounds];
-		NSSize				targetImageSize = [[[[self mosaicView] mosaic] targetImage] size];
+		NSRect				mosaicBounds = [mosaicView imageBounds];
+		NSSize				targetImageSize = [[[[self delegate] mosaic] targetImage] size];
 		float				minX = NSMinX(mosaicBounds), 
 							minY = NSMinY(mosaicBounds), 
 							width = NSWidth(mosaicBounds), 
@@ -99,8 +100,10 @@
 				
 				if (bestMatch)
 				{
+					MacOSaiXSourceImage	*bestSourceImage = [bestMatch sourceImage];
+					
 						// Display the description of the image being displayed.
-					NSString	*matchName = [[bestMatch imageSource] descriptionForIdentifier:[bestMatch imageIdentifier]];
+					NSString		*matchName = [[[bestSourceImage enumerator] workingImageSource] descriptionForIdentifier:[bestSourceImage imageIdentifier]];
 					if (!matchName)
 						matchName = NSLocalizedString(@"No description available", @"");
 					NSDictionary	*attributes = [NSDictionary dictionaryWithObject:[NSFont boldSystemFontOfSize:0.0] 
@@ -113,11 +116,11 @@
 					NSString	*sourceLabel = NSLocalizedString(@"Source: ", @"");
 					stringSize = [sourceLabel sizeWithAttributes:nil];
 					float		sourceWidth = stringSize.width + 2.0;
-					NSImage		*sourceImage = [[[[bestMatch imageSource] image] copy] autorelease];
+					NSImage		*sourceImage = [[[[[bestSourceImage enumerator] workingImageSource] image] copy] autorelease];
 					[sourceImage setScalesWhenResized:YES];
 					[sourceImage setSize:NSMakeSize([sourceImage size].width / [sourceImage size].height * 16.0, 16.0)];
 					sourceWidth += [sourceImage size].width + 4.0;
-					id			sourceDescription = [[bestMatch imageSource] briefDescription];
+					id			sourceDescription = [[[bestSourceImage enumerator] workingImageSource] briefDescription];
 					if ([sourceDescription isKindOfClass:[NSString class]])
 						sourceWidth += [(NSString *)sourceDescription sizeWithAttributes:nil].width;
 					else
@@ -137,7 +140,7 @@
 					
 						// Display the match value of the image being displayed.
 					[[NSString stringWithFormat:NSLocalizedString(@"Match: %.0f%%", @""), [bestMatch matchValue]] drawAtPoint:NSMakePoint(leftEdge, curY) 
-																											  withAttributes:nil];
+																											   withAttributes:nil];
 					curY -= 14.0;
 					
 						// Display the crop amount of the image being displayed.
@@ -184,9 +187,9 @@
 }
 
 
-- (void)handleEventInMosaicView:(NSEvent *)event
+- (void)handleEvent:(NSEvent *)event inMosaicView:(MosaicView *)mosaicView;
 {
-	[self setSelectedTile:[[self mosaicView] tileAtPoint:[[self mosaicView] convertPoint:[event locationInWindow] fromView:nil]]];
+	[self setSelectedTile:[mosaicView tileAtPoint:[mosaicView convertPoint:[event locationInWindow] fromView:nil]]];
 }
 
 
@@ -206,10 +209,8 @@
 			
 			if (bestMatch)
 			{
-				NSImageRep			*bestMatchRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:NSZeroSize 
-																							forIdentifier:[bestMatch imageIdentifier] 
-																							   fromSource:[bestMatch imageSource]];
-				NSImage				*bestMatchImage = [[[NSImage alloc] initWithSize:[bestMatchRep size]] autorelease];
+				NSImageRep	*bestMatchRep = [[bestMatch sourceImage] imageRepAtSize:NSZeroSize];
+				NSImage		*bestMatchImage = [[[NSImage alloc] initWithSize:[bestMatchRep size]] autorelease];
 				[bestMatchImage addRepresentation:bestMatchRep];
 				
 				[bestMatchImageView setImage:bestMatchImage];
@@ -217,7 +218,7 @@
 			else
 				[bestMatchImageView setImage:nil];
 			
-			if ([[bestMatch imageSource] contextURLForIdentifier:[bestMatch imageIdentifier]])
+			if ([[bestMatch sourceImage] contextURL])
 			{
 				if (!openBestMatchInBrowserButton)
 				{
@@ -246,9 +247,7 @@
 			
 			if (handPickedMatch)
 			{
-				NSImageRep			*handPickedRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:NSZeroSize 
-																							 forIdentifier:[handPickedMatch imageIdentifier] 
-																								fromSource:[handPickedMatch imageSource]];
+				NSImageRep			*handPickedRep = [[handPickedMatch sourceImage] imageRepAtSize:NSZeroSize];
 				NSImage				*handPickedImage = [[[NSImage alloc] initWithSize:[handPickedRep size]] autorelease];
 				[handPickedImage addRepresentation:handPickedRep];
 				
@@ -293,7 +292,7 @@
 		selectedTile = [tile retain];
 		
 //		NSRect				mosaicBounds = [[self mosaicView] imageBounds];
-//		NSSize				targetImageSize = [[[[self mosaicView] mosaic] targetImage] size];
+//		NSSize				targetImageSize = [[[[self delegate] mosaic] targetImage] size];
 //		NSAffineTransform	*transform = [NSAffineTransform transform];
 //		[transform translateXBy:NSMinX(mosaicBounds) yBy:NSMinY(mosaicBounds)];
 //		[transform scaleXBy:NSWidth(mosaicBounds) / targetImageSize.width 
@@ -320,7 +319,7 @@
 //			[mosaicView performSelector:@selector(setInLiveRedraw:) withObject:[NSNumber numberWithBool:NO] afterDelay:0.0];
 		}
 		
-		[[self mosaicView] setNeedsDisplay:YES];
+		[[self delegate] embellishmentNeedsDisplay];
 		
 		[self populateGUI];
 	}
@@ -366,7 +365,7 @@
 	[openPanel beginSheetForDirectory:nil
 								 file:nil
 								types:[NSImage imageFileTypes]
-					   modalForWindow:[[self mosaicView] window]
+					   modalForWindow:[(NSView *)[self delegate] window]	// TBD: add -window to delegate protocol?
 						modalDelegate:self
 					   didEndSelector:@selector(chooseImagePanelDidEnd:returnCode:contextInfo:)
 						  contextInfo:nil];
@@ -438,9 +437,10 @@
 	
 	if (returnCode == NSOKButton)
 	{
-		[[[self mosaicView] mosaic] setHandPickedImageAtPath:[[openPanel filenames] objectAtIndex:0]
-											  withMatchValue:0.0
-													 forTile:selectedTile];
+// TODO: message the tile directly
+//		[[[self delegate] mosaic] setHandPickedImageAtPath:[[openPanel filenames] objectAtIndex:0]
+//											  withMatchValue:0.0
+//													 forTile:selectedTile];
 	}
 }
 
@@ -477,7 +477,7 @@
 		imageMatch = [selectedTile userChosenImageMatch];
 
 	if (imageMatch)
-		[[NSWorkspace sharedWorkspace] openURL:[[imageMatch imageSource] contextURLForIdentifier:[imageMatch imageIdentifier]]];
+		[[NSWorkspace sharedWorkspace] openURL:[[imageMatch sourceImage] contextURL]];
 }
 
 
@@ -509,7 +509,7 @@
 
 - (IBAction)removeChosenImageForSelectedTile:(id)sender
 {
-	[[[self mosaicView] mosaic] removeHandPickedImageForTile:[self selectedTile]];
+	[[self selectedTile] setUserChosenImageMatch:nil];
 }
 
 
@@ -518,29 +518,30 @@
 
 - (void)centerViewOnSelectedTile:(id)sender
 {
-    NSPoint			contentOrigin = NSMakePoint(NSMidX([[[self selectedTile] outline] bounds]),
-												NSMidY([[[self selectedTile] outline] bounds]));
-    NSScrollView	*mosaicScrollView = [mosaicView enclosingScrollView];
-	NSSize			targetImageSize = [[[[self mosaicView] mosaic] targetImage] size];
-	
-    contentOrigin.x *= [mosaicView frame].size.width / targetImageSize.width;
-    contentOrigin.x -= [[mosaicScrollView contentView] bounds].size.width / 2;
-    if (contentOrigin.x < 0) contentOrigin.x = 0;
-    if (contentOrigin.x + [[mosaicScrollView contentView] bounds].size.width >
-		[mosaicView frame].size.width)
-		contentOrigin.x = [mosaicView frame].size.width - 
-			[[mosaicScrollView contentView] bounds].size.width;
-	
-    contentOrigin.y *= [mosaicView frame].size.height / targetImageSize.height;
-    contentOrigin.y -= [[mosaicScrollView contentView] bounds].size.height / 2;
-    if (contentOrigin.y < 0) contentOrigin.y = 0;
-    if (contentOrigin.y + [[mosaicScrollView contentView] bounds].size.height >
-		[mosaicView frame].size.height)
-		contentOrigin.y = [mosaicView frame].size.height - 
-			[[mosaicScrollView contentView] bounds].size.height;
-	
-    [[mosaicScrollView contentView] scrollToPoint:contentOrigin];
-    [mosaicScrollView reflectScrolledClipView:[mosaicScrollView contentView]];
+// TODO: where should this live?
+//    NSPoint			contentOrigin = NSMakePoint(NSMidX([[[self selectedTile] outline] bounds]),
+//												NSMidY([[[self selectedTile] outline] bounds]));
+//    NSScrollView	*mosaicScrollView = [mosaicView enclosingScrollView];
+//	NSSize			targetImageSize = [[[[self delegate] mosaic] targetImage] size];
+//	
+//    contentOrigin.x *= [mosaicView frame].size.width / targetImageSize.width;
+//    contentOrigin.x -= [[mosaicScrollView contentView] bounds].size.width / 2;
+//    if (contentOrigin.x < 0) contentOrigin.x = 0;
+//    if (contentOrigin.x + [[mosaicScrollView contentView] bounds].size.width >
+//		[mosaicView frame].size.width)
+//		contentOrigin.x = [mosaicView frame].size.width - 
+//			[[mosaicScrollView contentView] bounds].size.width;
+//	
+//    contentOrigin.y *= [mosaicView frame].size.height / targetImageSize.height;
+//    contentOrigin.y -= [[mosaicScrollView contentView] bounds].size.height / 2;
+//    if (contentOrigin.y < 0) contentOrigin.y = 0;
+//    if (contentOrigin.y + [[mosaicScrollView contentView] bounds].size.height >
+//		[mosaicView frame].size.height)
+//		contentOrigin.y = [mosaicView frame].size.height - 
+//			[[mosaicScrollView contentView] bounds].size.height;
+//	
+//    [[mosaicScrollView contentView] scrollToPoint:contentOrigin];
+//    [mosaicScrollView reflectScrolledClipView:[mosaicScrollView contentView]];
 }
 
 
@@ -550,7 +551,7 @@
 	
 	[[NSNotificationCenter defaultCenter] removeObserver:self 
 													name:MacOSaiXTileContentsDidChangeNotification 
-												  object:[[self mosaicView] mosaic]];
+												  object:[[self delegate] mosaic]];
 	
 	[self setSelectedTile:nil];
 }

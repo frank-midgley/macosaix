@@ -7,27 +7,31 @@
 //
 
 #import "MosaicView.h"
-#import "MacOSaiXPlugIn.h"
+
+@class MacOSaiXMosaic;
+@protocol MacOSaiXDataSource, MacOSaiXDataSourceEditor, MacOSaiXEditorDelegate, MacOSaiXMosaicEditorDelegate;
 
 
-@interface MacOSaiXEditor : NSObject <MacOSaiXEditorDelegate>
+@interface MacOSaiXMosaicEditor : NSObject <MacOSaiXEditorDelegate>
 {
-	IBOutlet NSView					*editorView, 
-									*auxiliaryView;
-	IBOutlet NSPopUpButton			*plugInPopUpButton;
-	IBOutlet NSBox					*plugInEditorBox;
-	IBOutlet NSView					*plugInEditorPreviousKeyView, 
-									*plugInEditorNextKeyView;
+	IBOutlet NSView						*editorView, 
+										*auxiliaryView;
+	IBOutlet NSPopUpButton				*plugInPopUpButton;
+	IBOutlet NSBox						*plugInEditorBox;
+	IBOutlet NSView						*plugInEditorPreviousKeyView, 
+										*plugInEditorNextKeyView;
 	
-	MosaicView						*mosaicView;
+	id<MacOSaiXMosaicEditorDelegate>	editorDelegate;
 	
-	id<MacOSaiXDataSourceEditor>	plugInEditor;
+	id<MacOSaiXDataSourceEditor>		plugInEditor;
+	
+	BOOL								isActive;
 }
 
 + (NSImage *)image;
 
-- (id)initWithMosaicView:(MosaicView *)mosaicView;
-- (MosaicView *)mosaicView;
+- (id)initWithDelegate:(id<MacOSaiXMosaicEditorDelegate>)delegate;
+- (id<MacOSaiXMosaicEditorDelegate>)delegate;
 
 - (NSString *)title;
 
@@ -50,10 +54,26 @@
 
 - (void)beginEditing;
 
-- (void)embellishMosaicViewInRect:(NSRect)rect;
+- (void)embellishMosaicView:(MosaicView *)mosaicView inRect:(NSRect)rect;
 
-- (void)handleEventInMosaicView:(NSEvent *)event;
+- (void)handleEvent:(NSEvent *)event inMosaicView:(MosaicView *)mosaicView;
 
 - (void)endEditing;
+
+- (BOOL)isActive;
+
+@end
+
+
+@protocol MacOSaiXMosaicEditorDelegate
+
+- (MacOSaiXMosaic *)mosaic;
+
+- (void)setActiveEditor:(MacOSaiXMosaicEditor *)editor;
+- (MacOSaiXMosaicEditor *)activeEditor;
+
+- (BOOL)makeFirstResponder:(NSResponder *)responder;
+
+- (void)embellishmentNeedsDisplay;
 
 @end

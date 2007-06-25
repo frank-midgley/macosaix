@@ -23,9 +23,9 @@
 }
 
 
-- (id)initWithMosaicView:(MosaicView *)inMosaicView
+- (id)initWithDelegate:(id<MacOSaiXMosaicEditorDelegate>)delegate
 {
-	if (self = [super initWithMosaicView:inMosaicView])
+	if (self = [super initWithDelegate:delegate])
 	{
 		tileShapesToDraw = [[NSMutableArray alloc] initWithCapacity:16];
 	}
@@ -60,32 +60,30 @@
 
 - (void)setMosaicDataSource:(id<MacOSaiXDataSource>)dataSource
 {
-	[[[self mosaicView] mosaic] setTileShapes:(id<MacOSaiXTileShapes>)dataSource creatingTiles:YES];
+	[[[self delegate] mosaic] setTileShapes:(id<MacOSaiXTileShapes>)dataSource creatingTiles:YES];
 }
 
 
 - (id<MacOSaiXDataSource>)mosaicDataSource
 {
-	return [[[self mosaicView] mosaic] tileShapes];
+	return [[[self delegate] mosaic] tileShapes];
 }
 
 
 - (void)beginEditing
 {
 	[super beginEditing];
-	
-	[[self mosaicView] setTargetImageFraction:1.0];
 }
 
 
-- (void)continueEmbellishingMosaicView
+- (void)continueEmbellishingMosaicView:(MosaicView *)mosaicView
 {
 	NSDate					*startTime = [NSDate date];
 	
-	[[self mosaicView] lockFocus];
+	[mosaicView lockFocus];
 	
-	NSRect					imageBounds = [[self mosaicView] imageBounds];
-	NSSize					targetImageSize = [[[[self mosaicView] mosaic] targetImage] size];
+	NSRect					imageBounds = [mosaicView imageBounds];
+	NSSize					targetImageSize = [[[[self delegate] mosaic] targetImage] size];
 	NSAffineTransform		*darkenTransform = [NSAffineTransform transform], 
 							*lightenTransform = [NSAffineTransform transform];
 	[darkenTransform translateXBy:NSMinX(imageBounds) - 0.5 yBy:NSMinY(imageBounds) + 0.5];
@@ -111,32 +109,32 @@
 
 	[[NSGraphicsContext currentContext] flushGraphics];
 	
-	[[self mosaicView] unlockFocus];
+	[mosaicView unlockFocus];
 	
 	if ([tileShapesToDraw count] > 0)
-		[self performSelector:_cmd withObject:nil afterDelay:0.0];
+		[self performSelector:_cmd withObject:mosaicView afterDelay:0.0];
 }
 
 
-- (void)embellishMosaicViewInRect:(NSRect)updateRect
+- (void)embellishMosaicView:(MosaicView *)mosaicView inRect:(NSRect)rect;
 {
-	if (![[self mosaicView] inLiveResize])
+	if (![mosaicView inLiveResize])
 	{
-		NSSize	targetImageSize = [[[[self mosaicView] mosaic] targetImage] size];
+		NSSize	targetImageSize = [[[[self delegate] mosaic] targetImage] size];
 		
 		[tileShapesToDraw removeAllObjects];
-		[tileShapesToDraw addObjectsFromArray:[[[[self mosaicView] mosaic] tileShapes] shapesForMosaicOfSize:targetImageSize]];
+		[tileShapesToDraw addObjectsFromArray:[[[[self delegate] mosaic] tileShapes] shapesForMosaicOfSize:targetImageSize]];
 		
-		[self continueEmbellishingMosaicView];
+		[self continueEmbellishingMosaicView:mosaicView];
 	}
 }
 
 
 - (void)dataSource:(id<MacOSaiXDataSource>)dataSource settingsDidChange:(NSString *)changeDescription
 {
-	[[[self mosaicView] mosaic] setTileShapes:[[[self mosaicView] mosaic] tileShapes] creatingTiles:YES];
+	[[[self delegate] mosaic] setTileShapes:[[[self delegate] mosaic] tileShapes] creatingTiles:YES];
 	
-	[[self mosaicView] setNeedsDisplay:YES];
+	[[self delegate] embellishmentNeedsDisplay];
 }
 
 

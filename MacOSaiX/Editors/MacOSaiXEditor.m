@@ -11,9 +11,10 @@
 #import "MacOSaiX.h"
 #import "MacOSaiXEditorsView.h"
 #import "MacOSaiXMosaic.h"
+#import "MacOSaiXPlugIn.h"
 
 
-@implementation MacOSaiXEditor
+@implementation MacOSaiXMosaicEditor
 
 
 + (NSImage *)image
@@ -29,20 +30,20 @@
 }
 
 
-- (id)initWithMosaicView:(MosaicView *)inMosaicView
+- (id)initWithDelegate:(id<MacOSaiXMosaicEditorDelegate>)delegate
 {
 	if (self = [super init])
 	{
-		mosaicView = inMosaicView;
+		editorDelegate = delegate;
 	}
 	
 	return self;
 }
 
 
-- (MosaicView *)mosaicView
+- (id<MacOSaiXMosaicEditorDelegate>)delegate
 {
-	return mosaicView;
+	return editorDelegate;
 }
 
 
@@ -113,7 +114,7 @@
 
 - (NSImage *)targetImage
 {
-	return [[[self mosaicView] mosaic] targetImage];
+	return [[[self delegate] mosaic] targetImage];
 }
 
 
@@ -137,38 +138,39 @@
 			[plugInEditor editingDidComplete];
 			[plugInEditor release];
 		}
-		plugInEditor = [[editorClass alloc] initWithDelegate:self];
+		plugInEditor = [(id<MacOSaiXEditor>)[editorClass alloc] initWithDelegate:self];
 		
 			// Swap in the view of the new editor.  Make sure the window is big enough to contain the view's minimum size.
-		NSWindow	*window = [[self mosaicView] window];
-		NSRect		frame = [window frame], 
-					contentFrame = [[window contentView] frame];
-		float		widthDiff = MAX(0.0, [plugInEditor minimumSize].width - [[plugInEditorBox contentView] frame].size.width),
-					heightDiff = MAX(0.0, [plugInEditor minimumSize].height - [[plugInEditorBox contentView] frame].size.height);
-//					baseHeight = NSHeight(contentFrame) - NSHeight([[plugInEditorBox contentView] frame]) + 0.0, 
-//					baseWidth = NSWidth(contentFrame) - NSWidth([[plugInEditorBox contentView] frame]) + 0.0;
 		[[plugInEditor editorView] setAutoresizingMask:[[plugInEditorBox contentView] autoresizingMask]];
 		[plugInEditorBox setContentView:[[[NSView alloc] initWithFrame:NSZeroRect] autorelease]];
 		
-		if (NSWidth(contentFrame) + widthDiff < 426.0)
-			widthDiff = 426.0 - NSWidth(contentFrame);
-		if (NSHeight(contentFrame) + heightDiff < 434.0)
-			heightDiff = 434.0 - NSHeight(contentFrame);
-		
-		frame.origin.x -= widthDiff / 2.0;
-		frame.origin.y -= heightDiff;
-		frame.size.width += widthDiff;
-		frame.size.height += heightDiff;
 // TODO: shouldn't the window controller be setting this?  And -setContentMinSize is 10.3 and above.
+// Something like [[self delegate] adjustMinimumSize]...
+//		NSWindow	*window = [[[self delegate] mosaicView] window];
+//		NSRect		frame = [window frame], 
+//					contentFrame = [[window contentView] frame];
+//		float		widthDiff = MAX(0.0, [plugInEditor minimumSize].width - [[plugInEditorBox contentView] frame].size.width),
+//					heightDiff = MAX(0.0, [plugInEditor minimumSize].height - [[plugInEditorBox contentView] frame].size.height);
+//					baseHeight = NSHeight(contentFrame) - NSHeight([[plugInEditorBox contentView] frame]) + 0.0, 
+//					baseWidth = NSWidth(contentFrame) - NSWidth([[plugInEditorBox contentView] frame]) + 0.0;
+//		if (NSWidth(contentFrame) + widthDiff < 426.0)
+//			widthDiff = 426.0 - NSWidth(contentFrame);
+//		if (NSHeight(contentFrame) + heightDiff < 434.0)
+//			heightDiff = 434.0 - NSHeight(contentFrame);
+//		frame.origin.x -= widthDiff / 2.0;
+//		frame.origin.y -= heightDiff;
+//		frame.size.width += widthDiff;
+//		frame.size.height += heightDiff;
 //		[window setContentMinSize:NSMakeSize(baseWidth + [plugInEditor minimumSize].width, baseHeight + [plugInEditor minimumSize].height)];
 //		[window setFrame:frame display:YES animate:YES];
+		
 		[plugInEditorBox setContentView:[plugInEditor editorView]];
 		
 		// Re-establish the key view loop:
 		// 1. Focus on the editor view's first responder.
 		// 2. Set the next key view of the last view in the editor's loop to the cancel button.
 		// 3. Set the next key view of the OK button to the first view in the editor's loop.
-		[window setInitialFirstResponder:(NSView *)[plugInEditor firstResponder]];
+		[[self delegate] makeFirstResponder:[plugInEditor firstResponder]];
 		NSView	*lastKeyView = (NSView *)[plugInEditor firstResponder];
 		while ([lastKeyView nextKeyView] && 
 			   [[lastKeyView nextKeyView] isDescendantOf:[plugInEditor editorView]] &&
@@ -200,6 +202,8 @@
 
 - (void)beginEditing
 {
+	isActive = YES;
+	
 	if (plugInPopUpButton)
 	{
 			// Populate the pop-up with the names of the currently available plug-ins.
@@ -229,12 +233,13 @@
 }
 
 
-- (void)embellishMosaicViewInRect:(NSRect)rect
+- (void)embellishMosaicView:(MosaicView *)mosaicView inRect:(NSRect)rect
 {
+	// Nothing for now...
 }
 
 
-- (void)handleEventInMosaicView:(NSEvent *)event
+- (void)handleEvent:(NSEvent *)event inMosaicView:(MosaicView *)mosaicView
 {
 	// TBD: double click = edit tile?
 }
@@ -244,12 +249,20 @@
 {
 	[plugInEditor release];
 	plugInEditor = nil;
+	
+	isActive = NO;
+}
+
+
+- (BOOL)isActive
+{
+	return isActive;
 }
 
 
 - (void)dealloc
 {
-	mosaicView = nil;
+	editorDelegate = nil;
 	
 	[super dealloc];
 }

@@ -16,9 +16,9 @@
 @implementation MacOSaiXImageOrientationsEditor
 
 
-- (id)initWithMosaicViev:(MosaicView *)inMosaicView
+- (id)initWithDelegate:(id<MacOSaiXMosaicEditorDelegate>)delegate
 {
-	if (self = [super initWithMosaicView:inMosaicView])
+	if (self = [super initWithDelegate:delegate])
 	{
 	}
 	
@@ -52,32 +52,30 @@
 
 - (void)setMosaicDataSource:(id<MacOSaiXDataSource>)dataSource
 {
-	[[[self mosaicView] mosaic] setImageOrientations:(id<MacOSaiXImageOrientations>)dataSource];
+	[[[self delegate] mosaic] setImageOrientations:(id<MacOSaiXImageOrientations>)dataSource];
 	
-	[[self mosaicView] setNeedsDisplay:YES];
+	[[self delegate] embellishmentNeedsDisplay];
 }
 
 
 - (id<MacOSaiXDataSource>)mosaicDataSource
 {
-	return [[[self mosaicView] mosaic] imageOrientations];
+	return [[[self delegate] mosaic] imageOrientations];
 }
 
 
 - (void)beginEditing
 {
 	[super beginEditing];
-	
-	[[self mosaicView] setTargetImageFraction:1.0];
 }
 
 
-- (void)embellishMosaicViewInRect:(NSRect)rect
+- (void)embellishMosaicView:(MosaicView *)mosaicView inRect:(NSRect)rect;
 {
-	[super embellishMosaicViewInRect:rect];
+	[super embellishMosaicView:mosaicView inRect:rect];
 	
-	MacOSaiXMosaic	*mosaic = [[self mosaicView] mosaic];
-	NSRect			imageBounds = [[self mosaicView] imageBounds];
+	MacOSaiXMosaic	*mosaic = [[self delegate] mosaic];
+	NSRect			imageBounds = [mosaicView imageBounds];
 	
 		// Start by lightening the whole mosaic.
 	[[NSColor colorWithCalibratedWhite:1.0 alpha:0.2] set];
@@ -118,11 +116,11 @@
 }
 
 
-- (void)handleEventInMosaicView:(NSEvent *)event
+- (void)handleEvent:(NSEvent *)event inMosaicView:(MosaicView *)mosaicView;
 {
 		// Convert the event location to the target image's space.
-	NSRect	mosaicBounds = [[self mosaicView] imageBounds];
-	NSPoint	targetLocation = [[self mosaicView] convertPoint:[event locationInWindow] fromView:nil];
+	NSRect	mosaicBounds = [mosaicView imageBounds];
+	NSPoint	targetLocation = [mosaicView convertPoint:[event locationInWindow] fromView:nil];
 	targetLocation.x -= NSMinX(mosaicBounds);
 	targetLocation.y -= NSMinY(mosaicBounds);
 	targetLocation.x *= [[self targetImage] size].width / NSWidth(mosaicBounds);
@@ -163,13 +161,13 @@
 	}
 	
 	if (!plugInHandledEvent)
-		[super handleEventInMosaicView:event];
+		[super handleEvent:event inMosaicView:mosaicView];
 }
 
 
 - (void)dataSource:(id<MacOSaiXDataSource>)dataSource settingsDidChange:(NSString *)changeDescription
 {
-	[[self mosaicView] setNeedsDisplay:YES];
+	[[self delegate] embellishmentNeedsDisplay];
 }
 
 

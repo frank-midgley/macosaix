@@ -6,29 +6,27 @@
 //  Copyright 2006 Frank M. Midgley. All rights reserved.
 //
 
-@class MosaicView, MacOSaiXEditor;
+#import "MacOSaiXEditor.h"
+
+@class MosaicView;
 
 
-@interface MacOSaiXEditorsView : NSView
+@interface MacOSaiXEditorsView : NSView <MacOSaiXMosaicEditorDelegate>
 {
-	MosaicView		*mosaicView;
+	MosaicView				*mosaicView;
 	
-	NSMutableArray	*editors, 
-					*editorButtons;
+	NSMutableArray			*editors, 
+							*editorButtons;
 	
-	MacOSaiXEditor	*activeEditor;
+	MacOSaiXMosaicEditor	*activeEditor;
 }
 
 - (void)setMosaicView:(MosaicView *)view;
-- (MosaicView *)mosaicView;
 
 - (void)updateMinimumViewSize;
 
-- (void)addEditor:(MacOSaiXEditor *)editor;
+- (void)addEditor:(MacOSaiXMosaicEditor *)editor;
 
 - (NSArray *)editors;
-
-- (void)setActiveEditor:(MacOSaiXEditor *)editor;
-- (MacOSaiXEditor *)activeEditor;
 
 @end

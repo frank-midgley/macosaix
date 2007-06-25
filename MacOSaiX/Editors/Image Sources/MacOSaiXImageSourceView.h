@@ -6,8 +6,9 @@
 //  Copyright 2007 Frank M. Midgley. All rights reserved.
 //
 
-@class MacOSaiXImageSourcesEditor;
-@protocol MacOSaiXDataSourceEditor, MacOSaiXEditorDelegate, MacOSaiXImageSource;
+@class MacOSaiXImageSourceEnumerator, MacOSaiXImageSourcesEditor;
+@protocol MacOSaiXDataSourceEditor, MacOSaiXEditorDelegate;
+
 
 @interface MacOSaiXImageSourceView : NSView <MacOSaiXEditorDelegate>
 {
@@ -16,14 +17,14 @@
 	NSBox							*editorBox;
 	NSSize							boxBorderSize;
 	BOOL							selected;
-	id<MacOSaiXImageSource>			imageSource;
+	MacOSaiXImageSourceEnumerator	*imageSourceEnumerator;
 	id<MacOSaiXDataSourceEditor>	imageSourceEditor;
 }
 
 - (void)setEditor:(MacOSaiXImageSourcesEditor *)editor;
 
-- (void)setImageSource:(id<MacOSaiXImageSource>)source;
-- (id<MacOSaiXImageSource>)imageSource;
+- (void)setImageSourceEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator;
+- (MacOSaiXImageSourceEnumerator *)imageSourceEnumerator;
 
 - (void)setSelected:(BOOL)flag;
 - (BOOL)selected;
@@ -32,7 +33,5 @@
 - (BOOL)editorVisible;
 
 - (NSSize)minimumEditorSize;
-
-- (void)countsDidChange;
 
 @end

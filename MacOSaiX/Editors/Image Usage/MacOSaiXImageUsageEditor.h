@@ -9,7 +9,7 @@
 #import "MacOSaiXEditor.h"
 
 
-@interface MacOSaiXImageUsageEditor : MacOSaiXEditor
+@interface MacOSaiXImageUsageEditor : MacOSaiXMosaicEditor
 {
 	IBOutlet NSPopUpButton	*imageUseCountPopUp;
 	IBOutlet NSSlider		*imageReuseSlider, 

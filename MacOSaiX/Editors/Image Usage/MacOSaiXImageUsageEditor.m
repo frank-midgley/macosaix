@@ -14,9 +14,9 @@
 @implementation MacOSaiXImageUsageEditor
 
 
-- (id)initWithMosaicView:(MosaicView *)inMosaic
+- (id)initWithDelegate:(id<MacOSaiXMosaicEditorDelegate>)delegate
 {
-	if (self = [super initWithMosaicView:inMosaic])
+	if (self = [super initWithDelegate:delegate])
 	{
 	}
 	
@@ -44,9 +44,7 @@
 
 - (void)beginEditing
 {
-	[[self mosaicView] setTargetImageFraction:1.0];
-	
-	MacOSaiXMosaic	*mosaic = [[self mosaicView] mosaic];
+	MacOSaiXMosaic	*mosaic = [[self delegate] mosaic];
 	
 	[imageUseCountPopUp selectItemWithTag:[mosaic imageUseCount]];
 	[imageReuseSlider setIntValue:[mosaic imageReuseDistance]];
@@ -56,13 +54,13 @@
 }
 
 
-- (void)embellishMosaicViewInRect:(NSRect)rect
+- (void)embellishMosaicView:(MosaicView *)mosaicView inRect:(NSRect)rect;
 {
-	[super embellishMosaicViewInRect:rect];
+	[super embellishMosaicView:mosaicView inRect:rect];
 	
 	[[NSGraphicsContext currentContext] saveGraphicsState];
 	
-	NSRect				imageBounds = [[self mosaicView] imageBounds];
+	NSRect				imageBounds = [mosaicView imageBounds];
 	[[NSBezierPath bezierPathWithRect:imageBounds] addClip];
 	
 	float				radius = sqrtf(powf(NSWidth(imageBounds), 2.0) + powf(NSHeight(imageBounds), 2.0)) * [imageReuseSlider floatValue] / 100.0;
@@ -92,10 +90,10 @@
 }
 
 
-- (void)handleEventInMosaicView:(NSEvent *)event
+- (void)handleEvent:(NSEvent *)event inMosaicView:(MosaicView *)mosaicView;
 {
-	NSRect	imageBounds = [[self mosaicView] imageBounds];
-	NSPoint	mouseLocation = [[self mosaicView] convertPoint:[event locationInWindow] fromView:nil], 
+	NSRect	imageBounds = [mosaicView imageBounds];
+	NSPoint	mouseLocation = [mosaicView convertPoint:[event locationInWindow] fromView:nil], 
 			scaledSamplePoint = NSMakePoint(samplePoint.x * NSWidth(imageBounds), 
 											samplePoint.y * NSHeight(imageBounds));
 	
@@ -103,7 +101,7 @@
 	{
 		float	maxDragDistance = sqrtf(powf(NSWidth(imageBounds), 2.0) + 
 										powf(NSHeight(imageBounds), 2.0)), 
-				currentReuseDistance = [[[self mosaicView] mosaic] imageReuseDistance] / 100.0 * maxDragDistance, 
+				currentReuseDistance = [[[self delegate] mosaic] imageReuseDistance] / 100.0 * maxDragDistance, 
 				clickDistance = sqrtf(powf(mouseLocation.x - NSMinX(imageBounds) - scaledSamplePoint.x, 2.0) + 
 									  powf(mouseLocation.y - NSMinY(imageBounds) - scaledSamplePoint.y, 2.0));
 		
@@ -128,7 +126,7 @@
 			if (samplePoint.y > 1.0)
 				samplePoint.y = 1.0;
 			
-			[[self mosaicView] setNeedsDisplay:YES];
+			[[self delegate] embellishmentNeedsDisplay];
 		}
 		else if (resizing)
 		{
@@ -155,17 +153,17 @@
 
 - (IBAction)setImageUseCount:(id)sender
 {
-	[[[self mosaicView] mosaic] setImageUseCount:[[imageUseCountPopUp selectedItem] tag]];
+	[[[self delegate] mosaic] setImageUseCount:[[imageUseCountPopUp selectedItem] tag]];
 	
-	[[self mosaicView] setNeedsDisplay:YES];
+	[[self delegate] embellishmentNeedsDisplay];
 }
 
 
 - (IBAction)setImageReuseDistance:(id)sender
 {
-	[[[self mosaicView] mosaic] setImageReuseDistance:[imageReuseSlider intValue]];
+	[[[self delegate] mosaic] setImageReuseDistance:[imageReuseSlider intValue]];
 	
-	[[self mosaicView] setNeedsDisplay:YES];
+	[[self delegate] embellishmentNeedsDisplay];
 }
 
 

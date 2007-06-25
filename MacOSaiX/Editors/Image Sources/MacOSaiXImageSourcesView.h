@@ -31,6 +31,6 @@
 - (void)tile;
 
 - (NSArray *)viewsWithVisibleEditors;
-- (NSArray *)selectedImageSources;
+- (NSArray *)selectedImageSourceEnumerators;
 
 @end
