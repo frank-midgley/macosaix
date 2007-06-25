@@ -9,6 +9,7 @@
 #import "MacOSaiXAboutBoxController.h"
 
 #import "MacOSaiXImageCache.h"
+#import "MacOSaiXImageSourceEnumerator.h"
 #import "MacOSaiXMosaic.h"
 #import "MacOSaiXTileShapes.h"
 #import "MosaicView.h"
@@ -40,7 +41,7 @@ static MacOSaiXAboutBoxController	*sharedController;
 - (void)chooseNewPerson
 {
 	lastTileChangeCount = 0;
-	[[MacOSaiXImageCache sharedImageCache] removeCachedImagesFromSource:[[[mosaicView mosaic] imageSources] lastObject]];
+	[[MacOSaiXImageCache sharedImageCache] removeCachedImagesFromSource:[[[[mosaicView mosaic] imageSourceEnumerators] lastObject] imageSource]];
 	
 	NSArray		*personNames = [personImages allKeys];
 	
