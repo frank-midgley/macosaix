@@ -12,7 +12,9 @@
 #import "MacOSaiXFullScreenWindow.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageOrientations.h"
+#import "MacOSaiXImageSourceEnumerator.h"
 #import "MacOSaiXMosaic.h"
+#import "MacOSaiXSourceImage.h"
 #import "MacOSaiXTextFieldCell.h"
 #import "MacOSaiXTileShapes.h"
 #import "MacOSaiXWindowController.h"
@@ -126,7 +128,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	
 		// Phase in the new image.
 		// Pick a size for the main image.  (somewhat arbitrary but large enough for decent zooming)
-	float	bitmapSize = 10.0 * 1024.0 * 1024.0;
+	float	bitmapSize = 1.0 * 1024.0 * 1024.0;
 	mainImageSize.width = floorf(sqrtf([mosaic aspectRatio] * bitmapSize));
 	mainImageSize.height = floorf(bitmapSize / mainImageSize.width);
 	
@@ -251,7 +253,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	MacOSaiXTile		*tileToRefresh = nil;
 	NSDate				*lastRedraw = [NSDate date];
 	NSMutableArray		*tilesToRedraw = [NSMutableArray array];
-	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
 	
 	do
 	{
@@ -288,11 +289,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 				else if ([tileToRefresh fillStyle] == fillWithHandPicked)
 					imageMatch = [tileToRefresh userChosenImageMatch];
 				
-				NSImageRep			*imageRep = nil;
-				if (imageMatch)
-					imageRep = [imageCache imageRepAtSize:NSIntegralRect([mainOutline bounds]).size
-											forIdentifier:[imageMatch imageIdentifier] 
-											   fromSource:[imageMatch imageSource]];
+				NSImageRep			*imageRep = [[imageMatch sourceImage] imageRepAtSize:NSIntegralRect([mainOutline bounds]).size];
 				
 				[tileRefreshLock lock];
 					[tilesToRedraw addObject:[NSDictionary dictionaryWithObjectsAndKeys:
@@ -687,7 +684,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 						 fraction:1.0 - targetImageFraction];
 		[mainImageLock unlock];
 		
-		[activeEditor embellishMosaicViewInRect:drawRect];
+		[activeEditor embellishMosaicView:self inRect:drawRect];
 	}
 }
 
@@ -732,7 +729,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 #pragma mark Active Editor
 
 
-- (void)setActiveEditor:(MacOSaiXEditor *)editor
+- (void)setActiveEditor:(MacOSaiXMosaicEditor *)editor
 {
 	if (editor != activeEditor)
 	{
@@ -744,7 +741,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
-- (MacOSaiXEditor *)activeEditor
+- (MacOSaiXMosaicEditor *)activeEditor
 {
 	return activeEditor;
 }
@@ -850,7 +847,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 					point.y = screenPoint.y + NSHeight([tooltipWindow frame]) + 20.0;
 				[tooltipWindow setFrameTopLeftPoint:point];
 				
-				id<MacOSaiXImageSource>	imageSource = [imageMatch imageSource];
+				id<MacOSaiXImageSource>	imageSource = [[[imageMatch sourceImage] enumerator] workingImageSource];
 				NSImage					*sourceImage = [[[imageSource image] copy] autorelease];
 				[sourceImage setScalesWhenResized:YES];
 				[sourceImage setSize:NSMakeSize(32.0, 32.0 * [sourceImage size].height / [sourceImage size].width)];
@@ -872,7 +869,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 				tooltipHideTimer = nil;
 				
 				[tileImageView setImage:nil];
-				[tileImageTextField setStringValue:NSLocalizedString(@"Fetching...", @"")];
+				[tileImageTextField setStringValue:NSLocalizedString(@"Fetching image...", @"")];
 				[tooltipWindow setAlphaValue:1.0];
 				[tooltipWindow orderFront:self];
 				
@@ -894,12 +891,11 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 		
 		MacOSaiXImageMatch		*imageMatch = parameter;
-		id<MacOSaiXImageSource>	imageSource = [imageMatch imageSource];
-		NSString				*identifier = [imageMatch imageIdentifier];
-		NSBitmapImageRep		*imageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:NSZeroSize 
-																					forIdentifier:identifier 
-																					   fromSource:imageSource];
+		MacOSaiXSourceImage		*sourceImage = [imageMatch sourceImage];
+		NSString				*identifier = [sourceImage imageIdentifier];
+		NSBitmapImageRep		*imageRep = [sourceImage imageRepAtSize:NSZeroSize];
 		NSImage					*image = [[NSImage alloc] initWithSize:[imageRep size]];
+		id<MacOSaiXImageSource>	imageSource = [[sourceImage enumerator] workingImageSource];
 		NSString				*imageDescription = (image ? [imageSource descriptionForIdentifier:identifier] : nil);
 		
 		[image addRepresentation:imageRep];
@@ -976,19 +972,19 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		tooltipTile = nil;
 	}
 	
-	[activeEditor handleEventInMosaicView:event];
+	[activeEditor handleEvent:event inMosaicView:self];
 }
 
 
 - (void)mouseDragged:(NSEvent *)event
 {
-	[activeEditor handleEventInMosaicView:event];
+	[activeEditor handleEvent:event inMosaicView:self];
 }
 
 
 - (void)mouseUp:(NSEvent *)event
 {
-	[activeEditor handleEventInMosaicView:event];
+	[activeEditor handleEvent:event inMosaicView:self];
 }
 
 

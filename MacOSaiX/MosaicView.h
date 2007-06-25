@@ -6,7 +6,7 @@
 //  Copyright (c) 2001-5 Frank M. Midgley.  All rights reserved.
 //
 
-@class MacOSaiXMosaic, MacOSaiXTile, MacOSaiXEditor;
+@class MacOSaiXMosaic, MacOSaiXTile, MacOSaiXMosaicEditor;
 
 
 @interface MosaicView : NSView
@@ -25,7 +25,7 @@
 	NSDate					*targetFadeStartTime;
 	NSTimer					*targetFadeTimer;
 	
-	MacOSaiXEditor			*activeEditor;
+	MacOSaiXMosaicEditor	*activeEditor;
 	
 	BOOL					showNonUniqueMatches;
 	
@@ -67,8 +67,8 @@
 
 - (void)setInLiveRedraw:(NSNumber *)flag;
 
-- (void)setActiveEditor:(MacOSaiXEditor *)editor;
-- (MacOSaiXEditor *)activeEditor;
+- (void)setActiveEditor:(MacOSaiXMosaicEditor *)editor;
+- (MacOSaiXMosaicEditor *)activeEditor;
 
 - (MacOSaiXTile *)tileAtPoint:(NSPoint)thePoint;
 
