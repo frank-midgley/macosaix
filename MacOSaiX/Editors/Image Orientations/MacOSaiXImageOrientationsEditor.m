@@ -64,55 +64,62 @@
 }
 
 
-- (void)beginEditing
-{
-	[super beginEditing];
-}
-
-
 - (void)embellishMosaicView:(MosaicView *)mosaicView inRect:(NSRect)rect;
 {
 	[super embellishMosaicView:mosaicView inRect:rect];
+
+	static	NSBezierPath	*vectorPath = nil;
+	if (!vectorPath)
+	{
+		vectorPath = [[NSBezierPath bezierPath] retain];
+		
+			// Start with the head.
+		//NSMakeRect(-4.0, -5.0, 8.0, 12.0)
+		[vectorPath moveToPoint:NSMakePoint(0.0, -4.0)];
+		[vectorPath curveToPoint:NSMakePoint(0.0, 7.0) controlPoint1:NSMakePoint(-5.0, -4.0) controlPoint2:NSMakePoint(-5.0, 7.0)];
+		[vectorPath curveToPoint:NSMakePoint(0.0, -4.0) controlPoint1:NSMakePoint(5.0, 7.0) controlPoint2:NSMakePoint(5.0, -4.0)];
+		
+			// Then the shoulders.
+		[vectorPath moveToPoint:NSMakePoint(-8.0, -7.0)];
+		[vectorPath curveToPoint:NSMakePoint(8.0, -7.0) controlPoint1:NSMakePoint(-8.0, -2.0) controlPoint2:NSMakePoint(8.0, -2.0)];
+		[vectorPath lineToPoint:NSMakePoint(-8.0, -7.0)];
+		
+			// Finish with the box outline.
+		[vectorPath moveToPoint:NSMakePoint(-12.0, -8.0)];
+		[vectorPath lineToPoint:NSMakePoint(12.0, -8.0)];
+		[vectorPath lineToPoint:NSMakePoint(12.0, 8.0)];
+		[vectorPath lineToPoint:NSMakePoint(-12.0, 8.0)];
+		[vectorPath lineToPoint:NSMakePoint(-12.0, -8.0)];
+	}
 	
-	MacOSaiXMosaic	*mosaic = [[self delegate] mosaic];
-	NSRect			imageBounds = [mosaicView imageBounds];
+		// Get the bounds of the mosaic within the mosaic view.
+	NSRect							imageBounds = [mosaicView imageBounds];
 	
 		// Start by lightening the whole mosaic.
 	[[NSColor colorWithCalibratedWhite:1.0 alpha:0.2] set];
 	NSRectFillUsingOperation(NSIntersectionRect(rect, imageBounds), NSCompositeSourceOver);
 			   
 		// Draw a darkened vector field over the mosaic.
-	NSBezierPath	*path = [NSBezierPath bezierPath];
-	[path moveToPoint:NSMakePoint(-4.0, -4.0)];
-	[path lineToPoint:NSMakePoint(0.0, 4.0)];
-	[path lineToPoint:NSMakePoint(0.0, 4.0)];
-	[path lineToPoint:NSMakePoint(4.0, -4.0)];
-	[path lineToPoint:NSMakePoint(-4.0, -4.0)];
-	[path moveToPoint:NSMakePoint(-12.0, -8.0)];
-	[path lineToPoint:NSMakePoint(12.0, -8.0)];
-	[path lineToPoint:NSMakePoint(12.0, 8.0)];
-	[path lineToPoint:NSMakePoint(-12.0, 8.0)];
-	[path lineToPoint:NSMakePoint(-12.0, -8.0)];
-	
 	[[NSColor colorWithCalibratedWhite:0.0 alpha:0.6] set];
-	int		xCount = NSWidth(imageBounds) / 30, 
-			yCount = NSHeight(imageBounds) / 30;
-	float	xSize = NSWidth(imageBounds) / xCount, 
-			ySize = NSHeight(imageBounds) / yCount;
-	float	x, y;
+	id<MacOSaiXImageOrientations>	imageOrientations = [[[self delegate] mosaic] imageOrientations];
+	int								xCount = NSWidth(imageBounds) / 30, 
+									yCount = NSHeight(imageBounds) / 30;
+	float							xSize = NSWidth(imageBounds) / xCount, 
+									ySize = NSHeight(imageBounds) / yCount;
+	float							x, y;
 	for (y = ySize / 2.0; y < NSHeight(imageBounds); y += ySize)
 		for (x = xSize / 2.0; x < NSWidth(imageBounds); x += xSize)
 		{
-			float	angle = [[mosaic imageOrientations] imageOrientationAtPoint:NSMakePoint(x, y) inRectOfSize:imageBounds.size];
+			float	angle = [imageOrientations imageOrientationAtPoint:NSMakePoint(x, y) inRectOfSize:imageBounds.size];
 			
 			NSAffineTransform	*transform = [NSAffineTransform transform];
 			[transform translateXBy:x + NSMinX(imageBounds) yBy:y + NSMinY(imageBounds)];
 			[transform rotateByDegrees:-angle];
-			[[transform transformBezierPath:path] fill];
+			[[transform transformBezierPath:vectorPath] fill];
 		}
 			
 	
-		// TODO: Draw the focus point (with an eye?)
+	// TBD: What API would be required for the radial plug-in to draw its focus point?
 }
 
 
