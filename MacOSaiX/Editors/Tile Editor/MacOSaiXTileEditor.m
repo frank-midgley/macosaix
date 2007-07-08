@@ -17,27 +17,12 @@
 #import "Tiles.h"
 
 
+@interface MacOSaiXTileContentEditor (PrivateMethods)
+- (void)populateGUI;
+@end
+
+
 @implementation MacOSaiXTileContentEditor
-
-
-- (id)initWithDelegate:(id<MacOSaiXMosaicEditorDelegate>)delegate
-{
-	if (self = [super initWithDelegate:delegate])
-	{
-		CFURLRef	browserURL = nil;
-		OSStatus	status = LSGetApplicationForURL((CFURLRef)[NSURL URLWithString:@"http://www.apple.com/"], 
-													kLSRolesViewer,
-													NULL,
-													&browserURL);
-		if (status == noErr)
-		{
-			browserIcon = [[[NSWorkspace sharedWorkspace] iconForFile:[(NSURL *)browserURL path]] retain];
-			[browserIcon setSize:NSMakeSize(16.0, 16.0)];
-		}
-	}
-	
-	return self;
-}
 
 
 - (NSString *)editorNibName
@@ -52,8 +37,16 @@
 }
 
 
+- (NSSize)minimumViewSize
+{
+	return NSMakeSize(240.0, 200.0);
+}
+
+
 - (void)beginEditing
 {
+	[self populateGUI];
+	
 	[[NSNotificationCenter defaultCenter] addObserver:self 
 											 selector:@selector(tileImageDidChange:) 
 												 name:MacOSaiXTileContentsDidChangeNotification 
@@ -61,126 +54,179 @@
 }
 
 
+- (NSRect)selectionRect
+{
+	float	minX = MIN(mouseDownPoint.x, mouseDragPoint.x), 
+			maxX = MAX(mouseDownPoint.x, mouseDragPoint.x), 
+			minY = MIN(mouseDownPoint.y, mouseDragPoint.y), 
+			maxY = MAX(mouseDownPoint.y, mouseDragPoint.y);
+	
+	return NSMakeRect(minX, minY, maxX - minX, maxY - minY);
+}
+
+
 - (void)embellishMosaicView:(MosaicView *)mosaicView inRect:(NSRect)rect;
 {
 	[super embellishMosaicView:mosaicView inRect:rect];
 	
-	if ([self selectedTile])
+	NSRect				mosaicBounds = [mosaicView imageBounds];
+	NSSize				targetImageSize = [[[[self delegate] mosaic] targetImage] size];
+	float				minX = NSMinX(mosaicBounds), 
+						minY = NSMinY(mosaicBounds), 
+						width = NSWidth(mosaicBounds), 
+						height = NSHeight(mosaicBounds);
+	NSAffineTransform	*transform = [NSAffineTransform transform];
+	[transform translateXBy:minX yBy:minY];
+	[transform scaleXBy:width / targetImageSize.width 
+					yBy:height / targetImageSize.height];
+	
+	if (!NSEqualPoints(mouseDragPoint, NSZeroPoint))
 	{
-		NSRect				mosaicBounds = [mosaicView imageBounds];
-		NSSize				targetImageSize = [[[[self delegate] mosaic] targetImage] size];
-		float				minX = NSMinX(mosaicBounds), 
-							minY = NSMinY(mosaicBounds), 
-							width = NSWidth(mosaicBounds), 
-							height = NSHeight(mosaicBounds);
-		NSBezierPath		*outline = [[self selectedTile] outline];
+		NSBezierPath		*selectionPath = [NSBezierPath bezierPathWithRect:[self selectionRect]];
 		
-			// Draw the tile's outline with a 4pt thick dashed line.
-		NSAffineTransform	*transform = [NSAffineTransform transform];
-		[transform translateXBy:minX yBy:minY];
-		[transform scaleXBy:width / targetImageSize.width 
-						yBy:height / targetImageSize.height];
-		NSBezierPath		*tileOutline = [transform transformBezierPath:outline];
-		[tileOutline setLineWidth:4];
+			// Lighten the rest of the mosaic view
+		NSBezierPath		*nonSelectedPath = [NSBezierPath bezierPathWithRect:mosaicBounds];
+		[nonSelectedPath appendBezierPath:[selectionPath bezierPathByReversingPath]];
+		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.75] set];
+		[nonSelectedPath fill];
+		
+			// Darken the tiles to be selected.
+		NSBezierPath	*selectedTilesOutline = [NSBezierPath bezierPath];
+		NSEnumerator	*selectedTileEnumerator = [[mosaicView tilesInRect:[self selectionRect]] objectEnumerator];
+		MacOSaiXTile	*selectedTile = nil;
+		while (selectedTile = [selectedTileEnumerator nextObject])
+			[selectedTilesOutline appendBezierPath:[selectedTile outline]];
+		[selectedTilesOutline transformUsingAffineTransform:transform];
+		[selectedTilesOutline setLineWidth:2];
+		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.25] set];
+		[selectedTilesOutline stroke];
+		
+			// Darken the selection rect.
+		[selectionPath setLineWidth:2];
 		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
-		[tileOutline stroke];
+		[selectionPath stroke];
+	}
+	else if ([[self selectedTiles] count] > 0)
+	{
+			// Create a path containing all selected tile's outlines.
+		NSBezierPath	*selectedTilesOutline = [NSBezierPath bezierPath];
+		NSEnumerator	*selectedTileEnumerator = [[self selectedTiles] objectEnumerator];
+		MacOSaiXTile	*selectedTile = nil;
+		while (selectedTile = [selectedTileEnumerator nextObject])
+			[selectedTilesOutline appendBezierPath:[selectedTile outline]];
+		[selectedTilesOutline transformUsingAffineTransform:transform];
 		
-			// Dim the rest of the mosaic view
+			// Lighten the rest of the mosaic view
 		NSBezierPath		*dimPath = [NSBezierPath bezierPathWithRect:mosaicBounds];
-		[dimPath appendBezierPath:[tileOutline bezierPathByReversingPath]];
+		[dimPath appendBezierPath:[selectedTilesOutline bezierPathByReversingPath]];
 		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.75] set];
 		[dimPath fill];
 		
-		switch ([selectedTile fillStyle])
+			// Darken the selected tiles' outline
+		[selectedTilesOutline setLineWidth:2.0];
+		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
+		[selectedTilesOutline stroke];
+		
+			// Add details if only one tile is selected.
+		if ([[self selectedTiles] count] == 1)
 		{
-			case fillWithUniqueMatch:
+			MacOSaiXTile		*selectedTile = [[self selectedTiles] lastObject];
+			
+			switch ([selectedTile fillStyle])
 			{
-				MacOSaiXImageMatch	*bestMatch = [[self selectedTile] uniqueImageMatch];
-				float				curY = NSMinY([tileOutline bounds]) - 18.0;
-				
-				if (bestMatch)
+				case fillWithUniqueMatch:
 				{
-					MacOSaiXSourceImage	*bestSourceImage = [bestMatch sourceImage];
+					MacOSaiXImageMatch	*bestMatch = [selectedTile uniqueImageMatch];
+					float				curY = NSMinY([selectedTilesOutline bounds]) - 18.0;
 					
-						// Display the description of the image being displayed.
-					NSString		*matchName = [[[bestSourceImage enumerator] workingImageSource] descriptionForIdentifier:[bestSourceImage imageIdentifier]];
-					if (!matchName)
-						matchName = NSLocalizedString(@"No description available", @"");
-					NSDictionary	*attributes = [NSDictionary dictionaryWithObject:[NSFont boldSystemFontOfSize:0.0] 
-																			  forKey:NSFontAttributeName];
-					NSSize		stringSize = [matchName sizeWithAttributes:attributes];
-					[matchName drawAtPoint:NSMakePoint(NSMidX([tileOutline bounds]) - stringSize.width / 2.0, curY) withAttributes:attributes];
-					curY -= 18.0;
-					
-						// Display the source of the image being displayed.
-					NSString	*sourceLabel = NSLocalizedString(@"Source: ", @"");
-					stringSize = [sourceLabel sizeWithAttributes:nil];
-					float		sourceWidth = stringSize.width + 2.0;
-					NSImage		*sourceImage = [[[[[bestSourceImage enumerator] workingImageSource] image] copy] autorelease];
-					[sourceImage setScalesWhenResized:YES];
-					[sourceImage setSize:NSMakeSize([sourceImage size].width / [sourceImage size].height * 16.0, 16.0)];
-					sourceWidth += [sourceImage size].width + 4.0;
-					id			sourceDescription = [[[bestSourceImage enumerator] workingImageSource] briefDescription];
-					if ([sourceDescription isKindOfClass:[NSString class]])
-						sourceWidth += [(NSString *)sourceDescription sizeWithAttributes:nil].width;
+					if (bestMatch)
+					{
+						MacOSaiXSourceImage	*bestSourceImage = [bestMatch sourceImage];
+						
+							// Display the description of the image being displayed.
+						NSString		*matchName = [[[bestSourceImage enumerator] workingImageSource] descriptionForIdentifier:[bestSourceImage imageIdentifier]];
+						if (!matchName)
+							matchName = NSLocalizedString(@"No description available", @"");
+						NSDictionary	*attributes = [NSDictionary dictionaryWithObject:[NSFont boldSystemFontOfSize:0.0] 
+																				  forKey:NSFontAttributeName];
+						NSSize		stringSize = [matchName sizeWithAttributes:attributes];
+						[matchName drawAtPoint:NSMakePoint(NSMidX([selectedTilesOutline bounds]) - stringSize.width / 2.0, curY) withAttributes:attributes];
+						curY -= 18.0;
+						
+							// Display the source of the image being displayed.
+						NSString	*sourceLabel = NSLocalizedString(@"Source: ", @"");
+						stringSize = [sourceLabel sizeWithAttributes:nil];
+						float		sourceWidth = stringSize.width + 2.0;
+						NSImage		*sourceImage = [[[[[bestSourceImage enumerator] workingImageSource] image] copy] autorelease];
+						[sourceImage setScalesWhenResized:YES];
+						[sourceImage setSize:NSMakeSize([sourceImage size].width / [sourceImage size].height * 16.0, 16.0)];
+						sourceWidth += [sourceImage size].width + 4.0;
+						id			sourceDescription = [[[bestSourceImage enumerator] workingImageSource] briefDescription];
+						if ([sourceDescription isKindOfClass:[NSString class]])
+							sourceWidth += [(NSString *)sourceDescription sizeWithAttributes:nil].width;
+						else
+							sourceWidth += [(NSAttributedString *)sourceDescription size].width;
+						float		leftEdge = NSMidX([selectedTilesOutline bounds]) - sourceWidth / 2.0;
+						[sourceLabel drawAtPoint:NSMakePoint(leftEdge, curY) withAttributes:nil];
+						[sourceImage drawAtPoint:NSMakePoint(leftEdge + stringSize.width + 2.0, curY - 0.0) 
+										fromRect:NSZeroRect 
+									   operation:NSCompositeSourceOver 
+										fraction:1.0];
+						if ([sourceDescription isKindOfClass:[NSString class]])
+							[(NSString *)sourceDescription drawAtPoint:NSMakePoint(leftEdge + stringSize.width + 2.0 + [sourceImage size].width + 4.0, curY) 
+														withAttributes:nil];
+						else
+							[(NSAttributedString *)sourceDescription drawAtPoint:NSMakePoint(leftEdge + stringSize.width + 4.0 + [sourceImage size].width + 4.0, curY)];
+						curY -= 14.0;
+						
+							// Display the match value of the image being displayed.
+						[[NSString stringWithFormat:NSLocalizedString(@"Match: %.0f%%", @""), [bestMatch matchValue]] drawAtPoint:NSMakePoint(leftEdge, curY) 
+																												   withAttributes:nil];
+						curY -= 14.0;
+						
+							// Display the crop amount of the image being displayed.
+						float	imageArea = NSWidth(mosaicBounds) * NSHeight(mosaicBounds), 
+								tileArea = NSWidth([selectedTilesOutline bounds]) * NSHeight([selectedTilesOutline bounds]);
+						[[NSString stringWithFormat:NSLocalizedString(@"Cropping: %.0f%%", @""), (imageArea - tileArea) / imageArea * 100.0] drawAtPoint:NSMakePoint(leftEdge, curY) withAttributes:nil];
+					}
 					else
-						sourceWidth += [(NSAttributedString *)sourceDescription size].width;
-					float		leftEdge = NSMidX([tileOutline bounds]) - sourceWidth / 2.0;
-					[sourceLabel drawAtPoint:NSMakePoint(leftEdge, curY) withAttributes:nil];
-					[sourceImage drawAtPoint:NSMakePoint(leftEdge + stringSize.width + 2.0, curY - 0.0) 
-									fromRect:NSZeroRect 
-								   operation:NSCompositeSourceOver 
-									fraction:1.0];
-					if ([sourceDescription isKindOfClass:[NSString class]])
-						[(NSString *)sourceDescription drawAtPoint:NSMakePoint(leftEdge + stringSize.width + 2.0 + [sourceImage size].width + 4.0, curY) 
-													withAttributes:nil];
-					else
-						[(NSAttributedString *)sourceDescription drawAtPoint:NSMakePoint(leftEdge + stringSize.width + 4.0 + [sourceImage size].width + 4.0, curY)];
-					curY -= 14.0;
+					{
+						NSString	*noMatchString = NSLocalizedString(@"No match available", @"");
+						NSSize		stringSize = [noMatchString sizeWithAttributes:nil];
+						[noMatchString drawAtPoint:NSMakePoint(NSMidX([selectedTilesOutline bounds]) - stringSize.width / 2.0, curY) withAttributes:nil];
+					}
 					
-						// Display the match value of the image being displayed.
-					[[NSString stringWithFormat:NSLocalizedString(@"Match: %.0f%%", @""), [bestMatch matchValue]] drawAtPoint:NSMakePoint(leftEdge, curY) 
-																											   withAttributes:nil];
-					curY -= 14.0;
+					break;
+				}
+				case fillWithHandPicked:
+				{
+					MacOSaiXImageMatch	*handPickedMatch = [selectedTile userChosenImageMatch];
 					
-						// Display the crop amount of the image being displayed.
-					float	imageArea = NSWidth(mosaicBounds) * NSHeight(mosaicBounds), 
-							tileArea = NSWidth([tileOutline bounds]) * NSHeight([tileOutline bounds]);
-					[[NSString stringWithFormat:NSLocalizedString(@"Cropping: %.0f%%", @""), (imageArea - tileArea) / imageArea * 100.0] drawAtPoint:NSMakePoint(leftEdge, curY) withAttributes:nil];
+					if (handPickedMatch)
+					{
+						// TODO
+					}
+					
+					break;
 				}
-				else
+				case fillWithTargetImage:
 				{
-					NSString	*noMatchString = NSLocalizedString(@"No match available", @"");
-					NSSize		stringSize = [noMatchString sizeWithAttributes:nil];
-					[noMatchString drawAtPoint:NSMakePoint(NSMidX([tileOutline bounds]) - stringSize.width / 2.0, curY) withAttributes:nil];
+					// TODO: create the image that shows the portion of the target image
+					
+					break;
 				}
-				
-				break;
-			}
-			case fillWithHandPicked:
-			{
-				MacOSaiXImageMatch	*handPickedMatch = [[self selectedTile] userChosenImageMatch];
-				
-				if (handPickedMatch)
+				case fillWithColor:
+				case fillWithAverageTargetColor:
 				{
+					NSColor	*tileColor = [selectedTile fillColor];
+					
+					if (!tileColor)
+						tileColor = [NSColor blackColor];
+					
+					// TODO?
+					
+					break;
 				}
-				
-				break;
-			}
-			case fillWithTargetImage:
-			{
-				// TODO: create the image that shows the portion of the target image
-				
-				break;
-			}
-			case fillWithColor:
-			{
-				NSColor	*tileColor = [selectedTile fillColor];
-				
-				if (!tileColor)
-					tileColor = [NSColor blackColor];
-				
-				break;
 			}
 		}
 	}
@@ -189,107 +235,330 @@
 
 - (void)handleEvent:(NSEvent *)event inMosaicView:(MosaicView *)mosaicView;
 {
-	[self setSelectedTile:[mosaicView tileAtPoint:[mosaicView convertPoint:[event locationInWindow] fromView:nil]]];
-}
-
-
-- (void)populateGUI
-{
-	MacOSaiXTileFillStyle	fillStyle = [selectedTile fillStyle];
+	NSPoint	mousePoint = [mosaicView convertPoint:[event locationInWindow] fromView:nil];
 	
-	[fillStylePopUp selectItemWithTag:fillStyle];
-	
-	[fillStyleTabView selectTabViewItemWithIdentifier:[NSString stringWithFormat:@"%d", fillStyle]];
-	
-	switch (fillStyle)
+	if ([event type] == NSLeftMouseDown)
 	{
-		case fillWithUniqueMatch:
+		mouseDownPoint = mousePoint;
+		mouseDragPoint = NSZeroPoint;
+	}
+	else if ([event type] == NSLeftMouseDragged)
+	{
+		mouseDragPoint = mousePoint;
+		
+		[[self delegate] embellishmentNeedsDisplay];
+	}
+	else if ([event type] == NSLeftMouseUp)
+	{
+		if (NSEqualPoints(mouseDragPoint, NSZeroPoint))
 		{
-			MacOSaiXImageMatch	*bestMatch = [[self selectedTile] uniqueImageMatch];
+			MacOSaiXTile	*selectedTile = [mosaicView tileAtPoint:mousePoint];
+			BOOL			cmdKeyDown = (([event modifierFlags] & NSCommandKeyMask) != 0);
 			
-			if (bestMatch)
-			{
-				NSImageRep	*bestMatchRep = [[bestMatch sourceImage] imageRepAtSize:NSZeroSize];
-				NSImage		*bestMatchImage = [[[NSImage alloc] initWithSize:[bestMatchRep size]] autorelease];
-				[bestMatchImage addRepresentation:bestMatchRep];
-				
-				[bestMatchImageView setImage:bestMatchImage];
-			}
-			else
-				[bestMatchImageView setImage:nil];
+			mouseDownPoint = mouseDragPoint = NSZeroPoint;
 			
-			if ([[bestMatch sourceImage] contextURL])
+			if (!selectedTile && !cmdKeyDown)
+				[self setSelectedTiles:nil];
+			else if (selectedTile)
 			{
-				if (!openBestMatchInBrowserButton)
+				if (!cmdKeyDown)
+					[self setSelectedTiles:[NSArray arrayWithObject:selectedTile]];
+				else
 				{
-					openBestMatchInBrowserButton = [[[NSButton alloc] initWithFrame:NSMakeRect(NSMaxX([bestMatchImageView frame]) - 28.0, 5.0, 16.0, 16.0)] autorelease];
-					[openBestMatchInBrowserButton setBordered:NO];
-					[openBestMatchInBrowserButton setTitle:nil];
-					[openBestMatchInBrowserButton setImage:browserIcon];
-					[openBestMatchInBrowserButton setImagePosition:NSImageOnly];
-					[openBestMatchInBrowserButton setAutoresizingMask:(NSViewMinXMargin | NSViewMaxYMargin)];
-					[openBestMatchInBrowserButton setTarget:self];
-					[openBestMatchInBrowserButton setAction:@selector(openWebPageForCurrentImage:)];
-					[bestMatchImageView addSubview:openBestMatchInBrowserButton];
+					NSMutableArray	*tiles = [[[self selectedTiles] mutableCopy] autorelease];
+					if (!tiles)
+						tiles = [NSMutableArray array];
+					
+					unsigned		tileIndex = [tiles indexOfObjectIdenticalTo:selectedTile];
+					if (tileIndex == NSNotFound)
+						[tiles addObject:selectedTile];
+					else
+						[tiles removeObjectAtIndex:tileIndex];
+					
+					[self setSelectedTiles:tiles];
 				}
 			}
-			else if (openBestMatchInBrowserButton)
-			{
-				[openBestMatchInBrowserButton removeFromSuperview];
-				openBestMatchInBrowserButton = nil;
-			}
-			
-			break;
 		}
-		case fillWithHandPicked:
+		else
 		{
-			MacOSaiXImageMatch	*handPickedMatch = [[self selectedTile] userChosenImageMatch];
+			mouseDragPoint = mousePoint;
 			
-			if (handPickedMatch)
-			{
-				NSImageRep			*handPickedRep = [[handPickedMatch sourceImage] imageRepAtSize:NSZeroSize];
-				NSImage				*handPickedImage = [[[NSImage alloc] initWithSize:[handPickedRep size]] autorelease];
-				[handPickedImage addRepresentation:handPickedRep];
-				
-				[handPickedImageView setImage:handPickedImage];
-			}
-			
-			break;
-		}
-		case fillWithTargetImage:
-		{
-			// TODO: create the image that shows the portion of the target image
-			
-			break;
-		}
-		case fillWithColor:
-		{
-			NSColor	*tileColor = [selectedTile fillColor];
-			
-			if (!tileColor)
-				tileColor = [NSColor blackColor];
-			
-			if ([tileColor isEqualTo:[NSColor blackColor]])
-				[solidColorMatrix selectCellAtRow:0 column:0];
-			else if ([tileColor isEqualTo:[NSColor clearColor]])
-				[solidColorMatrix selectCellAtRow:1 column:0];
-			else
-				[solidColorMatrix selectCellAtRow:2 column:0];
-			
-			[solidColorWell setColor:tileColor];
-			
-			break;
+			NSRect	selectionRect = [self selectionRect];
+
+			mouseDownPoint = mouseDragPoint = NSZeroPoint;
+
+			[self setSelectedTiles:[mosaicView tilesInRect:selectionRect]];
 		}
 	}
 }
 
 
-- (void)setSelectedTile:(MacOSaiXTile *)tile
+- (NSImage *)browserIcon
 {
-	if (tile != selectedTile)
+	static NSImage	*browserIcon = nil;
+	
+	if (!browserIcon)
 	{
-		[selectedTile autorelease];
-		selectedTile = [tile retain];
+		CFURLRef	browserURL = nil;
+		OSStatus	status = LSGetApplicationForURL((CFURLRef)[NSURL URLWithString:@"http://www.apple.com/"], 
+													kLSRolesViewer,
+													NULL,
+													&browserURL);
+		if (status == noErr)
+			browserIcon = [[[NSWorkspace sharedWorkspace] iconForFile:[(NSURL *)browserURL path]] retain];
+		else
+		{
+			NSString	*safariPath = [[NSWorkspace sharedWorkspace] fullPathForApplication:@"Safari"];
+			
+			if (safariPath)
+				browserIcon = [[[NSWorkspace sharedWorkspace] iconForFile:safariPath] retain];
+			// TBD: else ???
+		}
+		
+		[browserIcon setSize:NSMakeSize(16.0, 16.0)];
+	}
+	
+	return browserIcon;
+}
+
+
+- (void)populateGUI
+{
+	int	tileCount = [[self selectedTiles] count];
+	
+	if (tileCount == 0)
+	{
+		[fillStylePopUp setEnabled:NO];
+		[fillStylePopUp selectItemWithTag:fillWithUniqueMatch];
+		[fillStyleTabView selectTabViewItemWithIdentifier:@"No Tile Selected"];
+	}
+	else
+	{
+		[fillStylePopUp setEnabled:YES];
+		
+			// Determine if the selection contains mixed fill styles.
+		BOOL					fillSelectionWithUniqueMatch = NO, 
+								fillSelectionWithHandPicked = NO, 
+								fillSelectionWithTargetImage = NO, 
+								fillSelectionWithColor = NO, 
+								multipleFillStyles = NO, 
+								multipleUniqueMatches = NO, 
+								fillSelectionWithAverageTargetColor = NO, 
+								fillSelectionWithBlackColor = NO, 
+								fillSelectionWithClearColor = NO, 
+								fillSelectionWithCustomColor = NO, 
+								multipleFillColors = NO;
+		MacOSaiXImageMatch		*uniqueMatch = nil;
+		NSColor					*fillColor = nil;
+		NSEnumerator			*selectedTileEnumerator = [[self selectedTiles] objectEnumerator];
+		MacOSaiXTile			*selectedTile = nil;
+		while (selectedTile = [selectedTileEnumerator nextObject])
+		{
+			switch ([selectedTile fillStyle])
+			{
+				case fillWithUniqueMatch:
+					fillSelectionWithUniqueMatch = YES;
+					if (fillSelectionWithHandPicked || fillSelectionWithTargetImage || fillSelectionWithColor)
+						multipleFillStyles = YES;
+					if (!uniqueMatch)
+						uniqueMatch = [selectedTile uniqueImageMatch];
+					else if (!multipleUniqueMatches && ![[uniqueMatch sourceImage] isEqualTo:[[selectedTile uniqueImageMatch] sourceImage]])
+						multipleUniqueMatches = YES;
+					break;
+				case fillWithHandPicked:
+					fillSelectionWithHandPicked = YES;
+					if (fillSelectionWithUniqueMatch || fillSelectionWithTargetImage || fillSelectionWithColor)
+						multipleFillStyles = YES;
+					break;
+				case fillWithTargetImage:
+					fillSelectionWithTargetImage = YES;
+					if (fillSelectionWithUniqueMatch || fillSelectionWithHandPicked || fillSelectionWithColor)
+						multipleFillStyles = YES;
+					break;
+				case fillWithColor:
+				case fillWithAverageTargetColor:
+					fillSelectionWithColor = YES;
+					if (fillSelectionWithUniqueMatch || fillSelectionWithHandPicked || fillSelectionWithTargetImage)
+						multipleFillStyles = YES;
+					else
+					{
+						if ([selectedTile fillStyle] == fillWithAverageTargetColor)
+						{
+							fillSelectionWithAverageTargetColor = YES;
+							if (fillSelectionWithBlackColor || fillSelectionWithClearColor || fillSelectionWithCustomColor)
+								multipleFillColors = YES;
+						}
+						else if ([[selectedTile fillColor] isEqualTo:[NSColor blackColor]])
+						{
+							fillSelectionWithBlackColor = YES;
+							if (fillSelectionWithAverageTargetColor || fillSelectionWithClearColor || fillSelectionWithCustomColor)
+								multipleFillColors = YES;
+						}
+						else if ([[selectedTile fillColor] isEqualTo:[NSColor clearColor]])
+						{
+							fillSelectionWithClearColor = YES;
+							if (fillSelectionWithAverageTargetColor || fillSelectionWithBlackColor || fillSelectionWithCustomColor)
+								multipleFillColors = YES;
+						}
+						else
+						{
+							fillSelectionWithCustomColor = YES;
+							if (fillSelectionWithAverageTargetColor || fillSelectionWithBlackColor || fillSelectionWithClearColor || 
+								![[selectedTile fillColor] isEqualTo:fillColor])
+								multipleFillColors = YES;
+						}
+					}
+					
+					if (!multipleFillColors)
+						fillColor = [selectedTile fillColor];
+					
+					break;
+			}
+		}
+		
+		if (multipleFillStyles)
+		{
+			if (fillSelectionWithColor)
+			{
+				[[[fillStylePopUp menu] itemWithTag:fillWithColor] setState:NSMixedState];
+				[fillStylePopUp selectItemWithTag:fillWithColor];
+			}
+			if (fillSelectionWithTargetImage)
+			{
+				[[[fillStylePopUp menu] itemWithTag:fillWithTargetImage] setState:NSMixedState];
+				[fillStylePopUp selectItemWithTag:fillWithTargetImage];
+			}
+			if (fillSelectionWithHandPicked)
+			{
+				[[[fillStylePopUp menu] itemWithTag:fillWithHandPicked] setState:NSMixedState];
+				[fillStylePopUp selectItemWithTag:fillWithHandPicked];
+			}
+			if (fillSelectionWithUniqueMatch)
+			{
+				[[[fillStylePopUp menu] itemWithTag:fillWithUniqueMatch] setState:NSMixedState];
+				[fillStylePopUp selectItemWithTag:fillWithUniqueMatch];
+			}
+			
+			[fillStyleTabView selectTabViewItemWithIdentifier:@"Multiple Styles Selected"];
+		}
+		else
+		{
+			MacOSaiXTile			*selectedTile = [[self selectedTiles] lastObject];
+			
+			switch ([selectedTile fillStyle])
+			{
+				case fillWithUniqueMatch:
+				{
+					[fillStylePopUp selectItemWithTag:fillWithUniqueMatch];
+					
+					if (multipleUniqueMatches)
+						[fillStyleTabView selectTabViewItemWithIdentifier:@"Multiple Tiles Selected"];
+					else
+					{
+						[fillStyleTabView selectTabViewItemWithIdentifier:[NSString stringWithFormat:@"%d", fillWithUniqueMatch]];
+						
+						if (uniqueMatch)
+						{
+							NSImageRep	*uniqueMatchRep = [[uniqueMatch sourceImage] imageRepAtSize:NSZeroSize];
+							NSImage		*uniqueMatchImage = [[[NSImage alloc] initWithSize:[uniqueMatchRep size]] autorelease];
+							[uniqueMatchImage addRepresentation:uniqueMatchRep];
+							
+							[bestMatchImageView setImage:uniqueMatchImage];
+						}
+						else
+							[bestMatchImageView setImage:nil];
+						
+						if ([[uniqueMatch sourceImage] contextURL])
+						{
+							if (!openBestMatchInBrowserButton)
+							{
+								openBestMatchInBrowserButton = [[[NSButton alloc] initWithFrame:NSMakeRect(NSMaxX([bestMatchImageView frame]) - 28.0, 5.0, 16.0, 16.0)] autorelease];
+								[openBestMatchInBrowserButton setBordered:NO];
+								[openBestMatchInBrowserButton setTitle:nil];
+								[openBestMatchInBrowserButton setImage:[self browserIcon]];
+								[openBestMatchInBrowserButton setImagePosition:NSImageOnly];
+								[openBestMatchInBrowserButton setAutoresizingMask:(NSViewMinXMargin | NSViewMaxYMargin)];
+								[openBestMatchInBrowserButton setTarget:self];
+								[openBestMatchInBrowserButton setAction:@selector(openWebPageForCurrentImage:)];
+								[bestMatchImageView addSubview:openBestMatchInBrowserButton];
+							}
+						}
+						else if (openBestMatchInBrowserButton)
+						{
+							[openBestMatchInBrowserButton removeFromSuperview];
+							openBestMatchInBrowserButton = nil;
+						}
+					}
+					
+					break;
+				}
+				case fillWithHandPicked:
+				{
+					[fillStylePopUp selectItemWithTag:fillWithHandPicked];
+					[fillStyleTabView selectTabViewItemWithIdentifier:[NSString stringWithFormat:@"%d", fillWithHandPicked]];
+					MacOSaiXImageMatch	*handPickedMatch = [selectedTile userChosenImageMatch];
+					
+					if (handPickedMatch)
+					{
+						NSImageRep			*handPickedRep = [[handPickedMatch sourceImage] imageRepAtSize:NSZeroSize];
+						NSImage				*handPickedImage = [[[NSImage alloc] initWithSize:[handPickedRep size]] autorelease];
+						[handPickedImage addRepresentation:handPickedRep];
+						
+						[handPickedImageView setImage:handPickedImage];
+					}
+					
+					break;
+				}
+				case fillWithTargetImage:
+				{
+					[fillStylePopUp selectItemWithTag:fillWithTargetImage];
+					[fillStyleTabView selectTabViewItemWithIdentifier:[NSString stringWithFormat:@"%d", fillWithTargetImage]];
+					
+					// TODO: create the image that shows the portion(s) of the target image
+					
+					break;
+				}
+				case fillWithColor:
+				case fillWithAverageTargetColor:
+				{
+					[fillStylePopUp selectItemWithTag:fillWithColor];
+					[fillStyleTabView selectTabViewItemWithIdentifier:[NSString stringWithFormat:@"%d", fillWithColor]];
+					
+					if (multipleFillColors)
+					{
+						[[solidColorMatrix cellAtRow:0 column:0] setState:(fillSelectionWithAverageTargetColor ? NSMixedState : NSOffState)];
+						[[solidColorMatrix cellAtRow:1 column:0] setState:(fillSelectionWithBlackColor ? NSMixedState : NSOffState)];
+						[[solidColorMatrix cellAtRow:2 column:0] setState:(fillSelectionWithClearColor ? NSMixedState : NSOffState)];
+						[[solidColorMatrix cellAtRow:3 column:0] setState:(fillSelectionWithCustomColor ? NSMixedState : NSOffState)];
+					}
+					else
+					{
+						if ([selectedTile fillStyle] == fillWithAverageTargetColor)
+							[solidColorMatrix selectCellAtRow:0 column:0];
+						else if ([fillColor isEqualTo:[NSColor blackColor]])
+							[solidColorMatrix selectCellAtRow:1 column:0];
+						else if ([fillColor isEqualTo:[NSColor clearColor]])
+							[solidColorMatrix selectCellAtRow:2 column:0];
+						else
+							[solidColorMatrix selectCellAtRow:3 column:0];
+					}
+					
+					[solidColorWell setColor:fillColor];
+					
+					break;
+				}
+			}
+		}
+	}
+}
+
+
+- (void)setSelectedTiles:(NSArray *)tiles
+{
+	if (![tiles isEqualToArray:selectedTiles])
+	{
+		[selectedTiles autorelease];
+		selectedTiles = [tiles retain];
 		
 //		NSRect				mosaicBounds = [[self mosaicView] imageBounds];
 //		NSSize				targetImageSize = [[[[self delegate] mosaic] targetImage] size];
@@ -326,15 +595,18 @@
 }
 
 
-- (MacOSaiXTile *)selectedTile
+- (NSArray *)selectedTiles
 {
-	return selectedTile;
+	return selectedTiles;
 }
 
 
 - (IBAction)setFillStyle:(id)sender
 {
-	[selectedTile setFillStyle:[[fillStylePopUp selectedItem] tag]];
+	NSEnumerator	*selectedTileEnumerator = [[self selectedTiles] objectEnumerator];
+	MacOSaiXTile	*selectedTile = nil;
+	while (selectedTile = [selectedTileEnumerator nextObject])
+		[selectedTile setFillStyle:[[fillStylePopUp selectedItem] tag]];
 	
 	[self populateGUI];
 }
@@ -445,30 +717,50 @@
 }
 
 
+- (IBAction)removeChosenImageForSelectedTiles:(id)sender
+{
+	NSEnumerator	*selectedTileEnumerator = [[self selectedTiles] objectEnumerator];
+	MacOSaiXTile	*selectedTile = nil;
+	while (selectedTile = [selectedTileEnumerator nextObject])
+		[selectedTile setUserChosenImageMatch:nil];
+}
+
+
 - (IBAction)setSolidColor:(id)sender
 {
+	MacOSaiXTileFillStyle	fillStyle = fillWithColor;
+	NSColor					*fillColor = nil;
+	
 	if (sender == solidColorMatrix)
 	{
 		if ([solidColorMatrix selectedRow] == 0)
-		{
-			[selectedTile setFillColor:[NSColor blackColor]];
-			[solidColorWell setColor:[NSColor blackColor]];
-		}
+			fillStyle = fillWithAverageTargetColor;
 		else if ([solidColorMatrix selectedRow] == 1)
-		{
-			[selectedTile setFillColor:[NSColor clearColor]];
-			[solidColorWell setColor:[NSColor clearColor]];
-		}
+			fillColor = [NSColor blackColor];
+		else if ([solidColorMatrix selectedRow] == 2)
+			fillColor = [NSColor clearColor];
+		
+		if (fillColor)
+			[solidColorWell setColor:fillColor];
 	}
 	else if (sender == solidColorWell)
+		fillColor = [solidColorWell color];
+	
+	NSEnumerator	*selectedTileEnumerator = [[self selectedTiles] objectEnumerator];
+	MacOSaiXTile	*selectedTile = nil;
+	while (selectedTile = [selectedTileEnumerator nextObject])
 	{
-		[selectedTile setFillColor:[solidColorWell color]];
+		[selectedTile setFillStyle:fillStyle];
+		
+		if (fillStyle == fillWithColor)
+			[selectedTile setFillColor:fillColor];
 	}
 }
 
 
 - (IBAction)openWebPageForCurrentImage:(id)sender
 {
+	MacOSaiXTile		*selectedTile = [[self selectedTiles] lastObject];
 	MacOSaiXImageMatch	*imageMatch = nil;
 	
 	if ([selectedTile fillStyle] == fillWithUniqueMatch)
@@ -484,32 +776,6 @@
 - (void)tileImageDidChange:(NSNotification *)notification
 {
 	// TODO: update the "choose image" sheet if it's displaying the changed tile
-}
-
-
-#pragma mark -
-#pragma mark Hand picked images
-
-
-- (IBAction)chooseImageForSelectedTile:(id)sender
-{
-	//	MacOSaiXTileEditor	*tileEditor = [[MacOSaiXTileEditor alloc] init];
-	//	
-	//	[tileEditor chooseImageForTile:[mosaicView highlightedTile] 
-	//					modalForWindow:[self window] 
-	//					 modalDelegate:self 
-	//					didEndSelector:@selector(chooseImageForSelectedTileDidEnd)];
-}
-
-
-- (void)chooseImageForSelectedTilePanelDidEnd
-{
-}
-
-
-- (IBAction)removeChosenImageForSelectedTile:(id)sender
-{
-	[[self selectedTile] setUserChosenImageMatch:nil];
 }
 
 
@@ -553,14 +819,10 @@
 													name:MacOSaiXTileContentsDidChangeNotification 
 												  object:[[self delegate] mosaic]];
 	
-	[self setSelectedTile:nil];
+	[self setSelectedTiles:nil];
+	
+	[super endEditing];
 }
-
-
-//- (void)dealloc
-//{
-//	[super dealloc];
-//}
 
 
 @end

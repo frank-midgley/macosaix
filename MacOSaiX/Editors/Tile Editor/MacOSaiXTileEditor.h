@@ -13,7 +13,7 @@
 
 @interface MacOSaiXTileContentEditor : MacOSaiXMosaicEditor
 {
-    MacOSaiXTile			*selectedTile;
+    NSArray					*selectedTiles;
 	
 	IBOutlet NSPopUpButton	*fillStylePopUp;
 	IBOutlet NSTabView		*fillStyleTabView;
@@ -34,11 +34,12 @@
 	IBOutlet NSMatrix		*solidColorMatrix;
 	IBOutlet NSColorWell	*solidColorWell;
 	
-	NSImage					*browserIcon;
+	NSPoint					mouseDownPoint, 
+							mouseDragPoint;
 }
 
-- (void)setSelectedTile:(MacOSaiXTile *)tile;
-- (MacOSaiXTile *)selectedTile;
+- (void)setSelectedTiles:(NSArray *)tiles;
+- (NSArray *)selectedTiles;
 
 - (IBAction)setFillStyle:(id)sender;
 
