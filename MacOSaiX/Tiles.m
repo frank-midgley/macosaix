@@ -235,6 +235,48 @@
 }
 
 
+- (NSColor *)averageTargetColor
+{
+	if (!averageTargetColor)
+	{
+		float				redValue = 0.0, 
+							greenValue = 0.0, 
+							blueValue = 0.0;
+		int					bytesPerPixel = [bitmapRep hasAlpha] ? 4 : 3, 
+							bytesPerRow = [bitmapRep bytesPerRow], 
+							xSize = [bitmapRep size].width,
+							ySize = [bitmapRep size].height;
+		float				pixelCount = 0.0;
+		unsigned char		*bitmapBytes = [bitmapRep bitmapData], 
+							*maskBytes = [maskRep bitmapData];
+		
+			// Add up the color values of all the pixels weighted by the mask.
+		int				x, y;
+		for (x = 0; x < xSize; x++)
+		{
+			for (y = 0; y < ySize; y++)
+			{
+				unsigned char	*bitmap_off = bitmapBytes + x * bytesPerPixel + y * bytesPerRow;
+				float			maskValue = *(maskBytes++) / 255.0;	// 0.0 <-> 1.0
+				
+				redValue += *bitmap_off / 255.0 * maskValue;
+				greenValue += *(bitmap_off + 1) / 255.0 * maskValue;
+				blueValue += *(bitmap_off + 2) / 255.0 * maskValue;
+				
+				pixelCount += maskValue;
+			}
+		}
+		
+		averageTargetColor = [[NSColor colorWithCalibratedRed:redValue / pixelCount 
+														green:greenValue / pixelCount 
+														 blue:blueValue / pixelCount 
+														alpha:1.0] retain];
+	}
+	
+	return averageTargetColor;
+}
+
+
 - (void)sendNotificationThatImageContentsChangedFromPreviousMatch:(MacOSaiXImageMatch *)previousMatch
 {
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileContentsDidChangeNotification
@@ -256,6 +298,8 @@
 			previousMatch = uniqueImageMatch;
 		else if (style == fillWithHandPicked)
 			previousMatch = userChosenImageMatch;
+		else if (style == fillWithColor)
+			[self setFillColor:[NSColor blackColor]];
 		
 		fillStyle = style;
 		
@@ -343,7 +387,10 @@
 
 - (NSColor *)fillColor
 {
-	return fillColor;
+	if ([self fillStyle] == fillWithAverageTargetColor)
+		return [self averageTargetColor];
+	else
+		return fillColor;
 }
 
 
@@ -352,6 +399,7 @@
     [outline release];
     [bitmapRep release];
 	[maskRep release];
+	[averageTargetColor release];
 	[uniqueImageMatch release];
     [userChosenImageMatch release];
 	[bestImageMatch release];

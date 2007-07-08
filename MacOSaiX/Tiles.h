@@ -13,7 +13,14 @@
 @class MacOSaiXMosaic;
 
 
-typedef enum { fillWithUniqueMatch, fillWithHandPicked, fillWithTargetImage, fillWithColor } MacOSaiXTileFillStyle;
+typedef enum
+{
+	fillWithUniqueMatch, 
+	fillWithHandPicked, 
+	fillWithTargetImage, 
+	fillWithColor, 
+	fillWithAverageTargetColor
+} MacOSaiXTileFillStyle;
 
 
 @interface MacOSaiXTile : NSObject
@@ -23,6 +30,7 @@ typedef enum { fillWithUniqueMatch, fillWithHandPicked, fillWithTargetImage, fil
 	
 	NSBitmapImageRep		*bitmapRep,				// The portion of the target image that is in this tile
 							*maskRep;
+	NSColor					*averageTargetColor;
 	
 	MacOSaiXTileFillStyle	fillStyle;
 	MacOSaiXImageMatch		*uniqueImageMatch,
@@ -52,6 +60,8 @@ typedef enum { fillWithUniqueMatch, fillWithHandPicked, fillWithTargetImage, fil
 - (NSBitmapImageRep *)bitmapRep;
 - (NSBitmapImageRep *)maskRep;
 - (void)resetBitmapRepAndMask;
+
+- (NSColor *)averageTargetColor;
 
 - (void)setFillStyle:(MacOSaiXTileFillStyle)style;
 - (MacOSaiXTileFillStyle)fillStyle;
