@@ -15,27 +15,18 @@
 @implementation MacOSaiXSourceImage : NSObject
 
 
-+ (id)sourceImageWithImage:(NSImage *)inImage withIdentifier:(NSString *)identifier fromEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator
++ (id)sourceImageWithIdentifier:(NSString *)identifier fromEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator
 {
-	MacOSaiXSourceImage	*sourceImage = [[[self class] alloc] initWithImage:inImage 
-															withIdentifier:identifier 
-															fromEnumerator:enumerator];
+	MacOSaiXSourceImage	*sourceImage = [[[self class] alloc] initWithIdentifier:identifier fromEnumerator:enumerator];
 	
-	return [sourceImage autorelease];;
+	return [sourceImage autorelease];
 }
 
 
-- (id)initWithImage:(NSImage *)inImage withIdentifier:(NSString *)identifier fromEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator
+- (id)initWithIdentifier:(NSString *)identifier fromEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator
 {
 	if (self = [super init])
 	{
-		if (image)
-		{
-			image = [inImage retain];
-			
-			[[MacOSaiXImageCache sharedImageCache] cacheImage:image withIdentifier:identifier fromSource:[enumerator workingImageSource]];
-		}
-		
 		imageIdentifier = [identifier copy];
 		imageSourceEnumerator = [enumerator retain];
 	}
@@ -44,31 +35,18 @@
 }
 
 
-- (NSImage *)image
-{
-	return image;
-}
-
-
 - (NSSize)nativeSize
 {
-	NSSize					imageSize = NSZeroSize;
+	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
+	NSSize				imageSize = [imageCache nativeSizeOfImageWithIdentifier:[self imageIdentifier] 
+																	 fromSource:[[self enumerator] workingImageSource]];
 	
-	if ([self image])
-		imageSize = [[self image] size];
-	else
+	if (NSEqualSizes(imageSize, NSZeroSize))
 	{
-			// Get the size from the cache.
-		imageSize = [[MacOSaiXImageCache sharedImageCache] nativeSizeOfImageWithIdentifier:[self imageIdentifier] 
-																				fromSource:[[self enumerator] workingImageSource]];
-		
-		if (NSEqualSizes(imageSize, NSZeroSize))
-		{
-				// The image isn't in the cache.  Force it to load and then get its size.
-			imageSize = [[[MacOSaiXImageCache sharedImageCache] imageRepAtSize:NSZeroSize 
-																 forIdentifier:[self imageIdentifier] 
-																	fromSource:[[self enumerator] workingImageSource]] size];
-		}
+			// The image isn't in the cache.  Force it to load and then get its size.
+		imageSize = [[imageCache imageRepAtSize:NSZeroSize 
+								  forIdentifier:[self imageIdentifier] 
+									 fromSource:[[self enumerator] workingImageSource]] size];
 	}
 	
 	return imageSize;
@@ -117,15 +95,13 @@
 
 - (id)copyWithZone:(NSZone *)zone
 {
-	return [[MacOSaiXSourceImage alloc] initWithImage:[self image] 
-									   withIdentifier:[self imageIdentifier] 
-									   fromEnumerator:[self enumerator]];
+	return [[MacOSaiXSourceImage alloc] initWithIdentifier:[self imageIdentifier] 
+											fromEnumerator:[self enumerator]];
 }
 
 
 - (void)dealloc
 {
-	[image release];
 	[imageIdentifier release];
 	[imageSourceEnumerator release];
 	

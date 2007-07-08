@@ -12,16 +12,14 @@
 	// An image from an image source.
 @interface MacOSaiXSourceImage : NSObject <NSCopying>
 {
-	NSImage							*image;
 	NSString						*imageIdentifier;
 	MacOSaiXImageSourceEnumerator	*imageSourceEnumerator;
 }
 
-+ (id)sourceImageWithImage:(NSImage *)inImage withIdentifier:(NSString *)identifier fromEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator;
++ (id)sourceImageWithIdentifier:(NSString *)identifier fromEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator;
 
-- (id)initWithImage:(NSImage *)image withIdentifier:(NSString *)imageIdentifier fromEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator;
+- (id)initWithIdentifier:(NSString *)imageIdentifier fromEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator;
 
-- (NSImage *)image;
 - (NSSize)nativeSize;
 
 - (NSString *)imageIdentifier;
