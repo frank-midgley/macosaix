@@ -12,11 +12,10 @@
 
 @interface MacOSaiXImageQueue : NSObject
 {
-	NSMutableArray	*imageQueue, 
-					*imagelessQueue;
+	NSMutableArray	*imageQueue;
 	NSLock			*queueLock;
-	unsigned int	maximumCount, 
-					revisitStep;
+	NSConditionLock	*queueFullLock;
+	unsigned int	maximumCount;
 }
 
 - (unsigned)count;

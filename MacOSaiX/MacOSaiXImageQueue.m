@@ -12,6 +12,10 @@
 #import "MacOSaiXSourceImage.h"
 
 
+#define IMAGE_QUEUE_NOT_FULL	0
+#define IMAGE_QUEUE_FULL		1
+
+
 @implementation MacOSaiXImageQueue
 
 
@@ -20,8 +24,8 @@
 	if (self = [super init])
 	{
 		imageQueue = [[NSMutableArray array] retain];
-		imagelessQueue = [[NSMutableArray array] retain];
 		queueLock = [[NSLock alloc] init];
+		queueFullLock = [[NSConditionLock alloc] initWithCondition:IMAGE_QUEUE_NOT_FULL];
 	}
 	
 	return self;
@@ -33,7 +37,7 @@
 	unsigned	count = 0;
 	
 	[queueLock lock];
-		count = [imageQueue count] + [imagelessQueue count];
+		count = [imageQueue count];
 	[queueLock unlock];
 	
 	return count;
@@ -41,7 +45,14 @@
 
 - (void)setMaximumCount:(unsigned int)count
 {
-	maximumCount = count;
+	[queueLock lock];
+		
+		maximumCount = count;
+		
+		if (maximumCount == 0 || ([imageQueue count] < maximumCount))
+			[queueFullLock unlockWithCondition:IMAGE_QUEUE_NOT_FULL];
+		
+	[queueLock unlock];
 }
 
 
@@ -53,13 +64,17 @@
 
 - (void)pushImage:(MacOSaiXSourceImage *)sourceImage;
 {
-	// TODO: lock if queue is full
-	
 	[queueLock lock];
-		if ([sourceImage image])
-			[imageQueue addObject:sourceImage];
-		else
-			[imagelessQueue addObject:sourceImage];
+		
+		while ([self maximumCount] > 0 && [imageQueue count] >= [self maximumCount])
+		{
+			[queueFullLock unlockWithCondition:IMAGE_QUEUE_FULL];
+			[queueLock unlock];
+			[queueFullLock lockWhenCondition:IMAGE_QUEUE_NOT_FULL];
+			[queueLock lock];
+		}
+		[imageQueue addObject:sourceImage];
+		
 	[queueLock unlock];
 }
 
@@ -69,20 +84,11 @@
 	MacOSaiXSourceImage	*queuedImage = nil;
 				
 	[queueLock lock];
-		NSMutableArray	*chosenQueue = nil;
+		queuedImage = [[[imageQueue objectAtIndex:0] retain] autorelease];
+		[imageQueue removeObjectAtIndex:0];
 		
-		if ([imageQueue count] > 0 && [imagelessQueue count] == 0)
-			chosenQueue = imageQueue;
-		else if ([imagelessQueue count] > 0 && [imageQueue count] == 0)
-			chosenQueue = imagelessQueue;
-		else if ([imagelessQueue count] > 0 && [imageQueue count] > 0)
-		{
-			chosenQueue = (revisitStep < 15 ? imageQueue : imagelessQueue);
-			revisitStep = (revisitStep + 1) % 16;
-		}
-		
-		queuedImage = [[[chosenQueue objectAtIndex:0] retain] autorelease];
-		[chosenQueue removeObjectAtIndex:0];
+		if ([self maximumCount] > 0 && [imageQueue count] < [self maximumCount])
+			[queueFullLock unlockWithCondition:IMAGE_QUEUE_NOT_FULL];
 	[queueLock unlock];
 	
 	return queuedImage;
@@ -91,34 +97,29 @@
 
 - (void)addImagesFromQueue:(MacOSaiXImageQueue *)otherQueue
 {
-	NSEnumerator		*sourceImageEnumerator = [[otherQueue queuedImages] objectEnumerator];
-	MacOSaiXSourceImage	*sourceImage = nil;
+	NSEnumerator		*queuedImageEnumerator = [[otherQueue queuedImages] objectEnumerator];
+	MacOSaiXSourceImage	*queuedImage = nil;
 	
 	[queueLock lock];
-		while (sourceImage = [sourceImageEnumerator nextObject])
-		{
-			if ([sourceImage image])
-				[imageQueue addObject:sourceImage];
-			else
-				[imagelessQueue addObject:sourceImage];
-		}
+		while (queuedImage = [queuedImageEnumerator nextObject])
+			if (![imageQueue containsObject:queuedImage])
+				[imageQueue addObject:queuedImage];
 	[queueLock unlock];
 }
 
 
 - (void)removeImagesFromImageSourceEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator;
 {
-		// Remove any images from this enumerator that are waiting to be matched or revisited.
+		// Remove any images that came from the enumerator.
 	[queueLock lock];
 		NSEnumerator		*sourceImageEnumerator = [[NSArray arrayWithArray:imageQueue] objectEnumerator];
 		MacOSaiXSourceImage	*sourceImage = nil;
 		while (sourceImage = [sourceImageEnumerator nextObject])
 			if ([sourceImage enumerator] == enumerator)
 				[imageQueue removeObjectIdenticalTo:sourceImage];
-		sourceImageEnumerator = [[NSArray arrayWithArray:imagelessQueue] objectEnumerator];
-		while (sourceImage = [sourceImageEnumerator nextObject])
-			if ([sourceImage enumerator] == enumerator)
-				[imagelessQueue removeObjectIdenticalTo:sourceImage];
+		
+		if ([self maximumCount] > 0 && [imageQueue count] < [self maximumCount])
+			[queueFullLock unlockWithCondition:IMAGE_QUEUE_NOT_FULL];
 	[queueLock unlock];
 }
 
@@ -128,7 +129,7 @@
 	NSArray	*queuedImages = nil;
 	
 	[queueLock lock];
-		queuedImages = [imageQueue arrayByAddingObjectsFromArray:imagelessQueue];
+		queuedImages = [NSArray arrayWithArray:imageQueue];
 	[queueLock unlock];
 	
 	return queuedImages;
@@ -139,7 +140,8 @@
 {
 	[queueLock lock];
 		[imageQueue removeAllObjects];
-		[imagelessQueue removeAllObjects];
+		
+		[queueFullLock unlockWithCondition:IMAGE_QUEUE_NOT_FULL];
 	[queueLock unlock];
 }
 
@@ -147,8 +149,8 @@
 - (void)dealloc
 {
 	[imageQueue release];
-	[imagelessQueue release];
 	[queueLock release];
+	[queueFullLock release];
 	
 	[super dealloc];
 }
