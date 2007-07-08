@@ -174,6 +174,7 @@
 
 - (void)endEditing
 {
+	[super endEditing];
 }
 
 
