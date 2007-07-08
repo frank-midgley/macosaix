@@ -935,9 +935,8 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						{
 							NSString			*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
 							float				matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
-							MacOSaiXSourceImage	*sourceImage = [MacOSaiXSourceImage sourceImageWithImage:nil 
-																						  withIdentifier:imageIdentifier 
-																						  fromEnumerator:[[mosaic imageSourceEnumerators] objectAtIndex:sourceIndex]];
+							MacOSaiXSourceImage	*sourceImage = [MacOSaiXSourceImage sourceImageWithIdentifier:imageIdentifier 
+																							   fromEnumerator:[[mosaic imageSourceEnumerators] objectAtIndex:sourceIndex]];
 							
 							newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
 																	forSourceImage:sourceImage 
@@ -953,9 +952,8 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						{
 							NSString			*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
 							float				matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
-							MacOSaiXSourceImage	*sourceImage = [MacOSaiXSourceImage sourceImageWithImage:nil 
-																						  withIdentifier:imageIdentifier 
-																						  fromEnumerator:[[mosaic imageSourceEnumerators] objectAtIndex:sourceIndex]];
+							MacOSaiXSourceImage	*sourceImage = [MacOSaiXSourceImage sourceImageWithIdentifier:imageIdentifier 
+																							   fromEnumerator:[[mosaic imageSourceEnumerators] objectAtIndex:sourceIndex]];
 							
 							newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
 																		forSourceImage:sourceImage 
@@ -968,9 +966,8 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					{
 						NSString			*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
 						float				matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
-						MacOSaiXSourceImage	*sourceImage = [MacOSaiXSourceImage sourceImageWithImage:nil 
-																					  withIdentifier:imageIdentifier 
-																					  fromEnumerator:nil];	// TBD: is this right now?
+						MacOSaiXSourceImage	*sourceImage = [MacOSaiXSourceImage sourceImageWithIdentifier:imageIdentifier 
+																						   fromEnumerator:nil];	// TBD: is this right now?
 						
 						newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
 																	forSourceImage:sourceImage 

@@ -40,8 +40,11 @@ NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXIm
 
 - (void)setImageSource:(id<MacOSaiXImageSource>)source
 {
-	[imageSource release];
-	imageSource = [source retain];
+	if (source != imageSource)
+	{
+		[imageSource release];
+		imageSource = [source retain];
+	}
 	
 		// Work with a copy of the source so the original can be modified safely in the main thread.
 	[workingImageSource release];
@@ -246,10 +249,13 @@ NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXIm
 			{
 					// This image is a reasonable size.
 				imagesFound++;
-			
-				MacOSaiXSourceImage	*sourceImage = [MacOSaiXSourceImage sourceImageWithImage:image 
-																			  withIdentifier:imageIdentifier 
-																			  fromEnumerator:self];
+				
+				[[MacOSaiXImageCache sharedImageCache] cacheImage:image 
+												   withIdentifier:imageIdentifier 
+													   fromSource:workingImageSource];
+				
+				MacOSaiXSourceImage	*sourceImage = [MacOSaiXSourceImage sourceImageWithIdentifier:imageIdentifier 
+																				   fromEnumerator:self];
 				
 				[mosaic addSourceImageToQueue:sourceImage];
 			}
