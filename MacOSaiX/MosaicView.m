@@ -424,6 +424,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 															   fraction:1.0];
 								break;
 							case fillWithColor:
+							case fillWithAverageTargetColor:
 								[[tile fillColor] set];
 								NSRectFillUsingOperation([clipPath bounds], NSCompositeSourceOver);
 								break;
@@ -542,6 +543,31 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 			break;
 	
 	return tile;
+}
+
+
+- (NSArray *)tilesInRect:(NSRect)theRect
+{
+	NSMutableArray	*tiles = [NSMutableArray array];
+	
+		// Convert the rect to the units system that the tile outlines are in.
+	NSRect	imageBounds = [self imageBounds];
+	NSSize	targetImageSize = [[[self mosaic] targetImage] size];
+    theRect.origin.x = (theRect.origin.x - NSMinX(imageBounds)) / NSWidth(imageBounds) * targetImageSize.width;
+	theRect.size.width *= targetImageSize.width / NSWidth(imageBounds);
+    theRect.origin.y = (theRect.origin.y - NSMinY(imageBounds)) / NSHeight(imageBounds) * targetImageSize.height;
+	theRect.size.height *= targetImageSize.height / NSHeight(imageBounds);
+	
+		// TBD: this isn't terribly efficient...
+	NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
+	MacOSaiXTile	*tile = nil;
+	while (tile = [tileEnumerator nextObject])
+	{
+        if (NSIntersectsRect([[tile outline] bounds], theRect))
+			[tiles addObject:tile];
+	}
+	
+	return tiles;
 }
 
 

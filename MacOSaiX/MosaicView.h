@@ -71,6 +71,7 @@
 - (MacOSaiXMosaicEditor *)activeEditor;
 
 - (MacOSaiXTile *)tileAtPoint:(NSPoint)thePoint;
+- (NSArray *)tilesInRect:(NSRect)theRect;
 
 - (NSImage *)image;
 
