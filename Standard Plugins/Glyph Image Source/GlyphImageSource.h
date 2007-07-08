@@ -6,41 +6,50 @@
 //  Copyright (c) 2001-2005 Frank M. Midgley. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
-#import "MacOSaiXImageSource.h"
+
+typedef enum MacOSaiXGlyphFontsType
+{
+	allFonts, 
+	fontCollection, 
+	fontFamily
+} MacOSaiXGlyphFontsType;
+
 
 @interface MacOSaiXGlyphImageSource : NSObject <MacOSaiXImageSource>
 {
-    NSMutableArray		*fontNames;
-	NSMutableDictionary	*colorLists;
-	NSString			*letterPool;
+	MacOSaiXGlyphFontsType	fontsType;
+	NSString				*fontFamilyName, 
+							*fontCollectionName, 
+							*colorListName, 
+							*colorListClass, 
+							*letterPool;
+	NSNumber				*aspectRatio;
 	
-	unsigned long		imageCountLimit,
-						imageCount;
+	BOOL					imagesShouldBeRemovedForLastChange;
 	
-	NSMutableDictionary	*glyphsDict;
-	NSRect				glyphsBounds;
+	NSMutableDictionary		*glyphsDict;
 	
-    NSWindow			*focusWindow;	// for offscreen drawing
-    NSLock				*focusWindowLock;
+    NSWindow				*focusWindow;	// for offscreen drawing
+    NSLock					*focusWindowLock;
 }
 
 + (NSArray *)builtInColorListNames;
 
-- (void)addFontWithName:(NSString *)fontName;
-- (void)removeFontWithName:(NSString *)fontName;
-- (NSArray *)fontNames;
+- (void)useAllFonts;
+- (void)setFontCollectionName:(NSString *)collectionName;
+- (NSString *)fontCollectionName;
+- (void)setFontFamilyName:(NSString *)familyName;
+- (NSString *)fontFamilyName;
+- (MacOSaiXGlyphFontsType)fontsType;
 
-- (void)addColorList:(NSString *)listName ofClass:(NSString *)listClass;
-- (void)removeColorList:(NSString *)listName ofClass:(NSString *)listClass;
-- (NSArray *)colorListsOfClass:(NSString *)listClass;
+- (void)setColorListName:(NSString *)listName ofClass:(NSString *)listClass;
+- (NSString *)colorListName;
+- (NSString *)colorListClass;
 
 - (void)setLetterPool:(NSString *)pool;
 - (NSString *)letterPool;
 
-- (NSSize)glyphsSize;
-
-- (void)setImageCountLimit:(unsigned long)limit;
-- (unsigned long)imageCountLimit;
+- (void)setAspectRatio:(NSNumber *)ratio;
+- (NSNumber *)aspectRatio;
 
 @end

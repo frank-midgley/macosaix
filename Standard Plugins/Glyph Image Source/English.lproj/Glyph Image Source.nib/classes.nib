@@ -3,33 +3,29 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
-                chooseAllFonts = id; 
-                chooseNoFonts = id; 
+                editFontCollections = id; 
                 editSystemWideColors = id; 
-                setCountOption = id; 
-                toggleColor = id; 
-                toggleFont = id; 
+                setSize = id; 
+                useAllFonts = id; 
+                useBuiltInColors = id; 
+                useFontCollection = id; 
+                useFontFamily = id; 
+                useSystemWideColors = id; 
             }; 
-            CLASS = MacOSaiXGlyphImageSourceController; 
+            CLASS = MacOSaiXGlyphImageSourceEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                allFontsButton = NSButton; 
-                colorsOutlineView = NSOutlineView; 
-                countMatrix = NSMatrix; 
-                countTextField = NSTextField; 
+                colorsPopUp = NSPopUpButton; 
+                delegate = id; 
                 editorView = NSView; 
-                fontsOutlineView = NSOutlineView; 
+                fontsPopUp = NSPopUpButton; 
                 lettersView = NSTextView; 
-                noFontsButton = NSButton; 
                 sampleImageView = NSImageView; 
-                sizeTextField = NSTextField; 
+                sizeMatrix = NSMatrix; 
+                sizePopUp = NSPopUpButton; 
+                sizeSlider = NSSlider; 
             }; 
             SUPERCLASS = NSObject; 
-        }, 
-        {
-            CLASS = MacOSaiXGlyphTableColumn; 
-            LANGUAGE = ObjC; 
-            SUPERCLASS = NSTableColumn; 
         }
     ); 
     IBVersion = 1; 

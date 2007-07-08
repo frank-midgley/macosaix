@@ -6,61 +6,36 @@
 //  Copyright (c) 2003-2004 Frank M. Midgley. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
-#import "MacOSaiXImageSource.h"
 #import "GlyphImageSource.h"
 
 
-@interface MacOSaiXGlyphImageSourceController : NSObject <MacOSaiXImageSourceController>
+@interface MacOSaiXGlyphImageSourceEditor : NSObject <MacOSaiXDataSourceEditor>
 {
+	id<MacOSaiXEditorDelegate>	delegate;
+	
 	IBOutlet NSView				*editorView;
 	
-		// Fonts tab
-	IBOutlet NSOutlineView		*fontsOutlineView;
-	IBOutlet NSButton			*noFontsButton, 
-								*allFontsButton;
-	
-		// Colors tab
-	IBOutlet NSOutlineView		*colorsOutlineView;
-	
-		// Letters tab
+	IBOutlet NSPopUpButton		*fontsPopUp, 
+								*colorsPopUp;
 	IBOutlet NSTextView			*lettersView;
-
-		// Sample images
+	IBOutlet NSMatrix			*sizeMatrix;
+	IBOutlet NSPopUpButton		*sizePopUp;
+	IBOutlet NSSlider			*sizeSlider;
 	IBOutlet NSImageView		*sampleImageView;
-	IBOutlet NSTextField		*sizeTextField;
-	
-		// Counts
-	IBOutlet NSMatrix			*countMatrix;
-	IBOutlet NSTextField		*countTextField;
 	
 	MacOSaiXGlyphImageSource	*currentImageSource;
 	NSTimer						*sampleTimer;
-	
-		// Font outline view data sources
-	NSArray						*fontFamilyNames;
-	NSMutableArray				*chosenFonts;
-	NSMutableDictionary			*availableFontMembers;
-	
-		// Colors table data sources
-	NSMutableArray				*builtinColorLists,
-								*systemWideColorLists,
-								*photoshopColorLists;
 }
 
-	// Fonts tab
-- (IBAction)toggleFont:(id)sender;
-- (IBAction)chooseNoFonts:(id)sender;
-- (IBAction)chooseAllFonts:(id)sender;
+- (IBAction)useAllFonts:(id)sender;
+- (IBAction)useFontCollection:(id)sender;
+- (IBAction)useFontFamily:(id)sender;
+- (IBAction)editFontCollections:(id)sender;
 
-	// Colors tab
-- (id)tableView:(NSTableView *)tableView dataCellForTableColumn:(NSTableColumn *)tableColumn row:(int)rowIndex;
-- (IBAction)toggleColor:(id)sender;
+- (IBAction)useBuiltInColors:(id)sender;
+- (IBAction)useSystemWideColors:(id)sender;
 - (IBAction)editSystemWideColors:(id)sender;
 
-	// Letters tab
-
-	// Counts
-- (IBAction)setCountOption:(id)sender;
+- (IBAction)setSize:(id)sender;
 
 @end

@@ -7,26 +7,39 @@
 //
 
 #import "GlyphImageSourceController.h"
+
+#import "GlyphImageSource.h"
 #import "NSString+MacOSaiX.h"
 
 
-@implementation MacOSaiXGlyphImageSourceController
+#define MIN_ASPECT_RATIO	0.1
+#define MAX_ASPECT_RATIO	10.0
 
 
-- (id)init
+@interface MacOSaiXGlyphImageSourceEditor (PrivateMethods)
+- (void)populateFontsPopUpButton;
+- (void)populateColorsPopUpButton;
+- (void)populateSizeControls;
+@end
+
+
+@implementation MacOSaiXGlyphImageSourceEditor
+
+
+- (id)initWithDelegate:(id<MacOSaiXEditorDelegate>)inDelegate;
 {
 	if (self = [super init])
 	{
-		availableFontMembers = [[NSMutableDictionary dictionary] retain];
-		
-		builtinColorLists = [[NSMutableArray array] retain];
-		NSEnumerator	*colorListNameEnumerator = [[MacOSaiXGlyphImageSource builtInColorListNames] objectEnumerator];
-		NSString		*colorListName = nil;
-		while (colorListName = [colorListNameEnumerator nextObject])
-			[builtinColorLists addObject:[[[NSColorList alloc] initWithName:colorListName] autorelease]];
+		delegate = inDelegate;
 	}
 	
 	return self;
+}
+
+
+- (id<MacOSaiXEditorDelegate>)delegate
+{
+	return delegate;
 }
 
 
@@ -41,7 +54,7 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(450.0, 375.0);
+	return NSMakeSize(217.0, 300.0);
 }
 
 
@@ -53,31 +66,12 @@
 
 - (NSResponder *)firstResponder
 {
-	return fontsOutlineView;
+	return fontsPopUp;
 }
 
 
-- (void)awakeFromNib
+- (void)updateSampleImage:(NSTimer *)timer
 {
-	NSButtonCell	*fontCheckboxCell = [[[NSButtonCell alloc] initTextCell:@""] autorelease];
-	[fontCheckboxCell setButtonType:NSSwitchButton];
-	[fontCheckboxCell setAllowsMixedState:YES];
-	[fontCheckboxCell setTarget:self];
-	[fontCheckboxCell setAction:@selector(toggleFont:)];
-	[[[fontsOutlineView tableColumns] objectAtIndex:0] setDataCell:fontCheckboxCell];
-	
-	NSButtonCell	*colorCheckboxCell = [[[NSButtonCell alloc] initTextCell:@""] autorelease];
-	[colorCheckboxCell setButtonType:NSSwitchButton];
-	[colorCheckboxCell setTarget:self];
-	[colorCheckboxCell setAction:@selector(toggleColor:)];
-	[[[colorsOutlineView tableColumns] objectAtIndex:0] setDataCell:colorCheckboxCell];
-}
-
-
-- (void)updateSample:(NSTimer *)timer
-{
-	[currentImageSource reset];
-	
 	[sampleImageView setImage:[currentImageSource nextImageAndIdentifier:nil]];
 	
 	if (![sampleImageView image])
@@ -85,77 +79,23 @@
 }
 
 
-- (void)updateSizeField
+- (void)editDataSource:(id<MacOSaiXDataSource>)dataSource
 {
-	NSSize	sourceSize = [currentImageSource glyphsSize];
-	[sizeTextField setStringValue:[NSString stringWithFormat:NSLocalizedString(@"Size: %@", @""), 
-										[NSString stringWithAspectRatio:sourceSize.width / sourceSize.height]]];
-}
-
-
-- (void)editImageSource:(id<MacOSaiXImageSource>)imageSource
-{
-	if (imageSource)
+	if (dataSource)
 	{
-		currentImageSource = (MacOSaiXGlyphImageSource *)imageSource;
-		
-		if ([[currentImageSource fontNames] count] == 0)
-		{
-				// Set the defaults for a new source.
-				// TODO: get these from the user defaults
-			NSEnumerator	*fontNameEnumerator = [[[NSFontManager sharedFontManager] availableFonts] objectEnumerator];
-			NSString		*fontName = nil;
-			while (fontName = [fontNameEnumerator nextObject])
-				[currentImageSource addFontWithName:fontName];
-				
-			[currentImageSource addColorList:NSLocalizedString(@"All Colors", @"") ofClass:@"Built-in"];
-		}
+		currentImageSource = (MacOSaiXGlyphImageSource *)dataSource;
 		
 			// Start a timer to show sample images for the current settings.
-		sampleTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 
-													   target:self 
-													 selector:@selector(updateSample:) 
-													 userInfo:nil 
-													  repeats:YES];
+		sampleTimer = [[NSTimer scheduledTimerWithTimeInterval:1.0 
+														target:self 
+													  selector:@selector(updateSampleImage:) 
+													  userInfo:nil 
+													   repeats:YES] retain];
 		
-			// Get the list of all current font family names on this system.
-		[fontFamilyNames autorelease];
-		fontFamilyNames = [[[[NSFontManager sharedFontManager] availableFontFamilies] 
-									sortedArrayUsingSelector:@selector(compare:)] retain];
-		[fontsOutlineView reloadData];
-		
-			// Get the list of font names currently used by the image source.
-		NSEnumerator	*fontNameEnumerator = [[currentImageSource fontNames] objectEnumerator];
-		NSString		*fontName = nil;
-		chosenFonts = [[NSMutableArray arrayWithCapacity:[[currentImageSource fontNames] count]] retain];
-		while (fontName = [fontNameEnumerator nextObject])
-		{
-			NSFont	*font = [NSFont fontWithName:fontName size:12.0];
-			
-			if (font)
-				[chosenFonts addObject:font];
-		}
-		
-			// Get the list of colors defined by the NSColorPanel.
-		[systemWideColorLists autorelease];
-		systemWideColorLists = [[NSColorList availableColorLists] mutableCopy];
-		
-			// Populate the GUI with this source's settings.
-		if ([[currentImageSource letterPool] length] > 0)
-			[lettersView setString:[currentImageSource letterPool]];
-		else
-			[lettersView setString:@""];
-		
-		if ([currentImageSource imageCountLimit] == 0)
-		{
-			[countMatrix selectCellAtRow:0 column:1];
-			[countTextField setStringValue:@""];
-		}
-		else
-		{
-			[countMatrix selectCellAtRow:1 column:1];
-			[countTextField setIntValue:[currentImageSource imageCountLimit]];
-		}
+		[self populateFontsPopUpButton];
+		[self populateColorsPopUpButton];
+		[self populateSizeControls];
+		[lettersView setString:([currentImageSource letterPool] ? [currentImageSource letterPool] : @"")];
 		
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(colorListDidChange:)
@@ -172,129 +112,192 @@
 }
 
 
-- (void)editingComplete
+#pragma mark -
+#pragma mark Fonts
+
+
+- (void)populateFontsPopUpButton
 {
-}
-
-
-#pragma mark Fonts tab
-
-
-- (NSArray *)fontsInFamily:(NSString *)familyName
-{
-	NSArray	*fontMembers = [availableFontMembers objectForKey:familyName];
+		// Remove any previous collections or families from the pop-up.
+	while ([fontsPopUp numberOfItems] > 2)
+		[fontsPopUp removeItemAtIndex:2];
 	
-	if (!fontMembers)
-	{
-		fontMembers = [NSMutableArray array];
-		[availableFontMembers setObject:fontMembers forKey:familyName];
-		
-		NSEnumerator	*memberEnumerator = [[[NSFontManager sharedFontManager] availableMembersOfFontFamily:familyName]
-												objectEnumerator];
-		NSArray			*member = nil;
-		while (member = [memberEnumerator nextObject])
-			[(NSMutableArray *)fontMembers addObject:[NSFont fontWithName:[member objectAtIndex:0] size:12.0]];
-	}
+	NSMenuItem		*itemToSelect = [fontsPopUp itemAtIndex:0];
 	
-	return fontMembers;
-}
-
-
-- (IBAction)toggleFont:(id)sender
-{
-	id			selectedItem = [fontsOutlineView itemAtRow:[fontsOutlineView selectedRow]];
-	
-	if ([selectedItem isKindOfClass:[NSString class]])
+	if ([[NSFontManager class] instancesRespondToSelector:@selector(collectionNames)])
 	{
-			// Add or remove all members of the font family.
-		NSArray			*members = [self fontsInFamily:selectedItem];
-		BOOL			removing = ([members firstObjectCommonWithArray:chosenFonts] != nil);
-		NSEnumerator	*memberEnumerator = [members objectEnumerator];
-		NSFont			*member = nil;
-		while (member = [memberEnumerator nextObject])
-			if (removing)
-			{
-				[chosenFonts removeObject:member];
-				[currentImageSource removeFontWithName:[member fontName]];
-			}
-			else if (![chosenFonts containsObject:member])
-			{
-				[chosenFonts addObject:member];
-				[currentImageSource addFontWithName:[member fontName]];
-			}
-	}
-	else if ([selectedItem isKindOfClass:[NSFont class]])
-	{
-			// Add or remove just the one font
-		NSString	*fontName = [(NSFont *)selectedItem fontName];
-		if ([[currentImageSource fontNames] containsObject:fontName])
+			// Add the available font collections to the pop-up.
+		NSMenuItem		*collectionsMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Use a font collection:", @"") action:@selector(dummySelector:) keyEquivalent:@""];
+		[[fontsPopUp menu] addItem:collectionsMenuItem];
+		NSArray			*collectionNames = [[[NSFontManager sharedFontManager] collectionNames] 
+										sortedArrayUsingSelector:@selector(compare:)];
+		NSEnumerator	*collectionNameEnumerator = [collectionNames objectEnumerator];
+		NSString		*collectionName = nil;
+		while (collectionName = [collectionNameEnumerator nextObject])
 		{
-			[chosenFonts removeObject:selectedItem];
-			[currentImageSource removeFontWithName:fontName];
+			NSMenuItem	*collectionMenuItem = [[NSMenuItem alloc] initWithTitle:collectionName action:@selector(useFontCollection:) keyEquivalent:@""];
+			[collectionMenuItem setTarget:self];
+			[collectionMenuItem setRepresentedObject:collectionName];
+			
+			[[fontsPopUp menu] addItem:collectionMenuItem];
+			
+			if ([currentImageSource fontsType] == fontCollection && [[currentImageSource fontCollectionName] isEqualToString:collectionName])
+				itemToSelect = collectionMenuItem;
+		}
+		
+		NSMenuItem		*editCollectionsMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Edit font collections...", @"") action:@selector(editFontCollections:) keyEquivalent:@""];
+		[editCollectionsMenuItem setTarget:self];
+		[[fontsPopUp menu] addItem:editCollectionsMenuItem];
+		
+		[[fontsPopUp menu] addItem:[NSMenuItem separatorItem]];
+	}
+	
+		// Add the available families to the pop-up.
+	NSMenuItem		*familiesMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Use a single font:", @"") action:@selector(dummySelector:) keyEquivalent:@""];
+	[[fontsPopUp menu] addItem:familiesMenuItem];
+	NSArray			*familyNames = [[[NSFontManager sharedFontManager] availableFontFamilies] 
+									sortedArrayUsingSelector:@selector(compare:)];
+	NSEnumerator	*familyNameEnumerator = [familyNames objectEnumerator];
+	NSString		*familyName = nil;
+	while (familyName = [familyNameEnumerator nextObject])
+	{
+		NSMenuItem	*familyMenuItem = [[NSMenuItem alloc] initWithTitle:familyName action:@selector(useFontFamily:) keyEquivalent:@""];
+		[familyMenuItem setTarget:self];
+		[familyMenuItem setRepresentedObject:familyName];
+		
+		[[fontsPopUp menu] addItem:familyMenuItem];
+		
+		if ([currentImageSource fontsType] == fontFamily && [[currentImageSource fontFamilyName] isEqualToString:familyName])
+			itemToSelect = familyMenuItem;
+	}
+	
+	[fontsPopUp selectItem:itemToSelect];
+}
+
+
+- (void)setFontsPopUpFromSource
+{
+	NSMenuItem	*itemToSelect = nil;
+	
+	if ([currentImageSource fontsType] == allFonts)
+		itemToSelect = (NSMenuItem *)[fontsPopUp itemAtIndex:0];
+	else
+	{
+		SEL				setFontAction;
+		NSString		*fontObject = nil;
+		
+		if ([currentImageSource fontsType] == fontCollection)
+		{
+			setFontAction = @selector(setFontCollection:);
+			fontObject = [currentImageSource fontCollectionName];
 		}
 		else
 		{
-			[chosenFonts addObject:selectedItem];
-			[currentImageSource addFontWithName:fontName];
+			setFontAction = @selector(setFontFamily:);
+			fontObject = [currentImageSource fontFamilyName];
 		}
-	}
-	
-	[fontsOutlineView reloadData];
-	[self updateSizeField];
-}
-
-
-- (IBAction)chooseNoFonts:(id)sender
-{
-	while ([chosenFonts count] > 0)
-	{
-		[currentImageSource removeFontWithName:[[chosenFonts objectAtIndex:0] fontName]];
-		[chosenFonts removeObjectAtIndex:0];
-	}
-	
-	[fontsOutlineView reloadData];
-	[self updateSizeField];
-}
-
-
-- (IBAction)chooseAllFonts:(id)sender
-{
-	NSEnumerator	*fontNameEnumerator = [[[NSFontManager sharedFontManager] availableFonts] objectEnumerator];
-	NSString		*fontName = nil;
-	
-	while (fontName = [fontNameEnumerator nextObject])
-	{
-		NSFont	*font = [NSFont fontWithName:fontName size:12.0];
-		if (font)
-			[chosenFonts addObject:font];
 		
-		[currentImageSource addFontWithName:fontName];
+		NSEnumerator	*itemEnumerator = [[fontsPopUp itemArray] objectEnumerator];
+		while (itemToSelect = [itemEnumerator nextObject])
+			if ([itemToSelect action] == setFontAction && [[itemToSelect representedObject] isEqualTo:fontObject])
+				break;
 	}
 	
-	[fontsOutlineView reloadData];
-	[self updateSizeField];
+	[fontsPopUp selectItem:itemToSelect];
 }
 
 
-#pragma mark Colors tab
-
-
-- (IBAction)toggleColor:(id)sender
+- (IBAction)useAllFonts:(id)sender
 {
-	NSColorList		*list = [colorsOutlineView itemAtRow:[colorsOutlineView selectedRow]];
-	NSString		*listClass = nil;
+	[currentImageSource useAllFonts];
 	
-	if ([builtinColorLists containsObject:list])
-		listClass = @"Built-in";
-	else if ([systemWideColorLists containsObject:list])
-		listClass = @"System-wide";
-	else if ([photoshopColorLists containsObject:list])
-		listClass = @"Photoshop";
+	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Use All Fonts", @"")];
+}
+
+
+- (IBAction)useFontCollection:(id)sender
+{
+	[currentImageSource setFontCollectionName:[sender representedObject]];
 	
-	if ([[currentImageSource colorListsOfClass:listClass] containsObject:[list name]])
-		[currentImageSource removeColorList:[list name] ofClass:listClass];
-	else
-		[currentImageSource addColorList:[list name] ofClass:listClass];
+	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Use Font Collection", @"")];
+}
+
+
+- (IBAction)useFontFamily:(id)sender
+{
+	[currentImageSource setFontFamilyName:[sender representedObject]];
+	
+	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Use Font Family", @"")];
+}
+
+
+- (IBAction)editFontCollections:(id)sender
+{
+	[self setFontsPopUpFromSource];	// don't select the "Edit Collections..." item
+	[[NSWorkspace sharedWorkspace] launchApplication:@"Font Book"];
+}
+
+
+#pragma mark -
+#pragma mark Colors
+
+
+- (void)populateColorsPopUpButton
+{
+	[colorsPopUp removeAllItems];
+	
+	NSMenuItem		*itemToSelect = nil;
+	
+		// Add the built-in colors.
+	NSArray			*builtInNames = [[MacOSaiXGlyphImageSource builtInColorListNames] sortedArrayUsingSelector:@selector(compare:)];
+	NSEnumerator	*builtInNameEnumerator = [builtInNames objectEnumerator];
+	NSString		*builtInName = nil;
+	while (builtInName = [builtInNameEnumerator nextObject])
+	{
+		NSMenuItem	*builtInMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(builtInName, @"") action:@selector(useBuiltInColors:) keyEquivalent:@""];
+		[builtInMenuItem setTarget:self];
+		[builtInMenuItem setRepresentedObject:builtInName];
+		
+		[[colorsPopUp menu] addItem:builtInMenuItem];
+		
+		if ([[currentImageSource colorListClass] isEqualToString:@"Built-in"] && [[currentImageSource colorListName] isEqualToString:builtInName])
+			itemToSelect = builtInMenuItem;
+	}
+	
+	[[colorsPopUp menu] addItem:[NSMenuItem separatorItem]];
+	
+		// Add the system-wide colors.
+	NSEnumerator	*colorListEnumerator = [[NSColorList availableColorLists] objectEnumerator];
+	NSColorList		*colorList = nil;
+	while (colorList = [colorListEnumerator nextObject])
+	{
+		NSMenuItem	*colorListMenuItem = [[NSMenuItem alloc] initWithTitle:[colorList name] action:@selector(useSystemWideColors:) keyEquivalent:@""];
+		[colorListMenuItem setTarget:self];
+		[colorListMenuItem setRepresentedObject:colorList];
+		
+		[[colorsPopUp menu] addItem:colorListMenuItem];
+		
+		if ([[currentImageSource colorListClass] isEqualToString:@"System-wide"] && [[currentImageSource colorListName] isEqualToString:[colorList name]])
+			itemToSelect = colorListMenuItem;
+	}
+	
+	[colorsPopUp selectItem:itemToSelect];
+}
+
+
+- (IBAction)useBuiltInColors:(id)sender
+{
+	[currentImageSource setColorListName:[sender representedObject] ofClass:@"Built-in"];
+	
+	[[self delegate] dataSource:currentImageSource settingsDidChange:@"Use Built-In Colors"];
+}
+
+
+- (IBAction)useSystemWideColors:(id)sender
+{
+	[currentImageSource setColorListName:[[sender representedObject] name] ofClass:@"System-wide"];
+	
+	[[self delegate] dataSource:currentImageSource settingsDidChange:@"Use System-Wide Colors"];
 }
 
 
@@ -307,54 +310,128 @@
 
 - (void)colorListDidChange:(NSNotification *)notification
 {
-	NSColorList	*colorList = [notification object];
+	[self populateColorsPopUpButton];
+}
 	
-	if (![systemWideColorLists containsObject:colorList])
+
+#pragma mark -
+#pragma mark Size
+
+
+- (void)populateSizeControls
+{
+	NSNumber	*aspectRatio = [currentImageSource aspectRatio];
+	
+	if (!aspectRatio)
 	{
-		[systemWideColorLists addObject:colorList];
-//		[systemWideColorLists sortUsingSelector:@selector(compare:)];
-		[colorsOutlineView reloadData];
+		[sizePopUp setEnabled:NO];
+		[[sizePopUp itemAtIndex:0] setTitle:@"--"];
+		
+		[sizeSlider setEnabled:NO];
+		[sizeSlider setFloatValue:1.0];
+	}
+	else
+	{
+		[sizePopUp setEnabled:YES];
+		[[sizePopUp itemAtIndex:0] setTitle:[NSString stringWithAspectRatio:[aspectRatio floatValue]]];
+		
+		[sizeSlider setEnabled:YES];
+			// Map the aspect ratio to the slider position.
+		float	mappedRatio = 0.0;
+		if ([aspectRatio floatValue] < 1.0)
+			mappedRatio = ([aspectRatio floatValue] - MIN_ASPECT_RATIO) / (1.0 - MIN_ASPECT_RATIO);
+		else
+			mappedRatio = ([aspectRatio floatValue] - 1.0) / (MAX_ASPECT_RATIO - 1.0) + 1.0;
+		[sizeSlider setFloatValue:mappedRatio];
 	}
 }
 
 
-#pragma mark Letters tab
-
-
-#pragma mark Fonts tab
-
-
-- (IBAction)setCountOption:(id)sender
+- (IBAction)setSize:(id)sender
 {
-	if ([countMatrix selectedRow] == 0)
-		[currentImageSource setImageCountLimit:0];	// unlimited
-	else if ([countMatrix selectedRow] == 1)
-		[currentImageSource setImageCountLimit:[countTextField intValue]];
+	BOOL	sizeChanged = NO;
+	
+	if (sender == sizeMatrix)
+	{
+		NSNumber	*aspectRatio = [currentImageSource aspectRatio],
+					*newAspectRatio = ([sizeMatrix selectedRow] == 0 ? nil : [NSNumber numberWithFloat:1.0]);
+		
+		if (aspectRatio != newAspectRatio || ![aspectRatio isEqualTo:newAspectRatio])
+		{
+			[currentImageSource setAspectRatio:newAspectRatio];
+			sizeChanged = YES;
+		}
+	}
 	else
-		[currentImageSource setImageCountLimit:[[lettersView string] length]];
+	{
+		float	newAspectRatio = 1.0;
+		
+		if (sender == sizePopUp)
+		{
+			if ([sizePopUp selectedTag] == 2)
+				newAspectRatio = 3.0 / 4.0;
+			else if ([sizePopUp selectedTag] == 3)
+				newAspectRatio = 4.0 / 3.0;
+		}
+		else	// sender == sizeSlider
+		{
+			newAspectRatio = [sizeSlider floatValue];
+			
+				// Map from the slider's scale to the actual ratio.
+			if (newAspectRatio < 1.0)
+				newAspectRatio = MIN_ASPECT_RATIO + (1.0 - MIN_ASPECT_RATIO) * newAspectRatio;
+			else if (newAspectRatio > 1.0)
+				newAspectRatio = 1.0 + (MAX_ASPECT_RATIO - 1.0) * (newAspectRatio - 1.0);
+		}
+		
+		if (newAspectRatio != [[currentImageSource aspectRatio] floatValue])
+			[currentImageSource setAspectRatio:[NSNumber numberWithFloat:newAspectRatio]];
+	}
+	
+	if (sizeChanged)
+	{
+		[self populateSizeControls];
+		
+		[[self delegate] dataSource:currentImageSource settingsDidChange:@"Set Glyphs Size"];
+	}
+}
+
+
+#pragma mark -
+
+
+- (BOOL)mouseDownInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (BOOL)mouseDraggedInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (BOOL)mouseUpInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (void)editingDidComplete
+{
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSColorListDidChangeNotification object:nil];
+	
+	[sampleTimer invalidate];
+	[sampleTimer release];
+	sampleTimer = nil;
+	
+	currentImageSource = nil;
 }
 
 
 #pragma mark -
 #pragma mark Text delegate methods
-
-
-- (void)controlTextDidChange:(NSNotification *)notification
-{
-	if ([notification object] == countTextField)
-	{
-		if ([[countTextField stringValue] length] > 0)
-		{
-			[currentImageSource setImageCountLimit:[countTextField intValue]];
-			[countMatrix selectCellAtRow:2 column:1];
-		}
-		else
-		{
-			[currentImageSource setImageCountLimit:0];
-			[countMatrix selectCellAtRow:1 column:1];
-		}
-	}
-}
 
 
 - (void)textDidChange:(NSNotification *)notification
@@ -366,145 +443,7 @@
 		else
 			[currentImageSource setLetterPool:nil];
 		
-		if ([countMatrix selectedRow] == 2)
-			[currentImageSource setImageCountLimit:[[lettersView string] length]];
-	}
-}
-
-
-#pragma mark -
-#pragma mark Outline view data source methods
-
-
-- (int)outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item
-{
-	if (outlineView == fontsOutlineView)
-	{
-		if (!item)
-			return [fontFamilyNames count];
-		else
-			return [[self fontsInFamily:item] count];
-	}
-	else
-	{
-		if (!item)
-			return [builtinColorLists count] + 1;
-		else
-			return [systemWideColorLists count];
-	}
-}
-
-
-- (id)outlineView:(NSOutlineView *)outlineView child:(int)index ofItem:(id)item
-{
-	if (outlineView == fontsOutlineView)
-	{
-		if (!item)
-			return [fontFamilyNames objectAtIndex:index];
-		else
-			return [[self fontsInFamily:item] objectAtIndex:index];
-	}
-	else
-	{
-		if (!item)
-		{
-			if (index < [builtinColorLists count])
-				return [builtinColorLists objectAtIndex:index];
-			else
-				return NSLocalizedString(@"System-wide Colors", @"");
-		}
-		else
-			return [systemWideColorLists objectAtIndex:index];
-	}
-}
-
-
-- (BOOL)outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item
-{
-	return [item isKindOfClass:[NSString class]];
-}
-
-
-- (id)outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
-{
-	id	objectValue = nil;
-	
-	if (outlineView == colorsOutlineView)
-		if ([item isKindOfClass:[NSString class]])
-			objectValue = item;
-	
-	return objectValue;
-}
-
-
-- (id)tableView:(NSTableView *)tableView dataCellForTableColumn:(NSTableColumn *)tableColumn row:(int)rowIndex
-{
-	id	cell = nil;
-	
-	if (tableView == colorsOutlineView)
-		if ([[colorsOutlineView itemAtRow:rowIndex] isKindOfClass:[NSString class]])
-			cell = [[[NSCell alloc] initTextCell:@""] autorelease];
-	
-	return cell;
-}
-
-
-- (void)outlineView:(NSOutlineView *)outlineView willDisplayCell:(id)cell 
-												  forTableColumn:(NSTableColumn *)tableColumn 
-															item:(id)item
-{
-	if (outlineView == fontsOutlineView)
-	{
-		if ([item isKindOfClass:[NSString class]])
-		{
-			NSArray			*fonts = [self fontsInFamily:item];
-			NSEnumerator	*fontEnumerator = [fonts objectEnumerator];
-			NSFont			*font = nil;
-			int				count = 0;
-			while (font = [fontEnumerator nextObject])
-				if ([chosenFonts containsObject:font])
-					count++;
-			
-			if (count == 0)
-				[cell setState:NSOffState];
-			else if (count == [fonts count])
-				[cell setState:NSOnState];
-			else
-				[cell setState:NSMixedState];
-			
-			[cell setTitle:item];
-		}
-		else
-		{
-			[cell setState:([[currentImageSource fontNames] containsObject:[(NSFont *)item fontName]] ? NSOnState : NSOffState)];
-
-			NSString	*title = [(NSFont *)item displayName],
-						*familyName = [(NSFont *)item familyName];
-			
-			if ([title hasPrefix:familyName])
-				title = [title substringFromIndex:[familyName length] + 1];
-			
-			[cell setTitle:title];
-		}
-	}
-	else
-	{
-		if ([item isKindOfClass:[NSColorList class]])
-		{
-			NSString	*listClass = nil;
-			if ([builtinColorLists containsObject:item])
-				listClass = @"Built-in";
-			else if ([systemWideColorLists containsObject:item])
-				listClass = @"System-wide";
-			else if ([photoshopColorLists containsObject:item])
-				listClass = @"Photoshop";
-			
-			if ([[currentImageSource colorListsOfClass:listClass] containsObject:[(NSColorList *)item name]])
-				[cell setState:NSOnState];
-			else
-				[cell setState:NSOffState];
-			[cell setTitle:[(NSColorList *)item name]];
-		}
+		[[self delegate] dataSource:currentImageSource settingsDidChange:@"Set Glyphs Letters"];
 	}
 }
 
@@ -515,11 +454,6 @@
 - (void)dealloc
 {
 	[sampleTimer invalidate];	// which will also release it
-	
-	[fontFamilyNames release];
-	[availableFontMembers release];
-	
-	[builtinColorLists release];
 	
 	[super dealloc];
 }
