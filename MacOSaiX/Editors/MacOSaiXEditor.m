@@ -135,6 +135,9 @@
 			// Release any previous editor and create a new one using the selected class.
 		if (plugInEditor)
 		{
+				// End any editing before removing the view from the window.
+			[[self delegate] makeFirstResponder:nil];
+			
 			[plugInEditor editingDidComplete];
 			[plugInEditor release];
 		}
@@ -247,6 +250,10 @@
 
 - (void)endEditing
 {
+		// End any editing before the view is removed from the window.
+	[[self delegate] makeFirstResponder:nil];
+	
+	[plugInEditor editingDidComplete];
 	[plugInEditor release];
 	plugInEditor = nil;
 	
