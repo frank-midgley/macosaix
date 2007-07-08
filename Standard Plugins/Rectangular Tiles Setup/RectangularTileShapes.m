@@ -344,6 +344,7 @@
 				[path lineToPoint:NSMakePoint(NSMaxX(tileRect), NSMinY(tileRect))];
 				[path lineToPoint:NSMakePoint(NSMaxX(tileRect), NSMaxY(tileRect))];
 				[path lineToPoint:NSMakePoint(NSMinX(tileRect), NSMaxY(tileRect))];
+				[path closePath];
 				[tileOutlines addObject:[MacOSaiXRectangularTileShape tileShapeWithOutline:path]];
 				
 				counts[x]++;
@@ -366,6 +367,7 @@
 				[path lineToPoint:NSMakePoint(NSMaxX(tileRect), NSMinY(tileRect))];
 				[path lineToPoint:NSMakePoint(NSMaxX(tileRect), NSMaxY(tileRect))];
 				[path lineToPoint:NSMakePoint(NSMinX(tileRect), NSMaxY(tileRect))];
+				[path closePath];
 				[tileOutlines addObject:[MacOSaiXRectangularTileShape tileShapeWithOutline:path]];
 			}
 	}
