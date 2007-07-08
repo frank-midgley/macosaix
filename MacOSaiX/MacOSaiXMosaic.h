@@ -43,7 +43,8 @@
 		// Image source enumeration
     NSLock							*enumerationsLock;
 	NSMutableArray					*imageSourceEnumerators;
-	MacOSaiXImageQueue				*imageQueue;
+	MacOSaiXImageQueue				*newImageQueue, 
+									*revisitImageQueue;
 	
 		// Image matching
     NSLock							*calculateImageMatchesLock;

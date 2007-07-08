@@ -61,7 +61,9 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 		diskCacheSubPaths = [[NSMutableDictionary alloc] init];
 		
 			// This queue is populated by the enumeration threads and accessed by the matching thread.
-		imageQueue = [[MacOSaiXImageQueue alloc] init];
+		newImageQueue = [[MacOSaiXImageQueue alloc] init];
+		[newImageQueue setMaximumCount:8];
+		revisitImageQueue = [[MacOSaiXImageQueue alloc] init];
 		
 		calculateImageMatchesLock = [[NSLock alloc] init];
 		betterMatchesCache = [[NSMutableDictionary alloc] init];
@@ -539,7 +541,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	BOOL							tilesWereChanged = NO;
 	MacOSaiXImageSourceEnumerator	*imageSourceEnumerator = [self enumeratorForImageSource:imageSource];
 	
-	[imageQueue	removeImagesFromImageSourceEnumerator:imageSourceEnumerator];
+	[newImageQueue	removeImagesFromImageSourceEnumerator:imageSourceEnumerator];
+	[revisitImageQueue	removeImagesFromImageSourceEnumerator:imageSourceEnumerator];
 	
 		// Remove any images from this source from the tiles.
 	NSEnumerator		*tileEnumerator = [tiles objectEnumerator];
@@ -597,7 +600,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 		if ([imageSourceEnumerator isOnProbation])
 		{
 				// If the image source that was just edited is on probation then revisit any images removed during the probation period.
-			[imageQueue addImagesFromQueue:[imageSourceEnumerator probationaryImageQueue]];
+			[revisitImageQueue addImagesFromQueue:[imageSourceEnumerator probationaryImageQueue]];
 			[imageSourceEnumerator setIsOnProbation:NO];
 		}
 	}
@@ -638,7 +641,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	{
 		// No tiles were using images from the removed source.  However, if the source is on probation then we need to revisit any images from other sources that were removed from tiles during the probation period.
 		if ([imageSourceEnumerator isOnProbation])
-			[imageQueue addImagesFromQueue:[imageSourceEnumerator probationaryImageQueue]];
+			[revisitImageQueue addImagesFromQueue:[imageSourceEnumerator probationaryImageQueue]];
 	}
 	
 	[imageSourceEnumerator setIsOnProbation:NO];
@@ -795,19 +798,16 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 
 - (MacOSaiXImageQueue *)imageQueue
 {
-	return imageQueue;
+	return newImageQueue;
 }
 
 
 - (void)addSourceImageToQueue:(MacOSaiXSourceImage *)sourceImage
 {
-	[[self imageQueue] pushImage:sourceImage];
+	[newImageQueue pushImage:sourceImage];
 	
-	if (!pausing && !calculateImageMatchesThreadAlive)
+	if (!pausing && !paused && !calculateImageMatchesThreadAlive)
 		[NSApplication detachDrawingThread:@selector(calculateImageMatches) toTarget:self withObject:nil];
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
-														object:self];
 }
 
 
@@ -1021,15 +1021,28 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	[NSThread setThreadPriority:0.1];
 	
 	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
+	unsigned int		revisitStep = 0;
 	
-	while (!pausing && [imageQueue count])
+	while (!pausing && ([newImageQueue count] > 0 || [revisitImageQueue count] > 0))
 	{
-		while (!pausing && [imageQueue count] > 0)
+		while (!pausing && ([newImageQueue count] > 0 || [revisitImageQueue count] > 0))
 		{
 				// As long as the image source threads are feeding images into the queue this loop will continue running so create a pool just for this pass through the loop.
 			NSAutoreleasePool	*imagePool = [[NSAutoreleasePool alloc] init];
 			
 			NS_DURING
+					// Decide whether to match a new image or revisit a previously matched one.
+				MacOSaiXImageQueue				*imageQueue = nil;
+				if ([newImageQueue count] > 0 && [revisitImageQueue count] == 0)
+					imageQueue = newImageQueue;
+				else if ([revisitImageQueue count] > 0 && [imageQueue count] == 0)
+					imageQueue = revisitImageQueue;
+				else if ([revisitImageQueue count] > 0 && [imageQueue count] > 0)
+				{
+					imageQueue = (revisitStep < 15 ? newImageQueue : revisitImageQueue);
+					revisitStep = (revisitStep + 1) % 16;
+				}
+				
 					// Pull the next image from the queue.
 				MacOSaiXSourceImage				*sourceImage = [imageQueue popImage];
 				MacOSaiXImageSourceEnumerator	*sourceImageEnumerator = [sourceImage enumerator];
@@ -1060,7 +1073,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 						[betterMatchesCache removeObjectForKey:[sourceImage universalIdentifier]];
 						betterMatches = nil;	// The betterMatchesCache had the last retain on the array.
 						
-						[[self imageQueue] pushImage:sourceImage];
+						[revisitImageQueue pushImage:sourceImage];
 						
 						sourceImageInUse = YES;
 					}
@@ -1075,7 +1088,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 							if (previousMatch)
 							{
 								if (![[previousMatch sourceImage] isEqualTo:sourceImage])
-									[[self imageQueue] pushImage:[previousMatch sourceImage]];
+									[revisitImageQueue pushImage:[previousMatch sourceImage]];
 								
 								if ([sourceImageEnumerator isOnProbation] && 
 									[previousMatch sourceImage] && 
@@ -1210,9 +1223,10 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	{
 			// Tell the worker threads to exit.
 		pausing = YES;
-
-			// Pause the image source enumerators.
 		[imageSourceEnumerators makeObjectsPerformSelector:@selector(pause)];
+			
+			// Allow any enumerator threads to queue any pending images so they can unlock and exit.
+		[newImageQueue setMaximumCount:0];
 		
 			// Wait for any queued images to get processed.
 			// TBD: can we condition lock here instead of poll?
@@ -1242,9 +1256,13 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 				// Finish extracting any tile bitmaps.
 			if ([tilesWithoutBitmaps count] > 0)
 				[NSThread detachNewThreadSelector:@selector(extractTileBitmaps) toTarget:self withObject:nil];
-
+			
+			[newImageQueue setMaximumCount:8];
+			
 				// Start or restart the image source enumerators.
 			[imageSourceEnumerators makeObjectsPerformSelector:@selector(resume)];
+			
+			[NSApplication detachDrawingThread:@selector(calculateImageMatches) toTarget:self withObject:nil];
 		}
 		else
 			paused = NO;
@@ -1272,7 +1290,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	[tilesWithoutBitmapsLock release];
 	[tilesWithoutBitmaps release];
     [tileShapes release];
-    [imageQueue release];
+    [newImageQueue release];
+	[revisitImageQueue release];
 	
     [super dealloc];
 }
