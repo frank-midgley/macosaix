@@ -74,7 +74,7 @@
 	else
 		[self performSelectorOnMainThread:@selector(setPercentComplete:) 
 							   withObject:percentComplete 
-							waitUntilDone:YES];
+							waitUntilDone:NO];
 }
 
 
