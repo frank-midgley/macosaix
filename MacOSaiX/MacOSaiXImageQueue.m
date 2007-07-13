@@ -66,14 +66,17 @@
 {
 	[queueLock lock];
 		
-		while ([self maximumCount] > 0 && [imageQueue count] >= [self maximumCount])
+		if ([imageQueue indexOfObjectIdenticalTo:sourceImage] == NSNotFound)
 		{
-			[queueFullLock unlockWithCondition:IMAGE_QUEUE_FULL];
-			[queueLock unlock];
-			[queueFullLock lockWhenCondition:IMAGE_QUEUE_NOT_FULL];
-			[queueLock lock];
+			while ([self maximumCount] > 0 && [imageQueue count] >= [self maximumCount])
+			{
+				[queueFullLock unlockWithCondition:IMAGE_QUEUE_FULL];
+				[queueLock unlock];
+				[queueFullLock lockWhenCondition:IMAGE_QUEUE_NOT_FULL];
+				[queueLock lock];
+			}
+			[imageQueue addObject:sourceImage];
 		}
-		[imageQueue addObject:sourceImage];
 		
 	[queueLock unlock];
 }
