@@ -2,20 +2,33 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            CLASS = MacOSaiXEditor; 
+            ACTIONS = {setPlugInClass = id; }; 
+            CLASS = MacOSaiXMosaicEditor; 
             LANGUAGE = ObjC; 
-            OUTLETS = {editorView = NSView; }; 
+            OUTLETS = {
+                auxiliaryView = NSView; 
+                editorDelegate = id; 
+                editorView = NSView; 
+                plugInEditor = id; 
+                plugInEditorBox = NSBox; 
+                plugInEditorNextKeyView = NSView; 
+                plugInEditorPreviousKeyView = NSView; 
+                plugInPopUpButton = NSPopUpButton; 
+            }; 
             SUPERCLASS = NSObject; 
         }, 
         {CLASS = MacOSaiXPopUpButton; LANGUAGE = ObjC; SUPERCLASS = NSButton; }, 
         {
             ACTIONS = {
                 chooseImageForTile = id; 
-                dontUseThisImage = id; 
+                dontUseImageInSelectedTile = id; 
+                dontUseSelectedImageInAnyMosaic = id; 
+                dontUseSelectedImageInThisMosaic = id; 
+                restoreImages = id; 
                 setFillStyle = id; 
                 setSolidColor = id; 
             }; 
-            CLASS = MacOSaiXTileEditor; 
+            CLASS = MacOSaiXTileContentEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 bestMatchImageView = NSImageView; 
@@ -28,7 +41,7 @@
                 solidColorMatrix = NSMatrix; 
                 solidColorWell = NSColorWell; 
             }; 
-            SUPERCLASS = MacOSaiXEditor; 
+            SUPERCLASS = MacOSaiXMosaicEditor; 
         }
     ); 
     IBVersion = 1; 

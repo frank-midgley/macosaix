@@ -43,7 +43,10 @@
 
 - (IBAction)setFillStyle:(id)sender;
 
-- (IBAction)dontUseThisImage:(id)sender;
+- (IBAction)dontUseImageInSelectedTile:(id)sender;
+- (IBAction)dontUseSelectedImageInThisMosaic:(id)sender;
+- (IBAction)dontUseSelectedImageInAnyMosaic:(id)sender;
+- (IBAction)restoreImages:(id)sender;
 
 - (IBAction)chooseImageForTile:(id)sender;
 

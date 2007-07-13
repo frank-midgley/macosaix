@@ -8,11 +8,13 @@
 
 #import "MacOSaiXTileEditor.h"
 
+#import "MacOSaiX.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatch.h"
 #import "MacOSaiXImageSourceEnumerator.h"
 #import "MacOSaiXMosaic.h"
 #import "MacOSaiXSourceImage.h"
+#import "MacOSaiXWarningController.h"
 #import "NSImage+MacOSaiX.h"
 #import "Tiles.h"
 
@@ -40,6 +42,15 @@
 - (NSSize)minimumViewSize
 {
 	return NSMakeSize(240.0, 200.0);
+}
+
+
+- (void)awakeFromNib
+{
+	NSImage		*dontUseImage = [[[NSImage imageNamed:@"Don't Use"] copy] autorelease];
+	[dontUseImage setScalesWhenResized:YES];
+	[dontUseImage setSize:NSMakeSize(16.0, 16.0)];
+	[[dontUseThisImagePopUp itemAtIndex:0] setImage:dontUseImage];
 }
 
 
@@ -82,24 +93,43 @@
 	
 	if (!NSEqualPoints(mouseDragPoint, NSZeroPoint))
 	{
+		// The user is doing a drag selection.  Highlight the dragged rectangle as well as the tiles that will be selected.
+		
 		NSBezierPath		*selectionPath = [NSBezierPath bezierPathWithRect:[self selectionRect]];
+		BOOL				commandKeyDown = (([[NSApp currentEvent] modifierFlags] & NSCommandKeyMask) != 0);
+		
+			// Create a path containing all selected tile's outlines.
+		NSBezierPath	*selectedTilesOutline = [NSBezierPath bezierPath];
+		if (commandKeyDown)
+		{
+			NSEnumerator	*selectedTileEnumerator = [[self selectedTiles] objectEnumerator];
+			MacOSaiXTile	*selectedTile = nil;
+			while (selectedTile = [selectedTileEnumerator nextObject])
+				[selectedTilesOutline appendBezierPath:[selectedTile outline]];
+			[selectedTilesOutline transformUsingAffineTransform:transform];
+		}
 		
 			// Lighten the rest of the mosaic view
 		NSBezierPath		*nonSelectedPath = [NSBezierPath bezierPathWithRect:mosaicBounds];
 		[nonSelectedPath appendBezierPath:[selectionPath bezierPathByReversingPath]];
-		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.75] set];
+		[nonSelectedPath appendBezierPath:[selectedTilesOutline bezierPathByReversingPath]];
+		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
 		[nonSelectedPath fill];
 		
-			// Darken the tiles to be selected.
-		NSBezierPath	*selectedTilesOutline = [NSBezierPath bezierPath];
-		NSEnumerator	*selectedTileEnumerator = [[mosaicView tilesInRect:[self selectionRect]] objectEnumerator];
-		MacOSaiXTile	*selectedTile = nil;
-		while (selectedTile = [selectedTileEnumerator nextObject])
-			[selectedTilesOutline appendBezierPath:[selectedTile outline]];
-		[selectedTilesOutline transformUsingAffineTransform:transform];
-		[selectedTilesOutline setLineWidth:2];
-		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.25] set];
+			// Darken the selected tiles' outline
+		[selectedTilesOutline setLineWidth:2.0];
+		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
 		[selectedTilesOutline stroke];
+		
+			// Darken the tiles to be selected.
+		NSBezierPath	*tilesToBeSelectedOutline = [NSBezierPath bezierPath];
+		NSEnumerator	*tilesToBeSelectedEnumerator = [[mosaicView tilesInRect:[self selectionRect]] objectEnumerator];
+		MacOSaiXTile	*tileToBeSelected = nil;
+		while (tileToBeSelected = [tilesToBeSelectedEnumerator nextObject])
+			[tilesToBeSelectedOutline appendBezierPath:[tileToBeSelected outline]];
+		[tilesToBeSelectedOutline transformUsingAffineTransform:transform];
+		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.25] set];
+		[tilesToBeSelectedOutline stroke];
 		
 			// Darken the selection rect.
 		[selectionPath setLineWidth:2];
@@ -119,7 +149,7 @@
 			// Lighten the rest of the mosaic view
 		NSBezierPath		*dimPath = [NSBezierPath bezierPathWithRect:mosaicBounds];
 		[dimPath appendBezierPath:[selectedTilesOutline bezierPathByReversingPath]];
-		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.75] set];
+		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
 		[dimPath fill];
 		
 			// Darken the selected tiles' outline
@@ -236,6 +266,7 @@
 - (void)handleEvent:(NSEvent *)event inMosaicView:(MosaicView *)mosaicView;
 {
 	NSPoint	mousePoint = [mosaicView convertPoint:[event locationInWindow] fromView:nil];
+	BOOL	commandKeyDown = (([event modifierFlags] & NSCommandKeyMask) != 0);
 	
 	if ([event type] == NSLeftMouseDown)
 	{
@@ -253,15 +284,14 @@
 		if (NSEqualPoints(mouseDragPoint, NSZeroPoint))
 		{
 			MacOSaiXTile	*selectedTile = [mosaicView tileAtPoint:mousePoint];
-			BOOL			cmdKeyDown = (([event modifierFlags] & NSCommandKeyMask) != 0);
 			
 			mouseDownPoint = mouseDragPoint = NSZeroPoint;
 			
-			if (!selectedTile && !cmdKeyDown)
+			if (!selectedTile && !commandKeyDown)
 				[self setSelectedTiles:nil];
 			else if (selectedTile)
 			{
-				if (!cmdKeyDown)
+				if (!commandKeyDown)
 					[self setSelectedTiles:[NSArray arrayWithObject:selectedTile]];
 				else
 				{
@@ -287,7 +317,19 @@
 
 			mouseDownPoint = mouseDragPoint = NSZeroPoint;
 
-			[self setSelectedTiles:[mosaicView tilesInRect:selectionRect]];
+			if (commandKeyDown)
+			{
+				NSMutableSet	*tiles = ([self selectedTiles] ? [NSMutableSet setWithArray:[self selectedTiles]] : [NSMutableSet set]);
+				NSSet			*newTiles = [NSSet setWithArray:[mosaicView tilesInRect:selectionRect]];
+				
+//				if ([[tiles intersectSet:newTiles] count] == [newTiles count])
+//					[self setSelectedTiles:[[tiles minusSet:newTiles] allObjects]];
+//				else
+				[tiles unionSet:newTiles];
+				[self setSelectedTiles:[tiles allObjects]];
+			}
+			else
+				[self setSelectedTiles:[mosaicView tilesInRect:selectionRect]];
 		}
 	}
 }
@@ -404,7 +446,7 @@
 						{
 							fillSelectionWithCustomColor = YES;
 							if (fillSelectionWithAverageTargetColor || fillSelectionWithBlackColor || fillSelectionWithClearColor || 
-								![[selectedTile fillColor] isEqualTo:fillColor])
+								(fillColor && ![[selectedTile fillColor] isEqualTo:fillColor]))
 								multipleFillColors = YES;
 						}
 					}
@@ -418,26 +460,23 @@
 		
 		if (multipleFillStyles)
 		{
-			if (fillSelectionWithColor)
-			{
-				[[[fillStylePopUp menu] itemWithTag:fillWithColor] setState:NSMixedState];
-				[fillStylePopUp selectItemWithTag:fillWithColor];
-			}
-			if (fillSelectionWithTargetImage)
-			{
-				[[[fillStylePopUp menu] itemWithTag:fillWithTargetImage] setState:NSMixedState];
-				[fillStylePopUp selectItemWithTag:fillWithTargetImage];
-			}
-			if (fillSelectionWithHandPicked)
-			{
-				[[[fillStylePopUp menu] itemWithTag:fillWithHandPicked] setState:NSMixedState];
-				[fillStylePopUp selectItemWithTag:fillWithHandPicked];
-			}
 			if (fillSelectionWithUniqueMatch)
-			{
-				[[[fillStylePopUp menu] itemWithTag:fillWithUniqueMatch] setState:NSMixedState];
 				[fillStylePopUp selectItemWithTag:fillWithUniqueMatch];
-			}
+			else if (fillSelectionWithHandPicked)
+				[fillStylePopUp selectItemWithTag:fillWithHandPicked];
+			else if (fillSelectionWithTargetImage)
+				[fillStylePopUp selectItemWithTag:fillWithTargetImage];
+			else if (fillSelectionWithColor)
+				[fillStylePopUp selectItemWithTag:fillWithColor];
+			
+			if (fillSelectionWithUniqueMatch)
+				[[[fillStylePopUp menu] itemWithTag:fillWithUniqueMatch] setState:NSMixedState];
+			if (fillSelectionWithHandPicked)
+				[[[fillStylePopUp menu] itemWithTag:fillWithHandPicked] setState:NSMixedState];
+			if (fillSelectionWithTargetImage)
+				[[[fillStylePopUp menu] itemWithTag:fillWithTargetImage] setState:NSMixedState];
+			if (fillSelectionWithColor)
+				[[[fillStylePopUp menu] itemWithTag:fillWithColor] setState:NSMixedState];
 			
 			[fillStyleTabView selectTabViewItemWithIdentifier:@"Multiple Styles Selected"];
 		}
@@ -612,10 +651,69 @@
 }
 
 
-- (IBAction)dontUseThisImage:(id)sender
+#pragma mark -
+#pragma mark Best match from sources
+
+
+- (IBAction)dontUseImageInSelectedTile:(id)sender
+{
+	if ([[self selectedTiles] count] != 1)
+		NSBeep();
+	else if (![MacOSaiXWarningController warningIsEnabled:@"Disallowing Image"] || 
+			 [MacOSaiXWarningController runAlertForWarning:@"Disallowing Image" 
+													 title:NSLocalizedString(@"Are you sure you don't want to use the image in the selected tile?", @"") 
+												   message:NSLocalizedString(@"All of the image sources must be searched again to find a new image for the tile.", @"") 
+											  buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Don't Use", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
+	{
+		MacOSaiXTile	*selectedTile = [[self selectedTiles] objectAtIndex:0];
+		
+		[selectedTile disallowImage:[[selectedTile uniqueImageMatch] sourceImage]];
+	}
+}
+
+
+- (IBAction)dontUseSelectedImageInThisMosaic:(id)sender
+{
+	if ([[self selectedTiles] count] != 1)
+		NSBeep();
+	else if (![MacOSaiXWarningController warningIsEnabled:@"Disallowing Image"] || 
+			 [MacOSaiXWarningController runAlertForWarning:@"Disallowing Image" 
+													 title:NSLocalizedString(@"Are you sure you don't want to use the image in the selected tile?", @"") 
+												   message:NSLocalizedString(@"All of the image sources must be searched again to find a new image for the tile.", @"") 
+											  buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Don't Use", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
+	{
+		MacOSaiXTile	*selectedTile = [[self selectedTiles] objectAtIndex:0];
+		
+		[[[self delegate] mosaic] disallowImage:[[selectedTile uniqueImageMatch] sourceImage]];
+	}
+}
+
+
+- (IBAction)dontUseSelectedImageInAnyMosaic:(id)sender
+{
+	if ([[self selectedTiles] count] != 1)
+		NSBeep();
+	else if (![MacOSaiXWarningController warningIsEnabled:@"Disallowing Image"] || 
+			 [MacOSaiXWarningController runAlertForWarning:@"Disallowing Image" 
+													 title:NSLocalizedString(@"Are you sure you don't want to use the image in the selected tile?", @"") 
+												   message:NSLocalizedString(@"All of the image sources must be searched again to find a new image for the tile.", @"") 
+											  buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Don't Use", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
+	{
+		MacOSaiXTile	*selectedTile = [[self selectedTiles] objectAtIndex:0];
+		
+		[(MacOSaiX *)[NSApp delegate] disallowImage:[[selectedTile uniqueImageMatch] sourceImage]];
+	}
+}
+
+
+- (IBAction)restoreImages:(id)sender
 {
 	
 }
+
+
+#pragma mark -
+#pragma mark Hand picked images
 
 
 - (IBAction)chooseImageForTile:(id)sender
@@ -726,6 +824,10 @@
 }
 
 
+#pragma mark -
+#pragma mark Solid color
+
+
 - (IBAction)setSolidColor:(id)sender
 {
 	MacOSaiXTileFillStyle	fillStyle = fillWithColor;
@@ -756,6 +858,9 @@
 			[selectedTile setFillColor:fillColor];
 	}
 }
+
+
+#pragma mark -
 
 
 - (IBAction)openWebPageForCurrentImage:(id)sender
