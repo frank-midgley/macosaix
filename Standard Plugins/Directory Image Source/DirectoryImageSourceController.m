@@ -209,16 +209,55 @@
 }
 
 
+- (void)setPath:(NSString *)newPath
+{
+	[currentImageSource setPath:newPath];
+	
+	{
+		// Update the preferences.
+		
+		NSMutableDictionary	*plugInDefaults = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] 
+			mutableCopy] autorelease];
+		
+		if (!plugInDefaults)
+			plugInDefaults = [NSMutableDictionary dictionary];
+		
+			// Remember this path for the next time the user creates a new source.
+		[plugInDefaults setObject:newPath forKey:@"Last Chosen Folder"];
+		
+			// Add the chosen path if it wasn't there.
+		if (![self currentDirectory])
+		{
+			NSMutableArray		*folderDicts = [[[plugInDefaults objectForKey:@"Folders"] mutableCopy] autorelease];
+			
+			if (!folderDicts)
+			{
+				folderDicts = [NSMutableArray array];
+				[plugInDefaults setObject:folderDicts forKey:@"Folders"];
+			}
+			
+			[folderDicts addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+				newPath, @"Path", 
+				[NSNumber numberWithInt:0], @"Image Count", 
+				nil]];
+		}
+		
+		[[NSUserDefaults standardUserDefaults] setObject:plugInDefaults forKey:@"Folder Image Source"];
+		[[NSUserDefaults standardUserDefaults] synchronize];
+	}
+	
+	[self populateGUI];
+	
+	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Folder", @"")];
+}
+
+
 - (IBAction)chooseFolder:(id)sender
 {
 	DirectoryImageSourceDirectory	*directory = [sender representedObject];
 	
 	if (directory)
-	{
-		[currentImageSource setPath:[directory path]];
-		[self populateGUI];
-		[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Folder", @"")];
-	}
+		[self setPath:[directory path]];
 	else
 	{
 		// The user wants to choose a new folder.
@@ -243,45 +282,7 @@
 - (void)chooseFolderDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode contextInfo:(void *)context
 {
     if (returnCode == NSOKButton)
-	{
-		NSString		*newPath = [[sheet filenames] objectAtIndex:0];
-		
-			// Update the model.
-		[currentImageSource setPath:newPath];
-		
-			// Remember this path for the next time the user creates a new source.
-		NSMutableDictionary	*plugInDefaults = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] 
-														mutableCopy] autorelease];
-
-		if (!plugInDefaults)
-			plugInDefaults = [NSMutableDictionary dictionary];
-		
-		[plugInDefaults setObject:newPath forKey:@"Last Chosen Folder"];
-			
-			// Add the chosen path if it wasn't there.
-		if (![self currentDirectory])
-		{
-			NSMutableArray		*folderDicts = [[[plugInDefaults objectForKey:@"Folders"] mutableCopy] autorelease];
-			
-			if (!folderDicts)
-			{
-				folderDicts = [NSMutableArray array];
-				[plugInDefaults setObject:folderDicts forKey:@"Folders"];
-			}
-			
-			[folderDicts addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-										newPath, @"Path", 
-										[NSNumber numberWithInt:0], @"Image Count", 
-										nil]];
-		}
-		
-		[[NSUserDefaults standardUserDefaults] setObject:plugInDefaults forKey:@"Folder Image Source"];
-		[[NSUserDefaults standardUserDefaults] synchronize];
-		
-		[self populateGUI];
-		
-		[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Folder", @"")];
-	}
+		[self setPath:[[sheet filenames] objectAtIndex:0]];
 }
 
 
