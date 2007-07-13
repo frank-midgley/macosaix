@@ -426,7 +426,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 							case fillWithColor:
 							case fillWithAverageTargetColor:
 								[[tile fillColor] set];
-								NSRectFillUsingOperation([clipPath bounds], NSCompositeSourceOver);
+								NSRectFillUsingOperation(NSIntegralRect([clipPath bounds]), NSCompositeCopy);
 								break;
 						}
 					[mainImage unlockFocus];
