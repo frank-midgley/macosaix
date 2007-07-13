@@ -233,7 +233,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 {
 	NSBitmapImageRep	*imageRep = nil,
 						*scalableRep = nil;
-
+	
 	size = NSMakeSize(roundf(size.width), roundf(size.height));
 	
 	[cacheLock lock];
@@ -243,13 +243,11 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 		
 		if (nativeSizeValue)
 		{
-				// There is at least one rep cached for this image.  Calculate the size that is 
-				// just small enough to enclose the requested size.
+				// There is at least one rep cached for this image.  Calculate the size that is just small enough to enclose the requested size.
 			NSSize			nativeSize = [nativeSizeValue sizeValue];
 			
 				// Check if there is a cached image rep we can use.
-			NSArray				*imageReps = [[memoryCache objectForKey:[NSValue valueWithPointer:imageSource]] 
-													objectForKey:imageIdentifier];
+			NSArray				*imageReps = [[memoryCache objectForKey:imageSourceKey] objectForKey:imageIdentifier];
 			NSEnumerator		*cachedRepEnumerator = [imageReps objectEnumerator];
 			NSBitmapImageRep	*cachedRep = nil;
 			while (cachedRep = [cachedRepEnumerator nextObject])
@@ -262,8 +260,7 @@ static	MacOSaiXImageCache	*sharedImageCache = nil;
 					perfectHitCount++;
 					imageRep = cachedRep;
 					
-						// Move the image rep to the head of the recency arrays so it 
-						// stays in the cache longer.
+						// Move the image rep to the head of the recency arrays so it stays in the cache longer.
 					int index = [imageRepRecencyArray indexOfObjectIdenticalTo:imageRep];
 					if (index != NSNotFound)	// should always be found
 					{
