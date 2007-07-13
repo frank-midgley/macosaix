@@ -22,6 +22,12 @@
 }
 
 
++ (id<MacOSaiXImageSource>)imageSourceForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)identifier
+{
+	return [[[self alloc] init] autorelease];
+}
+
+
 + (NSArray *)builtInColorListNames
 {
 	return [NSArray arrayWithObjects:@"All Colors", 
@@ -484,6 +490,12 @@
 }
 
 
+- (NSString *)identifierForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)universalIdentifier
+{
+	return (NSString *)universalIdentifier;
+}
+
+
 - (NSImage *)thumbnailForIdentifier:(NSString *)identifier
 {
 	return nil;
@@ -653,7 +665,11 @@
 
 - (NSString *)descriptionForIdentifier:(NSString *)identifier
 {
-	return nil;
+	NSArray		*fontNameAndNumbers = [identifier componentsSeparatedByString:@"\t"], 
+				*numbers = [[fontNameAndNumbers objectAtIndex:1] componentsSeparatedByString:@" "];
+	NSString	*fontName = [fontNameAndNumbers objectAtIndex:0];
+	
+	return [NSString stringWithFormat:@"%@ #%@", fontName, [numbers objectAtIndex:0]];
 }	
 
 

@@ -32,6 +32,12 @@ NSString *escapedNSString(NSString *string)
 }
 
 
++ (id<MacOSaiXImageSource>)imageSourceForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)identifier
+{
+	return [[[self alloc] init] autorelease];
+}
+
+
 - (id)init
 {
 	if (self = [super init])
@@ -428,9 +434,29 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 }
 
 
-- (id<NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
+- (id<NSObject,NSCoding,NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
 {
 	return [self urlForIdentifier:identifier];
+}
+
+
+- (NSString *)identifierForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)universalIdentifier
+{
+	NSString	*identifier = nil;
+	NSScanner	*scanner = [NSScanner scannerWithString:(NSString *)universalIdentifier];
+	NSString	*serverID = nil, 
+				*photoID = nil,
+				*secret = nil;
+	
+	if ([scanner scanString:@"http://static.flickr.com/" intoString:nil] &&
+		[scanner scanUpToString:@"/" intoString:&serverID] && 
+		[scanner scanString:@"/" intoString:nil] && 
+		[scanner scanUpToString:@"/" intoString:&photoID] && 
+		[scanner scanString:@"/" intoString:nil] && 
+		[scanner scanUpToString:@"." intoString:&secret])
+		identifier = [NSString stringWithFormat:@"%@\t%@\t%@", serverID, photoID, secret];
+	
+	return identifier;
 }
 
 

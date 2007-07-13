@@ -36,6 +36,12 @@ NSString *escapedNSString(NSString *string)
 }
 
 
++ (id<MacOSaiXImageSource>)imageSourceForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)identifier
+{
+	return [[[self alloc] init] autorelease];
+}
+
+
 - (id)init
 {
 	if (self = [super init])
@@ -526,6 +532,17 @@ NSString *escapedNSString(NSString *string)
 - (id<NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
 {
 	return [self urlForIdentifier:identifier];
+}
+
+
+- (NSString *)identifierForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)universalIdentifier
+{
+	NSString	*prefix = @"http://tbn0.google.com/images?q=tbn:";
+	
+	if ([(NSString *)universalIdentifier hasPrefix:prefix])
+		return [(NSString *)universalIdentifier substringFromIndex:[prefix length]];
+	else
+		return nil;
 }
 
 

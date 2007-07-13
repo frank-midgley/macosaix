@@ -29,6 +29,12 @@
 }
 
 
++ (id<MacOSaiXImageSource>)imageSourceForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)identifier
+{
+	return [[[self alloc] init] autorelease];
+}
+
+
 - (id)initWithPlaylistName:(NSString *)name
 {
 	if (self = [super init])
@@ -312,6 +318,12 @@
 - (id<NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
 {
 	return identifier;
+}
+
+
+- (NSString *)identifierForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)universalIdentifier
+{
+	return (NSString *)universalIdentifier;
 }
 
 

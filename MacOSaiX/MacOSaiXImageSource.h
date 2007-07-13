@@ -14,6 +14,9 @@
 	// Whether multiple sources of this type can be added to the same mosaic.
 + (BOOL)allowMultipleImageSources;
 
+	// Return an image source configured so that it can return information for the indicated universal identifier.
++ (id<MacOSaiXImageSource>)imageSourceForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)identifier;
+
 	// The aspect ratio (width / height) of the images in this source.  If the ratio is not known or is variable then return nil.
 - (NSNumber *)aspectRatio;
 
@@ -31,7 +34,10 @@
 - (BOOL)canRefetchImages;
 
 	// This method should return an object that identifies the image indicated by identifier independently of the image source.  The object returned is typically an NSURL or NSString but any object conforming to NSCopying is allowed.
-- (id<NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier;
+- (id<NSObject,NSCoding,NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier;
+
+	// This method should return an object that identifies the image indicated by identifier independently of the image source.  The object returned is typically an NSURL or NSString but any object conforming to NSCopying is allowed.
+- (NSString *)identifierForUniversalIdentifier:(id<NSCopying>)identifier;
 
 	// This method should return the image specified by the identifier.  The identifier will always be one of the values returned by a previous call to -nextImageAndIdentifier:.  The image does not need to be the exact same instance returned by -nextImageAndIdentifier but should contain the same image data.
 - (NSImage *)thumbnailForIdentifier:(NSString *)identifier;

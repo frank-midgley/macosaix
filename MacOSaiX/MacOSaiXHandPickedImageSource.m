@@ -42,6 +42,12 @@
 }
 
 
++ (id<MacOSaiXImageSource>)imageSourceForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)identifier
+{
+	return [[[self alloc] init] autorelease];
+}
+
+
 - (id)copyWithZone:(NSZone *)zone
 {
 	MacOSaiXHandPickedImageSource	*copy = [[MacOSaiXHandPickedImageSource alloc] init];
@@ -141,6 +147,12 @@
 - (id<NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
 {
 	return identifier;
+}
+
+
+- (NSString *)identifierForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)universalIdentifier
+{
+	return (NSString *)universalIdentifier;
 }
 
 

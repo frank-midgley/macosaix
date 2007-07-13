@@ -21,6 +21,16 @@
 }
 
 
++ (id<MacOSaiXImageSource>)imageSourceForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)identifier
+{
+	MacOSaiXDirectoryImageSource	*source = [[self alloc] init];
+	
+	[source setPath:[[(NSURL *)identifier path]		stringByDeletingLastPathComponent]];
+	
+	return [source autorelease];
+}
+
+
 - (id)init
 {
 	if (self = [super init])
@@ -288,6 +298,17 @@
 	NSString	*fullPath = [[NSFileManager defaultManager] pathByResolvingAliasesInPath:[directoryPath stringByAppendingPathComponent:identifier]];
 	
 	return [NSURL fileURLWithPath:fullPath];
+}
+
+
+- (NSString *)identifierForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)universalIdentifier
+{
+	NSString	*imagePath = [(NSURL *)universalIdentifier path];
+	
+	if ([imagePath hasPrefix:[self path]])
+		return [imagePath substringFromIndex:[[self path] length]];
+	else
+		return nil;
 }
 
 
