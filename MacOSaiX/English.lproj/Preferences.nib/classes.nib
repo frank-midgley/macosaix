@@ -3,24 +3,30 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
+                allowSelectedImages = id; 
                 resetWarnings = id; 
                 setAutoSave = id; 
                 setAutoStart = id; 
                 setReportCrashes = id; 
                 setShowTileTooltips = id; 
                 setUpdateCheck = id; 
+                showDisallowedImages = id; 
             }; 
             CLASS = MacOSaiXPreferencesController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                allowImagesButton = NSButton; 
                 autoSaveCheckBox = NSButton; 
                 autoSaveFrequencyField = NSTextField; 
                 autoStartCheckBox = NSButton; 
                 currentController = id; 
+                disallowedImagesTable = NSTableView; 
+                disallowedImagesView = NSView; 
                 editorsPreferencesView = NSView; 
                 preferenceBox = NSBox; 
                 preferenceTable = NSTableView; 
                 reportCrashesCheckBox = NSButton; 
+                showDisallowedImagesButton = NSButton; 
                 showTooltipsCheckBox = NSButton; 
                 updateCheckBox = NSButton; 
             }; 
