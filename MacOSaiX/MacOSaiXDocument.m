@@ -116,7 +116,7 @@
 	[mainWindowController setMosaic:[self mosaic]];
 	[self addWindowController:mainWindowController];
 	
-	if (loading)
+	if ([[self mosaic] isBeingLoaded])
 	{
 		progressController = [[MacOSaiXProgressController alloc] initWithWindow:nil];
 		[progressController setCancelTarget:self action:@selector(cancelLoad:)];
@@ -157,7 +157,7 @@
 
 - (void)mosaicDidChangeState:(NSNotification *)notification
 {
-	if (!loading)
+	if (![[self mosaic] isBeingLoaded])
 		[self updateChangeCount:NSChangeDone];
 }
 
@@ -639,7 +639,7 @@
 
 - (BOOL)readFromFile:(NSString *)fileName ofType:(NSString *)type
 {
-	loading = YES;
+	[[self mosaic] setIsBeingLoaded:YES];
 	loadCancelled = NO;
 	
 	[NSThread detachNewThreadSelector:@selector(loadXMLFile:) 
@@ -663,6 +663,8 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 	
 	while ([[self windowControllers] count] == 0)
 		[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+	
+	[[self mosaic] pause];
 	
 	[[self mosaic] setDiskCachePath:fileName];
 	
@@ -701,8 +703,6 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 		}
 		
 		CFRelease(parser);
-		
-		[[self mosaic] pause];
 	}
 	else
 		errorMessage = NSLocalizedString(@"The file could not be read.", @"");
@@ -720,7 +720,7 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 	[progressController release];
 	progressController = nil;
 	
-	loading = NO;
+	[[self mosaic] setIsBeingLoaded:NO];
 	
 	if (loadCancelled)
 		[self performSelectorOnMainThread:@selector(close) 
@@ -734,6 +734,8 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 		[self performSelectorOnMainThread:@selector(presentTargetImageIsMissingSheet) 
 							   withObject:nil 
 							waitUntilDone:NO];
+	else
+		[[self mosaic] resume];
 	
 	[pool release];
 }
@@ -850,16 +852,23 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						
 						newObject = [[NSClassFromString(className) alloc] init];
 						
-						[mosaic setNumberOfImagesFound:[imageCount intValue] forImageSource:newObject];
 						if (cacheName)
 							[mosaic setDiskCacheSubPath:cacheName forImageSource:newObject];
 						
+							// Have the source read in its settings file.
 						NSString	*settingsPath = [[[document fileName] stringByAppendingPathComponent:
 							[NSString stringWithFormat:@"Image Source %@", sourceID]] stringByAppendingPathExtension:[[newObject class] settingsExtension]];
 						if ([[NSFileManager defaultManager] fileExistsAtPath:settingsPath] && 
 							![newObject loadSettingsFromFileAtPath:settingsPath])
 							CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, 
 											 (CFStringRef)[NSString stringWithFormat:NSLocalizedString(@"The settings for image source %@ could not be loaded.", @""), sourceID]);
+						
+						if (CFXMLParserGetStatusCode(parser) <= 0)
+						{
+							MacOSaiXImageSourceEnumerator *enumerator = [mosaic addImageSource:(id<MacOSaiXImageSource>)newObject];
+							
+							[enumerator setNumberOfImagesFound:[imageCount intValue]];
+						}
 					}
 					else if ([elementType isEqualToString:@"IMAGE_ORIENTATIONS"])
 					{
@@ -1104,7 +1113,6 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	NSMutableArray		*stack = [(NSArray *)info objectAtIndex:0];
 	MacOSaiXDocument	*document = [stack objectAtIndex:0];
-	MacOSaiXMosaic		*mosaic = [stack objectAtIndex:1];
 
 	if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXTileShapes)])
 	{
@@ -1116,7 +1124,6 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	}
 	else if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXImageSource)])
 	{
-		[mosaic addImageSource:(id<MacOSaiXImageSource>)newObject];
 		[(id)newObject release];
 	}
 	else if ([(id)newObject isKindOfClass:[MacOSaiXTile class]] || 

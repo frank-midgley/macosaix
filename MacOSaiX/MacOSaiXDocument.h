@@ -31,7 +31,6 @@
     NSDate						*lastSaved;
     NSTimer						*autosaveTimer;
 	BOOL						saving, 
-								loading, 
 								loadCancelled;
 }
 
