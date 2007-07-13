@@ -9,9 +9,11 @@
 #import "PreferencesController.h"
 
 #import "MacOSaiX.h"
+#import "MacOSaiXDisallowedImage.h"
+#import "MacOSaiXImageCache.h"
+#import "MacOSaiXImageSource.h"
 #import "MacOSaiXPlugIn.h"
 #import "MacOSaiXTileShapes.h"
-#import "MacOSaiXImageSource.h"
 #import "MacOSaiXWarningController.h"
 
 
@@ -56,7 +58,13 @@
 		if ([[plugInClass preferencesEditorClass] conformsToProtocol:@protocol(MacOSaiXPlugInPreferencesEditor)])
 			[plugInClasses addObject:plugInClass];
 	// TODO: sort by plug-in name
+	
+	disallowedImagesViewMinSize = NSMakeSize(352.0, 192.0);
 }
+
+
+#pragma mark -
+#pragma mark General preferences
 
 
 - (IBAction)setUpdateCheck:(id)sender
@@ -122,9 +130,36 @@
 }
 
 
+#pragma mark -
+#pragma mark Disallowed images
+
+
+- (IBAction)showDisallowedImages:(id)sender
+{
+	[[NSUserDefaults standardUserDefaults] setBool:([showDisallowedImagesButton state] == NSOnState)
+											forKey:@"Show Disallowed Images"];
+	[disallowedImagesTable reloadData];
+}
+
+
+- (IBAction)allowSelectedImages:(id)sender
+{
+	// TODO
+}
+
+
+#pragma mark -
+#pragma mark Table view delegation
+
+
 - (int)numberOfRowsInTableView:(NSTableView *)tableView
 {
-	return [plugInClasses count] + 2;
+	if (tableView == preferenceTable)
+		return [plugInClasses count] + 3;
+	else if (tableView == disallowedImagesTable)
+		return [[(MacOSaiX *)[NSApp delegate] disallowedImages] count];
+	else
+		return 0;
 }
 
 
@@ -140,8 +175,10 @@
 				object = [NSApp applicationIconImage];
 			else if (row == 1)
 				object = nil;
+			else if (row == 2)
+				object = [NSImage imageNamed:@"Don't Use"];
 			else
-				object = [[plugInClasses objectAtIndex:row - 2] image];
+				object = [[plugInClasses objectAtIndex:row - 3] image];
 		}
 		else
 		{
@@ -149,9 +186,11 @@
 				object = NSLocalizedString(@"General", @"");
 			else if (row == 1)
 				object = NSLocalizedString(@"Editor", @"");
+			else if (row == 2)
+				object = NSLocalizedString(@"\"Don't Use\" Images", @"");
 			else
 			{
-				Class		plugInClass = [plugInClasses objectAtIndex:row - 2];
+				Class		plugInClass = [plugInClasses objectAtIndex:row - 3];
 				NSBundle	*plugInBundle = [NSBundle bundleForClass:plugInClass];
 				
 				object = [plugInBundle objectForInfoDictionaryKey:@"CFBundleName"];
@@ -161,6 +200,28 @@
 			}
 		}
 	}
+	else if (tableView == disallowedImagesTable)
+	{
+		MacOSaiX				*appDelegate = (MacOSaiX *)[NSApp delegate];
+		MacOSaiXDisallowedImage	*disallowedImage = [[appDelegate disallowedImages] objectAtIndex:row];
+		id<MacOSaiXImageSource>	imageSource = [[disallowedImage imageSourceClass] imageSourceForUniversalIdentifier:[disallowedImage universalIdentifier]];
+		NSString				*imageIdentifier = [imageSource identifierForUniversalIdentifier:[disallowedImage universalIdentifier]];
+		
+		if ([[tableColumn identifier] isEqualToString:@"Source Icon"])
+			object = [[appDelegate plugInForDataSourceClass:[imageSource class]] image];
+		else if ([[tableColumn identifier] isEqualToString:@"Image"] && [showDisallowedImagesButton state] == NSOnState)
+		{
+			NSImageRep	*imageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:NSMakeSize(64.0, 32.0) 
+																						forIdentifier:imageIdentifier 
+																						   fromSource:imageSource];
+			NSImage		*image = [[[NSImage alloc] initWithSize:[imageRep size]] autorelease];
+			[image addRepresentation:imageRep];
+			
+			object = image;
+		}
+		else if ([[tableColumn identifier] isEqualToString:@"Image Description"])
+			object = [imageSource descriptionForIdentifier:imageIdentifier];
+	}
 	
 	return object;
 }
@@ -168,75 +229,87 @@
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
-	// TODO: call -willUnselect and -didUnselect on the current controller
-	
-	int									selectedRow = [preferenceTable selectedRow];
-	id<MacOSaiXPlugInPreferencesEditor>	newPrefsEditor = nil;
-	
-	[currentController willUnselect];
-	if (selectedRow == 0)
+	if ([notification object] == preferenceTable)
 	{
-		if (mainPreferencesView)
+		// TODO: call -willUnselect and -didUnselect on the current controller
+		
+		int									selectedRow = [preferenceTable selectedRow];
+		id<MacOSaiXPlugInPreferencesEditor>	newPrefsEditor = nil;
+		
+		[currentController willUnselect];
+		if (selectedRow == 0)
 		{
-			[preferenceBox setContentView:mainPreferencesView];
-		
-			[[self window] setMinSize:NSMakeSize(minSizeBase.width + mainViewMinSize.width, 
-												 minSizeBase.height + mainViewMinSize.height)];
+			if (mainPreferencesView)
+			{
+				[preferenceBox setContentView:mainPreferencesView];
+			
+				[[self window] setMinSize:NSMakeSize(minSizeBase.width + mainViewMinSize.width, 
+													 minSizeBase.height + mainViewMinSize.height)];
+			}
+			// else we're waking up from the nib and the main pref view is already set
 		}
-		// else we're waking up from the nib and the main pref view is already set
-	}
-	else if (selectedRow == 1)
-	{
-		[preferenceBox setContentView:editorsPreferencesView];
-	
-		[[self window] setMinSize:NSMakeSize(minSizeBase.width + editorsViewMinSize.width, 
-											 minSizeBase.height + editorsViewMinSize.height)];
-	}
-	else
-	{
-		Class	plugInClass = [plugInClasses objectAtIndex:selectedRow - 2];
-		
-			// Lookup or create the preferences editor for this plug-in.
-		newPrefsEditor = [plugInControllers objectForKey:plugInClass];
-		if (!newPrefsEditor)
+		else if (selectedRow == 1)
 		{
-				// Create and cache an editor.
-			newPrefsEditor = [[[[plugInClass preferencesEditorClass] alloc] init] autorelease];
-			[plugInControllers setObject:newPrefsEditor forKey:plugInClass];
-		}
+			[preferenceBox setContentView:editorsPreferencesView];
 		
-			// Enlarge the window if needed.
-		NSSize	currentViewSize = [[preferenceBox contentView] frame].size, 
-				minViewSize = [newPrefsEditor minimumSize];
-		minViewSize.width = MAX(mainViewMinSize.width, minViewSize.width);
-		minViewSize.height = MAX(mainViewMinSize.height, minViewSize.height);
-		float	widthDiff = MAX(0.0, minViewSize.width - currentViewSize.width), 
-				heightDiff = MAX(0.0, minViewSize.height - currentViewSize.height);
-		if (widthDiff > 0 || heightDiff > 0)
+			[[self window] setMinSize:NSMakeSize(minSizeBase.width + editorsViewMinSize.width, 
+												 minSizeBase.height + editorsViewMinSize.height)];
+		}
+		else if (selectedRow == 2)
 		{
-			NSRect	currentFrame = [[self window] frame], 
-					newFrame = NSMakeRect(NSMinX(currentFrame), 
-										  NSMinY(currentFrame) - heightDiff, 
-										  NSWidth(currentFrame) + widthDiff, 
-										  NSHeight(currentFrame) + heightDiff);
-			
-			// TODO: make sure the window doesn't grow off the bottom or right of the screen
-			
-			[[self window] setFrame:newFrame display:YES animate:YES];
-		}
+			[preferenceBox setContentView:disallowedImagesView];
 		
-			// Set the minimum window size based on the new view.
-		[[self window] setMinSize:NSMakeSize(minSizeBase.width + minViewSize.width, 
-											 minSizeBase.height + minViewSize.height)];
+			[[self window] setMinSize:NSMakeSize(minSizeBase.width + disallowedImagesViewMinSize.width, 
+												 minSizeBase.height + disallowedImagesViewMinSize.height)];
+		}
+		else
+		{
+			Class	plugInClass = [plugInClasses objectAtIndex:selectedRow - 3];
 			
-			// Swap in the new view.
-		[newPrefsEditor willSelect];
-		[preferenceBox setContentView:[newPrefsEditor editorView]];
-		[newPrefsEditor didSelect];
+				// Lookup or create the preferences editor for this plug-in.
+			newPrefsEditor = [plugInControllers objectForKey:plugInClass];
+			if (!newPrefsEditor)
+			{
+					// Create and cache an editor.
+				newPrefsEditor = [[[[plugInClass preferencesEditorClass] alloc] init] autorelease];
+				[plugInControllers setObject:newPrefsEditor forKey:plugInClass];
+			}
+			
+				// Enlarge the window if needed.
+			NSSize	currentViewSize = [[preferenceBox contentView] frame].size, 
+					minViewSize = [newPrefsEditor minimumSize];
+			minViewSize.width = MAX(mainViewMinSize.width, minViewSize.width);
+			minViewSize.height = MAX(mainViewMinSize.height, minViewSize.height);
+			float	widthDiff = MAX(0.0, minViewSize.width - currentViewSize.width), 
+					heightDiff = MAX(0.0, minViewSize.height - currentViewSize.height);
+			if (widthDiff > 0 || heightDiff > 0)
+			{
+				NSRect	currentFrame = [[self window] frame], 
+						newFrame = NSMakeRect(NSMinX(currentFrame), 
+											  NSMinY(currentFrame) - heightDiff, 
+											  NSWidth(currentFrame) + widthDiff, 
+											  NSHeight(currentFrame) + heightDiff);
+				
+				// TODO: make sure the window doesn't grow off the bottom or right of the screen
+				
+				[[self window] setFrame:newFrame display:YES animate:YES];
+			}
+			
+				// Set the minimum window size based on the new view.
+			[[self window] setMinSize:NSMakeSize(minSizeBase.width + minViewSize.width, 
+												 minSizeBase.height + minViewSize.height)];
+				
+				// Swap in the new view.
+			[newPrefsEditor willSelect];
+			[preferenceBox setContentView:[newPrefsEditor editorView]];
+			[newPrefsEditor didSelect];
+		}
+		[currentController didUnselect];
+		
+		currentController = newPrefsEditor;
 	}
-	[currentController didUnselect];
-	
-	currentController = newPrefsEditor;
+	else if ([notification object] == disallowedImagesTable)
+		[allowImagesButton setEnabled:([disallowedImagesTable numberOfSelectedRows] > 0)];
 }
 
 

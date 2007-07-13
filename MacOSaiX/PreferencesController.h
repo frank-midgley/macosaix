@@ -14,31 +14,45 @@
 	IBOutlet NSTableView				*preferenceTable;
 	IBOutlet NSBox						*preferenceBox;
 	NSView								*mainPreferencesView; 
-	IBOutlet NSView						*editorsPreferencesView;
 
 	NSSize								mainViewMinSize, 
-										minSizeBase, 
-										editorsViewMinSize;
+										minSizeBase;
 	
 	NSMutableArray						*plugInClasses;
 	NSMutableDictionary					*plugInControllers;
 	
 	id<MacOSaiXPlugInPreferencesEditor>	currentController;
 	
-		// MacOSaiX preferences GUI
+		// General preferences
 	IBOutlet NSButton					*updateCheckBox, 
 										*reportCrashesCheckBox, 
 										*autoStartCheckBox,
 										*autoSaveCheckBox, 
 										*showTooltipsCheckBox;
     IBOutlet NSTextField				*autoSaveFrequencyField;
+	
+		// Editors
+	IBOutlet NSView						*editorsPreferencesView;
+	NSSize								editorsViewMinSize;
+	
+		// Disallowed images
+	IBOutlet NSView						*disallowedImagesView;
+	NSSize								disallowedImagesViewMinSize;
+	IBOutlet NSTableView				*disallowedImagesTable;
+	IBOutlet NSButton					*showDisallowedImagesButton, 
+										*allowImagesButton;
 }
 
+	// General preferences
 - (IBAction)setUpdateCheck:(id)sender;
 - (IBAction)setReportCrashes:(id)sender;
 - (IBAction)setAutoStart:(id)sender;
 - (IBAction)setAutoSave:(id)sender;
 - (IBAction)setShowTileTooltips:(id)sender;
 - (IBAction)resetWarnings:(id)sender;
+
+	// Disallowed images
+- (IBAction)showDisallowedImages:(id)sender;
+- (IBAction)allowSelectedImages:(id)sender;
 
 @end
