@@ -16,7 +16,7 @@
 {
 	NSSize	textSize = [[self attributedStringValue] size];
 	
-	if (textSize.width < NSWidth(cellFrame))
+	if (textSize.width < NSWidth(cellFrame) - 4.0)
 		cellFrame = NSInsetRect(cellFrame, 0.0, (NSHeight(cellFrame) - textSize.height) / 2.0);
 	
 	[super drawWithFrame:cellFrame inView:controlView];
@@ -27,7 +27,7 @@
 {
 	NSSize	textSize = [[self attributedStringValue] size];
 	
-	if (textSize.width < NSWidth(cellFrame))
+	if (textSize.width < NSWidth(cellFrame) - 4.0)
 		cellFrame = NSInsetRect(cellFrame, 0.0, (NSHeight(cellFrame) - textSize.height) / 2.0);
 	
 	[super highlight:flag withFrame:cellFrame inView:controlView];
