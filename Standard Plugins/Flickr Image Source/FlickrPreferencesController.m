@@ -97,7 +97,7 @@
 	
 		// Get the name and icon of the volume the cache lives on.
 	struct statfs	fsStruct;
-	statfs([[[MacOSaiXFlickrImageSource class] imageCachePath] fileSystemRepresentation], &fsStruct);
+	statfs([[[MacOSaiXFlickrImageSourcePlugIn class] imageCachePath] fileSystemRepresentation], &fsStruct);
 	NSString		*volumeRootPath = [NSString stringWithCString:fsStruct.f_mntonname];
 	[volumeImageView setImage:[[NSWorkspace sharedWorkspace] iconForFile:volumeRootPath]];
 	[volumeNameField setStringValue:[[NSFileManager defaultManager] displayNameAtPath:volumeRootPath]];
