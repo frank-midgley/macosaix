@@ -1,5 +1,6 @@
 #import "Tiles.h"
 
+#import "MacOSaiXDisallowedImage.h"
 #import "MacOSaiXDocument.h"
 #import "MacOSaiXImageOrientations.h"
 #import "NSBezierPath+MacOSaiX.h"
@@ -23,6 +24,8 @@
 		if (angle)
 			[self setImageOrientation:[angle floatValue]];
 		[self setMosaic:inMosaic];
+		
+		disallowedImages = [[NSMutableArray array] retain];
 	}
 	return self;
 }
@@ -394,6 +397,30 @@
 }
 
 
+- (void)disallowImage:(id)image
+{
+	MacOSaiXDisallowedImage	*disallowedImage = nil;
+	
+	if ([image isKindOfClass:[MacOSaiXDisallowedImage class]])
+		disallowedImage = image;
+	else if ([image isKindOfClass:[MacOSaiXSourceImage class]])
+		disallowedImage = [MacOSaiXDisallowedImage imageWithSourceImage:image];
+	else
+		[NSException raise:NSInvalidArgumentException format:@"Invalid object passed to -disallowImage:"];
+	
+	[disallowedImages addObject:disallowedImage];
+	
+	if ([self fillStyle] == fillWithUniqueMatch && [disallowedImage isEqualTo:[[self uniqueImageMatch] sourceImage]])
+		[self setUniqueImageMatch:nil];
+}
+
+
+- (NSArray *)disallowedImages
+{
+	return [NSArray arrayWithArray:disallowedImages];
+}
+
+
 - (void)dealloc
 {
     [outline release];
@@ -404,6 +431,7 @@
     [userChosenImageMatch release];
 	[bestImageMatch release];
 	[fillColor release];
+	[disallowedImages release];
 	
     [super dealloc];
 }

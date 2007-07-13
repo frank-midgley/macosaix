@@ -39,6 +39,8 @@ typedef enum
 	NSColor					*fillColor;
 	
 	MacOSaiXMosaic			*mosaic;				// The mosaic this tile is a part of (non-retained)
+	
+	NSMutableArray			*disallowedImages;
 }
 
 	// designated initializer
@@ -77,5 +79,8 @@ typedef enum
 
 - (void)setFillColor:(NSColor *)color;
 - (NSColor *)fillColor;
+
+- (void)disallowImage:(id)image;
+- (NSArray *)disallowedImages;
 
 @end

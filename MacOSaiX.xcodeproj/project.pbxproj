@@ -171,6 +171,7 @@
 		926F90FA0B3DC5100089017E /* MacOSaiXTileShapesEditor.h in Headers */ = {isa = PBXBuildFile; fileRef = 926F90F80B3DC5100089017E /* MacOSaiXTileShapesEditor.h */; };
 		926F90FB0B3DC5100089017E /* MacOSaiXTileShapesEditor.m in Sources */ = {isa = PBXBuildFile; fileRef = 926F90F90B3DC5100089017E /* MacOSaiXTileShapesEditor.m */; };
 		926F90FE0B3DC5610089017E /* Tile Shapes Editor.nib in Resources */ = {isa = PBXBuildFile; fileRef = 926F90FC0B3DC5610089017E /* Tile Shapes Editor.nib */; };
+		9273F0790C440EAB00AEA153 /* Don't Use.png in Resources */ = {isa = PBXBuildFile; fileRef = 9273F0780C440EAB00AEA153 /* Don't Use.png */; };
 		9284898B06611CE5003B3514 /* ExportImage.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F594095502469B3101000104 /* ExportImage.tiff */; };
 		9284898C06611CE5003B3514 /* ImageSources.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F5940957024722BA01000104 /* ImageSources.tiff */; };
 		9284898D06611CE5003B3514 /* Blank.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F594095B02472CFD01000104 /* Blank.tiff */; };
@@ -300,6 +301,8 @@
 		92ECCFAE07F0F25600C77375 /* NSString+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */; };
 		92F00CCF07C1AA55004F6D06 /* MacPADSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F00CCD07C1AA55004F6D06 /* MacPADSocket.m */; };
 		92F00CE507C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F00CE307C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m */; };
+		92F440390C42ABA800B1ECB1 /* MacOSaiXDisallowedImage.h in Headers */ = {isa = PBXBuildFile; fileRef = 92F440370C42ABA800B1ECB1 /* MacOSaiXDisallowedImage.h */; };
+		92F4403A0C42ABA800B1ECB1 /* MacOSaiXDisallowedImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F440380C42ABA800B1ECB1 /* MacOSaiXDisallowedImage.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -695,6 +698,7 @@
 		926F90F80B3DC5100089017E /* MacOSaiXTileShapesEditor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXTileShapesEditor.h; sourceTree = "<group>"; };
 		926F90F90B3DC5100089017E /* MacOSaiXTileShapesEditor.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXTileShapesEditor.m; sourceTree = "<group>"; };
 		926F90FD0B3DC5610089017E /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Tile Shapes Editor.nib"; sourceTree = "<group>"; };
+		9273F0780C440EAB00AEA153 /* Don't Use.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Don't Use.png"; sourceTree = "<group>"; };
 		928489A306611CE6003B3514 /* MacOSaiX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacOSaiX.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		928489C406611CE6003B3514 /* Directory Image Source.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Directory Image Source.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		928489D406611CE6003B3514 /* Google Image Source.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Google Image Source.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -822,6 +826,8 @@
 		92F2B1D5048027510000011E /* QuickTimeImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = QuickTimeImageSourceController.h; path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSourceController.h"; sourceTree = SOURCE_ROOT; };
 		92F2B1D6048027510000011E /* QuickTimeImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = QuickTimeImageSourceController.m; path = "Standard Plugins/QuickTime Image Source/QuickTimeImageSourceController.m"; sourceTree = SOURCE_ROOT; };
 		92F2B1EC048027FA0000011E /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = /System/Library/Frameworks/QuickTime.framework; sourceTree = "<absolute>"; };
+		92F440370C42ABA800B1ECB1 /* MacOSaiXDisallowedImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXDisallowedImage.h; sourceTree = "<group>"; };
+		92F440380C42ABA800B1ECB1 /* MacOSaiXDisallowedImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXDisallowedImage.m; sourceTree = "<group>"; };
 		F514D53C0390266E01B25AF1 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		F514D5A203949AA801B25AF1 /* GoogleImageSourceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = GoogleImageSourceController.h; sourceTree = "<group>"; };
 		F514D5A303949AA801B25AF1 /* GoogleImageSourceController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = GoogleImageSourceController.m; sourceTree = "<group>"; };
@@ -1616,6 +1622,8 @@
 		92DCA54D08F871A100B40FA6 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				92F440370C42ABA800B1ECB1 /* MacOSaiXDisallowedImage.h */,
+				92F440380C42ABA800B1ECB1 /* MacOSaiXDisallowedImage.m */,
 				016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */,
 				016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */,
 				9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */,
@@ -1648,6 +1656,7 @@
 				F58E0883028C71BF016CFBE9 /* BadgeRed.tiff */,
 				F594095B02472CFD01000104 /* Blank.tiff */,
 				9298FEF209955C5A00E7A096 /* Document Icon.icns */,
+				9273F0780C440EAB00AEA153 /* Don't Use.png */,
 				F594095502469B3101000104 /* ExportImage.tiff */,
 				928824290982C00E00181817 /* FullScreen.tiff */,
 				016A248108D7D8E2009A93BF /* HandPicked.png */,
@@ -1794,6 +1803,7 @@
 				924235930C2ACF30003DB124 /* MacOSaiXImageSourceEnumerator.h in Headers */,
 				924236350C2C4CA6003DB124 /* MacOSaiXImageQueue.h in Headers */,
 				924236510C2C58BD003DB124 /* MacOSaiXSourceImage.h in Headers */,
+				92F440390C42ABA800B1ECB1 /* MacOSaiXDisallowedImage.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2321,6 +2331,7 @@
 				929C538F0C04E8B500D2CE07 /* Resume.png in Resources */,
 				921B37A50C0CD36A0005287E /* Images In Use.png in Resources */,
 				921B37A60C0CD36A0005287E /* Images Found.png in Resources */,
+				9273F0790C440EAB00AEA153 /* Don't Use.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2743,6 +2754,7 @@
 				924235940C2ACF30003DB124 /* MacOSaiXImageSourceEnumerator.m in Sources */,
 				924236360C2C4CA6003DB124 /* MacOSaiXImageQueue.m in Sources */,
 				924236520C2C58BD003DB124 /* MacOSaiXSourceImage.m in Sources */,
+				92F4403A0C42ABA800B1ECB1 /* MacOSaiXDisallowedImage.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
