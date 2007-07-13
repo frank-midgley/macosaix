@@ -10,6 +10,7 @@
 
 #import "MacOSaiXAboutBoxController.h"
 #import "MacOSaiXCrashReporterController.h"
+#import "MacOSaiXDisallowedImage.h"
 #import "MacOSaiXDocument.h"
 #import "MacOSaiXExporter.h"
 #import "MacOSaiXFullScreenController.h"
@@ -19,6 +20,7 @@
 #import "MacOSaiXKioskController.h"
 #import "MacOSaiXKioskSetupController.h"
 #import "MacOSaiXScreenSetupController.h"
+#import "MacOSaiXSourceImage.h"
 #import "MacOSaiXUpdateAvailableController.h"
 #import "MacPADSocket.h"
 #import "PreferencesController.h"
@@ -32,6 +34,9 @@
 #import <pthread.h>
 #import <mach/mach.h>
 #import <mach/shared_memory_server.h>
+
+
+NSString	*MacOSaiXDisallowedImagesDidChangeNotification = @"MacOSaiXDisallowedImagesDidChangeNotification";
 
 
 @implementation MacOSaiX
@@ -55,7 +60,22 @@
 		exporterPlugIns = [[NSMutableArray array] retain];
 		loadedPlugInPaths = [[NSMutableArray array] retain];
 		kioskMosaicControllers = [[NSMutableArray array] retain];
+		
+		[self discoverPlugIns];
+		
+		disallowedImages = [[NSMutableArray array] retain];
+		NSEnumerator	*disallowedImageDictEnumerator = [(NSArray *)[[NSUserDefaults standardUserDefaults] objectForKey:@"Disallowed Images"] objectEnumerator];
+		NSDictionary	*disallowedImageDict = nil;
+		while (disallowedImageDict = [disallowedImageDictEnumerator nextObject])
+		{
+			Class	imageSourceClass = NSClassFromString([disallowedImageDict objectForKey:@"Image Source Class Name"]);
+			id		universalIdentifier = [NSUnarchiver unarchiveObjectWithData:[disallowedImageDict objectForKey:@"Image Identifier Archive"]];
+			
+			if (imageSourceClass && universalIdentifier)
+				[disallowedImages addObject:[MacOSaiXDisallowedImage imageWithSourceClass:imageSourceClass universalIdentifier:universalIdentifier]];
+		}
 	}
+	
 	return self;
 }
 
@@ -198,6 +218,22 @@
 									   selector:@selector(checkFreeMemory:) 
 									   userInfo:nil 
 										repeats:YES];
+	#endif
+	
+	#if 0
+		NSBezierPath	*dontUsePath = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(3.0, 3.0, 26.0, 26.0)];
+		[dontUsePath moveToPoint:NSMakePoint(6.0, 6.0)];
+		[dontUsePath lineToPoint:NSMakePoint(26.0, 26.0)];
+		[dontUsePath setLineWidth:6.0];
+		NSImage			*dontUseImage = [[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)];
+		[dontUseImage lockFocus];
+			[[NSColor clearColor] set];
+			NSRectFill(NSMakeRect(0.0, 0.0, 32.0, 32.0));
+			[[NSColor redColor] set];
+			[dontUsePath stroke];
+			NSBitmapImageRep	*dontUseRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0.0, 0.0, 32.0, 32.0)];
+			[[dontUseRep representationUsingType:NSPNGFileType properties:nil] writeToFile:@"/Users/fmidgley/Desktop/Don't Use.png" atomically:NO];
+		[dontUseImage unlockFocus];
 	#endif
 }
 
@@ -528,6 +564,42 @@
 - (BOOL)inKioskMode
 {
 	return (kioskController != nil);
+}
+
+
+#pragma mark -
+#pragma mark "Don't Use" support
+
+
+- (void)disallowImage:(MacOSaiXSourceImage *)image
+{
+	MacOSaiXDisallowedImage	*disallowedImage = [MacOSaiXDisallowedImage imageWithSourceImage:image];
+	
+	[disallowedImages addObject:disallowedImage];
+	
+	{
+			// Update the user defaults.
+		NSUserDefaults			*defaults = [NSUserDefaults standardUserDefaults];
+		NSMutableArray			*disallowedImagesDefault = [NSMutableArray array];
+		NSEnumerator			*disallowedImageEnumerator = [disallowedImages objectEnumerator];
+		MacOSaiXDisallowedImage	*disallowedImage = nil;
+		while (disallowedImage = [disallowedImageEnumerator nextObject])
+			[disallowedImagesDefault addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+													NSStringFromClass([disallowedImage imageSourceClass]), @"Image Source Class Name", 
+													[NSArchiver archivedDataWithRootObject:[disallowedImage universalIdentifier]], @"Image Identifier Archive", 
+													nil]];
+		[defaults setObject:disallowedImagesDefault forKey:@"Disallowed Images"];
+		[defaults synchronize];
+	}
+	
+		// Let anyone who cares know that the disallowed images have changed.
+	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDisallowedImagesDidChangeNotification object:disallowedImage];
+}
+
+
+- (NSArray *)disallowedImages
+{
+	return [NSArray arrayWithArray:disallowedImages];
 }
 
 

@@ -8,6 +8,7 @@
 
 #import "MacOSaiXImageSourceEnumerator.h"
 
+#import "MacOSaiX.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageQueue.h"
 #import "MacOSaiXImageSource.h"
@@ -203,7 +204,13 @@ NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXIm
 
 - (void)reset
 {
+	if (!paused)
+		[NSException raise:@"Enumeration Exception" format:@"Enumerator not paused when reset"];
 	
+	[imageSource reset];
+	
+	[workingImageSource release];
+	workingImageSource = [imageSource copyWithZone:[self zone]];
 }
 
 
@@ -219,18 +226,15 @@ NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXIm
 	
 	while (!pausing && sourceHasMoreImages)
 	{
-		NSAutoreleasePool	*sourcePool = [[NSAutoreleasePool alloc] init];
-		NSImage				*image = nil;
-		NSString			*imageIdentifier = nil;
-		BOOL				imageIsValid = NO;
+		NSAutoreleasePool		*sourcePool = [[NSAutoreleasePool alloc] init];
+		NSImage					*image = nil;
+		NSString				*imageIdentifier = nil;
+		BOOL					imageIsValid = NO;
 		
 		NS_DURING
 				// Get the next image from the source (and identifier if there is one)
 			image = [workingImageSource nextImageAndIdentifier:&imageIdentifier];
 			
-				// Set the caching behavior of the image.  We'll be adding bitmap representations of various sizes to the image so it doesn't need to do any of its own caching.
-			[image setCachedSeparately:YES];
-			[image setCacheMode:NSImageCacheNever];
 			imageIsValid = [image isValid];
 		NS_HANDLER
 			#ifdef DEBUG
@@ -238,8 +242,16 @@ NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXIm
 			#endif
 		NS_ENDHANDLER
 		
-		if (image && imageIsValid)
+		MacOSaiXSourceImage		*sourceImage = [MacOSaiXSourceImage sourceImageWithIdentifier:imageIdentifier fromEnumerator:self];
+		
+		if (image && imageIsValid && 
+			![[mosaic disallowedImages] containsObject:sourceImage] && 
+			![[(MacOSaiX *)[NSApp delegate] disallowedImages] containsObject:sourceImage])
 		{
+				// Set the caching behavior of the image.  We'll be adding bitmap representations of various sizes to the image so it doesn't need to do any of its own caching.
+			[image setCachedSeparately:YES];
+			[image setCacheMode:NSImageCacheNever];
+			
 				// Ignore whatever DPI was set for the image.  We just care about the bitmap dimensions.
 			NSImageRep	*targetRep = [[image representations] objectAtIndex:0];
 			[targetRep setSize:NSMakeSize([targetRep pixelsWide], [targetRep pixelsHigh])];
@@ -253,9 +265,6 @@ NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXIm
 				[[MacOSaiXImageCache sharedImageCache] cacheImage:image 
 												   withIdentifier:imageIdentifier 
 													   fromSource:workingImageSource];
-				
-				MacOSaiXSourceImage	*sourceImage = [MacOSaiXSourceImage sourceImageWithIdentifier:imageIdentifier 
-																				   fromEnumerator:self];
 				
 				[mosaic addSourceImageToQueue:sourceImage];
 			}

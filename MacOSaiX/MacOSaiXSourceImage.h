@@ -23,7 +23,7 @@
 - (NSSize)nativeSize;
 
 - (NSString *)imageIdentifier;
-- (NSString *)universalIdentifier;
+- (id<NSObject,NSCoding,NSCopying>)universalIdentifier;
 - (NSURL *)contextURL;
 
 - (MacOSaiXImageSourceEnumerator *)enumerator;

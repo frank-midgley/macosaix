@@ -8,6 +8,7 @@
 
 #import "MacOSaiXSourceImage.h"
 
+#import "MacOSaiXDisallowedImage.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageSourceEnumerator.h"
 
@@ -59,7 +60,7 @@
 }
 
 
-- (id<NSCopying>)universalIdentifier
+- (id<NSObject,NSCoding,NSCopying>)universalIdentifier
 {
 	return [[[self enumerator] workingImageSource] universalIdentifierForIdentifier:[self imageIdentifier]];
 }
@@ -85,11 +86,27 @@
 }
 
 
-- (BOOL)isEqualTo:(id)otherObject
+- (unsigned)hash
 {
-	return ([otherObject isKindOfClass:[self class]] && 
-			[[(MacOSaiXSourceImage *)otherObject imageIdentifier] isEqualToString:[self imageIdentifier]] && 
-			[(MacOSaiXSourceImage *)otherObject enumerator] == [self enumerator]);
+	return [NSStringFromClass([[[self enumerator] imageSource] class]) hash] + [[self universalIdentifier] hash];
+}
+
+
+- (BOOL)isEqual:(id)otherObject
+{
+	BOOL	isEqual = (self == otherObject);
+	
+	if (!isEqual)
+	{
+		if ([otherObject isKindOfClass:[self class]])
+			isEqual = ([[(MacOSaiXSourceImage *)otherObject imageIdentifier] isEqualToString:[self imageIdentifier]] && 
+					   [(MacOSaiXSourceImage *)otherObject enumerator] == [self enumerator]);
+		else if ([otherObject isKindOfClass:[MacOSaiXDisallowedImage class]])
+			isEqual = ([[[self enumerator] imageSource] class] == [otherObject imageSourceClass] &&
+					   [[self universalIdentifier] isEqual:[otherObject universalIdentifier]]);
+	}
+	
+	return isEqual;
 }
 
 

@@ -6,7 +6,7 @@
 //  Copyright (c) 2001 Frank M. Midgley. All rights reserved.
 //
 
-@class MacOSaiXFullScreenController, MacOSaiXKioskController;
+@class MacOSaiXFullScreenController, MacOSaiXKioskController, MacOSaiXSourceImage;
 
 
 @interface MacOSaiX : NSObject
@@ -24,6 +24,8 @@
 		// Kiosk
 	MacOSaiXKioskController	*kioskController;
 	NSMutableArray			*kioskMosaicControllers;
+	
+	NSMutableArray			*disallowedImages;
 }
 
 - (IBAction)openPreferences:(id)sender;
@@ -43,4 +45,10 @@
 - (IBAction)enterKioskMode:(id)sender;
 - (BOOL)inKioskMode;
 
+- (void)disallowImage:(MacOSaiXSourceImage *)image;
+- (NSArray *)disallowedImages;
+
 @end
+
+
+extern NSString	*MacOSaiXDisallowedImagesDidChangeNotification;

@@ -8,7 +8,8 @@
 
 #import "MacOSaiXMosaic.h"
 
-#import "MacOSaiXHandPickedImageSource.h"
+#import "MacOSaiX.h"
+#import "MacOSaiXDisallowedImage.h"
 #import "MacOSaiXExporter.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatcher.h"
@@ -16,13 +17,10 @@
 #import "MacOSaiXImageQueue.h"
 #import "MacOSaiXImageSource.h"
 #import "MacOSaiXImageSourceEnumerator.h"
+#import "MacOSaiXHandPickedImageSource.h"
 #import "MacOSaiXSourceImage.h"
 #import "MacOSaiXTileShapes.h"
 #import "Tiles.h"
-
-
-	// The maximum size of the image URL queue
-#define MAXIMAGEURLS 4
 
 
 	// Notifications
@@ -74,6 +72,9 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 		[self setImageReuseDistance:[[defaults objectForKey:@"Image Reuse Distance"] intValue]];
 		[self setImageCropLimit:[[defaults objectForKey:@"Image Crop Limit"] intValue]];
 		
+		disallowedImages = [[NSMutableArray array] retain];
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(disallowedImagesDidChange:) name:MacOSaiXDisallowedImagesDidChangeNotification object:nil];
+		
 		paused = NO;
 	}
 	
@@ -97,7 +98,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	
 	if (resetTiles)
 	{
-		// Reset all of the tiles.
+			// Reset all of the tiles.
 		NSEnumerator			*tileEnumerator = [tiles objectEnumerator];
 		MacOSaiXTile			*tile = nil;
 		while (tile = [tileEnumerator nextObject])
@@ -500,7 +501,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 }
 
 
-- (void)addImageSource:(id<MacOSaiXImageSource>)imageSource
+- (MacOSaiXImageSourceEnumerator *)addImageSource:(id<MacOSaiXImageSource>)imageSource
 {
 	MacOSaiXImageSourceEnumerator	*imageSourceEnumerator = [[MacOSaiXImageSourceEnumerator alloc] initWithImageSource:imageSource forMosaic:self];
 	
@@ -520,7 +521,10 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeImageSourcesNotification object:self];
 	
-	[imageSourceEnumerator resume];
+	if (![self isBeingLoaded])
+		[imageSourceEnumerator resume];
+	
+	return imageSourceEnumerator;
 }
 
 
@@ -858,54 +862,58 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 		while ((tile = [tileEnumerator nextObject]) && !pausing)
 		{
 			NSAutoreleasePool	*tilePool = [[NSAutoreleasePool alloc] init];
-			NSBitmapImageRep	*tileBitmap = [tile bitmapRep];
-			NSSize				tileSize = [tileBitmap size];
-			float				croppedPercentage;
 			
-			// See if the image will be cropped too much.
-			if ((imageSize.width / tileSize.width) < (imageSize.height / tileSize.height))
-				croppedPercentage = (imageSize.width * (imageSize.height - imageSize.width * tileSize.height / tileSize.width)) / 
-					(imageSize.width * imageSize.height) * 100.0;
-			else
-				croppedPercentage = ((imageSize.width - imageSize.height * tileSize.width / tileSize.height) * imageSize.height) / 
-					(imageSize.width * imageSize.height) * 100.0;
-			
-			if (croppedPercentage <= [self imageCropLimit])
+			if (![[tile disallowedImages] containsObject:sourceImage])
 			{
-				// Get a rep for the image scaled to the tile's bitmap size.
-				NSBitmapImageRep	*imageRep = [sourceImage imageRepAtSize:tileSize];
+				NSBitmapImageRep	*tileBitmap = [tile bitmapRep];
+				NSSize				tileSize = [tileBitmap size];
+				float				croppedPercentage;
 				
-				if (imageRep)
-				{
-						// Calculate how well this image matches this tile.
-					float				previousBest = ([tile uniqueImageMatch] ? [[tile uniqueImageMatch] matchValue] : 1.0), 
-										matchValue = [matcher compareImageRep:tileBitmap 
-																	 withMask:[tile maskRep] 
-																   toImageRep:imageRep
-																 previousBest:previousBest];
-					MacOSaiXImageMatch	*newMatch = [MacOSaiXImageMatch imageMatchWithValue:matchValue 
-																			 forSourceImage:sourceImage
-																					forTile:tile], 
-										*previousBestMatch = [tile bestImageMatch];
-					
-						// If this image matches better than the tile's current best or this image is the same as the tile's current best then add it to the list of tile's that might get this image.
-					if (matchValue < previousBest || [[tile uniqueImageMatch] sourceImage] == sourceImage)
-						[betterMatches addObject:newMatch];
-					
-						// Update the tile's best match if appropriate.
-					if (![tile bestImageMatch] || matchValue < [previousBestMatch matchValue])
-					{
-						[tile setBestImageMatch:newMatch];
-						
-						MacOSaiXImageSourceEnumerator	*sourceImageEnumerator = [sourceImage enumerator];
-						if ([sourceImageEnumerator isOnProbation] && 
-							[previousBestMatch sourceImage] && 
-							[[previousBestMatch sourceImage] enumerator] != sourceImageEnumerator)
-							[sourceImageEnumerator rememberProbationaryImage:[previousBestMatch sourceImage]];
-					}
-				}
+					// See if the image will be cropped too much.
+				if ((imageSize.width / tileSize.width) < (imageSize.height / tileSize.height))
+					croppedPercentage = (imageSize.width * (imageSize.height - imageSize.width * tileSize.height / tileSize.width)) / 
+						(imageSize.width * imageSize.height) * 100.0;
 				else
-					;	// anything to do or just lose the chance to match this image to this tile?
+					croppedPercentage = ((imageSize.width - imageSize.height * tileSize.width / tileSize.height) * imageSize.height) / 
+						(imageSize.width * imageSize.height) * 100.0;
+				
+				if (croppedPercentage <= [self imageCropLimit])
+				{
+						// Get a rep for the image scaled to the tile's bitmap size.
+					NSBitmapImageRep	*imageRep = [sourceImage imageRepAtSize:tileSize];
+					
+					if (imageRep)
+					{
+							// Calculate how well this image matches this tile.
+						float				previousBest = ([tile uniqueImageMatch] ? [[tile uniqueImageMatch] matchValue] : 1.0), 
+											matchValue = [matcher compareImageRep:tileBitmap 
+																		 withMask:[tile maskRep] 
+																	   toImageRep:imageRep
+																	 previousBest:previousBest];
+						MacOSaiXImageMatch	*newMatch = [MacOSaiXImageMatch imageMatchWithValue:matchValue 
+																				 forSourceImage:sourceImage
+																						forTile:tile], 
+											*previousBestMatch = [tile bestImageMatch];
+						
+							// If this image matches better than the tile's current best or this image is the same as the tile's current best then add it to the list of tile's that might get this image.
+						if (matchValue < previousBest || [[tile uniqueImageMatch] sourceImage] == sourceImage)
+							[betterMatches addObject:newMatch];
+						
+							// Update the tile's best match if appropriate.
+						if (!previousBestMatch || matchValue < [previousBestMatch matchValue])
+						{
+							[tile setBestImageMatch:newMatch];
+							
+							MacOSaiXImageSourceEnumerator	*sourceImageEnumerator = [sourceImage enumerator];
+							if ([sourceImageEnumerator isOnProbation] && 
+								[previousBestMatch sourceImage] && 
+								[[previousBestMatch sourceImage] enumerator] != sourceImageEnumerator)
+								[sourceImageEnumerator rememberProbationaryImage:[previousBestMatch sourceImage]];
+						}
+					}
+					else	// no image rep for image
+						;	// anything to do or just lose the chance to match this image to this tile?
+				}
 			}
 			
 			[tilePool release];
@@ -1200,6 +1208,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 		status = NSLocalizedString(@"Extracting tiles from target image...", @"");	// TODO: include the % complete (localized)
 	else if (calculateImageMatchesThreadAlive)
 		status = NSLocalizedString(@"Matching images...", @"");
+	else if ([self isBeingLoaded])
+		status = NSLocalizedString(@"Loading project...", @"");
 	else if ([self isBusy])
 		status = NSLocalizedString(@"Looking for new images...", @"");
 	
@@ -1274,6 +1284,87 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 
 
 #pragma mark -
+#pragma mark "Don't Use" support
+
+
+- (void)removeDisallowedImage:(MacOSaiXDisallowedImage *)disallowedImage
+{
+	BOOL			needToReset = NO;
+	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
+	MacOSaiXTile	*tile = nil;
+	
+	while (tile = [tileEnumerator nextObject])
+	{
+		if ([tile fillStyle] == fillWithHandPicked && [disallowedImage isEqualTo:[[tile userChosenImageMatch] sourceImage]])
+		{
+			[tile setFillStyle:fillWithUniqueMatch];
+			[tile setUserChosenImageMatch:nil];
+		}
+		
+		if ([tile fillStyle] == fillWithUniqueMatch && [disallowedImage isEqualTo:[[tile uniqueImageMatch] sourceImage]])
+		{
+			[tile setUniqueImageMatch:nil];
+			needToReset = YES;
+		}
+		
+		if ([disallowedImage isEqualTo:[[tile bestImageMatch] sourceImage]])
+			[tile setBestImageMatch:nil];
+	}
+	
+	if (needToReset)
+		[self resetIncludingTiles:NO];
+}
+
+
+- (void)disallowImage:(id)image
+{
+	MacOSaiXDisallowedImage	*disallowedImage = nil;
+	
+	if ([image isKindOfClass:[MacOSaiXDisallowedImage class]])
+		disallowedImage = image;
+	else if ([image isKindOfClass:[MacOSaiXSourceImage class]])
+		disallowedImage = [MacOSaiXDisallowedImage imageWithSourceImage:image];
+	else
+		[NSException raise:NSInvalidArgumentException format:@"Invalid object passed to -disallowImage:"];
+	
+	[disallowedImages addObject:disallowedImage];
+	
+	[self removeDisallowedImage:disallowedImage];
+}
+
+
+- (NSArray *)disallowedImages
+{
+	return [NSArray arrayWithArray:disallowedImages];
+}
+
+
+- (void)disallowedImagesDidChange:(NSNotification *)notification
+{
+	MacOSaiXDisallowedImage	*disallowedImage = [notification object];
+	
+	if (disallowedImage)
+		[self removeDisallowedImage:disallowedImage];
+	else
+	{
+		// TBD: Will this ever happen?  If so then loop through all of the globally disallowed images.
+	}
+}
+
+
+- (void)setIsBeingLoaded:(BOOL)flag
+{
+	isBeingLoaded = flag;
+}
+
+
+- (BOOL)isBeingLoaded
+{
+	return isBeingLoaded;
+}
+
+
+#pragma mark -
 
 
 - (void)dealloc
@@ -1292,6 +1383,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
     [tileShapes release];
     [newImageQueue release];
 	[revisitImageQueue release];
+	
+	[disallowedImages release];
 	
     [super dealloc];
 }

@@ -56,6 +56,10 @@
 									pausing;
     float							overallMatch,
 									lastDisplayMatch;
+	
+	NSMutableArray					*disallowedImages;
+	
+	BOOL							isBeingLoaded;
 }
 
 	// Target image
@@ -105,7 +109,7 @@
 
 	// Image sources methods
 - (NSArray *)imageSourceEnumerators;
-- (void)addImageSource:(id<MacOSaiXImageSource>)imageSource;
+- (MacOSaiXImageSourceEnumerator *)addImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (void)imageSource:(id<MacOSaiXImageSource>)imageSource didChangeSettings:(NSString *)changeDescription;
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource;
 
@@ -124,6 +128,12 @@
 - (BOOL)isPaused;
 - (void)pause;
 - (void)resume;
+
+- (void)disallowImage:(MacOSaiXSourceImage *)image;
+- (NSArray *)disallowedImages;
+
+- (void)setIsBeingLoaded:(BOOL)flag;
+- (BOOL)isBeingLoaded;
 
 @end
 
