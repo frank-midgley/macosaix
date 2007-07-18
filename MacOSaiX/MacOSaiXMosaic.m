@@ -837,7 +837,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 			
 			if (currentMatch && ([currentMatch matchValue] < [betterMatch matchValue] || 
 								 ([currentMatch matchValue] == [betterMatch matchValue] && 
-								  [currentMatch sourceImage] != sourceImage)))
+								  ![[currentMatch sourceImage] isEqualTo:sourceImage])))
 				indicesToRemove[countOfIndicesToRemove++] = currentIndex;
 			
 			currentIndex++;
@@ -896,7 +896,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 											*previousBestMatch = [tile bestImageMatch];
 						
 							// If this image matches better than the tile's current best or this image is the same as the tile's current best then add it to the list of tile's that might get this image.
-						if (matchValue < previousBest || [[tile uniqueImageMatch] sourceImage] == sourceImage)
+						if (matchValue < previousBest || [[[tile uniqueImageMatch] sourceImage] isEqual:sourceImage])
 							[betterMatches addObject:newMatch];
 						
 							// Update the tile's best match if appropriate.
@@ -1065,7 +1065,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 				NSMutableArray	*betterMatches = [self betterMatchesForSourceImage:sourceImage];
 				if ([betterMatches count] == 0)
 				{
-	//				NSLog(@"%@ from %@ is no longer needed", [sourceImage imageIdentifier], [sourceImage imageSource]);
+//					NSLog(@"%@ from %@ is no longer needed", [sourceImage imageIdentifier], [sourceImage imageSource]);
 					[betterMatchesCache removeObjectForKey:[sourceImage universalIdentifier]];
 				}
 				else
@@ -1114,6 +1114,24 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 						[self setBetterMatches:betterMatches forSourceImage:sourceImage];
 						
 						sourceImageInUse = YES;
+					}
+					
+					if ([betterMatches count] > 0 && validMatches)
+					{
+						// If any tiles are using this image and are not in the valid set of matches then clear out their unique match.
+						// TBD: Don't we need to reset in this case?
+						NSMutableSet	*invalidMatches = [NSMutableSet setWithArray:betterMatches];
+						[invalidMatches minusSet:[NSSet setWithArray:validMatches]];
+						
+						NSEnumerator		*invalidMatchEnumerator = [invalidMatches objectEnumerator];
+						MacOSaiXImageMatch	*invalidMatch = nil;
+						while (invalidMatch = [invalidMatchEnumerator nextObject])
+						{
+							MacOSaiXImageMatch	*currentMatch = [[invalidMatch tile] uniqueImageMatch];
+							
+							if ([[currentMatch sourceImage] isEqual:[invalidMatch sourceImage]])
+								[[invalidMatch tile] setUniqueImageMatch:nil];
+						}
 					}
 				}
 				
@@ -1344,7 +1362,11 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	MacOSaiXDisallowedImage	*disallowedImage = [notification object];
 	
 	if (disallowedImage)
-		[self removeDisallowedImage:disallowedImage];
+	{
+		if ([[(MacOSaiX *)[NSApp delegate] disallowedImages] indexOfObjectIdenticalTo:disallowedImage] != NSNotFound)
+			[self removeDisallowedImage:disallowedImage];
+		// else the image is now allowed.  TBD: reset sources with same class as allowed image?
+	}
 	else
 	{
 		// TBD: Will this ever happen?  If so then loop through all of the globally disallowed images.
@@ -1369,6 +1391,8 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 
 - (void)dealloc
 {
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	
 	[imageSourceEnumerators release];
 	[imageSourcesLock release];
 	[diskCacheSubPaths release];
