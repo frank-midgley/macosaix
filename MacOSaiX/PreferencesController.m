@@ -20,6 +20,23 @@
 @implementation MacOSaiXPreferencesController
 
 
++ (MacOSaiXPreferencesController *)sharedController
+{
+    static MacOSaiXPreferencesController	*controller = nil;
+	
+	if (!controller)
+		controller = [[self alloc] initWithWindow:nil];
+    
+	return controller;
+}
+
+
+- (NSString *)windowNibName
+{
+	return @"Preferences";
+}
+
+
 - (void)awakeFromNib
 {
 		// Retain the main prefs view so we can swap it out for plug-in's views.
@@ -60,11 +77,34 @@
 	// TODO: sort by plug-in name
 	
 	disallowedImagesViewMinSize = NSMakeSize(352.0, 192.0);
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(disallowedImagesDidChange:) name:MacOSaiXDisallowedImagesDidChangeNotification object:nil];
 }
 
 
 #pragma mark -
 #pragma mark General preferences
+
+
+- (void)showGeneralPreferences
+{
+	if (mainPreferencesView)
+	{
+		[currentController willUnselect];
+		
+		[preferenceBox setContentView:mainPreferencesView];
+		
+		[[self window] setMinSize:NSMakeSize(minSizeBase.width + mainViewMinSize.width, 
+											 minSizeBase.height + mainViewMinSize.height)];
+		
+		[currentController didUnselect];
+		
+		currentController = nil;
+		
+		[preferenceTable selectRow:0 byExtendingSelection:NO];
+	}
+	// else we're waking up from the nib and the main pref view is already set
+}
 
 
 - (IBAction)setUpdateCheck:(id)sender
@@ -131,7 +171,51 @@
 
 
 #pragma mark -
+#pragma mark Visible Editors
+
+
+- (void)showEditorsPreferences
+{
+	[currentController willUnselect];
+	
+	[preferenceBox setContentView:editorsPreferencesView];
+	
+	[[self window] setMinSize:NSMakeSize(minSizeBase.width + editorsViewMinSize.width, 
+										 minSizeBase.height + editorsViewMinSize.height)];
+	
+	[currentController didUnselect];
+	
+	currentController = nil;
+	
+	[preferenceTable selectRow:1 byExtendingSelection:NO];
+}
+
+
+#pragma mark -
 #pragma mark Disallowed images
+
+
+- (void)showDisallowedImages
+{
+	[currentController willUnselect];
+	
+	[preferenceBox setContentView:disallowedImagesView];
+	
+	[[self window] setMinSize:NSMakeSize(minSizeBase.width + disallowedImagesViewMinSize.width, 
+										 minSizeBase.height + disallowedImagesViewMinSize.height)];
+	
+	[currentController didUnselect];
+	
+	currentController = nil;
+	
+	[preferenceTable selectRow:2 byExtendingSelection:NO];
+}
+
+
+- (void)disallowedImagesDidChange:(NSNotification *)notification
+{
+	[disallowedImagesTable reloadData];
+}
 
 
 - (IBAction)showDisallowedImages:(id)sender
@@ -144,7 +228,13 @@
 
 - (IBAction)allowSelectedImages:(id)sender
 {
-	// TODO
+	MacOSaiX		*appDelegate = (MacOSaiX *)[NSApp delegate];
+	NSArray			*disallowedImages = [NSArray arrayWithArray:[appDelegate disallowedImages]];
+	NSEnumerator	*selectedRowEnumerator = [disallowedImagesTable selectedRowEnumerator];
+	NSNumber		*selectedRow = nil;
+	
+	while (selectedRow = [selectedRowEnumerator nextObject])
+		[appDelegate allowImage:[disallowedImages objectAtIndex:[selectedRow intValue]]];
 }
 
 
@@ -185,7 +275,7 @@
 			if (row == 0)
 				object = NSLocalizedString(@"General", @"");
 			else if (row == 1)
-				object = NSLocalizedString(@"Editor", @"");
+				object = NSLocalizedString(@"Editors", @"");
 			else if (row == 2)
 				object = NSLocalizedString(@"\"Don't Use\" Images", @"");
 			else
@@ -238,30 +328,11 @@
 		
 		[currentController willUnselect];
 		if (selectedRow == 0)
-		{
-			if (mainPreferencesView)
-			{
-				[preferenceBox setContentView:mainPreferencesView];
-			
-				[[self window] setMinSize:NSMakeSize(minSizeBase.width + mainViewMinSize.width, 
-													 minSizeBase.height + mainViewMinSize.height)];
-			}
-			// else we're waking up from the nib and the main pref view is already set
-		}
+			[self showGeneralPreferences];
 		else if (selectedRow == 1)
-		{
-			[preferenceBox setContentView:editorsPreferencesView];
-		
-			[[self window] setMinSize:NSMakeSize(minSizeBase.width + editorsViewMinSize.width, 
-												 minSizeBase.height + editorsViewMinSize.height)];
-		}
+			[self showEditorsPreferences];
 		else if (selectedRow == 2)
-		{
-			[preferenceBox setContentView:disallowedImagesView];
-		
-			[[self window] setMinSize:NSMakeSize(minSizeBase.width + disallowedImagesViewMinSize.width, 
-												 minSizeBase.height + disallowedImagesViewMinSize.height)];
-		}
+			[self showDisallowedImages];
 		else
 		{
 			Class	plugInClass = [plugInClasses objectAtIndex:selectedRow - 3];
@@ -316,23 +387,20 @@
 - (void)windowWillClose:(NSNotification *)notification
 {
 	if ([notification object] == [self window])
-	{
-		[currentController willUnselect];
-		[preferenceBox setContentView:mainPreferencesView];
-		[currentController didUnselect];
-		
-		[self autorelease];
-	}
+		[self showGeneralPreferences];
 }
 
 
 - (void)dealloc
 {
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	
 	[plugInClasses release];
 	[plugInControllers release];
 	[mainPreferencesView release];
 	
     [super dealloc];
 }
+
 
 @end

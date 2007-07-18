@@ -43,6 +43,8 @@
 										*allowImagesButton;
 }
 
++ (MacOSaiXPreferencesController *)sharedController;
+
 	// General preferences
 - (IBAction)setUpdateCheck:(id)sender;
 - (IBAction)setReportCrashes:(id)sender;
