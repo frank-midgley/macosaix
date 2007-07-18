@@ -10,6 +10,7 @@
 #import "MacOSaiXDocument.h"
 
 #import "MacOSaiX.h"
+#import "MacOSaiXDisallowedImage.h"
 #import "MacOSaiXHandPickedImageSource.h"
 #import "MacOSaiXImageOrientations.h"
 #import "MacOSaiXImageSourceEnumerator.h"
@@ -17,6 +18,7 @@
 #import "MacOSaiXSourceImage.h"
 #import "MacOSaiXTileShapes.h"
 #import "Tiles.h"
+#import "NSData+MacOSaiX.h"
 #import "NSImage+MacOSaiX.h"
 #import "NSString+MacOSaiX.h"
 
@@ -474,6 +476,23 @@
 				[NSException raise:@"" format:@"Could not save the image orientations settings."];
 			[fileHandle writeData:[[NSString stringWithFormat:@"<IMAGE_ORIENTATIONS CLASS=\"%@\" />\n\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
 			
+				// Write out any images not allowed for the whole mosaic.
+			NSArray			*disallowedImages = [[self mosaic] disallowedImages];
+			if ([disallowedImages count] > 0)
+			{
+				[fileHandle writeData:[@"<DISALLOWED_IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+				NSEnumerator			*disallowedImageEnumerator = [disallowedImages objectEnumerator];
+				MacOSaiXDisallowedImage	*disallowedImage = nil;
+				while (disallowedImage = [disallowedImageEnumerator nextObject])
+				{
+					NSData	*identifierArchive = [NSArchiver archivedDataWithRootObject:[disallowedImage universalIdentifier]];
+					
+					[fileHandle writeData:[[NSString stringWithFormat:@"\t<DISALLOWED_IMAGE IMAGE_SOURCE_CLASS=\"%@\" IMAGE_ID_ARCHIVE=\"%@\"/>\n", NSStringFromClass([disallowedImage imageSourceClass]), [identifierArchive hexString]] dataUsingEncoding:NSUTF8StringEncoding]];
+				}
+				
+				[fileHandle writeData:[@"</DISALLOWED_IMAGES>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
+			}
+			
 				// Write out the tiles and the shapes settings.
 			className = NSStringFromClass([[[self mosaic] tileShapes] class]);
 			if (![[[self mosaic] tileShapes] saveSettingsToFileAtPath:[[savePath stringByAppendingPathComponent:@"Tile Shapes Settings"] stringByAppendingPathExtension:[[[[self mosaic] tileShapes] class] settingsExtension]]])
@@ -493,8 +512,10 @@
 					fillStyle = @"User Chosen Image";
 				else if ([tile fillStyle] == fillWithTargetImage)
 					fillStyle = @"Target Image";
-				else
+				else if ([tile fillStyle] == fillWithColor)
 					fillStyle = @"Solid Color";
+				else
+					fillStyle = @"Average Target Color";
 				
 				if ([tile hasImageOrientation])
 					[buffer appendFormat:@"\t<TILE FILL_STYLE=\"%@\" IMAGE_ORIENTATION=\"%@\">\n", fillStyle, [NSString stringWithFloat:[tile imageOrientation]]];
@@ -558,13 +579,30 @@
 											 [[[bestMatch sourceImage] imageIdentifier] stringByEscapingXMLEntites],
 											 [NSString stringWithFloat:[bestMatch matchValue]]];
 				}
-				NSColor				*fillColor = [tile fillColor];
+				NSColor				*fillColor = ([tile fillStyle] == fillWithColor ? [tile fillColor] : nil);
 				if (fillColor)
 				{
 					[buffer appendFormat:@"\t\t<FILL_COLOR RED=\"%@\" GREEN=\"%@\" BLUE=\"%@\"/>\n", 
 										 [NSString stringWithFloat:[fillColor redComponent]],
 										 [NSString stringWithFloat:[fillColor greenComponent]],
 										 [NSString stringWithFloat:[fillColor blueComponent]]];
+				}
+				
+					// Write out any images not allowed for this tile.
+				NSArray			*disallowedImages = [tile disallowedImages];
+				if ([disallowedImages count] > 0)
+				{
+					[buffer appendString:@"\t\t<DISALLOWED_IMAGES>\n"];
+					NSEnumerator			*disallowedImageEnumerator = [disallowedImages objectEnumerator];
+					MacOSaiXDisallowedImage	*disallowedImage = nil;
+					while (disallowedImage = [disallowedImageEnumerator nextObject])
+					{
+						NSData	*identifierArchive = [NSArchiver archivedDataWithRootObject:[disallowedImage universalIdentifier]];
+						
+						[buffer appendFormat:@"\t\t\t<DISALLOWED_IMAGE IMAGE_SOURCE_CLASS=\"%@\" IMAGE_ID_ARCHIVE=\"%@\"/>\n", NSStringFromClass([disallowedImage imageSourceClass]), [identifierArchive hexString]];
+					}
+					
+					[buffer appendString:@"\t\t</DISALLOWED_IMAGES>\n"];
 				}
 				
 				[buffer appendString:@"\t</TILE>\n"];
@@ -920,6 +958,8 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 							[(MacOSaiXTile *)newObject setFillStyle:fillWithHandPicked];
 						else if ([fillStyle isEqualToString:@"Target Image"])
 							[(MacOSaiXTile *)newObject setFillStyle:fillWithTargetImage];
+						else if ([fillStyle isEqualToString:@"Average Target Color"])
+							[(MacOSaiXTile *)newObject setFillStyle:fillWithAverageTargetColor];
 						else if ([fillStyle isEqualToString:@"Solid Color"])
 							[(MacOSaiXTile *)newObject setFillStyle:fillWithColor];
 						else
@@ -993,6 +1033,20 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 															   blue:[blueString floatValue] 
 															  alpha:1.0];
 					}
+					else if ([elementType isEqualToString:@"DISALLOWED_IMAGES"])
+					{
+						newObject = [[stack lastObject] retain];
+					}
+					else if ([elementType isEqualToString:@"DISALLOWED_IMAGE"])
+					{
+						NSString						*imageSourceClassName = [nodeAttributes objectForKey:@"IMAGE_SOURCE_CLASS"], 
+														*imageIDArchiveString = [nodeAttributes objectForKey:@"IMAGE_ID_ARCHIVE"];
+						Class							imageSourceClass = NSClassFromString(imageSourceClassName);
+						NSData							*imageIDArchive = [NSData dataWithHexString:imageIDArchiveString];
+						id<NSObject,NSCoding,NSCopying> imageUID = [NSUnarchiver unarchiveObjectWithData:imageIDArchive];
+						
+						newObject = [[MacOSaiXDisallowedImage alloc] initWithSourceClass:imageSourceClass universalIdentifier:imageUID];
+					}
 					else
 					{
 						newObject = [[NSMutableDictionary dictionaryWithDictionary:nodeAttributes] retain];
@@ -1009,7 +1063,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 				
 				default:
 					;
-		//			NSLog(@"Ignoring %d", CFXMLNodeGetTypeCode(node));
+//					NSLog(@"Ignoring %d", CFXMLNodeGetTypeCode(node));
 			}
 			
 			if (newObject)
@@ -1101,6 +1155,10 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 	}
 	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[NSColor class]])
 		[(MacOSaiXTile *)parent setFillColor:child];
+	else if ([(id)parent isKindOfClass:[MacOSaiXMosaic class]] && [(id)child isKindOfClass:[MacOSaiXDisallowedImage class]])
+		[(MacOSaiXMosaic *)parent disallowImage:child];
+	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[MacOSaiXDisallowedImage class]])
+		[(MacOSaiXTile *)parent disallowImage:child];
 	
 //	NSLog(@"Parent <%@: %p> added child <%@: %p>", NSStringFromClass([parent class]), (void *)parent, NSStringFromClass([child class]), (void *)child);
 
@@ -1113,7 +1171,8 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	NSMutableArray		*stack = [(NSArray *)info objectAtIndex:0];
 	MacOSaiXDocument	*document = [stack objectAtIndex:0];
-
+	MacOSaiXMosaic		*mosaic = [stack objectAtIndex:1];
+	
 	if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXTileShapes)])
 	{
 		[(id)newObject release];
@@ -1126,10 +1185,14 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	{
 		[(id)newObject release];
 	}
-	else if ([(id)newObject isKindOfClass:[MacOSaiXTile class]] || 
-			 [(id)newObject isKindOfClass:[NSBezierPath class]] || 
+	else if ([(id)newObject isKindOfClass:[MacOSaiXTile class]])
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileContentsDidChangeNotification
+															object:mosaic 
+														  userInfo:[NSDictionary dictionaryWithObject:newObject forKey:@"Tile"]];
+	else if ([(id)newObject isKindOfClass:[NSBezierPath class]] || 
 			 [(id)newObject isKindOfClass:[NSDictionary class]] || 
-			 [(id)newObject isKindOfClass:[MacOSaiXImageMatch class]])
+			 [(id)newObject isKindOfClass:[MacOSaiXImageMatch class]] || 
+			 [(id)newObject isKindOfClass:[MacOSaiXDisallowedImage class]])
 	{
 			// Release any objects we created in createStructure() now that they are retained by their parent.
 		[(id)newObject release];
