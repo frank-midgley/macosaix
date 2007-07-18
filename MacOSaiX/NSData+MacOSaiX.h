@@ -9,6 +9,10 @@
 
 @interface NSData (MacOSaiX)
 
++ (NSData *)dataWithHexString:(NSString *)hexString;
+
+- (NSString *)hexString;
+
 - (NSString *)checksum;
 
 @end

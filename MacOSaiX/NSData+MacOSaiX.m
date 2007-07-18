@@ -13,6 +13,62 @@
 
 @implementation NSData (MacOSaiX)
 
+
++ (NSData *)dataWithHexString:(NSString *)hexString
+{
+	NSData			*data = nil;
+	unsigned int	hexLength = [hexString length];
+	
+	if (hexLength % 2 == 0)
+	{
+		NSMutableData	*mutableData = [NSMutableData dataWithLength:hexLength / 2];
+		unsigned int	charPos = 0;
+		
+		while (charPos < hexLength)
+		{
+			unsigned char	highByte = [hexString characterAtIndex:charPos], 
+							lowByte = [hexString characterAtIndex:charPos + 1];
+			
+			if (highByte >= '0' && highByte <= '9')
+				highByte -= '0';
+			else if (highByte >= 'a' && highByte <= 'z')
+				highByte -= 'a' - 10;
+			else if (highByte >= 'A' && highByte <= 'Z')
+				highByte -= 'A' - 10;
+			if (lowByte >= '0' && lowByte <= '9')
+				lowByte -= '0';
+			else if (lowByte >= 'a' && lowByte <= 'z')
+				lowByte -= 'a' - 10;
+			else if (lowByte >= 'A' && lowByte <= 'Z')
+				lowByte -= 'A' - 10;
+			
+			unsigned char	byte = highByte * 16 + lowByte;
+			
+			[mutableData replaceBytesInRange:NSMakeRange(charPos / 2, 1) withBytes:&byte];
+			
+			charPos += 2;
+		}
+		
+		data = [NSData dataWithData:mutableData];
+	}
+	
+	return data;
+}
+
+
+- (NSString *)hexString
+{
+	NSMutableString	*hexString = [NSMutableString string];
+	unsigned char	*pointer = (unsigned char *)[self bytes], 
+					*lastByte = pointer + [self length] - 1;
+	
+	while (pointer <= lastByte)
+		[hexString appendFormat:@"%02x", *pointer++];
+	
+	return hexString;
+}
+
+
 - (NSString *)checksum
 {
 	NSString	*checksum = nil;
@@ -43,7 +99,7 @@
 			
 			int	i;
 			for (i = 0; i < md5Size; i++)
-				[(NSMutableString *)checksum appendString:[NSString stringWithFormat:@"%x", md5[i]]];
+				[(NSMutableString *)checksum appendString:[NSString stringWithFormat:@"%02x", md5[i]]];
 			
 			checksum = [NSString stringWithString:checksum];	// de-mutify
 		}
