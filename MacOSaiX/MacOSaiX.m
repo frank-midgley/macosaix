@@ -270,11 +270,7 @@ NSString	*MacOSaiXDisallowedImagesDidChangeNotification = @"MacOSaiXDisallowedIm
 
 - (IBAction)openPreferences:(id)sender
 {
-    MacOSaiXPreferencesController	*windowController;
-    
-    windowController = [[MacOSaiXPreferencesController alloc] initWithWindowNibName:@"Preferences"];
-    [windowController showWindow:self];
-    [[windowController window] makeKeyAndOrderFront:self];
+	[[MacOSaiXPreferencesController sharedController] showWindow:self];
 
     // The windowController object will now take input and, if the user OK's, save the preferences
 }
@@ -571,26 +567,31 @@ NSString	*MacOSaiXDisallowedImagesDidChangeNotification = @"MacOSaiXDisallowedIm
 #pragma mark "Don't Use" support
 
 
+- (void)saveDisallowedImages
+{
+		// Create an array of dictionaries capturing the disallowed images.
+	NSMutableArray			*disallowedImagesDefault = [NSMutableArray array];
+	NSEnumerator			*disallowedImageEnumerator = [disallowedImages objectEnumerator];
+	MacOSaiXDisallowedImage	*disallowedImage = nil;
+	while (disallowedImage = [disallowedImageEnumerator nextObject])
+		[disallowedImagesDefault addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+												NSStringFromClass([disallowedImage imageSourceClass]), @"Image Source Class Name", 
+												[NSArchiver archivedDataWithRootObject:[disallowedImage universalIdentifier]], @"Image Identifier Archive", 
+												nil]];
+	
+	NSUserDefaults			*defaults = [NSUserDefaults standardUserDefaults];
+	[defaults setObject:disallowedImagesDefault forKey:@"Disallowed Images"];
+	[defaults synchronize];
+}
+
+
 - (void)disallowImage:(MacOSaiXSourceImage *)image
 {
 	MacOSaiXDisallowedImage	*disallowedImage = [MacOSaiXDisallowedImage imageWithSourceImage:image];
 	
 	[disallowedImages addObject:disallowedImage];
 	
-	{
-			// Update the user defaults.
-		NSUserDefaults			*defaults = [NSUserDefaults standardUserDefaults];
-		NSMutableArray			*disallowedImagesDefault = [NSMutableArray array];
-		NSEnumerator			*disallowedImageEnumerator = [disallowedImages objectEnumerator];
-		MacOSaiXDisallowedImage	*disallowedImage = nil;
-		while (disallowedImage = [disallowedImageEnumerator nextObject])
-			[disallowedImagesDefault addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-													NSStringFromClass([disallowedImage imageSourceClass]), @"Image Source Class Name", 
-													[NSArchiver archivedDataWithRootObject:[disallowedImage universalIdentifier]], @"Image Identifier Archive", 
-													nil]];
-		[defaults setObject:disallowedImagesDefault forKey:@"Disallowed Images"];
-		[defaults synchronize];
-	}
+	[self saveDisallowedImages];
 	
 		// Let anyone who cares know that the disallowed images have changed.
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDisallowedImagesDidChangeNotification object:disallowedImage];
@@ -600,6 +601,22 @@ NSString	*MacOSaiXDisallowedImagesDidChangeNotification = @"MacOSaiXDisallowedIm
 - (NSArray *)disallowedImages
 {
 	return [NSArray arrayWithArray:disallowedImages];
+}
+
+
+- (void)allowImage:(MacOSaiXDisallowedImage *)allowedImage
+{
+	unsigned	imageIndex = [disallowedImages indexOfObject:allowedImage];
+	
+	if (imageIndex != NSNotFound)
+	{
+		[disallowedImages removeObjectAtIndex:imageIndex];
+		
+		[self saveDisallowedImages];
+		
+			// Let anyone who cares know that the disallowed images have changed.
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXDisallowedImagesDidChangeNotification object:allowedImage];
+	}
 }
 
 
