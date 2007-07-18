@@ -599,15 +599,16 @@
 		[selectedTiles autorelease];
 		selectedTiles = [tiles retain];
 		
+// TODO: zoom the mosaic to center on the selection
 //		NSRect				mosaicBounds = [[self mosaicView] imageBounds];
 //		NSSize				targetImageSize = [[[[self delegate] mosaic] targetImage] size];
 //		NSAffineTransform	*transform = [NSAffineTransform transform];
 //		[transform translateXBy:NSMinX(mosaicBounds) yBy:NSMinY(mosaicBounds)];
 //		[transform scaleXBy:NSWidth(mosaicBounds) / targetImageSize.width 
 //						yBy:NSHeight(mosaicBounds) / targetImageSize.height];
-		
-		if (NO)
-		{
+//
+//		if (NO)
+//		{
 //			// Calculate the currently centered point of the mosaic image independent of the zoom factor.
 //			NSRect	frame = [[[[self mosaicView] enclosingScrollView] contentView] frame],
 //					visibleRect = [mosaicView visibleRect];
@@ -625,11 +626,11 @@
 //			
 //			[mosaicView setInLiveRedraw:[NSNumber numberWithBool:YES]];
 //			[mosaicView performSelector:@selector(setInLiveRedraw:) withObject:[NSNumber numberWithBool:NO] afterDelay:0.0];
-		}
-		
-		[[self delegate] embellishmentNeedsDisplay];
+//		}
 		
 		[self populateGUI];
+		
+		[[self delegate] embellishmentNeedsDisplay];
 	}
 }
 
