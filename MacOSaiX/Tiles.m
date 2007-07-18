@@ -245,7 +245,7 @@
 		float				redValue = 0.0, 
 							greenValue = 0.0, 
 							blueValue = 0.0;
-		int					bytesPerPixel = [bitmapRep hasAlpha] ? 4 : 3, 
+		int					bytesPerPixel = [[self bitmapRep] hasAlpha] ? 4 : 3, 
 							bytesPerRow = [bitmapRep bytesPerRow], 
 							xSize = [bitmapRep size].width,
 							ySize = [bitmapRep size].height;
@@ -306,7 +306,8 @@
 		
 		fillStyle = style;
 		
-		[self sendNotificationThatImageContentsChangedFromPreviousMatch:previousMatch];
+		if (outline)
+			[self sendNotificationThatImageContentsChangedFromPreviousMatch:previousMatch];
 	}
 }
 
