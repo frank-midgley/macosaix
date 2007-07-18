@@ -32,6 +32,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 - (void)tileShapesDidChange:(NSNotification *)notification;
 - (void)createHighlightedImageSourcesOutline;
 - (NSRect)boundsForTargetImage:(NSImage *)targetImage;
+- (void)redrawTiles:(NSArray *)tilesToRedraw;
 @end
 
 
@@ -288,6 +289,8 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 					imageMatch = [tileToRefresh uniqueImageMatch];
 				else if ([tileToRefresh fillStyle] == fillWithHandPicked)
 					imageMatch = [tileToRefresh userChosenImageMatch];
+				else if ([tileToRefresh fillStyle] == fillWithAverageTargetColor)
+					[tileToRefresh fillColor];	// make sure the tile's bitmap has been extracted
 				
 				NSImageRep			*imageRep = [[imageMatch sourceImage] imageRepAtSize:NSIntegralRect([mainOutline bounds]).size];
 				
@@ -345,16 +348,16 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		[innerPool release];
 	} while ([self window] && tileToRefresh);
 	
-	[tileRefreshLock lock];
-		if ([tilesToRedraw count] > 0)
-			[self performSelector:@selector(redrawTiles:) withObject:[NSArray arrayWithArray:tilesToRedraw]];
+	if ([tilesToRedraw count] > 0)
+		[self redrawTiles:tilesToRedraw];
 //			[self performSelectorOnMainThread:@selector(redrawTiles:) 
 //								   withObject:[NSArray arrayWithArray:tilesToRedraw] 
 //								waitUntilDone:NO];
+	[tileRefreshLock lock];
 		refreshingTiles = NO;
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicViewDidChangeBusyStateNotification 
 															object:self];
-		[tileRefreshLock unlock];
+	[tileRefreshLock unlock];
 	
 	[pool release];
 	
