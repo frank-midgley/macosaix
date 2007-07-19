@@ -144,10 +144,28 @@
 	mosaic = [inMosaic retain];
 	
 	if (mosaic)
+	{
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(mosaicDidChangeState:) 
+													 name:MacOSaiXTargetImageDidChangeNotification 
+												   object:mosaic];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(mosaicDidChangeState:) 
+													 name:MacOSaiXTileShapesDidChangeStateNotification 
+												   object:mosaic];
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(mosaicDidChangeState:) 
 													 name:MacOSaiXMosaicDidChangeImageSourcesNotification 
 												   object:mosaic];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(mosaicDidChangeState:) 
+													 name:MacOSaiXImageOrientationsDidChangeStateNotification 
+												   object:mosaic];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(mosaicDidChangeState:) 
+													 name:MacOSaiXTileContentsDidChangeNotification 
+												   object:mosaic];
+	}
 }
 
 
