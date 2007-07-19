@@ -86,7 +86,7 @@
 #pragma mark General preferences
 
 
-- (void)showGeneralPreferences
+- (void)showGeneralPreferences:(id)sender
 {
 	if (mainPreferencesView)
 	{
@@ -102,6 +102,8 @@
 		currentController = nil;
 		
 		[preferenceTable selectRow:0 byExtendingSelection:NO];
+		
+		[self showWindow:self];
 	}
 	// else we're waking up from the nib and the main pref view is already set
 }
@@ -174,7 +176,7 @@
 #pragma mark Visible Editors
 
 
-- (void)showEditorsPreferences
+- (void)showVisibleEditors:(id)sender
 {
 	[currentController willUnselect];
 	
@@ -188,6 +190,8 @@
 	currentController = nil;
 	
 	[preferenceTable selectRow:1 byExtendingSelection:NO];
+	
+	[self showWindow:self];
 }
 
 
@@ -195,7 +199,7 @@
 #pragma mark Disallowed images
 
 
-- (void)showDisallowedImages
+- (void)showDisallowedImages:(id)sender
 {
 	[currentController willUnselect];
 	
@@ -209,6 +213,8 @@
 	currentController = nil;
 	
 	[preferenceTable selectRow:2 byExtendingSelection:NO];
+	
+	[self showWindow:self];
 }
 
 
@@ -218,7 +224,7 @@
 }
 
 
-- (IBAction)showDisallowedImages:(id)sender
+- (IBAction)showImages:(id)sender
 {
 	[[NSUserDefaults standardUserDefaults] setBool:([showDisallowedImagesButton state] == NSOnState)
 											forKey:@"Show Disallowed Images"];
@@ -328,11 +334,11 @@
 		
 		[currentController willUnselect];
 		if (selectedRow == 0)
-			[self showGeneralPreferences];
+			[self showGeneralPreferences:self];
 		else if (selectedRow == 1)
-			[self showEditorsPreferences];
+			[self showVisibleEditors:self];
 		else if (selectedRow == 2)
-			[self showDisallowedImages];
+			[self showDisallowedImages:self];
 		else
 		{
 			Class	plugInClass = [plugInClasses objectAtIndex:selectedRow - 3];
@@ -387,7 +393,7 @@
 - (void)windowWillClose:(NSNotification *)notification
 {
 	if ([notification object] == [self window])
-		[self showGeneralPreferences];
+		[self showGeneralPreferences:self];
 }
 
 

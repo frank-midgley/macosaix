@@ -46,6 +46,7 @@
 + (MacOSaiXPreferencesController *)sharedController;
 
 	// General preferences
+- (void)showGeneralPreferences:(id)sender;
 - (IBAction)setUpdateCheck:(id)sender;
 - (IBAction)setReportCrashes:(id)sender;
 - (IBAction)setAutoStart:(id)sender;
@@ -53,8 +54,11 @@
 - (IBAction)setShowTileTooltips:(id)sender;
 - (IBAction)resetWarnings:(id)sender;
 
+- (void)showVisibleEditors:(id)sender;
+
 	// Disallowed images
 - (IBAction)showDisallowedImages:(id)sender;
+- (IBAction)showImages:(id)sender;
 - (IBAction)allowSelectedImages:(id)sender;
 
 @end
