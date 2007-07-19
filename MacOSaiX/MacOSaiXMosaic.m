@@ -24,13 +24,13 @@
 
 
 	// Notifications
-NSString	*MacOSaiXMosaicDidChangeImageSourcesNotification = @"MacOSaiXMosaicDidChangeImageSourcesNotification";
-NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChangeBusyStateNotification";
 NSString	*MacOSaiXTargetImageWillChangeNotification = @"MacOSaiXTargetImageWillChangeNotification";
 NSString	*MacOSaiXTargetImageDidChangeNotification = @"MacOSaiXTargetImageDidChangeNotification";
-NSString	*MacOSaiXTileContentsDidChangeNotification = @"MacOSaiXTileContentsDidChangeNotification";
 NSString	*MacOSaiXTileShapesDidChangeStateNotification = @"MacOSaiXTileShapesDidChangeStateNotification";
+NSString	*MacOSaiXMosaicDidChangeImageSourcesNotification = @"MacOSaiXMosaicDidChangeImageSourcesNotification";
 NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageOrientationsDidChangeStateNotification";
+NSString	*MacOSaiXTileContentsDidChangeNotification = @"MacOSaiXTileContentsDidChangeNotification";
+NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChangeBusyStateNotification";
 
 
 @interface MacOSaiXMosaic (PrivateMethods)
@@ -553,12 +553,6 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 	MacOSaiXTile		*tile = nil;
 	while (tile = [tileEnumerator nextObject])
 	{
-		if ([[[tile userChosenImageMatch] sourceImage] enumerator] == imageSourceEnumerator)
-		{
-			[tile setUserChosenImageMatch:nil];
-			tilesWereChanged = YES;
-		}
-		
 		if ([[[tile uniqueImageMatch] sourceImage] enumerator] == imageSourceEnumerator)
 		{
 			[tile setUniqueImageMatch:nil];
@@ -1196,6 +1190,24 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
 
 
 #pragma mark -
+#pragma mark Hand picked images
+
+
+- (MacOSaiXImageSourceEnumerator *)handPickedImageSourceEnumerator
+{
+	if (!handPickedImageSourceEnumerator)
+	{
+		id<MacOSaiXImageSource> imageSource = [[[NSClassFromString(@"MacOSaiXDirectoryImageSource") alloc] init] autorelease];
+		[(id)imageSource setPath:@"/"];
+		
+		handPickedImageSourceEnumerator = [[MacOSaiXImageSourceEnumerator alloc] initWithImageSource:imageSource forMosaic:self];
+	}
+	
+	return handPickedImageSourceEnumerator;
+}
+
+
+#pragma mark -
 #pragma mark Status
 
 
@@ -1407,6 +1419,7 @@ NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageO
     [tileShapes release];
     [newImageQueue release];
 	[revisitImageQueue release];
+	[handPickedImageSourceEnumerator release];
 	
 	[disallowedImages release];
 	

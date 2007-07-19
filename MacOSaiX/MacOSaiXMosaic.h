@@ -51,6 +51,8 @@
 	BOOL							calculateImageMatchesThreadAlive;
 	NSMutableDictionary				*betterMatchesCache, 
 									*imageIdentifiersInUse;
+
+	MacOSaiXImageSourceEnumerator	*handPickedImageSourceEnumerator;
 	
     BOOL							paused, 
 									pausing;
@@ -120,9 +122,7 @@
 - (void)setDiskCacheSubPath:(NSString *)path forImageSource:(id<MacOSaiXImageSource>)imageSource;
 
 	// Hand picked images
-//- (MacOSaiXHandPickedImageSource *)handPickedImageSource;
-//- (void)setHandPickedImageAtPath:(NSString *)path withMatchValue:(float)matchValue forTile:(MacOSaiXTile *)tile;
-//- (void)removeHandPickedImageForTile:(MacOSaiXTile *)tile;
+- (MacOSaiXImageSourceEnumerator *)handPickedImageSourceEnumerator;
 
 	// Pause/resume
 - (BOOL)isPaused;
@@ -139,10 +139,10 @@
 
 
 	// Notifications
-extern NSString	*MacOSaiXMosaicDidChangeImageSourcesNotification;
-extern NSString	*MacOSaiXMosaicDidChangeBusyStateNotification;
 extern NSString	*MacOSaiXTargetImageDidChangeNotification;
-extern NSString *MacOSaiXTileContentsDidChangeNotification;
 extern NSString *MacOSaiXTileShapesDidChangeStateNotification;
+extern NSString	*MacOSaiXMosaicDidChangeImageSourcesNotification;
 extern NSString *MacOSaiXImageOrientationsDidChangeStateNotification;
+extern NSString *MacOSaiXTileContentsDidChangeNotification;
+extern NSString	*MacOSaiXMosaicDidChangeBusyStateNotification;
 
