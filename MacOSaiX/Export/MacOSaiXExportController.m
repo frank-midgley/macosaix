@@ -267,7 +267,7 @@
 //			[progressController setMessage:NSLocalizedString(@"Saving tile %d of %d...", @""), tilesExported + 1, tileCount];
 			[progressController setPercentComplete:[NSNumber numberWithDouble:(100.0 * tilesExported / tileCount)]];
 			
-			if (fillStyle == fillWithColor)
+			if (fillStyle == fillWithColor || fillStyle == fillWithAverageTargetColor)
 			{
 				NS_DURING
 					exportError = [exporter fillTileWithColor:[tile fillColor] clippedToPath:[tile outline]];
