@@ -16,6 +16,7 @@
 #import "MacOSaiXSourceImage.h"
 #import "MacOSaiXWarningController.h"
 #import "NSImage+MacOSaiX.h"
+#import "PreferencesController.h"
 #import "Tiles.h"
 
 
@@ -76,6 +77,19 @@
 }
 
 
+- (NSBezierPath *)outlineOfSelectedTiles
+{
+	NSBezierPath	*outlineOfSelectedTiles = [NSBezierPath bezierPath];
+	NSEnumerator	*selectedTileEnumerator = [[self selectedTiles] objectEnumerator];
+	MacOSaiXTile	*selectedTile = nil;
+	
+	while (selectedTile = [selectedTileEnumerator nextObject])
+		[outlineOfSelectedTiles appendBezierPath:[selectedTile outline]];
+	
+	return outlineOfSelectedTiles;
+}
+
+
 - (void)embellishMosaicView:(MosaicView *)mosaicView inRect:(NSRect)rect;
 {
 	[super embellishMosaicView:mosaicView inRect:rect];
@@ -99,15 +113,8 @@
 		BOOL				commandKeyDown = (([[NSApp currentEvent] modifierFlags] & NSCommandKeyMask) != 0);
 		
 			// Create a path containing all selected tile's outlines.
-		NSBezierPath	*selectedTilesOutline = [NSBezierPath bezierPath];
-		if (commandKeyDown)
-		{
-			NSEnumerator	*selectedTileEnumerator = [[self selectedTiles] objectEnumerator];
-			MacOSaiXTile	*selectedTile = nil;
-			while (selectedTile = [selectedTileEnumerator nextObject])
-				[selectedTilesOutline appendBezierPath:[selectedTile outline]];
-			[selectedTilesOutline transformUsingAffineTransform:transform];
-		}
+		NSBezierPath	*selectedTilesOutline = (commandKeyDown ? [self outlineOfSelectedTiles] : [NSBezierPath bezierPath]);
+		[selectedTilesOutline transformUsingAffineTransform:transform];
 		
 			// Lighten the rest of the mosaic view
 		NSBezierPath		*nonSelectedPath = [NSBezierPath bezierPathWithRect:mosaicBounds];
@@ -139,11 +146,7 @@
 	else if ([[self selectedTiles] count] > 0)
 	{
 			// Create a path containing all selected tile's outlines.
-		NSBezierPath	*selectedTilesOutline = [NSBezierPath bezierPath];
-		NSEnumerator	*selectedTileEnumerator = [[self selectedTiles] objectEnumerator];
-		MacOSaiXTile	*selectedTile = nil;
-		while (selectedTile = [selectedTileEnumerator nextObject])
-			[selectedTilesOutline appendBezierPath:[selectedTile outline]];
+		NSBezierPath	*selectedTilesOutline = [self outlineOfSelectedTiles];
 		[selectedTilesOutline transformUsingAffineTransform:transform];
 		
 			// Lighten the rest of the mosaic view
@@ -364,6 +367,44 @@
 }
 
 
+- (NSImage *)selectedPortionOfTargetImage
+{
+	NSBezierPath		*outlineOfSelectedTiles = [self outlineOfSelectedTiles];
+	NSRect				outlineBounds = [outlineOfSelectedTiles bounds], 
+						portionImageBounds = NSInsetRect(outlineBounds, -NSWidth(outlineBounds) * 0.05, -NSHeight(outlineBounds) * 0.05);
+	NSImage				*portionImage = [[NSImage alloc] initWithSize:portionImageBounds.size], 
+						*targetImage = [[[self delegate] mosaic] targetImage];
+	NSRect				targetImageBounds = NSMakeRect(0.0, 0.0, [targetImage size].width, [targetImage size].height);
+	NSAffineTransform	*transform = [NSAffineTransform transform];
+	[transform translateXBy:NSWidth(outlineBounds) * 0.05 - NSMinX(outlineBounds) 
+						yBy:NSHeight(outlineBounds) * 0.05 - NSMinY(outlineBounds)];
+	
+	[portionImage lockFocus];
+		
+		[transform set];
+		
+		[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
+		
+			// Start with a lightened copy of the target image.
+		[targetImage compositeToPoint:NSMakePoint(0.0, 0.0) fromRect:targetImageBounds operation:NSCompositeCopy fraction:0.25];
+		
+			// Now fill the selected tiles with the normal image.
+		[[NSGraphicsContext currentContext] saveGraphicsState];
+			[outlineOfSelectedTiles addClip];
+			[targetImage compositeToPoint:NSMakePoint(0.0, 0.0) fromRect:targetImageBounds operation:NSCompositeCopy fraction:1.0];
+		[[NSGraphicsContext currentContext] restoreGraphicsState];
+		
+			// Finish by darkening the outline of the selected tiles.
+		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.75] set];
+		[outlineOfSelectedTiles setLineWidth:2.0];
+		[outlineOfSelectedTiles stroke];
+		
+	[portionImage unlockFocus];
+	
+	return [portionImage autorelease];
+}
+
+
 - (void)populateGUI
 {
 	int	tileCount = [[self selectedTiles] count];
@@ -378,7 +419,7 @@
 	{
 		[fillStylePopUp setEnabled:YES];
 		
-			// Determine if the selection contains mixed fill styles.
+			// Determine which fill styles are in use by the selected tiles.
 		BOOL					fillSelectionWithUniqueMatch = NO, 
 								fillSelectionWithHandPicked = NO, 
 								fillSelectionWithTargetImage = NO, 
@@ -460,6 +501,8 @@
 		
 		if (multipleFillStyles)
 		{
+			// If multiple styles are in use then no editing can be done except to switch all selected tiles to the same fill style.  The pop-up will show which styles are in use.
+			
 			if (fillSelectionWithUniqueMatch)
 				[fillStylePopUp selectItemWithTag:fillWithUniqueMatch];
 			else if (fillSelectionWithHandPicked)
@@ -482,6 +525,8 @@
 		}
 		else
 		{
+			// Only one fill style is in use by the selected tiles but the tiles may have different settings for the style, e.g. different fill colors.
+			
 			MacOSaiXTile			*selectedTile = [[self selectedTiles] lastObject];
 			
 			switch ([selectedTile fillStyle])
@@ -545,6 +590,8 @@
 						
 						[handPickedImageView setImage:handPickedImage];
 					}
+					else
+						[handPickedImageView setImage:nil];
 					
 					break;
 				}
@@ -554,6 +601,7 @@
 					[fillStyleTabView selectTabViewItemWithIdentifier:[NSString stringWithFormat:@"%d", fillWithTargetImage]];
 					
 					// TODO: create the image that shows the portion(s) of the target image
+					[portionOfTargetImageView setImage:[self selectedPortionOfTargetImage]];
 					
 					break;
 				}
@@ -709,7 +757,7 @@
 
 - (IBAction)restoreImages:(id)sender
 {
-	
+	[[MacOSaiXPreferencesController sharedController] showDisallowedImages:self];
 }
 
 
@@ -808,10 +856,17 @@
 	
 	if (returnCode == NSOKButton)
 	{
-// TODO: message the tile directly
-//		[[[self delegate] mosaic] setHandPickedImageAtPath:[[openPanel filenames] objectAtIndex:0]
-//											  withMatchValue:0.0
-//													 forTile:selectedTile];
+		MacOSaiXImageSourceEnumerator	*handPickedEnumerator = [[[self delegate] mosaic] handPickedImageSourceEnumerator];
+		NSEnumerator	*selectedTileEnumerator = [[self selectedTiles] objectEnumerator];
+		MacOSaiXTile	*selectedTile = nil;
+		while (selectedTile = [selectedTileEnumerator nextObject])
+		{
+			MacOSaiXSourceImage	*sourceImage = [[MacOSaiXSourceImage alloc] initWithIdentifier:[[openPanel filenames] objectAtIndex:0] fromEnumerator:handPickedEnumerator];
+			MacOSaiXImageMatch	*match = [MacOSaiXImageMatch imageMatchWithValue:0.0 forSourceImage:sourceImage forTile:selectedTile];
+			[selectedTile setUserChosenImageMatch:match];
+		}
+		
+		[self populateGUI];
 	}
 }
 
