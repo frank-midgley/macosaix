@@ -11,6 +11,9 @@
                 setShowTileTooltips = id; 
                 setUpdateCheck = id; 
                 showDisallowedImages = id; 
+                showGeneralPreferences = id; 
+                showImages = id; 
+                showVisibleEditors = id; 
             }; 
             CLASS = MacOSaiXPreferencesController; 
             LANGUAGE = ObjC; 
