@@ -36,6 +36,10 @@
 									  kCGImageAlphaPremultipliedLast);
 	CGContextSetInterpolationQuality(cgContext, kCGInterpolationHigh);
 	
+	CGColorSpaceRef			rgbColorSpace = CGColorSpaceCreateDeviceRGB();
+	CGContextSetFillColorSpace(cgContext, rgbColorSpace);
+	CGColorSpaceRelease(rgbColorSpace);
+	
 //	CGDataProviderRef		cgDataProvider = NULL;
 	
 		// Start with an entirely clear bitmap.
@@ -71,7 +75,7 @@
 		  clippedToPath:(NSBezierPath *)clipPath
 {
 	CGContextSaveGState(cgContext);
-	
+		
 			// Set the clip path.
 		CGPathRef	cgClipPath = [clipPath quartzPath];
 		CGContextAddPath(cgContext, cgClipPath);
