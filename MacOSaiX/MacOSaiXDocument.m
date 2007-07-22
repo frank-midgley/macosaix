@@ -94,8 +94,7 @@
 		[(MacOSaiX *)[NSApp delegate] discoverPlugIns];
 		NSString	*defaultShapesClassString = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Chosen Tile Shapes Class"], 
 					*defaultOrientationsClassString = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Chosen Image Orientations Class"];
-		[[self mosaic] setTileShapes:[[[NSClassFromString(defaultShapesClassString) alloc] init] autorelease]
-					   creatingTiles:YES];
+		[[self mosaic] setTileShapes:[[[NSClassFromString(defaultShapesClassString) alloc] init] autorelease]];;
 		[[self mosaic] setImageOrientations:[[[NSClassFromString(defaultOrientationsClassString) alloc] init] autorelease]];
 		
 			// Create a temporary cache directory until we get saved.
@@ -245,7 +244,13 @@
 
 
 #pragma mark -
-#pragma mark Saving
+#pragma mark Undo support
+
+
+- (NSUndoManager *)undoManager
+{
+	return [[self mosaic] undoManager];
+}
 
 
 - (void)updateChangeCount:(NSDocumentChangeType)changeType
@@ -256,6 +261,10 @@
 	
 	[super updateChangeCount:changeType];
 }
+
+
+#pragma mark -
+#pragma mark Saving
 
 
 - (BOOL)isSaving
@@ -957,7 +966,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 								![newObject loadSettingsFromFileAtPath:settingsPath])
 								CFXMLParserAbort(parser, kCFXMLErrorMalformedStartTag, (CFStringRef)NSLocalizedString(@"The tile shapes settings could not be loaded.", @""));
 							else
-								[mosaic setTileShapes:(id<MacOSaiXTileShapes>)newObject creatingTiles:NO];
+								[mosaic setTileShapes:(id<MacOSaiXTileShapes>)newObject];
 						}
 						else
 							newObject = mosaic;

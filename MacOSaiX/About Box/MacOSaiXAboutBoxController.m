@@ -97,7 +97,7 @@ static MacOSaiXAboutBoxController	*sharedController;
 	id<MacOSaiXTileShapes>	tileShapes = [[NSClassFromString(@"MacOSaiXHexagonalTileShapes") alloc] init];
 	[(id)tileShapes setTilesAcross:30];
 	[(id)tileShapes setTilesDown:24];
-	[mosaic setTileShapes:tileShapes creatingTiles:YES];
+	[mosaic setTileShapes:tileShapes];
 	[tileShapes release];
 	
 	personImages = [[NSMutableDictionary dictionaryWithObject:[NSImage imageNamed:@"Application Icon"] 
