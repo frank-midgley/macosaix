@@ -64,6 +64,8 @@
 	NSMutableArray					*disallowedImages;
 	
 	BOOL							isBeingLoaded;
+	
+	NSUndoManager					*undoManager;
 }
 
 	// Target image
@@ -79,8 +81,9 @@
 - (float)aspectRatio;
 
 	// Tile shapes
-- (void)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes creatingTiles:(BOOL)createTiles;
+- (void)setTileShapes:(id<MacOSaiXTileShapes>)tileShapes;
 - (id<MacOSaiXTileShapes>)tileShapes;
+- (void)createTiles;
 - (NSSize)averageTileSize;
 
 	// Image orientations
@@ -114,7 +117,7 @@
 	// Image sources methods
 - (NSArray *)imageSourceEnumerators;
 - (MacOSaiXImageSourceEnumerator *)addImageSource:(id<MacOSaiXImageSource>)imageSource;
-- (void)imageSource:(id<MacOSaiXImageSource>)imageSource didChangeSettings:(NSString *)changeDescription;
+- (void)imageSourceDidChange:(id<MacOSaiXImageSource>)imageSource;
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource;
 
 	// Disk cache paths
@@ -136,6 +139,8 @@
 
 - (void)setIsBeingLoaded:(BOOL)flag;
 - (BOOL)isBeingLoaded;
+
+- (NSUndoManager *)undoManager;
 
 @end
 

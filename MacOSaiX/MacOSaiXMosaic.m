@@ -132,7 +132,7 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 	{
 		[self pauseForEditing];
 		
-		[self resetIncludingTileMatches:YES tileBitmaps:YES];
+		[self resetIncludingTileMatches:NO tileBitmaps:NO];	// they will be reset by the -createTiles call below
 		
 		NSDictionary	*userInfo = (targetImage ? [NSDictionary dictionaryWithObject:targetImage forKey:@"Previous Image"] : [NSDictionary dictionary]);
 		
@@ -147,7 +147,7 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 		[targetRep setSize:NSMakeSize([targetRep pixelsWide], [targetRep pixelsHigh])];
 		[targetImage setSize:NSMakeSize([targetRep pixelsWide], [targetRep pixelsHigh])];
 		
-		[self setTileShapes:[self tileShapes] creatingTiles:YES];
+		[self createTiles];
 		
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTargetImageDidChangeNotification 
 															object:self 
@@ -234,41 +234,45 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 }
 
 
-- (void)setTileShapes:(id<MacOSaiXTileShapes>)inTileShapes creatingTiles:(BOOL)createTiles
+- (void)setTileShapes:(id<MacOSaiXTileShapes>)inTileShapes
 {
 	[self pauseForEditing];
 	
 	[tileShapes autorelease];
 	tileShapes = [inTileShapes retain];
 	
-	if (createTiles)
-	{
-		NSArray	*shapesArray = [tileShapes shapesForMosaicOfSize:[[self targetImage] size]];
-		
-			// Discard any tiles created from a previous set of outlines.
-		if (!tiles)
-			tiles = [[NSMutableArray arrayWithCapacity:[shapesArray count]] retain];
-		else
-			[tiles removeAllObjects];
-
-			// Create a new tile collection from the outlines.
-		NSEnumerator			*tileShapeEnumerator = [shapesArray objectEnumerator];
-		id<MacOSaiXTileShape>	tileShape = nil;
-		while (tileShape = [tileShapeEnumerator nextObject])
-			[self addTile:[[[MacOSaiXTile alloc] initWithOutline:[tileShape outline] 
-												imageOrientation:[tileShape imageOrientation]
-														  mosaic:self] autorelease]];
-		
-			// Indicate that the average tile size needs to be recalculated.
-		averageTileSize = NSZeroSize;
-		
-		[self resetIncludingTileMatches:YES tileBitmaps:YES];
-	}
+	if (![self isBeingLoaded])
+		[self createTiles];
 	
 		// Let anyone who cares know that our tile shapes (and thus our tiles array) have changed.
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
 														object:self 
 													  userInfo:nil];
+}
+
+
+- (void)createTiles
+{
+	NSArray	*shapesArray = [tileShapes shapesForMosaicOfSize:[[self targetImage] size]];
+	
+		// Discard any tiles created from a previous set of outlines.
+	if (!tiles)
+		tiles = [[NSMutableArray arrayWithCapacity:[shapesArray count]] retain];
+	else
+		[tiles removeAllObjects];
+
+		// Create a new tile collection from the outlines.
+	NSEnumerator			*tileShapeEnumerator = [shapesArray objectEnumerator];
+	id<MacOSaiXTileShape>	tileShape = nil;
+	while (tileShape = [tileShapeEnumerator nextObject])
+		[self addTile:[[[MacOSaiXTile alloc] initWithOutline:[tileShape outline] 
+											imageOrientation:[tileShape imageOrientation]
+													  mosaic:self] autorelease]];
+	
+		// Indicate that the average tile size needs to be recalculated.
+	averageTileSize = NSZeroSize;
+	
+	[self resetIncludingTileMatches:YES tileBitmaps:YES];
 }
 
 
@@ -581,17 +585,22 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 }
 
 
-- (void)imageSource:(id<MacOSaiXImageSource>)imageSource didChangeSettings:(NSString *)changeDescription
+- (void)imageSourceDidChange:(id<MacOSaiXImageSource>)imageSource
 {
 	MacOSaiXImageSourceEnumerator	*imageSourceEnumerator = [self enumeratorForImageSource:imageSource];
+	BOOL							fullyReset = NO;
 	
 	[imageSourceEnumerator pauseForEditing];
+	[imageSourceEnumerator pause];
 	
 	if ([imageSource imagesShouldBeRemovedForLastChange])
 	{
 			// If any tiles were using images from this source then we have to reset all sources.  Ouch.
 		if ([self removeImagesFromSource:imageSource])
+		{
 			[self resetIncludingTileMatches:YES tileBitmaps:NO];
+			fullyReset = YES;
+		}
 	}
 	else
 	{
@@ -603,7 +612,9 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 		}
 	}
 	
-	[imageSourceEnumerator reset];
+	if (!fullyReset)
+		[imageSourceEnumerator reset];
+	
 	[imageSourceEnumerator setIsOnProbation:YES];
 }
 
@@ -1429,6 +1440,15 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 }
 
 
+- (NSUndoManager *)undoManager
+{
+	if (!undoManager)
+		undoManager = [[NSUndoManager alloc] init];
+	
+	return undoManager;
+}
+
+
 #pragma mark -
 
 
@@ -1456,6 +1476,8 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 	[resumeTimer release];
 	
 	[disallowedImages release];
+	
+	[undoManager release];
 	
     [super dealloc];
 }
