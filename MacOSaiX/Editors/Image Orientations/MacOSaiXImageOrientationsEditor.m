@@ -11,6 +11,7 @@
 #import "MacOSaiX.h"
 #import "MacOSaiXMosaic.h"
 #import "MacOSaiXImageOrientations.h"
+#import "MacOSaiXWarningController.h"
 
 
 @implementation MacOSaiXImageOrientationsEditor
@@ -47,6 +48,17 @@
 - (NSString *)plugInTitleFormat
 {
 	return NSLocalizedString(@"%@", @"");
+}
+
+
+- (IBAction)setPlugInClass:(id)sender
+{
+	if (![MacOSaiXWarningController warningIsEnabled:@"Changing Image Orientations"] || 
+		[MacOSaiXWarningController runAlertForWarning:@"Changing Image Orientations" 
+												title:NSLocalizedString(@"Do you wish to change the image orientations?", @"") 
+											  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
+										 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Change", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
+		[super setPlugInClass:sender];
 }
 
 
@@ -151,17 +163,17 @@
 		case NSLeftMouseDown:
 		case NSRightMouseDown:
 		case NSOtherMouseDown:
-			plugInHandledEvent = [plugInEditor mouseDownInMosaic:newEvent];
+			plugInHandledEvent = [[self plugInEditor] mouseDownInMosaic:newEvent];
 			break;
 		case NSLeftMouseDragged:
 		case NSRightMouseDragged:
 		case NSOtherMouseDragged:
-			plugInHandledEvent = [plugInEditor mouseDraggedInMosaic:newEvent];
+			plugInHandledEvent = [[self plugInEditor] mouseDraggedInMosaic:newEvent];
 			break;
 		case NSLeftMouseUp:
 		case NSRightMouseUp:
 		case NSOtherMouseUp:
-			plugInHandledEvent = [plugInEditor mouseUpInMosaic:newEvent];
+			plugInHandledEvent = [[self plugInEditor] mouseUpInMosaic:newEvent];
 			break;
 		default:
 			break;
@@ -172,9 +184,32 @@
 }
 
 
-- (void)dataSource:(id<MacOSaiXDataSource>)dataSource settingsDidChange:(NSString *)changeDescription
+- (void)setDataSource:(id<MacOSaiXDataSource>)dataSource value:(id)value forKey:(NSString *)key
 {
+	[super setDataSource:dataSource value:value forKey:key];
+	
 	[[self delegate] embellishmentNeedsDisplay];
+}
+
+
+- (void)dataSource:(id<MacOSaiXDataSource>)dataSource 
+	  didChangeKey:(NSString *)key
+		 fromValue:(id)previousValue 
+		actionName:(NSString *)actionName;
+{
+	// TODO: don't display the warning continuously
+	if (![MacOSaiXWarningController warningIsEnabled:@"Changing Image Orientations"] || 
+		[MacOSaiXWarningController runAlertForWarning:@"Changing Image Orientations" 
+												title:NSLocalizedString(@"Do you wish to change the image orientations?", @"") 
+											  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
+										 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Change", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
+	{
+		[super dataSource:dataSource didChangeKey:key fromValue:previousValue actionName:actionName];
+		
+		[[self delegate] embellishmentNeedsDisplay];
+	}
+	else
+		[self setDataSource:dataSource value:previousValue forKey:key];
 }
 
 
