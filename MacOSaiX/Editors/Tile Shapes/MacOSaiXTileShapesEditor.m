@@ -13,6 +13,7 @@
 #import "MacOSaiXPlugIn.h"
 #import "Tiles.h"
 #import "MacOSaiXTileShapes.h"
+#import "MacOSaiXWarningController.h"
 
 
 @implementation MacOSaiXTileShapesEditor
@@ -59,9 +60,20 @@
 }
 
 
+- (IBAction)setPlugInClass:(id)sender
+{
+	if (![MacOSaiXWarningController warningIsEnabled:@"Changing Tile Shapes"] || 
+		[MacOSaiXWarningController runAlertForWarning:@"Changing Tile Shapes" 
+												title:NSLocalizedString(@"Do you wish to change the tile shapes?", @"") 
+											  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
+										 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Change", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
+		[super setPlugInClass:sender];
+}
+
+
 - (void)setMosaicDataSource:(id<MacOSaiXDataSource>)dataSource
 {
-	[[[self delegate] mosaic] setTileShapes:(id<MacOSaiXTileShapes>)dataSource creatingTiles:YES];
+	[[[self delegate] mosaic] setTileShapes:(id<MacOSaiXTileShapes>)dataSource];
 }
 
 
@@ -123,13 +135,40 @@
 }
 
 
-- (void)dataSource:(id<MacOSaiXDataSource>)dataSource settingsDidChange:(NSString *)changeDescription
+- (void)setDataSource:(id<MacOSaiXDataSource>)dataSource value:(id)value forKey:(NSString *)key
 {
-	[[[self delegate] mosaic] setTileShapes:[[[self delegate] mosaic] tileShapes] creatingTiles:YES];
+	[super setDataSource:dataSource value:value forKey:key];
+	
+	[[[self delegate] mosaic] createTiles];
 	
 	[tilesToEmbellish removeAllObjects];
 	
 	[[self delegate] embellishmentNeedsDisplay];
+}
+
+
+- (void)dataSource:(id<MacOSaiXDataSource>)dataSource 
+	  didChangeKey:(NSString *)key
+		 fromValue:(id)previousValue 
+		actionName:(NSString *)actionName;
+{
+	// TODO: don't display the warning continuously
+	if (![MacOSaiXWarningController warningIsEnabled:@"Changing Tile Shapes"] || 
+		[MacOSaiXWarningController runAlertForWarning:@"Changing Tile Shapes" 
+												title:NSLocalizedString(@"Do you wish to change the tile shapes?", @"") 
+											  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
+										 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Change", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
+	{
+		[super dataSource:dataSource didChangeKey:key fromValue:previousValue actionName:actionName];
+		
+		[[[self delegate] mosaic] createTiles];
+		
+		[tilesToEmbellish removeAllObjects];
+		
+		[[self delegate] embellishmentNeedsDisplay];
+	}
+	else
+		[self setDataSource:dataSource value:previousValue forKey:key];
 }
 
 
