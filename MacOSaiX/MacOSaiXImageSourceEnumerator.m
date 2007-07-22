@@ -122,6 +122,35 @@ NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXIm
 }
 
 
+- (void)pauseForEditing
+{
+	if ([self isEnumerating])
+	{
+		[self pause];
+		do
+			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+		while ([self isEnumerating]);
+		
+		if ([resumeTimer isValid])
+		{
+			[resumeTimer invalidate];
+			[resumeTimer release];
+		}
+		
+		resumeTimer = [[NSTimer scheduledTimerWithTimeInterval:3.0 target:self selector:@selector(resumeWithTimer:) userInfo:nil repeats:NO] retain];
+	}
+}
+
+
+- (void)resumeWithTimer:(NSTimer *)timer
+{
+	[resumeTimer release];
+	resumeTimer = nil;
+	
+	[self resume];
+}
+
+
 - (void)resume
 {
 	if ([imageSource settingsAreValid] && (!paused || [workingImageSource hasMoreImages]))
@@ -292,6 +321,12 @@ NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXIm
 	
 	[probationStartDate release];
 	[probationaryImageQueue release];
+	
+	if ([resumeTimer isValid])
+	{
+		[resumeTimer invalidate];
+		[resumeTimer release];
+	}
 	
     [super dealloc];
 }

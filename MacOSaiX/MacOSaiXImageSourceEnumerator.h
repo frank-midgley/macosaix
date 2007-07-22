@@ -19,6 +19,7 @@
 							imagesInUse;
 	BOOL					pausing, 
 							paused;
+	NSTimer					*resumeTimer;
 	NSLock					*inUseLock;
 	NSMutableSet			*identifiersInUse;
 	
@@ -43,6 +44,7 @@
 - (NSArray *)imageIdentifiersInUse;
 
 - (void)pause;
+- (void)pauseForEditing;
 - (void)resume;
 - (BOOL)isEnumerating;
 
