@@ -60,33 +60,12 @@
 	[currentImageOrientations autorelease];
 	currentImageOrientations = [imageOrientations retain];
 	
-	NSEnumerator					*presetsEnumerator = [[MacOSaiXRadialImageOrientations presetOrientations] reverseObjectEnumerator];
-	MacOSaiXRadialImageOrientations	*preset = nil;
-	NSMenuItem						*selectedItem = [presetsPopUp itemAtIndex:0];
-	while (preset = [presetsEnumerator nextObject])
-	{
-		NSMenuItem	*presetItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString([preset name], @"") 
-															  action:@selector(setPresetOrientations:) 
-													   keyEquivalent:@""] autorelease];
-		[presetItem setTarget:self];
-		[presetItem setRepresentedObject:preset];
-		[[presetsPopUp menu] insertItem:presetItem atIndex:0];
-		
-		if ([[(MacOSaiXRadialImageOrientations	*)imageOrientations name] isEqualToString:[preset name]])
-			selectedItem = presetItem;
-	}
-	[presetsPopUp selectItem:selectedItem];
-	[self setPresetOrientations:selectedItem];
-	
-	[angleSlider setFloatValue:[currentImageOrientations offsetAngle]];
-	[angleTextField setFloatValue:[currentImageOrientations offsetAngle]];
+	[self refresh];
 }
 
 
-- (IBAction)setPresetOrientations:(id)sender
+- (void)setPreset:(MacOSaiXRadialImageOrientations *)preset
 {
-	MacOSaiXRadialImageOrientations	*preset = [[presetsPopUp selectedItem] representedObject];
-	
 	if (preset)
 	{
 			// Use preset orientations.
@@ -105,17 +84,33 @@
 		[angleSlider setEnabled:YES];
 		[angleTextField setEnabled:YES];
 	}
+}
+
+
+- (IBAction)setPresetOrientations:(id)sender
+{
+	NSDictionary	*previousValue = [NSDictionary dictionaryWithObjectsAndKeys:
+											[NSValue valueWithPoint:[currentImageOrientations focusPoint]], @"Focus Point", 
+											[NSNumber numberWithFloat:[currentImageOrientations offsetAngle]], @"Offset Angle", 
+											[currentImageOrientations name], @"Name", 
+											nil];
+	
+	[self setPreset:[[presetsPopUp selectedItem] representedObject]];
 	
 	[angleSlider setFloatValue:[currentImageOrientations offsetAngle]];
 	[angleTextField setFloatValue:[currentImageOrientations offsetAngle]];
 	
-	[[self delegate] dataSource:currentImageOrientations settingsDidChange:NSLocalizedString(@"Change Radial Type", @"")];
+	[[self delegate] dataSource:currentImageOrientations 
+				   didChangeKey:@"nameFocusPointAngle" 
+					  fromValue:previousValue 
+					 actionName:NSLocalizedString(@"Change Radial Type", @"")];
 }
 
 
 - (IBAction)setOffsetAngle:(id)sender
 {
-	float	angle = 0;
+	float	previousValue = [currentImageOrientations offsetAngle], 
+			angle = 0;
 	
 	if (sender == angleSlider)
 	{
@@ -133,7 +128,10 @@
 	[angleSlider setFloatValue:fmodf(angle + 360.0, 360.0)];
 	[angleTextField setFloatValue:angle];
 	
-	[[self delegate] dataSource:currentImageOrientations settingsDidChange:NSLocalizedString(@"Change Offset Angle", @"")];
+	[[self delegate] dataSource:currentImageOrientations 
+				   didChangeKey:@"offsetAngle" 
+					  fromValue:[NSNumber numberWithFloat:previousValue] 
+					 actionName:NSLocalizedString(@"Change Offset Angle", @"")];
 }
 
 
@@ -155,9 +153,17 @@
 		focusPoint.x /= targetImageSize.width;
 		focusPoint.y /= targetImageSize.height;
 		
-		[currentImageOrientations setFocusPoint:focusPoint];
-		
-		[[self delegate] dataSource:currentImageOrientations settingsDidChange:NSLocalizedString(@"Change Radial Focus Point", @"")];
+		if (!NSEqualPoints(focusPoint, [currentImageOrientations focusPoint]))
+		{
+			NSPoint	previousValue = [currentImageOrientations focusPoint];
+			
+			[currentImageOrientations setFocusPoint:focusPoint];
+			
+			[[self delegate] dataSource:currentImageOrientations 
+						   didChangeKey:@"focusPoint" 
+							  fromValue:[NSValue valueWithPoint:previousValue] 
+							 actionName:NSLocalizedString(@"Change Radial Focus Point", @"")];
+		}
 		
 		handledEvent = YES;
 	}
@@ -178,9 +184,17 @@
 		focusPoint.x /= targetImageSize.width;
 		focusPoint.y /= targetImageSize.height;
 		
-		[currentImageOrientations setFocusPoint:focusPoint];
-		
-		[[self delegate] dataSource:currentImageOrientations settingsDidChange:NSLocalizedString(@"Change Radial Focus Point", @"")];
+		if (!NSEqualPoints(focusPoint, [currentImageOrientations focusPoint]))
+		{
+			NSPoint	previousValue = [currentImageOrientations focusPoint];
+			
+			[currentImageOrientations setFocusPoint:focusPoint];
+			
+			[[self delegate] dataSource:currentImageOrientations 
+						   didChangeKey:@"focusPoint" 
+							  fromValue:[NSValue valueWithPoint:previousValue] 
+							 actionName:NSLocalizedString(@"Change Radial Focus Point", @"")];
+		}
 		
 		handledEvent = YES;
 	}
@@ -201,14 +215,55 @@
 		focusPoint.x /= targetImageSize.width;
 		focusPoint.y /= targetImageSize.height;
 		
-		[currentImageOrientations setFocusPoint:focusPoint];
-		
-		[[self delegate] dataSource:currentImageOrientations settingsDidChange:NSLocalizedString(@"Change Radial Focus Point", @"")];
+		if (!NSEqualPoints(focusPoint, [currentImageOrientations focusPoint]))
+		{
+			NSPoint	previousValue = [currentImageOrientations focusPoint];
+			
+			[currentImageOrientations setFocusPoint:focusPoint];
+			
+			[[self delegate] dataSource:currentImageOrientations 
+						   didChangeKey:@"focusPoint" 
+							  fromValue:[NSValue valueWithPoint:previousValue] 
+							 actionName:NSLocalizedString(@"Change Radial Focus Point", @"")];
+		}
 		
 		handledEvent = YES;
 	}
 	
 	return handledEvent;
+}
+
+
+- (void)refresh
+{
+	while ([presetsPopUp numberOfItems] > 1)
+		[presetsPopUp removeItemAtIndex:0];
+	
+	NSEnumerator					*presetsEnumerator = [[MacOSaiXRadialImageOrientations presetOrientations] reverseObjectEnumerator];
+	MacOSaiXRadialImageOrientations	*currentPreset = nil, 
+									*preset = nil;
+	NSMenuItem						*selectedItem = [presetsPopUp itemAtIndex:0];
+	while (preset = [presetsEnumerator nextObject])
+	{
+		NSMenuItem	*presetItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString([preset name], @"") 
+															  action:@selector(setPresetOrientations:) 
+													   keyEquivalent:@""] autorelease];
+		[presetItem setTarget:self];
+		[presetItem setRepresentedObject:preset];
+		[[presetsPopUp menu] insertItem:presetItem atIndex:0];
+		
+		if ([[currentImageOrientations name] isEqualToString:[preset name]])
+		{
+			selectedItem = presetItem;
+			currentPreset = preset;
+		}
+	}
+	[presetsPopUp selectItem:selectedItem];
+	
+	[self setPreset:currentPreset];
+	
+	[angleSlider setFloatValue:[currentImageOrientations offsetAngle]];
+	[angleTextField setFloatValue:[currentImageOrientations offsetAngle]];
 }
 
 

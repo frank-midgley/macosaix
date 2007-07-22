@@ -364,6 +364,14 @@ NSString *escapedNSString(NSString *string)
 }
 
 
+- (void)setKeywords:(NSDictionary *)dictionary
+{
+	[self setRequiredTerms:[dictionary valueForKey:@"Required Terms"]];
+	[self setOptionalTerms:[dictionary valueForKey:@"Optional Terms"]];
+	[self setExcludedTerms:[dictionary valueForKey:@"Excluded Terms"]];
+}
+
+
 - (void)setColorSpace:(GoogleColorSpace)inColorSpace
 {
 	colorSpace = inColorSpace;

@@ -219,9 +219,14 @@
 }
 
 
-- (void)dataSource:(id<MacOSaiXImageSource>)dataSource settingsDidChange:(NSString *)changeDescription
+- (void)dataSource:(id<MacOSaiXDataSource>)dataSource 
+	  didChangeKey:(NSString *)key
+		 fromValue:(id)previousValue 
+		actionName:(NSString *)actionName;
 {
-	[[[self delegate] mosaic] imageSource:dataSource didChangeSettings:changeDescription];
+	[super dataSource:dataSource didChangeKey:key fromValue:previousValue actionName:actionName];
+	
+	[[[self delegate] mosaic] imageSourceDidChange:(id<MacOSaiXImageSource>)dataSource];
 }
 
 

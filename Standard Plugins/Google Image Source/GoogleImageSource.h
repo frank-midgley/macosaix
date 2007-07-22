@@ -34,6 +34,7 @@ typedef enum { strictFiltering, moderateFiltering, noFiltering } GoogleAdultCont
 - (NSString *)optionalTerms;
 - (void)setExcludedTerms:(NSString *)terms;
 - (NSString *)excludedTerms;
+- (void)setKeywords:(NSDictionary *)dictionary;
 - (void)setColorSpace:(GoogleColorSpace)inColorSpace;
 - (GoogleColorSpace)colorSpace;
 - (void)setSiteString:(NSString *)string;

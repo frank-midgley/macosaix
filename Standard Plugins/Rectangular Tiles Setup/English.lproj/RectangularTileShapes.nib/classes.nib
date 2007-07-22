@@ -7,11 +7,11 @@
                 setTilesCount = id; 
                 setTilesDown = id; 
                 setTilesSize = id; 
-                setUseMatrixStyleOrdering = id; 
             }; 
             CLASS = MacOSaiXRectangularTileShapesEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                delegate = id; 
                 editorView = NSView; 
                 sizingTabView = NSTabView; 
                 tilesAcrossSlider = NSSlider; 
@@ -23,7 +23,6 @@
                 tilesDownTextField = NSTextField; 
                 tilesSizePopUp = NSPopUpButton; 
                 tilesSizeSlider = NSSlider; 
-                useMatrixStyleButton = NSButton; 
             }; 
             SUPERCLASS = NSObject; 
         }, 

@@ -85,28 +85,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	[currentTileShapes autorelease];
 	currentTileShapes = [tileShapes retain];
 	
-	targetImageSize = [[[self delegate] targetImage] size];
-	
-	minAspectRatio = (targetImageSize.width / [tilesAcrossSlider maxValue]) / 
-					 (targetImageSize.height / [tilesDownSlider minValue]);
-	maxAspectRatio = (targetImageSize.width / [tilesAcrossSlider minValue]) / 
-					 (targetImageSize.height / [tilesDownSlider maxValue]);
-	
-	// Constrain the tiles across value to the stepper's range and update the model and view.
-	int	tilesAcross = MIN(MAX([currentTileShapes tilesAcross], [tilesAcrossStepper minValue]), [tilesAcrossStepper maxValue]);
-	[currentTileShapes setTilesAcross:tilesAcross];
-	[tilesAcrossStepper setIntValue:tilesAcross];
-	[tilesAcrossTextField setIntValue:tilesAcross];
-	[tilesAcrossStepper setIntValue:tilesAcross];
-	
-		// Constrain the tiles down value to the stepper's range and update the model and view.
-	int	tilesDown = MIN(MAX([currentTileShapes tilesDown], [tilesDownStepper minValue]), [tilesDownStepper maxValue]);
-	[currentTileShapes setTilesDown:tilesDown];
-	[tilesDownStepper setIntValue:tilesDown];
-	[tilesDownTextField setIntValue:tilesDown];
-	[tilesDownStepper setIntValue:tilesDown];
-	
-	[self setFixedSizeControlsBasedOnFreeformControls];
+	[self refresh];
 }
 
 
@@ -305,7 +284,35 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 {
 	return NO;
 }
+
+
+- (void)refresh
+{
 	
+	targetImageSize = [[[self delegate] targetImage] size];
+	
+	minAspectRatio = (targetImageSize.width / [tilesAcrossSlider maxValue]) / 
+		(targetImageSize.height / [tilesDownSlider minValue]);
+	maxAspectRatio = (targetImageSize.width / [tilesAcrossSlider minValue]) / 
+		(targetImageSize.height / [tilesDownSlider maxValue]);
+	
+		// Constrain the tiles across value to the stepper's range and update the model and view.
+	int	tilesAcross = MIN(MAX([currentTileShapes tilesAcross], [tilesAcrossStepper minValue]), [tilesAcrossStepper maxValue]);
+	[currentTileShapes setTilesAcross:tilesAcross];
+	[tilesAcrossStepper setIntValue:tilesAcross];
+	[tilesAcrossTextField setIntValue:tilesAcross];
+	[tilesAcrossStepper setIntValue:tilesAcross];
+	
+		// Constrain the tiles down value to the stepper's range and update the model and view.
+	int	tilesDown = MIN(MAX([currentTileShapes tilesDown], [tilesDownStepper minValue]), [tilesDownStepper maxValue]);
+	[currentTileShapes setTilesDown:tilesDown];
+	[tilesDownStepper setIntValue:tilesDown];
+	[tilesDownTextField setIntValue:tilesDown];
+	[tilesDownStepper setIntValue:tilesDown];
+	
+	[self setFixedSizeControlsBasedOnFreeformControls];
+}
+
 
 - (void)editingDidComplete
 {

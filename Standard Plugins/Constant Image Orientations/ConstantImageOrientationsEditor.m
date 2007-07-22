@@ -60,14 +60,14 @@
 	[currentImageOrientations autorelease];
 	currentImageOrientations = [imageOrientations retain];
 	
-	[angleSlider setFloatValue:[currentImageOrientations constantAngle]];
-	[angleTextField setFloatValue:[currentImageOrientations constantAngle]];
+	[self refresh];
 }
 
 
 - (IBAction)setConstantAngle:(id)sender
 {
-	float	angle = 0;
+	float	previousValue = [currentImageOrientations constantAngle], 
+			angle = 0;
 	
 	if (sender == angleSlider)
 	{
@@ -85,7 +85,10 @@
 	[angleSlider setFloatValue:fmodf(angle + 360.0, 360.0)];
 	[angleTextField setFloatValue:angle];
 	
-	[[self delegate] dataSource:currentImageOrientations settingsDidChange:NSLocalizedString(@"Change Constant Angle", @"")];
+	[[self delegate] dataSource:currentImageOrientations 
+				   didChangeKey:@"constantAngle" 
+					  fromValue:[NSNumber numberWithFloat:previousValue] 
+					 actionName:NSLocalizedString(@"Change Constant Angle", @"")];
 }
 
 
@@ -110,6 +113,13 @@
 - (BOOL)mouseUpInMosaic:(NSEvent *)event
 {
 	return NO;
+}
+
+
+- (void)refresh
+{
+	[angleSlider setFloatValue:[currentImageOrientations constantAngle]];
+	[angleTextField setFloatValue:[currentImageOrientations constantAngle]];
 }
 
 

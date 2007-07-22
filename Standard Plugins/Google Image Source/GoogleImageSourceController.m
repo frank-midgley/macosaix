@@ -56,7 +56,7 @@
 }
 
 
-- (void)populateSimpleOptions
+- (void)refresh
 {
 	if ([[currentImageSource requiredTerms] length] > 0 && [[currentImageSource optionalTerms] length] == 0)
 	{
@@ -97,7 +97,7 @@
 {
 	currentImageSource = (MacOSaiXGoogleImageSource *)imageSource;
 	
-	[self populateSimpleOptions];
+	[self refresh];
 }
 
 
@@ -137,18 +137,31 @@
 {
 	if ([notification object] == keywordsTextField)
 	{
+		NSMutableDictionary	*previousValue = [NSMutableDictionary dictionary];
+		if ([currentImageSource requiredTerms])
+			[previousValue setValue:[currentImageSource requiredTerms] forKey:@"Required Terms"];
+		if ([currentImageSource optionalTerms])
+			[previousValue setValue:[currentImageSource optionalTerms] forKey:@"Optional Terms"];
+		if ([currentImageSource excludedTerms])
+			[previousValue setValue:[currentImageSource excludedTerms] forKey:@"Excluded Terms"];
+		
 		if ([keywordsMatchingMatrix selectedRow] == 0)
 		{
 			[currentImageSource setRequiredTerms:[keywordsTextField stringValue]];
 			[currentImageSource setOptionalTerms:nil];
+			[currentImageSource setExcludedTerms:nil];
 		}
 		else
 		{
 			[currentImageSource setRequiredTerms:nil];
 			[currentImageSource setOptionalTerms:[keywordsTextField stringValue]];
+			[currentImageSource setExcludedTerms:nil];
 		}
 		
-		[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Keywords", @"")];
+		[[self delegate] dataSource:currentImageSource 
+					   didChangeKey:@"keywords" 
+						  fromValue:previousValue 
+						 actionName:NSLocalizedString(@"Change Keywords", @"")];
 	}
 }
 
@@ -178,7 +191,7 @@
 		[currentImageSource setSiteString:[siteTextField stringValue]];
 		[currentImageSource setAdultContentFiltering:[adultContentFilteringPopUpButton indexOfSelectedItem]];
 		
-		[self populateSimpleOptions];
+		[self refresh];
 	}
 }
 

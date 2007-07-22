@@ -56,7 +56,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(243.0, 158.0);
+	return NSMakeSize(243.0, 136.0);
 }
 
 
@@ -89,8 +89,6 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 		[settings setObject:[NSNumber numberWithFloat:[currentTileShapes tileCount]] forKey:@"Tile Count"];
 	}
 	
-	[settings setObject:[NSNumber numberWithBool:[currentTileShapes useMatrixStyleOrdering]] forKey:@"Use Matrix Style Ordering"];
-	
 	[[NSUserDefaults standardUserDefaults] setObject:settings
 											  forKey:@"Rectangular Tile Shapes"];
 }
@@ -101,47 +99,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	[currentTileShapes autorelease];
 	currentTileShapes = [tilesSetup retain];
 	
-	targetImageSize = [[[self delegate] targetImage] size];
-	
-	minAspectRatio = (targetImageSize.width / [tilesAcrossSlider maxValue]) / 
-					 (targetImageSize.height / [tilesDownSlider minValue]);
-	maxAspectRatio = (targetImageSize.width / [tilesAcrossSlider minValue]) / 
-					 (targetImageSize.height / [tilesDownSlider maxValue]);
-	
-	if ([currentTileShapes isFreeForm])
-	{
-		[sizingTabView selectTabViewItemAtIndex:0];
-		
-			// Constrain the tiles across value to the stepper's range and update the model and view.
-		int	tilesAcross = MIN(MAX([currentTileShapes tilesAcross], [tilesAcrossSlider minValue]), [tilesAcrossSlider maxValue]);
-		[currentTileShapes setTilesAcross:tilesAcross];
-		[tilesAcrossSlider setIntValue:tilesAcross];
-		[tilesAcrossTextField setIntValue:tilesAcross];
-		[tilesAcrossStepper setIntValue:tilesAcross];
-		
-			// Constrain the tiles down value to the stepper's range and update the model and view.
-		int	tilesDown = MIN(MAX([currentTileShapes tilesDown], [tilesDownSlider minValue]), [tilesDownSlider maxValue]);
-		[currentTileShapes setTilesDown:tilesDown];
-		[tilesDownSlider setIntValue:tilesDown];
-		[tilesDownTextField setIntValue:tilesDown];
-		[tilesDownStepper setIntValue:tilesDown];
-		
-		[self setFixedSizeControlsBasedOnFreeformControls];
-	}
-	else
-	{
-		[sizingTabView selectTabViewItemAtIndex:1];
-		
-		float	aspectRatio = [currentTileShapes tileAspectRatio];
-		[tilesSizeSlider setFloatValue:aspectRatio];
-		[[tilesSizePopUp itemAtIndex:0] setTitle:[NSString stringWithAspectRatio:aspectRatio]];
-		
-		[tilesCountSlider setFloatValue:[currentTileShapes tileCount]];
-		
-		[self setFreeFormControlsBasedOnFixedSizeControls];
-	}
-	
-	[useMatrixStyleButton setState:([currentTileShapes useMatrixStyleOrdering] ? NSOnState : NSOffState)];
+	[self refresh];
 }
 
 
@@ -225,6 +183,8 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 - (IBAction)setTilesAcross:(id)sender
 {
+	int		previousValue = [currentTileShapes tilesAcross];
+	
 		// Jump by 10 instead of 1 if the option key is down when the stepper is clicked.
 	if (sender == tilesAcrossStepper && ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0)
 	{
@@ -245,12 +205,17 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[delegate dataSource:currentTileShapes settingsDidChange:NSLocalizedString(@"Change Tiles Across", @"")];
+	[[self delegate] dataSource:currentTileShapes 
+				   didChangeKey:@"tilesAcross" 
+					  fromValue:[NSNumber numberWithInt:previousValue] 
+					 actionName:NSLocalizedString(@"Change Tiles Across", @"")]; 
 }
 
 
 - (IBAction)setTilesDown:(id)sender
 {
+	int		previousValue = [currentTileShapes tilesDown];
+	
 		// Jump by 10 instead of 1 if the option key is down when the stepper is clicked.
 	if (sender == tilesDownStepper && ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0)
 	{
@@ -271,12 +236,17 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[delegate dataSource:currentTileShapes settingsDidChange:NSLocalizedString(@"Change Tiles Down", @"")];
+	[[self delegate] dataSource:currentTileShapes 
+				   didChangeKey:@"tilesDown" 
+					  fromValue:[NSNumber numberWithInt:previousValue] 
+					 actionName:NSLocalizedString(@"Change Tiles Down", @"")]; 
 }
 
 
 - (IBAction)setTilesSize:(id)sender
 {
+	float	previousValue = [currentTileShapes tileAspectRatio];
+	
 	if (sender == tilesSizePopUp)
 	{
 		float	tileAspectRatio = 1.0;
@@ -300,29 +270,27 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[delegate dataSource:currentTileShapes settingsDidChange:NSLocalizedString(@"Change Tiles Size", @"")];
+	[[self delegate] dataSource:currentTileShapes 
+				   didChangeKey:@"tileAspectRatio" 
+					  fromValue:[NSNumber numberWithFloat:previousValue] 
+					 actionName:NSLocalizedString(@"Change Tiles Size", @"")];
 }
 
 
 - (IBAction)setTilesCount:(id)sender
 {
+	float	previousValue = [currentTileShapes tileCount];
+	
 	[self setFreeFormControlsBasedOnFixedSizeControls];
 	
 	[currentTileShapes setTileCount:[tilesCountSlider floatValue]];
 	
 	[self updatePlugInDefaults];
 	
-	[delegate dataSource:currentTileShapes settingsDidChange:NSLocalizedString(@"Change Number of Tiles", @"")];
-}
-
-
-- (IBAction)setUseMatrixStyleOrdering:(id)sender
-{
-	[currentTileShapes setUseMatrixStyleOrdering:([useMatrixStyleButton state] == NSOnState)];
-	
-	[self updatePlugInDefaults];
-	
-	[delegate dataSource:currentTileShapes settingsDidChange:NSLocalizedString(@"Use Matrix Style Ordering", @"")];
+	[[self delegate] dataSource:currentTileShapes 
+				   didChangeKey:@"tileCount" 
+					  fromValue:[NSNumber numberWithFloat:previousValue] 
+					 actionName:NSLocalizedString(@"Change Number of Tiles", @"")];
 }
 
 
@@ -341,6 +309,48 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 - (BOOL)mouseUpInMosaic:(NSEvent *)event
 {
 	return NO;
+}
+
+
+- (void)refresh
+{
+	targetImageSize = [[[self delegate] targetImage] size];
+	
+	minAspectRatio = (targetImageSize.width / [tilesAcrossSlider maxValue]) / (targetImageSize.height / [tilesDownSlider minValue]);
+	maxAspectRatio = (targetImageSize.width / [tilesAcrossSlider minValue]) / (targetImageSize.height / [tilesDownSlider maxValue]);
+	
+	if ([currentTileShapes isFreeForm])
+	{
+		[sizingTabView selectTabViewItemAtIndex:0];
+		
+		// Constrain the tiles across value to the stepper's range and update the model and view.
+		int	tilesAcross = MIN(MAX([currentTileShapes tilesAcross], [tilesAcrossSlider minValue]), [tilesAcrossSlider maxValue]);
+		[currentTileShapes setTilesAcross:tilesAcross];
+		[tilesAcrossSlider setIntValue:tilesAcross];
+		[tilesAcrossTextField setIntValue:tilesAcross];
+		[tilesAcrossStepper setIntValue:tilesAcross];
+		
+		// Constrain the tiles down value to the stepper's range and update the model and view.
+		int	tilesDown = MIN(MAX([currentTileShapes tilesDown], [tilesDownSlider minValue]), [tilesDownSlider maxValue]);
+		[currentTileShapes setTilesDown:tilesDown];
+		[tilesDownSlider setIntValue:tilesDown];
+		[tilesDownTextField setIntValue:tilesDown];
+		[tilesDownStepper setIntValue:tilesDown];
+		
+		[self setFixedSizeControlsBasedOnFreeformControls];
+	}
+	else
+	{
+		[sizingTabView selectTabViewItemAtIndex:1];
+		
+		float	aspectRatio = [currentTileShapes tileAspectRatio];
+		[tilesSizeSlider setFloatValue:aspectRatio];
+		[[tilesSizePopUp itemAtIndex:0] setTitle:[NSString stringWithAspectRatio:aspectRatio]];
+		
+		[tilesCountSlider setFloatValue:[currentTileShapes tileCount]];
+		
+		[self setFreeFormControlsBasedOnFixedSizeControls];
+	}
 }
 
 

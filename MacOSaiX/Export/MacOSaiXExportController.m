@@ -193,7 +193,10 @@
 }
 
 
-- (void)dataSource:(id<MacOSaiXDataSource>)dataSource settingsDidChange:(NSString *)changeDescription
+- (void)dataSource:(id<MacOSaiXDataSource>)dataSource 
+	  didChangeKey:(NSString *)key
+		 fromValue:(id)previousValue 
+		actionName:(NSString *)actionName;
 {
     [savePanel setRequiredFileType:[exportSettings exportExtension]];
 }

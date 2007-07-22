@@ -232,9 +232,12 @@
 }
 
 
-- (void)dataSource:(id<MacOSaiXDataSource>)dataSource settingsDidChange:(NSString *)changeDescription
+- (void)dataSource:(id<MacOSaiXDataSource>)dataSource 
+	  didChangeKey:(NSString *)key
+		 fromValue:(id)previousValue 
+		actionName:(NSString *)actionName;
 {
-	[imageSourcesEditor dataSource:dataSource settingsDidChange:changeDescription];
+	[imageSourcesEditor dataSource:dataSource didChangeKey:key fromValue:previousValue actionName:actionName];
 	
 	[self setNeedsDisplay:YES];
 }

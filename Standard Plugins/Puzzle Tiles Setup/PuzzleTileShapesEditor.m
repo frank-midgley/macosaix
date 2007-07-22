@@ -88,48 +88,7 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	[currentTileShapes autorelease];
 	currentTileShapes = [tileShapes retain];
 	
-	targetImageSize = [[[self delegate] targetImage] size];
-	
-		// Determine the min and max aspect ratio based on the limits on the tiles across and down and the size of the target image.
-	minAspectRatio = (targetImageSize.width / [tilesAcrossSlider maxValue]) / 
-					 (targetImageSize.height / [tilesDownSlider minValue]);
-	maxAspectRatio = (targetImageSize.width / [tilesAcrossSlider minValue]) / 
-					 (targetImageSize.height / [tilesDownSlider maxValue]);
-	
-	if ([currentTileShapes isFixedSize])
-	{
-			// Constrain the tile aspect ratio and update the model and view.
-		float	aspectRatio = MIN(MAX([currentTileShapes tileAspectRatio], minAspectRatio), maxAspectRatio);
-		
-		[currentTileShapes setTileAspectRatio:aspectRatio];
-		
-		[tilesSizeMatrix selectCellAtRow:1 column:0];
-	}
-	else
-	{
-			// Constrain the tiles across value to the stepper's range and update the model and view.
-		int	tilesAcross = MIN(MAX([currentTileShapes tilesAcross], [tilesAcrossSlider minValue]), [tilesAcrossSlider maxValue]);
-		[currentTileShapes setTilesAcross:tilesAcross];
-		
-			// Constrain the tiles down value to the stepper's range and update the model and view.
-		int	tilesDown = MIN(MAX([currentTileShapes tilesDown], [tilesDownSlider minValue]), [tilesDownSlider maxValue]);
-		[currentTileShapes setTilesDown:tilesDown];
-		
-		[tilesSizeMatrix selectCellAtRow:0 column:0];
-	}
-	
-		// Populate the "Piece Count" tab.
-	[self setTilesSizeType:self];
-	
-	float	tabbedSidesRatio = MIN(MAX([currentTileShapes tabbedSidesRatio], [tabbedSidesSlider minValue]), [tabbedSidesSlider maxValue]);
-	[currentTileShapes setTabbedSidesRatio:tabbedSidesRatio];
-	[tabbedSidesSlider setFloatValue:tabbedSidesRatio];
-	[tabbedSidesTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", tabbedSidesRatio * 100.0]];
-	
-	float	curviness = MIN(MAX([currentTileShapes curviness], [curvinessSlider minValue]), [curvinessSlider maxValue]);
-	[currentTileShapes setCurviness:curviness];
-	[curvinessSlider setFloatValue:curviness];
-	[curvinessTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", curviness * 100.0]];
+	[self refresh];
 }
 
 
@@ -235,6 +194,8 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 - (IBAction)setTilesAcross:(id)sender
 {
+	int		previousValue = [currentTileShapes tilesAcross];
+	
 		// Jump by 10 instead of 1 if the option key is down when the stepper is clicked.
 	if (sender == tilesAcrossStepper && ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0)
 	{
@@ -253,12 +214,17 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[self delegate] dataSource:currentTileShapes settingsDidChange:@"Change Tiles Across"];
+	[[self delegate] dataSource:currentTileShapes 
+				   didChangeKey:@"tilesAcross"
+					  fromValue:[NSNumber numberWithInt:previousValue] 
+					 actionName:@"Change Tiles Across"];
 }
 
 
 - (IBAction)setTilesDown:(id)sender
 {
+	int		previousValue = [currentTileShapes tilesDown];
+	
 		// Jump by 10 instead of 1 if the option key is down when the stepper is clicked.
 	if (sender == tilesDownStepper && ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0)
 	{
@@ -277,13 +243,17 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[self delegate] dataSource:currentTileShapes settingsDidChange:@"Change Tiles Down"];
+	[[self delegate] dataSource:currentTileShapes 
+				   didChangeKey:@"tilesDown"
+					  fromValue:[NSNumber numberWithInt:previousValue] 
+					 actionName:@"Change Tiles Down"];
 }
 
 
 - (IBAction)setTilesSize:(id)sender
 {
-	float	tileAspectRatio;
+	float	tileAspectRatio, 
+			previousValue = [currentTileShapes tileAspectRatio];
 	
 	if (sender == tilesSizePopUp)
 	{
@@ -319,17 +289,25 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 	
 	[self updatePlugInDefaults];
 	
-	[[self delegate] dataSource:currentTileShapes settingsDidChange:@"Change Tiles Size"];
+	[[self delegate] dataSource:currentTileShapes 
+				   didChangeKey:@"tileAspectRatio"
+					  fromValue:[NSNumber numberWithFloat:previousValue] 
+					 actionName:@"Change Tiles Size"];
 }
 
 
 - (IBAction)setTilesCount:(id)sender
 {
+	float	previousValue = [currentTileShapes tileCountFraction];
+	
 	[currentTileShapes setTileCountFraction:[tilesCountSlider floatValue]];
 	
 	[self updatePlugInDefaults];
 	
-	[[self delegate] dataSource:currentTileShapes settingsDidChange:@"Change Number of Tiles"];
+	[[self delegate] dataSource:currentTileShapes 
+				   didChangeKey:@"tileCountFraction"
+					  fromValue:[NSNumber numberWithFloat:previousValue] 
+					 actionName:@"Change Number of Tiles"];
 }
 
 
@@ -339,31 +317,48 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 - (IBAction)setTabbedSides:(id)sender
 {
+	float	previousValue = [currentTileShapes tabbedSidesRatio];
+	
 	[currentTileShapes setTabbedSidesRatio:[tabbedSidesSlider floatValue]];
 	[tabbedSidesTextField setStringValue:[NSString stringWithFormat:@"%d%%", (int)([tabbedSidesSlider floatValue] * 100.0)]];
 	
 	[self updatePlugInDefaults];
 	
-	[[self delegate] dataSource:currentTileShapes settingsDidChange:@"Change Frequency of Tabbed Sides"];
+	[[self delegate] dataSource:currentTileShapes 
+				   didChangeKey:@"tabbedSidesRatio"
+					  fromValue:[NSNumber numberWithFloat:previousValue] 
+					 actionName:@"Change Frequency of Tabbed Sides"];
 }
 
 
 - (IBAction)setCurviness:(id)sender
 {
+	float	previousValue = [currentTileShapes curviness];
+	
 	[currentTileShapes setCurviness:[curvinessSlider floatValue]];
 	[curvinessTextField setStringValue:[NSString stringWithFormat:@"%d%%", (int)([curvinessSlider floatValue] * 100.0)]];
 	
 	[self updatePlugInDefaults];
 	
-	[[self delegate] dataSource:currentTileShapes settingsDidChange:@"Change Curviness of Tiles"];
+	[[self delegate] dataSource:currentTileShapes 
+				   didChangeKey:@"curviness"
+					  fromValue:[NSNumber numberWithFloat:previousValue] 
+					 actionName:@"Change Curviness of Tiles"];
 }
 
 
 - (IBAction)setImagesAligned:(id)sender
 {
+	BOOL	previousValue = [currentTileShapes imagesAligned];
+	
 	[currentTileShapes setImagesAligned:[alignImagesMatrix selectedRow] == 1];
 	
 	[self updatePlugInDefaults];
+	
+	[[self delegate] dataSource:currentTileShapes 
+				   didChangeKey:@"imagesAligned"
+					  fromValue:[NSNumber numberWithBool:previousValue] 
+					 actionName:@"Change Images Aligned"];
 }
 
 
@@ -429,12 +424,53 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
+- (void)refresh
+{
+	targetImageSize = [[[self delegate] targetImage] size];
+	
+		// Determine the min and max aspect ratio based on the limits on the tiles across and down and the size of the target image.
+	minAspectRatio = (targetImageSize.width / [tilesAcrossSlider maxValue]) / (targetImageSize.height / [tilesDownSlider minValue]);
+	maxAspectRatio = (targetImageSize.width / [tilesAcrossSlider minValue]) / (targetImageSize.height / [tilesDownSlider maxValue]);
+	
+	if ([currentTileShapes isFixedSize])
+	{
+			// Constrain the tile aspect ratio and update the model and view.
+		float	aspectRatio = MIN(MAX([currentTileShapes tileAspectRatio], minAspectRatio), maxAspectRatio);
+		
+		[currentTileShapes setTileAspectRatio:aspectRatio];
+		
+		[tilesSizeMatrix selectCellAtRow:1 column:0];
+	}
+	else
+	{
+			// Constrain the tiles across value to the stepper's range and update the model and view.
+		int	tilesAcross = MIN(MAX([currentTileShapes tilesAcross], [tilesAcrossSlider minValue]), [tilesAcrossSlider maxValue]);
+		[currentTileShapes setTilesAcross:tilesAcross];
+		
+			// Constrain the tiles down value to the stepper's range and update the model and view.
+		int	tilesDown = MIN(MAX([currentTileShapes tilesDown], [tilesDownSlider minValue]), [tilesDownSlider maxValue]);
+		[currentTileShapes setTilesDown:tilesDown];
+		
+		[tilesSizeMatrix selectCellAtRow:0 column:0];
+	}
+	
+		// Populate the "Piece Count" tab.
+	[self setTilesSizeType:self];
+	
+	float	tabbedSidesRatio = MIN(MAX([currentTileShapes tabbedSidesRatio], [tabbedSidesSlider minValue]), [tabbedSidesSlider maxValue]);
+	[currentTileShapes setTabbedSidesRatio:tabbedSidesRatio];
+	[tabbedSidesSlider setFloatValue:tabbedSidesRatio];
+	[tabbedSidesTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", tabbedSidesRatio * 100.0]];
+	
+	float	curviness = MIN(MAX([currentTileShapes curviness], [curvinessSlider minValue]), [curvinessSlider maxValue]);
+	[currentTileShapes setCurviness:curviness];
+	[curvinessSlider setFloatValue:curviness];
+	[curvinessTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", curviness * 100.0]];
+}
+
+
 - (void)editingDidComplete
 {
-//	[previewTimer invalidate];
-//	[previewTimer release];
-//	previewTimer = nil;
-
 	[currentTileShapes release];
 	targetImageSize = NSMakeSize(1.0, 1.0);
 	

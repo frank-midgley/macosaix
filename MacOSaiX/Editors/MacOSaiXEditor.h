@@ -50,7 +50,11 @@
 - (void)setMosaicDataSource:(id<MacOSaiXDataSource>)dataSource;
 - (id<MacOSaiXDataSource>)mosaicDataSource;
 
+- (void)setDataSource:(id<MacOSaiXDataSource>)dataSource value:(id)value forKey:(NSString *)key;
+
 - (IBAction)setPlugInClass:(id)sender;
+
+- (id<MacOSaiXDataSourceEditor>)plugInEditor;
 
 - (void)beginEditing;
 

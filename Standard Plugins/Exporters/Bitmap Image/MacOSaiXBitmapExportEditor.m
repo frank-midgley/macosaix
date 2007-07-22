@@ -60,24 +60,14 @@
 {
 	currentSettings = (MacOSaiXBitmapExportSettings *)dataSource;
 	
-		// Populate the GUI
-	if ([[currentSettings format] isEqualToString:@"JPEG"])
-		[formatMatrix selectCellAtRow:0 column:0];
-	else if ([[currentSettings format] isEqualToString:@"PNG"])
-		[formatMatrix selectCellAtRow:1 column:0];
-	else if ([[currentSettings format] isEqualToString:@"TIFF"])
-		[formatMatrix selectCellAtRow:2 column:0];
-	[widthField setFloatValue:[currentSettings width]];
-	[heightField setFloatValue:[currentSettings height]];
-	[unitsPopUp selectItemWithTag:[currentSettings units]];
-	[resolutionPopUp selectItemWithTag:[currentSettings pixelsPerInch]];
-	
-	[self setUnits:self];
+	[self refresh];
 }
 
 
 - (IBAction)setFormat:(id)sender
 {
+	NSString	*previousValue = [[[currentSettings format] retain] autorelease];
+	
 	if ([formatMatrix selectedRow] == 0)
 		[currentSettings setFormat:@"JPEG"];
 	else if ([formatMatrix selectedRow] == 1)
@@ -85,7 +75,10 @@
 	else if ([formatMatrix selectedRow] == 2)
 		[currentSettings setFormat:@"TIFF"];
 	
-	[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Format"];
+	[[self delegate] dataSource:currentSettings 
+				   didChangeKey:@"format" 
+					  fromValue:previousValue 
+					 actionName:NSLocalizedString(@"Change Format", @"")];
 }
 
 
@@ -96,23 +89,33 @@
 	
 	if ([notification object] == widthField)
 	{
+		NSArray	*previousValue = [NSArray arrayWithObjects:[NSNumber numberWithFloat:[currentSettings width]], [NSNumber numberWithFloat:[currentSettings height]], [NSNumber numberWithInt:[currentSettings units]], nil];
 		float	newWidth = [[[[notification userInfo] objectForKey:@"NSFieldEditor"] string] floatValue], 
 				newHeight = newWidth / aspectRatio;
 		
 		[currentSettings setWidth:newWidth];
 		[currentSettings setHeight:newHeight];
 		[heightField setFloatValue:newHeight];
-		[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Width"];
+		
+		[[self delegate] dataSource:currentSettings 
+					   didChangeKey:@"widthAndHeight" 
+						  fromValue:previousValue 
+						 actionName:NSLocalizedString(@"Change Width", @"")];
 	}
 	else if ([notification object] == heightField)
 	{
+		NSArray	*previousValue = [NSArray arrayWithObjects:[NSNumber numberWithFloat:[currentSettings width]], [NSNumber numberWithFloat:[currentSettings height]], [NSNumber numberWithInt:[currentSettings units]], nil];
 		float	newHeight = [[[[notification userInfo] objectForKey:@"NSFieldEditor"] string] floatValue], 
 				newWidth = newHeight * aspectRatio;
 		
 		[currentSettings setWidth:newWidth];
 		[currentSettings setHeight:newHeight];
 		[widthField setFloatValue:newWidth];
-		[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Height"];
+		
+		[[self delegate] dataSource:currentSettings 
+					   didChangeKey:@"widthAndHeight" 
+						  fromValue:previousValue 
+						 actionName:NSLocalizedString(@"Change Height", @"")];
 	}
 }
 
@@ -145,6 +148,8 @@
 	
 	if (newUnits != currentUnits)
 	{
+		NSArray	*previousValue = [NSArray arrayWithObjects:[NSNumber numberWithFloat:[currentSettings width]], [NSNumber numberWithFloat:[currentSettings height]], [NSNumber numberWithInt:[currentSettings units]], nil];
+		
 			// Show fractional parts of the width and height for units except pixels.
 		NSString	*floatFormat = @"#,##0.0##; 0.0", 
 					*integerFormat = @"#,##0; 0";
@@ -162,16 +167,24 @@
 		
 		[currentSettings setUnits:newUnits];
 		
-		[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Units"];
+		[[self delegate] dataSource:currentSettings 
+					   didChangeKey:@"widthHeightUnits" 
+						  fromValue:previousValue 
+						 actionName:NSLocalizedString(@"Change Units", @"")];
 	}
 }
 
 
 - (IBAction)setResolution:(id)sender
 {
+	int	previousValue = [currentSettings pixelsPerInch];
+	
 	[currentSettings setPixelsPerInch:[resolutionPopUp selectedTag]];
 	
-	[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Resolution"];
+	[[self delegate] dataSource:currentSettings 
+				   didChangeKey:@"pixelsPerInch" 
+					  fromValue:[NSNumber numberWithInt:previousValue] 
+					 actionName:NSLocalizedString(@"Change Resolution", @"")];
 }
 
 
@@ -190,6 +203,26 @@
 - (BOOL)mouseUpInMosaic:(NSEvent *)event
 {
 	return NO;
+}
+
+
+- (void)refresh
+{
+	if ([[currentSettings format] isEqualToString:@"JPEG"])
+		[formatMatrix selectCellAtRow:0 column:0];
+	else if ([[currentSettings format] isEqualToString:@"PNG"])
+		[formatMatrix selectCellAtRow:1 column:0];
+	else if ([[currentSettings format] isEqualToString:@"TIFF"])
+		[formatMatrix selectCellAtRow:2 column:0];
+	
+	[widthField setFloatValue:[currentSettings width]];
+	[heightField setFloatValue:[currentSettings height]];
+	
+	[unitsPopUp selectItemWithTag:[currentSettings units]];
+	
+	[resolutionPopUp selectItemWithTag:[currentSettings pixelsPerInch]];
+	
+	[self setUnits:self];
 }
 
 

@@ -143,6 +143,14 @@
 }
 
 
+- (void)setWidthHeightUnits:(NSArray *)array
+{
+	[self setWidth:[[array objectAtIndex:0] floatValue]];
+	[self setHeight:[[array objectAtIndex:1] floatValue]];
+	[self setUnits:[[array objectAtIndex:2] intValue]];
+}
+
+
 - (void)setPixelsPerInch:(int)ppi
 {
 	pixelsPerInch = ppi;

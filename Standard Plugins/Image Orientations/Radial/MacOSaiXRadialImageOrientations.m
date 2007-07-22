@@ -160,6 +160,14 @@
 }
 
 
+- (void)setNameFocusPointAngle:(NSDictionary *)dictionary
+{
+	[self setName:[dictionary objectForKey:@"Name"]];
+	[self setFocusPoint:[[dictionary objectForKey:@"Focus Point"] pointValue]];
+	[self setOffsetAngle:[[dictionary objectForKey:@"Offset Angle"] floatValue]];
+}
+
+
 - (float)imageOrientationAtPoint:(NSPoint)point inRectOfSize:(NSSize)rectSize
 {
 	float	imageOrientation = 0.0;

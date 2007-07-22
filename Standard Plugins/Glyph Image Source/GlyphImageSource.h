@@ -35,7 +35,7 @@ typedef enum MacOSaiXGlyphFontsType
 
 + (NSArray *)builtInColorListNames;
 
-- (void)useAllFonts;
+- (void)setUseAllFonts:(BOOL)flag;
 - (void)setFontCollectionName:(NSString *)collectionName;
 - (NSString *)fontCollectionName;
 - (void)setFontFamilyName:(NSString *)familyName;

@@ -59,39 +59,9 @@
 
 - (void)editDataSource:(id<MacOSaiXDataSource>)dataSource
 {
-	MacOSaiXiTunesImageSource	*imageSource = (MacOSaiXiTunesImageSource *)dataSource;
+	currentImageSource = (MacOSaiXiTunesImageSource *)dataSource;
 	
-	if (!playlistNames)
-		playlistNames = [[NSMutableArray array] retain];
-	else
-		[playlistNames removeAllObjects];
-	
-		// Get the names of all user playlists.
-	NSString				*getPlaylistNamesText = @"tell application \"iTunes\" to get name of user playlists "\
-													 "    where (special kind of it is not Party Shuffle and "\
-													 "           special kind of it is not Videos)";
-	NSAppleScript			*getPlaylistNamesScript = [[[NSAppleScript alloc] initWithSource:getPlaylistNamesText] autorelease];
-	NSDictionary			*getPlaylistNamesError = nil;
-	NSAppleEventDescriptor	*getPlaylistNamesResult = [getPlaylistNamesScript executeAndReturnError:&getPlaylistNamesError];
-	if (getPlaylistNamesResult)
-	{
-			// Add an item for each playlist.
-		int			playlistCount = [getPlaylistNamesResult numberOfItems],
-					playlistIndex = 1;
-		for (playlistIndex = 1; playlistIndex <= playlistCount; playlistIndex++)
-			[playlistNames addObject:[[getPlaylistNamesResult descriptorAtIndex:playlistIndex] stringValue]];
-	}
-	
-	[playlistTable reloadData];
-	
-	NSString	*playlistName = [(MacOSaiXiTunesImageSource *)imageSource playlistName];
-	int			playlistIndex = [playlistNames indexOfObject:playlistName];
-	if (playlistIndex == NSNotFound)
-		[playlistTable selectRow:0 byExtendingSelection:NO];
-	else
-		[playlistTable selectRow:playlistIndex + 1 byExtendingSelection:NO];
-	
-	currentImageSource = imageSource;
+	[self refresh];
 }
 
 
@@ -126,14 +96,18 @@
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
-	int	selectedRow = [playlistTable selectedRow];
+	NSString	*previousValue = [[[currentImageSource playlistName] retain] autorelease];
+	int			selectedRow = [playlistTable selectedRow];
 	
 	if (selectedRow == 0)
 		[currentImageSource setPlaylistName:nil];
 	else
 		[currentImageSource setPlaylistName:[playlistNames objectAtIndex:selectedRow - 1]];
 	
-	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Playlist", @"")];
+	[[self delegate] dataSource:currentImageSource 
+				   didChangeKey:@"playlistName" 
+					  fromValue:previousValue 
+					 actionName:NSLocalizedString(@"Change Playlist", @"")];
 }
 
 
@@ -152,6 +126,40 @@
 - (BOOL)mouseUpInMosaic:(NSEvent *)event
 {
 	return NO;
+}
+
+
+- (void)refresh
+{
+	if (!playlistNames)
+		playlistNames = [[NSMutableArray array] retain];
+	else
+		[playlistNames removeAllObjects];
+	
+		// Get the names of all user playlists.
+	NSString				*getPlaylistNamesText = @"tell application \"iTunes\" to get name of user playlists "\
+													 "    where (special kind of it is not Party Shuffle and "\
+													 "           special kind of it is not Videos)";
+	NSAppleScript			*getPlaylistNamesScript = [[[NSAppleScript alloc] initWithSource:getPlaylistNamesText] autorelease];
+	NSDictionary			*getPlaylistNamesError = nil;
+	NSAppleEventDescriptor	*getPlaylistNamesResult = [getPlaylistNamesScript executeAndReturnError:&getPlaylistNamesError];
+	if (getPlaylistNamesResult)
+	{
+			// Add an item for each playlist.
+		int			playlistCount = [getPlaylistNamesResult numberOfItems],
+		playlistIndex = 1;
+		for (playlistIndex = 1; playlistIndex <= playlistCount; playlistIndex++)
+			[playlistNames addObject:[[getPlaylistNamesResult descriptorAtIndex:playlistIndex] stringValue]];
+	}
+	
+	[playlistTable reloadData];
+	
+	NSString	*playlistName = [currentImageSource playlistName];
+	int			playlistIndex = [playlistNames indexOfObject:playlistName];
+	if (playlistIndex == NSNotFound)
+		[playlistTable selectRow:0 byExtendingSelection:NO];
+	else
+		[playlistTable selectRow:playlistIndex + 1 byExtendingSelection:NO];
 }
 
 

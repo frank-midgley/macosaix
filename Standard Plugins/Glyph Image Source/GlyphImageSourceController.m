@@ -81,34 +81,21 @@
 
 - (void)editDataSource:(id<MacOSaiXDataSource>)dataSource
 {
-	if (dataSource)
-	{
-		currentImageSource = (MacOSaiXGlyphImageSource *)dataSource;
-		
-			// Start a timer to show sample images for the current settings.
-		sampleTimer = [[NSTimer scheduledTimerWithTimeInterval:1.0 
-														target:self 
-													  selector:@selector(updateSampleImage:) 
-													  userInfo:nil 
-													   repeats:YES] retain];
-		
-		[self populateFontsPopUpButton];
-		[self populateColorsPopUpButton];
-		[self populateSizeControls];
-		[lettersView setString:([currentImageSource letterPool] ? [currentImageSource letterPool] : @"")];
-		
-		[[NSNotificationCenter defaultCenter] addObserver:self 
-												 selector:@selector(colorListDidChange:)
-													 name:NSColorListDidChangeNotification 
-												   object:nil];
-	}
-	else
-	{
-		[sampleTimer invalidate];
-		sampleTimer = nil;
-		
-		[[NSNotificationCenter defaultCenter] removeObserver:self name:NSColorListDidChangeNotification object:nil];
-	}
+	currentImageSource = (MacOSaiXGlyphImageSource *)dataSource;
+	
+		// Start a timer to show sample images for the current settings.
+	sampleTimer = [[NSTimer scheduledTimerWithTimeInterval:1.0 
+													target:self 
+												  selector:@selector(updateSampleImage:) 
+												  userInfo:nil 
+												   repeats:YES] retain];
+	
+	[self refresh];
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(colorListDidChange:)
+												 name:NSColorListDidChangeNotification 
+											   object:nil];
 }
 
 
@@ -209,25 +196,91 @@
 
 - (IBAction)useAllFonts:(id)sender
 {
-	[currentImageSource useAllFonts];
+	NSString	*key = nil;
+	id			previousValue = nil;
 	
-	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Use All Fonts", @"")];
+	if ([currentImageSource fontsType] == allFonts)
+	{
+		key = @"useAllFonts";
+		previousValue = [NSNumber numberWithBool:YES];
+	}
+	else if ([currentImageSource fontsType] == fontCollection)
+	{
+		key = @"fontCollectionName";
+		previousValue = [[[currentImageSource fontCollectionName] retain] autorelease];;
+	}
+	else if ([currentImageSource fontsType] == fontFamily)
+	{
+		key = @"fontFamilyName";
+		previousValue = [[[currentImageSource fontFamilyName] retain] autorelease];;
+	}
+
+	[currentImageSource setUseAllFonts:YES];
+	
+	[[self delegate] dataSource:currentImageSource 
+				   didChangeKey:key 
+					  fromValue:previousValue 
+					 actionName:NSLocalizedString(@"Use All Fonts", @"")];
 }
 
 
 - (IBAction)useFontCollection:(id)sender
 {
+	NSString	*key = nil;
+	id			previousValue = nil;
+	
+	if ([currentImageSource fontsType] == allFonts)
+	{
+		key = @"useAllFonts";
+		previousValue = [NSNumber numberWithBool:YES];
+	}
+	else if ([currentImageSource fontsType] == fontCollection)
+	{
+		key = @"fontCollectionName";
+		previousValue = [[[currentImageSource fontCollectionName] retain] autorelease];;
+	}
+	else if ([currentImageSource fontsType] == fontFamily)
+	{
+		key = @"fontFamilyName";
+		previousValue = [[[currentImageSource fontFamilyName] retain] autorelease];;
+	}
+
 	[currentImageSource setFontCollectionName:[sender representedObject]];
 	
-	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Use Font Collection", @"")];
+	[[self delegate] dataSource:currentImageSource 
+				   didChangeKey:key 
+					  fromValue:previousValue 
+					 actionName:NSLocalizedString(@"Use Font Collection", @"")];
 }
 
 
 - (IBAction)useFontFamily:(id)sender
 {
-	[currentImageSource setFontFamilyName:[sender representedObject]];
+	NSString	*key = nil;
+	id			previousValue = nil;
 	
-	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Use Font Family", @"")];
+	if ([currentImageSource fontsType] == allFonts)
+	{
+		key = @"useAllFonts";
+		previousValue = [NSNumber numberWithBool:YES];
+	}
+	else if ([currentImageSource fontsType] == fontCollection)
+	{
+		key = @"fontCollectionName";
+		previousValue = [[[currentImageSource fontCollectionName] retain] autorelease];;
+	}
+	else if ([currentImageSource fontsType] == fontFamily)
+	{
+		key = @"fontFamilyName";
+		previousValue = [[[currentImageSource fontFamilyName] retain] autorelease];;
+	}
+	
+	[currentImageSource setFontFamilyName:[sender representedObject]];
+
+	[[self delegate] dataSource:currentImageSource 
+				   didChangeKey:key 
+					  fromValue:previousValue 
+					 actionName:NSLocalizedString(@"Use Font Family", @"")];
 }
 
 
@@ -287,17 +340,27 @@
 
 - (IBAction)useBuiltInColors:(id)sender
 {
+	NSArray	*previousValue = [NSArray arrayWithObjects:[currentImageSource colorListName], [currentImageSource colorListClass], nil];
+	
 	[currentImageSource setColorListName:[sender representedObject] ofClass:@"Built-in"];
 	
-	[[self delegate] dataSource:currentImageSource settingsDidChange:@"Use Built-In Colors"];
+	[[self delegate] dataSource:currentImageSource 
+				   didChangeKey:@"colorListAndClass" 
+					  fromValue:previousValue 
+					 actionName:NSLocalizedString(@"Use Built-In Colors", @"")];
 }
 
 
 - (IBAction)useSystemWideColors:(id)sender
 {
+	NSArray	*previousValue = [NSArray arrayWithObjects:[currentImageSource colorListName], [currentImageSource colorListClass], nil];
+	
 	[currentImageSource setColorListName:[[sender representedObject] name] ofClass:@"System-wide"];
 	
-	[[self delegate] dataSource:currentImageSource settingsDidChange:@"Use System-Wide Colors"];
+	[[self delegate] dataSource:currentImageSource 
+				   didChangeKey:@"colorListAndClass" 
+					  fromValue:previousValue 
+					 actionName:NSLocalizedString(@"Use System-Wide Colors", @"")];
 }
 
 
@@ -349,50 +412,42 @@
 
 - (IBAction)setSize:(id)sender
 {
-	BOOL	sizeChanged = NO;
+	NSNumber	*previousAspectRatio = [currentImageSource aspectRatio], 
+				*newAspectRatio = nil;
 	
 	if (sender == sizeMatrix)
-	{
-		NSNumber	*aspectRatio = [currentImageSource aspectRatio],
-					*newAspectRatio = ([sizeMatrix selectedRow] == 0 ? nil : [NSNumber numberWithFloat:1.0]);
-		
-		if (aspectRatio != newAspectRatio || ![aspectRatio isEqualTo:newAspectRatio])
-		{
-			[currentImageSource setAspectRatio:newAspectRatio];
-			sizeChanged = YES;
-		}
-	}
+		newAspectRatio = ([sizeMatrix selectedRow] == 0 ? nil : [NSNumber numberWithFloat:1.0]);
 	else
 	{
-		float	newAspectRatio = 1.0;
+		newAspectRatio = [NSNumber numberWithFloat:1.0];
 		
 		if (sender == sizePopUp)
 		{
 			if ([sizePopUp selectedTag] == 2)
-				newAspectRatio = 3.0 / 4.0;
+				newAspectRatio = [NSNumber numberWithFloat:3.0 / 4.0];
 			else if ([sizePopUp selectedTag] == 3)
-				newAspectRatio = 4.0 / 3.0;
+				newAspectRatio = [NSNumber numberWithFloat:4.0 / 3.0];
 		}
 		else	// sender == sizeSlider
 		{
-			newAspectRatio = [sizeSlider floatValue];
-			
 				// Map from the slider's scale to the actual ratio.
-			if (newAspectRatio < 1.0)
-				newAspectRatio = MIN_ASPECT_RATIO + (1.0 - MIN_ASPECT_RATIO) * newAspectRatio;
-			else if (newAspectRatio > 1.0)
-				newAspectRatio = 1.0 + (MAX_ASPECT_RATIO - 1.0) * (newAspectRatio - 1.0);
+			if ([sizeSlider floatValue] <= 1.0)
+				newAspectRatio = [NSNumber numberWithFloat:MIN_ASPECT_RATIO + (1.0 - MIN_ASPECT_RATIO) * [sizeSlider floatValue]];
+			else
+				newAspectRatio = [NSNumber numberWithFloat:1.0 + (MAX_ASPECT_RATIO - 1.0) * ([sizeSlider floatValue] - 1.0)];
 		}
-		
-		if (newAspectRatio != [[currentImageSource aspectRatio] floatValue])
-			[currentImageSource setAspectRatio:[NSNumber numberWithFloat:newAspectRatio]];
 	}
 	
-	if (sizeChanged)
+	if (previousAspectRatio != newAspectRatio || ![previousAspectRatio isEqualTo:newAspectRatio])
 	{
+		[currentImageSource setAspectRatio:newAspectRatio];
+		
 		[self populateSizeControls];
 		
-		[[self delegate] dataSource:currentImageSource settingsDidChange:@"Set Glyphs Size"];
+		[[self delegate] dataSource:currentImageSource 
+					   didChangeKey:@"aspectRatio" 
+						  fromValue:previousAspectRatio 
+						 actionName:NSLocalizedString(@"Set Glyphs Size", @"")];
 	}
 }
 
@@ -418,6 +473,41 @@
 }
 
 
+#pragma mark -
+#pragma mark Text delegate methods
+
+
+- (void)textDidChange:(NSNotification *)notification
+{
+	if ([notification object] == lettersView)
+	{
+		NSString	*previousValue = [[[currentImageSource letterPool] retain] autorelease];
+		
+		if ([[lettersView string] length] > 0)
+			[currentImageSource setLetterPool:[lettersView string]];
+		else
+			[currentImageSource setLetterPool:nil];
+		
+		[[self delegate] dataSource:currentImageSource 
+					   didChangeKey:@"letterPool" 
+						  fromValue:previousValue 
+						 actionName:NSLocalizedString(@"Use Glyph Letters", @"")];
+	}
+}
+
+
+#pragma mark -
+
+
+- (void)refresh
+{
+	[self populateFontsPopUpButton];
+	[self populateColorsPopUpButton];
+	[self populateSizeControls];
+	[lettersView setString:([currentImageSource letterPool] ? [currentImageSource letterPool] : @"")];
+}
+
+
 - (void)editingDidComplete
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSColorListDidChangeNotification object:nil];
@@ -428,27 +518,6 @@
 	
 	currentImageSource = nil;
 }
-
-
-#pragma mark -
-#pragma mark Text delegate methods
-
-
-- (void)textDidChange:(NSNotification *)notification
-{
-	if ([notification object] == lettersView)
-	{
-		if ([[lettersView string] length] > 0)
-			[currentImageSource setLetterPool:[lettersView string]];
-		else
-			[currentImageSource setLetterPool:nil];
-		
-		[[self delegate] dataSource:currentImageSource settingsDidChange:@"Set Glyphs Letters"];
-	}
-}
-
-
-#pragma mark -
 
 
 - (void)dealloc

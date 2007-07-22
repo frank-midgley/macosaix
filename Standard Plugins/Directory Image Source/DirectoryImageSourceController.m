@@ -13,11 +13,6 @@
 #import "NSFileManager+MacOSaiX.h"
 
 
-@interface MacOSaiXDirectoryImageSourceEditor (PrivateMethods)
-- (void)populateGUI;
-@end
-
-
 @implementation MacOSaiXDirectoryImageSourceEditor
 
 
@@ -153,13 +148,13 @@
 		[menuItem setImage:[directory icon]];
 	}		
 	
-	[self populateGUI];	// populate the other views
+	[self refresh];	// populate the other views
 	
 	[followsAliasesButton setState:([currentImageSource followsAliases] ? NSOnState : NSOffState)];
 }
 
 
-- (void)populateGUI
+- (void)refresh
 {
 	DirectoryImageSourceDirectory	*directory = [self currentDirectory];
 	
@@ -205,12 +200,14 @@
 	if (![[NSFileManager defaultManager] fileExistsAtPath:[currentImageSource path] isDirectory:&isDirectory] || !isDirectory)
 		[currentImageSource setPath:NSHomeDirectory()];
 	
-	[self populateGUI];
+	[self refresh];
 }
 
 
 - (void)setPath:(NSString *)newPath
 {
+	NSString	*previousValue = [[[currentImageSource path] retain] autorelease];
+	
 	[currentImageSource setPath:newPath];
 	
 	{
@@ -246,9 +243,12 @@
 		[[NSUserDefaults standardUserDefaults] synchronize];
 	}
 	
-	[self populateGUI];
+	[self refresh];
 	
-	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Folder", @"")];
+	[[self delegate] dataSource:currentImageSource 
+				   didChangeKey:@"path" 
+					  fromValue:previousValue 
+					 actionName:NSLocalizedString(@"Change Folder", @"")]; 
 }
 
 
@@ -301,15 +301,20 @@
 	
 	[currentImageSource setPath:picturesPath];
 	
-	[self populateGUI];
+	[self refresh];
 }
 
 
 - (IBAction)setFollowsAliases:(id)sender
 {
+	BOOL	previousValue = [currentImageSource followsAliases];
+	
 	[currentImageSource setFollowsAliases:([followsAliasesButton state] == NSOnState)];
 	
-	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Set Follows Aliases", @"")];
+	[[self delegate] dataSource:currentImageSource 
+				   didChangeKey:@"followsAliases" 
+					  fromValue:[NSNumber numberWithBool:previousValue] 
+					 actionName:NSLocalizedString(@"Set Follows Aliases", @"")];
 }
 
 

@@ -187,18 +187,6 @@
 }
 
 
-- (void)setUseMatrixStyleOrdering:(BOOL)flag
-{
-	useMatrixStyleOrdering = flag;
-}
-
-
-- (BOOL)useMatrixStyleOrdering
-{
-	return useMatrixStyleOrdering;
-}
-
-
 - (id)briefDescription
 {
 	if (isFreeForm)
@@ -236,8 +224,6 @@
 		[settings setObject:[NSNumber numberWithFloat:[self tileAspectRatio]] forKey:@"Tile Aspect Ratio"];
 		[settings setObject:[NSNumber numberWithFloat:[self tileCount]] forKey:@"Tile Count"];
 	}
-	
-	[settings setObject:[NSNumber numberWithBool:[self useMatrixStyleOrdering]] forKey:@"Use Matrix Style Ordering"];
 
 	return [settings writeToFile:path atomically:NO];
 }
@@ -259,8 +245,6 @@
 		[self setTileAspectRatio:[[settings objectForKey:@"Tile Aspect Ratio"] floatValue]];
 		[self setTileCount:[[settings objectForKey:@"Tile Count"] floatValue]];
 	}
-	
-	[self setUseMatrixStyleOrdering:[[settings objectForKey:@"Use Matrix Style Ordering"] boolValue]];
 
 	return YES;
 }
@@ -322,55 +306,21 @@
 	NSMutableArray	*tileOutlines = [NSMutableArray arrayWithCapacity:(xCount * yCount)];
 	NSRect			tileRect = NSMakeRect(0.0, 0.0, mosaicSize.width / xCount, mosaicSize.height / yCount);
 	
-	if ([self useMatrixStyleOrdering])
-	{
-		int				counts[xCount], x;
+	int		x, y;
+	for (y = yCount - 1; y >= 0; y--)
 		for (x = 0; x < xCount; x++)
-			counts[x] = 0;
-		
-		unsigned long	totalCount = xCount * yCount, 
-						currentCount = 0;
-		while (currentCount < totalCount)
 		{
-			x = random() % xCount;
+			tileRect.origin.x = x * tileRect.size.width;
+			tileRect.origin.y = y * tileRect.size.height;
 			
-			if (counts[x] < yCount)
-			{
-				tileRect.origin.x = x * tileRect.size.width;
-				tileRect.origin.y = (yCount - counts[x] - 1) * tileRect.size.height;
-				
-				NSBezierPath	*path = [NSBezierPath bezierPath];
-				[path moveToPoint:NSMakePoint(NSMinX(tileRect), NSMinY(tileRect))];
-				[path lineToPoint:NSMakePoint(NSMaxX(tileRect), NSMinY(tileRect))];
-				[path lineToPoint:NSMakePoint(NSMaxX(tileRect), NSMaxY(tileRect))];
-				[path lineToPoint:NSMakePoint(NSMinX(tileRect), NSMaxY(tileRect))];
-				[path closePath];
-				[tileOutlines addObject:[MacOSaiXRectangularTileShape tileShapeWithOutline:path]];
-				
-				counts[x]++;
-				currentCount++;
-			}
+			NSBezierPath	*path = [NSBezierPath bezierPath];
+			[path moveToPoint:NSMakePoint(NSMinX(tileRect), NSMinY(tileRect))];
+			[path lineToPoint:NSMakePoint(NSMaxX(tileRect), NSMinY(tileRect))];
+			[path lineToPoint:NSMakePoint(NSMaxX(tileRect), NSMaxY(tileRect))];
+			[path lineToPoint:NSMakePoint(NSMinX(tileRect), NSMaxY(tileRect))];
+			[path closePath];
+			[tileOutlines addObject:[MacOSaiXRectangularTileShape tileShapeWithOutline:path]];
 		}
-	}
-	else
-	{
-		int		x, y;
-		
-		for (y = yCount - 1; y >= 0; y--)
-			for (x = 0; x < xCount; x++)
-			{
-				tileRect.origin.x = x * tileRect.size.width;
-				tileRect.origin.y = y * tileRect.size.height;
-				
-				NSBezierPath	*path = [NSBezierPath bezierPath];
-				[path moveToPoint:NSMakePoint(NSMinX(tileRect), NSMinY(tileRect))];
-				[path lineToPoint:NSMakePoint(NSMaxX(tileRect), NSMinY(tileRect))];
-				[path lineToPoint:NSMakePoint(NSMaxX(tileRect), NSMaxY(tileRect))];
-				[path lineToPoint:NSMakePoint(NSMinX(tileRect), NSMaxY(tileRect))];
-				[path closePath];
-				[tileOutlines addObject:[MacOSaiXRectangularTileShape tileShapeWithOutline:path]];
-			}
-	}
 
 	return [NSArray arrayWithArray:tileOutlines];
 }

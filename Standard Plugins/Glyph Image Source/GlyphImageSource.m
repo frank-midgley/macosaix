@@ -94,7 +94,7 @@
 	NSDictionary	*settings = [NSDictionary dictionaryWithContentsOfFile:path];
 	
 	if ([[settings objectForKey:@"Use All Fonts"] boolValue])
-		[self useAllFonts];
+		[self setUseAllFonts:YES];
 	else if ([settings objectForKey:@"Font Collection Name"])
 		[self setFontCollectionName:[settings objectForKey:@"Font Collection Name"]];
 	else if ([settings objectForKey:@"Font Family Name"])
@@ -144,7 +144,7 @@
 	MacOSaiXGlyphImageSource	*copy = [[MacOSaiXGlyphImageSource allocWithZone:zone] init];
 	
 	if ([self fontsType] == allFonts)
-		[copy useAllFonts];
+		[copy setUseAllFonts:YES];
 	else if ([self fontsType] == fontCollection)
 		[copy setFontCollectionName:[self fontCollectionName]];
 	else if ([self fontsType] == fontFamily)
@@ -196,7 +196,7 @@
 #pragma mark Settings
 
 
-- (void)useAllFonts
+- (void)setUseAllFonts:(BOOL)flag
 {
 	if (fontsType != allFonts)
 	{
@@ -628,6 +628,12 @@
 - (NSString *)colorListClass
 {
 	return colorListClass;
+}
+
+
+- (void)setColorListAndClass:(NSArray *)array
+{
+	[self setColorListName:[array objectAtIndex:0] ofClass:[array objectAtIndex:1]];
 }
 
 

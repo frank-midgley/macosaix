@@ -60,9 +60,7 @@
 {
 	currentSettings = (MacOSaiXPDFExportSettings *)dataSource;
 	
-	[widthField setFloatValue:[currentSettings width]];
-	[heightField setFloatValue:[currentSettings height]];
-	[unitsPopUp selectItemWithTag:[currentSettings units]];
+	[self refresh];
 }
 
 
@@ -73,23 +71,33 @@
 	
 	if ([notification object] == widthField)
 	{
+		NSArray	*previousValue = [NSArray arrayWithObjects:[NSNumber numberWithFloat:[currentSettings width]], [NSNumber numberWithFloat:[currentSettings height]], [NSNumber numberWithInt:[currentSettings units]], nil];
 		float	newWidth = [[[[notification userInfo] objectForKey:@"NSFieldEditor"] string] floatValue], 
 				newHeight = newWidth / aspectRatio;
 		
 		[currentSettings setWidth:newWidth];
 		[currentSettings setHeight:newHeight];
 		[heightField setFloatValue:newHeight];
-		[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Width"];
+		
+		[[self delegate] dataSource:currentSettings 
+					   didChangeKey:@"widthHeightUnits" 
+						  fromValue:previousValue 
+						 actionName:NSLocalizedString(@"Change Width", @"")];
 	}
 	else if ([notification object] == heightField)
 	{
+		NSArray	*previousValue = [NSArray arrayWithObjects:[NSNumber numberWithFloat:[currentSettings width]], [NSNumber numberWithFloat:[currentSettings height]], [NSNumber numberWithInt:[currentSettings units]], nil];
 		float	newHeight = [[[[notification userInfo] objectForKey:@"NSFieldEditor"] string] floatValue], 
 				newWidth = newHeight * aspectRatio;
 		
 		[currentSettings setWidth:newWidth];
 		[currentSettings setHeight:newHeight];
 		[widthField setFloatValue:newWidth];
-		[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Height"];
+		
+		[[self delegate] dataSource:currentSettings 
+					   didChangeKey:@"widthHeightUnits" 
+						  fromValue:previousValue 
+						 actionName:NSLocalizedString(@"Change Height", @"")];
 	}
 }
 
@@ -101,7 +109,7 @@
 	
 	if (previousUnits != newUnits)
 	{
-		[currentSettings setUnits:newUnits];
+		NSArray	*previousValue = [NSArray arrayWithObjects:[NSNumber numberWithFloat:[currentSettings width]], [NSNumber numberWithFloat:[currentSettings height]], [NSNumber numberWithInt:[currentSettings units]], nil];
 		
 			// Convert the width and height to the new units.
 		float	factor = (newUnits == cmUnits ? 2.54 : 1.0 / 2.54), 
@@ -112,7 +120,12 @@
 		[currentSettings setHeight:newHeight];
 		[heightField setFloatValue:newHeight];
 		
-		[[self delegate] dataSource:currentSettings settingsDidChange:@"Change Units"];
+		[currentSettings setUnits:newUnits];
+		
+		[[self delegate] dataSource:currentSettings 
+					   didChangeKey:@"widthHeightUnits" 
+						  fromValue:previousValue 
+						 actionName:NSLocalizedString(@"Change Units", @"")];
 	}
 }
 
@@ -132,6 +145,14 @@
 - (BOOL)mouseUpInMosaic:(NSEvent *)event
 {
 	return NO;
+}
+
+
+- (void)refresh
+{
+	[widthField setFloatValue:[currentSettings width]];
+	[heightField setFloatValue:[currentSettings height]];
+	[unitsPopUp selectItemWithTag:[currentSettings units]];
 }
 
 

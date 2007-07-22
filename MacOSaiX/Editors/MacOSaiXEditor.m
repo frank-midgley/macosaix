@@ -118,9 +118,32 @@
 }
 
 
-- (void)dataSource:(id<MacOSaiXDataSource>)dataSource settingsDidChange:(NSString *)changeDescription
+- (void)setDataSource:(id<MacOSaiXDataSource>)dataSource value:(id)value forKey:(NSString *)key
 {
-	// Sub-classes to implement.
+	[(id)dataSource setValue:value forKey:key];
+	
+	[[self plugInEditor] refresh];
+}
+
+
+- (void)dataSource:(id<MacOSaiXDataSource>)dataSource 
+	  didChangeKey:(NSString *)key
+		 fromValue:(id)previousValue 
+		actionName:(NSString *)actionName;
+{
+	NSUndoManager		*undoManager = [[[self delegate] mosaic] undoManager];
+	NSMethodSignature	*undoSignature = [self methodSignatureForSelector:@selector(setDataSource:value:forKey:)];
+	NSInvocation		*undoInvocation = [NSInvocation invocationWithMethodSignature:undoSignature];
+	
+	[undoInvocation setTarget:self];
+	[undoInvocation setSelector:@selector(setDataSource:value:forKey:)];
+	[undoInvocation setArgument:&dataSource atIndex:2];
+	[undoInvocation setArgument:&previousValue atIndex:3];
+	[undoInvocation setArgument:&key atIndex:4];
+	
+	[undoManager prepareWithInvocationTarget:self];
+	[undoManager forwardInvocation:undoInvocation];
+	[undoManager setActionName:actionName];
 }
 
 
@@ -200,6 +223,12 @@
 	}
 	
 	[self updateMinimumViewSize];
+}
+
+
+- (id<MacOSaiXDataSourceEditor>)plugInEditor
+{
+	return plugInEditor;
 }
 
 

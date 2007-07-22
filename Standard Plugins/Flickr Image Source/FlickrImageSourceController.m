@@ -65,16 +65,7 @@
 {
 	currentImageSource = (MacOSaiXFlickrImageSource *)imageSource;
 	
-	if ([currentImageSource queryString])
-	{
-		[queryField setStringValue:[currentImageSource queryString]];
-		if ([[currentImageSource queryString] length] > 0)
-			[self getCountOfMatchingPhotos];
-	}
-	else
-		[queryField setStringValue:@""];
-	
-	[queryTypeMatrix selectCellAtRow:[currentImageSource queryType] column:0];
+	[self refresh];
 }
 
 
@@ -184,24 +175,33 @@
 {
 	if ([notification object] == queryField)
 	{
-		NSString	*queryString = [[queryField stringValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+		NSString	*previousValue = [[[currentImageSource queryString] retain] autorelease], 
+					*queryString = [[queryField stringValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 		
 		[currentImageSource setQueryString:queryString];
 		
-		[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Query String", @"")];
-		
 		[self getCountOfMatchingPhotos];
+		
+		[[self delegate] dataSource:currentImageSource 
+					   didChangeKey:@"queryString" 
+						  fromValue:previousValue 
+						 actionName:NSLocalizedString(@"Change QueryString", @"")]; 
 	}
 }
 
 
 - (IBAction)setQueryType:(id)sender
 {
+	int	previousValue = [currentImageSource queryType];
+	
 	[currentImageSource setQueryType:[queryTypeMatrix selectedRow]];
 	
-	[[self delegate] dataSource:currentImageSource settingsDidChange:NSLocalizedString(@"Change Query Type", @"")];
-	
 	[self getCountOfMatchingPhotos];
+	
+	[[self delegate] dataSource:currentImageSource 
+				   didChangeKey:@"queryType" 
+					  fromValue:[NSNumber numberWithInt:previousValue] 
+					 actionName:NSLocalizedString(@"Change Query Type", @"")]; 
 }
 
 
@@ -220,6 +220,21 @@
 - (BOOL)mouseUpInMosaic:(NSEvent *)event
 {
 	return NO;
+}
+
+
+- (void)refresh
+{
+	if ([currentImageSource queryString])
+	{
+		[queryField setStringValue:[currentImageSource queryString]];
+		if ([[currentImageSource queryString] length] > 0)
+			[self getCountOfMatchingPhotos];
+	}
+	else
+		[queryField setStringValue:@""];
+	
+	[queryTypeMatrix selectCellAtRow:[currentImageSource queryType] column:0];
 }
 
 

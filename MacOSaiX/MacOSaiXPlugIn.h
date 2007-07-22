@@ -36,7 +36,10 @@
 - (NSImage *)targetImage;
 
 	// Call this method when a data source being displayed in an editor has been changed by the user.  The change description may be used as part of the Undo item in the Edit menu, e.g. "Undo Change Tiles Across".
-- (void)dataSource:(id<MacOSaiXDataSource>)dataSource settingsDidChange:(NSString *)changeDescription;
+- (void)dataSource:(id<MacOSaiXDataSource>)dataSource 
+	  didChangeKey:(NSString *)key
+		 fromValue:(id)previousValue 
+		actionName:(NSString *)actionName;
 
 @end
 
@@ -76,6 +79,9 @@
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path;
 - (BOOL)loadSettingsFromFileAtPath:(NSString *)path;
 
+// To support undo operations all data sources must implemented the following KVC method:
+// - (void)setValue:(id)value forKey:(NSString *)key;
+
 @end
 
 
@@ -88,6 +94,9 @@
 - (BOOL)mouseDownInMosaic:(NSEvent *)event;
 - (BOOL)mouseDraggedInMosaic:(NSEvent *)event;
 - (BOOL)mouseUpInMosaic:(NSEvent *)event;
+
+	// This method will be called if the data source being edited has been changed outside of the editor.
+- (void)refresh;
 
 	// This method will be called just after the editor is dismissed.
 - (void)editingDidComplete;
