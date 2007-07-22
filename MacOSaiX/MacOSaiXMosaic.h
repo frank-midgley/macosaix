@@ -56,6 +56,8 @@
 	
     BOOL							paused, 
 									pausing;
+	NSTimer							*resumeTimer;
+	
     float							overallMatch,
 									lastDisplayMatch;
 	

@@ -34,10 +34,7 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 
 
 @interface MacOSaiXMosaic (PrivateMethods)
-- (void)addTile:(MacOSaiXTile *)tile;
-- (void)lockWhilePaused;
-- (void)setNumberOfImagesFound:(unsigned long)imageCount forImageSource:(id<MacOSaiXImageSource>)imageSource;
-- (void)enumerateImageSource:(id<MacOSaiXImageSource>)imageSource;
+- (void)pauseForEditing;
 @end
 
 
@@ -82,9 +79,9 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 }
 
 
-- (void)resetIncludingTiles:(BOOL)resetTiles
+- (void)resetIncludingTileMatches:(BOOL)resetTileMatches tileBitmaps:(BOOL)resetTileBitmaps
 {
-	BOOL					wasRunning = ![self isPaused];
+	BOOL	wasRunning = ![self isPaused];
 	
 	// Stop any worker threads.
 	if (wasRunning)
@@ -96,19 +93,28 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 		// Clear the cache of better matches
 	[betterMatchesCache removeAllObjects];
 	
-	if (resetTiles)
+	if (resetTileMatches || resetTileBitmaps)
 	{
 			// Reset all of the tiles.
 		NSEnumerator			*tileEnumerator = [tiles objectEnumerator];
 		MacOSaiXTile			*tile = nil;
 		while (tile = [tileEnumerator nextObject])
 		{
-			[tile resetBitmapRepAndMask];
-			[tile setBestImageMatch:nil];
-			[tile setUniqueImageMatch:nil];
+			if (resetTileBitmaps)
+				[tile resetBitmapRepAndMask];
+			
+			if (resetTileMatches)
+			{
+				[tile setBestImageMatch:nil];
+				[tile setUniqueImageMatch:nil];
+			}
 		}
-		[tilesWithoutBitmaps removeAllObjects];
-		[tilesWithoutBitmaps addObjectsFromArray:tiles];
+		
+		if (resetTileBitmaps)
+		{
+			[tilesWithoutBitmaps removeAllObjects];
+			[tilesWithoutBitmaps addObjectsFromArray:tiles];
+		}
 	}
 
 	if (wasRunning)
@@ -124,7 +130,9 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 {
 	if (image != targetImage)
 	{
-		[self resetIncludingTiles:YES];
+		[self pauseForEditing];
+		
+		[self resetIncludingTileMatches:YES tileBitmaps:YES];
 		
 		NSDictionary	*userInfo = (targetImage ? [NSDictionary dictionaryWithObject:targetImage forKey:@"Previous Image"] : [NSDictionary dictionary]);
 		
@@ -228,10 +236,7 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 
 - (void)setTileShapes:(id<MacOSaiXTileShapes>)inTileShapes creatingTiles:(BOOL)createTiles
 {
-	BOOL	wasRunning = ![self isPaused];
-	
-	if (wasRunning)
-		[self pause];
+	[self pauseForEditing];
 	
 	[tileShapes autorelease];
 	tileShapes = [inTileShapes retain];
@@ -257,16 +262,13 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 			// Indicate that the average tile size needs to be recalculated.
 		averageTileSize = NSZeroSize;
 		
-		[self resetIncludingTiles:YES];
+		[self resetIncludingTileMatches:YES tileBitmaps:YES];
 	}
 	
 		// Let anyone who cares know that our tile shapes (and thus our tiles array) have changed.
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
 														object:self 
 													  userInfo:nil];
-	
-	if (wasRunning)
-		[self resume];
 }
 
 
@@ -367,11 +369,13 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 {
 	if (imageUseCount != count)
 	{
+		[self pauseForEditing];
+		
 		imageUseCount = count;
 		[[NSUserDefaults standardUserDefaults] setInteger:imageUseCount forKey:@"Image Use Count"];
 		
 		// TBD: NO if < or > previous?
-		[self resetIncludingTiles:YES];
+		[self resetIncludingTileMatches:YES tileBitmaps:NO];
 		
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
 															object:self 
@@ -390,11 +394,13 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 {
 	if (imageReuseDistance != distance)
 	{
+		[self pauseForEditing];
+		
 		imageReuseDistance = distance;
 		[[NSUserDefaults standardUserDefaults] setInteger:imageReuseDistance forKey:@"Image Reuse Distance"];
 		
 		// TBD: NO if < or > previous?
-		[self resetIncludingTiles:YES];
+		[self resetIncludingTileMatches:YES tileBitmaps:NO];
 		
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
 															object:self 
@@ -421,11 +427,13 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 {
 	if (imageCropLimit != cropLimit)
 	{
+		[self pauseForEditing];
+		
 		imageCropLimit = cropLimit;
 		[[NSUserDefaults standardUserDefaults] setInteger:imageCropLimit forKey:@"Image Crop Limit"];
 		
 		// TBD: NO if < or > previous?
-		[self resetIncludingTiles:YES];
+		[self resetIncludingTileMatches:YES tileBitmaps:NO];
 		
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
 															object:self 
@@ -440,25 +448,20 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 
 - (void)setImageOrientations:(id<MacOSaiXImageOrientations>)inImageOrientations
 {
-	BOOL	wasRunning = ![self isPaused], 
-			needToReset = (imageOrientations != nil);
+	BOOL	needToReset = (imageOrientations != nil);
 	
-	if (wasRunning)
-		[self pause];
+	[self pauseForEditing];
 	
 	[imageOrientations autorelease];
 	imageOrientations = [inImageOrientations retain];
 			
 	if (needToReset)
-		[self resetIncludingTiles:YES];
+		[self resetIncludingTileMatches:YES tileBitmaps:NO];
 	
 		// Let anyone who cares know that our image orientations have changed.
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXImageOrientationsDidChangeStateNotification 
 														object:self 
 													  userInfo:nil];
-	
-	if (wasRunning)
-		[self resume];
 }
 
 
@@ -582,16 +585,13 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 {
 	MacOSaiXImageSourceEnumerator	*imageSourceEnumerator = [self enumeratorForImageSource:imageSource];
 	
-	BOOL							wasPaused = [self isPaused];
-	
-	if (!wasPaused)
-		[self pause];
+	[imageSourceEnumerator pauseForEditing];
 	
 	if ([imageSource imagesShouldBeRemovedForLastChange])
 	{
 			// If any tiles were using images from this source then we have to reset all sources.  Ouch.
 		if ([self removeImagesFromSource:imageSource])
-			[self resetIncludingTiles:NO];
+			[self resetIncludingTileMatches:YES tileBitmaps:NO];
 	}
 	else
 	{
@@ -603,11 +603,8 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 		}
 	}
 	
-	[imageSourceEnumerator setImageSource:imageSource];	// make a new working copy
+	[imageSourceEnumerator reset];
 	[imageSourceEnumerator setIsOnProbation:YES];
-	
-	if (!wasPaused)
-		[self resume];
 }
 
 
@@ -633,7 +630,7 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 	{
 			// At least one tile was using an image from the removed source.  All remaining sources must be reset in case any of their images can now be used.  The probation morgue is irrelevant in this case and can be discarded.
 			// TBD: How will this affect sources that don't support re-fetching?  Should all of the images that were retained be added to the revisit queue?
-		[self resetIncludingTiles:NO];
+		[self resetIncludingTileMatches:NO tileBitmaps:NO];
 	}
 	else
 	{
@@ -1213,7 +1210,7 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 
 - (BOOL)isBusy
 {
-	BOOL	isBusy = (tileBitmapExtractionThreadAlive || calculateImageMatchesThreadAlive);
+	BOOL	isBusy = (tileBitmapExtractionThreadAlive || calculateImageMatchesThreadAlive || resumeTimer);
 	
 	if (!isBusy)
 	{
@@ -1234,10 +1231,12 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 {
 	NSString	*status = nil;
 	
-	if ([tilesWithoutBitmaps count] > 0)
+	if (tileBitmapExtractionThreadAlive)
 		status = NSLocalizedString(@"Extracting tiles from target image...", @"");	// TODO: include the % complete (localized)
 	else if (calculateImageMatchesThreadAlive)
 		status = NSLocalizedString(@"Matching images...", @"");
+	else if (resumeTimer)
+		status = NSLocalizedString(@"Editing...", @"");
 	else if ([self isBeingLoaded])
 		status = NSLocalizedString(@"Loading project...", @"");
 	else if ([self isBusy])
@@ -1279,6 +1278,38 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
 															object:self];
 	}
+}
+
+
+- (void)pauseForEditing
+{
+	if (!paused || resumeTimer)
+	{
+		if (resumeTimer)
+		{
+			[resumeTimer invalidate];
+			[resumeTimer release];
+			
+			NSLog(@"Postponing auto-resumption");
+		}
+		else
+			[self pause];
+		
+			// Automatically resume after three seconds.
+		resumeTimer = [[NSTimer scheduledTimerWithTimeInterval:3.0 target:self selector:@selector(resumeWithTimer:) userInfo:nil repeats:NO] retain];
+		
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
+															object:self];
+	}
+}
+
+
+- (void)resumeWithTimer:(NSTimer *)timer
+{
+	[resumeTimer release];
+	resumeTimer = nil;
+	
+	[self resume];
 }
 
 
@@ -1342,7 +1373,7 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 	}
 	
 	if (needToReset)
-		[self resetIncludingTiles:NO];
+		[self resetIncludingTileMatches:NO tileBitmaps:NO];
 }
 
 
@@ -1420,6 +1451,9 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
     [newImageQueue release];
 	[revisitImageQueue release];
 	[handPickedImageSourceEnumerator release];
+	
+	[resumeTimer invalidate];
+	[resumeTimer release];
 	
 	[disallowedImages release];
 	
