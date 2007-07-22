@@ -57,6 +57,8 @@
 
 - (void)beginEditing
 {
+	[super beginEditing];
+	
 	[self populateGUI];
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self 

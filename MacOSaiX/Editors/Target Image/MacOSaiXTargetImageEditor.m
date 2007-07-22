@@ -264,6 +264,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (void)beginEditing
 {
+	[super beginEditing];
+	
 	if ([[[self delegate] mosaic] targetImagePath])
 	{
 		NSString		*targetImagePath = [[[self delegate] mosaic] targetImagePath];
