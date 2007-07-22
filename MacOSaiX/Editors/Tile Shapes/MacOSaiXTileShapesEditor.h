@@ -14,7 +14,7 @@
 
 @interface MacOSaiXTileShapesEditor : MacOSaiXMosaicEditor
 {
-	NSMutableArray					*tileShapesToDraw;
+	NSMutableSet	*tilesToEmbellish;
 }
 
 @end

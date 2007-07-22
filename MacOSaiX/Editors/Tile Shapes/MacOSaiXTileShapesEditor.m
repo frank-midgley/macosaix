@@ -11,6 +11,7 @@
 #import "MacOSaiX.h"
 #import "MacOSaiXMosaic.h"
 #import "MacOSaiXPlugIn.h"
+#import "Tiles.h"
 #import "MacOSaiXTileShapes.h"
 
 
@@ -27,7 +28,7 @@
 {
 	if (self = [super initWithDelegate:delegate])
 	{
-		tileShapesToDraw = [[NSMutableArray alloc] initWithCapacity:16];
+		tilesToEmbellish = [[NSMutableSet alloc] initWithCapacity:[[[delegate mosaic] tiles] count]];
 	}
 	
 	return self;
@@ -70,12 +71,6 @@
 }
 
 
-- (void)beginEditing
-{
-	[super beginEditing];
-}
-
-
 - (void)continueEmbellishingMosaicView:(MosaicView *)mosaicView
 {
 	NSDate					*startTime = [NSDate date];
@@ -95,23 +90,24 @@
 	NSColor					*darkenColor = [NSColor colorWithCalibratedWhite:0.0 alpha:0.25], 
 							*lightenColor = [NSColor colorWithCalibratedWhite:1.0 alpha:0.25];
 	
-	while ([tileShapesToDraw count] > 0 && [startTime timeIntervalSinceNow] > -0.05)
+	while ([tilesToEmbellish count] > 0 && [startTime timeIntervalSinceNow] > -0.1)
 	{
-		NSBezierPath	*tileOutline = [[tileShapesToDraw objectAtIndex:0] outline];
+		MacOSaiXTile	*tileToEmbellish = [tilesToEmbellish anyObject];
+		NSBezierPath	*tileOutline = [tileToEmbellish outline];
 		
 		[darkenColor set];
 		[[darkenTransform transformBezierPath:tileOutline] stroke];
 		[lightenColor set];
 		[[lightenTransform transformBezierPath:tileOutline] stroke];
 		
-		[tileShapesToDraw removeObjectAtIndex:0];
+		[tilesToEmbellish removeObject:tileToEmbellish];
 	}
-
+	
 	[[NSGraphicsContext currentContext] flushGraphics];
 	
 	[mosaicView unlockFocus];
 	
-	if ([tileShapesToDraw count] > 0)
+	if ([tilesToEmbellish count] > 0)
 		[self performSelector:_cmd withObject:mosaicView afterDelay:0.0];
 }
 
@@ -120,10 +116,7 @@
 {
 	if (![mosaicView inLiveResize])
 	{
-		NSSize	targetImageSize = [[[[self delegate] mosaic] targetImage] size];
-		
-		[tileShapesToDraw removeAllObjects];
-		[tileShapesToDraw addObjectsFromArray:[[[[self delegate] mosaic] tileShapes] shapesForMosaicOfSize:targetImageSize]];
+		[tilesToEmbellish addObjectsFromArray:[mosaicView tilesInRect:rect]];
 		
 		[self continueEmbellishingMosaicView:mosaicView];
 	}
@@ -134,13 +127,15 @@
 {
 	[[[self delegate] mosaic] setTileShapes:[[[self delegate] mosaic] tileShapes] creatingTiles:YES];
 	
+	[tilesToEmbellish removeAllObjects];
+	
 	[[self delegate] embellishmentNeedsDisplay];
 }
 
 
 - (void)endEditing
 {
-	[tileShapesToDraw removeAllObjects];
+	[tilesToEmbellish removeAllObjects];
 	
 	[super endEditing];
 }
@@ -148,7 +143,7 @@
 
 - (void)dealloc
 {
-	[tileShapesToDraw release];
+	[tilesToEmbellish release];
 	
 	[super dealloc];
 }
