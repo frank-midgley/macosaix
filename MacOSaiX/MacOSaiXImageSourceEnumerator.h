@@ -15,8 +15,7 @@
 	id<MacOSaiXImageSource>	imageSource, 
 							workingImageSource;
 	MacOSaiXMosaic			*mosaic;
-	unsigned long			imagesFound, 
-							imagesInUse;
+	unsigned long			imagesFound;
 	BOOL					pausing, 
 							paused;
 	NSTimer					*resumeTimer;

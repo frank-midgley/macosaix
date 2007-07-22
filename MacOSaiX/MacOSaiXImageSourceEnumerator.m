@@ -69,7 +69,11 @@ NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXIm
 
 - (void)setNumberOfImagesFound:(unsigned long)count
 {
-	imagesFound = count;
+	if (count != imagesFound)
+	{
+		imagesFound = count;
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXImageSourceEnumeratorDidChangeCountNotification object:self];
+	}
 }
 
 
@@ -95,10 +99,7 @@ NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXIm
 	[inUseLock unlock];
 	
 	if (inUse != imageWasInUse)
-		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXImageSourceEnumeratorDidChangeCountNotification 
-															object:self 
-														  userInfo:[NSDictionary dictionaryWithObject:imageSource
-																							   forKey:@"Image Source"]];
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXImageSourceEnumeratorDidChangeCountNotification object:self];
 }
 
 
@@ -118,7 +119,17 @@ NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXIm
 
 - (void)pause
 {
-	pausing = YES;
+	if (resumeTimer)
+	{
+		[resumeTimer invalidate];
+		[resumeTimer release];
+		resumeTimer = nil;
+		
+		pausing = NO;
+		paused = YES;
+	}
+	else
+		pausing = YES;
 }
 
 
@@ -130,15 +141,15 @@ NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXIm
 		do
 			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 		while ([self isEnumerating]);
-		
-		if ([resumeTimer isValid])
-		{
-			[resumeTimer invalidate];
-			[resumeTimer release];
-		}
-		
-		resumeTimer = [[NSTimer scheduledTimerWithTimeInterval:3.0 target:self selector:@selector(resumeWithTimer:) userInfo:nil repeats:NO] retain];
 	}
+	
+	if (resumeTimer)
+	{
+		[resumeTimer invalidate];
+		[resumeTimer release];
+	}
+	
+	resumeTimer = [[NSTimer scheduledTimerWithTimeInterval:3.0 target:self selector:@selector(resumeWithTimer:) userInfo:nil repeats:NO] retain];
 }
 
 
@@ -240,6 +251,12 @@ NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXIm
 	
 	[workingImageSource release];
 	workingImageSource = [imageSource copyWithZone:[self zone]];
+	
+	[inUseLock lock];
+		[identifiersInUse removeAllObjects];
+	[inUseLock unlock];
+
+	[self setNumberOfImagesFound:0];
 }
 
 
@@ -322,7 +339,7 @@ NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXIm
 	[probationStartDate release];
 	[probationaryImageQueue release];
 	
-	if ([resumeTimer isValid])
+	if (resumeTimer)
 	{
 		[resumeTimer invalidate];
 		[resumeTimer release];
