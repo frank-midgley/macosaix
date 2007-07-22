@@ -44,6 +44,8 @@
 
 - (void)beginEditing
 {
+	[super beginEditing];
+	
 	MacOSaiXMosaic	*mosaic = [[self delegate] mosaic];
 	
 	[imageUseCountPopUp selectItemWithTag:[mosaic imageUseCount]];
@@ -169,19 +171,8 @@
 
 - (IBAction)setImageCropLimit:(id)sender
 {
+	[[[self delegate] mosaic] setImageCropLimit:[imageCropLimitSlider intValue]];
 }
-
-
-- (void)endEditing
-{
-	[super endEditing];
-}
-
-
-//- (void)dealloc
-//{
-//	[super dealloc];
-//}
 
 
 @end
