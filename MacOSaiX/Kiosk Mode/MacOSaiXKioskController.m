@@ -193,7 +193,7 @@
 	MacOSaiXMosaic					*mosaic = nil;
 	while (mosaic = [mosaicEnumerator nextObject])
 		if ([mosaic isKindOfClass:[MacOSaiXMosaic class]])
-			[mosaic setTileShapes:tileShapes creatingTiles:YES];
+			[mosaic setTileShapes:tileShapes];
 
 	[tileShapes release];
 	
