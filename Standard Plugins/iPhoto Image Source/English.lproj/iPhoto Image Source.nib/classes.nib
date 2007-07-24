@@ -2,20 +2,14 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            ACTIONS = {
-                chooseAlbum = id; 
-                chooseAllPhotos = id; 
-                chooseKeyword = id; 
-                setSourceType = id; 
-            }; 
-            CLASS = MacOSaiXiPhotoImageSourceController; 
+            ACTIONS = {setSourceType = id; }; 
+            CLASS = MacOSaiXiPhotoImageSourceEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                albumsPopUp = NSPopUpButton; 
+                delegate = id; 
                 editorView = NSView; 
-                iconView = NSImageView; 
-                keywordsPopUp = NSPopUpButton; 
                 matrix = NSMatrix; 
+                tableView = NSTableView; 
             }; 
             SUPERCLASS = NSObject; 
         }

@@ -6,28 +6,27 @@
 //  Copyright (c) 2005 Frank M. Midgley. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
+#import "MacOSaiXPlugIn.h"
 
-#import "MacOSaiXImageSource.h"
-#import "iPhotoImageSource.h"
+@class MacOSaiXiPhotoImageSource;
 
 
-@interface MacOSaiXiPhotoImageSourceController : NSObject <MacOSaiXImageSourceController>
+@interface MacOSaiXiPhotoImageSourceEditor : NSObject <MacOSaiXDataSourceEditor>
 {
+	id<MacOSaiXEditorDelegate>	delegate;
+	
 	IBOutlet NSView				*editorView;
 
-	IBOutlet NSImageView		*iconView;
 	IBOutlet NSMatrix			*matrix;
-	IBOutlet NSPopUpButton		*albumsPopUp,
-								*keywordsPopUp;
+	IBOutlet NSTableView		*tableView;
 	
 		// The image source instance currently being edited.
 	MacOSaiXiPhotoImageSource	*currentImageSource;
+	
+	NSMutableArray				*albumNames, 
+								*keywordNames;
 }
 
 - (IBAction)setSourceType:(id)sender;
-- (IBAction)chooseAllPhotos:(id)sender;
-- (IBAction)chooseAlbum:(id)sender;
-- (IBAction)chooseKeyword:(id)sender;
 
 @end

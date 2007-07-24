@@ -19,6 +19,7 @@
 				011C7D7F0A1D76C50023CD62 /* PBXTargetDependency */,
 				011C7D7D0A1D76C50023CD62 /* PBXTargetDependency */,
 				014557E40B640E520007DDF9 /* PBXTargetDependency */,
+				92E0F4C00C554A4C0009453A /* PBXTargetDependency */,
 				929DC4090BFCE30000024C99 /* PBXTargetDependency */,
 				014F185C0B2CCEA10023D2D2 /* PBXTargetDependency */,
 				92E547D50C206F6D005C3B95 /* PBXTargetDependency */,
@@ -271,6 +272,9 @@
 		92DFC50809EDC3EA0076FD93 /* Loading.png in Resources */ = {isa = PBXBuildFile; fileRef = 92DFC50609EDC3EA0076FD93 /* Loading.png */; };
 		92E0C5DE0A61C51C003C90CA /* NSBezierPath+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 92E0C5DC0A61C51C003C90CA /* NSBezierPath+MacOSaiX.h */; };
 		92E0C5DF0A61C51C003C90CA /* NSBezierPath+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 92E0C5DD0A61C51C003C90CA /* NSBezierPath+MacOSaiX.m */; };
+		92E0F48B0C5546990009453A /* iPhotoImageSourcePlugIn.h in Headers */ = {isa = PBXBuildFile; fileRef = 92E0F4890C5546990009453A /* iPhotoImageSourcePlugIn.h */; };
+		92E0F48C0C5546990009453A /* iPhotoImageSourcePlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92E0F48A0C5546990009453A /* iPhotoImageSourcePlugIn.m */; };
+		92E0F4C60C554A610009453A /* iPhoto Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92E3E15F07E7BE8C00E62AB8 /* iPhoto Image Source.plugin */; };
 		92E3E15607E7BE8C00E62AB8 /* MacOSaiXImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 923384DB072180700010BE04 /* MacOSaiXImageSource.h */; };
 		92E3E15E07E7BE8C00E62AB8 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		92E3E17A07E7BF1B00E62AB8 /* iPhotoImageSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 92E3E17507E7BF1B00E62AB8 /* iPhotoImageSource.h */; };
@@ -489,6 +493,13 @@
 			remoteGlobalIDString = 92D94DC60C0F34CA00441CE1;
 			remoteInfo = "PDF Exporter";
 		};
+		92E0F4BF0C554A4C0009453A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 92E3E15207E7BE8C00E62AB8;
+			remoteInfo = "iPhoto Image Source";
+		};
 		92E547D40C206F6D005C3B95 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
@@ -512,6 +523,7 @@
 				92848A1706611CE6003B3514 /* Directory Image Source.plugin in CopyFiles */,
 				92423ACB0C32F032003DB124 /* Glyph Image Source.plugin in CopyFiles */,
 				014558820B641A3C0007DDF9 /* Google Image Source.plugin in CopyFiles */,
+				92E0F4C60C554A610009453A /* iPhoto Image Source.plugin in CopyFiles */,
 				929DC4140BFCE31000024C99 /* iTunes Image Source.plugin in CopyFiles */,
 				014F189E0B2CD1410023D2D2 /* Constant Image Orientations.plugin in CopyFiles */,
 				92E547D60C206F89005C3B95 /* Radial Image Orientations.plugin in CopyFiles */,
@@ -788,6 +800,8 @@
 		92DFC50709EDC3EA0076FD93 /* English */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = English; path = English.lproj/Loading.png; sourceTree = "<group>"; };
 		92E0C5DC0A61C51C003C90CA /* NSBezierPath+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSBezierPath+MacOSaiX.h"; sourceTree = "<group>"; };
 		92E0C5DD0A61C51C003C90CA /* NSBezierPath+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSBezierPath+MacOSaiX.m"; sourceTree = "<group>"; };
+		92E0F4890C5546990009453A /* iPhotoImageSourcePlugIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iPhotoImageSourcePlugIn.h; sourceTree = "<group>"; };
+		92E0F48A0C5546990009453A /* iPhotoImageSourcePlugIn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iPhotoImageSourcePlugIn.m; sourceTree = "<group>"; };
 		92E3E15F07E7BE8C00E62AB8 /* iPhoto Image Source.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "iPhoto Image Source.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		92E3E17407E7BF1B00E62AB8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
 		92E3E17507E7BF1B00E62AB8 /* iPhotoImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = iPhotoImageSource.h; sourceTree = "<group>"; };
@@ -1677,6 +1691,8 @@
 		92E3E16E07E7BEE800E62AB8 /* iPhoto Image Source */ = {
 			isa = PBXGroup;
 			children = (
+				92E0F4890C5546990009453A /* iPhotoImageSourcePlugIn.h */,
+				92E0F48A0C5546990009453A /* iPhotoImageSourcePlugIn.m */,
 				92E3E17507E7BF1B00E62AB8 /* iPhotoImageSource.h */,
 				92E3E17607E7BF1B00E62AB8 /* iPhotoImageSource.m */,
 				92E3E17707E7BF1B00E62AB8 /* iPhotoImageSourceController.h */,
@@ -1849,6 +1865,7 @@
 				92E3E17A07E7BF1B00E62AB8 /* iPhotoImageSource.h in Headers */,
 				92E3E17C07E7BF1B00E62AB8 /* iPhotoImageSourceController.h in Headers */,
 				92E3E1C107E7D04500E62AB8 /* NSString+MacOSaiX.h in Headers */,
+				92E0F48B0C5546990009453A /* iPhotoImageSourcePlugIn.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2827,6 +2844,7 @@
 			files = (
 				92E3E17B07E7BF1B00E62AB8 /* iPhotoImageSource.m in Sources */,
 				92E3E17D07E7BF1B00E62AB8 /* iPhotoImageSourceController.m in Sources */,
+				92E0F48C0C5546990009453A /* iPhotoImageSourcePlugIn.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2902,6 +2920,11 @@
 			isa = PBXTargetDependency;
 			target = 92D94DC60C0F34CA00441CE1 /* PDF Exporter */;
 			targetProxy = 92D94E1F0C0F3B0400441CE1 /* PBXContainerItemProxy */;
+		};
+		92E0F4C00C554A4C0009453A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 92E3E15207E7BE8C00E62AB8 /* iPhoto Image Source */;
+			targetProxy = 92E0F4BF0C554A4C0009453A /* PBXContainerItemProxy */;
 		};
 		92E547D50C206F6D005C3B95 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

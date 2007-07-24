@@ -7,13 +7,11 @@
 */
 
 #import "iPhotoImageSource.h"
+
 #import "iPhotoImageSourceController.h"
+#import "iPhotoImageSourcePlugIn.h"
 #import "NSString+MacOSaiX.h"
 #import <pthread.h>
-
-
-static NSImage	*iPhotoImage = nil,
-				*albumImage = nil;
 
 
 @interface MacOSaiXiPhotoImageSource (PrivateMethods)
@@ -24,52 +22,15 @@ static NSImage	*iPhotoImage = nil,
 @implementation MacOSaiXiPhotoImageSource
 
 
-+ (void)initialize
-{
-	NSURL		*iPhotoAppURL = nil;
-	LSFindApplicationForInfo(kLSUnknownCreator, CFSTR("com.apple.iPhoto"), NULL, NULL, (CFURLRef *)&iPhotoAppURL);
-	NSBundle	*iPhotoBundle = [NSBundle bundleWithPath:[iPhotoAppURL path]];
-	
-	iPhotoImage = [[NSImage alloc] initWithContentsOfFile:[iPhotoBundle pathForImageResource:@"NSApplicationIcon"]];
-	albumImage = [[NSImage alloc] initWithContentsOfFile:[iPhotoBundle pathForImageResource:@"album_local"]];
-	[albumImage setScalesWhenResized:YES];
-	[albumImage setSize:NSMakeSize(16.0, 16.0)];
-}
-
-
-+ (NSImage *)image;
-{
-	return iPhotoImage;
-}
-
-
-+ (Class)editorClass
-{
-	return [MacOSaiXiPhotoImageSourceController class];
-}
-
-
-+ (Class)preferencesControllerClass
-{
-	return nil;
-}
-
-
 + (BOOL)allowMultipleImageSources
 {
 	return YES;
 }
 
 
-+ (NSImage *)albumImage
++ (id<MacOSaiXImageSource>)imageSourceForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)identifier
 {
-	return albumImage;
-}
-
-
-+ (NSImage *)keywordImage
-{
-	return nil;
+	return [[[self alloc] init] autorelease];
 }
 
 
@@ -81,6 +42,18 @@ static NSImage	*iPhotoImage = nil,
 	}
 
     return self;
+}
+
+
+- (BOOL)settingsAreValid
+{
+	return YES;
+}
+
+
++ (NSString *)settingsExtension
+{
+	return @"plist";
 }
 
 
@@ -158,6 +131,9 @@ static NSImage	*iPhotoImage = nil,
 		[remainingPhotoIDs autorelease];
 		remainingPhotoIDs = nil;
 	}
+	
+	[imageCount release];
+	imageCount = nil;
 }
 
 
@@ -183,22 +159,37 @@ static NSImage	*iPhotoImage = nil,
 		[remainingPhotoIDs autorelease];
 		remainingPhotoIDs = nil;
 	}
+	
+	[imageCount release];
+	imageCount = nil;
 }
 
 
 - (id)copyWithZone:(NSZone *)zone
 {
-	return [[MacOSaiXiPhotoImageSource allocWithZone:zone] initWithAlbumName:albumName];
+	MacOSaiXiPhotoImageSource	*copy = [[MacOSaiXiPhotoImageSource allocWithZone:zone] init];
+	
+	if ([self albumName])
+		[copy setAlbumName:[self albumName]];
+	else if ([self keywordName])
+		[copy setKeywordName:[self keywordName]];
+	
+	return copy;
 }
 
 
 - (NSImage *)image;
 {
-	return iPhotoImage;
+//	if ([self albumName])
+//		return [MacOSaiXiPhotoImageSourcePlugIn albumImage];
+//	else if ([self keywordName])
+//		return [MacOSaiXiPhotoImageSourcePlugIn keywordImage];
+//	else
+		return [MacOSaiXiPhotoImageSourcePlugIn image];
 }
 
 
-- (id)descriptor
+- (id)briefDescription
 {
 	if (!sourceDescription)
 		sourceDescription = [[NSString stringWithString:NSLocalizedString(@"All photos", @"")] retain];
@@ -207,15 +198,21 @@ static NSImage	*iPhotoImage = nil,
 }
 
 
-- (float)aspectRatio
+- (NSNumber *)aspectRatio
 {
-	return 0.0;
+	return nil;
 }
 
 
 - (BOOL)hasMoreImages
 {
 	return (!remainingPhotoIDs || [remainingPhotoIDs count] > 0);
+}
+
+
+- (NSNumber *)imageCount
+{
+	return imageCount;
 }
 
 
@@ -253,6 +250,8 @@ static NSImage	*iPhotoImage = nil,
 				photoIDIndex;
 			for (photoIDIndex = 1; photoIDIndex <= photoIDCount; photoIDIndex++)
 				[remainingPhotoIDs addObject:[[(NSAppleEventDescriptor *)getPhotoIDsResult descriptorAtIndex:photoIDIndex] stringValue]];
+			
+			imageCount = [[NSNumber numberWithInt:photoIDCount] retain];
 		}
 	}
 }
@@ -310,7 +309,7 @@ static NSImage	*iPhotoImage = nil,
 	else
 	{
 		NSString				*getImagePropertyText = [NSString stringWithFormat:@"tell application \"iPhoto\" to " \
-																				   @"get @% of first photo whose id is %@", 
+																				   @"get %@ of first photo whose id is %@", 
 																				   propertyName, photoID];
 		NSAppleScript			*getImagePropertyScript = [[[NSAppleScript alloc] initWithSource:getImagePropertyText] autorelease];
 		NSDictionary			*scriptError = nil;
@@ -336,6 +335,12 @@ static NSImage	*iPhotoImage = nil,
 }
 
 
+- (NSString *)identifierForUniversalIdentifier:(id<NSCopying>)identifier
+{
+	return (NSString *)identifier;
+}
+
+
 - (NSImage *)thumbnailForIdentifier:(NSString *)identifier
 {
 	NSImage		*image = nil;
@@ -347,9 +352,7 @@ static NSImage	*iPhotoImage = nil,
 			image = [[[NSImage alloc] initWithContentsOfFile:imagePath] autorelease];
 			if (!image)
 			{
-					// The image might have the wrong or a missing file extension so 
-					// try init'ing it based on its contents instead.  This requires 
-					// more memory so only do this if initWithContentsOfFile fails.
+					// The image might have the wrong or a missing file extension so try init'ing it based on its contents instead.  This requires more memory so only do this if initWithContentsOfFile fails.
 				NSData	*data = [[NSData alloc] initWithContentsOfFile:imagePath];
 				image = [[[NSImage alloc] initWithData:data] autorelease];
 				[data release];
@@ -408,15 +411,25 @@ static NSImage	*iPhotoImage = nil,
 }	
 
 
+- (BOOL)imagesShouldBeRemovedForLastChange
+{
+	return YES;
+}
+
+
 - (void)reset
 {
-	[self setAlbumName:albumName];
+	if ([self albumName])
+		[self setAlbumName:[self albumName]];
+	else
+		[self setKeywordName:[self keywordName]];
 }
 
 
 - (void)dealloc
 {
 	[albumName release];
+	[keywordName release];
 	[sourceDescription release];
 	[remainingPhotoIDs release];
 	

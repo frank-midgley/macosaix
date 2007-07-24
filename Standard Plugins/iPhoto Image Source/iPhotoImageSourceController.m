@@ -7,10 +7,32 @@
 //
 
 #import "iPhotoImageSourceController.h"
+
 #import "iPhotoImageSource.h"
+#import "iPhotoImageSourcePlugIn.h"
 
 
-@implementation MacOSaiXiPhotoImageSourceController
+@implementation MacOSaiXiPhotoImageSourceEditor
+
+
+- (id)initWithDelegate:(id<MacOSaiXEditorDelegate>)inDelegate;
+{
+	if (self = [super init])
+	{
+		delegate = inDelegate;
+		
+		albumNames = [[NSMutableArray array] retain];
+		keywordNames = [[NSMutableArray array] retain];
+	}
+	
+	return self;
+}
+
+
+- (id<MacOSaiXEditorDelegate>)delegate
+{
+	return delegate;
+}
 
 
 - (NSView *)editorView
@@ -24,138 +46,260 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(460.0, 67.0);
+	return NSMakeSize(197.0, 171.0);
 }
 
 
 - (NSSize)maximumSize
 {
-	return NSMakeSize(460.0, 67.0);
+	return NSZeroSize;
 }
 
 
 - (NSResponder *)firstResponder
 {
-	return albumsPopUp;
+	return matrix;
 }
 
 
-- (void)editImageSource:(id<MacOSaiXImageSource>)imageSource
+- (void)getAlbumNames
 {
-	[iconView setImage:[imageSource image]];
-	
-		// Populate the albums pop-up with the names of all albums.
 	NSString				*getAlbumNamesText = @"tell application \"iPhoto\" to get name of albums";
 	NSAppleScript			*getAlbumNamesScript = [[[NSAppleScript alloc] initWithSource:getAlbumNamesText] autorelease];
 	NSDictionary			*getAlbumNamesError = nil;
 	NSAppleEventDescriptor	*getAlbumNamesResult = [getAlbumNamesScript executeAndReturnError:&getAlbumNamesError];
-	[albumsPopUp removeAllItems];
-	if (!getAlbumNamesResult)
+	
+	[albumNames removeAllObjects];
+	
+	if (getAlbumNamesResult)
 	{
-		[albumsPopUp addItemWithTitle:NSLocalizedString(@"No albums available", @"")];
-		[albumsPopUp setEnabled:NO];
-		[[matrix cellAtRow:1 column:0] setEnabled:NO];
-	}
-	else
-	{
-			// Add an item for each album.
 		int			albumCount = [getAlbumNamesResult numberOfItems],
 					albumIndex = 1;
+		
 		for (albumIndex = 1; albumIndex <= albumCount; albumIndex++)
-		{
-			NSMenuItem	*item = [[[NSMenuItem alloc] init] autorelease];
-			[item setTitle:[[getAlbumNamesResult descriptorAtIndex:albumIndex] stringValue]];
-			[item setImage:[MacOSaiXiPhotoImageSource albumImage]];
-			[[albumsPopUp menu] addItem:item];
-		}
-		[albumsPopUp setEnabled:YES];
-		[[matrix cellAtRow:1 column:0] setEnabled:YES];
+			[albumNames addObject:[[getAlbumNamesResult descriptorAtIndex:albumIndex] stringValue]];
+		
+		[albumNames sortUsingSelector:@selector(caseInsensitiveCompare:)];
 	}
-	
-		// Populate the keywords pop-up with the names of all keywords.
+}
+
+
+- (void)getKeywordNames
+{
 	NSString				*getKeywordNamesText = @"tell application \"iPhoto\" to get name of keywords";
 	NSAppleScript			*getKeywordNamesScript = [[[NSAppleScript alloc] initWithSource:getKeywordNamesText] autorelease];
 	NSDictionary			*getKeywordNamesError = nil;
 	NSAppleEventDescriptor	*getKeywordNamesResult = [getKeywordNamesScript executeAndReturnError:&getKeywordNamesError];
-	[keywordsPopUp removeAllItems];
-	if (!getKeywordNamesResult)
+	
+	[keywordNames removeAllObjects];
+	
+	if (getKeywordNamesResult)
 	{
-		[keywordsPopUp addItemWithTitle:NSLocalizedString(@"No keywords available", @"")];
-		[keywordsPopUp setEnabled:NO];
-		[[matrix cellAtRow:2 column:0] setEnabled:NO];
-	}
-	else
-	{
-			// Add an item for each keyword.
 		int			keywordCount = [getKeywordNamesResult numberOfItems],
 					keywordIndex = 1;
+		
 		for (keywordIndex = 1; keywordIndex <= keywordCount; keywordIndex++)
-		{
-			NSMenuItem	*item = [[[NSMenuItem alloc] init] autorelease];
-			[item setTitle:[[getKeywordNamesResult descriptorAtIndex:keywordIndex] stringValue]];
-			[item setImage:[MacOSaiXiPhotoImageSource keywordImage]];
-			[[keywordsPopUp menu] addItem:item];
-		}
-		[keywordsPopUp setEnabled:YES];
-		[[matrix cellAtRow:2 column:0] setEnabled:YES];
+			[keywordNames addObject:[[getKeywordNamesResult descriptorAtIndex:keywordIndex] stringValue]];
+		
+		[keywordNames sortUsingSelector:@selector(caseInsensitiveCompare:)];
 	}
-	
-	NSString	*albumName = [(MacOSaiXiPhotoImageSource *)imageSource albumName],
-				*keywordName = [(MacOSaiXiPhotoImageSource *)imageSource keywordName];
-	if (albumName && [albumsPopUp indexOfItemWithTitle:albumName] >= 0)
-	{
-		[albumsPopUp selectItemWithTitle:albumName];
-		[matrix selectCellAtRow:1 column:0];
-	}
-	else if (keywordName && [keywordsPopUp indexOfItemWithTitle:keywordName] >= 0)
-	{
-		[keywordsPopUp selectItemWithTitle:keywordName];
-		[matrix selectCellAtRow:2 column:0];
-	}
-	else
-		[matrix selectCellAtRow:0 column:0];
-	
-	currentImageSource = (MacOSaiXiPhotoImageSource *)imageSource;
 }
 
 
-- (void)editingComplete
+- (void)editDataSource:(id<MacOSaiXDataSource>)imageSource
 {
+	currentImageSource = (MacOSaiXiPhotoImageSource *)imageSource;
+	
+	[self refresh];
 }
 
 
 - (IBAction)setSourceType:(id)sender
 {
+	if ([matrix selectedRow] == 0 && ([currentImageSource albumName] || [currentImageSource keywordName]))
+	{
+		NSString	*previousValue = ([currentImageSource albumName] ? [currentImageSource albumName] : [currentImageSource keywordName]), 
+					*key = ([currentImageSource albumName] ? @"albumName" : @"keywordName");
+		
+		[[previousValue retain] autorelease];
+		
+		[currentImageSource setAlbumName:nil];
+		[currentImageSource setKeywordName:nil];
+		
+		[[self delegate] dataSource:currentImageSource 
+					   didChangeKey:key 
+						  fromValue:previousValue 
+						 actionName:NSLocalizedString(@"Use All Photos", @"")];
+	}
+	else if ([matrix selectedRow] == 1 && ![currentImageSource albumName])
+	{
+		NSString	*previousValue = ([currentImageSource keywordName] ? [currentImageSource keywordName] : [currentImageSource albumName]), 
+					*key = ([currentImageSource keywordName] ? @"keywordName" : @"albumName");
+		
+		[[previousValue retain] autorelease];
+		
+		[self getAlbumNames];
+		
+			// TODO: remember the last used album?
+		if ([albumNames count] > 0)
+			[currentImageSource setAlbumName:[albumNames objectAtIndex:0]];
+		
+		[[self delegate] dataSource:currentImageSource 
+					   didChangeKey:key 
+						  fromValue:previousValue 
+						 actionName:NSLocalizedString(@"Use iPhoto Album", @"")];
+	}
+	else if ([matrix selectedRow] == 2 && ![currentImageSource keywordName])
+	{
+		NSString	*previousValue = ([currentImageSource albumName] ? [currentImageSource albumName] : [currentImageSource keywordName]), 
+					*key = ([currentImageSource albumName] ? @"albumName" : @"keywordName");
+		
+		[[previousValue retain] autorelease];
+		
+		[self getKeywordNames];
+		
+			// TODO: remember the last used keyword?
+		if ([keywordNames count] > 0)
+			[currentImageSource setKeywordName:[keywordNames objectAtIndex:0]];
+		
+		[[self delegate] dataSource:currentImageSource 
+					   didChangeKey:key 
+						  fromValue:previousValue 
+						 actionName:NSLocalizedString(@"Use iPhoto Keyword", @"")];
+	}
+	
+	[self refresh];
+}
+
+
+- (int)numberOfRowsInTableView:(NSTableView *)tableView
+{
 	if ([matrix selectedRow] == 0)
-		[self chooseAllPhotos:sender];
+		return 0;
 	else if ([matrix selectedRow] == 1)
-		[self chooseAlbum:sender];
-	else if ([matrix selectedRow] == 2)
-		[self chooseKeyword:sender];
+		return [albumNames count];
+	else
+		return [keywordNames count];
 }
 
 
-- (IBAction)chooseAllPhotos:(id)sender
+- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 {
-	[currentImageSource setAlbumName:nil];
-	[currentImageSource setKeywordName:nil];
-	[matrix selectCellAtRow:0 column:0];
+	id	object = nil;
+	
+	if ([[tableColumn identifier] isEqualToString:@"Icon"])
+	{
+		if ([matrix selectedRow] == 1)
+			object = [MacOSaiXiPhotoImageSourcePlugIn albumImage];
+		else
+			object = [MacOSaiXiPhotoImageSourcePlugIn keywordImage];
+	}
+	else
+	{
+		if ([matrix selectedRow] == 1)
+			object = [albumNames objectAtIndex:row];
+		else
+			object = [keywordNames objectAtIndex:row];
+	}
+	
+	return object;
 }
 
 
-- (IBAction)chooseAlbum:(id)sender
+- (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
-		// Update the current image source instance.
-	[currentImageSource setAlbumName:[albumsPopUp titleOfSelectedItem]];
-	[matrix selectCellAtRow:1 column:0];
+	if ([matrix selectedRow] == 1)
+	{
+		NSString	*previousValue = [[[currentImageSource albumName] retain] autorelease];
+		int			selectedRow = [tableView selectedRow];
+	
+		[currentImageSource setAlbumName:[albumNames objectAtIndex:selectedRow]];
+	
+		[[self delegate] dataSource:currentImageSource 
+					   didChangeKey:@"albumName" 
+						  fromValue:previousValue 
+						 actionName:NSLocalizedString(@"Change iPhoto Album", @"")];
+	}
+	else
+	{
+		NSString	*previousValue = [[[currentImageSource keywordName] retain] autorelease];
+		int			selectedRow = [tableView selectedRow];
+	
+		[currentImageSource setKeywordName:[keywordNames objectAtIndex:selectedRow]];
+	
+		[[self delegate] dataSource:currentImageSource 
+					   didChangeKey:@"keywordName" 
+						  fromValue:previousValue 
+						 actionName:NSLocalizedString(@"Change iPhoto Keyword", @"")];
+	}
 }
 
 
-- (IBAction)chooseKeyword:(id)sender
+- (BOOL)mouseDownInMosaic:(NSEvent *)event
 {
-		// Update the current image source instance.
-	[currentImageSource setKeywordName:[keywordsPopUp titleOfSelectedItem]];
-	[matrix selectCellAtRow:2 column:0];
+	return NO;
+}
+
+
+- (BOOL)mouseDraggedInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (BOOL)mouseUpInMosaic:(NSEvent *)event
+{
+	return NO;
+}
+
+
+- (void)refresh
+{
+	NSString	*albumName = [currentImageSource albumName],
+				*keywordName = [currentImageSource keywordName];
+	
+	if (albumName)
+	{
+		int	row = [albumNames indexOfObject:albumName];
+		
+		[matrix selectCellAtRow:1 column:0];
+		[tableView reloadData];
+		[tableView selectRow:row byExtendingSelection:NO];
+		if ([tableView respondsToSelector:@selector(setHidden:)])
+			[tableView setHidden:NO];
+	}
+	else if (keywordName)
+	{
+		int	row = [keywordNames indexOfObject:keywordName];
+		
+		[matrix selectCellAtRow:2 column:0];
+		[tableView reloadData];
+		[tableView selectRow:row byExtendingSelection:NO];
+		if ([tableView respondsToSelector:@selector(setHidden:)])
+			[tableView setHidden:NO];
+	}
+	else
+	{
+		[matrix selectCellAtRow:0 column:0];
+		if ([tableView respondsToSelector:@selector(setHidden:)])
+			[tableView setHidden:YES];
+		else
+			[tableView reloadData];
+	}
+}
+
+
+- (void)editingDidComplete
+{
+}
+
+
+- (void)dealloc
+{
+	[albumNames release];
+	[keywordNames release];
+	
+	[super dealloc];
 }
 
 
