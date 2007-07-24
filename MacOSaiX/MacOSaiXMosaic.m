@@ -616,6 +616,8 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 		[imageSourceEnumerator reset];
 	
 	[imageSourceEnumerator setIsOnProbation:YES];
+	
+	[imageSourceEnumerator resume];
 }
 
 
