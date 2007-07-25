@@ -185,7 +185,7 @@
 		[[self delegate] dataSource:currentImageSource 
 					   didChangeKey:@"queryString" 
 						  fromValue:previousValue 
-						 actionName:NSLocalizedString(@"Change QueryString", @"")]; 
+						 actionName:NSLocalizedString(@"Change flickr Query String", @"")]; 
 	}
 }
 
