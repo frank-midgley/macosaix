@@ -23,6 +23,8 @@
 
 - (void)setTargetImage:(NSImage *)image;
 
+- (NSImage *)targetImage;
+
 - (NSString *)exportFormat;
 
 - (NSString *)exportExtension;
@@ -32,8 +34,8 @@
 
 @protocol MacOSaiXExporter <NSObject>
 
-- (id)openFileAtURL:(NSURL *)exportURL 
-	   withSettings:(id<MacOSaiXExportSettings>)exportSettings;
+- (id)createFileAtURL:(NSURL *)exportURL 
+		 withSettings:(id<MacOSaiXExportSettings>)exportSettings;
 
 - (id)fillTileWithColor:(NSColor *)fillColor 
 		  clippedToPath:(NSBezierPath *)clipPath;
@@ -43,8 +45,11 @@
 			 fromSource:(id<MacOSaiXImageSource>)imageSource 
 		centeredAtPoint:(NSPoint)centerPoint 
 			   rotation:(float)imageRotation 
-		  clippedToPath:(NSBezierPath *)clipPath;
+		  clippedToPath:(NSBezierPath *)clipPath 
+				opacity:(float)opacity;
 
 - (id)closeFile;
+
+- (id)openFileInExternalViewer:(NSURL *)exportURL;
 
 @end

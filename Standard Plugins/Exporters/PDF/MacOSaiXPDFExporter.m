@@ -142,8 +142,8 @@
 }
 
 
-- (id)openFileAtURL:(NSURL *)url 
-	   withSettings:(id<MacOSaiXExportSettings>)settings
+- (id)createFileAtURL:(NSURL *)url 
+		 withSettings:(id<MacOSaiXExportSettings>)settings
 {
 	NSString		*error = nil;
 	NSString		*exportPath = [url path];
@@ -275,7 +275,8 @@
 			 fromSource:(id<MacOSaiXImageSource>)imageSource 
 		centeredAtPoint:(NSPoint)centerPoint 
 			   rotation:(float)imageRotation 
-		  clippedToPath:(NSBezierPath *)clipPath
+		  clippedToPath:(NSBezierPath *)clipPath 
+				opacity:(float)opacity
 {
 	NSString	*error = nil;
 	NSNumber	*imageID = [self imageIDForImage:image withIdentifier:imageIdentifier fromSource:imageSource];
@@ -286,6 +287,8 @@
 	{
 		float	cosValue = cosf(-imageRotation / 360.0 * 2.0 * M_PI), 
 				sinValue = sinf(-imageRotation / 360.0 * 2.0 * M_PI);
+		
+		// TODO: handle the opacity
 		
 			// Clip to the path, translate to the center point, rotate to the orientation, translate to the image's lower left corner, scale to the image's size and then render the image.
 		[contentStream appendFormat:@"q\n"\
@@ -361,6 +364,19 @@
 	exportFileHandle = nil;
 	
 	exportSettings = nil;
+	
+	return error;
+}
+
+
+- (id)openFileInExternalViewer:(NSURL *)url
+{
+	NSString	*error = nil;
+	
+	if (![[NSFileManager defaultManager] fileExistsAtPath:[url path]])
+		error = NSLocalizedString(@"The PDF file could not be found.", @"");
+	else if (![[NSWorkspace sharedWorkspace] openURL:url])
+		error = NSLocalizedString(@"The PDF file could not be opened.", @"");
 	
 	return error;
 }

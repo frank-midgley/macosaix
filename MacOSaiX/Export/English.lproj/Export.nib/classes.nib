@@ -2,10 +2,14 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            ACTIONS = {cancelExport = id; setFormat = id; }; 
+            ACTIONS = {cancelExport = id; setFormat = id; setOpenWhenCompleted = id; }; 
             CLASS = MacOSaiXExportController; 
             LANGUAGE = ObjC; 
-            OUTLETS = {formatPopUp = NSPopUpButton; sharedView = NSView; }; 
+            OUTLETS = {
+                formatPopUp = NSPopUpButton; 
+                openWhenCompletedButton = NSButton; 
+                sharedView = NSView; 
+            }; 
             SUPERCLASS = NSObject; 
         }, 
         {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSView; }

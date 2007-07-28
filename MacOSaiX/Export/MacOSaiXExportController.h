@@ -14,16 +14,14 @@
 
 @interface MacOSaiXExportController : NSObject <MacOSaiXEditorDelegate>
 {
-//	IBOutlet NSButton			*includeTargetButton;
-//	
-//	IBOutlet NSButton			*openWhenCompleteButton;
-	
 	NSSavePanel						*savePanel;
 	
 	IBOutlet NSView					*sharedView;
 	IBOutlet NSPopUpButton			*formatPopUp;
+	IBOutlet NSButton				*openWhenCompletedButton;
 	
 	MacOSaiXMosaic					*mosaic;
+	float							targetImageOpacity;
 	id								delegate;
 	SEL								didEndSelector;
 	
@@ -32,28 +30,21 @@
 	id<MacOSaiXExportSettings>		exportSettings;
 	id<MacOSaiXDataSourceEditor>	exporterEditor;
 	
-//	BOOL						createWebPage, 
-//								includeTargetImage, 
-//								openWhenComplete, 
-	BOOL							exportWasCancelled;
+	BOOL							openWhenCompleted, 
+									exportWasCancelled;
 }
 
 - (void)exportMosaic:(MacOSaiXMosaic *)mosaic
 			withName:(NSString *)name 
+  targetImageOpacity:(float)opacity
 	  modalForWindow:(NSWindow *)window 
 	   modalDelegate:(id)inDelegate
 	  didEndSelector:(SEL)inDidEndSelector;
 
 - (IBAction)setFormat:(id)sender;
 
-//- (IBAction)setImageFormat:(id)sender;
-//- (IBAction)setCreateWebPage:(id)sender;
-//- (IBAction)setIncludeTargetImage:(id)sender;
-//
-//- (IBAction)setOpenImageWhenComplete:(id)sender;
+- (IBAction)setOpenWhenCompleted:(id)sender;
 
 - (IBAction)cancelExport:(id)sender;
-
-//- (NSString *)exportFormat;
 
 @end

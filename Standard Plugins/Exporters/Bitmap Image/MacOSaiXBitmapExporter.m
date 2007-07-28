@@ -16,8 +16,8 @@
 @implementation MacOSaiXBitmapExporter
 	
 
-- (id)openFileAtURL:(NSURL *)url 
-	   withSettings:(id<MacOSaiXExportSettings>)settings
+- (id)createFileAtURL:(NSURL *)url 
+		 withSettings:(id<MacOSaiXExportSettings>)settings
 {
 	exportURL = [url retain];
 	exportSettings = (MacOSaiXBitmapExportSettings *)settings;
@@ -103,7 +103,8 @@
 			 fromSource:(id<MacOSaiXImageSource>)imageSource 
 		centeredAtPoint:(NSPoint)centerPoint 
 			   rotation:(float)imageRotation 
-		  clippedToPath:(NSBezierPath *)clipPath
+		  clippedToPath:(NSBezierPath *)clipPath 
+				opacity:(float)opacity
 {
 		// Get a bitmap image rep from the image.
 	NSBitmapImageRep	*bitmapRep = nil;
@@ -152,7 +153,7 @@
 											centerPoint.y - [image size].height / 2.0, 
 											[image size].width, 
 											[image size].height);
-// TODO:		CGContextSetAlpha(cgContext, 1.0 - [mosaicView targetImageFraction]);
+		CGContextSetAlpha(cgContext, opacity);
 		CGContextDrawImage(cgContext, cgTileRect, cgTileImage);
 		
 	CGContextRestoreGState(cgContext);
@@ -240,6 +241,19 @@
 	exportSettings = nil;
 	[exportURL release];
 	exportURL = nil;
+	
+	return error;
+}
+
+
+- (id)openFileInExternalViewer:(NSURL *)url
+{
+	NSString	*error = nil;
+	
+	if (![[NSFileManager defaultManager] fileExistsAtPath:[url path]])
+		error = NSLocalizedString(@"The file could not be found.", @"");
+	else if (![[NSWorkspace sharedWorkspace] openURL:url])
+		error = NSLocalizedString(@"The file could not be opened.", @"");
 	
 	return error;
 }
