@@ -2,21 +2,32 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            CLASS = MacOSaiXEditor; 
-            LANGUAGE = ObjC; 
-            OUTLETS = {editorView = NSView; }; 
-            SUPERCLASS = NSObject; 
-        }, 
-        {
             ACTIONS = {setImageCropLimit = id; setImageReuseDistance = id; setImageUseCount = id; }; 
             CLASS = MacOSaiXImageUsageEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 imageCropLimitSlider = NSSlider; 
+                imageCropMatrix = NSMatrix; 
                 imageReuseSlider = NSSlider; 
                 imageUseCountPopUp = NSPopUpButton; 
             }; 
-            SUPERCLASS = MacOSaiXEditor; 
+            SUPERCLASS = MacOSaiXMosaicEditor; 
+        }, 
+        {
+            ACTIONS = {setPlugInClass = id; }; 
+            CLASS = MacOSaiXMosaicEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                auxiliaryView = NSView; 
+                editorDelegate = id; 
+                editorView = NSView; 
+                plugInEditor = id; 
+                plugInEditorBox = NSBox; 
+                plugInEditorNextKeyView = NSView; 
+                plugInEditorPreviousKeyView = NSView; 
+                plugInPopUpButton = NSPopUpButton; 
+            }; 
+            SUPERCLASS = NSObject; 
         }, 
         {CLASS = MacOSaiXPopUpButton; LANGUAGE = ObjC; SUPERCLASS = NSButton; }
     ); 

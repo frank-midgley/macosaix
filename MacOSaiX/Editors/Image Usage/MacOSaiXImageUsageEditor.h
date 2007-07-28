@@ -14,9 +14,11 @@
 	IBOutlet NSPopUpButton	*imageUseCountPopUp;
 	IBOutlet NSSlider		*imageReuseSlider, 
 							*imageCropLimitSlider;
+	IBOutlet NSMatrix		*imageCropMatrix;
 	
 	NSPoint					samplePoint, 
 							dragStartPoint;
+	float					startAngle;
 	BOOL					moving, 
 							resizing;
 }
