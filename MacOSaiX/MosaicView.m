@@ -495,7 +495,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 					yBy:NSHeight(mosaicBounds) / targetImageSize.height];
 	
 	[tilesNeedDisplayLock lock];
-		if ([self targetImageFraction] < 1.0)
+		if ([self targetImageOpacity] < 1.0)
 		{
 			NSEnumerator	*tileEnumerator = [tilesNeedingDisplay objectEnumerator];
 			MacOSaiXTile	*tileNeedingDisplay = nil;
@@ -511,11 +511,11 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
-- (void)setTargetImageFraction:(float)fraction
+- (void)setTargetImageOpacity:(float)fraction
 {
-	if (targetImageFraction != fraction)
+	if (targetImageOpacity != fraction)
 	{
-		targetImageFraction = fraction;
+		targetImageOpacity = fraction;
 		
 		[self setNeedsDisplay:YES];
 		
@@ -524,9 +524,9 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
-- (float)targetImageFraction
+- (float)targetImageOpacity
 {
-    return targetImageFraction;
+    return targetImageOpacity;
 }
 
 
@@ -551,6 +551,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 - (NSArray *)tilesInRect:(NSRect)theRect
 {
+	NSDate			*startDate = [NSDate date];
 	NSMutableArray	*tiles = [NSMutableArray array];
 	
 		// Convert the rect to the units system that the tile outlines are in.
@@ -561,7 +562,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
     theRect.origin.y = (theRect.origin.y - NSMinY(imageBounds)) / NSHeight(imageBounds) * targetImageSize.height;
 	theRect.size.height *= targetImageSize.height / NSHeight(imageBounds);
 	
-		// TBD: this isn't terribly efficient...
+		// TODO: this isn't terribly efficient...
 	NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
 	MacOSaiXTile	*tile = nil;
 	while (tile = [tileEnumerator nextObject])
@@ -569,6 +570,8 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
         if (NSIntersectsRect([[tile outline] bounds], theRect))
 			[tiles addObject:tile];
 	}
+	
+	NSLog(@"Tiles in rect took %f seconds to find %d tiles", -[startDate timeIntervalSinceNow], [tiles count]);
 	
 	return tiles;
 }
@@ -659,7 +662,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 										   NSWidth(drawUnitRect) * mainImageSize.width,
 										   NSHeight(drawUnitRect) * mainImageSize.height);
 		
-		if (targetImageFraction > 0.0)
+		if (targetImageOpacity > 0.0)
 		{
 			if (targetImageIsChanging && previousTargetFraction > 0.0)
 			{
@@ -691,7 +694,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 				[[mosaic targetImage] drawInRect:drawRect 
 										  fromRect:targetRect 
 										 operation:NSCompositeSourceOver 
-										  fraction:targetImageFraction];
+										  fraction:targetImageOpacity];
 			}
 			else
 			{
@@ -710,7 +713,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 			[mainImage drawInRect:drawRect 
 						 fromRect:mainImageRect 
 						operation:NSCompositeSourceOver 
-						 fraction:1.0 - targetImageFraction];
+						 fraction:1.0 - targetImageOpacity];
 		[mainImageLock unlock];
 		
 		[activeEditor embellishMosaicView:self inRect:drawRect];

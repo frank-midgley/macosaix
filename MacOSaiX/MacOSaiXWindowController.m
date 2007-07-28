@@ -549,7 +549,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 
 - (IBAction)setBlend:(id)sender
 {
-	[mosaicView setTargetImageFraction:1.0 - [blendSlider floatValue]];
+	[mosaicView setTargetImageOpacity:1.0 - [blendSlider floatValue]];
 }
 
 
@@ -640,6 +640,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	
 	[exportController exportMosaic:[self mosaic]
 						  withName:[[[[self document] displayName] lastPathComponent] stringByDeletingPathExtension] 
+				targetImageOpacity:[mosaicView targetImageOpacity] 
 					modalForWindow:[self window] 
 					 modalDelegate:self 
 					didEndSelector:@selector(saveAsDidComplete:)];

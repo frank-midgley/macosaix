@@ -16,7 +16,7 @@
 	NSSize					mainImageSize;
 	NSLock					*mainImageLock;
 	NSAffineTransform		*mainImageTransform;
-	float					targetImageFraction, 
+	float					targetImageOpacity, 
 							targetFadeTime;
 	BOOL					inLiveRedraw;
 	
@@ -60,8 +60,8 @@
 - (void)setMainImage:(NSImage *)image;
 - (NSImage *)mainImage;
 
-- (void)setTargetImageFraction:(float)fraction;
-- (float)targetImageFraction;
+- (void)setTargetImageOpacity:(float)fraction;
+- (float)targetImageOpacity;
 
 - (void)setTargetFadeTime:(float)seconds;
 
