@@ -18,6 +18,7 @@
 				011C7D7B0A1D76C50023CD62 /* PBXTargetDependency */,
 				011C7D7F0A1D76C50023CD62 /* PBXTargetDependency */,
 				011C7D7D0A1D76C50023CD62 /* PBXTargetDependency */,
+				92423ACA0C32F017003DB124 /* PBXTargetDependency */,
 				014557E40B640E520007DDF9 /* PBXTargetDependency */,
 				92E0F4C00C554A4C0009453A /* PBXTargetDependency */,
 				929DC4090BFCE30000024C99 /* PBXTargetDependency */,
@@ -25,7 +26,7 @@
 				92E547D50C206F6D005C3B95 /* PBXTargetDependency */,
 				92D5930E0BF8F5A600FBA68C /* PBXTargetDependency */,
 				92D94E200C0F3B0400441CE1 /* PBXTargetDependency */,
-				92423ACA0C32F017003DB124 /* PBXTargetDependency */,
+				92052A4B0C57B02F003A405F /* PBXTargetDependency */,
 			);
 			name = "Standard Plug-Ins";
 			productName = "Standard Plug-Ins";
@@ -130,6 +131,20 @@
 		92006EB60BDE5677004DED2C /* DirectoryImageSourceDirectory.m in Sources */ = {isa = PBXBuildFile; fileRef = 92006EB40BDE5677004DED2C /* DirectoryImageSourceDirectory.m */; };
 		920072C10BEA89DA004DED2C /* MacOSaiXSplitView.h in Headers */ = {isa = PBXBuildFile; fileRef = 920072BF0BEA89DA004DED2C /* MacOSaiXSplitView.h */; };
 		920072C20BEA89DA004DED2C /* MacOSaiXSplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = 920072C00BEA89DA004DED2C /* MacOSaiXSplitView.m */; };
+		92052A430C57AEF7003A405F /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 92052A420C57AEF7003A405F /* Info.plist */; };
+		92052A4C0C57B046003A405F /* Web Page Exporter.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92052A330C57AE3E003A405F /* Web Page Exporter.bundle */; };
+		92052A630C57B0B1003A405F /* Web Page.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92052A610C57B0B1003A405F /* Web Page.nib */; };
+		92052AAF0C57C704003A405F /* Export1.html in Resources */ = {isa = PBXBuildFile; fileRef = 92052AA10C57C704003A405F /* Export1.html */; };
+		92052AB00C57C704003A405F /* Export2.html in Resources */ = {isa = PBXBuildFile; fileRef = 92052AA30C57C704003A405F /* Export2.html */; };
+		92052AB10C57C704003A405F /* Export3.html in Resources */ = {isa = PBXBuildFile; fileRef = 92052AA50C57C704003A405F /* Export3.html */; };
+		92052AB30C57C704003A405F /* Export4.html in Resources */ = {isa = PBXBuildFile; fileRef = 92052AA90C57C704003A405F /* Export4.html */; };
+		92052AB40C57C704003A405F /* Export5.html in Resources */ = {isa = PBXBuildFile; fileRef = 92052AAB0C57C704003A405F /* Export5.html */; };
+		92052AB50C57C704003A405F /* Loading.png in Resources */ = {isa = PBXBuildFile; fileRef = 92052AAD0C57C704003A405F /* Loading.png */; };
+		92052AB80C57C728003A405F /* Export3+Target.html in Resources */ = {isa = PBXBuildFile; fileRef = 92052AB60C57C727003A405F /* Export3+Target.html */; };
+		92052ABB0C57C7DA003A405F /* MacOSaiXWebPageExporterPlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92052A040C57AE02003A405F /* MacOSaiXWebPageExporterPlugIn.m */; };
+		92052ABC0C57C7DA003A405F /* MacOSaiXWebPageExportSettings.m in Sources */ = {isa = PBXBuildFile; fileRef = 92052A060C57AE02003A405F /* MacOSaiXWebPageExportSettings.m */; };
+		92052ABD0C57C7DA003A405F /* MacOSaiXWebPageExportEditor.m in Sources */ = {isa = PBXBuildFile; fileRef = 92052A000C57AE02003A405F /* MacOSaiXWebPageExportEditor.m */; };
+		92052ABE0C57C7DA003A405F /* MacOSaiXWebPageExporter.m in Sources */ = {isa = PBXBuildFile; fileRef = 92052A020C57AE02003A405F /* MacOSaiXWebPageExporter.m */; };
 		9211A5E50A17DA3A0021A583 /* Mosaic View.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9211A5E30A17DA3A0021A583 /* Mosaic View.nib */; };
 		9211A6840A17F7A80021A583 /* MacOSaiXToolTipView.h in Headers */ = {isa = PBXBuildFile; fileRef = 9211A6820A17F7A70021A583 /* MacOSaiXToolTipView.h */; };
 		9211A6850A17F7A80021A583 /* MacOSaiXToolTipView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9211A6830A17F7A70021A583 /* MacOSaiXToolTipView.m */; };
@@ -143,10 +158,6 @@
 		9227FD5F07E378CC0020C5F4 /* Hexagonal Tiles.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 01CB07E6071A1F2B00710BCF /* Hexagonal Tiles.plugin */; };
 		9227FD7207E37A240020C5F4 /* HexagonalTileShapes.m in Sources */ = {isa = PBXBuildFile; fileRef = 9227FD6E07E37A240020C5F4 /* HexagonalTileShapes.m */; };
 		9227FD7407E37A240020C5F4 /* HexagonalTileShapesEditor.m in Sources */ = {isa = PBXBuildFile; fileRef = 9227FD7007E37A240020C5F4 /* HexagonalTileShapesEditor.m */; };
-		92319C8F09A7D5F9007CA9CD /* Export4.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319C8D09A7D5F9007CA9CD /* Export4.html */; };
-		92319CA309A7D656007CA9CD /* Export5.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319CA109A7D656007CA9CD /* Export5.html */; };
-		92319CA809A7D6AA007CA9CD /* Export3+Original.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319CA609A7D6AA007CA9CD /* Export3+Original.html */; };
-		92319CAB09A7D6C5007CA9CD /* Export3.html in Resources */ = {isa = PBXBuildFile; fileRef = 92319CA909A7D6C5007CA9CD /* Export3.html */; };
 		92341CA20BF117370079BFF0 /* MacOSaiXExporter.h in Headers */ = {isa = PBXBuildFile; fileRef = 92341CA10BF117370079BFF0 /* MacOSaiXExporter.h */; };
 		92341E1A0BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.h in Headers */ = {isa = PBXBuildFile; fileRef = 92341E180BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.h */; };
 		92341E290BF8F2050079BFF0 /* MacOSaiXBitmapExportSettings.m in Sources */ = {isa = PBXBuildFile; fileRef = 92341E280BF8F2050079BFF0 /* MacOSaiXBitmapExportSettings.m */; };
@@ -220,8 +231,6 @@
 		9298FCC9098C1C6800E7A096 /* FlickrPreferencesController.h in Headers */ = {isa = PBXBuildFile; fileRef = 9298FCC7098C1C6800E7A096 /* FlickrPreferencesController.h */; };
 		9298FCCA098C1C6800E7A096 /* FlickrPreferencesController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9298FCC8098C1C6800E7A096 /* FlickrPreferencesController.m */; };
 		9298FE040995592300E7A096 /* MacOSaiXExportController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9298FE020995592300E7A096 /* MacOSaiXExportController.m */; };
-		9298FE6309955B0E00E7A096 /* Export1.html in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE5D09955B0E00E7A096 /* Export1.html */; };
-		9298FE6409955B0E00E7A096 /* Export2.html in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE5F09955B0E00E7A096 /* Export2.html */; };
 		9298FE6B09955B2A00E7A096 /* MacOSaiXDocument.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE6909955B2A00E7A096 /* MacOSaiXDocument.nib */; };
 		9298FE6F09955B3B00E7A096 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE6D09955B3B00E7A096 /* MainMenu.nib */; };
 		9298FE7309955B6600E7A096 /* Crash Reporter.nib in Resources */ = {isa = PBXBuildFile; fileRef = 9298FE7109955B6600E7A096 /* Crash Reporter.nib */; };
@@ -249,6 +258,8 @@
 		92B409800B0D4FB400BB3981 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92B4097F0B0D4FB300BB3981 /* AddressBook.framework */; };
 		92B7989D0B6D303D0034AF82 /* Target Image.png in Resources */ = {isa = PBXBuildFile; fileRef = 92B7989C0B6D303C0034AF82 /* Target Image.png */; };
 		92B9087C08C25F0600D621F5 /* MacOSaiXImageMatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */; };
+		92BAC6F50C59205A0086516A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
+		92BAC6F60C59205A0086516A /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01DDE1950A2E8755004F1F4E /* QuartzCore.framework */; };
 		92CC1B3E08F9C168004D0C31 /* MacOSaiXFullScreenController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA7B608F87DD200B40FA6 /* MacOSaiXFullScreenController.m */; };
 		92CC1B4008F9C16A004D0C31 /* MacOSaiXKioskSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA7CC08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m */; };
 		92CC1B4208F9C16C004D0C31 /* MacOSaiXScreenSetupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DCA87208F89EA400B40FA6 /* MacOSaiXScreenSetupController.m */; };
@@ -269,7 +280,6 @@
 		92DA0D8F0A32243C0064E69E /* MacOSaiXPopUpButton.h in Headers */ = {isa = PBXBuildFile; fileRef = 92DA0D8D0A32243C0064E69E /* MacOSaiXPopUpButton.h */; };
 		92DA0D900A32243C0064E69E /* MacOSaiXPopUpButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 92DA0D8E0A32243C0064E69E /* MacOSaiXPopUpButton.m */; };
 		92DA0E700A3235190064E69E /* PathSeparator.png in Resources */ = {isa = PBXBuildFile; fileRef = 92DA0E6F0A3235190064E69E /* PathSeparator.png */; };
-		92DFC50809EDC3EA0076FD93 /* Loading.png in Resources */ = {isa = PBXBuildFile; fileRef = 92DFC50609EDC3EA0076FD93 /* Loading.png */; };
 		92E0C5DE0A61C51C003C90CA /* NSBezierPath+MacOSaiX.h in Headers */ = {isa = PBXBuildFile; fileRef = 92E0C5DC0A61C51C003C90CA /* NSBezierPath+MacOSaiX.h */; };
 		92E0C5DF0A61C51C003C90CA /* NSBezierPath+MacOSaiX.m in Sources */ = {isa = PBXBuildFile; fileRef = 92E0C5DD0A61C51C003C90CA /* NSBezierPath+MacOSaiX.m */; };
 		92E0F48B0C5546990009453A /* iPhotoImageSourcePlugIn.h in Headers */ = {isa = PBXBuildFile; fileRef = 92E0F4890C5546990009453A /* iPhotoImageSourcePlugIn.h */; };
@@ -465,6 +475,13 @@
 			remoteGlobalIDString = 014F184D0B2CCDD40023D2D2;
 			remoteInfo = "Constant Image Orientations";
 		};
+		92052A4A0C57B02F003A405F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 92052A320C57AE3E003A405F;
+			remoteInfo = "Web Page Exporter";
+		};
 		92423AC90C32F017003DB124 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
@@ -529,6 +546,7 @@
 				92E547D60C206F89005C3B95 /* Radial Image Orientations.plugin in CopyFiles */,
 				929DC0980BFB4EFF00024C99 /* Bitmap Exporter.bundle in CopyFiles */,
 				92D94E220C0F3B1400441CE1 /* PDF Exporter.bundle in CopyFiles */,
+				92052A4C0C57B046003A405F /* Web Page Exporter.bundle in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -660,6 +678,24 @@
 		92006EB40BDE5677004DED2C /* DirectoryImageSourceDirectory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DirectoryImageSourceDirectory.m; sourceTree = "<group>"; };
 		920072BF0BEA89DA004DED2C /* MacOSaiXSplitView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXSplitView.h; sourceTree = "<group>"; };
 		920072C00BEA89DA004DED2C /* MacOSaiXSplitView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXSplitView.m; sourceTree = "<group>"; };
+		920529FF0C57AE02003A405F /* MacOSaiXWebPageExportEditor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXWebPageExportEditor.h; sourceTree = "<group>"; };
+		92052A000C57AE02003A405F /* MacOSaiXWebPageExportEditor.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXWebPageExportEditor.m; sourceTree = "<group>"; };
+		92052A010C57AE02003A405F /* MacOSaiXWebPageExporter.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXWebPageExporter.h; sourceTree = "<group>"; };
+		92052A020C57AE02003A405F /* MacOSaiXWebPageExporter.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXWebPageExporter.m; sourceTree = "<group>"; };
+		92052A030C57AE02003A405F /* MacOSaiXWebPageExporterPlugIn.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXWebPageExporterPlugIn.h; sourceTree = "<group>"; };
+		92052A040C57AE02003A405F /* MacOSaiXWebPageExporterPlugIn.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXWebPageExporterPlugIn.m; sourceTree = "<group>"; };
+		92052A050C57AE02003A405F /* MacOSaiXWebPageExportSettings.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXWebPageExportSettings.h; sourceTree = "<group>"; };
+		92052A060C57AE02003A405F /* MacOSaiXWebPageExportSettings.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXWebPageExportSettings.m; sourceTree = "<group>"; };
+		92052A330C57AE3E003A405F /* Web Page Exporter.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Web Page Exporter.bundle"; sourceTree = BUILT_PRODUCTS_DIR; };
+		92052A420C57AEF7003A405F /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
+		92052A620C57B0B1003A405F /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Web Page.nib"; sourceTree = "<group>"; };
+		92052AA20C57C704003A405F /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export1.html; sourceTree = "<group>"; };
+		92052AA40C57C704003A405F /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export2.html; sourceTree = "<group>"; };
+		92052AA60C57C704003A405F /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export3.html; sourceTree = "<group>"; };
+		92052AAA0C57C704003A405F /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export4.html; sourceTree = "<group>"; };
+		92052AAC0C57C704003A405F /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export5.html; sourceTree = "<group>"; };
+		92052AAE0C57C704003A405F /* English */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = English; path = English.lproj/Loading.png; sourceTree = "<group>"; };
+		92052AB70C57C727003A405F /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = "English.lproj/Export3+Target.html"; sourceTree = "<group>"; };
 		920F9A120A0D54E8006007C1 /* MacOSaiXPrefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXPrefix.h; sourceTree = "<group>"; };
 		9211A5E40A17DA3A0021A583 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Mosaic View.nib"; sourceTree = "<group>"; };
 		9211A6820A17F7A70021A583 /* MacOSaiXToolTipView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXToolTipView.h; sourceTree = "<group>"; };
@@ -676,10 +712,6 @@
 		9227FD6E07E37A240020C5F4 /* HexagonalTileShapes.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = HexagonalTileShapes.m; sourceTree = "<group>"; };
 		9227FD6F07E37A240020C5F4 /* HexagonalTileShapesEditor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = HexagonalTileShapesEditor.h; sourceTree = "<group>"; };
 		9227FD7007E37A240020C5F4 /* HexagonalTileShapesEditor.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = HexagonalTileShapesEditor.m; sourceTree = "<group>"; };
-		92319C8E09A7D5F9007CA9CD /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export4.html; sourceTree = "<group>"; };
-		92319CA209A7D656007CA9CD /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export5.html; sourceTree = "<group>"; };
-		92319CA709A7D6AA007CA9CD /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = "English.lproj/Export3+Original.html"; sourceTree = "<group>"; };
-		92319CAA09A7D6C5007CA9CD /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export3.html; sourceTree = "<group>"; };
 		923384DB072180700010BE04 /* MacOSaiXImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageSource.h; sourceTree = "<group>"; };
 		92341CA10BF117370079BFF0 /* MacOSaiXExporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXExporter.h; sourceTree = "<group>"; };
 		92341E180BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXBitmapExporterPlugIn.h; sourceTree = "<group>"; };
@@ -701,9 +733,6 @@
 		924236500C2C58BD003DB124 /* MacOSaiXSourceImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXSourceImage.m; sourceTree = "<group>"; };
 		92423AB70C32EE40003DB124 /* GlyphImageSourcePlugIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GlyphImageSourcePlugIn.h; sourceTree = "<group>"; };
 		92423AB80C32EE40003DB124 /* GlyphImageSourcePlugIn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GlyphImageSourcePlugIn.m; sourceTree = "<group>"; };
-		924E805B099E8C0D006977E3 /* MacOSaiXTilesSetupController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXTilesSetupController.h; sourceTree = "<group>"; };
-		924E805C099E8C0D006977E3 /* MacOSaiXTilesSetupController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXTilesSetupController.m; sourceTree = "<group>"; };
-		924E807D099E9022006977E3 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Tiles Setup.nib"; sourceTree = "<group>"; };
 		9253016409D611EF001E27F3 /* NoOriginal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = NoOriginal.png; sourceTree = "<group>"; };
 		9254088A0915741F00384904 /* MacOSaiXKioskMessageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXKioskMessageView.h; sourceTree = "<group>"; };
 		9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXKioskMessageView.m; sourceTree = "<group>"; };
@@ -738,8 +767,6 @@
 		9298FCC8098C1C6800E7A096 /* FlickrPreferencesController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = FlickrPreferencesController.m; sourceTree = "<group>"; };
 		9298FE010995592300E7A096 /* MacOSaiXExportController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXExportController.h; sourceTree = "<group>"; };
 		9298FE020995592300E7A096 /* MacOSaiXExportController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXExportController.m; sourceTree = "<group>"; };
-		9298FE5E09955B0E00E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export1.html; sourceTree = "<group>"; };
-		9298FE6009955B0E00E7A096 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export2.html; sourceTree = "<group>"; };
 		9298FE6A09955B2A00E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MacOSaiXDocument.nib; sourceTree = "<group>"; };
 		9298FE6E09955B3B00E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
 		9298FE7209955B6600E7A096 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Crash Reporter.nib"; sourceTree = "<group>"; };
@@ -797,7 +824,6 @@
 		92DCA7CC08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXKioskSetupController.m; sourceTree = "<group>"; };
 		92DCA87108F89EA400B40FA6 /* MacOSaiXScreenSetupController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXScreenSetupController.h; sourceTree = "<group>"; };
 		92DCA87208F89EA400B40FA6 /* MacOSaiXScreenSetupController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXScreenSetupController.m; sourceTree = "<group>"; };
-		92DFC50709EDC3EA0076FD93 /* English */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = English; path = English.lproj/Loading.png; sourceTree = "<group>"; };
 		92E0C5DC0A61C51C003C90CA /* NSBezierPath+MacOSaiX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSBezierPath+MacOSaiX.h"; sourceTree = "<group>"; };
 		92E0C5DD0A61C51C003C90CA /* NSBezierPath+MacOSaiX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSBezierPath+MacOSaiX.m"; sourceTree = "<group>"; };
 		92E0F4890C5546990009453A /* iPhotoImageSourcePlugIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iPhotoImageSourcePlugIn.h; sourceTree = "<group>"; };
@@ -916,6 +942,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				01A1978E071A200E00B11558 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		92052A310C57AE3E003A405F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				92BAC6F50C59205A0086516A /* Cocoa.framework in Frameworks */,
+				92BAC6F60C59205A0086516A /* QuartzCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1207,8 +1242,8 @@
 				017C21470B3BB99500457AC9 /* Target Image */,
 				926F90DB0B3DC0A00089017E /* Tile Shapes */,
 				926F90DC0B3DC0C90089017E /* Image Sources */,
-				017C223E0B3BC8C500457AC9 /* Image Orientations */,
 				926F90DE0B3DC1540089017E /* Image Usage */,
+				017C223E0B3BC8C500457AC9 /* Image Orientations */,
 				926F90DD0B3DC0FF0089017E /* Tile Content */,
 			);
 			path = Editors;
@@ -1279,8 +1314,7 @@
 				010D208D0902BF0600950013 /* Document */,
 				92DCA54D08F871A100B40FA6 /* Core */,
 				017C21390B3BB79000457AC9 /* Editors */,
-				924E8058099E8BD1006977E3 /* Tiles Setup */,
-				9298FE0A0995594700E7A096 /* Save As */,
+				9298FE0A0995594700E7A096 /* Export */,
 				9240AE6F0A4DAB4A00759546 /* Progress Sheet */,
 				0109CA3609D385A5008290BE /* Warning Controller */,
 				928824890982D05400181817 /* Full Screen Window */,
@@ -1316,6 +1350,7 @@
 				92E547470C2069AF005C3B95 /* Radial Image Orientations.plugin */,
 				92341E220BF8F1370079BFF0 /* Bitmap Exporter.bundle */,
 				92D94DD50C0F34CA00441CE1 /* PDF Exporter.bundle */,
+				92052A330C57AE3E003A405F /* Web Page Exporter.bundle */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1348,11 +1383,36 @@
 			name = "Frameworks & Libraries";
 			sourceTree = "<group>";
 		};
+		920529F70C57ADB6003A405F /* Web Page */ = {
+			isa = PBXGroup;
+			children = (
+				92052A030C57AE02003A405F /* MacOSaiXWebPageExporterPlugIn.h */,
+				92052A040C57AE02003A405F /* MacOSaiXWebPageExporterPlugIn.m */,
+				92052A050C57AE02003A405F /* MacOSaiXWebPageExportSettings.h */,
+				92052A060C57AE02003A405F /* MacOSaiXWebPageExportSettings.m */,
+				920529FF0C57AE02003A405F /* MacOSaiXWebPageExportEditor.h */,
+				92052A000C57AE02003A405F /* MacOSaiXWebPageExportEditor.m */,
+				92052A010C57AE02003A405F /* MacOSaiXWebPageExporter.h */,
+				92052A020C57AE02003A405F /* MacOSaiXWebPageExporter.m */,
+				92052A610C57B0B1003A405F /* Web Page.nib */,
+				92052A420C57AEF7003A405F /* Info.plist */,
+				92052AA10C57C704003A405F /* Export1.html */,
+				92052AA30C57C704003A405F /* Export2.html */,
+				92052AA50C57C704003A405F /* Export3.html */,
+				92052AB60C57C727003A405F /* Export3+Target.html */,
+				92052AA90C57C704003A405F /* Export4.html */,
+				92052AAB0C57C704003A405F /* Export5.html */,
+				92052AAD0C57C704003A405F /* Loading.png */,
+			);
+			path = "Web Page";
+			sourceTree = "<group>";
+		};
 		92341CA60BF118F30079BFF0 /* Exporters */ = {
 			isa = PBXGroup;
 			children = (
 				92341CA90BF119190079BFF0 /* Bitmap Image */,
 				92D94DF40C0F353D00441CE1 /* PDF */,
+				920529F70C57ADB6003A405F /* Web Page */,
 			);
 			path = Exporters;
 			sourceTree = "<group>";
@@ -1399,16 +1459,6 @@
 				9211A6830A17F7A70021A583 /* MacOSaiXToolTipView.m */,
 			);
 			name = Widgets;
-			sourceTree = "<group>";
-		};
-		924E8058099E8BD1006977E3 /* Tiles Setup */ = {
-			isa = PBXGroup;
-			children = (
-				924E805B099E8C0D006977E3 /* MacOSaiXTilesSetupController.h */,
-				924E805C099E8C0D006977E3 /* MacOSaiXTilesSetupController.m */,
-				924E807C099E9022006977E3 /* Tiles Setup.nib */,
-			);
-			path = "Tiles Setup";
 			sourceTree = "<group>";
 		};
 		926F90DB0B3DC0A00089017E /* Tile Shapes */ = {
@@ -1588,21 +1638,13 @@
 			name = Application;
 			sourceTree = "<group>";
 		};
-		9298FE0A0995594700E7A096 /* Save As */ = {
+		9298FE0A0995594700E7A096 /* Export */ = {
 			isa = PBXGroup;
 			children = (
 				9298FE010995592300E7A096 /* MacOSaiXExportController.h */,
 				9298FE020995592300E7A096 /* MacOSaiXExportController.m */,
 				9298FF1209955E1500E7A096 /* Export.nib */,
-				9298FE5D09955B0E00E7A096 /* Export1.html */,
-				9298FE5F09955B0E00E7A096 /* Export2.html */,
-				92319CA909A7D6C5007CA9CD /* Export3.html */,
-				92319CA609A7D6AA007CA9CD /* Export3+Original.html */,
-				92319C8D09A7D5F9007CA9CD /* Export4.html */,
-				92319CA109A7D656007CA9CD /* Export5.html */,
-				92DFC50609EDC3EA0076FD93 /* Loading.png */,
 			);
-			name = "Save As";
 			path = Export;
 			sourceTree = "<group>";
 		};
@@ -1991,6 +2033,24 @@
 			productReference = 01CB07E6071A1F2B00710BCF /* Hexagonal Tiles.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
+		92052A320C57AE3E003A405F /* Web Page Exporter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 92052A350C57AE42003A405F /* Build configuration list for PBXNativeTarget "Web Page Exporter" */;
+			buildPhases = (
+				92052A2F0C57AE3E003A405F /* Resources */,
+				92052A300C57AE3E003A405F /* Sources */,
+				92052A310C57AE3E003A405F /* Frameworks */,
+				92BAC6F80C59207F0086516A /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Web Page Exporter";
+			productName = "Web Page Exporter";
+			productReference = 92052A330C57AE3E003A405F /* Web Page Exporter.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
 		92341E210BF8F1370079BFF0 /* Bitmap Exporter */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 92341E240BF8F13C0079BFF0 /* Build configuration list for PBXNativeTarget "Bitmap Exporter" */;
@@ -2220,6 +2280,7 @@
 				92E5473A0C2069AF005C3B95 /* Radial Image Orientations */,
 				92341E210BF8F1370079BFF0 /* Bitmap Exporter */,
 				92D94DC60C0F34CA00441CE1 /* PDF Exporter */,
+				92052A320C57AE3E003A405F /* Web Page Exporter */,
 			);
 		};
 /* End PBXProject section */
@@ -2279,6 +2340,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		92052A2F0C57AE3E003A405F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				92052A430C57AEF7003A405F /* Info.plist in Resources */,
+				92052A630C57B0B1003A405F /* Web Page.nib in Resources */,
+				92052AAF0C57C704003A405F /* Export1.html in Resources */,
+				92052AB00C57C704003A405F /* Export2.html in Resources */,
+				92052AB10C57C704003A405F /* Export3.html in Resources */,
+				92052AB80C57C728003A405F /* Export3+Target.html in Resources */,
+				92052AB30C57C704003A405F /* Export4.html in Resources */,
+				92052AB40C57C704003A405F /* Export5.html in Resources */,
+				92052AB50C57C704003A405F /* Loading.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		92341E1E0BF8F1370079BFF0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2308,8 +2385,6 @@
 				92EABC240954D25D007A9EB3 /* Tiles Setup.tiff in Resources */,
 				9288242A0982C00E00181817 /* FullScreen.tiff in Resources */,
 				9298FBA30982DB9400E7A096 /* Full Screen.nib in Resources */,
-				9298FE6309955B0E00E7A096 /* Export1.html in Resources */,
-				9298FE6409955B0E00E7A096 /* Export2.html in Resources */,
 				9298FE6B09955B2A00E7A096 /* MacOSaiXDocument.nib in Resources */,
 				9298FE6F09955B3B00E7A096 /* MainMenu.nib in Resources */,
 				9298FE7309955B6600E7A096 /* Crash Reporter.nib in Resources */,
@@ -2321,13 +2396,8 @@
 				9298FEF309955C5A00E7A096 /* Application Icon.icns in Resources */,
 				9298FEF409955C5A00E7A096 /* Document Icon.icns in Resources */,
 				9298FF1409955E1500E7A096 /* Export.nib in Resources */,
-				92319C8F09A7D5F9007CA9CD /* Export4.html in Resources */,
-				92319CA309A7D656007CA9CD /* Export5.html in Resources */,
-				92319CA809A7D6AA007CA9CD /* Export3+Original.html in Resources */,
-				92319CAB09A7D6C5007CA9CD /* Export3.html in Resources */,
 				0109CA4709D385E5008290BE /* Warning.nib in Resources */,
 				9253016509D611EF001E27F3 /* NoOriginal.png in Resources */,
-				92DFC50809EDC3EA0076FD93 /* Loading.png in Resources */,
 				9211A5E50A17DA3A0021A583 /* Mosaic View.nib in Resources */,
 				92DA0D510A32192B0064E69E /* Add.png in Resources */,
 				92DA0D530A32193D0064E69E /* Remove.png in Resources */,
@@ -2618,6 +2688,19 @@
 			shellPath = /bin/sh;
 			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/Exporters/Bitmap Image\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
 		};
+		92BAC6F80C59207F0086516A /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]\nthen\n\tcd \"Standard Plugins/Exporters/Web Page\"\n\tgenstrings -o English.lproj *.m */*.m\nfi";
+		};
 		92D94DD10C0F34CA00441CE1 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -2704,6 +2787,17 @@
 				9227FD7207E37A240020C5F4 /* HexagonalTileShapes.m in Sources */,
 				9227FD7407E37A240020C5F4 /* HexagonalTileShapesEditor.m in Sources */,
 				01046D000B4DEEDB0084049A /* HexagonalTileShapesPlugIn.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		92052A300C57AE3E003A405F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				92052ABB0C57C7DA003A405F /* MacOSaiXWebPageExporterPlugIn.m in Sources */,
+				92052ABC0C57C7DA003A405F /* MacOSaiXWebPageExportSettings.m in Sources */,
+				92052ABD0C57C7DA003A405F /* MacOSaiXWebPageExportEditor.m in Sources */,
+				92052ABE0C57C7DA003A405F /* MacOSaiXWebPageExporter.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2901,6 +2995,11 @@
 			target = 014F184D0B2CCDD40023D2D2 /* Constant Image Orientations */;
 			targetProxy = 014F185B0B2CCEA10023D2D2 /* PBXContainerItemProxy */;
 		};
+		92052A4B0C57B02F003A405F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 92052A320C57AE3E003A405F /* Web Page Exporter */;
+			targetProxy = 92052A4A0C57B02F003A405F /* PBXContainerItemProxy */;
+		};
 		92423ACA0C32F017003DB124 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 928489D506611CE6003B3514 /* Glyph Image Source */;
@@ -3031,44 +3130,76 @@
 			name = "Image Orientations Editor.nib";
 			sourceTree = "<group>";
 		};
+		92052A610C57B0B1003A405F /* Web Page.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92052A620C57B0B1003A405F /* English */,
+			);
+			name = "Web Page.nib";
+			sourceTree = "<group>";
+		};
+		92052AA10C57C704003A405F /* Export1.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92052AA20C57C704003A405F /* English */,
+			);
+			name = Export1.html;
+			sourceTree = "<group>";
+		};
+		92052AA30C57C704003A405F /* Export2.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92052AA40C57C704003A405F /* English */,
+			);
+			name = Export2.html;
+			sourceTree = "<group>";
+		};
+		92052AA50C57C704003A405F /* Export3.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92052AA60C57C704003A405F /* English */,
+			);
+			name = Export3.html;
+			sourceTree = "<group>";
+		};
+		92052AA90C57C704003A405F /* Export4.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92052AAA0C57C704003A405F /* English */,
+			);
+			name = Export4.html;
+			sourceTree = "<group>";
+		};
+		92052AAB0C57C704003A405F /* Export5.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92052AAC0C57C704003A405F /* English */,
+			);
+			name = Export5.html;
+			sourceTree = "<group>";
+		};
+		92052AAD0C57C704003A405F /* Loading.png */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92052AAE0C57C704003A405F /* English */,
+			);
+			name = Loading.png;
+			sourceTree = "<group>";
+		};
+		92052AB60C57C727003A405F /* Export3+Target.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				92052AB70C57C727003A405F /* English */,
+			);
+			name = "Export3+Target.html";
+			sourceTree = "<group>";
+		};
 		9211A5E30A17DA3A0021A583 /* Mosaic View.nib */ = {
 			isa = PBXVariantGroup;
 			children = (
 				9211A5E40A17DA3A0021A583 /* English */,
 			);
 			name = "Mosaic View.nib";
-			sourceTree = "<group>";
-		};
-		92319C8D09A7D5F9007CA9CD /* Export4.html */ = {
-			isa = PBXVariantGroup;
-			children = (
-				92319C8E09A7D5F9007CA9CD /* English */,
-			);
-			name = Export4.html;
-			sourceTree = "<group>";
-		};
-		92319CA109A7D656007CA9CD /* Export5.html */ = {
-			isa = PBXVariantGroup;
-			children = (
-				92319CA209A7D656007CA9CD /* English */,
-			);
-			name = Export5.html;
-			sourceTree = "<group>";
-		};
-		92319CA609A7D6AA007CA9CD /* Export3+Original.html */ = {
-			isa = PBXVariantGroup;
-			children = (
-				92319CA709A7D6AA007CA9CD /* English */,
-			);
-			name = "Export3+Original.html";
-			sourceTree = "<group>";
-		};
-		92319CA909A7D6C5007CA9CD /* Export3.html */ = {
-			isa = PBXVariantGroup;
-			children = (
-				92319CAA09A7D6C5007CA9CD /* English */,
-			);
-			name = Export3.html;
 			sourceTree = "<group>";
 		};
 		9240AE930A4DB11100759546 /* Progress.nib */ = {
@@ -3078,14 +3209,6 @@
 			);
 			name = Progress.nib;
 			path = ..;
-			sourceTree = "<group>";
-		};
-		924E807C099E9022006977E3 /* Tiles Setup.nib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				924E807D099E9022006977E3 /* English */,
-			);
-			name = "Tiles Setup.nib";
 			sourceTree = "<group>";
 		};
 		926F90FC0B3DC5610089017E /* Tile Shapes Editor.nib */ = {
@@ -3102,22 +3225,6 @@
 				9298FBA20982DB9400E7A096 /* English */,
 			);
 			name = "Full Screen.nib";
-			sourceTree = "<group>";
-		};
-		9298FE5D09955B0E00E7A096 /* Export1.html */ = {
-			isa = PBXVariantGroup;
-			children = (
-				9298FE5E09955B0E00E7A096 /* English */,
-			);
-			name = Export1.html;
-			sourceTree = "<group>";
-		};
-		9298FE5F09955B0E00E7A096 /* Export2.html */ = {
-			isa = PBXVariantGroup;
-			children = (
-				9298FE6009955B0E00E7A096 /* English */,
-			);
-			name = Export2.html;
 			sourceTree = "<group>";
 		};
 		9298FE6909955B2A00E7A096 /* MacOSaiXDocument.nib */ = {
@@ -3217,14 +3324,6 @@
 				92D94ED40C108DEB00441CE1 /* English */,
 			);
 			name = "PDF Export.nib";
-			sourceTree = "<group>";
-		};
-		92DFC50609EDC3EA0076FD93 /* Loading.png */ = {
-			isa = PBXVariantGroup;
-			children = (
-				92DFC50709EDC3EA0076FD93 /* English */,
-			);
-			name = Loading.png;
 			sourceTree = "<group>";
 		};
 		92E5471D0C2068F8005C3B95 /* Flickr Image Source.nib */ = {
@@ -3712,6 +3811,28 @@
 			};
 			name = Release;
 		};
+		92052A360C57AE42003A405F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
+				INFOPLIST_FILE = "Standard Plugins/Exporters/Web Page/Info.plist";
+				PRODUCT_NAME = "Web Page Exporter";
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Debug;
+		};
+		92052A370C57AE42003A405F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
+				INFOPLIST_FILE = "Standard Plugins/Exporters/Web Page/Info.plist";
+				PRODUCT_NAME = "Web Page Exporter";
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Release;
+		};
 		92341E250BF8F13C0079BFF0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -3912,6 +4033,15 @@
 			buildConfigurations = (
 				01722BA609298D3E00290929 /* Debug */,
 				01722BA709298D3E00290929 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		92052A350C57AE42003A405F /* Build configuration list for PBXNativeTarget "Web Page Exporter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				92052A360C57AE42003A405F /* Debug */,
+				92052A370C57AE42003A405F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

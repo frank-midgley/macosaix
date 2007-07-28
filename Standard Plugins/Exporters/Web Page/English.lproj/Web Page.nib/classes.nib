@@ -1,0 +1,19 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {setIncludeTargetImage = id; setIncludeTilePopUps = id; }; 
+            CLASS = MacOSaiXWebPageExportEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                editorView = NSView; 
+                heightField = NSTextField; 
+                includeTargetImageButton = NSButton; 
+                includeTilePopUpsButton = NSButton; 
+                widthField = NSTextField; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}

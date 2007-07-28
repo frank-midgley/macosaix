@@ -1,0 +1,15 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<title>Mosaic</title>
+	<script type="text/javascript" language="javascript">
+		var macIE52 = (navigator.userAgent.indexOf('MSIE 5.2') != -1 && navigator.userAgent.indexOf('Mac') != -1);
+		
+		function tile(url, comment)
+		{
+			this.url = url;
+			this.comment = comment;
+			return this;
+		}
+		
+		var tiles = new Array();
