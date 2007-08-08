@@ -6,7 +6,7 @@
 //  Copyright (c) 2001 Frank M. Midgley. All rights reserved.
 //
 
-@class MacOSaiXDisallowedImage, MacOSaiXFullScreenController, MacOSaiXKioskController, MacOSaiXSourceImage;
+@class MacOSaiXFullScreenController, MacOSaiXKioskController, MacOSaiXSourceImage;
 
 
 @interface MacOSaiX : NSObject
@@ -47,7 +47,7 @@
 
 - (void)disallowImage:(MacOSaiXSourceImage *)image;
 - (NSArray *)disallowedImages;
-- (void)allowImage:(MacOSaiXDisallowedImage *)allowedImage;
+- (void)allowImage:(MacOSaiXSourceImage *)allowedImage;
 
 @end
 
