@@ -8,7 +8,7 @@
 
 #import "MosaicView.h"
 
-#import "MacOSaiXEditor.h"
+#import "MacOSaiXEditorsView.h"
 #import "MacOSaiXFullScreenWindow.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageOrientations.h"
@@ -716,7 +716,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 						 fraction:1.0 - targetImageOpacity];
 		[mainImageLock unlock];
 		
-		[activeEditor embellishMosaicView:self inRect:drawRect];
+		[[editorsView activeEditor] embellishMosaicView:self inRect:drawRect];
 	}
 }
 
@@ -758,24 +758,23 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 
 #pragma mark -
-#pragma mark Active Editor
+#pragma mark Editors view
 
 
-- (void)setActiveEditor:(MacOSaiXMosaicEditor *)editor
+- (void)setEditorsView:(MacOSaiXEditorsView *)view
 {
-	if (editor != activeEditor)
+	if (view != editorsView)
 	{
-		[activeEditor release];
-		activeEditor = [editor retain];
+		editorsView = view;	// non-retained
 		
 		[self setNeedsDisplay:YES];
 	}
 }
 
 
-- (MacOSaiXMosaicEditor *)activeEditor
+- (MacOSaiXEditorsView *)editorsView
 {
-	return activeEditor;
+	return editorsView;
 }
 
 
@@ -850,7 +849,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 - (void)updateTooltip:(NSTimer *)timer
 {
-	if (![[self window] isMainWindow] || [[self window] attachedSheet] || [self activeEditor])
+	if (![[self window] isMainWindow] || [[self window] attachedSheet] || [[self editorsView] activeEditor])
 		[self setTooltipsEnabled:NO animateHiding:YES];
 	else if (tooltipTile || GetCurrentEventTime() > [[[self window] currentEvent] timestamp] + 1)
 	{
@@ -879,7 +878,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 					point.y = screenPoint.y + NSHeight([tooltipWindow frame]) + 20.0;
 				[tooltipWindow setFrameTopLeftPoint:point];
 				
-				id<MacOSaiXImageSource>	imageSource = [[[imageMatch sourceImage] enumerator] workingImageSource];
+				id<MacOSaiXImageSource>	imageSource = [[imageMatch sourceImage] imageSource];
 				NSImage					*sourceImage = [[[imageSource image] copy] autorelease];
 				[sourceImage setScalesWhenResized:YES];
 				[sourceImage setSize:NSMakeSize(32.0, 32.0 * [sourceImage size].height / [sourceImage size].width)];
@@ -927,7 +926,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		NSString				*identifier = [sourceImage imageIdentifier];
 		NSBitmapImageRep		*imageRep = [sourceImage imageRepAtSize:NSZeroSize];
 		NSImage					*image = [[NSImage alloc] initWithSize:[imageRep size]];
-		id<MacOSaiXImageSource>	imageSource = [[sourceImage enumerator] workingImageSource];
+		id<MacOSaiXImageSource>	imageSource = [sourceImage imageSource];
 		NSString				*imageDescription = (image ? [imageSource descriptionForIdentifier:identifier] : nil);
 		
 		[image addRepresentation:imageRep];
@@ -991,7 +990,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 
 - (void)mouseEntered:(NSEvent *)event
 {
-	if ([[self window] isKeyWindow] && ![[self window] attachedSheet] && ![self activeEditor])
+	if ([[self window] isKeyWindow] && ![[self window] attachedSheet] && ![[self editorsView] activeEditor])
 		[self setTooltipsEnabled:YES animateHiding:YES];
 }
 
@@ -1004,19 +1003,19 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 		tooltipTile = nil;
 	}
 	
-	[activeEditor handleEvent:event inMosaicView:self];
+	[[[self editorsView] activeEditor] handleEvent:event inMosaicView:self];
 }
 
 
 - (void)mouseDragged:(NSEvent *)event
 {
-	[activeEditor handleEvent:event inMosaicView:self];
+	[[[self editorsView] activeEditor] handleEvent:event inMosaicView:self];
 }
 
 
 - (void)mouseUp:(NSEvent *)event
 {
-	[activeEditor handleEvent:event inMosaicView:self];
+	[[[self editorsView] activeEditor] handleEvent:event inMosaicView:self];
 }
 
 
@@ -1110,8 +1109,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 	[tilesNeedDisplayTimer release];
 	
 	[self setTooltipsEnabled:NO animateHiding:NO];
-	
-	[activeEditor release];
 	
 	[mainImage release];
 	[mainImageLock release];
