@@ -7,6 +7,7 @@
                 setTilesCount = id; 
                 setTilesDown = id; 
                 setTilesSize = id; 
+                setTilesSizeType = id; 
             }; 
             CLASS = MacOSaiXHexagonalTileShapesEditor; 
             LANGUAGE = ObjC; 
@@ -19,8 +20,10 @@
                 tilesDownSlider = NSSlider; 
                 tilesDownStepper = NSStepper; 
                 tilesDownTextField = NSTextField; 
+                tilesSizeMatrix = NSMatrix; 
                 tilesSizePopUp = NSPopUpButton; 
                 tilesSizeSlider = NSSlider; 
+                tilesSizeTabView = NSTabView; 
             }; 
             SUPERCLASS = NSObject; 
         }

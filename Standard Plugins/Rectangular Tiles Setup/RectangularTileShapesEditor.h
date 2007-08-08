@@ -16,20 +16,21 @@
 	
 	IBOutlet NSView					*editorView;
 	
-	IBOutlet NSTabView				*sizingTabView;
+	IBOutlet NSMatrix				*tilesSizeMatrix;
+	IBOutlet NSTabView				*tilesSizeTabView;
 	
-		// Freeform controls
-	IBOutlet NSSlider				*tilesAcrossSlider,
-									*tilesDownSlider;
+		// Freeform size pieces
     IBOutlet NSTextField			*tilesAcrossTextField,
 									*tilesDownTextField;
+	IBOutlet NSSlider				*tilesAcrossSlider,
+									*tilesDownSlider;
 	IBOutlet NSStepper				*tilesAcrossStepper, 
 									*tilesDownStepper;
-
-		// Fixed Size controls
-	IBOutlet NSPopUpButton			*tilesSizePopUp;
-	IBOutlet NSSlider				*tilesSizeSlider,
+	
+		// Fixed size pieces
+	IBOutlet NSSlider				*tilesSizeSlider, 
 									*tilesCountSlider;
+	IBOutlet NSPopUpButton			*tilesSizePopUp;
 	
 	NSSize							targetImageSize;
 	float							minAspectRatio,
@@ -37,9 +38,13 @@
 	MacOSaiXRectangularTileShapes	*currentTileShapes;
 }
 
+- (IBAction)setTilesSizeType:(id)sender;
+
+	// Freeform size pieces
 - (IBAction)setTilesAcross:(id)sender;
 - (IBAction)setTilesDown:(id)sender;
 
+	// Fixed size pieces
 - (IBAction)setTilesSize:(id)sender;
 - (IBAction)setTilesCount:(id)sender;
 

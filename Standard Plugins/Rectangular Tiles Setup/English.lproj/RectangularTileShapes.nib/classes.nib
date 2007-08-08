@@ -7,13 +7,12 @@
                 setTilesCount = id; 
                 setTilesDown = id; 
                 setTilesSize = id; 
+                setTilesSizeType = id; 
             }; 
             CLASS = MacOSaiXRectangularTileShapesEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                delegate = id; 
                 editorView = NSView; 
-                sizingTabView = NSTabView; 
                 tilesAcrossSlider = NSSlider; 
                 tilesAcrossStepper = NSStepper; 
                 tilesAcrossTextField = NSTextField; 
@@ -21,8 +20,10 @@
                 tilesDownSlider = NSSlider; 
                 tilesDownStepper = NSStepper; 
                 tilesDownTextField = NSTextField; 
+                tilesSizeMatrix = NSMatrix; 
                 tilesSizePopUp = NSPopUpButton; 
                 tilesSizeSlider = NSSlider; 
+                tilesSizeTabView = NSTabView; 
             }; 
             SUPERCLASS = NSObject; 
         }, 

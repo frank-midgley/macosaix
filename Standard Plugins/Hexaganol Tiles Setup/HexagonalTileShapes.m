@@ -62,6 +62,7 @@
 	{
 		NSDictionary	*plugInDefaults = [[NSUserDefaults standardUserDefaults] objectForKey:@"Hexagonal Tile Shapes"];
 		
+		isFreeForm = YES;
 		[self setTilesAcross:[[plugInDefaults objectForKey:@"Tiles Across"] intValue]];
 		[self setTilesDown:[[plugInDefaults objectForKey:@"Tiles Down"] intValue]];
 	}
@@ -74,8 +75,16 @@
 {
 	MacOSaiXHexagonalTileShapes	*copy = [[MacOSaiXHexagonalTileShapes allocWithZone:zone] init];
 	
-	[copy setTilesAcross:[self tilesAcross]];
-	[copy setTilesDown:[self tilesDown]];
+	if (isFreeForm)
+	{
+		[copy setTilesAcross:[self tilesAcross]];
+		[copy setTilesDown:[self tilesDown]];
+	}
+	else
+	{
+		[copy setTileAspectRatio:[self tileAspectRatio]];
+		[copy setTileCount:[self tileCount]];
+	}
 	
 	return copy;
 }
@@ -109,8 +118,16 @@
 }
 
 
+- (BOOL)isFreeForm
+{
+	return isFreeForm;
+}
+
+
 - (void)setTilesAcross:(unsigned int)count
 {
+	isFreeForm = YES;
+	
     tilesAcross = (count > 0 ? count : 40);
 }
 
@@ -123,6 +140,8 @@
 
 - (void)setTilesDown:(unsigned int)count
 {
+	isFreeForm = YES;
+	
     tilesDown = (count > 0 ? count : 40);
 }
 
@@ -132,9 +151,38 @@
 	return tilesDown;
 }
 
+- (void)setTileAspectRatio:(float)aspectRatio
+{
+	isFreeForm = NO;
+	
+	tileAspectRatio = aspectRatio;
+}
+
+
+- (float)tileAspectRatio
+{
+	return tileAspectRatio;
+}
+
+
+- (void)setTileCount:(float)count
+{
+	isFreeForm = NO;
+	
+	tileCount = count;
+}
+
+
+- (float)tileCount
+{
+	return tileCount;
+}
+
 
 - (id)briefDescription
 {
+	// TODO: handle both size types
+	
 	return [NSString stringWithFormat:NSLocalizedString(@"%d by %d hexagons", @""), tilesAcross, tilesDown];
 }
 
@@ -153,11 +201,22 @@
 
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
-	return [[NSDictionary dictionaryWithObjectsAndKeys:
-								[NSNumber numberWithInt:tilesAcross], @"Tiles Across", 
-								[NSNumber numberWithInt:tilesDown], @"Tiles Down", 
-								nil] 
-				writeToFile:path atomically:NO];
+	NSMutableDictionary	*settings =[NSMutableDictionary dictionary];
+	
+	if ([self isFreeForm])
+	{
+		[settings setObject:@"Free-form" forKey:@"Sizing"];
+		[settings setObject:[NSNumber numberWithInt:[self tilesAcross]] forKey:@"Tiles Across"];
+		[settings setObject:[NSNumber numberWithInt:[self tilesDown]] forKey:@"Tiles Down"];
+	}
+	else
+	{
+		[settings setObject:@"Fixed Size" forKey:@"Sizing"];
+		[settings setObject:[NSNumber numberWithFloat:[self tileAspectRatio]] forKey:@"Tile Aspect Ratio"];
+		[settings setObject:[NSNumber numberWithFloat:[self tileCount]] forKey:@"Tile Count"];
+	}
+	
+	return [settings writeToFile:path atomically:NO];
 }
 
 
@@ -165,8 +224,18 @@
 {
 	NSDictionary	*settings = [NSDictionary dictionaryWithContentsOfFile:path];
 	
-	[self setTilesAcross:[[settings objectForKey:@"Tiles Across"] intValue]];
-	[self setTilesDown:[[settings objectForKey:@"Tiles Down"] intValue]];
+	isFreeForm = (![settings objectForKey:@"Sizing"] || [[settings objectForKey:@"Sizing"] isEqualToString:@"Free-form"]);
+	
+	if (isFreeForm)
+	{
+		[self setTilesAcross:[[settings objectForKey:@"Tiles Across"] intValue]];
+		[self setTilesDown:[[settings objectForKey:@"Tiles Down"] intValue]];
+	}
+	else
+	{
+		[self setTileAspectRatio:[[settings objectForKey:@"Tile Aspect Ratio"] floatValue]];
+		[self setTileCount:[[settings objectForKey:@"Tile Count"] floatValue]];
+	}
 	
 	return YES;
 }
@@ -198,31 +267,59 @@
 
 - (NSArray *)shapesForMosaicOfSize:(NSSize)mosaicSize
 {
+	int				xCount, yCount;
+	
+	if (isFreeForm)
+	{
+		xCount = [self tilesAcross];
+		yCount = [self tilesDown];
+	}
+	else
+	{
+		int		minX = 10, 
+				minY = 10, 
+				maxX = 200, 
+				maxY = 200;
+		
+		if (mosaicSize.height * [self tileAspectRatio] / mosaicSize.width < 1.0)
+			minX = mosaicSize.width * minY / [self tileAspectRatio] / mosaicSize.height;
+		if (mosaicSize.width / [self tileAspectRatio] / mosaicSize.height < 1.0)
+			minY = minX * mosaicSize.height * [self tileAspectRatio] / mosaicSize.width;
+		if (mosaicSize.height * [self tileAspectRatio] / mosaicSize.width > 1.0)
+			maxX = mosaicSize.width * maxY / [self tileAspectRatio] / mosaicSize.height;
+		if (mosaicSize.width / [self tileAspectRatio] / mosaicSize.height > 1.0)
+			maxY = maxX * mosaicSize.height * [self tileAspectRatio] / mosaicSize.width;
+		
+		xCount = minX + (maxX - minX) * [self tileCount];
+		yCount = minY + (maxY - minY) * [self tileCount];
+	}
+	
     int				x, y;
-    float			xSize = 1.0 / (tilesAcross - 1.0/3.0), ySize = 1.0 / tilesDown, originX, originY;
-    NSMutableArray	*tileOutlines = [NSMutableArray arrayWithCapacity:(tilesAcross * tilesDown)];
+    float			xSize = mosaicSize.width / (xCount - 1.0/3.0), 
+					ySize = mosaicSize.height / yCount, originX, originY;
+    NSMutableArray	*tileOutlines = [NSMutableArray arrayWithCapacity:(xCount * yCount)];
     
-    for (x = 0; x < tilesAcross; x++)
-        for (y = 0; y < ((x % 2 == 0) ? tilesDown : tilesDown + 1); y++)
+    for (x = 0; x < xCount; x++)
+        for (y = 0; y < ((x % 2 == 0) ? yCount : yCount + 1); y++)
         {
             originX = xSize * (x - 1.0 / 3.0);
             originY = ySize * ((x % 2 == 0) ? y : y - 0.5);
 			
             NSBezierPath	*tileOutline = [NSBezierPath bezierPath];
-            [tileOutline moveToPoint:NSMakePoint(MIN(MAX(originX + xSize / 3, 0) , 1),
-                            MIN(MAX(originY, 0) , 1))];
-            [tileOutline lineToPoint:NSMakePoint(MIN(MAX(originX + xSize, 0) , 1),
-                            MIN(MAX(originY, 0) , 1))];
-            [tileOutline lineToPoint:NSMakePoint(MIN(MAX(originX + xSize * 4 / 3, 0) , 1),
-                            MIN(MAX(originY + ySize / 2, 0) , 1))];
-            [tileOutline lineToPoint:NSMakePoint(MIN(MAX(originX + xSize, 0) , 1),
-                            MIN(MAX(originY + ySize, 0) , 1))];
-            [tileOutline lineToPoint:NSMakePoint(MIN(MAX(originX + xSize / 3, 0) , 1),
-                            MIN(MAX(originY + ySize, 0), 1))];
-            [tileOutline lineToPoint:NSMakePoint(MIN(MAX(originX, 0) , 1),
-                            MIN(MAX(originY + ySize / 2, 0), 1))];
+            [tileOutline moveToPoint:NSMakePoint(MIN(MAX(originX + xSize / 3, 0) , mosaicSize.width),
+												 MIN(MAX(originY, 0) , mosaicSize.height))];
+            [tileOutline lineToPoint:NSMakePoint(MIN(MAX(originX + xSize, 0) , mosaicSize.width),
+												 MIN(MAX(originY, 0) , mosaicSize.height))];
+            [tileOutline lineToPoint:NSMakePoint(MIN(MAX(originX + xSize * 4 / 3, 0) , mosaicSize.width),
+												 MIN(MAX(originY + ySize / 2, 0) , mosaicSize.height))];
+            [tileOutline lineToPoint:NSMakePoint(MIN(MAX(originX + xSize, 0) , mosaicSize.width),
+												 MIN(MAX(originY + ySize, 0) , mosaicSize.height))];
+            [tileOutline lineToPoint:NSMakePoint(MIN(MAX(originX + xSize / 3, 0) , mosaicSize.width),
+												 MIN(MAX(originY + ySize, 0), mosaicSize.height))];
+            [tileOutline lineToPoint:NSMakePoint(MIN(MAX(originX, 0) , mosaicSize.width),
+												 MIN(MAX(originY + ySize / 2, 0), mosaicSize.height))];
             [tileOutline closePath];
-            [tileOutlines addObject:tileOutline];
+            [tileOutlines addObject:[MacOSaiXHexagonalTileShape tileShapeWithOutline:tileOutline]];
         }
     
 	return [NSArray arrayWithArray:tileOutlines];

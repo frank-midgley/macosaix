@@ -12,20 +12,24 @@
 @interface MacOSaiXHexagonalTileShapesEditor : NSObject <MacOSaiXDataSourceEditor>
 {
 	id<MacOSaiXEditorDelegate>	delegate;
+	
 	IBOutlet NSView				*editorView;
 	
-		// Freeform controls
-	IBOutlet NSSlider			*tilesAcrossSlider,
-								*tilesDownSlider;
+	IBOutlet NSMatrix			*tilesSizeMatrix;
+	IBOutlet NSTabView			*tilesSizeTabView;
+	
+		// Freeform size pieces
     IBOutlet NSTextField		*tilesAcrossTextField,
 								*tilesDownTextField;
+	IBOutlet NSSlider			*tilesAcrossSlider,
+								*tilesDownSlider;
 	IBOutlet NSStepper			*tilesAcrossStepper, 
 								*tilesDownStepper;
-		
-		// Fixed Size controls
-	IBOutlet NSPopUpButton		*tilesSizePopUp;
-	IBOutlet NSSlider			*tilesSizeSlider,
+	
+		// Fixed size pieces
+	IBOutlet NSSlider			*tilesSizeSlider, 
 								*tilesCountSlider;
+	IBOutlet NSPopUpButton		*tilesSizePopUp;
 	
 	NSSize						targetImageSize;
 	float						minAspectRatio,
@@ -33,9 +37,13 @@
 	MacOSaiXHexagonalTileShapes	*currentTileShapes;
 }
 
+- (IBAction)setTilesSizeType:(id)sender;
+
+	// Freeform size pieces
 - (IBAction)setTilesAcross:(id)sender;
 - (IBAction)setTilesDown:(id)sender;
 
+	// Fixed size pieces
 - (IBAction)setTilesSize:(id)sender;
 - (IBAction)setTilesCount:(id)sender;
 
