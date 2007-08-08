@@ -484,7 +484,7 @@
 }
 
 
-- (id<NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
+- (id<NSObject,NSCoding,NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
 {
 	return identifier;
 }

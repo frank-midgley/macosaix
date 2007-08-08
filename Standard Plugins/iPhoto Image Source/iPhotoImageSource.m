@@ -329,13 +329,13 @@
 }
 
 
-- (id<NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
+- (id<NSObject,NSCoding,NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
 {
 	return identifier;
 }
 
 
-- (NSString *)identifierForUniversalIdentifier:(id<NSCopying>)identifier
+- (NSString *)identifierForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)identifier
 {
 	return (NSString *)identifier;
 }

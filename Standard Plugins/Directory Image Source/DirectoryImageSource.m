@@ -293,7 +293,7 @@
 }
 
 
-- (id<NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
+- (id<NSObject,NSCoding,NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier
 {
 	NSString	*fullPath = [[NSFileManager defaultManager] pathByResolvingAliasesInPath:[directoryPath stringByAppendingPathComponent:identifier]];
 	

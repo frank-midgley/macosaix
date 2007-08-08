@@ -299,7 +299,7 @@
 	{
 			// Make the folder a package.
 		FSRef		folderRef;
-		OSStatus	status = FSPathMakeRef([newPath UTF8String], &folderRef, NULL);
+		OSStatus	status = FSPathMakeRef((const UInt8 *)[newPath UTF8String], &folderRef, NULL);
 		if (status == noErr)
 		{
 			FSCatalogInfo	info;

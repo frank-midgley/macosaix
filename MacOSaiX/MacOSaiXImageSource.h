@@ -37,7 +37,7 @@
 - (id<NSObject,NSCoding,NSCopying>)universalIdentifierForIdentifier:(NSString *)identifier;
 
 	// This method should return an object that identifies the image indicated by identifier independently of the image source.  The object returned is typically an NSURL or NSString but any object conforming to NSCopying is allowed.
-- (NSString *)identifierForUniversalIdentifier:(id<NSCopying>)identifier;
+- (NSString *)identifierForUniversalIdentifier:(id<NSObject,NSCoding,NSCopying>)identifier;
 
 	// This method should return the image specified by the identifier.  The identifier will always be one of the values returned by a previous call to -nextImageAndIdentifier:.  The image does not need to be the exact same instance returned by -nextImageAndIdentifier but should contain the same image data.
 - (NSImage *)thumbnailForIdentifier:(NSString *)identifier;
