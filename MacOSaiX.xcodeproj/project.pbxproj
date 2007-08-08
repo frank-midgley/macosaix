@@ -103,7 +103,6 @@
 		016A242508D7C975009A93BF /* ZoomOut.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A242408D7C975009A93BF /* ZoomOut.png */; };
 		016A248208D7D8E2009A93BF /* HandPicked.png in Resources */ = {isa = PBXBuildFile; fileRef = 016A248108D7D8E2009A93BF /* HandPicked.png */; };
 		016A2C5308CD2611002D56C1 /* MacOSaiXImageMatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */; };
-		016A2CCE08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */; };
 		01722BA309298D3E00290929 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		01722BC109298DB700290929 /* FlickrImageSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 01722B8E09298D3300290929 /* FlickrImageSource.m */; };
 		01722BC209298DB700290929 /* FlickrImageSourceController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01722B9009298D3300290929 /* FlickrImageSourceController.m */; };
@@ -132,7 +131,7 @@
 		920072C10BEA89DA004DED2C /* MacOSaiXSplitView.h in Headers */ = {isa = PBXBuildFile; fileRef = 920072BF0BEA89DA004DED2C /* MacOSaiXSplitView.h */; };
 		920072C20BEA89DA004DED2C /* MacOSaiXSplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = 920072C00BEA89DA004DED2C /* MacOSaiXSplitView.m */; };
 		92052A430C57AEF7003A405F /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 92052A420C57AEF7003A405F /* Info.plist */; };
-		92052A4C0C57B046003A405F /* Web Page Exporter.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92052A330C57AE3E003A405F /* Web Page Exporter.bundle */; };
+		92052A4C0C57B046003A405F /* Web Page Exporter.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92052A330C57AE3E003A405F /* Web Page Exporter.plugin */; };
 		92052A630C57B0B1003A405F /* Web Page.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92052A610C57B0B1003A405F /* Web Page.nib */; };
 		92052AAF0C57C704003A405F /* Export1.html in Resources */ = {isa = PBXBuildFile; fileRef = 92052AA10C57C704003A405F /* Export1.html */; };
 		92052AB00C57C704003A405F /* Export2.html in Resources */ = {isa = PBXBuildFile; fileRef = 92052AA30C57C704003A405F /* Export2.html */; };
@@ -247,7 +246,7 @@
 		929C538E0C04E8B500D2CE07 /* Pause.png in Resources */ = {isa = PBXBuildFile; fileRef = 929C538C0C04E8B500D2CE07 /* Pause.png */; };
 		929C538F0C04E8B500D2CE07 /* Resume.png in Resources */ = {isa = PBXBuildFile; fileRef = 929C538D0C04E8B500D2CE07 /* Resume.png */; };
 		929C55760C05FA5500D2CE07 /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 929C55360C05F98100D2CE07 /* libcrypto.dylib */; };
-		929DC0980BFB4EFF00024C99 /* Bitmap Exporter.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92341E220BF8F1370079BFF0 /* Bitmap Exporter.bundle */; };
+		929DC0980BFB4EFF00024C99 /* Bitmap Exporter.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92341E220BF8F1370079BFF0 /* Bitmap Exporter.plugin */; };
 		929DC4020BFCE0C100024C99 /* iTunesImageSourcePlugIn.h in Headers */ = {isa = PBXBuildFile; fileRef = 929DC4000BFCE0C100024C99 /* iTunesImageSourcePlugIn.h */; };
 		929DC4030BFCE0C100024C99 /* iTunesImageSourcePlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 929DC4010BFCE0C100024C99 /* iTunesImageSourcePlugIn.m */; };
 		929DC4140BFCE31000024C99 /* iTunes Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 011C7D690A1D76460023CD62 /* iTunes Image Source.plugin */; };
@@ -275,7 +274,7 @@
 		92D94E050C0F35A300441CE1 /* MacOSaiXPDFExporter.m in Sources */ = {isa = PBXBuildFile; fileRef = 92D94DFE0C0F35A300441CE1 /* MacOSaiXPDFExporter.m */; };
 		92D94E060C0F35A300441CE1 /* MacOSaiXPDFExporterPlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92D94E000C0F35A300441CE1 /* MacOSaiXPDFExporterPlugIn.m */; };
 		92D94E070C0F35A300441CE1 /* MacOSaiXPDFExportSettings.m in Sources */ = {isa = PBXBuildFile; fileRef = 92D94E020C0F35A300441CE1 /* MacOSaiXPDFExportSettings.m */; };
-		92D94E220C0F3B1400441CE1 /* PDF Exporter.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92D94DD50C0F34CA00441CE1 /* PDF Exporter.bundle */; };
+		92D94E220C0F3B1400441CE1 /* PDF Exporter.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92D94DD50C0F34CA00441CE1 /* PDF Exporter.plugin */; };
 		92D94ED50C108DEB00441CE1 /* PDF Export.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92D94ED30C108DEB00441CE1 /* PDF Export.nib */; };
 		92DA0D510A32192B0064E69E /* Add.png in Resources */ = {isa = PBXBuildFile; fileRef = 92DA0D500A32192B0064E69E /* Add.png */; };
 		92DA0D530A32193D0064E69E /* Remove.png in Resources */ = {isa = PBXBuildFile; fileRef = 92DA0D520A32193D0064E69E /* Remove.png */; };
@@ -546,9 +545,9 @@
 				929DC4140BFCE31000024C99 /* iTunes Image Source.plugin in CopyFiles */,
 				014F189E0B2CD1410023D2D2 /* Constant Image Orientations.plugin in CopyFiles */,
 				92E547D60C206F89005C3B95 /* Radial Image Orientations.plugin in CopyFiles */,
-				929DC0980BFB4EFF00024C99 /* Bitmap Exporter.bundle in CopyFiles */,
-				92D94E220C0F3B1400441CE1 /* PDF Exporter.bundle in CopyFiles */,
-				92052A4C0C57B046003A405F /* Web Page Exporter.bundle in CopyFiles */,
+				929DC0980BFB4EFF00024C99 /* Bitmap Exporter.plugin in CopyFiles */,
+				92D94E220C0F3B1400441CE1 /* PDF Exporter.plugin in CopyFiles */,
+				92052A4C0C57B046003A405F /* Web Page Exporter.plugin in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -641,8 +640,6 @@
 		016A248108D7D8E2009A93BF /* HandPicked.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = HandPicked.png; sourceTree = "<group>"; };
 		016A2C5008CD2611002D56C1 /* MacOSaiXImageMatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXImageMatch.h; sourceTree = "<group>"; };
 		016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXImageMatch.m; sourceTree = "<group>"; };
-		016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXHandPickedImageSource.h; sourceTree = "<group>"; };
-		016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXHandPickedImageSource.m; sourceTree = "<group>"; };
 		016A2E3108D1459D002D56C1 /* Version.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Version.plist; sourceTree = "<group>"; };
 		01722B8D09298D3300290929 /* FlickrImageSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FlickrImageSource.h; sourceTree = "<group>"; };
 		01722B8E09298D3300290929 /* FlickrImageSource.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = FlickrImageSource.m; sourceTree = "<group>"; };
@@ -688,7 +685,7 @@
 		92052A040C57AE02003A405F /* MacOSaiXWebPageExporterPlugIn.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXWebPageExporterPlugIn.m; sourceTree = "<group>"; };
 		92052A050C57AE02003A405F /* MacOSaiXWebPageExportSettings.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXWebPageExportSettings.h; sourceTree = "<group>"; };
 		92052A060C57AE02003A405F /* MacOSaiXWebPageExportSettings.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXWebPageExportSettings.m; sourceTree = "<group>"; };
-		92052A330C57AE3E003A405F /* Web Page Exporter.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Web Page Exporter.bundle"; sourceTree = BUILT_PRODUCTS_DIR; };
+		92052A330C57AE3E003A405F /* Web Page Exporter.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Web Page Exporter.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		92052A420C57AEF7003A405F /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
 		92052A620C57B0B1003A405F /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Web Page.nib"; sourceTree = "<group>"; };
 		92052AA20C57C704003A405F /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; name = English; path = English.lproj/Export1.html; sourceTree = "<group>"; };
@@ -718,7 +715,7 @@
 		92341CA10BF117370079BFF0 /* MacOSaiXExporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXExporter.h; sourceTree = "<group>"; };
 		92341E180BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXBitmapExporterPlugIn.h; sourceTree = "<group>"; };
 		92341E190BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXBitmapExporterPlugIn.m; sourceTree = "<group>"; };
-		92341E220BF8F1370079BFF0 /* Bitmap Exporter.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Bitmap Exporter.bundle"; sourceTree = BUILT_PRODUCTS_DIR; };
+		92341E220BF8F1370079BFF0 /* Bitmap Exporter.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Bitmap Exporter.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		92341E230BF8F1380079BFF0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
 		92341E270BF8F2050079BFF0 /* MacOSaiXBitmapExportSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXBitmapExportSettings.h; sourceTree = "<group>"; };
 		92341E280BF8F2050079BFF0 /* MacOSaiXBitmapExportSettings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXBitmapExportSettings.m; sourceTree = "<group>"; };
@@ -806,7 +803,7 @@
 		92D593240BF8F83A00FBA68C /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "Standard Plugins/Exporters/Bitmap Image/English.lproj/Bitmap Export.nib"; sourceTree = "<group>"; };
 		92D593760BF90C3400FBA68C /* MacOSaiXBitmapExporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXBitmapExporter.h; sourceTree = "<group>"; };
 		92D593770BF90C3400FBA68C /* MacOSaiXBitmapExporter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXBitmapExporter.m; sourceTree = "<group>"; };
-		92D94DD50C0F34CA00441CE1 /* PDF Exporter.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "PDF Exporter.bundle"; sourceTree = BUILT_PRODUCTS_DIR; };
+		92D94DD50C0F34CA00441CE1 /* PDF Exporter.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "PDF Exporter.plugin"; sourceTree = BUILT_PRODUCTS_DIR; };
 		92D94DFA0C0F35A300441CE1 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
 		92D94DFB0C0F35A300441CE1 /* MacOSaiXPDFExportEditor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXPDFExportEditor.h; sourceTree = "<group>"; };
 		92D94DFC0C0F35A300441CE1 /* MacOSaiXPDFExportEditor.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXPDFExportEditor.m; sourceTree = "<group>"; };
@@ -1352,9 +1349,9 @@
 				0124FA540A44A6290074777E /* iSight Image Source.plugin */,
 				014F184E0B2CCDD40023D2D2 /* Constant Image Orientations.plugin */,
 				92E547470C2069AF005C3B95 /* Radial Image Orientations.plugin */,
-				92341E220BF8F1370079BFF0 /* Bitmap Exporter.bundle */,
-				92D94DD50C0F34CA00441CE1 /* PDF Exporter.bundle */,
-				92052A330C57AE3E003A405F /* Web Page Exporter.bundle */,
+				92341E220BF8F1370079BFF0 /* Bitmap Exporter.plugin */,
+				92D94DD50C0F34CA00441CE1 /* PDF Exporter.plugin */,
+				92052A330C57AE3E003A405F /* Web Page Exporter.plugin */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1686,8 +1683,6 @@
 				92F440380C42ABA800B1ECB1 /* MacOSaiXDisallowedImage.m */,
 				924D8EF20C5BBEA500F2EF94 /* MacOSaiXEnumeratedImage.h */,
 				924D8EF30C5BBEA600F2EF94 /* MacOSaiXEnumeratedImage.m */,
-				016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */,
-				016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */,
 				9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */,
 				9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */,
 				016A2C5008CD2611002D56C1 /* MacOSaiXImageMatch.h */,
@@ -2055,7 +2050,7 @@
 			);
 			name = "Web Page Exporter";
 			productName = "Web Page Exporter";
-			productReference = 92052A330C57AE3E003A405F /* Web Page Exporter.bundle */;
+			productReference = 92052A330C57AE3E003A405F /* Web Page Exporter.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
 		92341E210BF8F1370079BFF0 /* Bitmap Exporter */ = {
@@ -2073,7 +2068,7 @@
 			);
 			name = "Bitmap Exporter";
 			productName = "Bitmap Exporter";
-			productReference = 92341E220BF8F1370079BFF0 /* Bitmap Exporter.bundle */;
+			productReference = 92341E220BF8F1370079BFF0 /* Bitmap Exporter.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
 		9284897106611CE5003B3514 /* MacOSaiX.app */ = {
@@ -2218,7 +2213,7 @@
 			);
 			name = "PDF Exporter";
 			productName = "Bitmap Exporter";
-			productReference = 92D94DD50C0F34CA00441CE1 /* PDF Exporter.bundle */;
+			productReference = 92D94DD50C0F34CA00441CE1 /* PDF Exporter.plugin */;
 			productType = "com.apple.product-type.bundle";
 		};
 		92E3E15207E7BE8C00E62AB8 /* iPhoto Image Source */ = {
@@ -2838,7 +2833,6 @@
 				01297702086A63D30095AD36 /* MacOSaiXCrashReporterController.m in Sources */,
 				92B9087C08C25F0600D621F5 /* MacOSaiXImageMatcher.m in Sources */,
 				016A2C5308CD2611002D56C1 /* MacOSaiXImageMatch.m in Sources */,
-				016A2CCE08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m in Sources */,
 				9216086A08E5DCA70018C4C1 /* NSFileManager+MacOSaiX.m in Sources */,
 				01FE978E08E8EDFE00E4AC7C /* MacOSaiXKioskController.m in Sources */,
 				01FE981308F365C600E4AC7C /* MacOSaiXMosaic.m in Sources */,
@@ -3826,7 +3820,7 @@
 				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Exporters/Web Page/Info.plist";
 				PRODUCT_NAME = "Web Page Exporter";
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = plugin;
 			};
 			name = Debug;
 		};
@@ -3837,7 +3831,7 @@
 				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Exporters/Web Page/Info.plist";
 				PRODUCT_NAME = "Web Page Exporter";
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = plugin;
 			};
 			name = Release;
 		};
@@ -3848,7 +3842,7 @@
 				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Exporters/Bitmap Image/Info.plist";
 				PRODUCT_NAME = "Bitmap Exporter";
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = plugin;
 			};
 			name = Debug;
 		};
@@ -3859,7 +3853,7 @@
 				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Exporters/Bitmap Image/Info.plist";
 				PRODUCT_NAME = "Bitmap Exporter";
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = plugin;
 			};
 			name = Release;
 		};
@@ -3870,7 +3864,7 @@
 				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Exporters/PDF/Info.plist";
 				PRODUCT_NAME = "PDF Exporter";
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = plugin;
 			};
 			name = Debug;
 		};
@@ -3881,7 +3875,7 @@
 				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
 				INFOPLIST_FILE = "Standard Plugins/Exporters/PDF/Info.plist";
 				PRODUCT_NAME = "PDF Exporter";
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = plugin;
 			};
 			name = Release;
 		};
@@ -3890,7 +3884,7 @@
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
-				INFOPLIST_FILE = "/Users/fmidgley/Development/MacOSaiX/Standard Plugins/Image Orientations/Radial/Info.plist";
+				INFOPLIST_FILE = "Standard Plugins/Image Orientations/Radial/Info.plist";
 				PRODUCT_NAME = "Radial Image Orientations";
 				WRAPPER_EXTENSION = plugin;
 			};
@@ -3901,7 +3895,7 @@
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Standard Plugins/MacOSaiXPluginPrefix.h";
-				INFOPLIST_FILE = "/Users/fmidgley/Development/MacOSaiX/Standard Plugins/Image Orientations/Radial/Info.plist";
+				INFOPLIST_FILE = "Standard Plugins/Image Orientations/Radial/Info.plist";
 				PRODUCT_NAME = "Radial Image Orientations";
 				WRAPPER_EXTENSION = plugin;
 			};
