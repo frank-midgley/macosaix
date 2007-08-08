@@ -14,6 +14,8 @@
 #import "MacOSaiXPlugIn.h"
 
 
+static NSMutableArray	*subClasses;
+
 @implementation MacOSaiXMosaicEditor
 
 
@@ -27,6 +29,99 @@
 	[image unlockFocus];
 	
 	return image;
+}
+
+
++ (void)load
+{
+	if (self == [MacOSaiXMosaicEditor class])
+		subClasses = [[NSMutableArray alloc] init];
+	else
+	{
+		[subClasses addObject:self];
+		
+		NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
+		[subClasses sortUsingSelector:@selector(compare:)];
+		[pool release];
+	}
+}
+
+
++ (NSArray *)editorClasses
+{
+	return [NSArray arrayWithArray:subClasses];
+}
+
+
++ (NSString *)title
+{
+	return @"";
+}
+
+
++ (BOOL)isAdditional
+{
+	return NO;
+}
+
+
++ (NSComparisonResult)compare:(Class)otherEditor
+{
+	if (![self isAdditional] && [otherEditor isAdditional])
+		return NSOrderedAscending;
+	else if ([self isAdditional] && ![otherEditor isAdditional])
+		return NSOrderedDescending;
+	else
+		return [[self title] compare:[otherEditor title]];
+}
+
+
++ (BOOL)descriptionHasBeenShown
+{
+	NSString	*editorDefault = [NSString stringWithFormat:@"%@ Description Shown", NSStringFromClass(self)];
+	
+	return [[NSUserDefaults standardUserDefaults] boolForKey:editorDefault];
+}
+
+
++ (void)showDescriptionNearPoint:(NSPoint)descriptionPoint
+{
+	NSString		*windowTitle = [NSString stringWithFormat:NSLocalizedString(@"%@ Settings", @""), [self title]];
+	NSWindow		*window = nil;
+	
+		// Check if the window is already open.
+	NSEnumerator	*windowEnumerator = [[NSApp windows] objectEnumerator];
+	while (window = [windowEnumerator nextObject])
+		if ([window isKindOfClass:[NSPanel class]] && [[window title] isEqualToString:windowTitle])
+			break;
+	
+	if (!window)
+	{
+		NSString	*editorDescription = [self description];
+		NSRect		editorRect = NSMakeRect(descriptionPoint.x - 100.0, descriptionPoint.y - 50.0, 250.0, 100.0);
+		// TODO: make sure the window is fully onscreen.
+		
+		window = [[NSPanel alloc] initWithContentRect:editorRect 
+											styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSResizableWindowMask | NSUtilityWindowMask) 
+											  backing:NSBackingStoreBuffered 
+												defer:NO];
+		[window setTitle:windowTitle];
+		[window setMinSize:editorRect.size];
+		
+		NSTextField	*textField = [[NSTextField alloc] initWithFrame:[[window contentView] bounds]];
+		[textField setBordered:NO];
+		[textField setStringValue:editorDescription];
+		[textField setEditable:NO];
+		[textField setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+		[[window contentView] addSubview:textField];
+		
+		[window setReleasedWhenClosed:YES];
+	}
+	
+	[window makeKeyAndOrderFront:self];
+	
+	NSString	*editorDefault = [NSString stringWithFormat:@"%@ Description Shown", NSStringFromClass(self)];
+	[[NSUserDefaults standardUserDefaults] setBool:YES forKey:editorDefault];
 }
 
 
@@ -44,12 +139,6 @@
 - (id<MacOSaiXMosaicEditorDelegate>)delegate
 {
 	return editorDelegate;
-}
-
-
-- (NSString *)title
-{
-	return @"";
 }
 
 
@@ -277,16 +366,21 @@
 }
 
 
-- (void)endEditing
+- (BOOL)endEditing
 {
 		// End any editing before the view is removed from the window.
-	[[self delegate] makeFirstResponder:nil];
+	BOOL	success = [[self delegate] makeFirstResponder:nil];
 	
-	[plugInEditor editingDidComplete];
-	[plugInEditor release];
-	plugInEditor = nil;
+	if (success)
+	{
+		[plugInEditor editingDidComplete];
+		[plugInEditor release];
+		plugInEditor = nil;
+		
+		isActive = NO;
+	}
 	
-	isActive = NO;
+	return success;
 }
 
 

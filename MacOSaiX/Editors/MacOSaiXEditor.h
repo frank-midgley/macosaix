@@ -28,12 +28,20 @@
 	BOOL								isActive;
 }
 
++ (NSArray *)editorClasses;
+
 + (NSImage *)image;
+
++ (NSString *)title;
+
++ (BOOL)isAdditional;
+
++ (BOOL)descriptionHasBeenShown;
+
++ (void)showDescriptionNearPoint:(NSPoint)descriptionPoint;
 
 - (id)initWithDelegate:(id<MacOSaiXMosaicEditorDelegate>)delegate;
 - (id<MacOSaiXMosaicEditorDelegate>)delegate;
-
-- (NSString *)title;
 
 - (NSString *)editorNibName;
 
@@ -62,7 +70,7 @@
 
 - (void)handleEvent:(NSEvent *)event inMosaicView:(MosaicView *)mosaicView;
 
-- (void)endEditing;
+- (BOOL)endEditing;
 
 - (BOOL)isActive;
 
@@ -73,7 +81,7 @@
 
 - (MacOSaiXMosaic *)mosaic;
 
-- (void)setActiveEditor:(MacOSaiXMosaicEditor *)editor;
+- (BOOL)setActiveEditor:(MacOSaiXMosaicEditor *)editor;
 - (MacOSaiXMosaicEditor *)activeEditor;
 
 - (BOOL)makeFirstResponder:(NSResponder *)responder;
