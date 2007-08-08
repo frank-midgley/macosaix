@@ -13,12 +13,6 @@
 enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 
-@interface MacOSaiXPuzzleTileShapesEditor (PrivateMethods)
-- (void)setTilesAcrossBasedOnTilesDown;
-- (void)setTilesDownBasedOnTilesAcross;
-@end
-
-
 @implementation MacOSaiXPuzzleTileShapesEditor
 
 
@@ -363,50 +357,9 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 
 
 #pragma mark -
-
-
-//- (int)tileCount
-//{
-//	return [tilesAcrossSlider intValue] * [tilesDownSlider intValue];
-//}
-
-
-//- (void)updatePreview:(NSTimer *)timer
-//{
-//		// Pick a new random puzzle piece.
-//	float		tileAspectRatio = (targetImageSize.width / [tilesAcrossSlider intValue]) / 
-//								  (targetImageSize.height / [tilesDownSlider intValue]), 
-//				tabbedSidesRatio = [currentTileShapes tabbedSidesRatio],
-//				curviness = [currentTileShapes curviness];
-//	
-//	[previewShape release];
-//	previewShape = [[MacOSaiXPuzzleTileShape alloc] initWithBounds:NSMakeRect(0.0, 0.0, 1.0, 1.0 / tileAspectRatio) 
-//														topTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
-//													   leftTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
-//													  rightTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
-//													 bottomTabType:(random() % 100 >= tabbedSidesRatio * 100.0) ? noTab : (random() % 2) * 2 - 1 
-//											topLeftHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
-//											  topLeftVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
-//										   topRightHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
-//											 topRightVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
-//										 bottomLeftHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
-//										   bottomLeftVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
-//										bottomRightHorizontalCurve:(random() % 200 - 100) / 100.0 * curviness 
-//										  bottomRightVerticalCurve:(random() % 200 - 100) / 100.0 * curviness 
-//														alignImage:([alignImagesMatrix selectedRow] == 1)];
-//	
-//		// Dummy event to let MacOSaiX know that the preview should be updated.
-//	[[editorView window] sendEvent:nil];
-//}
-
-
-//- (id<MacOSaiXTileShape>)previewShape
-//{
-//	return	previewShape;
-//}
 	
 	
-	- (BOOL)mouseDownInMosaic:(NSEvent *)event
+- (BOOL)mouseDownInMosaic:(NSEvent *)event
 {
 	return NO;
 }
