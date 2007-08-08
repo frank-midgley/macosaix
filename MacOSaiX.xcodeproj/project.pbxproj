@@ -175,6 +175,8 @@
 		92423AB90C32EE40003DB124 /* GlyphImageSourcePlugIn.h in Headers */ = {isa = PBXBuildFile; fileRef = 92423AB70C32EE40003DB124 /* GlyphImageSourcePlugIn.h */; };
 		92423ABA0C32EE40003DB124 /* GlyphImageSourcePlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92423AB80C32EE40003DB124 /* GlyphImageSourcePlugIn.m */; };
 		92423ACB0C32F032003DB124 /* Glyph Image Source.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 928489E506611CE6003B3514 /* Glyph Image Source.plugin */; };
+		924D8EF40C5BBEA600F2EF94 /* MacOSaiXEnumeratedImage.h in Headers */ = {isa = PBXBuildFile; fileRef = 924D8EF20C5BBEA500F2EF94 /* MacOSaiXEnumeratedImage.h */; };
+		924D8EF50C5BBEA600F2EF94 /* MacOSaiXEnumeratedImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 924D8EF30C5BBEA600F2EF94 /* MacOSaiXEnumeratedImage.m */; };
 		9253016509D611EF001E27F3 /* NoOriginal.png in Resources */ = {isa = PBXBuildFile; fileRef = 9253016409D611EF001E27F3 /* NoOriginal.png */; };
 		9254088D0915741F00384904 /* MacOSaiXKioskMessageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */; };
 		92554D670BFA460200CCF920 /* MacOSaiXBitmapExporterPlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 92341E190BF8F1090079BFF0 /* MacOSaiXBitmapExporterPlugIn.m */; };
@@ -733,6 +735,8 @@
 		924236500C2C58BD003DB124 /* MacOSaiXSourceImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXSourceImage.m; sourceTree = "<group>"; };
 		92423AB70C32EE40003DB124 /* GlyphImageSourcePlugIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GlyphImageSourcePlugIn.h; sourceTree = "<group>"; };
 		92423AB80C32EE40003DB124 /* GlyphImageSourcePlugIn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GlyphImageSourcePlugIn.m; sourceTree = "<group>"; };
+		924D8EF20C5BBEA500F2EF94 /* MacOSaiXEnumeratedImage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXEnumeratedImage.h; sourceTree = "<group>"; };
+		924D8EF30C5BBEA600F2EF94 /* MacOSaiXEnumeratedImage.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXEnumeratedImage.m; sourceTree = "<group>"; };
 		9253016409D611EF001E27F3 /* NoOriginal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = NoOriginal.png; sourceTree = "<group>"; };
 		9254088A0915741F00384904 /* MacOSaiXKioskMessageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXKioskMessageView.h; sourceTree = "<group>"; };
 		9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXKioskMessageView.m; sourceTree = "<group>"; };
@@ -1680,6 +1684,8 @@
 			children = (
 				92F440370C42ABA800B1ECB1 /* MacOSaiXDisallowedImage.h */,
 				92F440380C42ABA800B1ECB1 /* MacOSaiXDisallowedImage.m */,
+				924D8EF20C5BBEA500F2EF94 /* MacOSaiXEnumeratedImage.h */,
+				924D8EF30C5BBEA600F2EF94 /* MacOSaiXEnumeratedImage.m */,
 				016A2CCB08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.h */,
 				016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */,
 				9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */,
@@ -1862,6 +1868,7 @@
 				924236350C2C4CA6003DB124 /* MacOSaiXImageQueue.h in Headers */,
 				924236510C2C58BD003DB124 /* MacOSaiXSourceImage.h in Headers */,
 				92F440390C42ABA800B1ECB1 /* MacOSaiXDisallowedImage.h in Headers */,
+				924D8EF40C5BBEA600F2EF94 /* MacOSaiXEnumeratedImage.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2866,6 +2873,7 @@
 				924236360C2C4CA6003DB124 /* MacOSaiXImageQueue.m in Sources */,
 				924236520C2C58BD003DB124 /* MacOSaiXSourceImage.m in Sources */,
 				92F4403A0C42ABA800B1ECB1 /* MacOSaiXDisallowedImage.m in Sources */,
+				924D8EF50C5BBEA600F2EF94 /* MacOSaiXEnumeratedImage.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
