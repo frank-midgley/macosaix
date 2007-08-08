@@ -51,8 +51,6 @@
 	BOOL							calculateImageMatchesThreadAlive;
 	NSMutableDictionary				*betterMatchesCache, 
 									*imageIdentifiersInUse;
-
-	MacOSaiXImageSourceEnumerator	*handPickedImageSourceEnumerator;
 	
     BOOL							paused, 
 									pausing;
@@ -66,6 +64,8 @@
 	BOOL							isBeingLoaded;
 	
 	NSUndoManager					*undoManager;
+	
+	NSMutableArray					*visibleEditorClasses;
 }
 
 	// Target image
@@ -126,9 +126,6 @@
 - (NSString *)diskCacheSubPathForImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (void)setDiskCacheSubPath:(NSString *)path forImageSource:(id<MacOSaiXImageSource>)imageSource;
 
-	// Hand picked images
-- (MacOSaiXImageSourceEnumerator *)handPickedImageSourceEnumerator;
-
 	// Pause/resume
 - (BOOL)isPaused;
 - (void)pause;
@@ -141,6 +138,9 @@
 - (BOOL)isBeingLoaded;
 
 - (NSUndoManager *)undoManager;
+
+- (void)setEditorClass:(Class)editorClass isVisible:(BOOL)isVisible;
+- (BOOL)editorClassIsVisible:(Class)editorClass;
 
 @end
 

@@ -10,6 +10,8 @@
 
 #import "MacOSaiX.h"
 #import "MacOSaiXDisallowedImage.h"
+#import "MacOSaiXEditor.h"
+#import "MacOSaiXEnumeratedImage.h"
 #import "MacOSaiXExporter.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatcher.h"
@@ -18,6 +20,7 @@
 #import "MacOSaiXImageSource.h"
 #import "MacOSaiXImageSourceEnumerator.h"
 #import "MacOSaiXHandPickedImageSource.h"
+#import "MacOSaiXMosaic.h"
 #import "MacOSaiXSourceImage.h"
 #import "MacOSaiXTileShapes.h"
 #import "Tiles.h"
@@ -71,6 +74,17 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 		
 		disallowedImages = [[NSMutableArray array] retain];
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(disallowedImagesDidChange:) name:MacOSaiXDisallowedImagesDidChangeNotification object:nil];
+		
+		visibleEditorClasses = [[NSMutableArray arrayWithObjects:@"MacOSaiXTargetImageEditor", @"MacOSaiXTileShapesEditor", @"MacOSaiXImageSourcesEditor", nil] retain];
+		NSEnumerator	*classNameEnumerator = [[defaults objectForKey:@"Default Additional Editors"] objectEnumerator];
+		NSString		*className = nil;
+		while (className = [classNameEnumerator nextObject])
+		{
+			Class	editorClass = NSClassFromString(className);
+			
+			if (editorClass)
+				[visibleEditorClasses addObject:editorClass];
+		}
 		
 		paused = NO;
 	}
@@ -552,21 +566,21 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 	BOOL							tilesWereChanged = NO;
 	MacOSaiXImageSourceEnumerator	*imageSourceEnumerator = [self enumeratorForImageSource:imageSource];
 	
-	[newImageQueue	removeImagesFromImageSourceEnumerator:imageSourceEnumerator];
-	[revisitImageQueue	removeImagesFromImageSourceEnumerator:imageSourceEnumerator];
+	[newImageQueue	removeImagesFromImageSource:[imageSourceEnumerator workingImageSource]];
+	[revisitImageQueue	removeImagesFromImageSource:[imageSourceEnumerator workingImageSource]];
 	
 		// Remove any images from this source from the tiles.
 	NSEnumerator		*tileEnumerator = [tiles objectEnumerator];
 	MacOSaiXTile		*tile = nil;
 	while (tile = [tileEnumerator nextObject])
 	{
-		if ([[[tile uniqueImageMatch] sourceImage] enumerator] == imageSourceEnumerator)
+		if ([(MacOSaiXEnumeratedImage *)[[tile uniqueImageMatch] sourceImage] enumerator] == imageSourceEnumerator)
 		{
 			[tile setUniqueImageMatch:nil];
 			tilesWereChanged = YES;
 		}
 		
-		if ([[[tile bestImageMatch] sourceImage] enumerator] == imageSourceEnumerator)
+		if ([(MacOSaiXEnumeratedImage *)[[tile bestImageMatch] sourceImage] enumerator] == imageSourceEnumerator)
 		{
 			[tile setBestImageMatch:nil];
 			tilesWereChanged = YES;
@@ -823,7 +837,7 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 #pragma mark Image matching
 
 
-- (NSMutableArray *)betterMatchesForSourceImage:(MacOSaiXSourceImage *)sourceImage 
+- (NSMutableArray *)betterMatchesForSourceImage:(MacOSaiXEnumeratedImage *)sourceImage 
 {
 	NSMutableArray	*betterMatches = [betterMatchesCache objectForKey:[sourceImage universalIdentifier]];
 	
@@ -911,7 +925,7 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 							MacOSaiXImageSourceEnumerator	*sourceImageEnumerator = [sourceImage enumerator];
 							if ([sourceImageEnumerator isOnProbation] && 
 								[previousBestMatch sourceImage] && 
-								[[previousBestMatch sourceImage] enumerator] != sourceImageEnumerator)
+								[(MacOSaiXEnumeratedImage *)[previousBestMatch sourceImage] enumerator] != sourceImageEnumerator)
 								[sourceImageEnumerator rememberProbationaryImage:[previousBestMatch sourceImage]];
 						}
 					}
@@ -1056,7 +1070,7 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 				}
 				
 					// Pull the next image from the queue.
-				MacOSaiXSourceImage				*sourceImage = [imageQueue popImage];
+				MacOSaiXEnumeratedImage			*sourceImage = (MacOSaiXEnumeratedImage *)[imageQueue popImage];
 				MacOSaiXImageSourceEnumerator	*sourceImageEnumerator = [sourceImage enumerator];
 				BOOL							sourceImageInUse = NO, 
 												sourceImageIsDisplayed = NO;
@@ -1104,7 +1118,7 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 								
 								if ([sourceImageEnumerator isOnProbation] && 
 									[previousMatch sourceImage] && 
-									[[previousMatch sourceImage] enumerator] != sourceImageEnumerator)
+									[(MacOSaiXEnumeratedImage *)[previousMatch sourceImage] enumerator] != sourceImageEnumerator)
 										[sourceImageEnumerator rememberProbationaryImage:[previousMatch sourceImage]];
 							}
 							
@@ -1196,24 +1210,6 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 		totalCount += [[sourceEnumerator imageIdentifiersInUse] count];
 	
 	return totalCount;
-}
-
-
-#pragma mark -
-#pragma mark Hand picked images
-
-
-- (MacOSaiXImageSourceEnumerator *)handPickedImageSourceEnumerator
-{
-	if (!handPickedImageSourceEnumerator)
-	{
-		id<MacOSaiXImageSource> imageSource = [[[NSClassFromString(@"MacOSaiXDirectoryImageSource") alloc] init] autorelease];
-		[(id)imageSource setPath:@"/"];
-		
-		handPickedImageSourceEnumerator = [[MacOSaiXImageSourceEnumerator alloc] initWithImageSource:imageSource forMosaic:self];
-	}
-	
-	return handPickedImageSourceEnumerator;
 }
 
 
@@ -1361,7 +1357,7 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 #pragma mark "Don't Use" support
 
 
-- (void)removeDisallowedImage:(MacOSaiXDisallowedImage *)disallowedImage
+- (void)removeDisallowedImage:(MacOSaiXSourceImage *)disallowedImage
 {
 	BOOL			needToReset = NO;
 	NSEnumerator	*tileEnumerator = [tiles objectEnumerator];
@@ -1390,20 +1386,11 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 }
 
 
-- (void)disallowImage:(id)image
+- (void)disallowImage:(MacOSaiXSourceImage *)image
 {
-	MacOSaiXDisallowedImage	*disallowedImage = nil;
+	[disallowedImages addObject:image];
 	
-	if ([image isKindOfClass:[MacOSaiXDisallowedImage class]])
-		disallowedImage = image;
-	else if ([image isKindOfClass:[MacOSaiXSourceImage class]])
-		disallowedImage = [MacOSaiXDisallowedImage imageWithSourceImage:image];
-	else
-		[NSException raise:NSInvalidArgumentException format:@"Invalid object passed to -disallowImage:"];
-	
-	[disallowedImages addObject:disallowedImage];
-	
-	[self removeDisallowedImage:disallowedImage];
+	[self removeDisallowedImage:image];
 }
 
 
@@ -1415,7 +1402,7 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 
 - (void)disallowedImagesDidChange:(NSNotification *)notification
 {
-	MacOSaiXDisallowedImage	*disallowedImage = [notification object];
+	MacOSaiXSourceImage	*disallowedImage = [notification object];
 	
 	if (disallowedImage)
 	{
@@ -1451,6 +1438,24 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 }
 
 
+- (void)setEditorClass:(Class)editorClass isVisible:(BOOL)isVisible
+{
+	if ([editorClass isAdditional])
+	{
+		if (isVisible && ![visibleEditorClasses containsObject:editorClass])
+			[visibleEditorClasses addObject:editorClass];
+		else if (!isVisible && [visibleEditorClasses containsObject:editorClass])
+			[visibleEditorClasses removeObject:editorClass];
+	}
+}
+
+
+- (BOOL)editorClassIsVisible:(Class)editorClass
+{
+	return [visibleEditorClasses containsObject:editorClass];
+}
+
+
 #pragma mark -
 
 
@@ -1472,7 +1477,6 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
     [tileShapes release];
     [newImageQueue release];
 	[revisitImageQueue release];
-	[handPickedImageSourceEnumerator release];
 	
 	[resumeTimer invalidate];
 	[resumeTimer release];
@@ -1480,6 +1484,8 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 	[disallowedImages release];
 	
 	[undoManager release];
+	
+	[visibleEditorClasses release];
 	
     [super dealloc];
 }
