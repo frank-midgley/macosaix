@@ -12,6 +12,7 @@
 #import "MacOSaiXDisallowedImage.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageSource.h"
+#import "MacOSaiXEditor.h"
 #import "MacOSaiXPlugIn.h"
 #import "MacOSaiXTileShapes.h"
 #import "MacOSaiXWarningController.h"
@@ -79,6 +80,8 @@
 	disallowedImagesViewMinSize = NSMakeSize(352.0, 192.0);
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(disallowedImagesDidChange:) name:MacOSaiXDisallowedImagesDidChangeNotification object:nil];
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(defaultsDidChange:) name:NSUserDefaultsDidChangeNotification object:nil];
 }
 
 
@@ -195,6 +198,54 @@
 }
 
 
+- (IBAction)setEditorVisible:(id)sender
+{
+	int		row = [editorsTable selectedRow];
+	
+	if (row == -1)
+		NSBeep();
+	else
+	{
+		NSString		*editorClassName = NSStringFromClass([[MacOSaiXMosaicEditor editorClasses] objectAtIndex:row]);
+		NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
+		NSMutableArray	*visibleEditors = [[[defaults objectForKey:@"Default Additional Editors"] mutableCopy] autorelease];
+		
+		if (!visibleEditors)
+			visibleEditors = [NSMutableArray arrayWithObject:editorClassName];
+		else if ([visibleEditors containsObject:editorClassName])
+			[visibleEditors removeObject:editorClassName];
+		else
+			[visibleEditors addObject:editorClassName];
+		
+		[defaults setObject:visibleEditors forKey:@"Default Additional Editors"];
+		[defaults synchronize];
+		
+		[editorsTable reloadData];
+	}
+}
+
+
+- (IBAction)showEditorDescription:(id)sender
+{
+	int		row = [editorsTable selectedRow];
+	
+	if (row == -1)
+		NSBeep();
+	else
+	{
+		Class			editorClass = [[MacOSaiXMosaicEditor editorClasses] objectAtIndex:row];
+		
+		[editorClass showDescriptionNearPoint:[NSEvent mouseLocation]];
+	}
+}
+
+
+- (void)defaultsDidChange:(NSNotification *)notification
+{
+	[editorsTable reloadData];
+}
+
+
 #pragma mark -
 #pragma mark Disallowed images
 
@@ -252,6 +303,8 @@
 {
 	if (tableView == preferenceTable)
 		return [plugInClasses count] + 3;
+	else if (tableView == editorsTable)
+		return [[MacOSaiXMosaicEditor editorClasses] count];
 	else if (tableView == disallowedImagesTable)
 		return [[(MacOSaiX *)[NSApp delegate] disallowedImages] count];
 	else
@@ -281,7 +334,7 @@
 			if (row == 0)
 				object = NSLocalizedString(@"General", @"");
 			else if (row == 1)
-				object = NSLocalizedString(@"Editors", @"");
+				object = NSLocalizedString(@"Additional Settings", @"");
 			else if (row == 2)
 				object = NSLocalizedString(@"\"Don't Use\" Images", @"");
 			else
@@ -296,10 +349,25 @@
 			}
 		}
 	}
+	else if (tableView == editorsTable)
+	{
+		Class	editorClass = [[MacOSaiXMosaicEditor editorClasses] objectAtIndex:row];
+		
+		if ([[tableColumn identifier] isEqualToString:@"Visible"])
+		{
+			NSArray	*visibleEditors = [[NSUserDefaults standardUserDefaults] objectForKey:@"Default Additional Editors"];
+			
+			object = [NSNumber numberWithBool:(![editorClass isAdditional] || [visibleEditors containsObject:NSStringFromClass(editorClass)])];
+		}
+		else if ([[tableColumn identifier] isEqualToString:@"Image"])
+			return [editorClass image];	
+		else if ([[tableColumn identifier] isEqualToString:@"Title"])
+			return [editorClass title];	
+	}
 	else if (tableView == disallowedImagesTable)
 	{
 		MacOSaiX				*appDelegate = (MacOSaiX *)[NSApp delegate];
-		MacOSaiXDisallowedImage	*disallowedImage = [[appDelegate disallowedImages] objectAtIndex:row];
+		MacOSaiXSourceImage		*disallowedImage = [[appDelegate disallowedImages] objectAtIndex:row];
 		id<MacOSaiXImageSource>	imageSource = [[disallowedImage imageSourceClass] imageSourceForUniversalIdentifier:[disallowedImage universalIdentifier]];
 		NSString				*imageIdentifier = [imageSource identifierForUniversalIdentifier:[disallowedImage universalIdentifier]];
 		
@@ -320,6 +388,17 @@
 	}
 	
 	return object;
+}
+
+
+- (void)tableView:(NSTableView *)tableView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn row:(int)row
+{
+	if (tableView == editorsTable && [[tableColumn identifier] isEqualToString:@"Visible"])
+	{
+		Class	editorClass = [[MacOSaiXMosaicEditor editorClasses] objectAtIndex:row];
+		
+		[cell setEnabled:[editorClass isAdditional]];
+	}
 }
 
 

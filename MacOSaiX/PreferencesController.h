@@ -34,6 +34,7 @@
 		// Editors
 	IBOutlet NSView						*editorsPreferencesView;
 	NSSize								editorsViewMinSize;
+	IBOutlet NSTableView				*editorsTable;
 	
 		// Disallowed images
 	IBOutlet NSView						*disallowedImagesView;
@@ -54,7 +55,10 @@
 - (IBAction)setShowTileTooltips:(id)sender;
 - (IBAction)resetWarnings:(id)sender;
 
+	// Visible editors
 - (void)showVisibleEditors:(id)sender;
+- (IBAction)setEditorVisible:(id)sender;
+- (IBAction)showEditorDescription:(id)sender;
 
 	// Disallowed images
 - (IBAction)showDisallowedImages:(id)sender;
