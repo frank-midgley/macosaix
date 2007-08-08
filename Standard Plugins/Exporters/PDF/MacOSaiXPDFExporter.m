@@ -128,13 +128,13 @@
 													     "    /Subtype /Image\n"\
 													     "    /Width %d\n"\
 													     "    /Height %d\n"\
-													     "    /ColorSpace /DeviceRGB\n"\
+													     "    /ColorSpace /%@\n"\
 													     "    /BitsPerComponent 8\n"\
 													     "    /Length %u\n"\
 													     "    /Filter /ASCII85Decode >>\n"\
 													     "stream\n"\
 													     "%@\n"\
-													     "endstream\n", (int)[bitmapRep size].width, (int)[bitmapRep size].height, (unsigned long)[imageStream length], imageStream];
+														 "endstream\n", (int)[bitmapRep size].width, (int)[bitmapRep size].height, ([bitmapRep samplesPerPixel] == 3 ? @"DeviceRGB" : @"DeviceGray"), (unsigned long)[imageStream length], imageStream];
 	if (objectID >= 0)
 		imageNumber = [NSNumber numberWithLong:objectID];
 	
@@ -437,6 +437,7 @@
 	int					pixelsWide = [self pixelsWide], 
 						pixelsHigh = [self pixelsHigh], 
 						bytesPerRow = [self bytesPerRow], 
+						samplesPerPixel = [self samplesPerPixel], 
 						x = 0, 
 						y = 0, 
 						c = 0, 
@@ -451,7 +452,7 @@
 		
 		for (x = 0; x < pixelsWide; x++)
 		{
-			for (c = 0; c < 3; c++)
+			for (c = 0; c < samplesPerPixel; c++)
 			{
 				metaByte = metaByte * 256 + *(pixelPointer++);
 				byteCount++;
