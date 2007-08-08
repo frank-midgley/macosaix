@@ -19,7 +19,6 @@
 #import "MacOSaiXImageQueue.h"
 #import "MacOSaiXImageSource.h"
 #import "MacOSaiXImageSourceEnumerator.h"
-#import "MacOSaiXHandPickedImageSource.h"
 #import "MacOSaiXMosaic.h"
 #import "MacOSaiXSourceImage.h"
 #import "MacOSaiXTileShapes.h"
@@ -679,64 +678,6 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 	
 	[imageSource release];
 }
-
-
-// TBD: how to handle considering upcoming "pick image" API?
-//- (MacOSaiXHandPickedImageSource *)handPickedImageSource
-//{
-//	NSEnumerator			*imageSourceEnumerator = [[self imageSources] objectEnumerator];
-//	id<MacOSaiXImageSource>	imageSource = nil;
-//	while (imageSource = [imageSourceEnumerator nextObject])
-//		if ([imageSource isKindOfClass:[MacOSaiXHandPickedImageSource class]])
-//			break;
-//	
-//	if (!imageSource)
-//	{
-//		imageSource = [[[MacOSaiXHandPickedImageSource alloc] init] autorelease];
-//		[self addImageSource:imageSource];
-//	}
-//	
-//	return (MacOSaiXHandPickedImageSource *)imageSource;
-//}
-
-
-// TODO: just listen for the notifications from the tiles
-//- (void)setHandPickedImageAtPath:(NSString *)path withMatchValue:(float)matchValue forTile:(MacOSaiXTile *)tile
-//{
-//	MacOSaiXHandPickedImageSource	*handPickedSource = [self handPickedImageSource];
-//	
-//	if (![tile userChosenImageMatch])
-//	{
-//			// Increase the image count for the hand picked source.
-//		[enumerationsLock lock];
-//			unsigned long	currentCount = [[imagesFoundCounts objectForKey:[NSValue valueWithPointer:handPickedSource]] unsignedLongValue];
-//			[imagesFoundCounts setObject:[NSNumber numberWithUnsignedLong:currentCount + 1] 
-//								  forKey:[NSValue valueWithPointer:handPickedSource]];
-//		[enumerationsLock unlock];
-//	}
-//	
-//	[tile setUserChosenImageMatch:[MacOSaiXImageMatch imageMatchWithValue:matchValue 
-//													   forImageIdentifier:path 
-//														  fromImageSource:handPickedSource 
-//																  forTile:tile]];
-//}
-//
-//
-//- (void)removeHandPickedImageForTile:(MacOSaiXTile *)tile
-//{
-//	if ([tile userChosenImageMatch])
-//	{
-//			// Decrease the image count for the hand picked source.
-//		MacOSaiXHandPickedImageSource	*handPickedSource = [self handPickedImageSource];
-//		[enumerationsLock lock];
-//			unsigned long	currentCount = [[imagesFoundCounts objectForKey:[NSValue valueWithPointer:handPickedSource]] unsignedLongValue];
-//			[imagesFoundCounts setObject:[NSNumber numberWithUnsignedLong:currentCount - 1] 
-//								  forKey:[NSValue valueWithPointer:handPickedSource]];
-//		[enumerationsLock unlock];
-//		
-//		[tile setUserChosenImageMatch:nil];
-//	}
-//}
 
 
 - (NSString *)diskCacheSubPathForImageSource:(id<MacOSaiXImageSource>)imageSource

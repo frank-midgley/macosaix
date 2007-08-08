@@ -12,7 +12,6 @@
 #import "MacOSaiX.h"
 #import "MacOSaiXDisallowedImage.h"
 #import "MacOSaiXEnumeratedImage.h"
-#import "MacOSaiXHandPickedImageSource.h"
 #import "MacOSaiXImageOrientations.h"
 #import "MacOSaiXImageSourceEnumerator.h"
 #import "MacOSaiXProgressController.h"
