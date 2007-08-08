@@ -9,6 +9,7 @@
 #import "MacOSaiXTileEditor.h"
 
 #import "MacOSaiX.h"
+#import "MacOSaiXDisallowedImage.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatch.h"
 #import "MacOSaiXImageSourceEnumerator.h"
@@ -28,15 +29,40 @@
 @implementation MacOSaiXTileContentEditor
 
 
-- (NSString *)editorNibName
++ (void)load
 {
-	return @"Tile Editor";
+	[super load];
 }
 
 
-- (NSString *)title
++ (NSImage *)image
+{
+	// TODO: create an image for this editor
+	return [super image];
+}
+
+
++ (NSString *)title
 {
 	return NSLocalizedString(@"Tile Content", @"");
+}
+
+
++ (NSString *)description
+{
+	return NSLocalizedString(@"This setting lets you choose what each tile should be filled with.  You can hand pick an image or color, let the target image show through or let MacOSaiX choose the best image for you.", @"");
+}
+
+
++ (BOOL)isAdditional
+{
+	return YES;
+}
+
+
+- (NSString *)editorNibName
+{
+	return @"Tile Editor";
 }
 
 
@@ -179,7 +205,7 @@
 						MacOSaiXSourceImage	*bestSourceImage = [bestMatch sourceImage];
 						
 							// Display the description of the image being displayed.
-						NSString		*matchName = [[[bestSourceImage enumerator] workingImageSource] descriptionForIdentifier:[bestSourceImage imageIdentifier]];
+						NSString		*matchName = [bestSourceImage description];
 						if (!matchName)
 							matchName = NSLocalizedString(@"No description available", @"");
 						NSDictionary	*attributes = [NSDictionary dictionaryWithObject:[NSFont boldSystemFontOfSize:0.0] 
@@ -192,11 +218,11 @@
 						NSString	*sourceLabel = NSLocalizedString(@"Source: ", @"");
 						stringSize = [sourceLabel sizeWithAttributes:nil];
 						float		sourceWidth = stringSize.width + 2.0;
-						NSImage		*sourceImage = [[[[[bestSourceImage enumerator] workingImageSource] image] copy] autorelease];
+						NSImage		*sourceImage = [[[[bestSourceImage imageSource] image] copy] autorelease];
 						[sourceImage setScalesWhenResized:YES];
 						[sourceImage setSize:NSMakeSize([sourceImage size].width / [sourceImage size].height * 16.0, 16.0)];
 						sourceWidth += [sourceImage size].width + 4.0;
-						id			sourceDescription = [[[bestSourceImage enumerator] workingImageSource] briefDescription];
+						id			sourceDescription = [[bestSourceImage imageSource] briefDescription];
 						if ([sourceDescription isKindOfClass:[NSString class]])
 							sourceWidth += [(NSString *)sourceDescription sizeWithAttributes:nil].width;
 						else
@@ -858,15 +884,12 @@
 	
 	if (returnCode == NSOKButton)
 	{
-		MacOSaiXImageSourceEnumerator	*handPickedEnumerator = [[[self delegate] mosaic] handPickedImageSourceEnumerator];
-		NSEnumerator	*selectedTileEnumerator = [[self selectedTiles] objectEnumerator];
-		MacOSaiXTile	*selectedTile = nil;
+		MacOSaiXUniversalImage	*sourceImage = [MacOSaiXUniversalImage imageWithSourceClass:NSClassFromString(@"MacOSaiXDirectoryImageSource") 
+																		universalIdentifier:[[openPanel URLs] objectAtIndex:0]];
+		NSEnumerator			*selectedTileEnumerator = [[self selectedTiles] objectEnumerator];
+		MacOSaiXTile			*selectedTile = nil;
 		while (selectedTile = [selectedTileEnumerator nextObject])
-		{
-			MacOSaiXSourceImage	*sourceImage = [[MacOSaiXSourceImage alloc] initWithIdentifier:[[openPanel filenames] objectAtIndex:0] fromEnumerator:handPickedEnumerator];
-			MacOSaiXImageMatch	*match = [MacOSaiXImageMatch imageMatchWithValue:0.0 forSourceImage:sourceImage forTile:selectedTile];
-			[selectedTile setUserChosenImageMatch:match];
-		}
+			[selectedTile setUserChosenImageMatch:[MacOSaiXImageMatch imageMatchWithValue:0.0 forSourceImage:sourceImage forTile:selectedTile]];
 		
 		[self populateGUI];
 	}
@@ -974,17 +997,22 @@
 }
 
 
-- (void)endEditing
+- (BOOL)endEditing
 {
 	// TBD: close NSOpenPanel?
 	
-	[[NSNotificationCenter defaultCenter] removeObserver:self 
-													name:MacOSaiXTileContentsDidChangeNotification 
-												  object:[[self delegate] mosaic]];
+	if ([super endEditing])
+	{
+		[[NSNotificationCenter defaultCenter] removeObserver:self 
+														name:MacOSaiXTileContentsDidChangeNotification 
+													  object:[[self delegate] mosaic]];
+		
+		[self setSelectedTiles:nil];
 	
-	[self setSelectedTiles:nil];
-	
-	[super endEditing];
+		return YES;
+	}
+	else
+		return NO;
 }
 
 

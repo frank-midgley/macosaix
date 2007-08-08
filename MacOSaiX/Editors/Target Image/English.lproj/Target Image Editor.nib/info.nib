@@ -9,9 +9,9 @@
 		<key>23</key>
 		<string>561 464 65 65 0 0 1152 746 </string>
 		<key>42</key>
-		<string>413 447 361 99 0 0 1152 746 </string>
+		<string>393 301 361 99 0 0 1152 746 </string>
 		<key>5</key>
-		<string>198 397 222 180 0 0 1152 746 </string>
+		<string>482 407 222 180 0 0 1152 746 </string>
 	</dict>
 	<key>IBFramework Version</key>
 	<string>446.1</string>
@@ -19,9 +19,8 @@
 	<array>
 		<integer>23</integer>
 		<integer>5</integer>
-		<integer>42</integer>
 	</array>
 	<key>IBSystem Version</key>
-	<string>8P135</string>
+	<string>8R218</string>
 </dict>
 </plist>

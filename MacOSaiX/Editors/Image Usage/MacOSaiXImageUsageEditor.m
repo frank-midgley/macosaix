@@ -14,6 +14,37 @@
 @implementation MacOSaiXImageUsageEditor
 
 
++ (void)load
+{
+	[super load];
+}
+
+
++ (NSImage *)image
+{
+	// TODO: create an image for this editor
+	return [super image];
+}
+
+
++ (NSString *)title
+{
+	return NSLocalizedString(@"Image Usage", @"");
+}
+
+
++ (NSString *)description
+{
+	return NSLocalizedString(@"This setting lets you control how often and how far apart repeats of each image can appear in the mosaic.  It also allows you to set how much of each image can be chopped off (cropped) when placing it into a tile.", @"");
+}
+
+
++ (BOOL)isAdditional
+{
+	return YES;
+}
+
+
 - (id)initWithDelegate:(id<MacOSaiXMosaicEditorDelegate>)delegate
 {
 	if (self = [super initWithDelegate:delegate])
@@ -28,12 +59,6 @@
 - (NSString *)editorNibName
 {
 	return @"Image Usage Editor";
-}
-
-
-- (NSString *)title
-{
-	return NSLocalizedString(@"Image Usage", @"");
 }
 
 
@@ -369,11 +394,15 @@
 }
 
 
-- (void)endEditing
+- (BOOL)endEditing
 {
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:imageCropMatrix];
-	
-	[super endEditing];
+	if ([super endEditing])
+	{
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:imageCropMatrix];
+		return YES;
+	}
+	else
+		return NO;
 }
 
 

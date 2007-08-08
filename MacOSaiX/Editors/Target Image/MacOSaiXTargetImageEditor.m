@@ -33,9 +33,27 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 @implementation MacOSaiXTargetImageEditor
 
 
++ (void)load
+{
+	[super load];
+}
+
+
 + (NSImage *)image
 {
 	return [NSImage imageNamed:@"Target Image"];
+}
+
+
++ (NSString *)title
+{
+	return NSLocalizedString(@"Target Image", @"");
+}
+
+
++ (NSString *)description
+{
+	return NSLocalizedString(@"This setting lets you choose the image that the mosaic will try to look like.  It also keeps track of previously chosen images for quick access.", @"");
 }
 
 
@@ -256,12 +274,6 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 }
 
 
-- (NSString *)title
-{
-	return @"Target Image";
-}
-
-
 - (void)beginEditing
 {
 	[super beginEditing];
@@ -371,6 +383,9 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	[super embellishMosaicView:mosaicView inRect:rect];
 	
 	NSRect				mosaicBounds = [mosaicView imageBounds];
+	mosaicBounds.origin.x = [mosaicView bounds].origin.x + 10.0;
+	mosaicBounds.size.width = [mosaicView bounds].size.width - 20.0;
+	mosaicBounds = NSIntersectionRect(mosaicBounds, NSInsetRect([mosaicView visibleRect], 10.0, 0.0));
 	float				width = NSWidth(mosaicBounds);
 	NSString			*imagePath = [[targetImageDicts objectAtIndex:[targetImagesTableView selectedRow]] objectForKey:@"Path"];
 	NSAttributedString	*attributedPath = [[NSFileManager defaultManager] attributedPath:imagePath wraps:NO];
@@ -383,8 +398,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 												NSMinY(mosaicBounds) - 10.0 - size.height - 10.0, 
 												size.width + 20.0, 
 												size.height + 10.0);
-	if (NSMinY(pathBounds) < NSMinY([mosaicView bounds]) + 10.0)
-		pathBounds.origin.y = NSMinY([mosaicView bounds]) + 10.0;
+	if (NSMinY(pathBounds) < NSMinY(mosaicBounds) + 10.0)
+		pathBounds.origin.y = NSMinY(mosaicBounds) + 10.0;
 	
 	NSBezierPath		*pathPath = [NSBezierPath bezierPathWithRoundedRect:pathBounds radius:10.0];
 	[[NSColor colorWithCalibratedWhite:1.0 alpha:.75] set];

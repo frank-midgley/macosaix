@@ -9,6 +9,7 @@
 #import "MacOSaiXImageSourcesEditor.h"
 
 #import "MacOSaiX.h"
+#import "MacOSaiXEnumeratedImage.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatch.h"
 #import "MacOSaiXImageSource.h"
@@ -27,9 +28,27 @@
 @implementation MacOSaiXImageSourcesEditor
 
 
++ (void)load
+{
+	[super load];
+}
+
+
 + (NSImage *)image
 {
 	return [NSImage imageNamed:@"Image Sources"];
+}
+
+
++ (NSString *)title
+{
+	return NSLocalizedString(@"Image Sources", @"");
+}
+
+
++ (NSString *)description
+{
+	return NSLocalizedString(@"This setting lets you choose where to get the images to fill into the tiles.", @"");
 }
 
 
@@ -81,12 +100,6 @@
 - (NSImage *)targetImage
 {
 	return [[[self delegate] mosaic] targetImage];
-}
-
-
-- (NSString *)title
-{
-	return NSLocalizedString(@"Image Sources", @"");
 }
 
 
@@ -188,9 +201,8 @@
 {
 	if (![self isActive])
 	{
-		[[self delegate] setActiveEditor:self];
-		
-		[self performSelector:_cmd withObject:sender afterDelay:0.0];
+		if ([[self delegate] setActiveEditor:self])
+			[self performSelector:_cmd withObject:sender afterDelay:0.0];
 	}
 	else
 	{
@@ -266,9 +278,9 @@
 	MacOSaiXTile	*tile = nil;
 	while (tile = [tileEnumerator nextObject])
 	{
-		id<MacOSaiXImageSource>	displayedSource = [[[[tile userChosenImageMatch] sourceImage] enumerator] imageSource];
+		id<MacOSaiXImageSource>	displayedSource = [[(MacOSaiXEnumeratedImage *)[[tile userChosenImageMatch] sourceImage] enumerator] imageSource];
 		if (!displayedSource)
-			displayedSource = [[[[tile uniqueImageMatch] sourceImage] enumerator] imageSource];
+			displayedSource = [[(MacOSaiXEnumeratedImage *)[[tile uniqueImageMatch] sourceImage] enumerator] imageSource];
 		
 		if (displayedSource && [highlightedImageSources containsObject:displayedSource])
 		{
@@ -387,13 +399,18 @@
 }
 
 
-- (void)endEditing
+- (BOOL)endEditing
 {
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:[[self delegate] mosaic]];
-	
-	[removeSourceButton setEnabled:NO];
-	
-	[super endEditing];
+	if ([super endEditing])
+	{
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:[[self delegate] mosaic]];
+		
+		[removeSourceButton setEnabled:NO];
+		
+		return YES;
+	}
+	else
+		return NO;
 }
 
 

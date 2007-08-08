@@ -17,6 +17,37 @@
 @implementation MacOSaiXImageOrientationsEditor
 
 
++ (void)load
+{
+	[super load];
+}
+
+
++ (NSImage *)image
+{
+	// TODO: create an image for this editor
+	return [super image];
+}
+
+
++ (NSString *)title
+{
+	return NSLocalizedString(@"Image Orientations", @"");
+}
+
+
++ (NSString *)description
+{
+	return NSLocalizedString(@"This setting lets you define the angle at which images are placed into the tiles.", @"");
+}
+
+
++ (BOOL)isAdditional
+{
+	return YES;
+}
+
+
 - (id)initWithDelegate:(id<MacOSaiXMosaicEditorDelegate>)delegate
 {
 	if (self = [super initWithDelegate:delegate])
@@ -30,12 +61,6 @@
 - (NSString *)editorNibName
 {
 	return @"Image Orientations Editor";
-}
-
-
-- (NSString *)title
-{
-	return NSLocalizedString(@"Image Orientations", @"");
 }
 
 

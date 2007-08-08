@@ -19,9 +19,27 @@
 @implementation MacOSaiXTileShapesEditor
 
 
++ (void)load
+{
+	[super load];
+}
+
+
 + (NSImage *)image
 {
 	return [NSImage imageNamed:@"Tile Shapes"];
+}
+
+
++ (NSString *)title
+{
+	return NSLocalizedString(@"Tile Shapes", @"");
+}
+
+
++ (NSString *)description
+{
+	return NSLocalizedString(@"This setting lets you choose the shapes of the tiles in the mosaic.", @"");
 }
 
 
@@ -39,12 +57,6 @@
 - (NSString *)editorNibName
 {
 	return @"Tile Shapes Editor";
-}
-
-
-- (NSString *)title
-{
-	return NSLocalizedString(@"Tile Shapes", @"");
 }
 
 
@@ -172,11 +184,15 @@
 }
 
 
-- (void)endEditing
+- (BOOL)endEditing
 {
-	[tilesToEmbellish removeAllObjects];
-	
-	[super endEditing];
+	if ([super endEditing])
+	{
+		[tilesToEmbellish removeAllObjects];
+		return YES;
+	}
+	else
+		return NO;
 }
 
 
