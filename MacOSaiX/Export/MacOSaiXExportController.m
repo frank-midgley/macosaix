@@ -293,7 +293,7 @@
 					NS_DURING
 						exportError = [exporter fillTileWithImage:tileImage 
 												   withIdentifier:[tileSourceImage imageIdentifier] 
-													   fromSource:[[tileSourceImage enumerator] imageSource] 
+													   fromSource:[tileSourceImage imageSource] 
 												  centeredAtPoint:NSMakePoint(NSMidX(targetBounds), NSMidY(targetBounds)) 
 														 rotation:[tile imageOrientation] 
 													clippedToPath:[tile outline] 
