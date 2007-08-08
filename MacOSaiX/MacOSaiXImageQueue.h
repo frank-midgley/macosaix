@@ -7,7 +7,8 @@
 //
 
 
-@class MacOSaiXImageSourceEnumerator, MacOSaiXSourceImage;
+@class MacOSaiXSourceImage;
+@protocol MacOSaiXImageSource;
 
 
 @interface MacOSaiXImageQueue : NSObject
@@ -28,7 +29,7 @@
 
 - (void)addImagesFromQueue:(MacOSaiXImageQueue *)otherQueue;
 
-- (void)removeImagesFromImageSourceEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator;
+- (void)removeImagesFromImageSource:(id<MacOSaiXImageSource>)imageSource;
 
 - (NSArray *)queuedImages;
 

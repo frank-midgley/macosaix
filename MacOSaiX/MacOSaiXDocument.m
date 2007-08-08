@@ -11,6 +11,7 @@
 
 #import "MacOSaiX.h"
 #import "MacOSaiXDisallowedImage.h"
+#import "MacOSaiXEnumeratedImage.h"
 #import "MacOSaiXHandPickedImageSource.h"
 #import "MacOSaiXImageOrientations.h"
 #import "MacOSaiXImageSourceEnumerator.h"
@@ -509,7 +510,7 @@
 			{
 				[fileHandle writeData:[@"<DISALLOWED_IMAGES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
 				NSEnumerator			*disallowedImageEnumerator = [disallowedImages objectEnumerator];
-				MacOSaiXDisallowedImage	*disallowedImage = nil;
+				MacOSaiXUniversalImage	*disallowedImage = nil;
 				while (disallowedImage = [disallowedImageEnumerator nextObject])
 				{
 					NSData	*identifierArchive = [NSArchiver archivedDataWithRootObject:[disallowedImage universalIdentifier]];
@@ -587,7 +588,7 @@
 				if (uniqueMatch)
 				{
 						// TODO: Hack: this check shouldn't be necessary if the "Remove Image Source" code was fully working.
-					int	sourceIndex = [imageSourceEnumerators indexOfObjectIdenticalTo:[[uniqueMatch sourceImage] enumerator]];
+					int	sourceIndex = [imageSourceEnumerators indexOfObjectIdenticalTo:[(MacOSaiXEnumeratedImage *)[uniqueMatch sourceImage] enumerator]];
 					if (sourceIndex != NSNotFound)
 						[buffer appendFormat:@"\t\t<UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%@\"/>\n", 
 											 sourceIndex,
@@ -599,7 +600,7 @@
 				{
 					// TODO: Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
 						// fully working.
-					int	sourceIndex = [imageSourceEnumerators indexOfObjectIdenticalTo:[[bestMatch sourceImage] enumerator]];
+					int	sourceIndex = [imageSourceEnumerators indexOfObjectIdenticalTo:[(MacOSaiXEnumeratedImage *)[bestMatch sourceImage] enumerator]];
 					if (sourceIndex != NSNotFound)
 						[buffer appendFormat:@"\t\t<BEST_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%@\"/>\n", 
 											 sourceIndex,
@@ -621,7 +622,7 @@
 				{
 					[buffer appendString:@"\t\t<DISALLOWED_IMAGES>\n"];
 					NSEnumerator			*disallowedImageEnumerator = [disallowedImages objectEnumerator];
-					MacOSaiXDisallowedImage	*disallowedImage = nil;
+					MacOSaiXUniversalImage	*disallowedImage = nil;
 					while (disallowedImage = [disallowedImageEnumerator nextObject])
 					{
 						NSData	*identifierArchive = [NSArchiver archivedDataWithRootObject:[disallowedImage universalIdentifier]];
@@ -1009,10 +1010,10 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						int		sourceIndex = [[nodeAttributes objectForKey:@"SOURCE"] intValue];
 						if (sourceIndex >= 0 && sourceIndex < [[mosaic imageSourceEnumerators] count])
 						{
-							NSString			*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
-							float				matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
-							MacOSaiXSourceImage	*sourceImage = [MacOSaiXSourceImage sourceImageWithIdentifier:imageIdentifier 
-																							   fromEnumerator:[[mosaic imageSourceEnumerators] objectAtIndex:sourceIndex]];
+							NSString				*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
+							float					matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
+							MacOSaiXEnumeratedImage	*sourceImage = [MacOSaiXEnumeratedImage imageWithIdentifier:imageIdentifier 
+																								 fromEnumerator:[[mosaic imageSourceEnumerators] objectAtIndex:sourceIndex]];
 							
 							newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
 																	forSourceImage:sourceImage 
@@ -1026,10 +1027,10 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						int					sourceIndex = [[nodeAttributes objectForKey:@"SOURCE"] intValue];
 						if (sourceIndex >= 0 && sourceIndex < [[mosaic imageSourceEnumerators] count])
 						{
-							NSString			*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
-							float				matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
-							MacOSaiXSourceImage	*sourceImage = [MacOSaiXSourceImage sourceImageWithIdentifier:imageIdentifier 
-																							   fromEnumerator:[[mosaic imageSourceEnumerators] objectAtIndex:sourceIndex]];
+							NSString				*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
+							float					matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
+							MacOSaiXEnumeratedImage	*sourceImage = [MacOSaiXEnumeratedImage imageWithIdentifier:imageIdentifier 
+																								 fromEnumerator:[[mosaic imageSourceEnumerators] objectAtIndex:sourceIndex]];
 							
 							newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
 																		forSourceImage:sourceImage 
@@ -1040,10 +1041,10 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					}
 					else if ([elementType isEqualToString:@"USER_CHOSEN_MATCH"])
 					{
-						NSString			*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
-						float				matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
-						MacOSaiXSourceImage	*sourceImage = [MacOSaiXSourceImage sourceImageWithIdentifier:imageIdentifier 
-																						   fromEnumerator:nil];	// TBD: is this right now?
+						NSString				*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
+						float					matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
+						MacOSaiXEnumeratedImage	*sourceImage = [MacOSaiXEnumeratedImage imageWithIdentifier:imageIdentifier 
+																							 fromEnumerator:nil];	// TBD: is this right now?
 						
 						newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
 																	forSourceImage:sourceImage 
@@ -1072,7 +1073,7 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						NSData							*imageIDArchive = [NSData dataWithHexString:imageIDArchiveString];
 						id<NSObject,NSCoding,NSCopying> imageUID = [NSUnarchiver unarchiveObjectWithData:imageIDArchive];
 						
-						newObject = [[MacOSaiXDisallowedImage alloc] initWithSourceClass:imageSourceClass universalIdentifier:imageUID];
+						newObject = [[MacOSaiXUniversalImage alloc] initWithSourceClass:imageSourceClass universalIdentifier:imageUID];
 					}
 					else
 					{
@@ -1182,9 +1183,9 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 	}
 	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[NSColor class]])
 		[(MacOSaiXTile *)parent setFillColor:child];
-	else if ([(id)parent isKindOfClass:[MacOSaiXMosaic class]] && [(id)child isKindOfClass:[MacOSaiXDisallowedImage class]])
+	else if ([(id)parent isKindOfClass:[MacOSaiXMosaic class]] && [(id)child isKindOfClass:[MacOSaiXUniversalImage class]])
 		[(MacOSaiXMosaic *)parent disallowImage:child];
-	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[MacOSaiXDisallowedImage class]])
+	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[MacOSaiXUniversalImage class]])
 		[(MacOSaiXTile *)parent disallowImage:child];
 	
 //	NSLog(@"Parent <%@: %p> added child <%@: %p>", NSStringFromClass([parent class]), (void *)parent, NSStringFromClass([child class]), (void *)child);
@@ -1219,7 +1220,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	else if ([(id)newObject isKindOfClass:[NSBezierPath class]] || 
 			 [(id)newObject isKindOfClass:[NSDictionary class]] || 
 			 [(id)newObject isKindOfClass:[MacOSaiXImageMatch class]] || 
-			 [(id)newObject isKindOfClass:[MacOSaiXDisallowedImage class]])
+			 [(id)newObject isKindOfClass:[MacOSaiXUniversalImage class]])
 	{
 			// Release any objects we created in createStructure() now that they are retained by their parent.
 		[(id)newObject release];

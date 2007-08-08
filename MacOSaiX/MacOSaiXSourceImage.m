@@ -8,73 +8,76 @@
 
 #import "MacOSaiXSourceImage.h"
 
-#import "MacOSaiXDisallowedImage.h"
 #import "MacOSaiXImageCache.h"
-#import "MacOSaiXImageSourceEnumerator.h"
+#import "MacOSaiXImageSource.h"
 
 
 @implementation MacOSaiXSourceImage : NSObject
-
-
-+ (id)sourceImageWithIdentifier:(NSString *)identifier fromEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator
-{
-	MacOSaiXSourceImage	*sourceImage = [[[self class] alloc] initWithIdentifier:identifier fromEnumerator:enumerator];
-	
-	return [sourceImage autorelease];
-}
-
-
-- (id)initWithIdentifier:(NSString *)identifier fromEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator
-{
-	if (self = [super init])
-	{
-		imageIdentifier = [identifier copy];
-		imageSourceEnumerator = [enumerator retain];
-	}
-	
-	return self;
-}
 
 
 - (NSSize)nativeSize
 {
 	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
 	NSSize				imageSize = [imageCache nativeSizeOfImageWithIdentifier:[self imageIdentifier] 
-																	 fromSource:[[self enumerator] workingImageSource]];
+																	 fromSource:[self imageSource]];
 	
 	if (NSEqualSizes(imageSize, NSZeroSize))
 	{
 			// The image isn't in the cache.  Force it to load and then get its size.
 		imageSize = [[imageCache imageRepAtSize:NSZeroSize 
 								  forIdentifier:[self imageIdentifier] 
-									 fromSource:[[self enumerator] workingImageSource]] size];
+									 fromSource:[self imageSource]] size];
 	}
 	
 	return imageSize;
 }
 
 
+- (Class)imageSourceClass
+{
+	return nil;
+}
+
+
+- (id<MacOSaiXImageSource>)imageSource
+{
+	return nil;
+}
+
+
 - (NSString *)imageIdentifier
 {
-	return imageIdentifier;
+	return nil;
 }
 
 
 - (id<NSObject,NSCoding,NSCopying>)universalIdentifier
 {
-	return [[[self enumerator] workingImageSource] universalIdentifierForIdentifier:[self imageIdentifier]];
+	return nil;
+}
+
+
+- (NSString *)description
+{
+	return [[self imageSource] descriptionForIdentifier:[self imageIdentifier]];
 }
 
 
 - (NSURL *)contextURL
 {
-	return [[[self enumerator] workingImageSource] contextURLForIdentifier:[self imageIdentifier]];
+	return [[self imageSource] contextURLForIdentifier:[self imageIdentifier]];
 }
 
 
-- (MacOSaiXImageSourceEnumerator *)enumerator
+- (NSImage *)image
 {
-	return imageSourceEnumerator;
+	return [[self imageSource] imageForIdentifier:[self imageIdentifier]];
+}
+
+
+- (NSImage *)thumbnailImage
+{
+	return [[self imageSource] thumbnailForIdentifier:[self imageIdentifier]];
 }
 
 
@@ -82,47 +85,27 @@
 {
 	return [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:size 
 												   forIdentifier:[self imageIdentifier] 
-													  fromSource:[[self enumerator] workingImageSource]];
+													  fromSource:[self imageSource]];
 }
 
 
 - (unsigned)hash
 {
-	return [NSStringFromClass([[[self enumerator] imageSource] class]) hash] + [[self universalIdentifier] hash];
+	// TBD: is this ever being called?
+	return 0;
 }
 
 
 - (BOOL)isEqual:(id)otherObject
 {
-	BOOL	isEqual = (self == otherObject);
-	
-	if (!isEqual)
-	{
-		if ([otherObject isKindOfClass:[self class]])
-			isEqual = ([[(MacOSaiXSourceImage *)otherObject imageIdentifier] isEqualToString:[self imageIdentifier]] && 
-					   [(MacOSaiXSourceImage *)otherObject enumerator] == [self enumerator]);
-		else if ([otherObject isKindOfClass:[MacOSaiXDisallowedImage class]])
-			isEqual = ([[[self enumerator] imageSource] class] == [otherObject imageSourceClass] &&
-					   [[self universalIdentifier] isEqual:[otherObject universalIdentifier]]);
-	}
-	
-	return isEqual;
+	return ([self imageSourceClass] == [otherObject imageSourceClass] &&
+			[[self universalIdentifier] isEqual:[otherObject universalIdentifier]]);
 }
 
 
 - (id)copyWithZone:(NSZone *)zone
 {
-	return [[MacOSaiXSourceImage alloc] initWithIdentifier:[self imageIdentifier] 
-											fromEnumerator:[self enumerator]];
-}
-
-
-- (void)dealloc
-{
-	[imageIdentifier release];
-	[imageSourceEnumerator release];
-	
-	[super dealloc];
+	return nil;
 }
 
 

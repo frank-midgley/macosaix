@@ -400,18 +400,9 @@
 
 - (void)disallowImage:(id)image
 {
-	MacOSaiXDisallowedImage	*disallowedImage = nil;
+	[disallowedImages addObject:image];
 	
-	if ([image isKindOfClass:[MacOSaiXDisallowedImage class]])
-		disallowedImage = image;
-	else if ([image isKindOfClass:[MacOSaiXSourceImage class]])
-		disallowedImage = [MacOSaiXDisallowedImage imageWithSourceImage:image];
-	else
-		[NSException raise:NSInvalidArgumentException format:@"Invalid object passed to -disallowImage:"];
-	
-	[disallowedImages addObject:disallowedImage];
-	
-	if ([self fillStyle] == fillWithUniqueMatch && [disallowedImage isEqualTo:[[self uniqueImageMatch] sourceImage]])
+	if ([self fillStyle] == fillWithUniqueMatch && [image isEqualTo:[[self uniqueImageMatch] sourceImage]])
 		[self setUniqueImageMatch:nil];
 }
 

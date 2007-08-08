@@ -6,28 +6,25 @@
 //  Copyright 2007 Frank M. Midgley. All rights reserved.
 //
 
-@class MacOSaiXImageSourceEnumerator;
+@protocol MacOSaiXImageSource;
 
 
 	// An image from an image source.
 @interface MacOSaiXSourceImage : NSObject <NSCopying>
 {
-	NSString						*imageIdentifier;
-	MacOSaiXImageSourceEnumerator	*imageSourceEnumerator;
 }
 
-+ (id)sourceImageWithIdentifier:(NSString *)identifier fromEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator;
-
-- (id)initWithIdentifier:(NSString *)imageIdentifier fromEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator;
-
 - (NSSize)nativeSize;
+
+- (id<MacOSaiXImageSource>)imageSource;
+- (Class)imageSourceClass;
 
 - (NSString *)imageIdentifier;
 - (id<NSObject,NSCoding,NSCopying>)universalIdentifier;
 - (NSURL *)contextURL;
 
-- (MacOSaiXImageSourceEnumerator *)enumerator;
-
+- (NSImage *)image;
+- (NSImage *)thumbnailImage;
 - (NSBitmapImageRep *)imageRepAtSize:(NSSize)size;
 
 @end

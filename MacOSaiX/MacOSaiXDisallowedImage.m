@@ -1,5 +1,5 @@
 //
-//  MacOSaiXDisallowedImage.m
+//  MacOSaiXUniversalImage.m
 //  MacOSaiX
 //
 //  Created by Frank Midgley on 7/9/07.
@@ -8,34 +8,16 @@
 
 #import "MacOSaiXDisallowedImage.h"
 
-#import "MacOSaiXImageSourceEnumerator.h"
+#import "MacOSaiXImageSource.h"
 #import "MacOSaiXSourceImage.h"
 
 
-@implementation MacOSaiXDisallowedImage
+@implementation MacOSaiXUniversalImage
 
 
-+ (MacOSaiXDisallowedImage *)imageWithSourceImage:(MacOSaiXSourceImage *)sourceImage
-{
-	return [[[self alloc] initWithSourceImage:sourceImage] autorelease];
-}
-
-
-+ (MacOSaiXDisallowedImage *)imageWithSourceClass:(Class)class universalIdentifier:(id<NSObject,NSCoding,NSCopying>)identifier
++ (MacOSaiXUniversalImage *)imageWithSourceClass:(Class)class universalIdentifier:(id<NSObject,NSCoding,NSCopying>)identifier
 {
 	return [[[self alloc] initWithSourceClass:class universalIdentifier:identifier] autorelease];
-}
-
-
-- (id)initWithSourceImage:(MacOSaiXSourceImage *)sourceImage;
-{
-	if (self = [super init])
-	{
-		imageSourceClass = [(id)[[sourceImage enumerator] imageSource] class];
-		universalIdentifier = [[sourceImage universalIdentifier] retain];
-	}
-	
-	return self;
 }
 
 
@@ -57,6 +39,21 @@
 }
 
 
+- (id<MacOSaiXImageSource>)imageSource
+{
+	if (!imageSource)
+		imageSource = [[imageSourceClass imageSourceForUniversalIdentifier:[self universalIdentifier]] retain];
+	
+	return imageSource;
+}
+
+
+- (NSString *)imageIdentifier
+{
+	return [[self imageSource] identifierForUniversalIdentifier:[self universalIdentifier]];
+}
+
+
 - (id<NSObject,NSCoding,NSCopying>)universalIdentifier
 {
 	return universalIdentifier;
@@ -65,25 +62,8 @@
 
 - (unsigned)hash
 {
+		// TBD: is this ever called?
 	return [NSStringFromClass(imageSourceClass) hash] + [universalIdentifier hash];
-}
-
-
-- (BOOL)isEqual:(id)otherObject
-{
-	BOOL	isEqual = (self == otherObject);
-	
-	if (!isEqual)
-	{
-		if ([otherObject isKindOfClass:[self class]])
-			isEqual = ([self imageSourceClass] == [otherObject imageSourceClass] &&
-					   [[self universalIdentifier] isEqual:[otherObject universalIdentifier]]);
-		else if ([otherObject isKindOfClass:[MacOSaiXSourceImage class]])
-			isEqual = ([self imageSourceClass] == [(id)[[otherObject enumerator] imageSource] class] &&
-					   [[self universalIdentifier] isEqual:[otherObject universalIdentifier]]);
-	}
-	
-	return isEqual;
 }
 
 
@@ -95,7 +75,7 @@
 
 - (void)dealloc
 {
-	[universalIdentifier release];
+	[imageSource release];
 	
 	[super dealloc];
 }

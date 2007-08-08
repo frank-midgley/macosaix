@@ -9,11 +9,11 @@
 #import "MacOSaiXImageSourceEnumerator.h"
 
 #import "MacOSaiX.h"
+#import "MacOSaiXEnumeratedImage.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageQueue.h"
 #import "MacOSaiXImageSource.h"
 #import "MacOSaiXMosaic.h"
-#import "MacOSaiXSourceImage.h"
 
 
 NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXImageSourceEnumeratorDidChangeCountNotification";
@@ -288,7 +288,7 @@ NSString	*MacOSaiXImageSourceEnumeratorDidChangeCountNotification = @"MacOSaiXIm
 			#endif
 		NS_ENDHANDLER
 		
-		MacOSaiXSourceImage		*sourceImage = [MacOSaiXSourceImage sourceImageWithIdentifier:imageIdentifier fromEnumerator:self];
+		MacOSaiXEnumeratedImage	*sourceImage = [MacOSaiXEnumeratedImage imageWithIdentifier:imageIdentifier fromEnumerator:self];
 		
 		if (image && imageIsValid && 
 			![[mosaic disallowedImages] containsObject:sourceImage] && 

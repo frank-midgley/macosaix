@@ -8,7 +8,6 @@
 
 #import "MacOSaiXImageQueue.h"
 
-#import "MacOSaiXImageSourceEnumerator.h"
 #import "MacOSaiXSourceImage.h"
 
 
@@ -111,14 +110,14 @@
 }
 
 
-- (void)removeImagesFromImageSourceEnumerator:(MacOSaiXImageSourceEnumerator *)enumerator;
+- (void)removeImagesFromImageSource:(id<MacOSaiXImageSource>)imageSource
 {
-		// Remove any images that came from the enumerator.
+		// Remove any images that came from the source.
 	[queueLock lock];
 		NSEnumerator		*sourceImageEnumerator = [[NSArray arrayWithArray:imageQueue] objectEnumerator];
 		MacOSaiXSourceImage	*sourceImage = nil;
 		while (sourceImage = [sourceImageEnumerator nextObject])
-			if ([sourceImage enumerator] == enumerator)
+			if ([sourceImage imageSource] == imageSource)
 				[imageQueue removeObjectIdenticalTo:sourceImage];
 		
 		if ([self maximumCount] > 0 && [imageQueue count] < [self maximumCount])
