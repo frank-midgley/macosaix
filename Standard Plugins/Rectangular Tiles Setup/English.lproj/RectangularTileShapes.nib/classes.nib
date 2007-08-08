@@ -3,6 +3,8 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
+                cancelOtherSize = id; 
+                setOtherSize = id; 
                 setTilesAcross = id; 
                 setTilesCount = id; 
                 setTilesDown = id; 
@@ -12,7 +14,11 @@
             CLASS = MacOSaiXRectangularTileShapesEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                delegate = id; 
                 editorView = NSView; 
+                okButton = NSButton; 
+                otherSizeField = NSTextField; 
+                otherSizePanel = NSPanel; 
                 tilesAcrossSlider = NSSlider; 
                 tilesAcrossStepper = NSStepper; 
                 tilesAcrossTextField = NSTextField; 
