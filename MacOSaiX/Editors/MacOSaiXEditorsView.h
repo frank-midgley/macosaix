@@ -19,14 +19,17 @@
 							*editorButtons;
 	
 	MacOSaiXMosaicEditor	*activeEditor;
+	
+	NSPopUpButton			*additionalEditorsPopUp;
 }
 
 - (void)setMosaicView:(MosaicView *)view;
 
 - (void)updateMinimumViewSize;
 
-- (void)addEditor:(MacOSaiXMosaicEditor *)editor;
+- (void)setEditorClass:(Class)editorClass isVisible:(BOOL)isVisible;
 
-- (NSArray *)editors;
+- (BOOL)setActiveEditorClass:(Class)editorClass;
+- (Class)activeEditorClass;
 
 @end
