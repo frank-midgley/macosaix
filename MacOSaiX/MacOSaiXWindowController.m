@@ -142,29 +142,10 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	
 	[editingSplitView setAdjustsLastViewOnly:YES];
 	[editorsView setMosaicView:mosaicView];
+	[mosaicView setEditorsView:editorsView];
 	
 	windowLayoutIsMinimal = YES;
 	[self setWindowLayoutIsMinimal:NO];
-}
-
-
-- (void)windowDidLoad
-{
-		// Add the editors.
-	targetImageEditor = [[MacOSaiXTargetImageEditor alloc] initWithDelegate:editorsView];
-	[editorsView addEditor:targetImageEditor];
-	tileShapesEditor = [[MacOSaiXTileShapesEditor alloc] initWithDelegate:editorsView];
-	[editorsView addEditor:tileShapesEditor];
-	imageSourcesEditor = [[MacOSaiXImageSourcesEditor alloc] initWithDelegate:editorsView];
-	[editorsView addEditor:imageSourcesEditor];
-	imageUsageEditor = [[MacOSaiXImageUsageEditor alloc] initWithDelegate:editorsView];
-	[editorsView addEditor:imageUsageEditor];
-	imageOrientationsEditor = [[MacOSaiXImageOrientationsEditor alloc] initWithDelegate:editorsView];
-	[editorsView addEditor:imageOrientationsEditor];
-	tileContentEditor = [[MacOSaiXTileContentEditor alloc] initWithDelegate:editorsView];
-	[editorsView addEditor:tileContentEditor];
-	
-	[editorsView updateMinimumViewSize];
 }
 
 
@@ -366,7 +347,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 			[minimalMosaicScrollView setDocumentView:nil];
 			[minimalStatusViewBox setContentView:nil];
 			[mosaicView setFrame:[editingMosaicScrollView frame]];
-			[mosaicView setActiveEditor:[editorsView activeEditor]];
 			[editingMosaicScrollView setDocumentView:mosaicView];
 			[editingStatusViewBox setContentView:statusView];
 			[[self window] setContentView:editingContentView];
@@ -388,7 +368,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 			[editingMosaicScrollView setDocumentView:nil];
 			[editingStatusViewBox setContentView:nil];
 			[mosaicView setFrame:[minimalMosaicScrollView frame]];
-			[mosaicView setActiveEditor:nil];
 			[minimalMosaicScrollView setDocumentView:mosaicView];
 			[minimalStatusViewBox setContentView:statusView];
 			[[self window] setContentView:minimalContentView];
@@ -459,37 +438,37 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 
 - (IBAction)editTargetImage:(id)sender
 {
-	[editorsView setActiveEditor:targetImageEditor];
+	[editorsView setActiveEditorClass:[MacOSaiXTargetImageEditor class]];
 }
 
 
 - (IBAction)editTileShapes:(id)sender
 {
-	[editorsView setActiveEditor:tileShapesEditor];
+	[editorsView setActiveEditorClass:[MacOSaiXTileShapesEditor class]];
 }
 
 
 - (IBAction)editImageSources:(id)sender
 {
-	[editorsView setActiveEditor:imageSourcesEditor];
+	[editorsView setActiveEditorClass:[MacOSaiXImageSourcesEditor class]];
 }
 
 
 - (IBAction)editImageUsage:(id)sender
 {
-	[editorsView setActiveEditor:imageUsageEditor];
+	[editorsView setActiveEditorClass:[MacOSaiXImageUsageEditor class]];
 }
 
 
 - (IBAction)editImageOrientations:(id)sender
 {
-	[editorsView setActiveEditor:imageOrientationsEditor];
+	[editorsView setActiveEditorClass:[MacOSaiXImageOrientationsEditor class]];
 }
 
 
 - (IBAction)editTileContent:(id)sender
 {
-	[editorsView setActiveEditor:tileContentEditor];
+	[editorsView setActiveEditorClass:[MacOSaiXTileContentEditor class]];
 }
 
 
@@ -519,6 +498,10 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	frame.size.height *= zoom;
 	[mosaicView setFrame:frame];
 	[mosaicView setBounds:frame];
+	
+	[[mosaicView enclosingScrollView] setHasHorizontalScroller:(zoom > 1.0)];
+	[[mosaicView enclosingScrollView] setHasVerticalScroller:(zoom > 1.0)];
+	[[[mosaicView enclosingScrollView] contentView] setCopiesOnScroll:NO];
 	
 		// Reset the scroll position so that the previous center point is as close to the center as possible.
 	visibleRect = [mosaicView visibleRect];
@@ -786,13 +769,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
     [tileImages release];
     
 	[exportController release];
-	
-	[targetImageEditor release];
-	[tileShapesEditor release];
-	[imageUsageEditor release];
-	[imageSourcesEditor release];
-	[imageOrientationsEditor release];
-	[tileContentEditor release];
 	
     [super dealloc];
 }

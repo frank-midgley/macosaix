@@ -8,8 +8,6 @@
 
 @class MacOSaiXMosaic, MosaicView, Tiles, MacOSaiXEditorsView, MacOSaiXExportController, MacOSaiXImageSource, MacOSaiXTileShapes, 
        MacOSaiXPopUpButton, MacOSaiXDocument, MacOSaiXSplitView, MacOSaiXTilesSetupController, MacOSaiXImageSourceEditor;
-@class MacOSaiXTargetImageEditor, MacOSaiXTileShapesEditor, MacOSaiXImageUsageEditor, MacOSaiXImageSourcesEditor, 
-       MacOSaiXImageOrientationsEditor, MacOSaiXTileContentEditor;
 @protocol MacOSaiXImageSource;
 
 
@@ -38,14 +36,6 @@
 										*zoomSlider;
 	IBOutlet NSScrollView				*editingMosaicScrollView;
 	IBOutlet NSBox						*editingStatusViewBox;
-	
-		// Editors
-	MacOSaiXTargetImageEditor			*targetImageEditor;
-	MacOSaiXTileShapesEditor			*tileShapesEditor;
-	MacOSaiXImageUsageEditor			*imageUsageEditor;
-	MacOSaiXImageSourcesEditor			*imageSourcesEditor;
-	MacOSaiXImageOrientationsEditor		*imageOrientationsEditor;
-	MacOSaiXTileContentEditor			*tileContentEditor;
 	
 	BOOL								windowLayoutIsMinimal;
 	NSSize								minEditorsViewSize;
