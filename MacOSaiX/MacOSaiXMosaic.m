@@ -1061,9 +1061,9 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 				MacOSaiXImageQueue				*imageQueue = nil;
 				if ([newImageQueue count] > 0 && [revisitImageQueue count] == 0)
 					imageQueue = newImageQueue;
-				else if ([revisitImageQueue count] > 0 && [imageQueue count] == 0)
+				else if ([revisitImageQueue count] > 0 && [newImageQueue count] == 0)
 					imageQueue = revisitImageQueue;
-				else if ([revisitImageQueue count] > 0 && [imageQueue count] > 0)
+				else if ([revisitImageQueue count] > 0 && [newImageQueue count] > 0)
 				{
 					imageQueue = (revisitStep < 15 ? newImageQueue : revisitImageQueue);
 					revisitStep = (revisitStep + 1) % 16;
