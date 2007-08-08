@@ -7,10 +7,12 @@
                 resetWarnings = id; 
                 setAutoSave = id; 
                 setAutoStart = id; 
+                setEditorVisible = id; 
                 setReportCrashes = id; 
                 setShowTileTooltips = id; 
                 setUpdateCheck = id; 
                 showDisallowedImages = id; 
+                showEditorDescription = id; 
                 showGeneralPreferences = id; 
                 showImages = id; 
                 showVisibleEditors = id; 
@@ -26,6 +28,7 @@
                 disallowedImagesTable = NSTableView; 
                 disallowedImagesView = NSView; 
                 editorsPreferencesView = NSView; 
+                editorsTable = NSTableView; 
                 preferenceBox = NSBox; 
                 preferenceTable = NSTableView; 
                 reportCrashesCheckBox = NSButton; 
