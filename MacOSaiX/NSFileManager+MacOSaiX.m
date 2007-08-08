@@ -71,7 +71,7 @@ static NSMutableAttributedString	*sSeparatorAS;
 					
 					if (status == noErr)
 					{
-						fullPath = [NSString stringWithCString:path];
+						fullPath = [NSString stringWithCString:(const char *)path];
 						itemIsDirectory = resolvesToFolder;
 						
 						if (itemIsDirectory)
@@ -170,7 +170,7 @@ static NSMutableAttributedString	*sSeparatorAS;
 				OSStatus	status = FSRefMakePath(&itemRef, path, PATH_MAX);
 				
 				if (status == noErr)
-					resolvedPath = [NSString stringWithCString:path];
+					resolvedPath = [NSString stringWithCString:(const char *)path];
 			}
 			else if (err == fnfErr)
 				resolvedPath = nil;	// the item the alias points to cannot be found
