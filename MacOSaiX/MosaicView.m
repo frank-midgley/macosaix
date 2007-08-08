@@ -662,6 +662,13 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 										   NSWidth(drawUnitRect) * mainImageSize.width,
 										   NSHeight(drawUnitRect) * mainImageSize.height);
 		
+		[mainImageLock lock];
+			[mainImage drawInRect:drawRect 
+						 fromRect:mainImageRect 
+						operation:NSCompositeSourceOver 
+						 fraction:1.0];
+		[mainImageLock unlock];
+		
 		if (targetImageOpacity > 0.0)
 		{
 			if (targetImageIsChanging && previousTargetFraction > 0.0)
@@ -681,12 +688,12 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 				[previousTargetImage drawInRect:previousDrawRect 
 										 fromRect:previousTargetRect 
 										operation:NSCompositeSourceOver 
-										 fraction:previousTargetFraction];
+										 fraction:targetImageOpacity * previousTargetFraction];
 				
 				[[mosaic targetImage] drawInRect:drawRect 
 										  fromRect:targetRect 
 										 operation:NSCompositeSourceOver 
-										  fraction:1.0 - previousTargetFraction];
+										  fraction:targetImageOpacity * (1.0 - previousTargetFraction)];
 			}
 			else if ([mosaic targetImage])
 			{
@@ -699,8 +706,10 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 			else
 			{
 				NSString		*noTargetMessage = NSLocalizedString(@"No target image has been selected.", @"");
-				NSDictionary	*attributes = [NSDictionary dictionaryWithObject:[NSColor blackColor] 
-																		  forKey:NSFontColorAttribute];
+				NSDictionary	*attributes = [NSDictionary dictionaryWithObjectsAndKeys:
+													[NSColor blackColor], NSForegroundColorAttributeName, 
+													[NSFont systemFontOfSize:18.0], NSFontAttributeName, 
+													nil];
 				NSSize			stringSize = [noTargetMessage sizeWithAttributes:attributes];
 					
 				[noTargetMessage drawAtPoint:NSMakePoint(NSMidX([self bounds]) - stringSize.width / 2.0, 
@@ -708,13 +717,6 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 							  withAttributes:attributes];
 			}
 		}
-		
-		[mainImageLock lock];
-			[mainImage drawInRect:drawRect 
-						 fromRect:mainImageRect 
-						operation:NSCompositeSourceOver 
-						 fraction:1.0 - targetImageOpacity];
-		[mainImageLock unlock];
 		
 		[[editorsView activeEditor] embellishMosaicView:self inRect:drawRect];
 	}
