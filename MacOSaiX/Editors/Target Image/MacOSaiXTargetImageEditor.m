@@ -382,32 +382,37 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 {
 	[super embellishMosaicView:mosaicView inRect:rect];
 	
-	NSRect				mosaicBounds = [mosaicView imageBounds];
-	mosaicBounds.origin.x = [mosaicView bounds].origin.x + 10.0;
-	mosaicBounds.size.width = [mosaicView bounds].size.width - 20.0;
-	mosaicBounds = NSIntersectionRect(mosaicBounds, NSInsetRect([mosaicView visibleRect], 10.0, 0.0));
-	float				width = NSWidth(mosaicBounds);
-	NSString			*imagePath = [[targetImageDicts objectAtIndex:[targetImagesTableView selectedRow]] objectForKey:@"Path"];
-	NSAttributedString	*attributedPath = [[NSFileManager defaultManager] attributedPath:imagePath wraps:NO];
-	NSSize				size = [attributedPath size];
+	int	selectedRow = [targetImagesTableView selectedRow];
 	
-	if (size.width > width - 20.0)
-		size.width = width - 20.0;
-	
-	NSRect				pathBounds = NSMakeRect(NSMidX(mosaicBounds) - size.width / 2.0 - 10.0, 
-												NSMinY(mosaicBounds) - 10.0 - size.height - 10.0, 
-												size.width + 20.0, 
-												size.height + 10.0);
-	if (NSMinY(pathBounds) < NSMinY(mosaicBounds) + 10.0)
-		pathBounds.origin.y = NSMinY(mosaicBounds) + 10.0;
-	
-	NSBezierPath		*pathPath = [NSBezierPath bezierPathWithRoundedRect:pathBounds radius:10.0];
-	[[NSColor colorWithCalibratedWhite:1.0 alpha:.75] set];
-	[pathPath fill];
-	[[NSColor colorWithCalibratedWhite:0.0 alpha:.5] set];
-	[pathPath stroke];
-	
-	[attributedPath drawInRect:NSInsetRect(pathBounds, 10.0, 5.0)];
+	if (selectedRow >= 0)
+	{
+		NSRect				mosaicBounds = [mosaicView imageBounds];
+		mosaicBounds.origin.x = [mosaicView bounds].origin.x + 10.0;
+		mosaicBounds.size.width = [mosaicView bounds].size.width - 20.0;
+		mosaicBounds = NSIntersectionRect(mosaicBounds, NSInsetRect([mosaicView visibleRect], 10.0, 0.0));
+		float				width = NSWidth(mosaicBounds);
+		NSString			*imagePath = [[targetImageDicts objectAtIndex:selectedRow] objectForKey:@"Path"];
+		NSAttributedString	*attributedPath = [[NSFileManager defaultManager] attributedPath:imagePath wraps:NO];
+		NSSize				size = [attributedPath size];
+		
+		if (size.width > width - 20.0)
+			size.width = width - 20.0;
+		
+		NSRect				pathBounds = NSMakeRect(NSMidX(mosaicBounds) - size.width / 2.0 - 10.0, 
+													NSMinY(mosaicBounds) - 10.0 - size.height - 10.0, 
+													size.width + 20.0, 
+													size.height + 10.0);
+		if (NSMinY(pathBounds) < NSMinY(mosaicBounds) + 10.0)
+			pathBounds.origin.y = NSMinY(mosaicBounds) + 10.0;
+		
+		NSBezierPath		*pathPath = [NSBezierPath bezierPathWithRoundedRect:pathBounds radius:10.0];
+		[[NSColor colorWithCalibratedWhite:1.0 alpha:.75] set];
+		[pathPath fill];
+		[[NSColor colorWithCalibratedWhite:0.0 alpha:.5] set];
+		[pathPath stroke];
+		
+		[attributedPath drawInRect:NSInsetRect(pathBounds, 10.0, 5.0)];
+	}
 }
 
 
@@ -434,7 +439,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 						*newTargetImagePath = [imageDict objectForKey:@"Path"];
 		BOOL			changeTargetImage = ![existingTargetImagePath isEqualToString:newTargetImagePath];
 		
-		if (changeTargetImage && [MacOSaiXWarningController warningIsEnabled:@"Changing Target Image"])
+		if (existingTargetImagePath && changeTargetImage && [MacOSaiXWarningController warningIsEnabled:@"Changing Target Image"])
 			changeTargetImage = ([MacOSaiXWarningController runAlertForWarning:@"Changing Target Image" 
 																		 title:NSLocalizedString(@"Do you wish to change the target image?", @"") 
 																	   message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
