@@ -11,6 +11,7 @@
 
 #import "MacOSaiX.h"
 #import "MacOSaiXDisallowedImage.h"
+#import "MacOSaiXEditor.h"
 #import "MacOSaiXEnumeratedImage.h"
 #import "MacOSaiXImageOrientations.h"
 #import "MacOSaiXImageSourceEnumerator.h"
@@ -461,6 +462,16 @@
 			[fileHandle writeData:[@"<!DOCTYPE plist PUBLIC \"-//Frank M. Midgley//DTD MacOSaiX 1.0//EN\" \"http://homepage.mac.com/knarf/DTDs/MacOSaiX-1.0.dtd\">\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 
 			[fileHandle writeData:[@"<MOSAIC>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
+			
+			[fileHandle writeData:[@"<VISIBLE_EDITORS>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+			NSEnumerator	*editorClassEnumerator = [[MacOSaiXMosaicEditor editorClasses] objectEnumerator];
+			Class			editorClass = nil;
+			while (editorClass = [editorClassEnumerator nextObject])
+			{
+				if ([[self mosaic] editorClassIsVisible:editorClass])
+					[fileHandle writeData:[[NSString stringWithFormat:@"\t<VISIBLE_EDITOR CLASS=\"%@\"/>\n", NSStringFromClass(editorClass)] dataUsingEncoding:NSUTF8StringEncoding]];
+			}
+			[fileHandle writeData:[@"</VISIBLE_EDITORS>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 
 				// Write out the path to the target image
 			[fileHandle writeData:[[NSString stringWithFormat:@"<TARGET_IMAGE PATH=\"%@\" ASPECT_RATIO=\"%f\"/>\n\n", 
@@ -818,6 +829,18 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 }
 
 
+- (void)showEditorClass:(Class)editorClass
+{
+	[[self mosaic] setEditorClass:editorClass isVisible:YES];
+}
+
+
+- (void)hideEditorClass:(Class)editorClass
+{
+	[[self mosaic] setEditorClass:editorClass isVisible:NO];
+}
+
+
 void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
@@ -842,6 +865,26 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					
 					if ([elementType isEqualToString:@"MOSAIC"])
 					{
+						newObject = mosaic;
+					}
+					else if ([elementType isEqualToString:@"VISIBLE_EDITORS"])
+					{
+						newObject = mosaic;
+						
+							// The document is going to specify which editors are visible so hide any additional editors that were shown via the defaults.
+						NSEnumerator	*editorClassEnumerator = [[MacOSaiXMosaicEditor editorClasses] objectEnumerator];
+						Class			editorClass = nil;
+						while (editorClass = [editorClassEnumerator nextObject])
+							if ([editorClass isAdditional])
+								[document performSelectorOnMainThread:@selector(hideEditorClass:) withObject:editorClass waitUntilDone:YES];
+					}
+					else if ([elementType isEqualToString:@"VISIBLE_EDITOR"])
+					{
+						Class	editorClass = NSClassFromString([nodeAttributes objectForKey:@"CLASS"]);
+						
+						if ([editorClass isAdditional])
+							[document performSelectorOnMainThread:@selector(showEditorClass:) withObject:editorClass waitUntilDone:YES];
+						
 						newObject = mosaic;
 					}
 					else if ([elementType isEqualToString:@"TARGET_IMAGE"] || [elementType isEqualToString:@"ORIGINAL_IMAGE"])
@@ -1431,7 +1474,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	
 		// wait for the threads to shut down
     while ([[self mosaic] isBusy])
-		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 	
     [super close];
 }

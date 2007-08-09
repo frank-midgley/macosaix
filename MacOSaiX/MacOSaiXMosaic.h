@@ -152,4 +152,4 @@ extern NSString	*MacOSaiXMosaicDidChangeImageSourcesNotification;
 extern NSString *MacOSaiXImageOrientationsDidChangeStateNotification;
 extern NSString *MacOSaiXTileContentsDidChangeNotification;
 extern NSString	*MacOSaiXMosaicDidChangeBusyStateNotification;
-
+extern NSString	*MacOSaiXMosaicDidChangeVisibleEditorsNotification;

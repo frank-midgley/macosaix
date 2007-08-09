@@ -33,6 +33,7 @@ NSString	*MacOSaiXMosaicDidChangeImageSourcesNotification = @"MacOSaiXMosaicDidC
 NSString	*MacOSaiXImageOrientationsDidChangeStateNotification = @"MacOSaiXImageOrientationsDidChangeStateNotification";
 NSString	*MacOSaiXTileContentsDidChangeNotification = @"MacOSaiXTileContentsDidChangeNotification";
 NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChangeBusyStateNotification";
+NSString	*MacOSaiXMosaicDidChangeVisibleEditorsNotification = @"MacOSaiXMosaicDidChangeVisibleEditorsNotification";
 
 
 @interface MacOSaiXMosaic (PrivateMethods)
@@ -1383,10 +1384,20 @@ NSString	*MacOSaiXMosaicDidChangeBusyStateNotification = @"MacOSaiXMosaicDidChan
 {
 	if ([editorClass isAdditional])
 	{
+		int	originalCount = [visibleEditorClasses count];
+		
 		if (isVisible && ![visibleEditorClasses containsObject:editorClass])
 			[visibleEditorClasses addObject:editorClass];
 		else if (!isVisible && [visibleEditorClasses containsObject:editorClass])
 			[visibleEditorClasses removeObject:editorClass];
+		
+		if ([visibleEditorClasses count] != originalCount)
+		{
+			NSLog(@"Posting that %@ did change visibility", NSStringFromClass(editorClass));
+			[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeVisibleEditorsNotification 
+																object:self 
+															  userInfo:[NSDictionary dictionaryWithObject:editorClass forKey:@"Editor Class"]];
+		}
 	}
 }
 

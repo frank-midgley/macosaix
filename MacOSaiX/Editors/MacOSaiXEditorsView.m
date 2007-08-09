@@ -41,8 +41,8 @@
 		popUpFrame.size.height = 24.0;
 		additionalEditorsPopUp = [[NSPopUpButton alloc] initWithFrame:popUpFrame pullsDown:YES];
 		[additionalEditorsPopUp setAutoresizingMask:(NSViewWidthSizable | NSViewMaxYMargin)];
-		[additionalEditorsPopUp addItemWithTitle:NSLocalizedString(@"Additional Settings...", @"")];
 		[additionalEditorsPopUp setBezelStyle:NSShadowlessSquareBezelStyle];
+		[additionalEditorsPopUp addItemWithTitle:NSLocalizedString(@"Additional Settings...", @"")];
 		
 		NSEnumerator	*editorEnumerator = [[MacOSaiXMosaicEditor editorClasses] objectEnumerator];
 		Class			editorClass = nil;
@@ -58,8 +58,7 @@
 				
 				[[additionalEditorsPopUp menu] addItem:editorItem];
 			}
-			
-			if (![editorClass isAdditional] || [[self mosaic] editorClassIsVisible:editorClass])
+			else
 				[self setEditorClass:editorClass isVisible:YES];
 		}
 		
@@ -84,9 +83,39 @@
 }
 
 
+- (MacOSaiXMosaicEditor *)editorForClass:(Class)editorClass
+{
+	NSEnumerator			*editorEnumerator = [editors objectEnumerator];
+	MacOSaiXMosaicEditor	*editor = nil;
+	while (editor = [editorEnumerator nextObject])
+		if ([editor class] == editorClass)
+			break;
+	
+	return editor;
+}
+
+
 - (void)setMosaicView:(MosaicView *)view
 {
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXMosaicDidChangeVisibleEditorsNotification object:nil];
+	
 	mosaicView = view;
+	
+		// Sync up the visible editors with the new mosaic.
+	NSEnumerator	*editorEnumerator = [[MacOSaiXMosaicEditor editorClasses] objectEnumerator];
+	Class			editorClass = nil;
+	while (editorClass = [editorEnumerator nextObject])
+	{
+		BOOL	editorIsVisible = ([self editorForClass:editorClass] != nil);
+		
+		if ([editorClass isAdditional] && [[self mosaic] editorClassIsVisible:editorClass] != editorIsVisible)
+			[self setEditorClass:editorClass isVisible:!editorIsVisible];
+	}
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(visibleEditorsDidChange:)
+												 name:MacOSaiXMosaicDidChangeVisibleEditorsNotification 
+											   object:[self mosaic]];
 }
 
 
@@ -192,18 +221,6 @@
 }
 
 
-- (MacOSaiXMosaicEditor *)editorForClass:(Class)editorClass
-{
-	NSEnumerator			*editorEnumerator = [editors objectEnumerator];
-	MacOSaiXMosaicEditor	*editor = nil;
-	while (editor = [editorEnumerator nextObject])
-		if ([editor class] == editorClass)
-			break;
-	
-	return editor;
-}
-
-
 - (BOOL)setActiveEditorClass:(Class)editorClass
 {
 	MacOSaiXMosaicEditor	*editor = [self editorForClass:editorClass];
@@ -282,6 +299,8 @@
 		else
 			buttonFrame.origin.y -= HEADER_HEIGHT;
 	}
+	
+	[self setNeedsDisplay:YES];
 }
 
 
@@ -322,7 +341,7 @@
 		if ([editors count] > 0)
 			while (curIndex < [editors count] && [editorClassOrder indexOfObject:[[editors objectAtIndex:curIndex] class]] < newIndex)
 				curIndex++;
-		if (curIndex < [editors count] - 1)
+		if (curIndex < [editors count])
 		{
 			[editors insertObject:editor atIndex:curIndex];
 			[editorButtons insertObject:editorButton atIndex:curIndex];
@@ -354,6 +373,16 @@
 			[[mosaicView mosaic] setEditorClass:editorClass isVisible:NO];
 		}
 	}
+}
+
+
+- (void)visibleEditorsDidChange:(NSNotification *)notification
+{
+	Class	editorClass = [[notification userInfo] objectForKey:@"Editor Class"];
+	BOOL	editorIsVisible = ([self editorForClass:editorClass] != nil);
+	
+	if ([[self mosaic] editorClassIsVisible:editorClass] != editorIsVisible)
+		[self setEditorClass:editorClass isVisible:!editorIsVisible];
 }
 
 
