@@ -77,11 +77,12 @@
 	if (EVP_DigestInit(&context, EVP_md5()))
 	{
 		unsigned		byteCount = [self length], 
-						offset = 0;
+						offset = 0, 
+						offsetLimit = (byteCount > 4096 ? byteCount - 4096 : 0);
 		unsigned char	md5[EVP_MAX_MD_SIZE];
 		BOOL			keepGoing = YES;
 		
-		while (keepGoing && offset < byteCount - 4096)
+		while (keepGoing && offset < offsetLimit)
 		{
 			if (EVP_DigestUpdate(&context, [self bytes] + offset, 4096))
 				offset += 4096;
