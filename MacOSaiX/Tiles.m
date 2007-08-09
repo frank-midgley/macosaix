@@ -147,6 +147,8 @@
 		[[NSBezierPath bezierPathWithRect:NSMakeRect(0.0, 0.0, TILE_BITMAP_SIZE, TILE_BITMAP_SIZE)] fill];
 		
 			// Draw the target image so that the correct portion of the image is rendered at the correct orientation inside the working image.
+		NSImageInterpolation	previousInterpolation = [[NSGraphicsContext currentContext] imageInterpolation];
+		[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
 		[[NSGraphicsContext currentContext] saveGraphicsState];
 			NSAffineTransform	*transform = [NSAffineTransform transform];
 			[transform translateXBy:TILE_BITMAP_SIZE / 2.0 yBy:TILE_BITMAP_SIZE / 2.0];
@@ -162,6 +164,7 @@
 							operation:NSCompositeCopy 
 							 fraction:1.0];
 		[[NSGraphicsContext currentContext] restoreGraphicsState];
+		[[NSGraphicsContext currentContext] setImageInterpolation:previousInterpolation];
 		
 		bitmapRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:bitmapBounds];
 		#ifdef DEBUG
