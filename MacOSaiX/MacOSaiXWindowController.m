@@ -347,6 +347,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 			[minimalMosaicScrollView setDocumentView:nil];
 			[minimalStatusViewBox setContentView:nil];
 			[mosaicView setFrame:[editingMosaicScrollView frame]];
+			[mosaicView setEditorsView:editorsView];
 			[editingMosaicScrollView setDocumentView:mosaicView];
 			[editingStatusViewBox setContentView:statusView];
 			[[self window] setContentView:editingContentView];
@@ -368,6 +369,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 			[editingMosaicScrollView setDocumentView:nil];
 			[editingStatusViewBox setContentView:nil];
 			[mosaicView setFrame:[minimalMosaicScrollView frame]];
+			[mosaicView setEditorsView:nil];
 			[minimalMosaicScrollView setDocumentView:mosaicView];
 			[minimalStatusViewBox setContentView:statusView];
 			[[self window] setContentView:minimalContentView];
