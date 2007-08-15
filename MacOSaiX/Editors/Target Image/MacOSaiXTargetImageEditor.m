@@ -274,6 +274,12 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 }
 
 
+- (NSNumber *)targetImageOpacity
+{
+	return [NSNumber numberWithFloat:1.0];
+}
+
+
 - (void)beginEditing
 {
 	[super beginEditing];

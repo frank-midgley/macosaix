@@ -81,6 +81,12 @@
 }
 
 
+- (NSNumber *)targetImageOpacity
+{
+	return [NSNumber numberWithFloat:0.0];
+}
+
+
 - (void)beginEditing
 {
 	[super beginEditing];

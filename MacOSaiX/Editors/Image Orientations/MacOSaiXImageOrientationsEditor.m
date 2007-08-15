@@ -78,7 +78,8 @@
 
 - (IBAction)setPlugInClass:(id)sender
 {
-	if (![MacOSaiXWarningController warningIsEnabled:@"Changing Image Orientations"] || 
+	if (sender == self || 
+		![MacOSaiXWarningController warningIsEnabled:@"Changing Image Orientations"] || 
 		[MacOSaiXWarningController runAlertForWarning:@"Changing Image Orientations" 
 												title:NSLocalizedString(@"Do you wish to change the image orientations?", @"") 
 											  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
@@ -98,6 +99,12 @@
 - (id<MacOSaiXDataSource>)mosaicDataSource
 {
 	return [[[self delegate] mosaic] imageOrientations];
+}
+
+
+- (NSNumber *)targetImageOpacity
+{
+	return [NSNumber numberWithFloat:1.0];
 }
 
 
