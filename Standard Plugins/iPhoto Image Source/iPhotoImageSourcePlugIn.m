@@ -42,7 +42,9 @@
 	
 	if (!albumImage)
 	{
-		albumImage = [[NSImage alloc] initWithContentsOfFile:[[self iPhotoBundle] pathForImageResource:@"album_local"]];
+		albumImage = [[NSImage alloc] initWithContentsOfFile:[[self iPhotoBundle] pathForImageResource:@"sl-icon-small_album"]];
+		if (!albumImage)
+			albumImage = [[NSImage alloc] initWithContentsOfFile:[[self iPhotoBundle] pathForImageResource:@"album_local"]];
 		[albumImage setScalesWhenResized:YES];
 		[albumImage setSize:NSMakeSize(16.0, 16.0)];
 	}
