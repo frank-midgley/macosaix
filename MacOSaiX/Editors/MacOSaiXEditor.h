@@ -64,6 +64,8 @@
 
 - (id<MacOSaiXDataSourceEditor>)plugInEditor;
 
+- (NSNumber *)targetImageOpacity;
+
 - (void)beginEditing;
 
 - (void)embellishMosaicView:(MosaicView *)mosaicView inRect:(NSRect)rect;

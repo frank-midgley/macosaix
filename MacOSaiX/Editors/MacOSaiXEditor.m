@@ -321,6 +321,12 @@ static NSMutableArray	*subClasses;
 }
 
 
+- (NSNumber *)targetImageOpacity
+{
+	return nil;	// current opacity is fine
+}
+
+
 - (void)beginEditing
 {
 	isActive = YES;
