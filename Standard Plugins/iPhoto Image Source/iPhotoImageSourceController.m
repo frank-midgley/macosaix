@@ -46,7 +46,7 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(197.0, 171.0);
+	return NSMakeSize(242.0, 130.0);
 }
 
 
@@ -58,7 +58,7 @@
 
 - (NSResponder *)firstResponder
 {
-	return matrix;
+	return sourceTypePopUp;
 }
 
 
@@ -116,7 +116,7 @@
 
 - (IBAction)setSourceType:(id)sender
 {
-	if ([matrix selectedRow] == 0 && ([currentImageSource albumName] || [currentImageSource keywordName]))
+	if ([sourceTypePopUp selectedTag] == 0 && ([currentImageSource albumName] || [currentImageSource keywordName]))
 	{
 		NSString	*previousValue = ([currentImageSource albumName] ? [currentImageSource albumName] : [currentImageSource keywordName]), 
 					*key = ([currentImageSource albumName] ? @"albumName" : @"keywordName");
@@ -131,7 +131,7 @@
 						  fromValue:previousValue 
 						 actionName:NSLocalizedString(@"Use All Photos", @"")];
 	}
-	else if ([matrix selectedRow] == 1 && ![currentImageSource albumName])
+	else if ([sourceTypePopUp selectedTag] == 1 && ![currentImageSource albumName])
 	{
 		NSString	*previousValue = ([currentImageSource keywordName] ? [currentImageSource keywordName] : [currentImageSource albumName]), 
 					*key = ([currentImageSource keywordName] ? @"keywordName" : @"albumName");
@@ -149,7 +149,7 @@
 						  fromValue:previousValue 
 						 actionName:NSLocalizedString(@"Use iPhoto Album", @"")];
 	}
-	else if ([matrix selectedRow] == 2 && ![currentImageSource keywordName])
+	else if ([sourceTypePopUp selectedTag] == 2 && ![currentImageSource keywordName])
 	{
 		NSString	*previousValue = ([currentImageSource albumName] ? [currentImageSource albumName] : [currentImageSource keywordName]), 
 					*key = ([currentImageSource albumName] ? @"albumName" : @"keywordName");
@@ -174,9 +174,9 @@
 
 - (int)numberOfRowsInTableView:(NSTableView *)tableView
 {
-	if ([matrix selectedRow] == 0)
+	if ([sourceTypePopUp selectedTag] == 0)
 		return 0;
-	else if ([matrix selectedRow] == 1)
+	else if ([sourceTypePopUp selectedTag] == 1)
 		return [albumNames count];
 	else
 		return [keywordNames count];
@@ -189,14 +189,14 @@
 	
 	if ([[tableColumn identifier] isEqualToString:@"Icon"])
 	{
-		if ([matrix selectedRow] == 1)
+		if ([sourceTypePopUp selectedTag] == 1)
 			object = [MacOSaiXiPhotoImageSourcePlugIn albumImage];
 		else
 			object = [MacOSaiXiPhotoImageSourcePlugIn keywordImage];
 	}
 	else
 	{
-		if ([matrix selectedRow] == 1)
+		if ([sourceTypePopUp selectedTag] == 1)
 			object = [albumNames objectAtIndex:row];
 		else
 			object = [keywordNames objectAtIndex:row];
@@ -208,7 +208,7 @@
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification
 {
-	if ([matrix selectedRow] == 1)
+	if ([sourceTypePopUp selectedTag] == 1)
 	{
 		NSString	*previousValue = [[[currentImageSource albumName] retain] autorelease];
 		int			selectedRow = [tableView selectedRow];
@@ -262,27 +262,27 @@
 	{
 		int	row = [albumNames indexOfObject:albumName];
 		
-		[matrix selectCellAtRow:1 column:0];
+		[sourceTypePopUp selectItemAtIndex:1];
 		[tableView reloadData];
 		[tableView selectRow:row byExtendingSelection:NO];
-		if ([tableView respondsToSelector:@selector(setHidden:)])
-			[tableView setHidden:NO];
+		if ([[tableView enclosingScrollView] respondsToSelector:@selector(setHidden:)])
+			[[tableView enclosingScrollView] setHidden:NO];
 	}
 	else if (keywordName)
 	{
 		int	row = [keywordNames indexOfObject:keywordName];
 		
-		[matrix selectCellAtRow:2 column:0];
+		[sourceTypePopUp selectItemAtIndex:2];
 		[tableView reloadData];
 		[tableView selectRow:row byExtendingSelection:NO];
-		if ([tableView respondsToSelector:@selector(setHidden:)])
-			[tableView setHidden:NO];
+		if ([[tableView enclosingScrollView] respondsToSelector:@selector(setHidden:)])
+			[[tableView enclosingScrollView] setHidden:NO];
 	}
 	else
 	{
-		[matrix selectCellAtRow:0 column:0];
-		if ([tableView respondsToSelector:@selector(setHidden:)])
-			[tableView setHidden:YES];
+		[sourceTypePopUp selectItemAtIndex:0];
+		if ([[tableView enclosingScrollView] respondsToSelector:@selector(setHidden:)])
+			[[tableView enclosingScrollView] setHidden:YES];
 		else
 			[tableView reloadData];
 	}

@@ -8,7 +8,7 @@
             OUTLETS = {
                 delegate = id; 
                 editorView = NSView; 
-                matrix = NSMatrix; 
+                sourceTypePopUp = NSPopUpButton; 
                 tableView = NSTableView; 
             }; 
             SUPERCLASS = NSObject; 

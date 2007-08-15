@@ -17,7 +17,7 @@
 	
 	IBOutlet NSView				*editorView;
 
-	IBOutlet NSMatrix			*matrix;
+	IBOutlet NSPopUpButton		*sourceTypePopUp;
 	IBOutlet NSTableView		*tableView;
 	
 		// The image source instance currently being edited.
