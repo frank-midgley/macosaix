@@ -41,6 +41,7 @@
 		popUpFrame.size.height = 24.0;
 		additionalEditorsPopUp = [[NSPopUpButton alloc] initWithFrame:popUpFrame pullsDown:YES];
 		[additionalEditorsPopUp setAutoresizingMask:(NSViewWidthSizable | NSViewMaxYMargin)];
+		[[additionalEditorsPopUp cell] setArrowPosition:NSPopUpArrowAtBottom];
 		[additionalEditorsPopUp setBezelStyle:NSShadowlessSquareBezelStyle];
 		[additionalEditorsPopUp addItemWithTitle:NSLocalizedString(@"Additional Settings...", @"")];
 		
@@ -194,12 +195,17 @@
 			activeEditor = newEditor;
 			[self updateMinimumViewSize];
 			
-				// Add the new editor's view and re-layout the view.
+				// Add the new editor's view and re-layout this view.
 			float			editorViewHeight = NSHeight([self bounds]) - [editors count] * HEADER_HEIGHT - NSHeight([additionalEditorsPopUp frame]);
 			[[activeEditor view] setFrame:NSMakeRect(0.0, 0.0, NSWidth([self bounds]), editorViewHeight)];
 			[[activeEditor view] setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 			[self addSubview:[activeEditor view]];
 			[self tile];
+			
+			if ([activeEditor targetImageOpacity])
+				[[self mosaicView] setTargetImageOpacity:[[activeEditor targetImageOpacity] floatValue] animationTime:0.5];
+			else
+				[[self mosaicView] setTargetImageOpacity:[[self mosaic] targetImageOpacity] animationTime:0.5];
 			
 				// Activate the new editor.
 			[activeEditor beginEditing];
@@ -249,7 +255,7 @@
 
 - (BOOL)makeFirstResponder:(NSResponder *)responder
 {
-	return [[mosaicView window] makeFirstResponder:responder];
+	return [[self window] makeFirstResponder:responder];
 }
 
 
@@ -264,7 +270,7 @@
 
 - (void)embellishmentNeedsDisplay
 {
-	[mosaicView setNeedsDisplay:YES];
+	[[self mosaicView] setNeedsDisplay:YES];
 }
 
 
@@ -354,7 +360,7 @@
 		
 		[self tile];
 		
-		[[mosaicView mosaic] setEditorClass:editorClass isVisible:YES];
+		[[self mosaic] setEditorClass:editorClass isVisible:YES];
 	}
 	else
 	{
@@ -370,7 +376,7 @@
 			
 			[self tile];
 					
-			[[mosaicView mosaic] setEditorClass:editorClass isVisible:NO];
+			[[self mosaic] setEditorClass:editorClass isVisible:NO];
 		}
 	}
 }
