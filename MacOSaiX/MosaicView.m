@@ -26,6 +26,8 @@
 
 
 NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicViewDidChangeBusyStateNotification";
+NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification";
+
 
 @interface MosaicView (PrivateMethods)
 - (void)targetImageDidChange:(NSNotification *)notification;
@@ -83,6 +85,8 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 													 selector:@selector(tileContentsDidChange:) 
 														 name:MacOSaiXTileContentsDidChangeNotification 
 													   object:mosaic];
+			
+			[self setTargetImageOpacity:[mosaic targetImageOpacity] animationTime:0.0];
 		}
 		
 		[self targetImageDidChange:nil];
@@ -511,15 +515,36 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 }
 
 
-- (void)setTargetImageOpacity:(float)fraction
+- (void)setTargetImageOpacity:(float)fraction animationTime:(float)seconds
 {
 	if (targetImageOpacity != fraction)
 	{
+		if (seconds == 0.0)
+		{
+			// Immediately change the opacity.
+			[self setNeedsDisplay:YES];
+			[self setInLiveRedraw:[NSNumber numberWithBool:YES]];
+		}
+		else
+		{
+			// Animate the change to the new opacity.
+			previousTargetImageOpacity = targetImageOpacity;
+			[opacityChangeStartTime release];
+			opacityChangeStartTime = [[NSDate alloc] init];
+			opacityChangeDuration = seconds;
+			if ([opacityChangeTimer isValid])
+				[opacityChangeTimer invalidate];
+			[opacityChangeTimer release];
+			opacityChangeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.01 
+																   target:self 
+																 selector:@selector(animateTargetImageOpacityChange:) 
+																 userInfo:nil 
+																  repeats:YES] retain];
+		}
+		
 		targetImageOpacity = fraction;
 		
-		[self setNeedsDisplay:YES];
-		
-		[self setInLiveRedraw:[NSNumber numberWithBool:YES]];
+		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification object:self];
 	}
 }
 
@@ -527,6 +552,26 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 - (float)targetImageOpacity
 {
     return targetImageOpacity;
+}
+
+
+- (void)animateTargetImageOpacityChange:(NSTimer *)timer
+{
+	if (!opacityChangeStartTime || [[NSDate date] timeIntervalSinceDate:opacityChangeStartTime] > opacityChangeDuration)
+	{
+		// The animation is complete.
+		[timer invalidate];
+		
+		if (timer == opacityChangeTimer)
+		{
+			[opacityChangeTimer release];
+			opacityChangeTimer = nil;
+			
+			[self setNeedsDisplay:YES];
+		}
+	}
+	else if (timer == opacityChangeTimer)
+		[self setNeedsDisplay:YES];
 }
 
 
@@ -669,7 +714,17 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 						 fraction:1.0];
 		[mainImageLock unlock];
 		
-		if (targetImageOpacity > 0.0)
+		float	currentTargetImageOpacity = [self targetImageOpacity];
+		if (opacityChangeStartTime)
+		{
+			float	animationPhase = -[opacityChangeStartTime timeIntervalSinceNow] / opacityChangeDuration;
+			if (animationPhase > 1.0)
+				animationPhase = 1.0;
+			
+			currentTargetImageOpacity = previousTargetImageOpacity + (currentTargetImageOpacity - previousTargetImageOpacity) * animationPhase;
+		}
+		
+		if (currentTargetImageOpacity > 0.0)
 		{
 			if (targetImageIsChanging && previousTargetFraction > 0.0)
 			{
@@ -688,12 +743,12 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 				[previousTargetImage drawInRect:previousDrawRect 
 										 fromRect:previousTargetRect 
 										operation:NSCompositeSourceOver 
-										 fraction:targetImageOpacity * previousTargetFraction];
+										 fraction:currentTargetImageOpacity * previousTargetFraction];
 				
 				[[mosaic targetImage] drawInRect:drawRect 
 										  fromRect:targetRect 
 										 operation:NSCompositeSourceOver 
-										  fraction:targetImageOpacity * (1.0 - previousTargetFraction)];
+										  fraction:currentTargetImageOpacity * (1.0 - previousTargetFraction)];
 			}
 			else if ([mosaic targetImage])
 			{
@@ -701,7 +756,7 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 				[[mosaic targetImage] drawInRect:drawRect 
 										  fromRect:targetRect 
 										 operation:NSCompositeSourceOver 
-										  fraction:targetImageOpacity];
+										  fraction:currentTargetImageOpacity];
 			}
 			else
 			{
@@ -1101,11 +1156,12 @@ NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification = @"MacOSaiXMosaicVie
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	
-//	[self tileShapesDidChange:nil];
-	
 	if ([targetFadeTimer isValid])
 		[targetFadeTimer invalidate];
 	[targetFadeTimer release];
+	if ([opacityChangeTimer isValid])
+		[opacityChangeTimer invalidate];
+	[opacityChangeTimer release];
 	if ([tilesNeedDisplayTimer isValid])
 		[tilesNeedDisplayTimer invalidate];
 	[tilesNeedDisplayTimer release];

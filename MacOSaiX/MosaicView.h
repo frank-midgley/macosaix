@@ -16,14 +16,20 @@
 	NSSize					mainImageSize;
 	NSLock					*mainImageLock;
 	NSAffineTransform		*mainImageTransform;
-	float					targetImageOpacity, 
-							targetFadeTime;
 	BOOL					inLiveRedraw;
 	
-		// Target image fading
+		// Target image transition
 	NSImage					*previousTargetImage;
 	NSDate					*targetFadeStartTime;
 	NSTimer					*targetFadeTimer;
+	float					targetFadeTime;
+	
+		// Target image opacity animation
+	float					targetImageOpacity, 
+							previousTargetImageOpacity, 
+							opacityChangeDuration;
+	NSDate					*opacityChangeStartTime;
+	NSTimer					*opacityChangeTimer;
 	
 	MacOSaiXEditorsView		*editorsView;
 	
@@ -63,7 +69,7 @@
 - (void)setMainImage:(NSImage *)image;
 - (NSImage *)mainImage;
 
-- (void)setTargetImageOpacity:(float)fraction;
+- (void)setTargetImageOpacity:(float)fraction animationTime:(float)seconds;
 - (float)targetImageOpacity;
 
 - (void)setTargetFadeTime:(float)seconds;
@@ -83,3 +89,4 @@
 
 // Notifications
 extern NSString	*MacOSaiXMosaicViewDidChangeBusyStateNotification;
+extern NSString *MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification;

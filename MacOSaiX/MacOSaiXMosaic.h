@@ -66,6 +66,8 @@
 	NSUndoManager					*undoManager;
 	
 	NSMutableArray					*visibleEditorClasses;
+	
+	float							targetImageOpacity;
 }
 
 	// Target image
@@ -141,6 +143,9 @@
 
 - (void)setEditorClass:(Class)editorClass isVisible:(BOOL)isVisible;
 - (BOOL)editorClassIsVisible:(Class)editorClass;
+
+- (void)setTargetImageOpacity:(float)opacity;
+- (float)targetImageOpacity;
 
 @end
 

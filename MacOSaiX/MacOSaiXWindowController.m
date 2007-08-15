@@ -111,13 +111,18 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 //	[[mosaicView enclosingScrollView] setDrawsBackground:NO];
 //	[[[mosaicView enclosingScrollView] contentView] setDrawsBackground:NO];
 
-	[mosaicView setMosaic:[self mosaic]];
-	[mosaicView setTargetFadeTime:0.5];
 	[[NSNotificationCenter defaultCenter] addObserver:self 
 											 selector:@selector(mosaicViewDidChangeState:) 
 												 name:MacOSaiXMosaicViewDidChangeBusyStateNotification 
 											   object:mosaicView];
-    
+ 	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(mosaicViewDidChangeTargetImageOpacity:) 
+												 name:MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification 
+											   object:mosaicView];
+	[mosaicView setTargetFadeTime:0.5];
+	[mosaicView setMosaic:[self mosaic]];
+	[blendSlider setFloatValue:1.0 - [mosaicView targetImageOpacity]];
+
 	if (![[self document] fileName])
 	{
 			// Default to the most recently used target or prompt to choose one if no previous target was found.
@@ -333,6 +338,15 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 }
 
 
+- (void)mosaicViewDidChangeTargetImageOpacity:(NSNotification *)notification
+{
+	if (!pthread_main_np())
+		[self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
+	else
+		[blendSlider setFloatValue:1.0 - [mosaicView targetImageOpacity]];
+}
+
+
 #pragma mark -
 #pragma mark Window layout methods
 
@@ -348,6 +362,8 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 			[minimalStatusViewBox setContentView:nil];
 			[mosaicView setFrame:[editingMosaicScrollView frame]];
 			[mosaicView setEditorsView:editorsView];
+			if ([[editorsView activeEditor] targetImageOpacity])
+				[mosaicView setTargetImageOpacity:[[[editorsView activeEditor] targetImageOpacity] floatValue] animationTime:0.5];
 			[editingMosaicScrollView setDocumentView:mosaicView];
 			[editingStatusViewBox setContentView:statusView];
 			[[self window] setContentView:editingContentView];
@@ -370,6 +386,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 			[editingStatusViewBox setContentView:nil];
 			[mosaicView setFrame:[minimalMosaicScrollView frame]];
 			[mosaicView setEditorsView:nil];
+			[mosaicView setTargetImageOpacity:[[self mosaic] targetImageOpacity] animationTime:0.5];
 			[minimalMosaicScrollView setDocumentView:mosaicView];
 			[minimalStatusViewBox setContentView:statusView];
 			[[self window] setContentView:minimalContentView];
@@ -534,7 +551,10 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 
 - (IBAction)setBlend:(id)sender
 {
-	[mosaicView setTargetImageOpacity:1.0 - [blendSlider floatValue]];
+	float	opacity = 1.0 - [blendSlider floatValue];
+	
+	[mosaicView setTargetImageOpacity:opacity animationTime:0.0];
+	[mosaic setTargetImageOpacity:opacity];
 }
 
 

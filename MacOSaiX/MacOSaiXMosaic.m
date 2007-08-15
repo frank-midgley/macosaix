@@ -86,6 +86,8 @@ NSString	*MacOSaiXMosaicDidChangeVisibleEditorsNotification = @"MacOSaiXMosaicDi
 				[visibleEditorClasses addObject:editorClass];
 		}
 		
+		targetImageOpacity = 0.0;
+		
 		paused = NO;
 	}
 	
@@ -1241,7 +1243,9 @@ NSString	*MacOSaiXMosaicDidChangeVisibleEditorsNotification = @"MacOSaiXMosaicDi
 			[resumeTimer invalidate];
 			[resumeTimer release];
 			
-			NSLog(@"Postponing auto-resumption");
+			#ifdef DEBUG
+				NSLog(@"Postponing auto-resumption");
+			#endif
 		}
 		else
 			[self pause];
@@ -1392,12 +1396,9 @@ NSString	*MacOSaiXMosaicDidChangeVisibleEditorsNotification = @"MacOSaiXMosaicDi
 			[visibleEditorClasses removeObject:editorClass];
 		
 		if ([visibleEditorClasses count] != originalCount)
-		{
-			NSLog(@"Posting that %@ did change visibility", NSStringFromClass(editorClass));
 			[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeVisibleEditorsNotification 
 																object:self 
 															  userInfo:[NSDictionary dictionaryWithObject:editorClass forKey:@"Editor Class"]];
-		}
 	}
 }
 
@@ -1405,6 +1406,18 @@ NSString	*MacOSaiXMosaicDidChangeVisibleEditorsNotification = @"MacOSaiXMosaicDi
 - (BOOL)editorClassIsVisible:(Class)editorClass
 {
 	return [visibleEditorClasses containsObject:editorClass];
+}
+
+
+- (void)setTargetImageOpacity:(float)opacity
+{
+	targetImageOpacity = opacity;
+}
+
+
+- (float)targetImageOpacity
+{
+	return targetImageOpacity;
 }
 
 
