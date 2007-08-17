@@ -52,6 +52,12 @@
 }
 
 
++ (NSString *)sortKey
+{
+	return @"2";
+}
+
+
 - (id)initWithDelegate:(id<MacOSaiXMosaicEditorDelegate>)delegate
 {
 	if (self = [super initWithDelegate:delegate])
