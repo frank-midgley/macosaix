@@ -43,6 +43,12 @@
 }
 
 
++ (NSString *)sortKey
+{
+	return @"1";
+}
+
+
 - (id)initWithDelegate:(id<MacOSaiXMosaicEditorDelegate>)delegate
 {
 	if (self = [super initWithDelegate:delegate])
@@ -117,12 +123,16 @@
 	while ([tilesToEmbellish count] > 0 && [startTime timeIntervalSinceNow] > -0.1)
 	{
 		MacOSaiXTile	*tileToEmbellish = [tilesToEmbellish anyObject];
-		NSBezierPath	*tileOutline = [tileToEmbellish outline];
+		NSBezierPath	*tileOutline = [tileToEmbellish outline], 
+						*darkenOutline = [darkenTransform transformBezierPath:tileOutline];
 		
-		[darkenColor set];
-		[[darkenTransform transformBezierPath:tileOutline] stroke];
-		[lightenColor set];
-		[[lightenTransform transformBezierPath:tileOutline] stroke];
+		if (NSIntersectsRect([mosaicView visibleRect], [darkenOutline bounds]))
+		{
+			[darkenColor set];
+			[darkenOutline stroke];
+			[lightenColor set];
+			[[lightenTransform transformBezierPath:tileOutline] stroke];
+		}
 		
 		[tilesToEmbellish removeObject:tileToEmbellish];
 	}
@@ -138,7 +148,7 @@
 
 - (void)embellishMosaicView:(MosaicView *)mosaicView inRect:(NSRect)rect;
 {
-	if (![mosaicView inLiveResize])
+	if (![mosaicView inLiveRedraw])
 	{
 		[tilesToEmbellish addObjectsFromArray:[mosaicView tilesInRect:rect]];
 		
