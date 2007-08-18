@@ -257,7 +257,7 @@ NSString	*MacOSaiXMosaicDidChangeVisibleEditorsNotification = @"MacOSaiXMosaicDi
 	[tileShapes autorelease];
 	tileShapes = [inTileShapes retain];
 	
-	if (![self isBeingLoaded])
+	if (![self isBeingLoaded] && [self targetImage])
 		[self createTiles];
 	
 		// Let anyone who cares know that our tile shapes (and thus our tiles array) have changed.
