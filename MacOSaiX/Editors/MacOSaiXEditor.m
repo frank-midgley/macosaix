@@ -65,6 +65,12 @@ static NSMutableArray	*subClasses;
 }
 
 
++ (NSString *)sortKey
+{
+	return [self title];
+}
+
+
 + (NSComparisonResult)compare:(Class)otherEditor
 {
 	if (![self isAdditional] && [otherEditor isAdditional])
@@ -72,7 +78,7 @@ static NSMutableArray	*subClasses;
 	else if ([self isAdditional] && ![otherEditor isAdditional])
 		return NSOrderedDescending;
 	else
-		return [[self title] compare:[otherEditor title]];
+		return [[self sortKey] compare:[otherEditor sortKey]];
 }
 
 
@@ -369,6 +375,12 @@ static NSMutableArray	*subClasses;
 - (void)handleEvent:(NSEvent *)event inMosaicView:(MosaicView *)mosaicView
 {
 	// TBD: double click = edit tile?
+}
+
+
+- (void)selectAllInMosaicView:(MosaicView *)mosaicView
+{
+	// Nothing for now...
 }
 
 

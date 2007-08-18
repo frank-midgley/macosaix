@@ -72,6 +72,8 @@
 
 - (void)handleEvent:(NSEvent *)event inMosaicView:(MosaicView *)mosaicView;
 
+- (void)selectAllInMosaicView:(MosaicView *)mosaicView;
+
 - (BOOL)endEditing;
 
 - (BOOL)isActive;
