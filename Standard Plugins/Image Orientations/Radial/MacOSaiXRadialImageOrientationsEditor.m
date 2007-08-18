@@ -39,7 +39,7 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(204.0, 100.0);
+	return NSMakeSize(211.0, 98.0);
 }
 
 
@@ -73,17 +73,30 @@
 		[currentImageOrientations setFocusPoint:[preset focusPoint]];
 		[currentImageOrientations setOffsetAngle:[preset offsetAngle]];
 		
-		[angleSlider setEnabled:NO];
-		[angleTextField setEnabled:NO];
+		if ([customControlsBox respondsToSelector:@selector(setHidden:)])
+			[customControlsBox setHidden:YES];
+		else
+		{
+			[angleSlider setEnabled:NO];
+			[angleTextField setEnabled:NO];
+		}
 	}
 	else
 	{
 			// Allow the user to set custom orientations.
 		[currentImageOrientations setName:nil];
 		
-		[angleSlider setEnabled:YES];
-		[angleTextField setEnabled:YES];
+		if ([customControlsBox respondsToSelector:@selector(setHidden:)])
+			[customControlsBox setHidden:NO];
+		else
+		{
+			[angleSlider setEnabled:YES];
+			[angleTextField setEnabled:YES];
+		}
 	}
+	
+	[angleSlider setFloatValue:[currentImageOrientations offsetAngle]];
+	[angleTextField setFloatValue:[currentImageOrientations offsetAngle]];
 }
 
 
@@ -96,9 +109,6 @@
 											nil];
 	
 	[self setPreset:[[presetsPopUp selectedItem] representedObject]];
-	
-	[angleSlider setFloatValue:[currentImageOrientations offsetAngle]];
-	[angleTextField setFloatValue:[currentImageOrientations offsetAngle]];
 	
 	[[self delegate] dataSource:currentImageOrientations 
 				   didChangeKey:@"nameFocusPointAngle" 
@@ -261,9 +271,6 @@
 	[presetsPopUp selectItem:selectedItem];
 	
 	[self setPreset:currentPreset];
-	
-	[angleSlider setFloatValue:[currentImageOrientations offsetAngle]];
-	[angleTextField setFloatValue:[currentImageOrientations offsetAngle]];
 }
 
 

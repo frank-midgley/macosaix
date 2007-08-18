@@ -8,6 +8,7 @@
             OUTLETS = {
                 angleSlider = NSSlider; 
                 angleTextField = NSTextField; 
+                customControlsBox = NSBox; 
                 delegate = id; 
                 editorView = NSView; 
                 presetsPopUp = NSPopUpButton; 

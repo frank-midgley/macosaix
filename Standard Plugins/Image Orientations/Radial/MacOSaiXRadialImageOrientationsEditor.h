@@ -14,7 +14,10 @@
 	id<MacOSaiXEditorDelegate>		delegate;
 	
 	IBOutlet NSView					*editorView;
+	
 	IBOutlet NSPopUpButton			*presetsPopUp;
+	
+	IBOutlet NSBox					*customControlsBox;
 	IBOutlet NSSlider				*angleSlider;
 	IBOutlet NSTextField			*angleTextField;
 	
