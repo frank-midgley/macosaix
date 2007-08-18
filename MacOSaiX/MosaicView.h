@@ -75,6 +75,7 @@
 - (void)setTargetFadeTime:(float)seconds;
 
 - (void)setInLiveRedraw:(NSNumber *)flag;
+- (BOOL)inLiveRedraw;
 
 - (MacOSaiXTile *)tileAtPoint:(NSPoint)thePoint;
 - (NSArray *)tilesInRect:(NSRect)theRect;

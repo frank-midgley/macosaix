@@ -133,7 +133,7 @@ NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiX
 	
 		// Phase in the new image.
 		// Pick a size for the main image.  (somewhat arbitrary but large enough for decent zooming)
-	float	bitmapSize = 1.0 * 1024.0 * 1024.0;
+	float	bitmapSize = 10.0 * 1024.0 * 1024.0;
 	mainImageSize.width = floorf(sqrtf([mosaic aspectRatio] * bitmapSize));
 	mainImageSize.height = floorf(bitmapSize / mainImageSize.width);
 	
@@ -515,6 +515,10 @@ NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiX
 }
 
 
+#pragma mark -
+#pragma mark Target image opacity
+
+
 - (void)setTargetImageOpacity:(float)fraction animationTime:(float)seconds
 {
 	if (targetImageOpacity != fraction)
@@ -522,8 +526,8 @@ NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiX
 		if (seconds == 0.0)
 		{
 			// Immediately change the opacity.
+			[self setInLiveRedraw:[NSNumber numberWithBool:NO]];
 			[self setNeedsDisplay:YES];
-			[self setInLiveRedraw:[NSNumber numberWithBool:YES]];
 		}
 		else
 		{
@@ -540,6 +544,7 @@ NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiX
 																 selector:@selector(animateTargetImageOpacityChange:) 
 																 userInfo:nil 
 																  repeats:YES] retain];
+			[self setInLiveRedraw:[NSNumber numberWithBool:YES]];
 		}
 		
 		targetImageOpacity = fraction;
@@ -567,11 +572,15 @@ NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiX
 			[opacityChangeTimer release];
 			opacityChangeTimer = nil;
 			
+			[self setInLiveRedraw:[NSNumber numberWithBool:NO]];
 			[self setNeedsDisplay:YES];
 		}
 	}
 	else if (timer == opacityChangeTimer)
+	{
+		[self setInLiveRedraw:[NSNumber numberWithBool:YES]];
 		[self setNeedsDisplay:YES];
+	}
 }
 
 
@@ -652,7 +661,7 @@ NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiX
 - (void)drawRect:(NSRect)theRect
 {
 	BOOL			targetImageIsChanging = (previousTargetImage != nil), 
-					drawLoRes = ([self inLiveResize] || inLiveRedraw || targetImageIsChanging);
+					drawLoRes = ([self inLiveResize] || [self inLiveRedraw] || targetImageIsChanging);
 	[[NSGraphicsContext currentContext] setImageInterpolation:drawLoRes ? NSImageInterpolationNone : NSImageInterpolationHigh];
 	
 		// Get the list of rectangles that need to be redrawn.
@@ -787,6 +796,12 @@ NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiX
 		inLiveRedraw = NO;
 		[self setNeedsDisplay:YES];
 	}
+}
+
+
+- (BOOL)inLiveRedraw
+{
+	return inLiveRedraw;
 }
 
 
@@ -1045,6 +1060,15 @@ NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiX
 }
 
 
+#pragma mark -
+#pragma mark Event handling
+
+- (BOOL)acceptsFirstResponder
+{
+	return YES;
+}
+
+
 - (void)mouseEntered:(NSEvent *)event
 {
 	if ([[self window] isKeyWindow] && ![[self window] attachedSheet] && ![[self editorsView] activeEditor])
@@ -1080,6 +1104,21 @@ NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiX
 {
 	[self setTooltipsEnabled:NO animateHiding:YES];
 }
+
+
+- (void)keyDown:(NSEvent *)event
+{
+	[[[self editorsView] activeEditor] handleEvent:event inMosaicView:self];
+}
+
+
+- (void)selectAll:(id)sender
+{
+	[[[self editorsView] activeEditor] selectAllInMosaicView:self];
+}
+
+
+#pragma mark -
 
 
 - (void)viewDidMoveToWindow
