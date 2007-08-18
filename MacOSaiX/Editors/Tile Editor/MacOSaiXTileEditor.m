@@ -372,6 +372,12 @@
 }
 
 
+- (void)selectAllInMosaicView:(MosaicView *)mosaicView
+{
+	[self setSelectedTiles:[[mosaicView mosaic] tiles]];
+}
+
+
 - (NSImage *)browserIcon
 {
 	static NSImage	*browserIcon = nil;
