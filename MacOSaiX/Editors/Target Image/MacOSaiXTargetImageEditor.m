@@ -57,6 +57,12 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 }
 
 
++ (NSString *)sortKey
+{
+	return @"0";
+}
+
+
 - (void)addTargetImage:(NSImage *)targetImage fromPath:(NSString *)targetImagePath
 {
 	NSImage			*thumbnailImage = [[targetImage copyWithLargestDimension:32.0] autorelease];
