@@ -6,9 +6,8 @@
 //  Copyright (c) 2001-2005 Frank M. Midgley. All rights reserved.
 //
 
-#import "GlyphImageSourceController.h"
-
 #import "GlyphImageSource.h"
+
 #import "GlyphImageSourcePlugIn.h"
 #import "NSString+MacOSaiX.h"
 
@@ -215,20 +214,17 @@
 
 - (void)setFontCollectionName:(NSString *)collectionName
 {
-	if (fontsType != fontCollection)
-	{
-		fontsType = fontCollection;
-		
-		[fontCollectionName release];
-		fontCollectionName = [collectionName copy];
-		
-		[fontFamilyName release];
-		fontFamilyName = nil;
-		
-		imagesShouldBeRemovedForLastChange = YES;
-		
-		[self reset];
-	}
+	fontsType = fontCollection;
+	
+	[fontCollectionName release];
+	fontCollectionName = [collectionName copy];
+	
+	[fontFamilyName release];
+	fontFamilyName = nil;
+	
+	imagesShouldBeRemovedForLastChange = YES;
+	
+	[self reset];
 }
 
 
@@ -240,20 +236,17 @@
 
 - (void)setFontFamilyName:(NSString *)familyName;
 {
-	if (fontsType != fontFamily)
-	{
-		fontsType = fontFamily;
-		
-		[fontCollectionName release];
-		fontCollectionName = nil;
-		
-		[fontFamilyName release];
-		fontFamilyName = [familyName copy];
-		
-		imagesShouldBeRemovedForLastChange = YES;
-		
-		[self reset];
-	}
+	fontsType = fontFamily;
+	
+	[fontCollectionName release];
+	fontCollectionName = nil;
+	
+	[fontFamilyName release];
+	fontFamilyName = [familyName copy];
+	
+	imagesShouldBeRemovedForLastChange = YES;
+	
+	[self reset];
 }
 
 
