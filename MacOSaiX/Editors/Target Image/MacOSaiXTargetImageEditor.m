@@ -286,24 +286,29 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 }
 
 
+- (void)selectCurrentImage
+{
+	NSString		*targetImagePath = [[[self delegate] mosaic] targetImagePath];
+	NSEnumerator	*targetEnumerator = [targetImageDicts objectEnumerator];
+	NSDictionary	*targetDict = nil;
+	
+	while (targetDict = [targetEnumerator nextObject])
+	{
+		if ([[targetDict objectForKey:@"Path"] isEqualToString:targetImagePath])
+		{
+			[targetImagesTableView selectRow:[targetImageDicts indexOfObject:targetDict] byExtendingSelection:NO];
+			break;
+		}
+	}
+}
+
+
 - (void)beginEditing
 {
 	[super beginEditing];
 	
 	if ([[[self delegate] mosaic] targetImagePath])
-	{
-		NSString		*targetImagePath = [[[self delegate] mosaic] targetImagePath];
-		NSEnumerator	*targetEnumerator = [targetImageDicts objectEnumerator];
-		NSDictionary	*targetDict = nil;
-		while (targetDict = [targetEnumerator nextObject])
-		{
-			if ([[targetDict objectForKey:@"Path"] isEqualToString:targetImagePath])
-			{
-				[targetImagesTableView selectRow:[targetImageDicts indexOfObject:targetDict] byExtendingSelection:NO];
-				break;
-			}
-		}
-	}
+		[self selectCurrentImage];
 	else
 		[self tableViewSelectionDidChange:nil];
 }
@@ -451,7 +456,9 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 						*newTargetImagePath = [imageDict objectForKey:@"Path"];
 		BOOL			changeTargetImage = ![existingTargetImagePath isEqualToString:newTargetImagePath];
 		
-		if (existingTargetImagePath && changeTargetImage && [MacOSaiXWarningController warningIsEnabled:@"Changing Target Image"])
+		if (existingTargetImagePath && changeTargetImage && 
+			[[[self delegate] mosaic] numberOfImagesFound] > 0 && 
+			[MacOSaiXWarningController warningIsEnabled:@"Changing Target Image"])
 			changeTargetImage = ([MacOSaiXWarningController runAlertForWarning:@"Changing Target Image" 
 																		 title:NSLocalizedString(@"Do you wish to change the target image?", @"") 
 																	   message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
@@ -467,6 +474,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 			[[[self delegate] mosaic] setTargetImage:targetImage];
 			[targetImage release];
 		}
+		else
+			[self selectCurrentImage];	// restore the previous selection
 	}
 }
 
