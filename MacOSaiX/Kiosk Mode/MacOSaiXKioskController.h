@@ -6,8 +6,6 @@
 //  Copyright 2005 Frank M. Midgley. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
-
 @class MacOSaiXMosaic, MosaicView, MacOSaiXKioskView, MacOSaiXKioskMessageView;
 
 
@@ -39,6 +37,8 @@
 }
 
 - (void)setMosaicControllers:(NSArray *)controllers;
+
+- (void)tile;
 
 - (void)setTileCount:(int)count;
 

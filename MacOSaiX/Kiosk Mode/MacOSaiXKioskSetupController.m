@@ -26,7 +26,7 @@
 	
 	if (!NSClassFromString(@"MacOSaiXRectangularTileShapes"))
 		warningString = NSLocalizedString(@"The Rectangular Tile Shapes plug-in is missing.", @"");
-	if (!NSClassFromString(@"GoogleImageSource"))
+	if (!NSClassFromString(@"MacOSaiXGoogleImageSource"))
 		warningString = NSLocalizedString(@"The Google Image Source plug-in is missing.", @"");
 	else
 	{
