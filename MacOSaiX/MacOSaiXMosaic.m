@@ -1211,7 +1211,7 @@ NSString	*MacOSaiXMosaicDidChangeVisibleEditorsNotification = @"MacOSaiXMosaicDi
 
 - (void)pause
 {
-	if (!paused)
+	if (!pausing && !paused)
 	{
 			// Tell the worker threads to exit.
 		pausing = YES;
@@ -1226,6 +1226,7 @@ NSString	*MacOSaiXMosaicDidChangeVisibleEditorsNotification = @"MacOSaiXMosaicDi
 		while ([self isBusy])
 			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 		
+		pausing = NO;
 		paused = YES;
 		
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXMosaicDidChangeBusyStateNotification 
