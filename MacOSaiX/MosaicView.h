@@ -33,6 +33,8 @@
 	
 	MacOSaiXEditorsView		*editorsView;
 	
+	NSColor					*backgroundColor;
+	
 	BOOL					showNonUniqueMatches;
 	
 	IBOutlet NSMenu			*contextualMenu;
@@ -63,6 +65,9 @@
 
 - (void)setEditorsView:(MacOSaiXEditorsView *)view;
 - (MacOSaiXEditorsView *)editorsView;
+
+- (void)setBackgroundColor:(NSColor *)color;
+- (NSColor *)backgroundColor;
 
 - (NSRect)imageBounds;
 

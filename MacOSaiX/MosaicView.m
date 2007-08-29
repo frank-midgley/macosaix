@@ -47,6 +47,8 @@ NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiX
 	{
 		tilesToRefresh = [[NSMutableArray alloc] init];
 		tileRefreshLock = [[NSLock alloc] init];
+		
+		[self setBackgroundColor:[NSColor grayColor]];
 	}
 	
 	return self;
@@ -104,6 +106,21 @@ NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiX
 - (BOOL)isOpaque
 {
 	return NO;
+}
+
+
+- (void)setBackgroundColor:(NSColor *)color
+{
+	[backgroundColor release];
+	backgroundColor = [color retain];
+	
+	[self setNeedsDisplay:YES];
+}
+
+
+- (NSColor *)backgroundColor
+{
+	return backgroundColor;
 }
 
 
@@ -699,7 +716,7 @@ NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiX
 	int				index = 0;
 	for (; index < drawRectCount; index++)
 	{
-		[[NSColor grayColor] set];
+		[[self backgroundColor] set];
 		NSRectFill(drawRects[index]);
 		
 		NSRect	drawRect = NSIntersectionRect(drawRects[index], mosaicBounds), 
@@ -1218,6 +1235,8 @@ NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiX
 	[tilesToRefresh release];
 	[previousTargetImage release];
 	
+	[backgroundColor release];
+
 	[mosaic release];
 	mosaic = nil;
 
