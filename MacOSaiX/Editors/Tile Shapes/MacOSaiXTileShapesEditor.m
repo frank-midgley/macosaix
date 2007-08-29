@@ -78,14 +78,15 @@
 }
 
 
-- (IBAction)setPlugInClass:(id)sender
+- (BOOL)shouldChangePlugInClass:(id)sender
 {
-	if (![MacOSaiXWarningController warningIsEnabled:@"Changing Tile Shapes"] || 
-		[MacOSaiXWarningController runAlertForWarning:@"Changing Tile Shapes" 
-												title:NSLocalizedString(@"Do you wish to change the tile shapes?", @"") 
-											  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
-										 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Change", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
-		[super setPlugInClass:sender];
+	return (sender == self ||
+			[[[self delegate] mosaic] numberOfImagesFound] == 0 || 
+			![MacOSaiXWarningController warningIsEnabled:@"Changing Tile Shapes"] || 
+			[MacOSaiXWarningController runAlertForWarning:@"Changing Tile Shapes" 
+													title:NSLocalizedString(@"Do you wish to change the tile shapes?", @"") 
+												  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
+											 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Change", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0);
 }
 
 
@@ -169,13 +170,20 @@
 }
 
 
+- (NSString *)lastChosenPlugInClassDefaultsKey
+{
+	return @"Last Chosen Tile Shapes Class";
+}
+
+
 - (void)dataSource:(id<MacOSaiXDataSource>)dataSource 
 	  didChangeKey:(NSString *)key
 		 fromValue:(id)previousValue 
 		actionName:(NSString *)actionName;
 {
 	// TODO: don't display the warning continuously
-	if (![MacOSaiXWarningController warningIsEnabled:@"Changing Tile Shapes"] || 
+	if ([[[self delegate] mosaic] numberOfImagesFound] == 0 || 
+		![MacOSaiXWarningController warningIsEnabled:@"Changing Tile Shapes"] || 
 		[MacOSaiXWarningController runAlertForWarning:@"Changing Tile Shapes" 
 												title:NSLocalizedString(@"Do you wish to change the tile shapes?", @"") 
 											  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
@@ -183,7 +191,7 @@
 	{
 		[super dataSource:dataSource didChangeKey:key fromValue:previousValue actionName:actionName];
 		
-		[[[self delegate] mosaic] createTiles];
+		[[[self delegate] mosaic] setTileShapes:[[[self delegate] mosaic] tileShapes]];
 		
 		[tilesToEmbellish removeAllObjects];
 		
