@@ -60,6 +60,9 @@
 
 - (void)setDataSource:(id<MacOSaiXDataSource>)dataSource value:(id)value forKey:(NSString *)key;
 
+
+- (NSString *)lastChosenPlugInClassDefaultsKey;
+
 - (IBAction)setPlugInClass:(id)sender;
 
 - (id<MacOSaiXDataSourceEditor>)plugInEditor;

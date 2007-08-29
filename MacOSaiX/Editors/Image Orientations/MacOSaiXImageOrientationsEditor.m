@@ -76,15 +76,15 @@
 }
 
 
-- (IBAction)setPlugInClass:(id)sender
+- (BOOL)shouldChangePlugInClass:(id)sender
 {
-	if (sender == self || 
-		![MacOSaiXWarningController warningIsEnabled:@"Changing Image Orientations"] || 
-		[MacOSaiXWarningController runAlertForWarning:@"Changing Image Orientations" 
-												title:NSLocalizedString(@"Do you wish to change the image orientations?", @"") 
-											  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
-										 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Change", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0)
-		[super setPlugInClass:sender];
+	return (sender == self || 
+			[[[self delegate] mosaic] numberOfImagesFound] == 0 || 
+			![MacOSaiXWarningController warningIsEnabled:@"Changing Image Orientations"] || 
+			[MacOSaiXWarningController runAlertForWarning:@"Changing Image Orientations" 
+													title:NSLocalizedString(@"Do you wish to change the image orientations?", @"") 
+												  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
+											 buttonTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Change", @""), NSLocalizedString(@"Cancel", @""), nil]] == 0);
 }
 
 
@@ -99,6 +99,12 @@
 - (id<MacOSaiXDataSource>)mosaicDataSource
 {
 	return [[[self delegate] mosaic] imageOrientations];
+}
+
+
+- (NSString *)lastChosenPlugInClassDefaultsKey
+{
+	return @"Last Chosen Image Orientations Class";
 }
 
 
