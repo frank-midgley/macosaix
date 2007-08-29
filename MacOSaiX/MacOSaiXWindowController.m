@@ -130,9 +130,11 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 		NSImage		*lastImage = [[NSImage alloc] initWithContentsOfFile:lastPath];
 		if (lastImage)
 		{
+			[[self mosaic] setIsBeingLoaded:YES];
 			[[self mosaic] setTargetImagePath:lastPath];
 			[[self mosaic] setTargetImage:lastImage];
 			[lastImage release];
+			[[self mosaic] setIsBeingLoaded:NO];
 		}
 		
 		// FMM TODO: The last chosen image is not available, pick the first recent target in the list.
@@ -182,26 +184,6 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	
 - (void)updateImageCountFields
 {
-	static NSAttributedString	*shortBase = nil;
-	
-	if (!shortBase)
-	{
-		NSMutableAttributedString	*mutableAS = [[NSMutableAttributedString alloc] initWithString:@""];
-		NSTextAttachment			*ta1 = [[[NSTextAttachment alloc] init] autorelease], 
-									*ta2 = [[[NSTextAttachment alloc] init] autorelease];
-		[(NSCell *)[ta1 attachmentCell] setImage:[NSImage imageNamed:@"Images Found"]];
-		[(NSCell *)[ta2 attachmentCell] setImage:[NSImage imageNamed:@"Images In Use"]];
-		[mutableAS appendAttributedString:[NSMutableAttributedString attributedStringWithAttachment:ta1]];
-		[mutableAS appendAttributedString:[NSMutableAttributedString attributedStringWithAttachment:ta2]];
-		[mutableAS addAttribute:NSBaselineOffsetAttributeName 
-						  value:[NSNumber numberWithInt:-5] 
-						  range:NSMakeRange(0, 2)];
-		NSAttributedString			*separatorAS = [[[NSAttributedString alloc] initWithString:@"/"] autorelease];
-		[mutableAS insertAttributedString:separatorAS atIndex:1];
-		
-		shortBase = mutableAS;
-	}
-	
 	NSRect						statusViewFrame = [statusView frame], 
 								statusFrame = [statusField frame], 
 								countsFrame = [imagesFoundField frame];
@@ -211,23 +193,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	NSDictionary				*attributes = [NSDictionary dictionaryWithObject:[imagesFoundField font] forKey:NSFontAttributeName];
 	float						countsWidth = [countsString sizeWithAttributes:attributes].width;
 	
-	if (NSWidth(statusViewFrame) - countsWidth - 8.0 - NSMinX(statusFrame) <  128.0)
-	{
-			// Use the short version.
-		NSMutableAttributedString	*shortAS = [[shortBase mutableCopy] autorelease];
-		NSAttributedString			*countsAS = [[[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@": %u/%u", imagesFound, imagesInUse] attributes:attributes] autorelease];
-		
-		[shortAS appendAttributedString:countsAS];
-		
-		[imagesFoundField setAttributedStringValue:shortAS];
-		
-		countsWidth = [shortAS size].width + 3.0;
-	}
-	else
-	{
-			// There is room for the long version.
-		[imagesFoundField setStringValue:countsString];
-	}
+	[imagesFoundField setStringValue:countsString];
 	
 	statusFrame.size.width = NSWidth(statusViewFrame) - countsWidth - 8.0 - NSMinX(statusFrame);
 	[statusField setFrame:statusFrame];
