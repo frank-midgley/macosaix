@@ -91,6 +91,8 @@
 {
 	if (![self fileName])
 	{
+		[[self mosaic] setIsBeingLoaded:YES];
+		
 			// This is a new document, not one loaded from disk.
 		[(MacOSaiX *)[NSApp delegate] discoverPlugIns];
 		NSString	*defaultShapesClassString = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Chosen Tile Shapes Class"], 
@@ -112,6 +114,8 @@
 					[[self mosaic] setDiskCachePath:[NSString stringWithCString:tempPath]];
 			}
 		}
+		
+		[[self mosaic] setIsBeingLoaded:NO];
 	}
 	
 	mainWindowController = [[MacOSaiXWindowController alloc] initWithWindow:nil];
