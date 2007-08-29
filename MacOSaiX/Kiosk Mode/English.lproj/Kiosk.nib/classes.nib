@@ -30,7 +30,6 @@
             }; 
             SUPERCLASS = NSView; 
         }, 
-        {CLASS = MacOSaiXKioskWindow; LANGUAGE = ObjC; SUPERCLASS = NSWindow; }, 
         {CLASS = MosaicView; LANGUAGE = ObjC; SUPERCLASS = NSView; }
     ); 
     IBVersion = 1; 
