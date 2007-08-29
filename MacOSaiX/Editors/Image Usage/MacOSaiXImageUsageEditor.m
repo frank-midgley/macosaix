@@ -165,6 +165,8 @@
 	[imageReuseSlider setIntValue:[mosaic imageReuseDistance]];
 	[imageCropLimitSlider setIntValue:[mosaic imageCropLimit]];
 	
+	[imageReuseSlider setEnabled:([mosaic imageUseCount] != 1)];
+	
 	samplePoint = NSMakePoint(0.5, 0.5);
 	
 	[self configureImageCropMatrix];
@@ -184,29 +186,6 @@
 	
 	NSRect				imageBounds = [mosaicView imageBounds];
 	[[NSBezierPath bezierPathWithRect:imageBounds] addClip];
-	
-	float				radius = sqrtf(powf(NSWidth(imageBounds), 2.0) + powf(NSHeight(imageBounds), 2.0)) * [imageReuseSlider floatValue] / 100.0;
-	NSPoint				scaledSamplePoint = NSMakePoint(samplePoint.x * NSWidth(imageBounds) + NSMinX(imageBounds), 
-														samplePoint.y * NSHeight(imageBounds) + NSMinY(imageBounds));
-	NSAffineTransform	*transform = [NSAffineTransform transform];
-	[transform translateXBy:scaledSamplePoint.x yBy:scaledSamplePoint.y];
-	[transform concat];
-	
-//	[[NSGraphicsContext currentContext] setPatternPhase:scaledSamplePoint];
-	
-	NSBezierPath		*uniquenessPath = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(-radius, -radius, radius * 2.0, radius * 2.0)];
-	[[NSColor colorWithCalibratedWhite:0.0 alpha:0.25] set];
-	[uniquenessPath fill];
-//	[[NSColor colorWithPatternImage:[NSImage imageNamed:@"UniqueX"]] set];
-//	[uniquenessPath fill];
-	[[NSColor darkGrayColor] set];
-	[uniquenessPath stroke];
-		
-//	NSBezierPath		*samplePointPath = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(-5.0, -5.0, 10.0, 10.0)];
-//	[[NSColor whiteColor] set];
-//	[samplePointPath fill];
-//	[[NSColor darkGrayColor] set];
-//	[samplePointPath stroke];
 	
 	static	NSBezierPath	*vectorPath = nil;
 	if (!vectorPath)
@@ -232,70 +211,129 @@
 		[vectorPath lineToPoint:NSMakePoint(-12.0, -8.0)];
 	}
 	
-	float	angle = startAngle;
-	while (angle < startAngle + M_PI * 2.0)
+	if ([[[self delegate] mosaic] imageUseCount] == 1)
 	{
-		if (radius > 40.0)
-		{
-			[[NSGraphicsContext currentContext] saveGraphicsState];
-			
-			NSAffineTransform	*transform = [NSAffineTransform transform];
-			[transform translateXBy:(radius - 15.0) * cosf(angle) yBy:(radius - 15.0) * sinf(angle)];
-			[transform concat];
-			
-			[[NSColor whiteColor] set];
-			[vectorPath fill];
-			[[NSColor blackColor] set];
-			[vectorPath stroke];
-			
-			NSBezierPath	*badgePath = [NSBezierPath bezierPath];
-			[badgePath moveToPoint:NSMakePoint(4.0, -7.0)];
-			[badgePath lineToPoint:NSMakePoint(11.0, 0.0)];
-			[badgePath moveToPoint:NSMakePoint(4.0, 0.0)];
-			[badgePath lineToPoint:NSMakePoint(11.0, -7.0)];
-			[badgePath setLineWidth:3.0];
-			[[[NSColor redColor] shadowWithLevel:0.75] set];
-			[badgePath stroke];
-			[badgePath setLineWidth:2.0];
-			[[[NSColor redColor] highlightWithLevel:0.25] set];
-			[badgePath stroke];
-
-			[[NSGraphicsContext currentContext] restoreGraphicsState];
-		}
+		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.25] set];
+		NSRectFillUsingOperation(imageBounds, NSCompositeSourceOver);
 		
-		{
-			[[NSGraphicsContext currentContext] saveGraphicsState];
-			
-			NSAffineTransform	*transform = [NSAffineTransform transform];
-			[transform translateXBy:(radius + 15.0) * cosf(angle) yBy:(radius + 15.0) * sinf(angle)];
-			[transform concat];
-			
-			[[NSColor whiteColor] set];
-			[vectorPath fill];
-			[[NSColor blackColor] set];
-			[vectorPath stroke];
-			
-			NSBezierPath	*badgePath = [NSBezierPath bezierPath];
-			[badgePath moveToPoint:NSMakePoint(3.0, -4.0)];
-			[badgePath lineToPoint:NSMakePoint(6.0, -7.0)];
-			[badgePath lineToPoint:NSMakePoint(11.0, 1.0)];
-			[badgePath setLineWidth:3.0];
-			[[[NSColor greenColor] shadowWithLevel:0.75] set];
-			[badgePath stroke];
-			[badgePath setLineWidth:2.0];
-			[[[NSColor greenColor] highlightWithLevel:0.25] set];
-			[badgePath stroke];
-
-			[[NSGraphicsContext currentContext] restoreGraphicsState];
-		}
+		float	xSpacing = NSWidth(imageBounds) / 2.0 - 14.0, 
+				ySpacing = NSHeight(imageBounds) / 2.0 - 10.0;
+		int		x, y;
 		
-		angle += M_PI / 3.0;
+		for (x = 0; x < 3; x++)
+			for (y = 0; y < 3; y++)
+			{
+				[[NSGraphicsContext currentContext] saveGraphicsState];
+				
+				NSAffineTransform	*transform = [NSAffineTransform transform];
+				if (x == 1 && y == 1)
+					[transform translateXBy:samplePoint.x * NSWidth(imageBounds) + NSMinX(imageBounds) yBy:samplePoint.y * NSHeight(imageBounds) + NSMinY(imageBounds)];
+				else
+					[transform translateXBy:NSMinX(imageBounds) + x * xSpacing + 14.0 yBy:NSMinY(imageBounds) + y * ySpacing + 10.0];
+				[transform concat];
+				
+				[[NSColor whiteColor] set];
+				[vectorPath fill];
+				[[NSColor blackColor] set];
+				[vectorPath stroke];
+					
+				if (x != 1 || y != 1)
+				{
+					NSBezierPath	*badgePath = [NSBezierPath bezierPath];
+					[badgePath moveToPoint:NSMakePoint(4.0, -7.0)];
+					[badgePath lineToPoint:NSMakePoint(11.0, 0.0)];
+					[badgePath moveToPoint:NSMakePoint(4.0, 0.0)];
+					[badgePath lineToPoint:NSMakePoint(11.0, -7.0)];
+					[badgePath setLineWidth:3.0];
+					[[[NSColor redColor] shadowWithLevel:0.75] set];
+					[badgePath stroke];
+					[badgePath setLineWidth:2.0];
+					[[[NSColor redColor] highlightWithLevel:0.25] set];
+					[badgePath stroke];
+				}
+				[[NSGraphicsContext currentContext] restoreGraphicsState];
+			}
 	}
-	
-	[[NSColor whiteColor] set];
-	[vectorPath fill];
-	[[NSColor blackColor] set];
-	[vectorPath stroke];
+	else
+	{
+		float				radius = sqrtf(powf(NSWidth(imageBounds), 2.0) + powf(NSHeight(imageBounds), 2.0)) * [imageReuseSlider floatValue] / 100.0;
+		NSPoint				scaledSamplePoint = NSMakePoint(samplePoint.x * NSWidth(imageBounds) + NSMinX(imageBounds), 
+															samplePoint.y * NSHeight(imageBounds) + NSMinY(imageBounds));
+		NSAffineTransform	*transform = [NSAffineTransform transform];
+		[transform translateXBy:scaledSamplePoint.x yBy:scaledSamplePoint.y];
+		[transform concat];
+		
+		NSBezierPath		*uniquenessPath = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(-radius, -radius, radius * 2.0, radius * 2.0)];
+		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.25] set];
+		[uniquenessPath fill];
+		[[NSColor darkGrayColor] set];
+		[uniquenessPath stroke];
+		
+		[[NSColor whiteColor] set];
+		[vectorPath fill];
+		[[NSColor blackColor] set];
+		[vectorPath stroke];
+		
+		float				angle = startAngle;
+		while (angle < startAngle + M_PI * 2.0)
+		{
+			if (radius > 40.0)
+			{
+				[[NSGraphicsContext currentContext] saveGraphicsState];
+				
+				NSAffineTransform	*transform = [NSAffineTransform transform];
+				[transform translateXBy:(radius - 15.0) * cosf(angle) yBy:(radius - 15.0) * sinf(angle)];
+				[transform concat];
+				
+				[[NSColor whiteColor] set];
+				[vectorPath fill];
+				[[NSColor blackColor] set];
+				[vectorPath stroke];
+				
+				NSBezierPath	*badgePath = [NSBezierPath bezierPath];
+				[badgePath moveToPoint:NSMakePoint(4.0, -7.0)];
+				[badgePath lineToPoint:NSMakePoint(11.0, 0.0)];
+				[badgePath moveToPoint:NSMakePoint(4.0, 0.0)];
+				[badgePath lineToPoint:NSMakePoint(11.0, -7.0)];
+				[badgePath setLineWidth:3.0];
+				[[[NSColor redColor] shadowWithLevel:0.75] set];
+				[badgePath stroke];
+				[badgePath setLineWidth:2.0];
+				[[[NSColor redColor] highlightWithLevel:0.25] set];
+				[badgePath stroke];
+
+				[[NSGraphicsContext currentContext] restoreGraphicsState];
+			}
+			
+			{
+				[[NSGraphicsContext currentContext] saveGraphicsState];
+				
+				NSAffineTransform	*transform = [NSAffineTransform transform];
+				[transform translateXBy:(radius + 15.0) * cosf(angle) yBy:(radius + 15.0) * sinf(angle)];
+				[transform concat];
+				
+				[[NSColor whiteColor] set];
+				[vectorPath fill];
+				[[NSColor blackColor] set];
+				[vectorPath stroke];
+				
+				NSBezierPath	*badgePath = [NSBezierPath bezierPath];
+				[badgePath moveToPoint:NSMakePoint(3.0, -4.0)];
+				[badgePath lineToPoint:NSMakePoint(6.0, -7.0)];
+				[badgePath lineToPoint:NSMakePoint(11.0, 1.0)];
+				[badgePath setLineWidth:3.0];
+				[[[NSColor greenColor] shadowWithLevel:0.75] set];
+				[badgePath stroke];
+				[badgePath setLineWidth:2.0];
+				[[[NSColor greenColor] highlightWithLevel:0.25] set];
+				[badgePath stroke];
+
+				[[NSGraphicsContext currentContext] restoreGraphicsState];
+			}
+			
+			angle += M_PI / 3.0;
+		}
+	}
 	
 	[[NSGraphicsContext currentContext] restoreGraphicsState];
 }
@@ -367,7 +405,11 @@
 
 - (IBAction)setImageUseCount:(id)sender
 {
-	[[[self delegate] mosaic] setImageUseCount:[[imageUseCountPopUp selectedItem] tag]];
+	int	useCount = [[imageUseCountPopUp selectedItem] tag];
+	
+	[[[self delegate] mosaic] setImageUseCount:useCount];
+	
+	[imageReuseSlider setEnabled:(useCount != 1)];
 	
 	[[self delegate] embellishmentNeedsDisplay];
 }
