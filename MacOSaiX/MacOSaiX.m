@@ -454,6 +454,7 @@ NSString	*MacOSaiXDisallowedImagesDidChangeNotification = @"MacOSaiXDisallowedIm
 	[kioskWindow setInitialFirstResponder:[nibWindow initialFirstResponder]];
 	[kioskController setWindow:kioskWindow];
 	[kioskWindow setDelegate:kioskController];
+	[kioskController tile];
 	[kioskController setTileCount:tileCount];
 	[kioskController setMessage:message];
 	[kioskController setMessageBackgroundColor:messageBackgroundColor];
