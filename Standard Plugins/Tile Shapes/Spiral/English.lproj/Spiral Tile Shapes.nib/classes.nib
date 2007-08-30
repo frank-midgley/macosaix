@@ -1,0 +1,27 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {
+                cancelOtherSize = id; 
+                setOtherSize = id; 
+                setSpiralTightness = id; 
+                setTileSize = id; 
+            }; 
+            CLASS = MacOSaiXSpiralTileShapesEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                delegate = id; 
+                editorView = NSView; 
+                okButton = NSButton; 
+                otherSizeField = NSTextField; 
+                otherSizePanel = NSPanel; 
+                spiralTightnessSlider = NSSlider; 
+                tileAspectRatioSlider = NSSlider; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = NSSegmentedControl; LANGUAGE = ObjC; SUPERCLASS = NSControl; }
+    ); 
+    IBVersion = 1; 
+}
