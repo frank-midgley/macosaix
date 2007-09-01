@@ -88,6 +88,25 @@
 }
 
 
+- (NSSize)minimumViewSize
+{
+	NSSize	minSize = [editorView frame].size;
+	
+		// Subtract out the current size of the plug-in's editor view.
+	minSize.width -= NSWidth([[plugInEditorBox contentView] frame]);
+	minSize.height -= NSHeight([[plugInEditorBox contentView] frame]);
+	
+		// Add the minimum size of the plug-in's editor view.
+	minSize.width += [plugInEditor minimumSize].width;
+	minSize.height += [plugInEditor minimumSize].height;
+	
+	minSize.width = MAX(minSize.width, 233.0);
+	minSize.height = MAX(minSize.height, 202.0);
+	
+	return minSize;
+}
+
+
 - (void)setMosaicDataSource:(id<MacOSaiXDataSource>)dataSource
 {
 	[[[self delegate] mosaic] setImageOrientations:(id<MacOSaiXImageOrientations>)dataSource];
@@ -236,7 +255,8 @@
 		actionName:(NSString *)actionName;
 {
 	// TODO: don't display the warning continuously
-	if (![MacOSaiXWarningController warningIsEnabled:@"Changing Image Orientations"] || 
+	if ([[[self delegate] mosaic] numberOfImagesFound] == 0 || 
+		![MacOSaiXWarningController warningIsEnabled:@"Changing Image Orientations"] || 
 		[MacOSaiXWarningController runAlertForWarning:@"Changing Image Orientations" 
 												title:NSLocalizedString(@"Do you wish to change the image orientations?", @"") 
 											  message:NSLocalizedString(@"All work in the current mosaic will be lost.", @"") 
