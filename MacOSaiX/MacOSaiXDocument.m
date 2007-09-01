@@ -54,14 +54,7 @@
 @end
 
 
-@protocol MacOSaiXTileShapesDeprecated <MacOSaiXTileShapes>
-- (void)useSavedSetting:(NSDictionary *)settingDict;
-- (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict;
-- (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict;
-@end
-
-
-@protocol MacOSaiXImageSourceDeprecated <MacOSaiXImageSource>
+@protocol MacOSaiXPlugInDeprecated <NSObject>
 - (void)useSavedSetting:(NSDictionary *)settingDict;
 - (void)addSavedChildSetting:(NSDictionary *)childSettingDict toParent:(NSDictionary *)parentSettingDict;
 - (void)savedSettingIsCompletelyLoaded:(NSDictionary *)settingDict;
@@ -1162,15 +1155,10 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 //	MacOSaiXDocument	*document = [stack objectAtIndex:0];	// unused in this method
 	MacOSaiXMosaic		*mosaic = [stack objectAtIndex:1];
 
-	if ([(id)parent conformsToProtocol:@protocol(MacOSaiXTileShapesDeprecated)] && [(id)child isKindOfClass:[NSDictionary class]])
+	if ([(id)parent respondsToSelector:@selector(useSavedSetting:)] && [(id)child isKindOfClass:[NSDictionary class]])
 	{
 			// Pass a setting on to the tile shapes instance.
-		[(id<MacOSaiXTileShapesDeprecated>)parent useSavedSetting:(NSDictionary *)child];
-	}
-	else if ([(id)parent conformsToProtocol:@protocol(MacOSaiXImageSourceDeprecated)] && [(id)child isKindOfClass:[NSDictionary class]])
-	{
-			// Pass a setting on to one of the image sources.
-		[(id<MacOSaiXImageSourceDeprecated>)parent useSavedSetting:(NSDictionary *)child];
+		[(id)parent useSavedSetting:(NSDictionary *)child];
 	}
 	else if ([(id)parent isKindOfClass:[NSDictionary class]] && [(id)child isKindOfClass:[NSDictionary class]])
 	{
@@ -1178,8 +1166,7 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 		NSEnumerator	*stackEnumerator = [stack reverseObjectEnumerator];
 		id				stackObject = nil;
 		while (stackObject = [stackEnumerator nextObject])
-			if ([stackObject conformsToProtocol:@protocol(MacOSaiXTileShapesDeprecated)] || 
-				[stackObject conformsToProtocol:@protocol(MacOSaiXImageSourceDeprecated)])
+			if ([stackObject respondsToSelector:@selector(addSavedChildSetting:toParent:)])
 			{
 				[stackObject addSavedChildSetting:(NSDictionary *)child toParent:(NSDictionary *)parent];
 				break;
@@ -1277,7 +1264,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 		NSEnumerator	*stackEnumerator = [stack reverseObjectEnumerator];
 		id				stackObject = nil;
 		while (stackObject = [stackEnumerator nextObject])
-			if ([stackObject conformsToProtocol:@protocol(MacOSaiXTileShapes)] || [stackObject conformsToProtocol:@protocol(MacOSaiXImageSource)])
+			if ([stackObject respondsToSelector:@selector(savedSettingIsCompletelyLoaded:)])
 			{
 				[stackObject savedSettingIsCompletelyLoaded:(NSDictionary *)newObject];
 				break;
