@@ -6,8 +6,12 @@
             CLASS = MacOSaiXExportController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                delegate = id; 
+                exportSettings = id; 
+                exporterEditor = id; 
                 formatPopUp = NSPopUpButton; 
                 openWhenCompletedButton = NSButton; 
+                separatorLine = NSBox; 
                 sharedView = NSView; 
             }; 
             SUPERCLASS = NSObject; 

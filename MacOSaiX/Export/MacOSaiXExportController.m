@@ -52,23 +52,30 @@
 	
 	[NSBundle loadNibNamed:@"Export" owner:self];
 	
-		// Populate the format pop-up with the list of the current exporter plug-ins.
-	[formatPopUp removeAllItems];
 	NSMenu			*formatMenu = [formatPopUp menu];
+	[formatPopUp removeAllItems];
+	NSMenuItem		*menuItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Mosaic Project", @"") action:@selector(setFormat:) keyEquivalent:@""] autorelease];
+	[menuItem setImage:[[[NSImage imageNamed:@"Document Icon"] copyWithLargestDimension:16] autorelease]];
+	[menuItem setTarget:self];
+	[formatMenu addItem:menuItem];
+	NSMenuItem		*currentItem = (exportSettings ? nil : menuItem);
+	
+		// Populate the format pop-up with the list of the current exporter plug-ins.
 	NSEnumerator	*plugInEnumerator = [[[NSApp delegate] exporterPlugIns] objectEnumerator];
 	Class			exporterPlugIn = nil, 
 					currentClass = [exportSettings class];
-	NSMenuItem		*currentItem = nil;
 	while (exporterPlugIn = [plugInEnumerator nextObject])
 	{
 		NSBundle		*plugInBundle = [NSBundle bundleForClass:exporterPlugIn];
 		NSString		*plugInName = [plugInBundle objectForInfoDictionaryKey:@"CFBundleName"];
-		NSMenuItem		*menuItem = [[[NSMenuItem alloc] initWithTitle:plugInName action:@selector(addImageSource:) keyEquivalent:@""] autorelease];
+		NSMenuItem		*menuItem = [[[NSMenuItem alloc] initWithTitle:plugInName action:@selector(setFormat:) keyEquivalent:@""] autorelease];
+		NSImage			*menuItemImage = [[[exporterPlugIn image] copyWithLargestDimension:16] autorelease];
 		
-		[menuItem setImage:[[[exporterPlugIn image] copyWithLargestDimension:32] autorelease]];
+		if (!menuItemImage)
+			menuItemImage = [[[NSImage alloc] initWithSize:NSMakeSize(16.0, 16.0)] autorelease];
+		[menuItem setImage:menuItemImage];
 		[menuItem setRepresentedObject:exporterPlugIn];
 		[menuItem setTarget:self];
-		[menuItem setAction:@selector(setFormat:)];
 		
 		[formatMenu addItem:menuItem];
 		
@@ -79,7 +86,7 @@
 	[formatPopUp selectItem:currentItem];
 	[self setFormat:currentItem];
 	
-	NSString	*exportExtension = [exportSettings exportExtension];
+	NSString	*exportExtension = (exportSettings ? [exportSettings exportExtension] : @"mosaic");
     [savePanel setRequiredFileType:exportExtension];
 	
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"Open Exported File When Completed"])
@@ -107,32 +114,69 @@
 		[exporterEditor release];
 	}
 	
-		// Create new settings for this format if necessary.
-	if (![exportSettings isKindOfClass:[plugInClass dataSourceClass]])
+	if (plugInClass)
 	{
-		[exportSettings release];
-		exportSettings = [[[plugInClass dataSourceClass] alloc] init];
+		if ([openWhenCompletedButton respondsToSelector:@selector(setHidden:)])
+		{
+			[openWhenCompletedButton setHidden:NO];
+			[separatorLine setHidden:NO];
+		}
+		else
+			[openWhenCompletedButton setEnabled:YES];
+		
+			// Create new settings for this format if necessary.
+		if (![exportSettings isKindOfClass:[plugInClass dataSourceClass]])
+		{
+			[exportSettings release];
+			exportSettings = [[[plugInClass dataSourceClass] alloc] init];
+		}
+		[exportSettings setTargetImage:[mosaic targetImage]];
+		
+			// Create an editor for this format's settings.
+		exporterEditor = [[[plugInClass editorClass] alloc] initWithDelegate:self];
+		
+			// Add the editor's custom view to the save panel.
+		NSView			*editorView = [exporterEditor editorView];
+		NSRect			editorFrame = [editorView frame], 
+						accessoryFrame = NSMakeRect(0.0, 0.0, NSWidth(editorFrame), NSHeight(editorFrame) + NSHeight([sharedView frame]));
+		NSView			*accessoryView = [[[NSView alloc] initWithFrame:accessoryFrame] autorelease];
+		[sharedView setFrame:NSMakeRect(0.0, NSHeight(editorFrame), NSWidth(accessoryFrame), NSHeight([sharedView frame]))];
+		[accessoryView addSubview:sharedView];
+		[accessoryView addSubview:editorView];
+		[savePanel setAccessoryView:accessoryView];
+		
+			// Set the correct file extension.
+		[savePanel setRequiredFileType:[exportSettings exportExtension]];
+		
+			// Tell the editor which settings to edit.
+		[exporterEditor editDataSource:exportSettings];
 	}
-	[exportSettings setTargetImage:[mosaic targetImage]];
-	
-		// Create an editor for this format's settings.
-	exporterEditor = [[[plugInClass editorClass] alloc] initWithDelegate:self];
-	
-		// Add the editor's custom view to the save panel.
-	NSView			*editorView = [exporterEditor editorView];
-	NSRect			editorFrame = [editorView frame], 
-					accessoryFrame = NSMakeRect(0.0, 0.0, NSWidth(editorFrame), NSHeight(editorFrame) + NSHeight([sharedView frame]));
-	NSView			*accessoryView = [[[NSView alloc] initWithFrame:accessoryFrame] autorelease];
-	[sharedView setFrame:NSMakeRect(0.0, NSHeight(editorFrame), NSWidth(accessoryFrame), NSHeight([sharedView frame]))];
-	[accessoryView addSubview:sharedView];
-	[accessoryView addSubview:editorView];
-	[savePanel setAccessoryView:accessoryView];
-	
-		// Set the correct file extension.
-    [savePanel setRequiredFileType:[exportSettings exportExtension]];
-	
-		// Tell the editor which settings to edit.
-	[exporterEditor editDataSource:exportSettings];
+	else
+	{
+		if ([openWhenCompletedButton respondsToSelector:@selector(setHidden:)])
+		{
+			[openWhenCompletedButton setHidden:YES];
+			[separatorLine setHidden:YES];
+		}
+		else
+		{
+			[openWhenCompletedButton setEnabled:NO];
+			[openWhenCompletedButton setState:NSOnState];
+		}
+		
+		[exportSettings release];
+		exportSettings = nil;
+		
+		exporterEditor = nil;
+		
+		[sharedView setFrameOrigin:NSMakePoint(0.0, 0.0)];
+		NSView			*accessoryView = [[[NSView alloc] initWithFrame:[sharedView frame]] autorelease];
+		[accessoryView addSubview:sharedView];
+		[savePanel setAccessoryView:accessoryView];
+		
+			// Set the correct file extension.
+		[savePanel setRequiredFileType:@"mosaic"];
+	}
 }
 
 
@@ -169,19 +213,24 @@
     {
 		[mosaic setExportSettings:exportSettings];
 		
-		progressController = [[MacOSaiXProgressController alloc] initWithWindow:nil];
-		[progressController setCancelTarget:self action:@selector(cancelExport:)];
-		[progressController displayPanelWithMessage:[NSString stringWithFormat:NSLocalizedString(@"Saving the mosaic in %@ format...", @""), 
-																			   [exportSettings exportFormat]]
-									 modalForWindow:window];
-		
-			// Spawn a thread to do the export so the GUI doesn't get tied up.
-		NSDictionary	*threadParameters = [NSDictionary dictionaryWithObjectsAndKeys:
-												[savePanel URL], @"Export URL", 
-												nil];
-		[NSApplication detachDrawingThread:@selector(exportMosaic:)
-								  toTarget:self 
-								withObject:threadParameters];
+		if (exportSettings)
+		{
+			progressController = [[MacOSaiXProgressController alloc] initWithWindow:nil];
+			[progressController setCancelTarget:self action:@selector(cancelExport:)];
+			[progressController displayPanelWithMessage:[NSString stringWithFormat:NSLocalizedString(@"Saving the mosaic in %@ format...", @""), 
+																				   [exportSettings exportFormat]]
+										 modalForWindow:window];
+			
+				// Spawn a thread to do the export so the GUI doesn't get tied up.
+			NSDictionary	*threadParameters = [NSDictionary dictionaryWithObjectsAndKeys:
+													[savePanel URL], @"Export URL", 
+													nil];
+			[NSApplication detachDrawingThread:@selector(exportMosaic:)
+									  toTarget:self 
+									withObject:threadParameters];
+		}
+		else
+			[[[window windowController] document] saveToFile:[savePanel filename] saveOperation:NSSaveAsOperation delegate:nil didSaveSelector:nil contextInfo:nil];
 	}
 	
 	savePanel = nil;

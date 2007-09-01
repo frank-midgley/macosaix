@@ -19,6 +19,7 @@
 	IBOutlet NSView					*sharedView;
 	IBOutlet NSPopUpButton			*formatPopUp;
 	IBOutlet NSButton				*openWhenCompletedButton;
+	IBOutlet NSBox					*separatorLine;
 	
 	MacOSaiXMosaic					*mosaic;
 	float							targetImageOpacity;
