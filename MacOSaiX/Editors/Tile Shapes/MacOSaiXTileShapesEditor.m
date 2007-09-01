@@ -90,6 +90,22 @@
 }
 
 
+- (NSSize)minimumViewSize
+{
+	NSSize	minSize = [editorView frame].size;
+
+		// Subtract out the current size of the plug-in's editor view.
+	minSize.width -= NSWidth([[plugInEditorBox contentView] frame]);
+	minSize.height -= NSHeight([[plugInEditorBox contentView] frame]);
+	
+		// Add the minimum size of the plug-in's editor view.
+	minSize.width += [plugInEditor minimumSize].width;
+	minSize.height += [plugInEditor minimumSize].height;
+	
+	return minSize;
+}
+
+
 - (void)setMosaicDataSource:(id<MacOSaiXDataSource>)dataSource
 {
 	[[[self delegate] mosaic] setTileShapes:(id<MacOSaiXTileShapes>)dataSource];
