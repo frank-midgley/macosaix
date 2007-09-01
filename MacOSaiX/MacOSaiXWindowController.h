@@ -17,25 +17,20 @@
 	
 		// Views shared between layouts
     IBOutlet MosaicView					*mosaicView;
-	IBOutlet NSView						*statusView;
 	IBOutlet NSButton					*pauseButton;
 	IBOutlet NSTextField				*statusField, 
 										*imagesFoundField;
 	
 		// Minimal layout
 	IBOutlet NSView						*minimalContentView;
-	IBOutlet NSScrollView				*minimalMosaicScrollView;
-	IBOutlet NSBox						*minimalStatusViewBox;
 	
 		// Editing layout
 	IBOutlet NSView						*editingContentView;
 	IBOutlet MacOSaiXSplitView			*editingSplitView;
 	IBOutlet MacOSaiXEditorsView		*editorsView;
-	IBOutlet NSView						*editingView;
+	IBOutlet NSBox						*editingView;
 	IBOutlet NSSlider					*blendSlider, 
 										*zoomSlider;
-	IBOutlet NSScrollView				*editingMosaicScrollView;
-	IBOutlet NSBox						*editingStatusViewBox;
 	
 	BOOL								windowLayoutIsMinimal;
 	NSSize								minEditorsViewSize;

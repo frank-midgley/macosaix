@@ -141,9 +141,14 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	}
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self 
+											 selector:@selector(mosaicScrollViewDidChangeFrame:) 
+												 name:NSViewFrameDidChangeNotification 
+											   object:[mosaicView enclosingScrollView]];
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self 
 											 selector:@selector(statusViewFrameDidChange:) 
 												 name:NSViewFrameDidChangeNotification 
-											   object:statusView];
+											   object:imagesFoundField];
 	
 	[self mosaicDidChangeState:nil];
 	
@@ -184,8 +189,8 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	
 - (void)updateImageCountFields
 {
-	NSRect						statusViewFrame = [statusView frame], 
-								statusFrame = [statusField frame], 
+	float						statusWidth = NSWidth([[mosaicView enclosingScrollView] frame]);
+	NSRect						statusFrame = [statusField frame], 
 								countsFrame = [imagesFoundField frame];
 	unsigned long				imagesFound = [[self mosaic] numberOfImagesFound], 
 								imagesInUse = [[self mosaic] numberOfImagesInUse];
@@ -195,10 +200,10 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	
 	[imagesFoundField setStringValue:countsString];
 	
-	statusFrame.size.width = NSWidth(statusViewFrame) - countsWidth - 8.0 - NSMinX(statusFrame);
+	statusFrame.size.width = statusWidth - countsWidth - 8.0 - NSMinX(statusFrame);
 	[statusField setFrame:statusFrame];
 	
-	countsFrame.origin.x = NSWidth(statusViewFrame) - countsWidth - 8.0;
+	countsFrame.origin.x = statusWidth - countsWidth - 8.0;
 	countsFrame.size.width = countsWidth + 4.0;
 	[imagesFoundField setFrame:countsFrame];
 }
@@ -323,48 +328,31 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	{
 		if (windowLayoutIsMinimal)
 		{
-				// Switch to the editing layout.
-			[minimalMosaicScrollView setDocumentView:nil];
-			[minimalStatusViewBox setContentView:nil];
-			[mosaicView setFrame:[editingMosaicScrollView frame]];
+			// Switch to the editing layout.
+			
 			[mosaicView setEditorsView:editorsView];
 			if ([[editorsView activeEditor] targetImageOpacity])
 				[mosaicView setTargetImageOpacity:[[[editorsView activeEditor] targetImageOpacity] floatValue] animationTime:0.5];
-			[editingMosaicScrollView setDocumentView:mosaicView];
-			[editingStatusViewBox setContentView:statusView];
+			
+			[[mosaicView enclosingScrollView] setBorderType:NSBezelBorder];
+			
 			[[self window] setContentView:editingContentView];
+			[editingView setContentView:minimalContentView];
 			
 			[minimalContentView removeTrackingRect:mosaicTrackingRectTag];
 			[[self window] setAcceptsMouseMovedEvents:NO];
-			
-			[[NSNotificationCenter defaultCenter] removeObserver:self 
-															name:NSViewFrameDidChangeNotification 
-														  object:minimalMosaicScrollView];
-			[[NSNotificationCenter defaultCenter] addObserver:self 
-													 selector:@selector(mosaicScrollViewDidChangeFrame:) 
-														 name:NSViewFrameDidChangeNotification 
-													   object:editingMosaicScrollView];
 		}
 		else
 		{
-				// Switch to the minimal layout.
-			[editingMosaicScrollView setDocumentView:nil];
-			[editingStatusViewBox setContentView:nil];
-			[mosaicView setFrame:[minimalMosaicScrollView frame]];
+			// Switch to the minimal layout.
+			
 			[mosaicView setEditorsView:nil];
 			[mosaicView setTargetImageOpacity:[[self mosaic] targetImageOpacity] animationTime:0.5];
-			[minimalMosaicScrollView setDocumentView:mosaicView];
-			[minimalStatusViewBox setContentView:statusView];
-			[[self window] setContentView:minimalContentView];
-			[[self window] setMinSize:NSZeroSize];
 			
-			[[NSNotificationCenter defaultCenter] removeObserver:self 
-															name:NSViewFrameDidChangeNotification 
-														  object:editingMosaicScrollView];
-			[[NSNotificationCenter defaultCenter] addObserver:self 
-													 selector:@selector(mosaicScrollViewDidChangeFrame:) 
-														 name:NSViewFrameDidChangeNotification 
-													   object:minimalMosaicScrollView];
+			[[mosaicView enclosingScrollView] setBorderType:NSNoBorder];
+			
+			[[self window] setContentView:minimalContentView];
+			[[self window] setMinSize:NSMakeSize(260.0, 150.0)];
 		}
 		
 		windowLayoutIsMinimal = flag;
