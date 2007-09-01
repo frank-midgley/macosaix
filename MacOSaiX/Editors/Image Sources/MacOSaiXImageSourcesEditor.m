@@ -82,6 +82,7 @@
 	[imageSourcesView setImageSourcesEditor:self];
 	
 	NSMenu			*popUpMenu = [[[NSMenu alloc] initWithTitle:@""] autorelease];
+	[popUpMenu addItemWithTitle:NSLocalizedString(@"Get images from:", @"") action:nil keyEquivalent:@""];
 	NSEnumerator	*plugInEnumerator = [[[NSApp delegate] imageSourcePlugIns] objectEnumerator];
 	Class			imageSourcePlugIn = nil;
 	while (imageSourcePlugIn = [plugInEnumerator nextObject])
