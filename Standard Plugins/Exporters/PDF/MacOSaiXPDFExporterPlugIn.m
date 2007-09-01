@@ -18,7 +18,12 @@
 
 + (NSImage *)image
 {
-	return nil;
+	static NSImage	*image = nil;
+	
+	if (!image)
+		image = [[[NSWorkspace sharedWorkspace] iconForFileType:@"pdf"] retain];
+	
+	return image;
 }
 
 
