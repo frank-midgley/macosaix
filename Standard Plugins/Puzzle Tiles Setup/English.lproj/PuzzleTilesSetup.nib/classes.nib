@@ -3,8 +3,10 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
+                cancelOtherSize = id; 
                 setCurviness = id; 
                 setImagesAligned = id; 
+                setOtherSize = id; 
                 setTabbedSides = id; 
                 setTilesAcross = id; 
                 setTilesCount = id; 
@@ -18,8 +20,10 @@
                 alignImagesMatrix = NSMatrix; 
                 curvinessSlider = NSSlider; 
                 curvinessTextField = NSTextField; 
-                delegate = id; 
                 editorView = NSView; 
+                okButton = NSButton; 
+                otherSizeField = NSTextField; 
+                otherSizePanel = NSPanel; 
                 tabbedSidesSlider = NSSlider; 
                 tabbedSidesTextField = NSTextField; 
                 tilesAcrossSlider = NSSlider; 

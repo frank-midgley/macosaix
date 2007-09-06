@@ -258,49 +258,87 @@ enum { tilesSize1x1 = 1, tilesSize3x4, tilesSize4x3 };
 }
 
 
-- (IBAction)setTilesSize:(id)sender
+- (void)setTilesAspectRatio:(float)tileAspectRatio
 {
-	float	tileAspectRatio, 
-			previousValue = [currentTileShapes tileAspectRatio];
+	float	previousValue = [currentTileShapes tileAspectRatio];
 	
-	if (sender == tilesSizePopUp)
+	if (tileAspectRatio != previousValue)
 	{
-		if ([tilesSizePopUp selectedTag] == tilesSize3x4)
-			tileAspectRatio = 3.0 / 4.0;
-		else if ([tilesSizePopUp selectedTag] == tilesSize4x3)
-			tileAspectRatio = 4.0 / 3.0;
-		else
-			tileAspectRatio = 1.0;
-		
-			// Map the ratio to the slider position.
+			// Update the slider.
 		float	mappedRatio = 0.0;
 		if (tileAspectRatio < 1.0)
 			mappedRatio = (tileAspectRatio - minAspectRatio) / (1.0 - minAspectRatio);
 		else
 			mappedRatio = (tileAspectRatio - 1.0) / (maxAspectRatio - 1.0) + 1.0;
 		[tilesSizeSlider setFloatValue:mappedRatio];
+		NSString	*toolTipFormat = NSLocalizedString(@"Aspect ratio: %0.2f", @"");
+		[tilesSizeSlider setToolTip:[NSString stringWithFormat:toolTipFormat, tileAspectRatio]];
+		
+			// Update the pop-up.
+		[[tilesSizePopUp itemAtIndex:0] setTitle:[NSString stringWithAspectRatio:tileAspectRatio]];
+		
+		[currentTileShapes setTileAspectRatio:tileAspectRatio];
+		
+		[self updatePlugInDefaults];
+		
+		[[self delegate] dataSource:currentTileShapes 
+					   didChangeKey:@"tileAspectRatio"
+						  fromValue:[NSNumber numberWithFloat:previousValue] 
+						 actionName:@"Change Tiles Size"];
+	}
+}
+
+
+- (IBAction)setTilesSize:(id)sender
+{
+	if (sender == tilesSizePopUp)
+	{
+		int		tag = [tilesSizePopUp selectedTag];
+		
+		if (tag == 0)
+		{
+			[otherSizeField setFloatValue:[currentTileShapes tileAspectRatio]];
+			
+			[NSApp beginSheet:otherSizePanel 
+			   modalForWindow:[sender window] 
+				modalDelegate:self 
+			   didEndSelector:@selector(otherSizeSheetDidEnd:returnCode:contextInfo:) 
+				  contextInfo:nil];
+		}
+		else
+			[self setTilesAspectRatio:(tag / 10) / fmodf(tag, 10.0)];
 	}
 	else
 	{
-		tileAspectRatio = [tilesSizeSlider floatValue];
+		float	aspectRatio = [tilesSizeSlider floatValue];
 		
 			// Map from the slider's scale to the actual ratio.
-		if (tileAspectRatio < 1.0)
-			tileAspectRatio = minAspectRatio + (1.0 - minAspectRatio) * tileAspectRatio;
-		else if (tileAspectRatio > 1.0)
-			tileAspectRatio = 1.0 + (maxAspectRatio - 1.0) * (tileAspectRatio - 1.0);
+		if (aspectRatio < 1.0)
+			[self setTilesAspectRatio:minAspectRatio + (1.0 - minAspectRatio) * aspectRatio];
+		else if (aspectRatio > 1.0)
+			[self setTilesAspectRatio:1.0 + (maxAspectRatio - 1.0) * (aspectRatio - 1.0)];
 	}
+}
+
+
+- (IBAction)setOtherSize:(id)sender
+{
+	[NSApp endSheet:otherSizePanel];
+}
+
+
+- (IBAction)cancelOtherSize:(id)sender
+{
+	[NSApp endSheet:otherSizePanel returnCode:NSRunAbortedResponse];
+}
+
+
+- (void)otherSizeSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+	[otherSizePanel orderOut:self];
 	
-	[[tilesSizePopUp itemAtIndex:0] setTitle:[NSString stringWithAspectRatio:tileAspectRatio]];
-	
-	[currentTileShapes setTileAspectRatio:tileAspectRatio];
-	
-	[self updatePlugInDefaults];
-	
-	[[self delegate] dataSource:currentTileShapes 
-				   didChangeKey:@"tileAspectRatio"
-					  fromValue:[NSNumber numberWithFloat:previousValue] 
-					 actionName:@"Change Tiles Size"];
+	if (returnCode == NSRunStoppedResponse)
+		[self setTilesAspectRatio:[otherSizeField floatValue]];
 }
 
 

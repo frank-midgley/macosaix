@@ -31,6 +31,11 @@
 								*tilesCountSlider;
 	IBOutlet NSPopUpButton		*tilesSizePopUp;
 	
+		// Other size panel
+	IBOutlet NSPanel				*otherSizePanel;
+	IBOutlet NSTextField			*otherSizeField;
+	IBOutlet NSButton				*okButton;
+	
 	NSSize						targetImageSize;
 	float						minAspectRatio,
 								maxAspectRatio;
@@ -46,5 +51,9 @@
 	// Fixed size pieces
 - (IBAction)setTilesSize:(id)sender;
 - (IBAction)setTilesCount:(id)sender;
+
+	// Other size panel
+- (IBAction)setOtherSize:(id)sender;
+- (IBAction)cancelOtherSize:(id)sender;
 
 @end

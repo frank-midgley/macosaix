@@ -3,6 +3,8 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {
+                cancelOtherSize = id; 
+                setOtherSize = id; 
                 setTilesAcross = id; 
                 setTilesCount = id; 
                 setTilesDown = id; 
@@ -13,6 +15,9 @@
             LANGUAGE = ObjC; 
             OUTLETS = {
                 editorView = NSView; 
+                okButton = NSButton; 
+                otherSizeField = NSTextField; 
+                otherSizePanel = NSPanel; 
                 tilesAcrossSlider = NSSlider; 
                 tilesAcrossStepper = NSStepper; 
                 tilesAcrossTextField = NSTextField; 
