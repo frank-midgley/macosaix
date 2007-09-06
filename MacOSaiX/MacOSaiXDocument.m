@@ -15,6 +15,7 @@
 #import "MacOSaiXEnumeratedImage.h"
 #import "MacOSaiXImageOrientations.h"
 #import "MacOSaiXImageSourceEnumerator.h"
+#import "MacOSaiXMosaic.h"
 #import "MacOSaiXProgressController.h"
 #import "MacOSaiXSourceImage.h"
 #import "MacOSaiXTileShapes.h"
@@ -552,8 +553,8 @@
 				else
 					fillStyle = @"Average Target Color";
 				
-				if ([tile hasImageOrientation])
-					[buffer appendFormat:@"\t<TILE FILL_STYLE=\"%@\" IMAGE_ORIENTATION=\"%@\">\n", fillStyle, [NSString stringWithFloat:[tile imageOrientation]]];
+				if ([tile imageOrientation])
+					[buffer appendFormat:@"\t<TILE FILL_STYLE=\"%@\" IMAGE_ORIENTATION=\"%@\">\n", fillStyle, [NSString stringWithFloat:[[tile imageOrientation] floatValue]]];
 				else
 					[buffer appendFormat:@"\t<TILE FILL_STYLE=\"%@\">\n", fillStyle];
 				
@@ -651,7 +652,7 @@
 				[tilePool release];
 			}
 			[fileHandle writeData:[buffer dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[@"</TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+			[fileHandle writeData:[@"</TILES>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 			
 			[fileHandle writeData:[@"</MOSAIC>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
 			
@@ -1247,9 +1248,20 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 		[(id)newObject release];
 	}
 	else if ([(id)newObject isKindOfClass:[MacOSaiXTile class]])
+	{
+		MacOSaiXTile	*tile = newObject;
+		
+		if (![tile userChosenImageMatch] && [tile uniqueImageMatch])
+		{
+			MacOSaiXEnumeratedImage	*enumeratedImage = (MacOSaiXEnumeratedImage *)[[tile uniqueImageMatch] sourceImage];
+			
+			[[enumeratedImage enumerator] setImageIdentifier:[enumeratedImage imageIdentifier] isInUse:YES];
+		}
+		
 		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileContentsDidChangeNotification
 															object:mosaic 
 														  userInfo:[NSDictionary dictionaryWithObject:newObject forKey:@"Tile"]];
+	}
 	else if ([(id)newObject isKindOfClass:[NSBezierPath class]] || 
 			 [(id)newObject isKindOfClass:[NSDictionary class]] || 
 			 [(id)newObject isKindOfClass:[MacOSaiXImageMatch class]] || 
