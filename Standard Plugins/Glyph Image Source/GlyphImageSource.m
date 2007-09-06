@@ -71,7 +71,7 @@
 
 - (BOOL)saveSettingsToFileAtPath:(NSString *)path
 {
-	NSMutableDictionary	*settings = [NSDictionary dictionaryWithObjectsAndKeys:
+	NSMutableDictionary	*settings = [NSMutableDictionary dictionaryWithObjectsAndKeys:
 										colorListName, @"Color List Name", 
 										colorListClass, @"Color List Class", 
 										letterPool, @"Letter Pool", 
