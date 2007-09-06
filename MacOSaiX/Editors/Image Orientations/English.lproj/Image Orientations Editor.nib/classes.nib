@@ -2,10 +2,18 @@
     IBClasses = (
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
+            CLASS = MacOSaiXImageOrientationsEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {tabView = NSTabView; warningBox = NSBox; }; 
+            SUPERCLASS = MacOSaiXMosaicEditor; 
+        }, 
+        {
             ACTIONS = {setPlugInClass = id; }; 
-            CLASS = MacOSaiXEditor; 
+            CLASS = MacOSaiXMosaicEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                auxiliaryView = NSView; 
+                editorDelegate = id; 
                 editorView = NSView; 
                 plugInEditor = id; 
                 plugInEditorBox = NSBox; 
@@ -14,11 +22,6 @@
                 plugInPopUpButton = NSPopUpButton; 
             }; 
             SUPERCLASS = NSObject; 
-        }, 
-        {
-            CLASS = MacOSaiXImageOrientationsEditor; 
-            LANGUAGE = ObjC; 
-            SUPERCLASS = MacOSaiXEditor; 
         }, 
         {CLASS = MacOSaiXPopUpButton; LANGUAGE = ObjC; SUPERCLASS = NSButton; }
     ); 

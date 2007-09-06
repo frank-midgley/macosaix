@@ -11,6 +11,11 @@
 
 @interface MacOSaiXImageOrientationsEditor : MacOSaiXMosaicEditor
 {
+	IBOutlet NSTabView	*tabView;
+	IBOutlet NSBox		*warningBox;
+	
+	BOOL				allTilesHaveOrientations, 
+						noTilesHaveOrientations;
 }
 
 @end
