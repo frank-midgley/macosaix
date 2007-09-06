@@ -90,7 +90,10 @@
     [savePanel setRequiredFileType:exportExtension];
 	
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"Open Exported File When Completed"])
+	{
+		openWhenCompleted = YES;
 		[openWhenCompletedButton setState:NSOnState];
+	}
 	else
 		[openWhenCompletedButton setState:NSOffState];
 		
