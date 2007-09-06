@@ -39,7 +39,7 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(211.0, 98.0);
+	return NSMakeSize(211.0, 108.0);
 }
 
 
