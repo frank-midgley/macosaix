@@ -237,6 +237,8 @@
 				newPath, @"Path", 
 				[NSNumber numberWithInt:0], @"Image Count", 
 				nil]];
+			
+			[plugInDefaults setObject:folderDicts forKey:@"Folders"];
 		}
 		
 		[[NSUserDefaults standardUserDefaults] setObject:plugInDefaults forKey:@"Folder Image Source"];
