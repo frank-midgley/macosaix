@@ -135,6 +135,7 @@
 		73A5A0C40C74AF920048B823 /* Spiral Tile Shapes.nib in Resources */ = {isa = PBXBuildFile; fileRef = 73A5A0C20C74AF920048B823 /* Spiral Tile Shapes.nib */; };
 		73A5A10E0C74BE490048B823 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F514D53C0390266E01B25AF1 /* Cocoa.framework */; };
 		73A5A1170C74BE6D0048B823 /* Spiral Tile Shapes.plugin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 73A5A0A00C74AEEA0048B823 /* Spiral Tile Shapes.plugin */; };
+		73A66E340C8F5301000A839D /* Warning.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 73A66E330C8F5301000A839D /* Warning.tiff */; };
 		92006EB60BDE5677004DED2C /* DirectoryImageSourceDirectory.m in Sources */ = {isa = PBXBuildFile; fileRef = 92006EB40BDE5677004DED2C /* DirectoryImageSourceDirectory.m */; };
 		920072C10BEA89DA004DED2C /* MacOSaiXSplitView.h in Headers */ = {isa = PBXBuildFile; fileRef = 920072BF0BEA89DA004DED2C /* MacOSaiXSplitView.h */; };
 		920072C20BEA89DA004DED2C /* MacOSaiXSplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = 920072C00BEA89DA004DED2C /* MacOSaiXSplitView.m */; };
@@ -488,7 +489,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 73A5A09F0C74AEEA0048B823 /* Spiral Tile Shapes */;
+			remoteGlobalIDString = 73A5A09F0C74AEEA0048B823;
 			remoteInfo = "Spiral Tile Shapes";
 		};
 		92052A4A0C57B02F003A405F /* PBXContainerItemProxy */ = {
@@ -698,6 +699,7 @@
 		73A5A0B60C74AF7C0048B823 /* MacOSaiXSpiralTileShapesPlugIn.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MacOSaiXSpiralTileShapesPlugIn.h; sourceTree = "<group>"; };
 		73A5A0B70C74AF7C0048B823 /* MacOSaiXSpiralTileShapesPlugIn.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = MacOSaiXSpiralTileShapesPlugIn.m; sourceTree = "<group>"; };
 		73A5A0C30C74AF920048B823 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = "English.lproj/Spiral Tile Shapes.nib"; sourceTree = "<group>"; };
+		73A66E330C8F5301000A839D /* Warning.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Warning.tiff; sourceTree = "<group>"; };
 		92006EB30BDE5677004DED2C /* DirectoryImageSourceDirectory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirectoryImageSourceDirectory.h; sourceTree = "<group>"; };
 		92006EB40BDE5677004DED2C /* DirectoryImageSourceDirectory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DirectoryImageSourceDirectory.m; sourceTree = "<group>"; };
 		920072BF0BEA89DA004DED2C /* MacOSaiXSplitView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacOSaiXSplitView.h; sourceTree = "<group>"; };
@@ -1191,10 +1193,10 @@
 		01453CA7071B6EED00BCEC7C /* Tile Shapes */ = {
 			isa = PBXGroup;
 			children = (
-				73A5A06F0C74AEA40048B823 /* Spiral */,
-				927FA75B03FA35EE000A0D3F /* Rectangular */,
 				928F72C4066122B000873AE2 /* Hexaganol */,
 				01453D3B071B6F0E00BCEC7C /* Puzzle Piece */,
+				927FA75B03FA35EE000A0D3F /* Rectangular */,
+				73A5A06F0C74AEA40048B823 /* Spiral */,
 			);
 			name = "Tile Shapes";
 			sourceTree = "<group>";
@@ -1779,6 +1781,7 @@
 				929C538D0C04E8B500D2CE07 /* Resume.png */,
 				01AC3A3B07B0997C0025F915 /* Settings.png */,
 				92EABC230954D25C007A9EB3 /* Tiles Setup.tiff */,
+				73A66E330C8F5301000A839D /* Warning.tiff */,
 				016A242208D7C952009A93BF /* ZoomIn.png */,
 				016A242408D7C975009A93BF /* ZoomOut.png */,
 			);
@@ -2502,6 +2505,7 @@
 				921B37A50C0CD36A0005287E /* Images In Use.png in Resources */,
 				921B37A60C0CD36A0005287E /* Images Found.png in Resources */,
 				9273F0790C440EAB00AEA153 /* Don't Use.png in Resources */,
+				73A66E340C8F5301000A839D /* Warning.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
