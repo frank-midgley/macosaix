@@ -108,13 +108,25 @@
 
 - (void)setMosaicDataSource:(id<MacOSaiXDataSource>)dataSource
 {
+	[tilesToEmbellish removeAllObjects];
+	
 	[[[self delegate] mosaic] setTileShapes:(id<MacOSaiXTileShapes>)dataSource];
+	
+	[tileCountField setIntValue:[[[[self delegate] mosaic] tiles] count]];
 }
 
 
 - (id<MacOSaiXDataSource>)mosaicDataSource
 {
 	return [[[self delegate] mosaic] tileShapes];
+}
+
+
+- (void)beginEditing
+{
+	[super beginEditing];
+	
+	[tileCountField setIntValue:[[[[self delegate] mosaic] tiles] count]];
 }
 
 
@@ -183,6 +195,8 @@
 	[tilesToEmbellish removeAllObjects];
 	
 	[[self delegate] embellishmentNeedsDisplay];
+	
+	[tileCountField setIntValue:[[[[self delegate] mosaic] tiles] count]];
 }
 
 
@@ -212,6 +226,8 @@
 		[tilesToEmbellish removeAllObjects];
 		
 		[[self delegate] embellishmentNeedsDisplay];
+		
+		[tileCountField setIntValue:[[[[self delegate] mosaic] tiles] count]];
 	}
 	else
 		[self setDataSource:dataSource value:previousValue forKey:key];
@@ -223,6 +239,7 @@
 	if ([super endEditing])
 	{
 		[tilesToEmbellish removeAllObjects];
+		[[self class] cancelPreviousPerformRequestsWithTarget:self];
 		return YES;
 	}
 	else

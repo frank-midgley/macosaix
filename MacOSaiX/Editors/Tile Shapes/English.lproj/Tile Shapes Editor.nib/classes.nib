@@ -3,9 +3,11 @@
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             ACTIONS = {setPlugInClass = id; }; 
-            CLASS = MacOSaiXEditor; 
+            CLASS = MacOSaiXMosaicEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                auxiliaryView = NSView; 
+                editorDelegate = id; 
                 editorView = NSView; 
                 plugInEditor = id; 
                 plugInEditorBox = NSBox; 
@@ -19,7 +21,8 @@
         {
             CLASS = MacOSaiXTileShapesEditor; 
             LANGUAGE = ObjC; 
-            SUPERCLASS = MacOSaiXEditor; 
+            OUTLETS = {tileCountField = NSTextField; }; 
+            SUPERCLASS = MacOSaiXMosaicEditor; 
         }
     ); 
     IBVersion = 1; 

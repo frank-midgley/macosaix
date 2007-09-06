@@ -14,7 +14,9 @@
 
 @interface MacOSaiXTileShapesEditor : MacOSaiXMosaicEditor
 {
-	NSMutableSet	*tilesToEmbellish;
+	IBOutlet NSTextField	*tileCountField;
+	
+	NSMutableSet			*tilesToEmbellish;
 }
 
 @end
