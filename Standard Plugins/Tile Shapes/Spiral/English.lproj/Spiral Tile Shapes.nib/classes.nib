@@ -4,6 +4,7 @@
         {
             ACTIONS = {
                 cancelOtherSize = id; 
+                setImagesFollowSpiral = id; 
                 setOtherSize = id; 
                 setSpiralTightness = id; 
                 setTileSize = id; 
@@ -11,13 +12,14 @@
             CLASS = MacOSaiXSpiralTileShapesEditor; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                delegate = id; 
                 editorView = NSView; 
+                imagesFollowSpiralMatrix = NSMatrix; 
                 okButton = NSButton; 
                 otherSizeField = NSTextField; 
                 otherSizePanel = NSPanel; 
                 spiralTightnessSlider = NSSlider; 
                 tileAspectRatioSlider = NSSlider; 
+                tilesSizePopUp = NSPopUpButton; 
             }; 
             SUPERCLASS = NSObject; 
         }, 

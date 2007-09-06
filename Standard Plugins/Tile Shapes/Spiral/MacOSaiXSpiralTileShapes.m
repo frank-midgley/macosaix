@@ -68,11 +68,13 @@
 		{
 			[self setSpiralTightness:[[plugInDefaults objectForKey:@"Spiral Tightness"] floatValue]];
 			[self setTileAspectRatio:[[plugInDefaults objectForKey:@"Tile Aspect Ratio"] floatValue]];
+			[self setImagesFollowSpiral:[[plugInDefaults objectForKey:@"Images Follow Spiral"] boolValue]];
 		}
 		else
 		{
-			[self setSpiralTightness:0.05];
+			[self setSpiralTightness:0.03];
 			[self setTileAspectRatio:4.0 / 3.0];
+			[self setImagesFollowSpiral:YES];
 		}
 	}
 	
@@ -121,6 +123,18 @@
 }
 
 
+- (void)setImagesFollowSpiral:(BOOL)flag
+{
+	imagesFollowSpiral = flag;
+}
+
+
+- (BOOL)imagesFollowSpiral
+{
+	return imagesFollowSpiral;
+}
+
+
 - (id)briefDescription
 {
 	return NSLocalizedString(@"spiral tiles", @"");
@@ -145,6 +159,7 @@
 	
 	[settings setObject:[NSNumber numberWithFloat:[self spiralTightness]] forKey:@"Spiral Tightness"];
 	[settings setObject:[NSNumber numberWithFloat:[self tileAspectRatio]] forKey:@"Tile Aspect Ratio"];
+	[settings setObject:[NSNumber numberWithBool:[self imagesFollowSpiral]] forKey:@"Images Follow Spiral"];
 
 	return [settings writeToFile:path atomically:NO];
 }
@@ -156,6 +171,7 @@
 
 	[self setSpiralTightness:[[settings objectForKey:@"Spiral Tightness"] floatValue]];
 	[self setTileAspectRatio:[[settings objectForKey:@"Tile Aspect Ratio"] floatValue]];
+	[self setImagesFollowSpiral:[[settings objectForKey:@"Images Follow Spiral"] boolValue]];
 
 	return YES;
 }
@@ -184,7 +200,7 @@
 		angle += 2.0 * M_PI / 360.0;
 	}
 	[innerShape lineToPoint:NSMakePoint(midX, midY)];
-	[tileOutlines addObject:[MacOSaiXSpiralTileShape tileShapeWithOutline:innerShape orientation:[NSNumber numberWithFloat:0.0]]];
+	[tileOutlines addObject:[MacOSaiXSpiralTileShape tileShapeWithOutline:innerShape orientation:([self imagesFollowSpiral] ? [NSNumber numberWithFloat:0.0] : nil)]];
 	
 	radius = 0.0;
 	angle = 0.0;
@@ -194,7 +210,7 @@
 		// ---- =? ------
 		//  a       Rinc 
 		
-		float			tileAngle = (radius == 0.0 ? 2.0 * sqrtf(M_PI) : radiusIncrement / radius), 
+		float			tileAngle = (radius == 0.0 ? 2.0 * sqrtf(M_PI) : radiusIncrement / radius * tileAspectRatio), 
 						nextRadius = radius + radiusIncrement * (tileAngle / 2 / M_PI), 
 						nextAngle = angle + tileAngle, 
 						midAngle = angle + tileAngle / 2.0;
@@ -250,7 +266,7 @@
 		float			orientation = midAngle / M_PI * -180.0 + 90.0;
 
 		if (NSIntersectsRect([tileOutline bounds], mosaicBounds))
-			[tileOutlines addObject:[MacOSaiXSpiralTileShape tileShapeWithOutline:tileOutline orientation:[NSNumber numberWithFloat:orientation]]];
+			[tileOutlines addObject:[MacOSaiXSpiralTileShape tileShapeWithOutline:tileOutline orientation:([self imagesFollowSpiral] ? [NSNumber numberWithFloat:orientation] : nil)]];
 		
 		radius = nextRadius;
 		angle = nextAngle;

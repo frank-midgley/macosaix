@@ -17,6 +17,8 @@
 	
 	IBOutlet NSSlider			*spiralTightnessSlider,
 								*tileAspectRatioSlider;
+	IBOutlet NSPopUpButton		*tilesSizePopUp;
+	IBOutlet NSMatrix			*imagesFollowSpiralMatrix;
 	
 		// Other size panel
 	IBOutlet NSPanel			*otherSizePanel;
@@ -28,6 +30,7 @@
 
 - (IBAction)setSpiralTightness:(id)sender;
 - (IBAction)setTileSize:(id)sender;
+- (IBAction)setImagesFollowSpiral:(id)sender;
 
 	// Other size panel
 - (IBAction)setOtherSize:(id)sender;

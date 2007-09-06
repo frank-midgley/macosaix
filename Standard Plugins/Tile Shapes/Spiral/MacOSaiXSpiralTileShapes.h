@@ -25,6 +25,7 @@
 {
 	float			spiralTightness, 
 					tileAspectRatio;
+	BOOL			imagesFollowSpiral;
 }
 
 - (void)setSpiralTightness:(float)count;
@@ -32,5 +33,8 @@
 
 - (void)setTileAspectRatio:(float)aspectRatio;
 - (float)tileAspectRatio;
+
+- (void)setImagesFollowSpiral:(BOOL)flag;
+- (BOOL)imagesFollowSpiral;
 
 @end
