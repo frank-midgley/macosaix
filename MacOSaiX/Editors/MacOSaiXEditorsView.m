@@ -72,8 +72,6 @@
 		[[additionalEditorsPopUp menu] addItem:setDefaultItem];
 		
 		[self addSubview:additionalEditorsPopUp];
-		
-		[self setActiveEditor:[editors objectAtIndex:0]];
 	}
 }
 
