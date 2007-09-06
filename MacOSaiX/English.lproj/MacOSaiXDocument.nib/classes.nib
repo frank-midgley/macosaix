@@ -29,6 +29,7 @@
                 editorsView = MacOSaiXEditorsView; 
                 imagesFoundField = NSTextField; 
                 minimalContentView = NSView; 
+                mosaicScrollView = NSScrollView; 
                 mosaicView = MosaicView; 
                 pauseButton = NSButton; 
                 statusField = NSTextField; 
