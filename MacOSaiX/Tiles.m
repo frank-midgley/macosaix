@@ -21,8 +21,7 @@
 	if (self = [super init])
 	{
 		[self setOutline:inOutline];
-		if (angle)
-			[self setImageOrientation:[angle floatValue]];
+		[self setImageOrientation:angle];
 		[self setMosaic:inMosaic];
 		
 		disallowedImages = [[NSMutableArray array] retain];
@@ -62,27 +61,27 @@
 	NSPoint				rotationPoint = NSMakePoint(NSMidX([outline bounds]), NSMidY([outline bounds]));
 	
 	[transform translateXBy:rotationPoint.x yBy:rotationPoint.y];
-	[transform rotateByDegrees:-[self imageOrientation]];
+	[transform rotateByDegrees:-[self imageOrientationAngle]];
 	[transform translateXBy:-rotationPoint.x yBy:-rotationPoint.y];
 	
 	return [transform transformBezierPath:outline];
 }
 
 
-- (void)setImageOrientation:(float)angle
+- (void)setImageOrientation:(NSNumber *)angle
 {
 	[imageOrientation release];
-	imageOrientation = [[NSNumber numberWithFloat:angle] retain];
+	imageOrientation = [angle retain];
 }
 
 
-- (BOOL)hasImageOrientation
+- (NSNumber *)imageOrientation
 {
-	return (imageOrientation != nil);
+	return imageOrientation;
 }
 
 
-- (float)imageOrientation
+- (float)imageOrientationAngle
 {
 	float	angle = 0.0;
 	
@@ -153,7 +152,7 @@
 			NSAffineTransform	*transform = [NSAffineTransform transform];
 			[transform translateXBy:TILE_BITMAP_SIZE / 2.0 yBy:TILE_BITMAP_SIZE / 2.0];
 			[transform scaleBy:NSWidth(bitmapBounds) / NSWidth(rotatedBounds)];
-			[transform rotateByDegrees:-[self imageOrientation]];
+			[transform rotateByDegrees:-[self imageOrientationAngle]];
 			[transform translateXBy:-NSMidX(rotatedBounds) yBy:-NSMidY(rotatedBounds)];
 			[transform concat];
 			

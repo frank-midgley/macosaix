@@ -402,7 +402,7 @@ NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiX
 		NSAffineTransform	*transform = [NSAffineTransform transform];
 		[transform translateXBy:NSMidX([clipPath bounds]) yBy:NSMidY([clipPath bounds])];
 		[transform scaleBy:mainImageSize.width / [[mosaic targetImage] size].width];
-		[transform rotateByDegrees:-[tile imageOrientation]];
+		[transform rotateByDegrees:-[tile imageOrientationAngle]];
 		[transform translateXBy:-NSMidX(targetBounds) yBy:-NSMidY(targetBounds)];
 		NSBezierPath		*rotatedOutline = [transform transformBezierPath:targetOutline];
 		NSRect				rotatedBounds = [rotatedOutline bounds];
@@ -416,7 +416,7 @@ NSString	*MacOSaiXMosaicViewDidChangeTargetImageOpacityNotification = @"MacOSaiX
 			[transform scaleBy:NSWidth(rotatedBounds) / [imageRep size].width];
 		else	// height limited
 			[transform scaleBy:NSHeight(rotatedBounds) / [imageRep size].height];
-		[transform rotateByDegrees:-[tile imageOrientation]];
+		[transform rotateByDegrees:-[tile imageOrientationAngle]];
 		[transform translateXBy:-[imageRep size].width / 2.0 yBy:-[imageRep size].height / 2.0];
 		
 		[mainImageLock lock];

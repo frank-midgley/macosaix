@@ -48,9 +48,9 @@ typedef enum
 	 imageOrientation:(NSNumber *)angle
 			   mosaic:(MacOSaiXMosaic *)mosaic;
 
-- (void)setImageOrientation:(float)angle;
-- (BOOL)hasImageOrientation;
-- (float)imageOrientation;
+- (void)setImageOrientation:(NSNumber *)angle;
+- (NSNumber *)imageOrientation;
+- (float)imageOrientationAngle;
 
 - (void)setMosaic:(MacOSaiXMosaic *)mosaic;
 - (MacOSaiXMosaic *)mosaic;

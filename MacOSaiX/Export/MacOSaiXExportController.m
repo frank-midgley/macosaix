@@ -329,7 +329,7 @@
 					NSRect				targetBounds = [targetOutline bounds];
 					NSAffineTransform	*transform = [NSAffineTransform transform];
 					[transform translateXBy:NSMidX(targetBounds) yBy:NSMidY(targetBounds)];
-					[transform rotateByDegrees:-[tile imageOrientation]];
+					[transform rotateByDegrees:-[tile imageOrientationAngle]];
 					[transform translateXBy:-NSMidX(targetBounds) yBy:-NSMidY(targetBounds)];
 					NSBezierPath		*rotatedOutline = [transform transformBezierPath:targetOutline];
 					NSRect				rotatedBounds = [rotatedOutline bounds];
@@ -344,7 +344,7 @@
 												   withIdentifier:[tileSourceImage imageIdentifier] 
 													   fromSource:[tileSourceImage imageSource] 
 												  centeredAtPoint:NSMakePoint(NSMidX(targetBounds), NSMidY(targetBounds)) 
-														 rotation:[tile imageOrientation] 
+														 rotation:[tile imageOrientationAngle] 
 													clippedToPath:[tile outline] 
 														  opacity:1.0];
 					NS_HANDLER
