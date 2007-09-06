@@ -103,7 +103,7 @@
 
 - (NSString *)exportExtension
 {
-	return [[self format] lowercaseString];
+	return ([[self format] isEqualToString:@"JPEG 2000"] ? @"jp2" : [[self format] lowercaseString]);
 }
 
 

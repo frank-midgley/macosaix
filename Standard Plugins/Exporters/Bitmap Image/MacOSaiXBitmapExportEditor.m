@@ -32,7 +32,13 @@
 - (NSView *)editorView
 {
 	if (!editorView)
+	{
 		[NSBundle loadNibNamed:@"Bitmap Export" owner:self];
+		
+		// TODO: #ifdef out for i386 build?
+		// if (!CGImageDestinationCreateWithURL)
+		//	[[formatMatrix cellAtRow:1 column:0] setEnabled:NO];
+	}
 	
 	return editorView;
 }
@@ -71,8 +77,10 @@
 	if ([formatMatrix selectedRow] == 0)
 		[currentSettings setFormat:@"JPEG"];
 	else if ([formatMatrix selectedRow] == 1)
-		[currentSettings setFormat:@"PNG"];
+		[currentSettings setFormat:@"JPEG 2000"];
 	else if ([formatMatrix selectedRow] == 2)
+		[currentSettings setFormat:@"PNG"];
+	else if ([formatMatrix selectedRow] == 3)
 		[currentSettings setFormat:@"TIFF"];
 	
 	[[self delegate] dataSource:currentSettings 
@@ -210,10 +218,12 @@
 {
 	if ([[currentSettings format] isEqualToString:@"JPEG"])
 		[formatMatrix selectCellAtRow:0 column:0];
-	else if ([[currentSettings format] isEqualToString:@"PNG"])
+	else if ([[currentSettings format] isEqualToString:@"JPEG 2000"])
 		[formatMatrix selectCellAtRow:1 column:0];
-	else if ([[currentSettings format] isEqualToString:@"TIFF"])
+	else if ([[currentSettings format] isEqualToString:@"PNG"])
 		[formatMatrix selectCellAtRow:2 column:0];
+	else if ([[currentSettings format] isEqualToString:@"TIFF"])
+		[formatMatrix selectCellAtRow:3 column:0];
 	
 	[widthField setFloatValue:[currentSettings width]];
 	[heightField setFloatValue:[currentSettings height]];

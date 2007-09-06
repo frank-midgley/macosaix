@@ -59,6 +59,8 @@
 		
 		if ([[exportSettings format] isEqualToString:@"JPEG"])
 			imageType = kUTTypeJPEG;
+		else if ([[exportSettings format] isEqualToString:@"JPEG 2000"])
+			imageType = kUTTypeJPEG2000;
 		else if ([[exportSettings format] isEqualToString:@"PNG"])
 			imageType = kUTTypePNG;
 		else if ([[exportSettings format] isEqualToString:@"TIFF"])
