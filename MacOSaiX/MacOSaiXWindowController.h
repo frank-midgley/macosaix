@@ -16,6 +16,7 @@
 	MacOSaiXMosaic						*mosaic;
 	
 		// Views shared between layouts
+	IBOutlet NSScrollView				*mosaicScrollView;
     IBOutlet MosaicView					*mosaicView;
 	IBOutlet NSButton					*pauseButton;
 	IBOutlet NSTextField				*statusField, 

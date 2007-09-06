@@ -158,6 +158,11 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	
 	windowLayoutIsMinimal = YES;
 	[self setWindowLayoutIsMinimal:NO];
+	
+	if (![[self document] fileName])
+		[editorsView setActiveEditorClass:[MacOSaiXTargetImageEditor class]];
+	else
+		[editorsView setActiveEditorClass:[MacOSaiXImageSourcesEditor class]];
 }
 
 
@@ -524,7 +529,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 	if (windowScreen == menuBarScreen)
 	{
 		OSStatus	status = SetSystemUIMode(kUIModeAllHidden, 0);
-		if (status == noErr)
+		if (status != noErr)
 			NSLog(@"Could not enter full screen mode");
 	}
 	
@@ -546,7 +551,7 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 - (void)fullScreenWindowDidClose:(NSNotification *)notification
 {
 		// Switch back to the document window.
-	[[mosaicView enclosingScrollView] setDocumentView:mosaicView];
+	[mosaicScrollView setDocumentView:mosaicView];
 	[mosaicView release];
 	[[(NSWindow *)[notification object] windowController] release];
 	[self setZoom:self];
@@ -729,7 +734,10 @@ NSString	*MacOSaiXRecentTargetImagesDidChangeNotification = @"MacOSaiXRecentTarg
 - (void)windowWillClose:(NSNotification *)notification
 {
 	if ([notification object] == [self window])
+	{
+		[editorsView setActiveEditor:nil];
 		[self setMosaic:nil];
+	}
 }
 
 
