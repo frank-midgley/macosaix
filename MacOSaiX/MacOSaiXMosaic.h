@@ -119,6 +119,7 @@
 	// Image sources methods
 - (NSArray *)imageSourceEnumerators;
 - (MacOSaiXImageSourceEnumerator *)addImageSource:(id<MacOSaiXImageSource>)imageSource;
+- (MacOSaiXImageSourceEnumerator *)enumeratorForImageSource:(id<MacOSaiXImageSource>)imageSource;
 - (void)imageSourceDidChange:(id<MacOSaiXImageSource>)imageSource;
 - (void)removeImageSource:(id<MacOSaiXImageSource>)imageSource;
 
