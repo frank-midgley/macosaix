@@ -279,26 +279,6 @@
 }
 
 
-- (void)createHighlightedImageSourcesOutline
-{
-	NSEnumerator	*tileEnumerator = [[[[self delegate] mosaic] tiles] objectEnumerator];
-	MacOSaiXTile	*tile = nil;
-	while (tile = [tileEnumerator nextObject])
-	{
-		id<MacOSaiXImageSource>	displayedSource = [[(MacOSaiXEnumeratedImage *)[[tile userChosenImageMatch] sourceImage] enumerator] imageSource];
-		if (!displayedSource)
-			displayedSource = [[(MacOSaiXEnumeratedImage *)[[tile uniqueImageMatch] sourceImage] enumerator] imageSource];
-		
-		if (displayedSource && [highlightedImageSources containsObject:displayedSource])
-		{
-			if (!highlightedImageSourcesOutline)
-				highlightedImageSourcesOutline = [[NSBezierPath bezierPath] retain];
-			[highlightedImageSourcesOutline appendBezierPath:[tile outline]];
-		}
-	}
-}
-
-
 //- (int)numberOfRowsInTableView:(NSTableView *)tableView
 //{
 //	if (animationTimer || !imageSourceBeingEdited)
@@ -327,44 +307,6 @@
 //	
 //	return value;
 //}
-//
-//
-//- (void)tableViewSelectionDidChange:(NSNotification *)notification
-//{
-//	if (imageSourceBeingEdited)
-//		[imageSourcesTable deselectAll:self];
-//	else
-//	{
-//		[highlightedImageSourcesLock lock];
-//		
-//			[highlightedImageSources release];
-//			highlightedImageSources = [[NSMutableArray alloc] initWithCapacity:16];
-//			
-//			NSEnumerator	*indexEnumerator = [imageSourcesTable selectedRowEnumerator];
-//			NSNumber		*index = nil;
-//			
-//			while (index = [indexEnumerator nextObject])
-//				[highlightedImageSources addObject:[[[[self delegate] mosaic] imageSources] objectAtIndex:[index intValue]]];
-//			
-//			if (highlightedImageSourcesOutline)
-//				[[self mosaicView] setNeedsDisplay:YES];
-//			
-//			[highlightedImageSourcesOutline release];
-//			highlightedImageSourcesOutline = nil;
-//			
-//				// Create a combined path for all tiles of our document that are not currently displaying an image from any of the sources.
-//			if ([highlightedImageSources count] > 0)
-//				[self createHighlightedImageSourcesOutline];
-//			
-//			if (highlightedImageSourcesOutline)
-//				[[self mosaicView] setNeedsDisplay:YES];
-//		
-//		[highlightedImageSourcesLock unlock];
-//		
-//		[removeSourceButton setEnabled:([highlightedImageSources count] > 0)];
-//		[editSourceButton setEnabled:([highlightedImageSources count] > 0)];
-//	}
-//}
 
 
 - (void)embellishMosaicView:(MosaicView *)mosaicView inRect:(NSRect)rect;
@@ -375,21 +317,22 @@
 	[highlightedImageSourcesLock lock];
 		if (highlightedImageSourcesOutline)
 		{
-			NSSize				boundsSize = [mosaicView imageBounds].size;
+			NSRect				imageBounds = [mosaicView imageBounds];
+			NSSize				targetImageSize = [[[[self delegate] mosaic] targetImage] size];
 			NSAffineTransform	*transform = [NSAffineTransform transform];
-			[transform translateXBy:0.5 yBy:0.5];
-			[transform scaleXBy:boundsSize.width yBy:boundsSize.height];
+			[transform translateXBy:NSMinX([mosaicView imageBounds]) yBy:NSMinY([mosaicView imageBounds])];
+			[transform scaleXBy:NSWidth(imageBounds) / targetImageSize.width yBy:NSHeight(imageBounds) / targetImageSize.height];
 			NSBezierPath		*transformedOutline = [transform transformBezierPath:highlightedImageSourcesOutline];
 			
 				// Lighten the tiles not displaying images from the highlighted image sources.
 			NSBezierPath		*lightenOutline = [NSBezierPath bezierPath];
-			[lightenOutline moveToPoint:NSMakePoint(0, 0)];
-			[lightenOutline lineToPoint:NSMakePoint(0, boundsSize.height)];
-			[lightenOutline lineToPoint:NSMakePoint(boundsSize.width, boundsSize.height)];
-			[lightenOutline lineToPoint:NSMakePoint(boundsSize.width, 0)];
+			[lightenOutline moveToPoint:imageBounds.origin];
+			[lightenOutline lineToPoint:NSMakePoint(NSMinX(imageBounds), NSMaxY(imageBounds))];
+			[lightenOutline lineToPoint:NSMakePoint(NSMaxX(imageBounds), NSMaxY(imageBounds))];
+			[lightenOutline lineToPoint:NSMakePoint(NSMaxX(imageBounds), NSMinY(imageBounds))];
 			[lightenOutline closePath];
 			[lightenOutline appendBezierPath:transformedOutline];
-			[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
+			[[NSColor colorWithCalibratedWhite:1.0 alpha:0.75] set];
 			[lightenOutline fill];
 			
 				// Darken the outline of the tile.
@@ -402,6 +345,45 @@
 
 - (void)imageSourcesSelectionDidChange
 {
+	if ([[[[self delegate] mosaic] imageSourceEnumerators] count] > 1)
+	{
+		[highlightedImageSourcesLock lock];
+		
+			if (highlightedImageSourcesOutline)
+				[[self delegate] embellishmentNeedsDisplay];
+			
+			[highlightedImageSourcesOutline release];
+			highlightedImageSourcesOutline = nil;
+			
+			NSArray	*selectedEnumerators = [imageSourcesView selectedImageSourceEnumerators];
+			
+			if ([selectedEnumerators count] > 0)
+			{
+				// Create a combined path for all tiles of our document that are not currently displaying an image from any of the sources.
+				NSEnumerator	*tileEnumerator = [[[[self delegate] mosaic] tiles] objectEnumerator];
+				MacOSaiXTile	*tile = nil;
+				
+				while (tile = [tileEnumerator nextObject])
+				{
+					MacOSaiXImageSourceEnumerator	*displayedEnumerator = [(MacOSaiXEnumeratedImage *)[[tile userChosenImageMatch] sourceImage] enumerator];
+					if (!displayedEnumerator)
+						displayedEnumerator = [(MacOSaiXEnumeratedImage *)[[tile uniqueImageMatch] sourceImage] enumerator];
+					
+					if (displayedEnumerator && [selectedEnumerators containsObject:displayedEnumerator])
+					{
+						if (!highlightedImageSourcesOutline)
+							highlightedImageSourcesOutline = [[NSBezierPath bezierPath] retain];
+						[highlightedImageSourcesOutline appendBezierPath:[tile outline]];
+					}
+				}
+			}
+			
+			if (highlightedImageSourcesOutline)
+				[[self delegate] embellishmentNeedsDisplay];
+		
+		[highlightedImageSourcesLock unlock];
+	}
+	
 	[removeSourceButton setEnabled:([[imageSourcesView selectedImageSourceEnumerators] count] > 0)];
 }
 
