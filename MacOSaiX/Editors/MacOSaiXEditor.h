@@ -44,6 +44,7 @@
 - (id<MacOSaiXMosaicEditorDelegate>)delegate;
 
 - (NSString *)editorNibName;
+- (void)nibDidLoad;
 
 - (NSView *)view;
 

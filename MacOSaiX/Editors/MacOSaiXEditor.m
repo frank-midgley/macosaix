@@ -154,10 +154,19 @@ static NSMutableArray	*subClasses;
 }
 
 
+- (void)nibDidLoad
+{
+}
+
+
 - (NSView *)view
 {
 	if (!editorView)
+	{
 		[NSBundle loadNibNamed:[self editorNibName] owner:self];
+		
+		[self nibDidLoad];
+	}
 	
 	return editorView;
 }
@@ -178,7 +187,11 @@ static NSMutableArray	*subClasses;
 - (NSView *)auxiliaryView
 {
 	if (!editorView)
+	{
 		[NSBundle loadNibNamed:[self editorNibName] owner:self];
+		
+		[self nibDidLoad];
+	}
 	
 	return auxiliaryView;
 }
@@ -226,19 +239,22 @@ static NSMutableArray	*subClasses;
 		 fromValue:(id)previousValue 
 		actionName:(NSString *)actionName;
 {
-	NSUndoManager		*undoManager = [[[self delegate] mosaic] undoManager];
-	NSMethodSignature	*undoSignature = [self methodSignatureForSelector:@selector(setDataSource:value:forKey:)];
-	NSInvocation		*undoInvocation = [NSInvocation invocationWithMethodSignature:undoSignature];
-	
-	[undoInvocation setTarget:self];
-	[undoInvocation setSelector:@selector(setDataSource:value:forKey:)];
-	[undoInvocation setArgument:&dataSource atIndex:2];
-	[undoInvocation setArgument:&previousValue atIndex:3];
-	[undoInvocation setArgument:&key atIndex:4];
-	
-	[undoManager prepareWithInvocationTarget:self];
-	[undoManager forwardInvocation:undoInvocation];
-	[undoManager setActionName:actionName];
+	if ([key length] > 0 && previousValue && [actionName length] > 0)
+	{
+		NSUndoManager		*undoManager = [[[self delegate] mosaic] undoManager];
+		NSMethodSignature	*undoSignature = [self methodSignatureForSelector:@selector(setDataSource:value:forKey:)];
+		NSInvocation		*undoInvocation = [NSInvocation invocationWithMethodSignature:undoSignature];
+		
+		[undoInvocation setTarget:self];
+		[undoInvocation setSelector:@selector(setDataSource:value:forKey:)];
+		[undoInvocation setArgument:&dataSource atIndex:2];
+		[undoInvocation setArgument:&previousValue atIndex:3];
+		[undoInvocation setArgument:&key atIndex:4];
+		
+		[undoManager prepareWithInvocationTarget:self];
+		[undoManager forwardInvocation:undoInvocation];
+		[undoManager setActionName:actionName];
+	}
 }
 
 
