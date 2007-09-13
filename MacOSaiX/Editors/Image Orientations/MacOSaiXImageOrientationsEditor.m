@@ -49,19 +49,20 @@
 }
 
 
-- (id)initWithDelegate:(id<MacOSaiXMosaicEditorDelegate>)delegate
-{
-	if (self = [super initWithDelegate:delegate])
-	{
-	}
-	
-	return self;
-}
-
-
 - (NSString *)editorNibName
 {
 	return @"Image Orientations Editor";
+}
+
+
+- (void)nibDidLoad
+{
+	// Make sure the pop-up is drawn over the box.
+	NSPopUpButton	*popUp = [[plugInPopUpButton retain] autorelease];
+	[popUp removeFromSuperview];
+	[[self view] addSubview:popUp positioned:NSWindowAbove relativeTo:plugInEditorBox];
+	
+	[plugInEditorBox setContentViewMargins:NSMakeSize(0.0, 10.0)];
 }
 
 
@@ -142,6 +143,33 @@
 		[tabView selectTabViewItemAtIndex:1];
 	else
 	{
+		BOOL	warningBoxVisible = !NSIsEmptyRect([warningBox visibleRect]);
+		float	topEdge = NSMaxY([[self view] bounds]), 
+				offset = 0.0;
+		
+		if (noTilesHaveOrientations && warningBoxVisible)
+			offset = topEdge - NSMinY([warningBox frame]);	// Hide the warning.
+		else if (!noTilesHaveOrientations && !warningBoxVisible)
+			offset = topEdge - 10.0 - NSMaxY([warningBox frame]);	// Show the warning.
+		
+		if (offset != 0.0)
+		{
+				// Move the warning box.
+			NSPoint	warningBoxOrigin = [warningBox frame].origin;
+			warningBoxOrigin.y += offset;
+			[warningBox setFrameOrigin:warningBoxOrigin];
+			
+				// Move the pop-up.
+			NSPoint	popUpOrigin = [plugInPopUpButton frame].origin;
+			popUpOrigin.y += offset;
+			[plugInPopUpButton setFrameOrigin:popUpOrigin];
+			
+				// Resize the editor box.
+			NSRect	boxFrame = [plugInEditorBox frame];
+			boxFrame.size.height += offset;
+			[plugInEditorBox setFrame:boxFrame];
+		}
+		
 		[tabView selectTabViewItemAtIndex:0];
 		
 		[super beginEditing];
