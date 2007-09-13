@@ -53,7 +53,7 @@
 {
 	if (self = [super initWithDelegate:delegate])
 	{
-		tilesToEmbellish = [[NSMutableSet alloc] initWithCapacity:[[[delegate mosaic] tiles] count]];
+		tilesToEmbellish = [[NSMutableArray alloc] initWithCapacity:[[[delegate mosaic] tiles] count]];
 	}
 	
 	return self;
@@ -63,6 +63,17 @@
 - (NSString *)editorNibName
 {
 	return @"Tile Shapes Editor";
+}
+
+
+- (void)nibDidLoad
+{
+		// Make sure the pop-up is drawn over the box.
+	NSPopUpButton	*popUp = [[plugInPopUpButton retain] autorelease];
+	[popUp removeFromSuperview];
+	[[self view] addSubview:popUp positioned:NSWindowAbove relativeTo:plugInEditorBox];
+	
+	[plugInEditorBox setContentViewMargins:NSMakeSize(0.0, 10.0)];
 }
 
 
@@ -151,7 +162,8 @@
 	
 	while ([tilesToEmbellish count] > 0 && [startTime timeIntervalSinceNow] > -0.1)
 	{
-		MacOSaiXTile	*tileToEmbellish = [tilesToEmbellish anyObject];
+		unsigned		index = (random() % [tilesToEmbellish count]);
+		MacOSaiXTile	*tileToEmbellish = [tilesToEmbellish objectAtIndex:index];
 		NSBezierPath	*tileOutline = [tileToEmbellish outline], 
 						*darkenOutline = [darkenTransform transformBezierPath:tileOutline];
 		
@@ -163,7 +175,7 @@
 			[[lightenTransform transformBezierPath:tileOutline] stroke];
 		}
 		
-		[tilesToEmbellish removeObject:tileToEmbellish];
+		[tilesToEmbellish removeObjectAtIndex:index];
 	}
 	
 	[[NSGraphicsContext currentContext] flushGraphics];
@@ -177,9 +189,22 @@
 
 - (void)embellishMosaicView:(MosaicView *)mosaicView inRect:(NSRect)rect;
 {
-	if (![mosaicView inLiveRedraw])
+	//if (![mosaicView inLiveRedraw])
 	{
-		[tilesToEmbellish addObjectsFromArray:[mosaicView tilesInRect:rect]];
+		if (NSEqualRects(NSIntegralRect(rect), NSIntegralRect([mosaicView imageBounds])))
+		{
+			[tilesToEmbellish removeAllObjects];
+			[tilesToEmbellish addObjectsFromArray:[[[self delegate] mosaic] tiles]];
+		}
+		else
+		{
+			NSEnumerator	*tileEnumerator = [[mosaicView tilesInRect:rect] objectEnumerator];
+			MacOSaiXTile	*tile = nil;
+			
+			while (tile = [tileEnumerator nextObject])
+				if ([tilesToEmbellish indexOfObjectIdenticalTo:tile] == NSNotFound)
+					[tilesToEmbellish addObject:tile];
+		}
 		
 		[self continueEmbellishingMosaicView:mosaicView];
 	}
@@ -211,7 +236,6 @@
 		 fromValue:(id)previousValue 
 		actionName:(NSString *)actionName;
 {
-	// TODO: don't display the warning continuously
 	if ([[[self delegate] mosaic] numberOfImagesFound] == 0 || 
 		![MacOSaiXWarningController warningIsEnabled:@"Changing Tile Shapes"] || 
 		[MacOSaiXWarningController runAlertForWarning:@"Changing Tile Shapes" 

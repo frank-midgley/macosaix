@@ -16,7 +16,7 @@
 {
 	IBOutlet NSTextField	*tileCountField;
 	
-	NSMutableSet			*tilesToEmbellish;
+	NSMutableArray			*tilesToEmbellish;
 }
 
 @end
