@@ -1,0 +1,22 @@
+{
+    IBClasses =     (
+                {
+            CLASS = FirstResponder;
+            LANGUAGE = ObjC;
+            SUPERCLASS = NSObject;
+        },
+                {
+            ACTIONS =             {
+                cancelPassword = id;
+                okPassword = id;
+            };
+            CLASS = MacOSaiXKioskPasswordController;
+            LANGUAGE = ObjC;
+            OUTLETS =             {
+                passwordField = NSTextField;
+            };
+            SUPERCLASS = NSWindowController;
+        }
+    );
+    IBVersion = 1;
+}

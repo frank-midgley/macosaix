@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import "MacOSaiXImageSource.h"
 
+@class MacOSaiXFlickrGroup;
+
 
 typedef enum { matchAllTags, matchAnyTags, matchTitlesTagsOrDescriptions } FlickrQueryType;
 
@@ -17,8 +19,10 @@ typedef enum { matchAllTags, matchAnyTags, matchTitlesTagsOrDescriptions } Flick
 {
     NSString				*queryString;
 	FlickrQueryType			queryType;
+	MacOSaiXFlickrGroup		*queryGroup;
 	
-	int						nextPage;
+	BOOL					haveMoreImages;
+	NSString				*lastUploadTimeStamp;
 	NSMutableArray			*identifierQueue;
 }
 
@@ -30,9 +34,29 @@ typedef enum { matchAllTags, matchAnyTags, matchTitlesTagsOrDescriptions } Flick
 + (void)setMinFreeSpace:(unsigned long long)minFreeSpace;
 + (unsigned long long)minFreeSpace;
 
++ (NSArray *)favoriteGroups;
++ (void)addFavoriteGroup:(MacOSaiXFlickrGroup *)group;
++ (void)removeFavoriteGroup:(MacOSaiXFlickrGroup *)group;
+
++ (NSError *)signIn;
++ (void)signOut;
++ (BOOL)signingIn;
++ (BOOL)signedIn;
++ (NSString *)signedInUserName;
++ (NSDictionary *)authenticatedParameters:(NSDictionary *)parameters;
++ (NSError *)errorFromWSMethodResults:(NSDictionary *)resultsDict;
+
 - (void)setQueryString:(NSString *)string;
 - (NSString *)queryString;
+
 - (void)setQueryType:(FlickrQueryType)type;
 - (FlickrQueryType)queryType;
 
+- (void)setQueryGroup:(MacOSaiXFlickrGroup *)group;
+- (MacOSaiXFlickrGroup *)queryGroup;
+
 @end
+
+extern NSString	*MacOSaiXFlickrFavoriteGroupsDidChangeNotification;
+extern NSString	*MacOSaiXFlickrShowFavoriteGroupsNotification;
+extern NSString	*MacOSaiXFlickrAuthenticationDidChangeNotification;

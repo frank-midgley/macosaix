@@ -10,6 +10,8 @@
 #import <Cocoa/Cocoa.h>
 #import "MacOSaiXImageSource.h"
 
+@class MacOSaiXSourceImage;
+
 
 @interface MacOSaiXImageCache : NSObject 
 {
@@ -19,38 +21,38 @@
 								*sourceCacheDirectories;
 	NSString					*cachedImagesPath;
     NSRecursiveLock				*cacheLock;
-    NSMutableArray				*imageRepRecencyArray,
-                                *imageKeyRecencyArray;
-	unsigned long				cachedImageCount,
-								perfectHitCount,
+//    NSMutableArray				*imageRepRecencyArray,
+//                                *imageKeyRecencyArray;
+	NSMutableArray				*flatImageRepCache;
+	unsigned long				perfectHitCount,
 								scalableHitCount,
 								missCount;
 	unsigned long long			maxMemoryCacheSize,
 								currentMemoryCacheSize;
-	NSWindow					*scalingWindow;
+//	NSWindow					*scalingWindow;
 }
 
 
 + (MacOSaiXImageCache *)sharedImageCache;
 
+- (void)lock;
+- (void)unlock;
+
 - (void)setCacheDirectory:(NSString *)directoryPath forSource:(id<MacOSaiXImageSource>)imageSource;
 
-- (void)cacheImage:(NSImage *)image 
-	withIdentifier:(NSString *)imageIdentifier 
-		fromSource:(id<MacOSaiXImageSource>)imageSource;
+- (void)cacheSourceImage:(MacOSaiXSourceImage *)sourceImage ;
 
-- (NSSize)nativeSizeOfImageWithIdentifier:(NSString *)imageIdentifier 
-							   fromSource:(id<MacOSaiXImageSource>)imageSource;
+- (NSSize)nativeSizeOfSourceImage:(MacOSaiXSourceImage *)sourceImage;
 
 - (NSBitmapImageRep *)imageRepAtSize:(NSSize)size 
-					   forIdentifier:(NSString *)imageIdentifier 
-						  fromSource:(id<MacOSaiXImageSource>)imageSource;
+					  forSourceImage:(MacOSaiXSourceImage *)sourceImage;
 
-- (void)removeCachedImagesWithIdentifiers:(NSArray *)imageIdentifiers 
-							   fromSource:(id<MacOSaiXImageSource>)imageSource;
+- (void)removeSourceImage:(MacOSaiXSourceImage *)sourceImage;
 
 - (void)removeCachedImagesFromSource:(id<MacOSaiXImageSource>)imageSource;
 
 - (NSString *)xmlDataWithImageSources:(NSArray *)imageSources;
+
+- (unsigned long long)currentMemoryCacheSize;
 
 @end

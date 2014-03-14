@@ -39,6 +39,8 @@
 	BOOL								displayNonUniqueMatches;
 	
 	NSMutableArray						*mosaicControllers;
+	
+	NSString							*kioskPassword;
 }
 
 - (void)setMosaicControllers:(NSArray *)controllers;
@@ -47,6 +49,8 @@
 
 - (void)setMessage:(NSAttributedString *)message;
 - (void)setMessageBackgroundColor:(NSColor *)color;
+
+- (void)setPassword:(NSString *)password;
 
 - (IBAction)setOriginalImage:(id)sender;
 - (IBAction)addKeyword:(id)sender;

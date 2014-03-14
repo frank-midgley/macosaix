@@ -50,6 +50,8 @@
 	[imageReuseDistancePopUp selectItemAtIndex:popUpIndex];
 	[imageCropLimitSlider setIntValue:[mosaic imageCropLimit]];
 	
+	[okButton setEnabled:[editor settingsAreValid]];
+	
 	[NSApp beginSheet:[self window] 
 	   modalForWindow:window
 		modalDelegate:self 
@@ -185,8 +187,8 @@
 				contentFrame = [[[self window] contentView] frame];
 		float	widthDiff = MAX(0.0, [editor minimumSize].width - [[editorBox contentView] frame].size.width),
 				heightDiff = MAX(0.0, [editor minimumSize].height - [[editorBox contentView] frame].size.height), 
-				baseHeight = NSHeight(contentFrame) - NSHeight([[editorBox contentView] frame]) + 0.0, 
-				baseWidth = NSWidth(contentFrame) - NSWidth([[editorBox contentView] frame]) + 0.0;
+				baseHeight = NSHeight(frame) - NSHeight([[editorBox contentView] frame]) + 0.0, 
+				baseWidth = NSWidth(frame) - NSWidth([[editorBox contentView] frame]) + 0.0;
 		[[editor editorView] setAutoresizingMask:[[editorBox contentView] autoresizingMask]];
 		[editorBox setContentView:[[[NSView alloc] initWithFrame:NSZeroRect] autorelease]];
 		
@@ -199,7 +201,7 @@
 		frame.origin.y -= heightDiff;
 		frame.size.width += widthDiff;
 		frame.size.height += heightDiff;
-		[[self window] setContentMinSize:NSMakeSize(baseWidth + [editor minimumSize].width, baseHeight + [editor minimumSize].height)];
+		[[self window] setMinSize:NSMakeSize(baseWidth + [editor minimumSize].width, baseHeight + [editor minimumSize].height)];
 		[[self window] setFrame:frame display:YES animate:YES];
 		[editorBox setContentView:[editor editorView]];
 		

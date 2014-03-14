@@ -7,13 +7,10 @@
 */
 
 #import "iPhotoImageSource.h"
+#import "iPhotoDatabase.h"
 #import "iPhotoImageSourceController.h"
 #import "NSString+MacOSaiX.h"
 #import <pthread.h>
-
-
-static NSImage	*iPhotoImage = nil,
-				*albumImage = nil;
 
 
 @interface MacOSaiXiPhotoImageSource (PrivateMethods)
@@ -24,22 +21,9 @@ static NSImage	*iPhotoImage = nil,
 @implementation MacOSaiXiPhotoImageSource
 
 
-+ (void)initialize
-{
-	NSURL		*iPhotoAppURL = nil;
-	LSFindApplicationForInfo(kLSUnknownCreator, CFSTR("com.apple.iPhoto"), NULL, NULL, (CFURLRef *)&iPhotoAppURL);
-	NSBundle	*iPhotoBundle = [NSBundle bundleWithPath:[iPhotoAppURL path]];
-	
-	iPhotoImage = [[NSImage alloc] initWithContentsOfFile:[iPhotoBundle pathForImageResource:@"NSApplicationIcon"]];
-	albumImage = [[NSImage alloc] initWithContentsOfFile:[iPhotoBundle pathForImageResource:@"album_local"]];
-	[albumImage setScalesWhenResized:YES];
-	[albumImage setSize:NSMakeSize(16.0, 16.0)];
-}
-
-
 + (NSImage *)image;
 {
-	return iPhotoImage;
+	return [[MacOSaiXiPhotoDatabase sharedDatabase] appImage];
 }
 
 
@@ -61,23 +45,16 @@ static NSImage	*iPhotoImage = nil,
 }
 
 
-+ (NSImage *)albumImage
+- (id)initWithAlbumName:(NSString *)aName keywordName:(NSString *)kName eventName:(NSString *)eName
 {
-	return albumImage;
-}
-
-
-+ (NSImage *)keywordImage
-{
-	return nil;
-}
-
-
-- (id)initWithAlbumName:(NSString *)name
-{
-	if (self = [super init])
+	if ((self = [super init]))
 	{
-		[self setAlbumName:name];
+		if (aName)
+			[self setAlbumName:aName];
+		else if (kName)
+			[self setKeywordName:kName];
+		else if (eName)
+			[self setEventName:eName];
 	}
 
     return self;
@@ -141,6 +118,7 @@ static NSImage	*iPhotoImage = nil,
 	if (name)
 	{
 		[self setKeywordName:nil];
+		[self setEventName:nil];
 		
 		[sourceDescription autorelease];
 		sourceDescription = [[NSString stringWithFormat:@"Photos from \"%@\"", albumName] retain];
@@ -166,6 +144,7 @@ static NSImage	*iPhotoImage = nil,
 	if (name)
 	{
 		[self setAlbumName:nil];
+		[self setEventName:nil];
 		
 		[sourceDescription autorelease];
 		sourceDescription = [[NSString stringWithFormat:@"\"%@\" photos", keywordName] retain];
@@ -177,15 +156,41 @@ static NSImage	*iPhotoImage = nil,
 }
 
 
+- (NSString *)eventName
+{
+	return [[eventName retain] autorelease];
+}
+
+
+- (void)setEventName:(NSString *)name
+{
+	[eventName autorelease];
+	eventName = [name copy];
+	
+	if (name)
+	{
+		[self setAlbumName:nil];
+		[self setKeywordName:nil];
+		
+		[sourceDescription autorelease];
+		sourceDescription = [[NSString stringWithFormat:@"Photos from \"%@\"", eventName] retain];
+		
+		// Indicate that the photo ID's need to be retrieved.
+		[remainingPhotoIDs autorelease];
+		remainingPhotoIDs = nil;
+	}
+}
+
+
 - (id)copyWithZone:(NSZone *)zone
 {
-	return [[MacOSaiXiPhotoImageSource allocWithZone:zone] initWithAlbumName:albumName];
+	return [[MacOSaiXiPhotoImageSource allocWithZone:zone] initWithAlbumName:albumName keywordName:keywordName eventName:eventName];
 }
 
 
 - (NSImage *)image;
 {
-	return iPhotoImage;
+	return [[MacOSaiXiPhotoDatabase sharedDatabase] appImage];
 }
 
 
@@ -206,46 +211,27 @@ static NSImage	*iPhotoImage = nil,
 
 - (void)getPhotoIDs
 {
-	if (!pthread_main_np())
-		[self performSelectorOnMainThread:_cmd withObject:nil waitUntilDone:YES];
+	NSArray *photoIDs;
+	
+	if (albumName)
+		photoIDs = [[MacOSaiXiPhotoDatabase sharedDatabase] photoIDsFromAlbum:albumName];
+	else if (eventName)
+		photoIDs = [[MacOSaiXiPhotoDatabase sharedDatabase] photoIDsFromEvent:eventName];
+	else if (keywordName)
+		photoIDs = [[MacOSaiXiPhotoDatabase sharedDatabase] photoIDsForKeyword:keywordName];
 	else
-	{
-		NSString		*scriptText = nil;
-		if (albumName)
-			scriptText = [NSString stringWithFormat:@"tell application \"iPhoto\" to get id of photos of album \"%@\"", 
-													albumName];
-		else if (keywordName)
-			scriptText = [NSString stringWithFormat:@"tell application \"iPhoto\"\r" \
-														"set ids to {}\r" \
-														 "repeat with thePhoto in (photos whose keywords is not {})\r" \
-															 "set kws to name of keywords of thePhoto\r" \
-															 "if kws contains \"%@\" then set ids to ids & (id of thePhoto)\r" \
-														 "end repeat\r" \
-														"ids\r" \
-													 "end tell", keywordName];
-		else
-			scriptText = @"tell application \"iPhoto\" to get id of photos";
-			
-		NSAppleScript	*getPhotoIDsScript = [[[NSAppleScript alloc] initWithSource:scriptText] autorelease];
-		NSDictionary	*scriptError = nil;
-		id				getPhotoIDsResult = [getPhotoIDsScript executeAndReturnError:&scriptError];
-		
-		remainingPhotoIDs = [[NSMutableArray array] retain];
-		
-		if (!scriptError)
-		{
-			int	photoIDCount = [(NSAppleEventDescriptor *)getPhotoIDsResult numberOfItems],
-				photoIDIndex;
-			for (photoIDIndex = 1; photoIDIndex <= photoIDCount; photoIDIndex++)
-				[remainingPhotoIDs addObject:[[(NSAppleEventDescriptor *)getPhotoIDsResult descriptorAtIndex:photoIDIndex] stringValue]];
-		}
-	}
+		photoIDs = [[MacOSaiXiPhotoDatabase sharedDatabase] photoIDs];
+	
+	remainingPhotoIDs = [[NSMutableArray arrayWithArray:photoIDs] retain];
 }
 
 
-- (NSImage *)nextImageAndIdentifier:(NSString **)identifier
+- (NSError *)nextImage:(NSImage **)image andIdentifier:(NSString **)identifier
 {
-	NSImage			*image = nil;
+	NSError	*error = nil;
+	
+	*image = nil;
+	*identifier = nil;
 	
 	if (!remainingPhotoIDs)
 		[self getPhotoIDs];
@@ -254,51 +240,21 @@ static NSImage	*iPhotoImage = nil,
 	{
 		NSString		*photoID = [remainingPhotoIDs objectAtIndex:0];
 		
-		image = [self imageForIdentifier:photoID];
+		*image = [self imageForIdentifier:photoID];
 		
-		if (image)
+		if (*image)
 			*identifier = [[photoID retain] autorelease];
 		
 		[remainingPhotoIDs removeObjectAtIndex:0];
 	}
 
-    return image;
+    return error;
 }
 
 
-- (void)pathOfPhotoWithParameters:(NSMutableDictionary *)parameters
+- (BOOL)canReenumerateImages
 {
-	NSString	*photoPath = [self pathOfPhotoWithID:[parameters objectForKey:@"Photo ID"]];
-	
-	if (photoPath)
-		[parameters setObject:photoPath forKey:@"Photo Path"];
-}
-
-
-- (NSString *)pathOfPhotoWithID:(NSString *)photoID
-{
-	NSString		*imagePath = nil;
-	
-	if (!pthread_main_np())
-	{
-		NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObject:photoID forKey:@"Photo ID"];
-		[self performSelectorOnMainThread:@selector(pathOfPhotoWithParameters:) withObject:parameters waitUntilDone:YES];
-		imagePath = [parameters objectForKey:@"Photo Path"];
-	}
-	else
-	{
-		NSString				*getImagePathText = [NSString stringWithFormat:@"tell application \"iPhoto\" to " \
-																			   @"get image path of first photo whose id is %@", 
-																			   photoID];
-		NSAppleScript			*getImagePathScript = [[[NSAppleScript alloc] initWithSource:getImagePathText] autorelease];
-		NSDictionary			*scriptError = nil;
-		NSAppleEventDescriptor	*getImagePathResult = [getImagePathScript executeAndReturnError:&scriptError];
-		
-		if (!scriptError)
-			imagePath = [(NSAppleEventDescriptor *)getImagePathResult stringValue];
-	}
-	
-	return imagePath;
+	return YES;
 }
 
 
@@ -311,10 +267,11 @@ static NSImage	*iPhotoImage = nil,
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
 	NSImage		*image = nil;
-	NSString	*imagePath = [self pathOfPhotoWithID:identifier];
+	NSString	*imagePath = [[MacOSaiXiPhotoDatabase sharedDatabase] pathOfPhotoWithID:identifier];
 	
 	if (imagePath)
 	{
+//		NSLog(@"Attempting to load iPhoto image at %@", imagePath);
 		NS_DURING
 			image = [[[NSImage alloc] initWithContentsOfFile:imagePath] autorelease];
 			if (!image)
@@ -349,13 +306,15 @@ static NSImage	*iPhotoImage = nil,
 
 - (NSString *)descriptionForIdentifier:(NSString *)identifier
 {
-	return nil;
+	return [[MacOSaiXiPhotoDatabase sharedDatabase] titleOfPhotoWithID:identifier];
 }	
 
 
 - (void)reset
 {
-	[self setAlbumName:albumName];
+		// Indicate that the photo ID's need to be retrieved.
+	[remainingPhotoIDs autorelease];
+	remainingPhotoIDs = nil;
 }
 
 

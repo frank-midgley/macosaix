@@ -31,8 +31,7 @@
 		// Saving
     NSDate						*lastSaved;
     NSTimer						*autosaveTimer;
-	BOOL						saving,
-								loading;
+	BOOL						loading;
 }
 
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
@@ -41,7 +40,6 @@
 - (void)setOriginalImagePath:(NSString *)path;
 - (NSString *)originalImagePath;
 
-- (BOOL)isSaving;
 - (BOOL)isClosing;
 
 - (void)setAutoSaveEnabled:(BOOL)flag;

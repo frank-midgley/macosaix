@@ -66,7 +66,7 @@
 	if ([[textView string] length] == 0)
 		[textView setString:@"Sample Message"];
 	
-	[textView setFrameSize:NSMakeSize(256.0, 256.0)];
+	[textView setFrameSize:[self frame].size];
 	[textView sizeToFit];
 	[textView setFrameOrigin:NSMakePoint((NSWidth([self frame]) - NSWidth([textView frame])) / 2.0,
 									     (NSHeight([self frame]) - NSHeight([textView frame])) / 2.0)];

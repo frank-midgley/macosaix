@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>companyAddress</key>
@@ -21,11 +21,11 @@
 	<key>fileCreator</key>
 	<string></string>
 	<key>fileReleaseDateD</key>
-	<string>03</string>
+	<string>18</string>
 	<key>fileReleaseDateM</key>
-	<string>04</string>
+	<string>10</string>
 	<key>fileReleaseDateY</key>
-	<string>2006</string>
+	<string>2010</string>
 	<key>fileType</key>
 	<string>APPL</string>
 	<key>padVersion</key>
@@ -36,18 +36,25 @@
 	<string>Mosaics for Mac OS X</string>
 	<key>productDownloadURL</key>
 	<array>
-		<string>http://homepage.mac.com/knarf/MacOSaiX/MacOSaiX2.0a6.dmg</string>
+		<string>http://homepage.mac.com/knarf/MacOSaiX/MacOSaiX.dmg</string>
 	</array>
 	<key>productFileSize</key>
-	<string>840 KB</string>
+	<string>1.1 MB</string>
 	<key>productIconURL</key>
 	<string></string>
 	<key>productKeywords</key>
 	<array>
 		<string>image</string>
-		<string>collage</string>
 		<string>photo</string>
+		<string>picture</string>
+		<string>collage</string>
 		<string>mosaic</string>
+		<string>Google</string>
+		<string>flickr</string>
+		<string>glyphs</string>
+		<string>QuickTime</string>
+		<string>iPhoto</string>
+		<string>iTunes</string>
 	</array>
 	<key>productLanguages</key>
 	<array>
@@ -62,34 +69,49 @@
 		<string>10.2.8</string>
 		<string>10.3.x</string>
 		<string>10.4.x</string>
+		<string>10.5.x</string>
 	</array>
 	<key>productPageURL</key>
 	<string>http://homepage.mac.com/knarf/MacOSaiX/</string>
 	<key>productPrice</key>
 	<string>0</string>
 	<key>productReleaseNotes</key>
-	<string>• Improved user interface.
-• MacOSaiX is now universal and will run on Intel-based Macs.
-• Yahoo's flickr photo-sharing service can now be searched for images.
-• Mosaics can now be viewed full screen.
-• A new kiosk mode is available.
-• Added display options for the background of mosaics.
-• Brought back and improved the puzzle piece tile shapes.
-• The image crop limit can now be disabled.
-• Autosaving can now be disabled.
-• Mosaics can now be saved as PNG files.
-• The resolution can now be set when saving as an JPEG, PNG or TIFF file.
-• Mosaics can now be saved as web pages
-•     Pop-up window follows the mouse and shows image detail.
-•     Live links to Google and flickr.
-• The size of the Google and flickr disk caches can now be customized.
+	<string>• New features:
+	• Added an iTunes album artwork image source.
+	• Added a Delicious Library image source.
+	• flickr image sources can now search using flickr groups.
+	• Google image sources can now search for news or face images.
+	• Google image sources can now search the database of LIFE images.
+	• Support for transparency:
+		• in original images.
+		• in images placed in tiles.
+		• in images created by the Glyphs image source.
+		• when saving a mosaic as JPG, PNG or TIFF.
+	• Now showing how well the mosaic matches the original image.
+	• Mosaics made with small numbers of images now look better.
+	• Image sources can now report errors when finding images.
+	• Images can now be repeated in adjacent tiles.
+	• Mosaics can now be as small as one tile by one tile.
+• Performance improvements:
+	• Now taking better advantage of Macs with multiple CPUs/cores.
+	• Mosaics that allow image repeats are now created much faster.
+	• Images are now pulled from QuickTime movies much faster.
+	• Can now save images at larger sizes.
+	• Improved handling of very large images from sources.
+• Bugs fixed:
+	• The image usage rules (repeats, distance apart) are now always honored.
+	• CMYK images are now handled correctly.
+	• No longer crashing when iPhoto is not installed.
+	• No longer crashing when Google becomes inaccessible.
+	• No longer stopping after finding 21 Google images.
+	• No longer crashing when an image source is added to a mosaic with no original image.
 </string>
 	<key>productRequirements</key>
 	<string></string>
 	<key>productReviews</key>
 	<string></string>
 	<key>productVersion</key>
-	<string>2.0a6</string>
+	<string>2.2b3</string>
 	<key>productWebStore</key>
 	<string></string>
 </dict>

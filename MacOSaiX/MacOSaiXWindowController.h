@@ -1,4 +1,5 @@
 #import <Cocoa/Cocoa.h>
+
 #import "MosaicView.h"
 #import "OriginalView.h"
 #import "Tiles.h"
@@ -9,6 +10,8 @@
 #import "MacOSaiXDocument.h"
 #import "MacOSaiXTilesSetupController.h"
 
+@class MacOSaiXAnimationSettingsController;
+
 
 @interface MacOSaiXWindowController : NSWindowController 
 {
@@ -17,10 +20,14 @@
     IBOutlet MosaicView					*mosaicView;
 	IBOutlet NSScrollView				*mosaicScrollView;
 	
+		// Status bar
     IBOutlet NSView						*statusBarView;
 	IBOutlet NSTextField				*imagesFoundField, 
+										*mosaicQualityField, 
 										*statusField;
 	IBOutlet NSProgressIndicator		*statusProgressIndicator;
+	BOOL								statusProgressIndicatorIsAnimating, 
+										statusUpdatePending;
 	
 	IBOutlet NSMenu						*recentOriginalsMenu;
 	
@@ -42,12 +49,15 @@
     IBOutlet NSDrawer					*imageSourcesDrawer;
 	IBOutlet NSTableView				*imageSourcesTableView;
 	IBOutlet NSPopUpButton				*imageSourcesPopUpButton;
-	IBOutlet NSButton					*imageSourcesRemoveButton;
+	IBOutlet NSButton					*imageSourcesRemoveButton, 
+										*animateImagesButton, 
+										*animationSettingsButton;
 	
 		// Image source editor
 	IBOutlet NSPanel					*imageSourceEditorPanel;
 	IBOutlet NSBox						*imageSourceEditorBox;
-	IBOutlet NSButton					*imageSourceEditorCancelButton, 
+	IBOutlet NSButton					*imageSourceIsFillerButton, 
+										*imageSourceEditorCancelButton, 
 										*imageSourceEditorOKButton;
 	id<MacOSaiXImageSourceController>	imageSourceEditorController;
 		
@@ -69,6 +79,7 @@
 	IBOutlet NSProgressIndicator		*progressPanelIndicator;
 	IBOutlet NSButton					*progressPanelCancelButton;
 	
+	MacOSaiXAnimationSettingsController	*animationSettingsController;
 	MacOSaiXExportController			*exportController;
     NSTimer								*fadeTimer,
 										*animateTileTimer;
@@ -78,8 +89,6 @@
 										*pauseToolbarItem, 
 										*setupTilesToolbarItem, 
 										*saveAsToolbarItem;
-	NSImage								*originalToolbarImage,
-										*mosaicToolbarImage;
     BOOL								statusBarShowing,
 										fadeWasAdjusted, 
 										windowFinishedLoading,	// flag to indicate nib was loaded
@@ -131,6 +140,8 @@
 	// Image sources drawer
 - (IBAction)addNewImageSource:(id)sender;
 - (IBAction)removeImageSource:(id)sender;
+- (IBAction)setAnimateImagePlacement:(id)sender;
+- (IBAction)showAnimationSettings:(id)sender;
 
 	// Image source editor
 - (IBAction)saveImageSource:(id)sender;
@@ -148,6 +159,7 @@
 - (void)displayProgressPanelWithMessage:(NSString *)message;
 - (void)setProgressPercentComplete:(NSNumber *)percentComplete;
 - (void)setProgressMessage:(NSString *)message;
+- (void)setProgressCancelAction:(SEL)cancelAction;
 - (void)closeProgressPanel;
 
 @end

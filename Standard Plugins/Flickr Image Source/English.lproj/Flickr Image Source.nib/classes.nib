@@ -1,19 +1,31 @@
 {
-    IBClasses = (
-        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
-        {
-            ACTIONS = {setQueryType = id; visitFlickr = id; }; 
-            CLASS = FlickrImageSourceController; 
-            LANGUAGE = ObjC; 
-            OUTLETS = {
-                editorView = NSView; 
-                matchingPhotosCount = NSTextField; 
-                matchingPhotosIndicator = NSProgressIndicator; 
-                queryField = NSTextField; 
-                queryTypeMatrix = NSMatrix; 
-            }; 
-            SUPERCLASS = NSObject; 
+    IBClasses =     (
+                {
+            ACTIONS =             {
+                "" = id;
+            };
+            CLASS = FirstResponder;
+            LANGUAGE = ObjC;
+            SUPERCLASS = NSObject;
+        },
+                {
+            ACTIONS =             {
+                setGroup = id;
+                setQueryType = id;
+                visitFlickr = id;
+            };
+            CLASS = FlickrImageSourceController;
+            LANGUAGE = ObjC;
+            OUTLETS =             {
+                editorView = NSView;
+                groupPopUp = NSPopUpButton;
+                matchingPhotosCount = NSTextField;
+                matchingPhotosIndicator = NSProgressIndicator;
+                queryField = NSTextField;
+                queryTypeMatrix = NSMatrix;
+            };
+            SUPERCLASS = NSObject;
         }
-    ); 
-    IBVersion = 1; 
+    );
+    IBVersion = 1;
 }

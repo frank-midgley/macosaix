@@ -13,9 +13,11 @@
 	<key>Image Reuse Distance</key>
 	<integer>10</integer>
 	<key>Image Crop Limit</key>
-	<integer>20</integer>
+	<integer>100</integer>
 	<key>Last Chosen Tile Shapes Class</key>
 	<string>MacOSaiXRectangularTileShapes</string>
+	<key>New Image Source Is Filler</key>
+	<false/>
 	<key>Rectangular Tile Shapes</key>
 	<dict>
 		<key>Tiles Across</key>
@@ -28,6 +30,36 @@
 		<string>6</string>
 		<key>Restrict Tile Y Size</key>
 		<string>4</string>
+	</dict>
+	<key>Image Placement Settings</key>
+	<dict>
+		<key>Animate Placements</key>
+		<true/>
+		<key>Animate All Placements</key>
+		<false/>
+		<key>Full Size Display Duration</key>
+		<integer>2</integer>
+		<key>Delay Between Placements</key>
+		<integer>5</integer>
+		<key>Message</key>
+		<string>⌽</string>
+		<key>Include Source Image with Message</key>
+		<true/>
+	</dict>
+	<key>Export Defaults</key>
+	<dict>
+		<key>Units</key>
+		<integer>0</integer>
+		<key>Resolution</key>
+		<integer>300</integer>
+		<key>Wrap in Web Page</key>
+		<false/>
+		<key>Include Original in Web Page</key>
+		<false/>
+		<key>Open When Complete</key>
+		<true/>
+		<key>Image Format</key>
+		<string>png</string>
 	</dict>
 </dict>
 </plist>

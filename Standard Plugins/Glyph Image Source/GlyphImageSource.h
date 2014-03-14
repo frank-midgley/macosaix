@@ -13,6 +13,7 @@
 {
     NSMutableArray		*fontNames;
 	NSMutableDictionary	*colorLists;
+	BOOL				allowTransparentImages;
 	NSString			*letterPool;
 	
 	unsigned long		imageCountLimit,
@@ -34,6 +35,9 @@
 - (void)addColorList:(NSString *)listName ofClass:(NSString *)listClass;
 - (void)removeColorList:(NSString *)listName ofClass:(NSString *)listClass;
 - (NSArray *)colorListsOfClass:(NSString *)listClass;
+
+- (void)setAllowTransparentImages:(BOOL)flag;
+- (BOOL)allowTransparentImages;
 
 - (void)setLetterPool:(NSString *)pool;
 - (NSString *)letterPool;

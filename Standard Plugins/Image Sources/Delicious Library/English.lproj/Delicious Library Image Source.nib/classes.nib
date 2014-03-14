@@ -1,0 +1,37 @@
+{
+    IBClasses =     (
+                {
+            ACTIONS =             {
+                "" = id;
+            };
+            CLASS = FirstResponder;
+            LANGUAGE = ObjC;
+            SUPERCLASS = NSObject;
+        },
+                {
+            ACTIONS =             {
+                reloadLibrary = id;
+                setItemType = id;
+                setShelf = id;
+                setSourceType = id;
+                visitWebSite = id;
+            };
+            CLASS = MacOSaiXDLImageSourceEditor;
+            LANGUAGE = ObjC;
+            OUTLETS =             {
+                editorView = NSView;
+                errorField = NSTextField;
+                iconView = NSImageView;
+                itemCountField = NSTextField;
+                itemTypesPopUp = NSPopUpButton;
+                loadingIndicator = NSProgressIndicator;
+                reloadButton = NSButton;
+                shelvesPopUp = NSPopUpButton;
+                sourceTypeMatrix = NSMatrix;
+                tabView = NSTabView;
+            };
+            SUPERCLASS = NSObject;
+        }
+    );
+    IBVersion = 1;
+}

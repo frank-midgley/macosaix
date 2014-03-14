@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 #import "MacOSaiXImageSource.h"
 #import "QuickTimeImageSource.h"
+#import <QTKit/QTKit.h>
 
 
 @interface QuickTimeImageSourceController : NSObject <MacOSaiXImageSourceController>
@@ -22,7 +23,7 @@
 								*saveFramesCheckBox;
 	
 	IBOutlet NSBox				*movieBox;
-	IBOutlet NSMovieView		*movieView;
+	IBOutlet QTMovieView		*movieView;
 	IBOutlet NSTextField		*movieNameTextField;
 	
 	QuickTimeImageSource		*currentImageSource;

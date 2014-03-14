@@ -100,7 +100,9 @@
 - (void)dealloc
 {
 	[popUpImage release];
+	popUpImage = nil;
 	[popUpMenu release];
+	popUpMenu = nil;
 	
 	[super dealloc];
 }

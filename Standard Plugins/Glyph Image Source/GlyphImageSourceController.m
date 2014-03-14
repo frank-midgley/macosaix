@@ -41,7 +41,7 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(450.0, 375.0);
+	return NSMakeSize(474.0, 375.0);
 }
 
 
@@ -72,7 +72,10 @@
 {
 	[currentImageSource reset];
 	
-	[sampleImageView setImage:[currentImageSource nextImageAndIdentifier:nil]];
+	NSImage		*sampleImage = nil;
+	NSString	*sampleIdentifier = nil;
+	if ([currentImageSource nextImage:&sampleImage andIdentifier:&sampleIdentifier] == nil)
+		[sampleImageView setImage:sampleImage];
 	
 	if (![sampleImageView image])
 		[timer setFireDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
@@ -133,6 +136,7 @@
 			// Get the list of colors defined by the NSColorPanel.
 		[systemWideColorLists autorelease];
 		systemWideColorLists = [[NSColorList availableColorLists] mutableCopy];
+		[allowTransparentImagesButton setState:([currentImageSource allowTransparentImages] ? NSOnState : NSOffState)];
 		
 			// Populate the GUI with this source's settings.
 		if ([[currentImageSource letterPool] length] > 0)
@@ -174,6 +178,19 @@
 
 - (void)editingComplete
 {
+	[sampleTimer invalidate];	// which will also release it
+	sampleTimer = nil;
+	
+	[fontFamilyNames release];
+	fontFamilyNames = nil;
+	
+	[chosenFonts release];
+	chosenFonts = nil;
+	
+	[systemWideColorLists autorelease];
+	systemWideColorLists = nil;
+	
+	currentImageSource = nil;
 }
 
 
@@ -295,6 +312,12 @@
 		[currentImageSource removeColorList:[list name] ofClass:listClass];
 	else
 		[currentImageSource addColorList:[list name] ofClass:listClass];
+}
+
+
+- (IBAction)setAllowTransparentImages:(id)sender
+{
+	[currentImageSource setAllowTransparentImages:([allowTransparentImagesButton state] == NSOnState)];
 }
 
 
@@ -481,7 +504,7 @@
 			NSString	*title = [(NSFont *)item displayName],
 						*familyName = [(NSFont *)item familyName];
 			
-			if ([title hasPrefix:familyName])
+			if ([title hasPrefix:familyName] && [title length] > [familyName length])
 				title = [title substringFromIndex:[familyName length] + 1];
 			
 			[cell setTitle:title];
@@ -514,12 +537,14 @@
 
 - (void)dealloc
 {
-	[sampleTimer invalidate];	// which will also release it
-	
 	[fontFamilyNames release];
 	[availableFontMembers release];
+	[chosenFonts release];
 	
+	[systemWideColorLists autorelease];
 	[builtinColorLists release];
+	
+	[editorView release];
 	
 	[super dealloc];
 }

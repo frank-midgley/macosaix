@@ -33,11 +33,12 @@ typedef enum { clearMode = 0, blackMode, originalMode, bestMatchMode } MacOSaiXB
 	BOOL					viewTileOutlines;
 	NSImage					*tileOutlinesImage;
 					
-		// Selected tile highlighting
+		// Tile highlighting
     MacOSaiXTile			*highlightedTile;
 	NSArray					*highlightedImageSources;
 	NSLock					*highlightedImageSourcesLock;
-	NSBezierPath			*highlightedImageSourcesOutline;
+	NSBezierPath			*highlightedImageSourcesOutline, 
+							*tilesWithSubOptimalUniqueMatchesOutline;
     int						phase;
 	
 		// Tile refreshing
@@ -49,9 +50,19 @@ typedef enum { clearMode = 0, blackMode, originalMode, bestMatchMode } MacOSaiXB
 		// Queued tile view invalidation
 	NSMutableArray			*tilesNeedingDisplay;
 	NSLock					*tilesNeedDisplayLock;
-	NSTimer					*tilesNeedDisplayTimer;
+	
+		// Image placement animation
+	NSLock					*imagePlacementLock;
+	NSMutableArray			*imagePlacementTiles; 
+	NSImage					*imagePlacementImage, 
+							*imagePlacementSourceImage;
+	NSString				*imagePlacementDescription;
+	NSDate					*imagePlacementLastTime, 
+							*imagePlacementStartTime;
 	
 	MacOSaiXBackgroundMode	backgroundMode;
+	
+	BOOL					tilesWithSubOptimalUniqueMatchesAreHighlighted;
 }
 
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic;
@@ -79,6 +90,8 @@ typedef enum { clearMode = 0, blackMode, originalMode, bestMatchMode } MacOSaiXB
 - (void)highlightImageSources:(NSArray *)imageSources;
 - (void)animateHighlight;
 
-- (NSImage *)image;
+//- (NSImage *)image;
+- (void)setTilesWithSubOptimalUniqueMatchesHighlighted:(BOOL)flag;
+
 
 @end

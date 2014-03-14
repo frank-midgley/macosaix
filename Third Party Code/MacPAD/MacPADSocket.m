@@ -440,7 +440,7 @@ enum {
     }
     
     // Add the last part onto the array
-    [parts addObject:[s copy]];
+    [parts addObject:[NSString stringWithString:s]];
     return parts;
 }
 

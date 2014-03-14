@@ -212,7 +212,7 @@
 {
 	if (returnCode == NSOKButton)
 	{
-		int				column = (int)contextInfo;
+		long			column = (long)contextInfo;
 		NSButtonCell	*buttonCell = [originalImageMatrix cellAtRow:0 column:column];
 		NSString		*imagePath = [[openPanel filenames] lastObject];
 		NSImage			*image = [[NSImage alloc] initWithContentsOfFile:imagePath];
@@ -288,9 +288,13 @@
 		[repeatedPasswordField setStringValue:@""];
 	}
 	
-	// TODO: set app level global
-	
 	[self updateWarningField];
+}
+
+
+- (NSString *)password
+{
+	return ([requirePasswordButton state] == NSOnState ? [passwordField stringValue] : nil);
 }
 
 
@@ -350,21 +354,24 @@
 
 - (IBAction)start:(id)sender
 {
-		// Remember the message for next time.
-	NSMutableDictionary	*kioskSettings = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Kiosk Settings"] mutableCopy] autorelease];
-	
-	if (!kioskSettings)
-		kioskSettings = [NSMutableDictionary dictionary];
-	
-	[kioskSettings setObject:[NSArchiver archivedDataWithRootObject:[messageView message]]
-					  forKey:@"Archived Message"];
-	[kioskSettings setObject:[NSArchiver archivedDataWithRootObject:[messageView backgroundColor]]
-					  forKey:@"Archived Message Background Color"];
-	
-	[[NSUserDefaults standardUserDefaults] setObject:kioskSettings forKey:@"Kiosk Settings"];
-	[[NSUserDefaults standardUserDefaults] synchronize];
-	
-	[NSApp stopModal];
+	if (![requirePasswordButton state] == NSOnState || NSRunCriticalAlertPanel(@"You are entering kiosk mode with a password.", @"You will need to enter the password exactly to be able to leave kiosk mode.\n\nWhile in kiosk mode you will not be able to switch to other applications or force quit MacOSaiX.\n\nIf you forget the password then you will have to force MacOSaiX to quit from a remote machine or force reboot this machine.", @"OK", @"Cancel", nil) == NSAlertDefaultReturn)
+	{
+			// Remember the message for next time.
+		NSMutableDictionary	*kioskSettings = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Kiosk Settings"] mutableCopy] autorelease];
+		
+		if (!kioskSettings)
+			kioskSettings = [NSMutableDictionary dictionary];
+		
+		[kioskSettings setObject:[NSArchiver archivedDataWithRootObject:[messageView message]]
+						  forKey:@"Archived Message"];
+		[kioskSettings setObject:[NSArchiver archivedDataWithRootObject:[messageView backgroundColor]]
+						  forKey:@"Archived Message Background Color"];
+		
+		[[NSUserDefaults standardUserDefaults] setObject:kioskSettings forKey:@"Kiosk Settings"];
+		[[NSUserDefaults standardUserDefaults] synchronize];
+		
+		[NSApp stopModal];
+	}
 }
 
 

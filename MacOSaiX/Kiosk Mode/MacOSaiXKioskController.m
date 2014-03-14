@@ -11,8 +11,10 @@
 #import "GoogleImageSource.h"
 #import "MacOSaiXDocument.h"
 #import "MacOSaiXFullScreenController.h"
+#import "MacOSaiXKioskPasswordController.h"
 #import "RectangularTileShapes.h"
 
+#import <Carbon/Carbon.h>
 #import <pthread.h>
 
 
@@ -94,10 +96,12 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 			[tempDocument setMosaic:currentMosaic];
 			int					currentIndex = [mosaics indexOfObjectIdenticalTo:currentMosaic];
 			[tempDocument setOriginalImagePath:[[originalImageMatrix cellAtRow:0 column:currentIndex] title]];
-			[tempDocument threadedSaveWithParameters:[NSDictionary dictionaryWithObjectsAndKeys:
-														saveFilePath, @"Save Path", 
-														[NSNumber numberWithBool:YES], @"Was Paused", 
-														nil]];
+//			[tempDocument setFileName:saveFilePath];
+//			[tempDocument setFileType:@"MacOSaiX Project"];
+//			[tempDocument setIsKioskDocument:YES];
+//			// TODO: subclass -[NSDocumentController noteNewRecentDocumentURL:] so these don't show up in the recents menu
+//			[tempDocument saveDocument:nil];
+			[tempDocument writeToFile:saveFilePath ofType:@"MacOSaiX Project" originalFile:nil saveOperation:NSSaveOperation];
 			[tempDocument release];
 		}
 		
@@ -110,6 +114,9 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 		[[NSNotificationCenter defaultCenter] removeObserver:self 
 														name:MacOSaiXMosaicDidChangeStateNotification 
 													  object:currentMosaic];
+		[[NSNotificationCenter defaultCenter] removeObserver:self 
+														name:MacOSaiXMosaicDidChangeImageSourcesNotification 
+													  object:currentMosaic];
 	}
 	
 	{
@@ -121,6 +128,10 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(mosaicDidChangeState:) 
 													 name:MacOSaiXMosaicDidChangeStateNotification 
+												   object:currentMosaic];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(mosaicDidChangeState:) 
+													 name:MacOSaiXMosaicDidChangeImageSourcesNotification 
 												   object:currentMosaic];
 		
 			// Tell all of the "mosaic only" windows to show this mosaic.
@@ -157,18 +168,22 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 			[mosaic setImageUseCount:0];
 			[mosaic setImageReuseDistance:10];
 			[mosaic setImageCropLimit:25];
+			[NSThread detachNewThreadSelector:@selector(extractTileBitmaps) toTarget:mosaic withObject:nil];
 			[mosaics replaceObjectAtIndex:column withObject:mosaic];
 			[mosaic release];
 			
 			[buttonCell setTitle:imagePath];
+			if (imagePath)
+				[originalImageMatrix setToolTip:[[imagePath lastPathComponent] stringByDeletingPathExtension] forCell:buttonCell];
 			[buttonCell setImagePosition:NSImageOnly];
 			[image release];
 		}
 		else
 		{
-			[buttonCell setTitle:@"No Image Available"];
+			[buttonCell setTitle:@""];
 			[buttonCell setImage:nil];
 			[buttonCell setImagePosition:NSNoImage];
+			[buttonCell setEnabled:NO];
 		}
 	}
 	
@@ -209,7 +224,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 }
 
 
-#pragma mark
+#pragma mark -
 #pragma mark Message view
 
 - (void)setMessage:(NSAttributedString *)message
@@ -224,7 +239,17 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 }
 
 
-#pragma mark
+#pragma mark -
+
+
+- (void)setPassword:(NSString *)password
+{
+	[kioskPassword release];
+	kioskPassword = [password copy];
+}
+
+
+#pragma mark -
 #pragma mark Keywords
 
 
@@ -248,7 +273,7 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 			[newSource setAdultContentFiltering:strictFiltering];
 			[newSource setRequiredTerms:keyword];
 			
-			[currentMosaic addImageSource:newSource];
+			[currentMosaic addImageSource:newSource isFiller:NO];
 			
 			[newSource release];
 		}
@@ -294,8 +319,8 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 				windowWidth = NSWidth([window frame]), 
 				transitionHeight = 64.0, 
 				transitionWidth = 0.0, 
-				matrixWidth = floorf(24.0 * (windowHeight - transitionHeight) / 21.0 / 6.0) * 6.0, 
-				matrixHeight = floorf(matrixWidth / 6.0 / 4.0 * 3.0 + 0.5), 
+				matrixWidth = floor(24.0 * (windowHeight - transitionHeight) / 21.0 / 6.0) * 6.0, 
+				matrixHeight = floor(matrixWidth / 6.0 / 4.0 * 3.0 + 0.5), 
 				settingsWidth = windowWidth - matrixWidth, 
 				mosaicHeight = windowHeight - matrixHeight - transitionHeight;
 	
@@ -394,12 +419,12 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
     if ([notification object] == imageSourcesTableView)
 	{
 		NSMutableArray	*selectedImageSources = [NSMutableArray array];
-		NSEnumerator	*selectedRowNumberEnumerator = [imageSourcesTableView selectedRowEnumerator];
-		NSNumber		*selectedRowNumber = nil;
-		while (selectedRowNumber = [selectedRowNumberEnumerator nextObject])
+		NSIndexSet		*indexSet = [imageSourcesTableView selectedRowIndexes];
+		unsigned long	currentIndex = [indexSet firstIndex];
+		while (currentIndex != NSNotFound)
 		{
-			int	rowIndex = [selectedRowNumber intValue];
-			[selectedImageSources addObject:[[currentMosaic imageSources] objectAtIndex:rowIndex]];
+			[selectedImageSources addObject:[[currentMosaic imageSources] objectAtIndex:currentIndex]];
+			currentIndex = [indexSet indexGreaterThanIndex:currentIndex];
 		}
 		
 		[removeKeywordButton setEnabled:([selectedImageSources count] > 0)];
@@ -410,10 +435,53 @@ NSComparisonResult compareDisplayedMatchValue(id tileDict1, id tileDict2, void *
 #pragma mark
 
 
+- (void)close
+{
+	BOOL	okToClose = YES;
+	if (kioskPassword != nil)
+	{
+		MacOSaiXKioskPasswordController	*passwordController = [[MacOSaiXKioskPasswordController alloc] initWithWindow:nil];
+		int								result = [NSApp runModalForWindow:[passwordController window]];
+		
+		if (result == NSRunStoppedResponse)
+		{
+			okToClose = [[passwordController passwordEntered] isEqualToString:kioskPassword];
+			
+			if (!okToClose)
+				NSBeep();	// the user entered the wrong password
+		}
+		else
+			okToClose = NO;	// the user cancelled
+		
+		[passwordController close];
+		[passwordController release];
+	}
+	
+	if (okToClose)
+	{
+		[self useMosaicAtIndex:[originalImageMatrix selectedColumn]];
+		[(MacOSaiXMosaic *)[mosaics objectAtIndex:[originalImageMatrix selectedColumn]] pause];
+		[mosaicView setMosaic:nil];
+		
+		NSEnumerator					*controllerEnumerator = [mosaicControllers objectEnumerator];
+		MacOSaiXFullScreenController	*controller = nil;
+		while (controller = [controllerEnumerator nextObject])
+			[controller close];
+		
+		[super close];
+		
+		SetSystemUIMode(kUIModeNormal, 0);
+	}
+}
+
+
 - (void)dealloc
 {
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	
 	[mosaics release];
 	[mosaicControllers release];
+	[kioskPassword release];
 	
 	[super dealloc];
 }

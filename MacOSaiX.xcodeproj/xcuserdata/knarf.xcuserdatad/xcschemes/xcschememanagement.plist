@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SchemeUserState</key>
+	<dict>
+		<key>Delicious Library Image Source.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>7</integer>
+		</dict>
+		<key>Directory Image Source Plug-In.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>Flickr Image Source Plug-In.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>5</integer>
+		</dict>
+		<key>Glyph Image Source Plug-In.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>0</integer>
+		</dict>
+		<key>Google Image Source Plug-In.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>12</integer>
+		</dict>
+		<key>Guitar Pick Tiles Plug-In.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>8</integer>
+		</dict>
+		<key>Hexagonal Tiles Plug-in.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>6</integer>
+		</dict>
+		<key>MacOSaiX.app.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>14</integer>
+		</dict>
+		<key>Puzzle Tiles Setup.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>4</integer>
+		</dict>
+		<key>QuickTime Image Source Plug-In.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>Rectangular Tiles Plug-In.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>10</integer>
+		</dict>
+		<key>Standard Plug-ins.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>9</integer>
+		</dict>
+		<key>Watched Folder Image Source.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
+		<key>iPhoto Image Source Plug-In.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>11</integer>
+		</dict>
+		<key>iTunes Image Source.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>13</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>01453D49071B6F2D00BCEC7C</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>01722B9409298D3E00290929</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>01CB07E5071A1F2B00710BCF</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>7366200A0D8C743600BC972A</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>73AF84150CC6760700E22C78</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>73B750801114A80E0046D7C2</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>73DB50BF0D8EEED000273345</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>73EF4ECC0F9EBCC0003B680E</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>9284897106611CE5003B3514</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>928489B506611CE6003B3514</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>928489C506611CE6003B3514</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>928489D506611CE6003B3514</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>928489E606611CE6003B3514</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>928489F406611CE6003B3514</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>92E3E15207E7BE8C00E62AB8</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+	</dict>
+</dict>
+</plist>

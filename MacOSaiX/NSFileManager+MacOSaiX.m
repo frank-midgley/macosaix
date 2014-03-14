@@ -68,7 +68,7 @@
 					
 					if (status == noErr)
 					{
-						fullPath = [NSString stringWithCString:path];
+						fullPath = [NSString stringWithCString:(const char *)path];
 						itemIsDirectory = resolvesToFolder;
 						
 						if (itemIsDirectory)
@@ -151,7 +151,7 @@
 	
 	while (resolvedPath && (pathComponent = [componentEnumerator nextObject]))
 	{
-		resolvedPath = [resolvedPath stringByAppendingPathComponent:pathComponent];
+		resolvedPath = [[resolvedPath stringByAppendingPathComponent:pathComponent] stringByResolvingSymlinksInPath];
 		
 			// Check if the item is an alias.
 		FSRef		itemRef;
@@ -167,7 +167,7 @@
 				OSStatus	status = FSRefMakePath(&itemRef, path, PATH_MAX);
 				
 				if (status == noErr)
-					resolvedPath = [NSString stringWithCString:path];
+					resolvedPath = [NSString stringWithCString:(const char *)path];
 			}
 			else if (err == fnfErr)
 				resolvedPath = nil;	// the item the alias points to cannot be found
@@ -209,7 +209,7 @@
 			[pathComponents removeObjectAtIndex:0];
 			[pathComponents removeObjectAtIndex:0];
 		}
-		else if ([firstComponent isEqualToString:@"Network"])
+		else if ([firstComponent isEqualToString:@"Applications"] || [firstComponent isEqualToString:@"Network"])
 		{
 				// We don't want to see the boot drive icon.
 			fullPath = @"/";

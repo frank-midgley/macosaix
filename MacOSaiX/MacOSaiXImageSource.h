@@ -45,7 +45,10 @@
 	// This method should return the next image along with a string that uniquely identifies the image, 
 	// e.g. a path, URL, time index, etc.  If -canRefetchImages returns YES then the identifier will be 
 	// passed to -imageForIdentifier: at a later time and must be able to return the same image.
-- (NSImage *)nextImageAndIdentifier:(NSString **)identifier;
+- (NSError *)nextImage:(NSImage **)image andIdentifier:(NSString **)identifier;
+
+	// This method should return YES if roughly the same images will be returned by -nextImage:andIdentifier: after -reset is called.
+- (BOOL)canReenumerateImages;
 
 	// This method should return YES if -imageForIdentifier: can be called for strings returned by 
 	// -nextImageAndIdentifier:.  If this method returns NO then the images returned by 

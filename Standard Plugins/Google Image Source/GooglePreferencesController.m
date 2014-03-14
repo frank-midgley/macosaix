@@ -49,7 +49,7 @@
 	NSMenuItem			*item = nil;
 	while (item = [magnitudeEnumerator nextObject])
 	{
-		float	magnitude = powf(2.0, [item tag]);
+		float	magnitude = pow(2.0, [item tag]);
 		
 		if (maxCacheSize >= magnitude)
 		{
@@ -62,7 +62,7 @@
 	item = nil;
 	while (item = [magnitudeEnumerator nextObject])
 	{
-		float	magnitude = powf(2.0, [item tag]);
+		float	magnitude = pow(2.0, [item tag]);
 		
 		if (minFreeSpace >= magnitude)
 		{
@@ -88,22 +88,22 @@
 
 - (IBAction)setMaxCacheSizeMagnitude:(id)sender
 {
-	[GoogleImageSource setMaxCacheSize:[maxCacheSizeField intValue] * powf(2.0, [[maxCacheSizePopUp selectedItem] tag])];
+	[GoogleImageSource setMaxCacheSize:[maxCacheSizeField intValue] * pow(2.0, [[maxCacheSizePopUp selectedItem] tag])];
 }
 
 
 - (IBAction)setMinFreeSpaceMagnitude:(id)sender
 {
-	[GoogleImageSource setMinFreeSpace:[minFreeSpaceField intValue] * powf(2.0, [[minFreeSpacePopUp selectedItem] tag])];
+	[GoogleImageSource setMinFreeSpace:[minFreeSpaceField intValue] * pow(2.0, [[minFreeSpacePopUp selectedItem] tag])];
 }
 
 
 - (void)controlTextDidChange:(NSNotification *)notification
 {
 	if ([notification object] == maxCacheSizeField)
-		[GoogleImageSource setMaxCacheSize:[maxCacheSizeField intValue] * powf(2.0, [[maxCacheSizePopUp selectedItem] tag])];
+		[GoogleImageSource setMaxCacheSize:[maxCacheSizeField intValue] * pow(2.0, [[maxCacheSizePopUp selectedItem] tag])];
 	else if ([notification object] == minFreeSpaceField)
-		[GoogleImageSource setMinFreeSpace:[minFreeSpaceField intValue] * powf(2.0, [[minFreeSpacePopUp selectedItem] tag])];
+		[GoogleImageSource setMinFreeSpace:[minFreeSpaceField intValue] * pow(2.0, [[minFreeSpacePopUp selectedItem] tag])];
 }
 
 

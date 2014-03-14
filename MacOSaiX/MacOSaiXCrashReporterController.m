@@ -24,9 +24,41 @@
 	if (!lastKnownCrashDate)
 		lastKnownCrashDate = [NSDate dateWithNaturalLanguageString:@"2005/09/01"];
 	
-	NSString	*crashLogPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Logs/CrashReporter/MacOSaiX.crash.log"];
-	NSArray		*crashLogs = [[NSString stringWithContentsOfFile:crashLogPath] componentsSeparatedByString:@"\n**********\n\n"];
-	NSString	*mostRecentCrash = [crashLogs lastObject];
+	NSString	*mostRecentCrash = nil;
+	SInt32		curOSX;
+	
+	if (Gestalt(gestaltSystemVersion, &curOSX) == noErr)
+	{
+		NSString		*crashLogsPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Logs/CrashReporter"];
+		
+		if (curOSX >= 0x1050)
+		{
+			NSArray			*crashLogPaths = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:crashLogsPath error:nil] 
+												 sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+			NSEnumerator	*crashLogPathEnumerator = [crashLogPaths reverseObjectEnumerator];
+			NSString		*crashLogPath = nil;
+			
+			while (crashLogPath = [crashLogPathEnumerator nextObject])
+			{
+				if ([crashLogPath hasPrefix:@"MacOSaiX"] && ![crashLogPath isEqualToString:@"MacOSaiX.crash.log"])
+				{
+					mostRecentCrash = [NSString stringWithContentsOfFile:[crashLogsPath stringByAppendingPathComponent:crashLogPath] 
+									   encoding:NSUTF8StringEncoding error:nil];
+					
+					break;
+				}
+			}
+		}
+		
+		if (!mostRecentCrash)
+		{
+			NSString	*crashLogPath = [crashLogsPath stringByAppendingPathComponent:@"MacOSaiX.crash.log"];
+			NSArray		*crashLogs = [[NSString stringWithContentsOfFile:crashLogPath encoding:NSUTF8StringEncoding error:nil] 
+									  componentsSeparatedByString:@"\n**********\n\n"];
+			
+			mostRecentCrash = [crashLogs lastObject];
+		}
+	}
 	
 	if (mostRecentCrash)
 	{
@@ -199,6 +231,8 @@
 
 - (IBAction)cancelReport:(id)sender
 {
+	[[NSUserDefaults standardUserDefaults] setObject:crashDate forKey:@"Last Known Crash"];
+	[[NSUserDefaults standardUserDefaults] synchronize];
 	[self close];
 }
 

@@ -16,13 +16,17 @@
 							*optionalTermsTextField,
 							*excludedTermsTextField,
 							*siteTextField;
-	IBOutlet NSPopUpButton	*colorSpacePopUpButton,
-							*adultContentFilteringPopUpButton;
+	IBOutlet NSPopUpButton	*contentTypePopUpButton, 
+							*colorSpacePopUpButton,
+							*adultContentFilteringPopUpButton, 
+							*collectionPopUpButton;
 
 	GoogleImageSource		*currentImageSource;
 }
 
+- (IBAction)setContentType:(id)sender;
 - (IBAction)setColorSpace:(id)sender;
 - (IBAction)setAdultContentFiltering:(id)sender;
+- (IBAction)setCollection:(id)sender;
 
 @end

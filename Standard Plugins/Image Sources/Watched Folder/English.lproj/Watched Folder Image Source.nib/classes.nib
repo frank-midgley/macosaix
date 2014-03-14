@@ -1,0 +1,33 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {chooseFolder = id; clearFolderList = id; setFollowsAliases = id; }; 
+            CLASS = DirectoryImageSourceController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                chooseFolderButton = NSButton; 
+                clearFolderListButton = NSButton; 
+                editorView = NSView; 
+                folderTableView = NSTableView; 
+                followsAliasesButton = NSButton; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {CLASS = MacOSaiXKioskMessageView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
+        {
+            ACTIONS = {chooseFolder = id; setDuration = id; }; 
+            CLASS = MacOSaiXWatchedFolderImageSourceEditor; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                chooseFolderButton = NSButton; 
+                durationSlider = NSSlider; 
+                editorView = NSView; 
+                messageView = MacOSaiXKioskMessageView; 
+                watchedFolderField = NSTextField; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}

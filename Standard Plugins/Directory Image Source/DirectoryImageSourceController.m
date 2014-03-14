@@ -156,13 +156,17 @@
 																					objectForKey:@"Last Chosen Folder"];
 		
 			// Default to the user's home directory if the value from the defaults is not valid.
-		BOOL	isDirectory;
+		BOOL		isDirectory;
 		if (![lastChosenDirectory isKindOfClass:[NSString class]] || 
 			![[NSFileManager defaultManager] fileExistsAtPath:lastChosenDirectory isDirectory:&isDirectory] || 
 			!isDirectory)
-			lastChosenDirectory = NSHomeDirectory();
+			lastChosenDirectory = [NSHomeDirectory() stringByAppendingPathComponent:@"Pictures"];
 		
 		[(DirectoryImageSource *)imageSource setPath:lastChosenDirectory];
+		
+		NSNumber	*followAliases = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] objectForKey:@"Follow Aliases"];
+		if (followAliases)
+			[(DirectoryImageSource *)imageSource setFollowsAliases:[followAliases boolValue]];
 	}
 	
 	[self setCurrentImageSource:(DirectoryImageSource *)imageSource];
@@ -177,6 +181,10 @@
 
 - (void)editingComplete
 {
+	[folderList release];
+	folderList = nil;
+	
+	[self setCurrentImageSource:nil];
 }
 
 
@@ -261,7 +269,14 @@
 
 - (IBAction)setFollowsAliases:(id)sender
 {
-	[currentImageSource setFollowsAliases:([followsAliasesButton state] == NSOnState)];
+	BOOL				followAliases = ([followsAliasesButton state] == NSOnState);
+	
+	[currentImageSource setFollowsAliases:followAliases];
+	
+	NSMutableDictionary	*plugInDefaults = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Folder Image Source"] mutableCopy] autorelease];
+	[plugInDefaults setObject:[NSNumber numberWithBool:followAliases] forKey:@"Follow Aliases"];
+	[[NSUserDefaults standardUserDefaults] setObject:plugInDefaults forKey:@"Folder Image Source"];
+	[[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 
@@ -292,6 +307,11 @@
 - (void)dealloc
 {
 	[currentImageSource release];
+	
+	[folderList release];
+	folderList = nil;
+	
+	[editorView release];
 	
 	[super dealloc];
 }

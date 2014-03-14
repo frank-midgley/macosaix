@@ -36,6 +36,7 @@
 - (BOOL)shouldDisplayMosaicOnly;
 
 - (IBAction)setPasswordRequired:(id)sender;
+- (NSString *)password;
 
 - (IBAction)setTileCount:(id)sender;
 - (int)tileCount;

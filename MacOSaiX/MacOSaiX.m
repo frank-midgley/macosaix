@@ -19,6 +19,14 @@
 #import "MacOSaiXFullScreenWindow.h"
 #import "MacOSaiXScreenSetupController.h"
 
+#import "NSImage+MacOSaiX.h"
+
+#ifdef DEBUG
+	#import "MacOSaiXImageCache.h"
+	#import "MacOSaiXImageMatchCache.h"
+	#import "MacOSaiXImageMatcher.h"
+#endif
+
 #import <Carbon/Carbon.h>
 #import <pthread.h>
 #import <mach/mach.h>
@@ -144,6 +152,50 @@
 									   selector:@selector(checkFreeMemory:) 
 									   userInfo:nil 
 										repeats:YES];
+		
+		if (NO)
+		{
+				// Create a bunch of images containing numbers.
+			NSShadow		*shadow = [[[NSShadow alloc] init] autorelease];
+			[shadow setShadowColor:[NSColor whiteColor]];
+			[shadow setShadowBlurRadius:2.0];
+			NSDictionary	*attributes = [NSDictionary dictionaryWithObject:shadow forKey:NSShadowAttributeName];
+			NSSize			imageSize = [@"999" sizeWithAttributes:attributes];
+			imageSize.width += 4.0;
+			imageSize.height += 4.0;
+			NSRect			imageBounds = NSMakeRect(0.0, 0.0, imageSize.width, imageSize.height);
+			NSImage			*image = [[NSImage alloc] initWithSize:imageSize];
+			int				i;
+			
+			[image lockFocus];
+			for (i = 0; i < 1000; i++)
+			{
+				NSString	*numberString = [NSString stringWithFormat:@"%d", i];
+				NSSize		numberSize = [numberString sizeWithAttributes:attributes];
+				
+				[[NSColor grayColor] set];
+				NSRectFill(imageBounds);
+				
+				[[NSColor blackColor] set];
+				[numberString drawAtPoint:NSMakePoint((imageSize.width - numberSize.width) / 2.0, 2.0) withAttributes:attributes];
+				
+				NSBitmapImageRep	*imageRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:imageBounds];
+				[[imageRep TIFFRepresentation] writeToFile:[NSString stringWithFormat:@"/Users/knarf/Pictures/Numbers/%d.tiff", i] atomically:NO];
+			}
+			[image unlockFocus];
+		}
+		
+		if (NO)
+		{
+			NSBitmapImageRep	*tileRep = [NSBitmapImageRep imageRepWithData:[NSData dataWithContentsOfFile:@"/Users/knarf/Pictures/Tile.tiff"]], 
+								*maskRep = [NSBitmapImageRep imageRepWithData:[NSData dataWithContentsOfFile:@"/Users/knarf/Pictures/Mask.tiff"]], 
+								*imageRep = [NSBitmapImageRep imageRepWithData:[NSData dataWithContentsOfFile:@"/Users/knarf/Pictures/Image.tiff"]];
+			NSNumber			*matchValueNumber = [[MacOSaiXImageMatcher sharedMatcher] compareImageRep:tileRep 
+																								 withMask:maskRep 
+																							   toImageRep:imageRep
+																							 previousBest:1.0];
+			NSLog(@"%@", matchValueNumber);
+		}
 	#endif
 }
 
@@ -154,7 +206,12 @@
 	struct task_basic_info	taskInfo;
 	mach_msg_type_number_t	count = TASK_BASIC_INFO_COUNT;
 	if (task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t)&taskInfo, &count) == KERN_SUCCESS)
-		NSLog(@"%ld bytes in use", taskInfo.virtual_size - SHARED_TEXT_REGION_SIZE - SHARED_DATA_REGION_SIZE);
+	{
+		unsigned long long	totalInUse = (taskInfo.virtual_size - SHARED_TEXT_REGION_SIZE - SHARED_DATA_REGION_SIZE), 
+							imageCache = [[MacOSaiXImageCache sharedImageCache] currentMemoryCacheSize], 
+							matchCache = [[MacOSaiXImageMatchCache sharedCache] size];
+		NSLog(@"%6.1f MB in use [ %5.1f MB image | %5.1f MB match | %6.1f MB other ]", totalInUse / 1024.0 / 1024.0, imageCache / 1024.0 / 1024.0, matchCache / 1024.0 / 1024.0, (totalInUse - imageCache - matchCache) / 1024.0 / 1024.0);
+	}
 	
 	// MAX = 0xFFFFFFFF - SHARED_TEXT_REGION_SIZE - SHARED_DATA_REGION_SIZE = 3,758,096,383
 }
@@ -168,12 +225,13 @@
 
 - (IBAction)openPreferences:(id)sender
 {
-    MacOSaiXPreferencesController	*windowController;
-    
-    windowController = [[MacOSaiXPreferencesController alloc] initWithWindowNibName:@"Preferences"];
-    [windowController showWindow:self];
-    [[windowController window] makeKeyAndOrderFront:self];
-
+    MacOSaiXPreferencesController	*prefsController = [MacOSaiXPreferencesController sharedController];
+    [prefsController showWindow:self];
+    [[prefsController window] makeKeyAndOrderFront:self];
+	
+	if ([sender conformsToProtocol:@protocol(MacOSaiXTileShapes)] || [sender conformsToProtocol:@protocol(MacOSaiXImageSource)])
+		[prefsController selectPaneForPlugInClass:[sender class]];
+	
     // The windowController object will now take input and, if the user OK's, save the preferences
 }
 
@@ -263,14 +321,7 @@
 															 keyEquivalent:@""] autorelease];
 			[menuItem setRepresentedObject:imageSourceClass];
 			
-			NSImage	*image = [[[imageSourceClass image] copy] autorelease];
-			[image setScalesWhenResized:YES];
-			if ([image size].width > [image size].height)
-				[image setSize:NSMakeSize(16.0, 16.0 * [image size].height / [image size].width)];
-			else
-				[image setSize:NSMakeSize(16.0 * [image size].width / [image size].height, 16.0)];
-			[image lockFocus];	// force the image to be scaled
-			[image unlockFocus];
+			NSImage	*image = [[[imageSourceClass image] copyWithLargestDimension:16] autorelease];
 			[menuItem setImage:image];
 			
 			[addImageSourceMenu addItem:menuItem];
@@ -291,6 +342,29 @@
 }
 
 
+#pragma mark
+#pragma mark Quitting
+
+
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
+{
+	if ([self inKioskMode])
+	{
+		[kioskController close];
+		
+		return NSTerminateCancel;
+	}
+	else
+		return NSTerminateNow;	
+}
+
+
+- (void)applicationWillTerminate:(NSNotification *)aNotification
+{
+	quitting = YES;
+}
+
+
 - (BOOL)isQuitting
 {
 	return quitting;
@@ -304,7 +378,8 @@
 - (void)openKioskSettingsWindowOnScreen:(NSScreen *)screen
 							  tileCount:(int)tileCount
 								message:(NSAttributedString *)message
-				 messageBackgroundColor:(NSColor *)messageBackgroundColor
+				 messageBackgroundColor:(NSColor *)messageBackgroundColor 
+							   password:(NSString *)password
 {
 	kioskController = [[MacOSaiXKioskController alloc] initWithWindow:nil];
 	
@@ -322,7 +397,10 @@
 	[kioskController setTileCount:tileCount];
 	[kioskController setMessage:message];
 	[kioskController setMessageBackgroundColor:messageBackgroundColor];
+	[kioskController setPassword:password];
 	[kioskWindow makeKeyAndOrderFront:self];
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(windowWillClose:) name:NSWindowWillCloseNotification object:kioskWindow];
 }
 
 
@@ -388,7 +466,11 @@
 	int								result = [NSApp runModalForWindow:[mainSetupController window]];
 	if (result == NSRunStoppedResponse)
 	{
+#ifdef DEBUG
 		OSStatus	status = SetSystemUIMode(kUIModeAllHidden, 0);
+#else
+		OSStatus	status = SetSystemUIMode(kUIModeAllHidden, kUIOptionDisableProcessSwitch | kUIOptionDisableForceQuit);
+#endif
 		if (status == noErr)
 		{
 			NSScreen						*menuBarScreen = [[NSScreen screens] objectAtIndex:0];
@@ -398,7 +480,8 @@
 				[self openKioskSettingsWindowOnScreen:menuBarScreen 
 											tileCount:[mainSetupController tileCount] 
 											  message:[mainSetupController message] 
-							   messageBackgroundColor:[mainSetupController messageBackgroundColor]];
+							   messageBackgroundColor:[mainSetupController messageBackgroundColor]
+											 password:[mainSetupController password]];
 			else if ([mainSetupController shouldDisplayMosaicOnly])
 				[kioskMosaicControllers addObject:[self openMosaicWindowOnScreen:menuBarScreen]];
 		
@@ -411,7 +494,8 @@
 					[self openKioskSettingsWindowOnScreen:[[controller window] screen]
 												tileCount:[mainSetupController tileCount] 
 												  message:[mainSetupController message] 
-								   messageBackgroundColor:[mainSetupController messageBackgroundColor]];
+								   messageBackgroundColor:[mainSetupController messageBackgroundColor]
+												 password:[mainSetupController password]];
 				else if ([controller shouldDisplayMosaicOnly])
 					[kioskMosaicControllers addObject:[self openMosaicWindowOnScreen:[[controller window] screen]]];
 			}
@@ -420,13 +504,28 @@
 		}
 	}
 	
+	[mainSetupController close];
+	[mainSetupController release];
+	
 		// Close all of the screen setup windows.
 	NSEnumerator					*controllerEnumerator = [nonMainSetupControllers objectEnumerator];
 	MacOSaiXScreenSetupController	*controller = nil;
 	while (controller = [controllerEnumerator nextObject])
-		[[controller window] close];
-	
-	[mainSetupController release];
+		[controller close];
+}
+
+
+- (void)windowWillClose:(NSNotification *)notification
+{
+	if ([notification object] == [kioskController window])
+	{
+		[kioskController autorelease];
+		kioskController = nil;
+		
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowWillCloseNotification object:[notification object]];
+		
+		SetSystemUIMode(kUIModeNormal, 0);
+	}
 }
 
 

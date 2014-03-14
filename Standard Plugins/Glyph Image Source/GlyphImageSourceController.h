@@ -22,6 +22,7 @@
 	
 		// Colors tab
 	IBOutlet NSOutlineView		*colorsOutlineView;
+	IBOutlet NSButton			*allowTransparentImagesButton;
 	
 		// Letters tab
 	IBOutlet NSTextView			*lettersView;
@@ -56,6 +57,7 @@
 	// Colors tab
 - (id)tableView:(NSTableView *)tableView dataCellForTableColumn:(NSTableColumn *)tableColumn row:(int)rowIndex;
 - (IBAction)toggleColor:(id)sender;
+- (IBAction)setAllowTransparentImages:(id)sender;
 - (IBAction)editSystemWideColors:(id)sender;
 
 	// Letters tab

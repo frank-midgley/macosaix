@@ -89,10 +89,20 @@
 }
 
 
-- (NSImage *)nextImageAndIdentifier:(NSString **)identifier
+- (NSError *)nextImage:(NSImage **)image andIdentifier:(NSString **)identifier
 {
+	NSError	*error = nil;
+	
+	*image = nil;
 	*identifier = nil;
-	return nil;
+	
+	return error;
+}
+
+
+- (BOOL)canReenumerateImages
+{
+	return YES;
 }
 
 

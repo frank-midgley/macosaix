@@ -47,7 +47,7 @@
 {
 	if (self = [super init])
 	{
-		[self setPath:[NSHomeDirectory() stringByAppendingPathComponent:@"Pictures"]];
+		//[self setPath:[NSHomeDirectory() stringByAppendingPathComponent:@"Pictures"]];
 		[self setFollowsAliases:YES];
 	}
 
@@ -57,12 +57,17 @@
 
 - (NSString *)settingsAsXMLElement
 {
-	return [NSString stringWithFormat:@"<DIRECTORY PATH=\"%@\" FOLLOW_ALIASES=\"%@\" " \
-									  @"LAST_USED_SUB_PATH=\"%@\" IMAGE_COUNT=\"%d\"/>", 
-									  [[self path] stringByEscapingXMLEntites],
-									  ([self followsAliases] ? @"Y" : @"N"), 
-									  [lastEnumeratedPath stringByEscapingXMLEntites], 
-									  imageCount];
+	if (lastEnumeratedPath)
+		return [NSString stringWithFormat:@"<DIRECTORY PATH=\"%@\" FOLLOW_ALIASES=\"%@\" LAST_USED_SUB_PATH=\"%@\" IMAGE_COUNT=\"%d\"/>", 
+										  [[self path] stringByEscapingXMLEntites],
+										  ([self followsAliases] ? @"Y" : @"N"), 
+										  [lastEnumeratedPath stringByEscapingXMLEntites], 
+										  imageCount];
+	else
+		return [NSString stringWithFormat:@"<DIRECTORY PATH=\"%@\" FOLLOW_ALIASES=\"%@\" IMAGE_COUNT=\"%d\"/>", 
+										  [[self path] stringByEscapingXMLEntites],
+										  ([self followsAliases] ? @"Y" : @"N"), 
+										  imageCount];
 }
 
 
@@ -71,13 +76,13 @@
 	NSString	*settingType = [settingDict objectForKey:kMacOSaiXImageSourceSettingType];
 	
 	if ([settingType isEqualToString:@"DIRECTORY"])
+	{
 		[self setPath:[[[settingDict objectForKey:@"PATH"] description] stringByUnescapingXMLEntites]];
-	else if ([settingType isEqualToString:@"FOLLOW_ALIASES"])
 		[self setFollowsAliases:[[settingDict objectForKey:@"FOLLOW_ALIASES"] isEqualTo:@"Y"]]; 
-	else if ([settingType isEqualToString:@"LAST_USED_SUB_PATH"])
-		lastEnumeratedPath = [[[[settingDict objectForKey:@"LAST_USED_SUB_PATH"] description] stringByUnescapingXMLEntites] retain];
-	else if ([settingType isEqualToString:@"IMAGE_COUNT"])
+		if ([settingDict objectForKey:@"LAST_USED_SUB_PATH"])
+			lastEnumeratedPath = [[[[settingDict objectForKey:@"LAST_USED_SUB_PATH"] description] stringByUnescapingXMLEntites] retain];
 		imageCount = [[[settingDict objectForKey:@"IMAGECOUNT"] description] intValue];
+	}
 }
 
 
@@ -111,6 +116,12 @@
 	
 	[directoryDescriptor autorelease];
     directoryDescriptor = [[[NSFileManager defaultManager] attributedPath:directoryPath] retain];
+	
+	pathsHaveBeenEnumerated = NO;
+	[directoryEnumerator autorelease];
+	directoryEnumerator = nil;
+	[lastEnumeratedPath autorelease];
+	lastEnumeratedPath = nil;
 	
 	haveMoreImages = YES;
 	imageCount = 0;
@@ -191,10 +202,34 @@
 }
 
 
-- (NSImage *)nextImageAndIdentifier:(NSString **)identifier
+- (BOOL)pathIsiPhotoThumbOrOriginal:(NSString *)filePath
 {
-	NSImage			*image = nil;
-	NSString		*subPath = nil;
+	NSArray			*pathComponents = [filePath pathComponents];
+	unsigned long	iPhotoLibraryIndex = [pathComponents indexOfObject:@"iPhoto Library"],
+					thumbsIndex = 0,
+					originalsIndex = 0;
+	
+	if (iPhotoLibraryIndex != NSNotFound && iPhotoLibraryIndex < [pathComponents count] - 1)
+	{
+		NSArray *iPhotoLibraryPathComponents = [pathComponents subarrayWithRange:
+			NSMakeRange(iPhotoLibraryIndex + 1, [pathComponents count] - iPhotoLibraryIndex - 1)];
+		thumbsIndex = [iPhotoLibraryPathComponents indexOfObject:@"Thumbs"],
+			originalsIndex = [iPhotoLibraryPathComponents indexOfObject:@"Originals"];
+	}
+	
+				// If the path doesn't point to an iPhoto thumb or original then try to open it.
+				// Otherwise we get duplicates of iPhoto images in the mosaic.
+	return (iPhotoLibraryIndex != NSNotFound && (thumbsIndex != NSNotFound || originalsIndex != NSNotFound));
+}
+
+
+- (NSError *)nextImage:(NSImage **)image andIdentifier:(NSString **)identifier
+{
+	NSError		*error = nil;
+	NSString	*subPath = nil;
+	
+	*image = nil;
+	*identifier = nil;
 	
 	if (!pathsHaveBeenEnumerated)
 	{
@@ -217,40 +252,25 @@
 		pathsHaveBeenEnumerated = YES;
 	}
 	
-		// Enumerate our directory until we find a valid image file or run out of files.
-	do
-	{
-		if (subPath = [directoryEnumerator nextObject])
-		{
-			NSString	*fullPath = [directoryPath stringByAppendingPathComponent:subPath];
-			NSArray		*pathComponents = [fullPath pathComponents];
-			unsigned	iPhotoLibraryIndex = [pathComponents indexOfObject:@"iPhoto Library"],
-						thumbsIndex = 0,
-						originalsIndex = 0;
-			
-			[lastEnumeratedPath release];
-			lastEnumeratedPath = [subPath retain];
-			
-			if (iPhotoLibraryIndex != NSNotFound && iPhotoLibraryIndex < [pathComponents count] - 1)
-			{
-				NSArray *iPhotoLibraryPathComponents = [pathComponents subarrayWithRange:
-							NSMakeRange(iPhotoLibraryIndex + 1, [pathComponents count] - iPhotoLibraryIndex - 1)];
-				thumbsIndex = [iPhotoLibraryPathComponents indexOfObject:@"Thumbs"],
-				originalsIndex = [iPhotoLibraryPathComponents indexOfObject:@"Originals"];
-			}
-			
-				// If the path doesn't point to an iPhoto thumb or original then try to open it.
-				// Otherwise we get duplicates of iPhoto images in the mosaic.
-			if ((iPhotoLibraryIndex == NSNotFound || (thumbsIndex == NSNotFound && originalsIndex == NSNotFound)))
-				image = [self imageForIdentifier:subPath];
-		}
-	}
-	while (subPath && !image);
+	subPath = [directoryEnumerator nextObject];
 	
 	if (subPath)
 	{
-		*identifier = subPath;
-		imageCount++;
+		[lastEnumeratedPath release];
+		lastEnumeratedPath = [subPath retain];
+		
+		if (![self pathIsiPhotoThumbOrOriginal:[directoryPath stringByAppendingPathComponent:subPath]])
+		{
+			*image = [self imageForIdentifier:subPath];
+			
+			if (*image && [*image size].width > 0 && [*image size].height > 0 && [*image isValid])
+			{
+				*identifier = subPath;
+				imageCount++;
+			}
+			else
+				*image = nil;
+		}
 	}
 	else
 	{
@@ -258,7 +278,13 @@
 		[self updateImageCountInUserDefaults];
 	}
 	
-    return image;	// This will still be nil unless we found a valid image file.
+    return error;
+}
+
+
+- (BOOL)canReenumerateImages
+{
+	return YES;
 }
 
 
@@ -288,7 +314,7 @@
 				image = [[[NSImage alloc] initWithData:data] autorelease];
 				[data release];
 			}
-		NS_HANDLER
+ 		NS_HANDLER
 			NSLog(@"%@ is not a valid image file.", fullPath);
 		NS_ENDHANDLER
 	}
@@ -315,9 +341,8 @@
 				*fullPath = [[NSFileManager defaultManager] pathByResolvingAliasesInPath:
 								[directoryPath stringByAppendingPathComponent:identifier]];
 	
-#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
-	if (MDItemCreate)
-#endif
+		// Not sure exactly what conditions would cause fullPath to be NULL but passing NULL to MDItemCreate causes a crash.
+	if (fullPath)
 	{
 		MDItemRef	itemRef = MDItemCreate(kCFAllocatorDefault, (CFStringRef)fullPath);
 		if (itemRef)
@@ -330,7 +355,7 @@
 	}
 	
 	if (!description)
-		description = [[fullPath lastPathComponent] stringByDeletingPathExtension];
+		description = [[identifier lastPathComponent] stringByDeletingPathExtension];
 	
 	return description;
 }	

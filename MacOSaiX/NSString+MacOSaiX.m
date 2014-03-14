@@ -51,13 +51,13 @@
 	{
 		yInt = (xInt / aspectRatio);
 		
-		if (fabsf(aspectRatio - (float)xInt / (float)yInt) > 
-			fabsf(aspectRatio - (float)xInt / (float)(yInt + 1)))
+		if (fabs(aspectRatio - (float)xInt / (float)yInt) > 
+			fabs(aspectRatio - (float)xInt / (float)(yInt + 1)))
 			yInt++;
 		
 		if (yInt >= 1 && yInt <= 9)
 		{
-			float	curDiff = fabsf(aspectRatio - (float)xInt / (float)yInt);
+			float	curDiff = fabs(aspectRatio - (float)xInt / (float)yInt);
 			
 			if (curDiff < minDiff)
 			{

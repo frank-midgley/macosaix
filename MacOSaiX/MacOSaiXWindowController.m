@@ -9,10 +9,12 @@
 #import "MacOSaiXWindowController.h"
 
 #import "MacOSaiX.h"
+#import "MacOSaiXAnimationSettingsController.h"
 #import "MacOSaiXImageCache.h"
 #import "MacOSaiXImageMatcher.h"
 #import "MacOSaiXFullScreenController.h"
 #import "MacOSaiXPopUpImageView.h"
+#import "MacOSaiXSourceImage.h"
 #import "MacOSaiXWarningController.h"
 #import "NSImage+MacOSaiX.h"
 #import "NSString+MacOSaiX.h"
@@ -51,7 +53,6 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 - (BOOL)showTileMatchInEditor:(MacOSaiXImageMatch *)tileMatch selecting:(BOOL)selecting;
 - (void)allowUserToChooseImageOpenPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode
     contextInfo:(void *)context;
-- (void)setProgressCancelAction:(SEL)cancelAction;
 @end
 
 
@@ -88,9 +89,10 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
     zoomToolbarMenuItem = [[NSMenuItem alloc] initWithTitle:@"Zoom" action:nil keyEquivalent:@""];
     [zoomToolbarMenuItem setSubmenu:zoomToolbarSubmenu];
     toolbarItems = [[NSMutableDictionary dictionary] retain];
-    NSToolbar   *toolbar = [[[NSToolbar alloc] initWithIdentifier:@"MacOSaiXDocument"] autorelease];
+    NSToolbar   *toolbar = [[[NSToolbar alloc] initWithIdentifier:@"MacOSaiX Project"] autorelease];
     [toolbar setDelegate:self];
     [toolbar setAllowsUserCustomization:YES];
+	[toolbar setAutosavesConfiguration:YES];
     [[self window] setToolbar:toolbar];
     
 		// Make sure we have the latest and greatest list of plug-ins.
@@ -115,8 +117,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		
 			// Set up the "Image Sources" table
 		[imageSourcesTableView setDoubleAction:@selector(editImageSource:)];
-		[[imageSourcesTableView tableColumnWithIdentifier:@"Image Source Type"]
-			setDataCell:[[[NSImageCell alloc] init] autorelease]];
+		[[imageSourcesTableView tableColumnWithIdentifier:@"Type"] setDataCell:[[[NSImageCell alloc] init] autorelease]];
 	
 			// Populate the "Add New Source..." pop-up menu with the names of the image sources.
 			// The represented object of each menu item will be the image source's class.
@@ -131,16 +132,11 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 			[imageSourcesPopUpButton addItemWithTitle:[NSString stringWithFormat:@"%@...", plugInName]];
 			[[imageSourcesPopUpButton lastItem] setRepresentedObject:imageSourceClass];
 			
-			NSImage	*image = [[[imageSourceClass image] copy] autorelease];
-			[image setScalesWhenResized:YES];
-			if ([image size].width > [image size].height)
-				[image setSize:NSMakeSize(16.0, 16.0 * [image size].height / [image size].width)];
-			else
-				[image setSize:NSMakeSize(16.0 * [image size].width / [image size].height, 16.0)];
-			[image lockFocus];	// force the image to be scaled
-			[image unlockFocus];
+			NSImage	*image = [[[imageSourceClass image] copyWithLargestDimension:16] autorelease];
 			[[imageSourcesPopUpButton lastItem] setImage:image];
 		}
+		
+		[animateImagesButton setState:([mosaic animateImagePlacements] ? NSOnState : NSOffState)];
 	}
 	
 	[mosaicScrollView setDrawsBackground:NO];
@@ -167,11 +163,12 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 			// if no previous original was found.
 		NSString	*lastPath = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Chosen Original Image Path"];
 		NSImage		*lastImage = [[NSImage alloc] initWithContentsOfFile:lastPath];
-		if (lastImage)
+		if ([lastImage isValid])
 		{
 			[[self document] setOriginalImagePath:lastPath];
 			[[self mosaic] setOriginalImage:lastImage];
 			[lastImage release];
+			lastImage = nil;
 		}
 		else if ([[originalImagePopUpView menu] numberOfItems] > 4)
 		{
@@ -206,12 +203,16 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 										 buttonTitles:[NSArray arrayWithObjects:@"Change", @"Cancel", nil]] == 0)
 	{
 		NSString	*originalImagePath = [sender representedObject];
-		[[self document] setOriginalImagePath:originalImagePath];
-		
-		[[NSUserDefaults standardUserDefaults] setObject:originalImagePath forKey:@"Last Chosen Original Image Path"];
-		
 		NSImage		*originalImage = [[NSImage alloc] initWithContentsOfFile:originalImagePath];
-		[[self mosaic] setOriginalImage:originalImage];
+		
+		if ([originalImage isValid])
+		{
+			[[NSUserDefaults standardUserDefaults] setObject:originalImagePath forKey:@"Last Chosen Original Image Path"];
+			
+			[[self document] setOriginalImagePath:originalImagePath];
+			[[self mosaic] setOriginalImage:originalImage];
+		}
+		
 		[originalImage release];
 	}
 }
@@ -244,8 +245,14 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[[self document] setOriginalImagePath:originalImagePath];
 		
 		NSImage		*originalImage = [[NSImage alloc] initWithContentsOfFile:originalImagePath];
-		[[self mosaic] setOriginalImage:originalImage];
-		[originalImage release];
+		
+		if (originalImage && [originalImage isValid] && [originalImage size].width > 0.0 && [originalImage size].height >= 0.0)
+		{
+			[[self mosaic] setOriginalImage:originalImage];
+			[originalImage release];
+		}
+		else
+			NSBeep();
 	}
 }
 
@@ -263,14 +270,20 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		NSImage			*originalImage = [[self mosaic] originalImage];
 		NSImage			*thumbnailImage = [[[NSImage alloc] initWithSize:NSMakeSize(32.0, 32.0)] autorelease], 
 						*scaledImage = [originalImage copyWithLargestDimension:32.0];
-		[thumbnailImage lockFocus];
-			if ([scaledImage size].width > [scaledImage size].height)
-				[scaledImage compositeToPoint:NSMakePoint(0.0, 16.0 - [scaledImage size].height / 2.0) 
-									operation:NSCompositeCopy];
-			else
-				[scaledImage compositeToPoint:NSMakePoint(16.0 - [scaledImage size].width / 2.0, 0.0) 
-									operation:NSCompositeCopy];
-		[thumbnailImage unlockFocus];
+		
+		if ([scaledImage isValid])
+		{
+			[thumbnailImage lockFocus];
+				[[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
+				
+				if ([scaledImage size].width > [scaledImage size].height)
+					[scaledImage compositeToPoint:NSMakePoint(0.0, 16.0 - [scaledImage size].height / 2.0) 
+										operation:NSCompositeCopy];
+				else
+					[scaledImage compositeToPoint:NSMakePoint(16.0 - [scaledImage size].width / 2.0, 0.0) 
+										operation:NSCompositeCopy];
+			[thumbnailImage unlockFocus];
+		}
 		[scaledImage release];
 		
 		NSMutableArray	*originals = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"Recent Originals"] mutableCopy] autorelease];
@@ -310,28 +323,20 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		
 			// Create the toolbar icons for the View Original/View Mosaic item.  Toolbar item images 
 			// must be 32x32 so we center the thumbnail in an image of the correct size.
-		[originalToolbarImage release];
-		float	scaledWidth = [originalImage size].width * 16.0 / [originalImage size].height;
-		originalToolbarImage = [[NSImage alloc] initWithSize:NSMakeSize(scaledWidth, 16.0)];
-		[originalToolbarImage lockFocus];
-			[originalImage drawInRect:NSMakeRect(0.0, 0.0, scaledWidth, 16.0) 
-							 fromRect:NSZeroRect 
-							operation:NSCompositeCopy 
-							 fraction:1.0];
-		[originalToolbarImage unlockFocus];
+		BOOL	padTopAndBottom = ([originalImage size].width / [originalImage size].height >= 24.0 / 16.0);
+		NSImage	*originalToolbarImage = [[originalImage copyWithLargestDimension:(padTopAndBottom ? 24 : 16)] autorelease];
 			// Create a version that looks like a 4x4 mosaic.
-		[mosaicToolbarImage release];
-		mosaicToolbarImage = [originalToolbarImage copy];
+		NSImage	*mosaicToolbarImage = [[originalToolbarImage copy] autorelease];
 		NSSize	thumbSize = [originalToolbarImage size];
 		[mosaicToolbarImage lockFocus];
 			float	quarterWidth = thumbSize.width / 4.0,
 					quarterHeight = thumbSize.height / 4.0,
 					xStart = 0.0,
 					yStart = 0.0;
-			if (thumbSize.width > thumbSize.height)
-				yStart = (16.0 - thumbSize.height) / 2.0;
-			else
-				xStart = (scaledWidth - thumbSize.width) / 2.0;
+//			if (padTopAndBottom)
+//				yStart = (16.0 - thumbSize.height) / 2.0;
+//			else
+//				xStart = (24.0 - thumbSize.width) / 2.0;
 			
 				// Lighten the top and left edges.
 			[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
@@ -363,13 +368,13 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 			}
 		[mosaicToolbarImage unlockFocus];
 		
-			// Update the toolbar item.
+			// Update the toolbar items.
 		[fadeOriginalButton setImage:originalToolbarImage];
 		[fadeMosaicButton setImage:mosaicToolbarImage];
 		
 			// Resize the window to respect the original image's aspect ratio
 		NSSize		currentWindowSize = [[self window] frame].size;
-		windowResizeTargetSize = [self windowWillResize:[self window] toSize:currentWindowSize];
+		windowResizeTargetSize = [[[self window] delegate] windowWillResize:[self window] toSize:currentWindowSize];
 		windowResizeStartTime = [[NSDate date] retain];
 		windowResizeDifference = NSMakeSize(windowResizeTargetSize.width - currentWindowSize.width,
 											windowResizeTargetSize.height - currentWindowSize.height);
@@ -427,6 +432,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 - (IBAction)clearRecentOriginalImages:(id)sender
 {
 	[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"Recent Originals"];
+	[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"Last Chosen Original Image Path"];
 	
 	[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXRecentOriginalImagesDidChangeNotification
 														object:nil];
@@ -452,7 +458,6 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 																	action:@selector(setOriginalImageFromMenu:) 
 															 keyEquivalent:@""] autorelease];
 			[originalItem setRepresentedObject:originalImagePath];
-			[originalItem setTarget:self];
 			NSImage		*thumbnail = [[[NSImage alloc] initWithData:[originalDict objectForKey:@"Thumbnail Data"]] autorelease];
 			[originalItem setImage:thumbnail];
 			[recentOriginalsMenu insertItem:originalItem atIndex:2];
@@ -478,7 +483,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	{
 		[[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:[self mosaic]];
 		
-		[mosaic autorelease];
+		[mosaic release];
 		mosaic = [inMosaic retain];
 		
 		[[NSNotificationCenter defaultCenter] addObserver:self 
@@ -492,6 +497,14 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(mosaicDidChangeState:) 
 													 name:MacOSaiXMosaicDidChangeBusyStateNotification 
+												   object:[self mosaic]];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(mosaicDidChangeState:) 
+													 name:MacOSaiXMosaicDidChangeImageSourcesNotification 
+												   object:[self mosaic]];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(imageSourcesNeedReenumeration:) 
+													 name:MacOSaiXMosaicImageSourcesNeedReenumerationNotification 
 												   object:[self mosaic]];
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(tileShapesDidChange:) 
@@ -511,54 +524,89 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 }
 
 
-- (void)mosaicDidChangeState:(NSNotification *)notification
+- (void)updateStatus
 {
-	if (!pthread_main_np())
-		[self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
+		// Update the status bar.
+	[imagesFoundField setIntValue:[[self mosaic] imagesFound]];
+	float	mosaicQualityPercentage = 100.0 - sqrt([[self mosaic] averageMatchValue]) * 100.0;
+	[mosaicQualityField setFloatValue:mosaicQualityPercentage];
+	[mosaicQualityField setToolTip:[NSString stringWithFormat:@"The mosaic is %.2f%% the same as the original", mosaicQualityPercentage]];
+	NSMutableString	*statusTooltip = [NSMutableString string];
+	[statusField setStringValue:[[self mosaic] statusAndTooltip:statusTooltip]];
+	[statusField setToolTip:statusTooltip];
+	if ([[self mosaic] isBusy])
+	{
+		if (!statusProgressIndicatorIsAnimating)
+		{
+			[statusProgressIndicator startAnimation:self];
+			statusProgressIndicatorIsAnimating = YES;
+		}
+	}
 	else
 	{
-			// Update the status bar.
-		[imagesFoundField setIntValue:[[self mosaic] imagesFound]];
-		[statusField setStringValue:[[self mosaic] status]];
-		if ([[self mosaic] isBusy])
-			[statusProgressIndicator startAnimation:self];
-		else
+		if (statusProgressIndicatorIsAnimating)
+		{
 			[statusProgressIndicator stopAnimation:self];
-		
-			// Update the image sources drawer.
-		if ([imageSourcesDrawer state] != NSDrawerClosedState)
-			[imageSourcesTableView reloadData];
-		
-			// Update the menus.
-		[self synchronizeMenus];
-		
-			// Update the toolbar.
-		if (![[self mosaic] wasStarted])
-		{
-			[pauseToolbarItem setLabel:@"Start Mosaic"];
-			[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
+			statusProgressIndicatorIsAnimating = NO;
 		}
-		else if ([[self mosaic] isPaused])
-		{
-			[pauseToolbarItem setLabel:@"Resume"];
-			[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
-		}
+	}
+	
+		// Update the menus.
+	[self synchronizeMenus];
+	
+		// Update the toolbar.
+	if (![[self mosaic] wasStarted])
+	{
+		[pauseToolbarItem setLabel:@"Start Mosaic"];
+		[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
+	}
+	else if ([[self mosaic] isPaused])
+	{
+		[pauseToolbarItem setLabel:@"Resume"];
+		[pauseToolbarItem setImage:[NSImage imageNamed:@"Resume"]];
+	}
+	else
+	{
+		[pauseToolbarItem setLabel:@"Pause"];
+		[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
+	}
+	
+		// Start the automatic fade to the mosaic if appropriate.
+	if (!fadeTimer && !fadeWasAdjusted && ![[self mosaic] isPaused] && [[self mosaic] allTilesHaveExtractedBitmaps])
+	{
+		if ([[self mosaic] animateImagePlacements])
+			[self setViewMosaic:self];
 		else
-		{
-			[pauseToolbarItem setLabel:@"Pause"];
-			[pauseToolbarItem setImage:[NSImage imageNamed:@"Pause"]];
-		}
-		
-			// Start the automatic fade to the mosaic if appropriate.
-		if (!fadeTimer && !fadeWasAdjusted && [[self mosaic] allTilesHaveExtractedBitmaps])
 			fadeTimer = [[NSTimer scheduledTimerWithTimeInterval:0.1 
 														  target:self 
 														selector:@selector(fadeToMosaic:) 
 														userInfo:[NSDate date] 
 														 repeats:YES] retain];
 	}
+	
+	[[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(updateStatus) object:nil];
+//	[self performSelector:@selector(updateStatus) withObject:nil afterDelay:0.5];
+	statusUpdatePending = NO;
 }
 
+
+- (void)mosaicDidChangeState:(NSNotification *)notification
+{
+	if (!pthread_main_np())
+	{
+		if (!statusUpdatePending)
+			[self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
+	}
+	else
+	{
+			// Update the image sources drawer.
+		if ([imageSourcesDrawer state] != NSDrawerClosedState)
+			[imageSourcesTableView reloadData];
+		
+		statusUpdatePending = YES;
+		[self performSelector:@selector(updateStatus) withObject:nil afterDelay:0.5];
+	}
+}
 
 
 - (void)synchronizeMenus
@@ -623,22 +671,42 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 - (void)editImageSourceInSheet:(id<MacOSaiXImageSource>)originalImageSource
 {
 	id<MacOSaiXImageSource>				editableSource = [[originalImageSource copyWithZone:[self zone]] autorelease];
+	BOOL								imageSourceIsNew = ![[[self mosaic] imageSources] containsObject:originalImageSource];
 	
 	imageSourceEditorController = [[[[originalImageSource class] editorClass] alloc] init];
 	
 		// Make sure the panel is big enough to contain the view's minimum size.
+	NSRect	frame = [imageSourceEditorPanel frame], 
+			contentFrame = [[imageSourceEditorPanel contentView] frame];
+	BOOL	padHeight = (NSHeight(frame) > NSHeight(contentFrame));
 	float	widthDiff = MAX(0.0, [imageSourceEditorController minimumSize].width - [[imageSourceEditorBox contentView] frame].size.width),
-			heightDiff = MAX(0.0, [imageSourceEditorController minimumSize].height - [[imageSourceEditorBox contentView] frame].size.height);
-	NSSize	currentPanelSize = [[imageSourceEditorPanel contentView] frame].size;
-	[imageSourceEditorPanel setContentSize:NSMakeSize(currentPanelSize.width + widthDiff, currentPanelSize.height + heightDiff)];
-	[[imageSourceEditorController editorView] setFrame:[[imageSourceEditorBox contentView] frame]];
+			heightDiff = MAX(0.0, [imageSourceEditorController minimumSize].height - [[imageSourceEditorBox contentView] frame].size.height), 
+			baseWidth = NSWidth(frame) - NSWidth([[imageSourceEditorBox contentView] frame]), 
+			baseHeight = NSHeight(frame) - NSHeight([[imageSourceEditorBox contentView] frame]);
 	[[imageSourceEditorController editorView] setAutoresizingMask:[[imageSourceEditorBox contentView] autoresizingMask]];
+	[imageSourceEditorBox setContentView:[[[NSView alloc] initWithFrame:NSZeroRect] autorelease]];
 	
-		// Now that the sheet is big enough we can swap in the controller's editor view.
+	if (NSWidth(contentFrame) + widthDiff < 232.0)
+		widthDiff = 232.0 - NSWidth(contentFrame);
+	if (NSHeight(contentFrame) + heightDiff < 154.0)
+		heightDiff = 154.0 - NSHeight(contentFrame);
+	
+	frame.origin.x -= widthDiff / 2.0;
+	frame.origin.y -= heightDiff;
+	frame.size.width += widthDiff;
+	frame.size.height += heightDiff;
+		// For some reason this works the first time the panel is displayed but not afterwards.  Initially the panel's frame includes a window title bar but after it's been displayed as a sheet then it goes away.  Not sure that -setMinSize accounts for this so we add the height of a title bar if it's not currently accounted for by the frame.  Weird.
+	[imageSourceEditorPanel setMinSize:NSMakeSize(baseWidth + [imageSourceEditorController minimumSize].width, baseHeight + [imageSourceEditorController minimumSize].height + (padHeight ? 0.0 : 22.0))];
+	[imageSourceEditorPanel setFrame:frame display:YES animate:YES];
 	[imageSourceEditorBox setContentView:[imageSourceEditorController editorView]];
-
+	
 		// Tell the editor to edit the source.
 	[imageSourceEditorController editImageSource:editableSource];
+	
+	if (imageSourceIsNew)
+		[imageSourceIsFillerButton setState:[[NSUserDefaults standardUserDefaults] boolForKey:@"New Image Source Is Filler"]];
+	else
+		[imageSourceIsFillerButton setState:([[self mosaic] imageSourceIsFiller:originalImageSource] ? NSOnState : NSOffState)];
 	
 		// Re-establish the key view loop:
 		// 1. Focus on the editor view's first responder.
@@ -653,11 +721,13 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	[lastKeyView setNextKeyView:imageSourceEditorCancelButton];
 	[imageSourceEditorOKButton setNextKeyView:(NSView *)[imageSourceEditorController firstResponder]];
 	
+	[imageSourceEditorOKButton setEnabled:[imageSourceEditorController settingsAreValid]];
+	
 	[NSApp beginSheet:imageSourceEditorPanel 
 	   modalForWindow:[self window]
 		modalDelegate:self 
 	   didEndSelector:@selector(imageSourceEditorDidEnd:returnCode:contextInfo:) 
-		  contextInfo:[[NSArray arrayWithObjects:editableSource, originalImageSource, nil] retain]];
+		  contextInfo:[[NSMutableArray arrayWithObjects:editableSource, originalImageSource, nil] retain]];
 }
 
 
@@ -684,7 +754,14 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 - (IBAction)editImageSource:(id)sender
 {
 	if (sender == imageSourcesTableView)
-		[self editImageSourceInSheet:[[[self mosaic] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]]];
+	{
+		id<MacOSaiXImageSource>	imageSource = [[[self mosaic] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]];
+		
+		if ([imageSource isKindOfClass:[MacOSaiXHandPickedImageSource class]])
+			NSBeep();
+		else
+			[self editImageSourceInSheet:imageSource];
+	}
 }
 
 
@@ -702,27 +779,46 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (void)imageSourceEditorDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
-	NSArray								*parameters = (NSArray *)contextInfo;
-	id<MacOSaiXImageSource>				editedImageSource = [parameters objectAtIndex:0],
-										originalImageSource = [parameters objectAtIndex:1];
-	
 	[sheet orderOut:self];
 	
+	[imageSourceEditorController editingComplete];
+	
 		// Do this before adding the source so we don't run into thread safety issues with QuickTime.
-	[imageSourceEditorBox setContentView:[[[NSView alloc] initWithFrame:NSZeroRect] autorelease]];
+	NSView	*emptyView = [[[NSView alloc] initWithFrame:[[imageSourceEditorBox contentView] frame]] autorelease];
+	[emptyView setAutoresizingMask:[[imageSourceEditorBox contentView] autoresizingMask]];
+	[imageSourceEditorBox setContentView:emptyView];
+	
+	[imageSourceEditorController release];
+	imageSourceEditorController = nil;
 	
 	if (returnCode == NSOKButton)
 	{
-		[[self mosaic] removeImageSource:originalImageSource];
-		[[self mosaic] addImageSource:editedImageSource];
-		
-		[imageSourcesTableView reloadData];
+		[(NSMutableArray *)contextInfo addObject:[NSNumber numberWithBool:([imageSourceIsFillerButton state] == NSOnState)]];
+		[self performSelector:@selector(replaceEditedImageSource:) withObject:contextInfo afterDelay:0.0];
 	}
+	else
+		[(id)contextInfo release];
+}
+
+
+- (void)replaceEditedImageSource:(NSArray *)parameters
+{
+	id<MacOSaiXImageSource>	editedImageSource = [parameters objectAtIndex:0],
+							originalImageSource = [parameters objectAtIndex:1];
+	BOOL					imageSourceIsFiller = [[parameters objectAtIndex:2] boolValue], 
+							imageSourceIsNew = ![[[self mosaic] imageSources] containsObject:originalImageSource];
 	
-	[imageSourceEditorController editImageSource:nil];
-	[imageSourceEditorController release];
-	imageSourceEditorController = nil;
-	[(id)contextInfo release];
+	
+	if (!imageSourceIsNew)	// avoid pausing for new sources
+		[[self mosaic] removeImageSource:originalImageSource];
+	else
+		[[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithBool:imageSourceIsFiller] forKey:@"New Image Source Is Filler"];
+	
+	[[self mosaic] addImageSource:editedImageSource isFiller:imageSourceIsFiller];
+	
+	[imageSourcesTableView reloadData];
+	
+	[parameters release];
 }
 
 
@@ -730,15 +826,113 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 {
 	if (![MacOSaiXWarningController warningIsEnabled:@"Removing Image Source"] || 
 		[MacOSaiXWarningController runAlertForWarning:@"Removing Image Source" 
-												title:@"Are you sure you wish to remove the selected image source?" 
-											  message:@"Tiles that were displaying images from this source may no longer have an image." 
+												title:@"Are you sure you wish to remove the selected image sources?" 
+											  message:@"Tiles that were displaying images from these sources may no longer have an image." 
 										 buttonTitles:[NSArray arrayWithObjects:@"Remove", @"Cancel", nil]] == 0)
 	{
-		id<MacOSaiXImageSource>	imageSource = [[[self mosaic] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]];
+		NSMutableArray	*imageSources = [NSMutableArray array];
+		NSIndexSet		*indexSet = [imageSourcesTableView selectedRowIndexes];
+		unsigned long	currentIndex = [indexSet firstIndex];
+		while (currentIndex != NSNotFound)
+		{
+			[imageSources addObject:[[[self mosaic] imageSources] objectAtIndex:currentIndex]];
+			currentIndex = [indexSet indexGreaterThanIndex:currentIndex];
+		}
 		
-		[[self mosaic] removeImageSource:imageSource];
-		[[MacOSaiXImageCache sharedImageCache] removeCachedImagesFromSource:imageSource];
+		[imageSourcesTableView deselectAll:nil];
+		
+		NSEnumerator			*imageSourceEnumerator = [imageSources objectEnumerator];
+		id<MacOSaiXImageSource>	imageSource;
+		while (imageSource = [imageSourceEnumerator nextObject])
+			[[self mosaic] removeImageSource:imageSource];
 	}
+}
+
+
+- (IBAction)showNextImageError:(id)sender
+{
+	id<MacOSaiXImageSource>	imageSource = [[[self mosaic] imageSources] objectAtIndex:[imageSourcesTableView selectedRow]];
+	NSString				*errorText = [[[self mosaic] nextImageErrorForImageSource:imageSource] localizedDescription];
+
+	NSBeginAlertSheet(@"This image source was disabled because it had a problem looking for new images.", @"Try Again", @"Cancel", nil, [self window], self, nil, @selector(showNextImageErrorSheetDidDismiss:returnCode:contextInfo:), imageSource, errorText);
+//	[[NSAlert alertWithError:[[self mosaic] nextImageErrorForImageSource:imageSource]] runModal];
+}
+
+
+- (void)showNextImageErrorSheetDidDismiss:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo
+{
+	if (returnCode == NSAlertDefaultReturn)
+		[NSApplication detachDrawingThread:@selector(enumerateImageSourceInNewThread:) toTarget:[self mosaic] withObject:(id<MacOSaiXImageSource>)contextInfo];
+}
+
+
+- (void)imageSourcesNeedReenumeration:(NSNotification *)notification
+{
+	if (!pthread_main_np())
+		[self performSelectorOnMainThread:_cmd withObject:notification waitUntilDone:NO];
+	else
+	{
+		BOOL	wasRunning = ![[self mosaic] isPaused];
+		
+		if (wasRunning)
+		{
+			[[self mosaic] pause];
+			while (![[self mosaic] isPaused])
+				[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+		}
+		
+		[[self document] setAutoSaveEnabled:NO];
+		[mosaicView setTilesWithSubOptimalUniqueMatchesHighlighted:YES];
+		
+		if (![MacOSaiXWarningController warningIsEnabled:@"Re-enumerating image sources"] || 
+			[MacOSaiXWarningController runAlertForWarning:@"Re-enumerating image sources" 
+													title:@"Do you wish to search the image sources again to potentialy find better matches?" 
+												  message:@"The highlighted tiles may not have been given the best possible images because of the image usage settings." 
+											 buttonTitles:[NSArray arrayWithObjects:@"Search Again", @"Cancel", nil]] == 0)
+		{
+			[[self mosaic] reenumerateImageSources];
+		}
+		else
+			[[self mosaic] clearTilesWithSubOptimalUniqueMatches];
+		
+		[mosaicView setTilesWithSubOptimalUniqueMatchesHighlighted:NO];
+		[[self document] setAutoSaveEnabled:YES];
+		
+		if (wasRunning)
+			[[self mosaic] resume];
+	}
+}
+
+
+#pragma mark -
+#pragma mark Animation settings methods
+
+
+- (IBAction)setAnimateImagePlacement:(id)sender
+{
+	[mosaic setAnimateImagePlacements:([animateImagesButton state] == NSOnState)];
+	
+	NSDictionary	*animationDefaults = [NSDictionary dictionaryWithObjectsAndKeys:
+											[NSNumber numberWithBool:([mosaic animateImagePlacements])], @"Animate Placements", 
+											[NSNumber numberWithBool:([mosaic animateAllImagePlacements])], @"Animate All Placements", 
+											[NSNumber numberWithInt:[mosaic imagePlacementFullSizedDuration]], @"Full Size Display Duration", 
+											[NSNumber numberWithInt:[mosaic delayBetweenImagePlacements]], @"Delay Between Placements", 
+											[NSNumber numberWithBool:[mosaic includeSourceImageWithImagePlacementMessage]], @"Include Source Image with Message", 
+											[mosaic imagePlacementMessage], @"Message", // could be nil so last
+											nil];
+	[[NSUserDefaults standardUserDefaults] setObject:animationDefaults forKey:@"Image Placement Settings"];
+}
+
+
+- (IBAction)showAnimationSettings:(id)sender
+{
+	if (!animationSettingsController)
+		animationSettingsController = [[MacOSaiXAnimationSettingsController alloc] initWithWindow:nil];
+	
+	[animationSettingsController showAnimationSettingsForMosaic:[self mosaic] 
+												 modalForWindow:[self window] 
+												  modalDelegate:nil 
+												 didEndSelector:nil];
 }
 
 
@@ -876,7 +1070,9 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 			[transformedTileOutline stroke];
 		[highlightedImage unlockFocus];
 	NS_HANDLER
-		NSLog(@"Could not lock focus on editor image");
+		#ifdef DEBUG
+			NSLog(@"Could not lock focus on editor image");
+		#endif
 	NS_ENDHANDLER
 	
     return highlightedImage;
@@ -885,6 +1081,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (IBAction)chooseImageForSelectedTile:(id)sender
 {
+	[[self document] setAutoSaveEnabled:NO];
+	
 		// Create the image for the "Original Image" view of the accessory view.
 	NSRect		originalImageViewFrame = NSMakeRect(0.0, 0.0, [editorOriginalImageView frame].size.width, 
 															   [editorOriginalImageView frame].size.height);
@@ -914,42 +1112,23 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[originalImage drawInRect:originalImageViewFrame fromRect:origRect operation:NSCompositeCopy fraction:1.0];
 		[originalImageForTile unlockFocus];
 	NS_HANDLER
-		NSLog(@"Exception raised while extracting tile images: %@", [localException name]);
+		#ifdef DEBUG
+			NSLog(@"Exception raised while extracting tile image: %@", [localException name]);
+		#endif
 	NS_ENDHANDLER
 	[editorOriginalImageView setImage:[self highlightTileOutline:[selectedTile outline] inImage:originalImageForTile croppedPercentage:nil]];
 	
 		// Set up the current image box
-	MacOSaiXImageMatch	*currentMatch = [selectedTile displayedImageMatch];
-	if (currentMatch)
+	MacOSaiXImageMatch	*currentMatch = ([selectedTile userChosenImageMatch] ? [selectedTile userChosenImageMatch] : [selectedTile uniqueImageMatch]);
+	NSBitmapImageRep	*currentRep = [[currentMatch sourceImage] imageRepAtSize:NSZeroSize];
+	if (currentRep)
 	{
-		NSSize				currentSize = [[MacOSaiXImageCache sharedImageCache] nativeSizeOfImageWithIdentifier:[currentMatch imageIdentifier] 
-																									  fromSource:[currentMatch imageSource]];
-		
-		if (NSEqualSizes(currentSize, NSZeroSize))
-		{
-				// The image is not in the cache so request a random sized rep to get it loaded.
-			[[MacOSaiXImageCache sharedImageCache] imageRepAtSize:NSMakeSize(1.0, 1.0) 
-													forIdentifier:[currentMatch imageIdentifier] 
-													   fromSource:[currentMatch imageSource]];
-			currentSize = [[MacOSaiXImageCache sharedImageCache] nativeSizeOfImageWithIdentifier:[currentMatch imageIdentifier] 
-																					  fromSource:[currentMatch imageSource]];
-		}
-		
-//		float				currentImageViewWidth = [editorCurrentImageView bounds].size.width;
-//		if (currentSize.width > currentSize.height)
-//			currentSize = NSMakeSize(currentImageViewWidth, currentImageViewWidth * currentSize.height / currentSize.width);
-//		else
-//			currentSize = NSMakeSize(currentImageViewWidth * currentSize.width / currentSize.height, currentImageViewWidth);
-		NSBitmapImageRep	*currentRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:currentSize 
-																				  forIdentifier:[currentMatch imageIdentifier] 
-																					 fromSource:[currentMatch imageSource]];
-		NSImage				*currentImage = [[[NSImage alloc] initWithSize:currentSize] autorelease];
+		NSImage				*currentImage = [[[NSImage alloc] initWithSize:[currentRep size]] autorelease];
 		[currentImage addRepresentation:currentRep];
 		float				croppedPercentage = 0.0;
 		[editorCurrentImageView setImage:[self highlightTileOutline:[selectedTile outline] inImage:currentImage croppedPercentage:&croppedPercentage]];
-//		float				worstCaseMatch = sqrtf([selectedTile worstCaseMatchValue]), 
-//							matchPercentage = (worstCaseMatch - sqrtf([currentMatch matchValue])) / worstCaseMatch * 100.0;
-		[editorCurrentMatchQualityTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", 100.0 - [currentMatch matchValue] * 100.0]];
+		[editorCurrentImageView setToolTip:[[currentMatch sourceImage] description]];
+		[editorCurrentMatchQualityTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", 100.0 - sqrt([currentMatch matchValue]) * 100.0]];
 		[editorCurrentPercentCroppedTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", croppedPercentage]];
 	}
 	else
@@ -1009,10 +1188,10 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	[editorChosenImageBox setTitle:[[NSFileManager defaultManager] displayNameAtPath:chosenImageIdentifier]];
 	
 	NSImage				*chosenImage = [[[NSImage alloc] initWithContentsOfFile:chosenImageIdentifier] autorelease];
-	[chosenImage setCachedSeparately:YES];
-	[chosenImage setCacheMode:NSImageCacheNever];
+//	[chosenImage setCachedSeparately:YES];
+//	[chosenImage setCacheMode:NSImageCacheNever];
 	
-	if (chosenImage)
+	if ([chosenImage isValid])
 	{
 		NSImageRep			*originalRep = [[chosenImage representations] objectAtIndex:0];
 		NSSize				imageSize = NSMakeSize([originalRep pixelsWide], [originalRep pixelsHigh]);
@@ -1029,14 +1208,15 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[editorChosenPercentCroppedTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", croppedPercentage]];
 		
 			// Calculate how well the chosen image matches the selected tile.
-		[[MacOSaiXImageCache sharedImageCache] cacheImage:chosenImage withIdentifier:chosenImageIdentifier fromSource:nil];
-		NSBitmapImageRep	*chosenImageRep = [[MacOSaiXImageCache sharedImageCache] imageRepAtSize:[[selectedTile bitmapRep] size] 
-																					  forIdentifier:chosenImageIdentifier 
-																						 fromSource:nil];
-		editorChosenMatchValue = [[MacOSaiXImageMatcher sharedMatcher] compareImageRep:[selectedTile bitmapRep]  
-																			  withMask:[selectedTile maskRep] 
-																			toImageRep:chosenImageRep
-																		  previousBest:1.0];
+		MacOSaiXSourceImage	*chosenSourceImage = [MacOSaiXSourceImage sourceImageWithImage:chosenImage 
+																				identifier:chosenImageIdentifier 
+																					source:nil];
+		[[MacOSaiXImageCache sharedImageCache] cacheSourceImage:chosenSourceImage];
+		NSBitmapImageRep	*chosenImageRep = [chosenSourceImage imageRepAtSize:[[selectedTile bitmapRep] size]];
+		editorChosenMatchValue = [[[MacOSaiXImageMatcher sharedMatcher] compareImageRep:[selectedTile bitmapRep]  
+																			   withMask:[selectedTile maskRep] 
+																			 toImageRep:chosenImageRep
+																		   previousBest:1.0] floatValue];
 		[editorChosenMatchQualityTextField setStringValue:[NSString stringWithFormat:@"%.0f%%", 100.0 - editorChosenMatchValue * 100.0]];
 	}
 }
@@ -1056,6 +1236,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	
 	if ([sheet respondsToSelector:@selector(setMessage:)])
 		[sheet setMessage:@""];
+	
+	[[self document] setAutoSaveEnabled:YES];
 }
 
 
@@ -1235,7 +1417,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		[statusBarView removeFromSuperview];
 		newFrame.origin.y += [statusBarView frame].size.height;
 		newFrame.size.height -= [statusBarView frame].size.height;
-		newFrame.size = [self windowWillResize:[self window] toSize:newFrame.size];
+		newFrame.size = [[[self window] delegate] windowWillResize:[self window] toSize:newFrame.size];
 		[[self window] setFrame:newFrame display:YES animate:YES];
     }
     else
@@ -1243,7 +1425,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		statusBarShowing = YES;
 		newFrame.origin.y -= [statusBarView frame].size.height;
 		newFrame.size.height += [statusBarView frame].size.height;
-		newFrame.size = [self windowWillResize:[self window] toSize:newFrame.size];
+		newFrame.size = [[[self window] delegate] windowWillResize:[self window] toSize:newFrame.size];
 		[[self window] setFrame:newFrame display:YES animate:YES];
 	
 		[statusBarView setFrame:NSMakeRect(0, [[mosaicScrollView superview] frame].size.height - [statusBarView frame].size.height, [[mosaicScrollView superview] frame].size.width, [statusBarView frame].size.height)];
@@ -1279,8 +1461,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	if (windowScreen == menuBarScreen)
 	{
 		OSStatus	status = SetSystemUIMode(kUIModeAllHidden, 0);
-		if (status == noErr)
-			NSLog(@"Could not enter full screen mode");
+		if (status != noErr)
+			NSLog(@"Could not enter full screen mode (error %d)", status);
 	}
 	
 		// Open a new borderless window displaying just the mosaic.
@@ -1378,9 +1560,24 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 - (void)togglePause:(id)sender
 {
 	if ([[self mosaic] isPaused])
-		[[self mosaic] resume];
+	{
+		if (([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0)
+			NSBeginAlertSheet(@"Are you sure you wish to search all of the sources for images again?", @"Search Again", @"Cancel", nil, [self window], self, nil, @selector(reenumerateSourcesSheetDidDismiss:returnCode:contextInfo:), nil, @"The existing images will be left in the mosaic.  Only new images that match better than the existing ones will be used.");
+		else
+			[[self mosaic] resume];
+	}
 	else
 		[[self mosaic] pause];
+}
+
+
+- (void)reenumerateSourcesSheetDidDismiss:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo
+{
+	if (returnCode == NSAlertDefaultReturn)
+	{
+		[[self mosaic] reenumerateImageSources];
+		[[self mosaic] resume];
+	}
 }
 
 
@@ -1389,6 +1586,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	[imageSourcesTableView setDoubleAction:(enabled ? @selector(editImageSource:) : nil)];
 	[imageSourcesPopUpButton setEnabled:enabled];
 	[imageSourcesRemoveButton setEnabled:enabled];
+	[animateImagesButton setEnabled:enabled];
+	[animationSettingsButton setEnabled:enabled];
 }
 
 
@@ -1451,7 +1650,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		
 		if (errorString)
 			NSBeginAlertSheet(@"The mosaic could not be saved.", @"OK", nil, nil, [self window], 
-							  self, nil, @selector(errorSheetDidDismiss:), nil, errorString);
+							  self, nil, @selector(errorSheetDidDismiss:returnCode:contextInfo:), nil, errorString);
 		else
 			[(MacOSaiXDocument *)[self document] setAutoSaveEnabled:YES];	// Re-enable auto saving.
 	}
@@ -1508,7 +1707,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	if (pthread_main_np())
 	{
 		double	percent = [percentComplete doubleValue];
-		[progressPanelIndicator setIndeterminate:(percent < 0.0 || percent > 100.0)];
+		[progressPanelIndicator setIndeterminate:(percent <= 0.0 || percent > 100.0)];
+		[progressPanelIndicator startAnimation:self];
 		[progressPanelIndicator setDoubleValue:percent];
 	}
 	else
@@ -1563,12 +1763,12 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	if (resizingWindow == [self window] && [[self mosaic] originalImage])
 	{
 		float	aspectRatio = [[[self mosaic] originalImage] size].width / [[[self mosaic] originalImage] size].height,
-				windowTop = NSMaxY([resizingWindow frame]), 
-				minHeight = 200;	// TODO: get this from nib setting
-		NSSize	diff;
+				windowTop = NSMaxY([resizingWindow frame]);
+		NSSize	minSize = NSMakeSize(364.0, 128.0),	// TODO: get this from nib setting
+				diff;
 		NSRect	screenFrame = [[resizingWindow screen] frame];
 		
-		proposedFrameSize.width = MIN(MAX(proposedFrameSize.width, 132),
+		proposedFrameSize.width = MIN(MAX(proposedFrameSize.width, minSize.width),
 									  screenFrame.size.width - [resizingWindow frame].origin.x);
 		diff.width = [resizingWindow frame].size.width - [[resizingWindow contentView] frame].size.width;
 		diff.height = [resizingWindow frame].size.height - [[resizingWindow contentView] frame].size.height;
@@ -1579,9 +1779,9 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		//   and preserve the aspect ratio of the mosaic image.
 		// If the height is too big for the screen, lower the width.
 		proposedFrameSize.height = (proposedFrameSize.width - 16) / aspectRatio;
-		if (proposedFrameSize.height > windowTop || proposedFrameSize.height < minHeight)
+		if (proposedFrameSize.height > windowTop || proposedFrameSize.height < minSize.height)
 		{
-			proposedFrameSize.height = (proposedFrameSize.height < minHeight) ? minHeight : windowTop;
+			proposedFrameSize.height = (proposedFrameSize.height < minSize.height) ? minSize.height : windowTop;
 			proposedFrameSize.width = proposedFrameSize.height * aspectRatio + 16;
 		}
 		
@@ -1653,6 +1853,8 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 		
 		if ([fadeTimer isValid])
 			[fadeTimer invalidate];
+		
+		[mosaicView setMosaic:nil];
 	}
 }
 
@@ -1683,7 +1885,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 	else if ([itemIdentifier isEqualToString:@"Setup Tiles"])
     {
 		NSImage	*shapesImage = [[[self mosaic] tileShapes] image];
-		if (shapesImage)
+		if ([shapesImage isValid])
 			[toolbarItem setImage:shapesImage];
 		[toolbarItem setLabel:@"Tiles Setup"];
 		[toolbarItem setPaletteLabel:@"Tiles Setup"];
@@ -1757,7 +1959,7 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 - (BOOL)validateToolbarItem:(NSToolbarItem *)theItem
 {
     if ([[theItem itemIdentifier] isEqualToString:@"Pause"])
-		return ([[[self mosaic] tiles] count] > 0 && [[[self mosaic] imageSources] count] > 0);
+		return ([[[self mosaic] tiles] count] > 0 && [[self mosaic] originalImage] && [[[self mosaic] imageSources] count] > 0);
     else
 		return YES;
 }
@@ -1787,7 +1989,22 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 - (int)numberOfRowsInTableView:(NSTableView *)aTableView
 {
     if (aTableView == imageSourcesTableView)
+	{
+		if ([NSTableColumn instancesRespondToSelector:@selector(setHidden:)])
+		{
+			BOOL					showWarningColumn = NO;
+			NSEnumerator			*imageSourceEnumerator = [[[self mosaic] imageSources] objectEnumerator];
+			id<MacOSaiXImageSource>	imageSource;
+			while (!showWarningColumn && (imageSource = [imageSourceEnumerator nextObject]))
+				if ([[self mosaic] nextImageErrorForImageSource:imageSource])
+					showWarningColumn = YES;
+			[(id)[aTableView tableColumnWithIdentifier:@"Warning"] setHidden:!showWarningColumn];
+		}
+		else
+			;	// TBD: manually remove/add column?
+		
 		return [[[self mosaic] imageSources] count];
+	}
 	
 	return 0;
 }
@@ -1795,34 +2012,60 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex
 {
+	id	objectValue = nil;
+	
     if (aTableView == imageSourcesTableView)
     {
+		NS_DURING
 		id<MacOSaiXImageSource>	imageSource = [[[self mosaic] imageSources] objectAtIndex:rowIndex];
 		
-		if ([[aTableColumn identifier] isEqualToString:@"Image Source Type"])
-			return [imageSource image];
-		else
+		if ([[aTableColumn identifier] isEqualToString:@"Type"])
+			objectValue = [imageSource image];
+		else if ([[aTableColumn identifier] isEqualToString:@"Description"])
 		{
 				// TBD: this won't work once entries get removed from the dictionary...
 			long	imageCount = [[self mosaic] countOfImagesFromSource:imageSource];
 			id		descriptor = [imageSource descriptor];
 			
 			if ([descriptor isKindOfClass:[NSString class]])
-				return [NSString stringWithFormat:@"%@\n(%ld images found)", descriptor, imageCount];
+				objectValue = [NSString stringWithFormat:@"%@\n(%ld images found)", descriptor, imageCount];
 			else if ([descriptor isKindOfClass:[NSAttributedString class]])
 			{
 				NSString	*stringToAppend = [NSString stringWithFormat:@"\n(%ld images found)", imageCount];
-				descriptor = [descriptor mutableCopy];
+				descriptor = [[descriptor mutableCopy] autorelease];
 				[(NSMutableAttributedString *)descriptor appendAttributedString:
 					[[[NSAttributedString alloc] initWithString:stringToAppend] autorelease]];
-				return descriptor;
+				objectValue = descriptor;
 			}
-			else
-				return nil;
 		}
+		NS_HANDLER
+			#ifdef DEBUG
+				NSLog(@"gotcha");
+			#endif
+		NS_ENDHANDLER
     }
-	else
-		return nil;
+	
+	return objectValue;
+}
+
+
+- (void)tableView:(NSTableView *)tableView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn row:(int)rowIndex
+{
+    if (tableView == imageSourcesTableView)
+    {
+		id<MacOSaiXImageSource>	imageSource = [[[self mosaic] imageSources] objectAtIndex:rowIndex];
+		
+		if ([[tableColumn identifier] isEqualToString:@"Warning"])
+		{
+			NSError	*error = [[self mosaic] nextImageErrorForImageSource:imageSource];
+			
+			[cell setEnabled:(error != nil)];
+			[cell setBordered:(error != nil)];
+			[cell setImage:(error ? [NSImage imageNamed:@"Warning"] : nil)];
+			[cell setTarget:self];
+			[cell setAction:@selector(showNextImageError:)];
+		}
+	}
 }
 
 
@@ -1831,12 +2074,12 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
     if ([notification object] == imageSourcesTableView)
 	{
 		NSMutableArray	*selectedImageSources = [NSMutableArray array];
-		NSEnumerator	*selectedRowNumberEnumerator = [imageSourcesTableView selectedRowEnumerator];
-		NSNumber		*selectedRowNumber = nil;
-		while (selectedRowNumber = [selectedRowNumberEnumerator nextObject])
+		NSIndexSet		*indexSet = [imageSourcesTableView selectedRowIndexes];
+		unsigned long	currentIndex = [indexSet firstIndex];
+		while (currentIndex != NSNotFound)
 		{
-			int	rowIndex = [selectedRowNumber intValue];
-			[selectedImageSources addObject:[[[self mosaic] imageSources] objectAtIndex:rowIndex]];
+			[selectedImageSources addObject:[[[self mosaic] imageSources] objectAtIndex:currentIndex]];
+			currentIndex = [indexSet indexGreaterThanIndex:currentIndex];
 		}
 		
 		[imageSourcesRemoveButton setEnabled:([selectedImageSources count] > 0)];
@@ -1854,22 +2097,30 @@ static NSComparisonResult compareWithKey(NSDictionary *dict1, NSDictionary *dict
 
 - (void)dealloc
 {
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:MacOSaiXRecentOriginalImagesDidChangeNotification object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	[[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(updateStatus) object:nil];
+	
+	[animateTileTimer invalidate];
+	[animateTileTimer release];
 	
 	[selectedTile release];
     [selectedTileImages release];
     [toolbarItems release];
     [removedSubviews release];
+	[originalImagePopUpView release];
     [zoomToolbarMenuItem release];
     [viewToolbarMenuItem release];
     [tileImages release];
     
 	[tilesSetupController release];
+	[animationSettingsController release];
 	[exportController release];
 	
 	if ([fadeTimer isValid])
 		[fadeTimer invalidate];
 	[fadeTimer release];
+	
+	[mosaic release];
 	
     [super dealloc];
 }

@@ -15,7 +15,21 @@
 - (NSView *)editorView
 {
 	if (!editorView)
+	{
 		[NSBundle loadNibNamed:@"Google Image Source" owner:self];
+		
+		[[collectionPopUpButton itemAtIndex:0] setRepresentedObject:@""];
+		
+		NSArray			*collections = [GoogleImageSource collections];
+		NSEnumerator	*collectionEnumerator = [collections objectEnumerator];
+		NSDictionary	*collectionDict;
+		
+		while (collectionDict = [collectionEnumerator nextObject])
+		{
+			[collectionPopUpButton addItemWithTitle:[collectionDict objectForKey:@"Name"]];
+			[[collectionPopUpButton lastItem] setRepresentedObject:[collectionDict objectForKey:@"Query value"]];
+		}
+	}
 	
 	return editorView;
 }
@@ -23,7 +37,7 @@
 
 - (NSSize)minimumSize
 {
-	return NSMakeSize(523.0, 290.0);
+	return NSMakeSize(486.0, 350.0);
 }
 
 
@@ -40,9 +54,11 @@
 	[requiredTermsTextField setStringValue:([currentImageSource requiredTerms] ? [currentImageSource requiredTerms] : @"")];
 	[optionalTermsTextField setStringValue:([currentImageSource optionalTerms] ? [currentImageSource optionalTerms] : @"")];
 	[excludedTermsTextField setStringValue:([currentImageSource excludedTerms] ? [currentImageSource excludedTerms] : @"")];
+	[contentTypePopUpButton selectItemAtIndex:[currentImageSource contentType]];
 	[colorSpacePopUpButton selectItemAtIndex:[currentImageSource colorSpace]];
 	[siteTextField setStringValue:([currentImageSource siteString] ? [currentImageSource siteString] : @"")];
 	[adultContentFilteringPopUpButton selectItemAtIndex:[currentImageSource adultContentFiltering]];
+	[collectionPopUpButton selectItemAtIndex:[collectionPopUpButton indexOfItemWithRepresentedObject:[currentImageSource collectionQueryValue]]];
 }
 
 
@@ -57,6 +73,7 @@
 
 - (void)editingComplete
 {
+	currentImageSource = nil;
 }
 
 
@@ -73,6 +90,12 @@
 }
 
 
+- (IBAction)setContentType:(id)sender
+{
+	[currentImageSource setContentType:[contentTypePopUpButton indexOfSelectedItem]];
+}
+
+
 - (IBAction)setColorSpace:(id)sender
 {
 	[currentImageSource setColorSpace:[colorSpacePopUpButton indexOfSelectedItem]];
@@ -85,8 +108,16 @@
 }
 
 
+- (IBAction)setCollection:(id)sender
+{
+	[currentImageSource setCollectionQueryValue:[[collectionPopUpButton selectedItem] representedObject]];
+}
+
+
 - (void)dealloc
 {
+	[editorView release];
+	
 	[super dealloc];
 }
 

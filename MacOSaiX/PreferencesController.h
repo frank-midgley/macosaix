@@ -32,6 +32,10 @@
     IBOutlet NSTextField				*autoSaveFrequencyField;
 }
 
++ (MacOSaiXPreferencesController *)sharedController;
+
+- (void)selectPaneForPlugInClass:(Class)plugInClass;
+
 - (IBAction)setUpdateCheck:(id)sender;
 - (IBAction)setAutoStart:(id)sender;
 - (IBAction)setAutoSave:(id)sender;

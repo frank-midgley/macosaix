@@ -7,24 +7,23 @@
 */
 
 #import <Cocoa/Cocoa.h>
-#import <QuickTime/QuickTime.h>
+#import <QTKit/QTKit.h>
 
 #import "MacOSaiXImageSource.h"
 
 
 @interface QuickTimeImageSource : NSObject <MacOSaiXImageSource>
 {
-    NSString	*moviePath;
-	NSMovie		*movie;
-	NSLock		*movieLock;
-	BOOL		movieIsThreadSafe;
-	NSImage		*currentImage;
-	float		aspectRatio;
-	TimeValue	minIncrement,
-                currentTimeValue, 
-                duration;
-	TimeScale	timeScale;
-	BOOL		canRefetchImages;
+    NSString		*moviePath;
+	QTMovie			*movie;
+	NSRecursiveLock	*movieLock;
+	NSImage			*currentImage;
+	float			aspectRatio;
+	QTTime			minIncrement,
+					currentTime, 
+					duration;
+//	TimeScale		timeScale;
+	BOOL			canRefetchImages;
 }
 
 - (NSString *)path;

@@ -1,21 +1,32 @@
 {
-    IBClasses = (
-        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
-        {
-            ACTIONS = {setAdultContentFiltering = id; setColorSpace = id; }; 
-            CLASS = GoogleImageSourceController; 
-            LANGUAGE = ObjC; 
-            OUTLETS = {
-                adultContentFilteringPopUpButton = NSPopUpButton; 
-                colorSpacePopUpButton = NSPopUpButton; 
-                editorView = NSView; 
-                excludedTermsTextField = NSTextField; 
-                optionalTermsTextField = NSTextField; 
-                requiredTermsTextField = NSTextField; 
-                siteTextField = NSTextField; 
-            }; 
-            SUPERCLASS = NSObject; 
+    IBClasses =     (
+                {
+            CLASS = FirstResponder;
+            LANGUAGE = ObjC;
+            SUPERCLASS = NSObject;
+        },
+                {
+            ACTIONS =             {
+                setAdultContentFiltering = id;
+                setCollection = id;
+                setColorSpace = id;
+                setContentType = id;
+            };
+            CLASS = GoogleImageSourceController;
+            LANGUAGE = ObjC;
+            OUTLETS =             {
+                adultContentFilteringPopUpButton = NSPopUpButton;
+                collectionPopUpButton = NSPopUpButton;
+                colorSpacePopUpButton = NSPopUpButton;
+                contentTypePopUpButton = NSPopUpButton;
+                editorView = NSView;
+                excludedTermsTextField = NSTextField;
+                optionalTermsTextField = NSTextField;
+                requiredTermsTextField = NSTextField;
+                siteTextField = NSTextField;
+            };
+            SUPERCLASS = NSObject;
         }
-    ); 
-    IBVersion = 1; 
+    );
+    IBVersion = 1;
 }

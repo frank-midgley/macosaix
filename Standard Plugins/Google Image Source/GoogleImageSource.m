@@ -17,13 +17,13 @@
 
 
 	// The image cache is shared between all instances so we need a class level lock.
-static NSLock				*sImageCacheLock = nil;
+static NSRecursiveLock		*sImageCacheLock = nil;
 static BOOL					sPruningCache = NO, 
 							sPurgeCache = NO;
 static unsigned long long	sCacheSize = 0, 
 							sMaxCacheSize = 128 * 1024 * 1024,
 							sMinFreeSpace = 1024 * 1024 * 1024;
-
+static NSMutableArray		*sCollections = nil;
 static NSImage				*gIcon = nil,
 							*googleIcon = nil;
 
@@ -36,14 +36,61 @@ NSString *escapedNSString(NSString *string)
 }
 
 
-static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
+NSString *unescapedNSString(NSString *escapedString)
+{
+    NSMutableString *string = [NSMutableString stringWithString:escapedString];
+    unsigned long   location = [string rangeOfString:@"\\x"].location;
+    
+    while (location != NSNotFound)
+    {
+        if ([string characterAtIndex:location - 1] != '\\')
+        {
+            unsigned char   hiChar = [string characterAtIndex:location + 2], 
+                            loChar = [string characterAtIndex:location + 3];
+            hiChar = hiChar - (hiChar < 'a' ? '0' : 'a' - 10);
+            loChar = loChar - (loChar < 'a' ? '0' : 'a' - 10);
+            unichar         escapedChar = hiChar * 16 + loChar;
+            [string replaceCharactersInRange:NSMakeRange(location, 4) withString:[NSString stringWithCharacters:&escapedChar length:1]];
+        }
+        
+        location = [string rangeOfString:@"\\x" options:NSLiteralSearch range:NSMakeRange(location + 1, [string length] - location - 1)].location;
+    }
+    
+    return string;
+}
+
+
+static NSComparisonResult compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *context)
 {
 	return [(NSNumber *)[dict1 objectForKey:context] compare:(NSNumber *)[dict2 objectForKey:context]];
 }
 
 
+@implementation NSURL (QueryParsing)
+
+- (NSDictionary *)queryDict
+{
+	NSMutableDictionary	*queryParts = [NSMutableDictionary dictionary];
+	NSArray				*linkParts = [[self query] componentsSeparatedByString:@"&"];
+	
+	for (NSString *linkPart in linkParts)
+	{
+		NSArray		*attrNameAndValue = [linkPart componentsSeparatedByString:@"="];
+		NSString	*attrName = [[attrNameAndValue objectAtIndex:0] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding],
+					*attrValue = [[[attrNameAndValue objectAtIndex:1] stringByReplacingOccurrencesOfString:@"+" withString:@" "] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+		
+		[queryParts setObject:attrValue forKey:attrName];
+	}
+	
+	return queryParts;
+}
+
+@end
+
+
 @interface GoogleImageSource (PrivateMethods)
 + (void)pruneCache;
++ (void)pruneCacheInThread;
 + (id)preferredValueForKey:(NSString *)key;
 - (void)updateQueryAndDescriptor;
 @end
@@ -56,10 +103,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 {
 	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
 	
-	if (![[NSFileManager defaultManager] fileExistsAtPath:[self imageCachePath]])
-		[[NSFileManager defaultManager] createDirectoryAtPath:[self imageCachePath] attributes:nil];
-	
-	sImageCacheLock = [[NSLock alloc] init];
+	sImageCacheLock = [[NSRecursiveLock alloc] init];
 	
 	NSString	*iconPath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"G"];
 	gIcon = [[NSImage alloc] initWithContentsOfFile:iconPath];
@@ -75,11 +119,18 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 	if (minFreeSpace)
 		sMinFreeSpace = [minFreeSpace unsignedLongLongValue];
 	
-		// Do an initial prune which also gets the current size of the cache.
-		// No new images can be cached until this completes but images can be read from the cache.
-	[self pruneCache];
-	
+    // Make sure -[NSAttributedString initWithHTML:...] runs on the main thread.
+    [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithBool:YES] forKey:@"NSRunWebKitOnAppKitThread"];
+    
 	[pool release];
+}
+
+
++ (void)initialize;
+{
+	// Do an initial prune which also gets the current size of the cache.
+	// No new images can be cached until this completes but images can be read from the cache.
+	//[self pruneCache];
 }
 
 
@@ -102,14 +153,75 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 
 
 #pragma mark
+#pragma mark Image collections
+
+
++ (NSArray *)collections
+{
+	if (!sCollections)
+	{
+		sCollections = [[NSMutableArray alloc] init];
+		
+		NSString		*collectionsPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"Collections" ofType:@"plist"];
+		NSDictionary	*collectionsDict = [NSDictionary dictionaryWithContentsOfFile:collectionsPath];
+		NSEnumerator	*collectionEnumerator = [collectionsDict keyEnumerator];
+		NSString		*collectionKey;
+		
+		while (collectionKey = [collectionEnumerator nextObject])
+		{
+			NSMutableDictionary	*collectionDict = [NSMutableDictionary dictionaryWithDictionary:[collectionsDict objectForKey:collectionKey]];
+			
+			[collectionDict setObject:collectionKey forKey:@"Query value"];
+			
+			[sCollections addObject:collectionDict];
+		}
+		
+		[sCollections sortUsingFunction:compareWithKey context:@"Name"];
+	}
+	
+	return (sCollections ? [NSArray arrayWithArray:sCollections] : [NSArray array]);
+}
+
+
+#pragma mark
 #pragma mark Image cache
 
 
 + (NSString *)imageCachePath
 {
-	return [[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"] 
-								 stringByAppendingPathComponent:@"Caches"]
-								 stringByAppendingPathComponent:@"MacOSaiX Google Images"] retain];
+	static NSString	*imageCachePath = nil;
+	
+	if (!imageCachePath)
+	{
+		FSRef		cachesRef;
+		
+		if (FSFindFolder(kUserDomain, kCachedDataFolderType, kCreateFolder, &cachesRef) == noErr)
+		{
+			CFURLRef		cachesURLRef = CFURLCreateFromFSRef(kCFAllocatorDefault, &cachesRef);
+			
+			if (cachesURLRef)
+				imageCachePath = [[(NSURL *)cachesURLRef path] stringByAppendingPathComponent:@"MacOSaiX"];
+		}
+		
+		if (!imageCachePath)
+			imageCachePath = [[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"] 
+												  stringByAppendingPathComponent:@"Caches"]
+												  stringByAppendingPathComponent:@"MacOSaiX"];
+		
+		// Get rid of any folder at the the old location.
+		NSString	*oldPath = [imageCachePath stringByAppendingString:@" Google Images"];
+		if ([[NSFileManager defaultManager] fileExistsAtPath:oldPath])
+			[[NSFileManager defaultManager] removeFileAtPath:oldPath handler:nil];
+		
+		if (imageCachePath && ![[NSFileManager defaultManager] fileExistsAtPath:imageCachePath])
+			[[NSFileManager defaultManager] createDirectoryAtPath:imageCachePath attributes:nil];
+		
+		imageCachePath = [[imageCachePath stringByAppendingPathComponent:@"Google Images"] retain];
+		if (imageCachePath && ![[NSFileManager defaultManager] fileExistsAtPath:imageCachePath])
+			[[NSFileManager defaultManager] createDirectoryAtPath:imageCachePath attributes:nil];
+	}
+	
+	return imageCachePath;
 }
 
 
@@ -117,16 +229,20 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 {
 	if (!sPruningCache)
 	{
-		NSString	*imageID = [identifier substringWithRange:NSMakeRange(14, 12)],
-					*imageFileName = [NSString stringWithFormat:@"%x%x%x%x%x%x%x%x%x%x%x%x",
+		NSString	*imageID = [identifier substringToIndex:14], 
+					*imageFileName = [NSString stringWithFormat:@"%x%x%x%x%x%x%x%x%x%x%x%x%x%x",
 																[imageID characterAtIndex:0], [imageID characterAtIndex:1],
 																[imageID characterAtIndex:2], [imageID characterAtIndex:3],
 																[imageID characterAtIndex:4], [imageID characterAtIndex:5],
 																[imageID characterAtIndex:6], [imageID characterAtIndex:7],
 																[imageID characterAtIndex:8], [imageID characterAtIndex:9],
-																[imageID characterAtIndex:10], [imageID characterAtIndex:11]];
+																[imageID characterAtIndex:10], [imageID characterAtIndex:11],
+																[imageID characterAtIndex:12], [imageID characterAtIndex:13]];
 
 		[sImageCacheLock lock];
+			if (sCacheSize == 0)
+				[self pruneCacheInThread];
+			
 			[imageData writeToFile:[[self imageCachePath] stringByAppendingPathComponent:imageFileName] atomically:NO];
 			
 				// Spawn a cache pruning thread if called for.
@@ -143,7 +259,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 + (NSImage *)cachedImageWithIdentifier:(NSString *)identifier
 {
 	NSImage		*cachedImage = nil;
-	NSString	*imageID = [identifier substringWithRange:NSMakeRange(14, 12)],
+	NSString	*imageID = [identifier substringToIndex:14], 
 				*imageFileName = [NSString stringWithFormat:@"%x%x%x%x%x%x%x%x%x%x%x%x",
 															[imageID characterAtIndex:0], [imageID characterAtIndex:1],
 															[imageID characterAtIndex:2], [imageID characterAtIndex:3],
@@ -345,6 +461,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 		if ([[NSFileManager defaultManager] fileExistsAtPath:[GoogleImageSource imageCachePath]])
 		{
 			imageURLQueue = [[NSMutableArray array] retain];
+			collectionQueryValue = @"";
 		}
 		else
 		{
@@ -364,6 +481,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 	[copy setRequiredTerms:requiredTerms];
 	[copy setOptionalTerms:optionalTerms];
 	[copy setExcludedTerms:excludedTerms];
+	[copy setContentType:contentType];
 	[copy setColorSpace:colorSpace];
 	[copy setSiteString:siteString];
 	[copy setAdultContentFiltering:adultContentFiltering];
@@ -377,9 +495,21 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 	NSMutableString	*settingsXML = [NSMutableString string];
 	
 	[settingsXML appendFormat:@"<TERMS REQUIRED=\"%@\"\n       OPTIONAL=\"%@\"\n       EXCLUDED=\"%@\"/>\n", 
-							  [[self requiredTerms] stringByEscapingXMLEntites],
-							  [[self optionalTerms] stringByEscapingXMLEntites],
-							  [[self excludedTerms] stringByEscapingXMLEntites]];
+							  ([self requiredTerms] ? [[self requiredTerms] stringByEscapingXMLEntites] : @""),
+							  ([self optionalTerms] ? [[self optionalTerms] stringByEscapingXMLEntites] : @""),
+							  ([self excludedTerms] ? [[self excludedTerms] stringByEscapingXMLEntites] : @"")];
+	
+	switch ([self contentType])
+	{
+		case anyContent:
+			[settingsXML appendString:@"<CONTENT TYPE=\"ANY\"/>\n"]; break;
+		case newsContent:
+			[settingsXML appendString:@"<CONTENT TYPE=\"NEWS\"/>\n"]; break;
+		case faceContent:
+			[settingsXML appendString:@"<CONTENT TYPE=\"FACE\"/>\n"]; break;
+		case photoContent:
+			[settingsXML appendString:@"<CONTENT TYPE=\"PHOTO\"/>\n"]; break;
+	}
 	
 	switch ([self colorSpace])
 	{
@@ -411,7 +541,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 	NSEnumerator	*queuedURLEnumerator = [imageURLQueue objectEnumerator];
 	NSString		*queuedURL = nil;
 	while (queuedURL = [queuedURLEnumerator nextObject])
-		[settingsXML appendFormat:@"<QUEUED_IMAGE URL=\"%@\"/>\n", queuedURL];
+		[settingsXML appendFormat:@"<QUEUED_IMAGE URL=\"%@\"/>\n", [queuedURL stringByEscapingXMLEntites]];
 	
 	return settingsXML;
 }
@@ -426,6 +556,19 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 		[self setRequiredTerms:[[[settingDict objectForKey:@"REQUIRED"] description] stringByUnescapingXMLEntites]];
 		[self setOptionalTerms:[[[settingDict objectForKey:@"OPTIONAL"] description] stringByUnescapingXMLEntites]];
 		[self setExcludedTerms:[[[settingDict objectForKey:@"EXCLUDED"] description] stringByUnescapingXMLEntites]];
+	}
+	else if ([settingType isEqualToString:@"CONTENT"])
+	{
+		NSString	*filterValue = [[settingDict objectForKey:@"TYPE"] description];
+		
+		if ([filterValue isEqualToString:@"ANY"])
+			[self setContentType:anyContent];
+		else if ([filterValue isEqualToString:@"NEWS"])
+			[self setContentType:newsContent];
+		else if ([filterValue isEqualToString:@"FACE"])
+			[self setContentType:faceContent];
+		else if ([filterValue isEqualToString:@"PHOTO"])
+			[self setContentType:photoContent];
 	}
 	else if ([settingType isEqualToString:@"COLOR_SPACE"])
 	{
@@ -456,7 +599,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 	else if ([settingType isEqualToString:@"PAGE"])
 		startIndex = [[[settingDict objectForKey:@"INDEX"] description] intValue];
 	else if ([settingType isEqualToString:@"QUEUED_IMAGE"])
-		[imageURLQueue addObject:[[settingDict objectForKey:@"URL"] description]];
+		[imageURLQueue addObject:[[[settingDict objectForKey:@"URL"] description] stringByUnescapingXMLEntites]];
 }
 
 
@@ -475,19 +618,26 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 - (void)updateQueryAndDescriptor
 {
 	[urlBase autorelease];
-	urlBase = [[NSMutableString stringWithString:@"http://images.google.com/images?svnum=10&hl=en&"] retain];
+	urlBase = [[NSMutableString stringWithString:@"http://images.google.com/images?sout=1&"] retain];
 	[descriptor autorelease];
 	descriptor = [[NSMutableString string] retain];
 	
 	if ([requiredTerms length] > 0)
 	{
-		[urlBase appendString:[NSString stringWithFormat:@"as_q=%@&", escapedNSString(requiredTerms)]];
+		[urlBase appendFormat:@"as_q=%@", escapedNSString(requiredTerms)];
 		[descriptor appendString:requiredTerms];
+		
+		if ([collectionQueryValue length] > 0)
+			[urlBase appendFormat:@"+source%%3A%@", collectionQueryValue];
+		
+		[urlBase appendString:@"&"];
 	}
+	else if ([collectionQueryValue length] > 0)
+		[urlBase appendFormat:@"as_q=source%%3A%@&", collectionQueryValue];
 	
 	if ([optionalTerms length] > 0)
 	{
-		[urlBase appendString:[NSString stringWithFormat:@"as_oq=%@&", escapedNSString(optionalTerms)]];
+		[urlBase appendFormat:@"as_oq=%@&", escapedNSString(optionalTerms)];
 		if ([descriptor length] > 0)
 			[descriptor appendString:@" and any of "];
 		else
@@ -497,7 +647,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 	
 	if ([excludedTerms length] > 0)
 	{
-		[urlBase appendString:[NSString stringWithFormat:@"as_eq=%@&", escapedNSString(excludedTerms)]];
+		[urlBase appendFormat:@"as_eq=%@&", escapedNSString(excludedTerms)];
 		if ([descriptor length] > 0)
 			[descriptor appendString:@" but not "];
 		else
@@ -505,10 +655,37 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 		[descriptor appendString:excludedTerms];
 	}
 	
+	switch (contentType)
+	{
+		case anyContent:
+			break;
+		case newsContent:
+			[urlBase appendString:@"imgtype=news&"];
+			if ([descriptor length] > 0)
+				[descriptor appendString:@" news"];
+			else
+				[descriptor appendString:@"News"];
+			break;
+		case faceContent:
+			[urlBase appendString:@"imgtype=face&"];
+			if ([descriptor length] > 0)
+				[descriptor appendString:@" face"];
+			else
+				[descriptor appendString:@"Face"];
+			break;
+		case photoContent:
+			[urlBase appendString:@"imgtype=photo&"];
+			if ([descriptor length] > 0)
+				[descriptor appendString:@" photo"];
+			else
+				[descriptor appendString:@"Photo"];
+			break;
+	}
+	
 	switch (colorSpace)
 	{
 		case anyColorSpace:
-			[urlBase appendString:@"imgc=&"];
+			//[urlBase appendString:@"imgc=&"];
 			break;
 		case rgbColorSpace:
 			[urlBase appendString:@"imgc=color&"];
@@ -535,7 +712,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 	
 	if ([siteString length] > 0)
 	{
-		[urlBase appendString:[NSString stringWithFormat:@"as_sitesearch=%@&", escapedNSString(siteString)]];
+		[urlBase appendFormat:@"as_sitesearch=%@&", escapedNSString(siteString)];
 		if ([descriptor length] > 0)
 			[descriptor appendString:@" images from "];
 		else
@@ -554,6 +731,16 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 		case noFiltering:
 			[urlBase appendString:@"safe=off&"]; break;
 	}
+	
+	if (licenseType == licenseToShare && !commerciallyLicensed)
+		[urlBase appendString:@"tbs=sur:f&"];
+	else if (licenseType == licenseToShare && commerciallyLicensed)
+		[urlBase appendString:@"tbs=sur:fc&"];
+	else if (licenseType == licenseToModify && !commerciallyLicensed)
+		[urlBase appendString:@"tbs=sur:fm&"];
+	else if (licenseType == licenseToModify && commerciallyLicensed)
+		[urlBase appendString:@"tbs=sur:fmc&"];
+	
 	[urlBase appendString:@"start="];
 }
 
@@ -603,6 +790,20 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
+- (void)setContentType:(GoogleContentType)type
+{
+	contentType = type;
+	
+	[self updateQueryAndDescriptor];
+}
+
+
+- (GoogleContentType)contentType
+{
+	return contentType;
+}
+
+
 - (void)setColorSpace:(GoogleColorSpace)inColorSpace
 {
 	colorSpace = inColorSpace;
@@ -646,6 +847,49 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
+- (void)setLicenseType:(GoogleLicenseType)inType
+{
+	licenseType = inType;
+	
+	[self updateQueryAndDescriptor];
+}
+
+
+- (GoogleLicenseType)licenseType
+{
+	return licenseType;
+}
+
+
+- (void)setCommerciallyLicensed:(BOOL)flag
+{
+	commerciallyLicensed = flag;
+	
+	[self updateQueryAndDescriptor];
+}
+
+
+- (BOOL)commerciallyLicensed
+{
+	return commerciallyLicensed;
+}
+
+
+- (void)setCollectionQueryValue:(NSString *)value
+{
+	[collectionQueryValue release];
+	collectionQueryValue = [value retain];
+	
+	[self updateQueryAndDescriptor];
+}
+
+
+- (NSString *)collectionQueryValue
+{
+	return collectionQueryValue;
+}
+
+
 - (void)reset
 {
 	[imageURLQueue removeAllObjects];
@@ -665,49 +909,77 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
-- (void)populateImageQueueFromNextPage
+- (NSError *)populateImageQueueFromNextPage
 {
-	while ([imageURLQueue count] == 0 && startIndex >= 0)
+	NSString		*nextPage = [urlBase stringByAppendingString:[NSString stringWithFormat:@"%d", startIndex]];
+	NSError			*xmlError = nil;
+	NSXMLDocument	*xmlDoc = [[NSXMLDocument alloc] initWithContentsOfURL:[NSURL URLWithString:nextPage] options:NSXMLDocumentTidyHTML error:&xmlError];
+	
+	if (xmlDoc)
 	{
-		NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-		NSString			*nextPage = [urlBase stringByAppendingString:[NSString stringWithFormat:@"%d", startIndex]];
-		NSString			*URLcontent = [NSString stringWithContentsOfURL:[NSURL URLWithString:nextPage]];
+//		[[xmlDoc XMLDataWithOptions:NSXMLNodePrettyPrint] writeToURL:[NSURL fileURLWithPath:@"/Users/knarf/Desktop/test.html"] atomically:NO];
 		
-		if (URLcontent)
+		NSArray			*imageNodes = [xmlDoc nodesForXPath:@".//table[@class='images_table']/tr/td" error:&xmlError];
+		
+		if (!xmlError)
 		{
-				// break up the HTML by img tags and look for image URLs
-			NSEnumerator	*tagEnumerator = [[URLcontent componentsSeparatedByString:@"<img "] objectEnumerator];
-			NSString		*tag = nil;
+			NSMutableArray  *newImageURLs = [NSMutableArray arrayWithCapacity:20];
 			
-			[tagEnumerator nextObject];	// The first item didn't start with "<img ", the rest do.
-			while (tag = [tagEnumerator nextObject])
+			for (NSXMLNode *imageNode in imageNodes)
 			{
-					// Find where the image URL starts.
-				NSRange		src = [tag rangeOfString:@"src="];
-				tag = [tag substringWithRange:NSMakeRange(src.location + 4, [tag length] - src.location - 4)];
+				NSArray	*linkNodes = [imageNode nodesForXPath:@".//a" error:&xmlError];
 				
-					// Find where the image URL ends
-				src = [tag rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@" \">"]];
-				if (src.location != NSNotFound)
-					src.length = src.location;
+				if (!xmlError)
+					for (NSXMLElement *linkNode in linkNodes)
+					{
+						NSXMLNode	*link = [linkNode attributeForName:@"href"];
+						
+						if (link)
+						{
+							NSURL			*linkURL = [NSURL URLWithString:[link stringValue]];
+							NSDictionary	*queryDict = [linkURL queryDict];
+							
+							if ([queryDict objectForKey:@"tbnid"])
+							{
+								NSString	*thumbnailID = [queryDict objectForKey:@"tbnid"],
+											*thumbnailWidth = [queryDict objectForKey:@"w"],
+											*thumbnailHeight = [queryDict objectForKey:@"h"],
+											*imageURLString = [queryDict objectForKey:@"imgurl"],
+											*contextURLString = [queryDict objectForKey:@"imgrefurl"];
+								NSString	*description = [imageNode stringValue];
+								
+								// Strip off the size information.
+								NSRange		endOfDescription = [description rangeOfString:[NSString stringWithFormat:@"%@ %C %@", thumbnailWidth, (unsigned short)0xD7, thumbnailHeight]];
+								if (endOfDescription.location != NSNotFound)
+									description = [description substringToIndex:endOfDescription.location - 1];
+								
+								// Strip off any leading newline.
+								if ([description characterAtIndex:0] == '\n')
+									description = [description substringFromIndex:1];
+								
+								// Strip off the "[edit]" text that Google picks up from Wikipedia links.
+								if ([[description substringToIndex:7] isEqualToString:@"[edit] "])
+									description = [description substringFromIndex:7];
+								
+								[newImageURLs addObject:[NSString stringWithFormat:@"%@\t%@\t%@\t%@\t%@\t%@", thumbnailID, thumbnailWidth, thumbnailHeight, imageURLString, contextURLString, description]];
+							}
+						}
+					}
 				else
-					src.length = [tag length];
-				src.location = 0;
-				
-					// If the URL has the expected prefix then add it to the queue.
-				NSString	*imageURL = [tag substringWithRange:src];
-				if ([imageURL hasPrefix:@"/images?q="])
-					[imageURLQueue addObject:[imageURL substringToIndex:([[imageURL substringFromIndex:1] rangeOfString:@"/"].location + 1)]];
+					xmlError = nil;
 			}
-			
-				// Check if there are any more pages of search results.
-			if ([URLcontent rangeOfString:@"nav_next.gif"].location == NSNotFound)
+					
+			if ([newImageURLs count] == 0)
 				startIndex = -1;	// This was the last page of search results.
 			else
-				startIndex += 20;
+			{
+				[imageURLQueue addObjectsFromArray:newImageURLs];
+				startIndex += [newImageURLs count];
+			}
 		}
-		[pool release];
 	}
+	
+	return xmlError;
 }
 
 
@@ -717,25 +989,32 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 }
 
 
-- (NSImage *)nextImageAndIdentifier:(NSString **)identifier
+- (NSError *)nextImage:(NSImage **)image andIdentifier:(NSString **)identifier
 {
-	NSImage		*image = nil;
-    
-	do
-	{
-		if ([imageURLQueue count] == 0)
-			[self populateImageQueueFromNextPage];
-		else
-		{
-				// Get the image for the first identifier in the queue.
-			image = [self imageForIdentifier:[imageURLQueue objectAtIndex:0]];
-			if (image)
-				*identifier = [[[imageURLQueue objectAtIndex:0] retain] autorelease];
-			[imageURLQueue removeObjectAtIndex:0];
-		}
-	} while (!image && [self hasMoreImages]);
+	NSError	*error = nil;
 	
-	return image;
+	*image = nil;
+	*identifier = nil;
+	
+	if ([imageURLQueue count] == 0)
+		error = [self populateImageQueueFromNextPage];
+	
+	if (!error && [imageURLQueue count] > 0)
+	{
+			// Get the image for the first identifier in the queue.
+		*image = [self imageForIdentifier:[imageURLQueue objectAtIndex:0]];
+		if (*image)
+			*identifier = [[[imageURLQueue objectAtIndex:0] retain] autorelease];
+		[imageURLQueue removeObjectAtIndex:0];
+	}
+	
+	return error;
+}
+
+
+- (BOOL)canReenumerateImages
+{
+	return YES;
 }
 
 
@@ -769,7 +1048,7 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 				if (image)
 					[GoogleImageSource cacheImageData:imageData withIdentifier:identifier];
 				
-				[imageData release];
+				//[imageData release];
 			}
 		}
 	}
@@ -780,19 +1059,42 @@ static int compareWithKey(NSDictionary	*dict1, NSDictionary *dict2, void *contex
 
 - (NSURL *)urlForIdentifier:(NSString *)identifier
 {
-	return [NSURL URLWithString:[NSString stringWithFormat:@"http://images.google.com%@", identifier]];
+	NSString	*urlString = nil;
+	NSArray		*identifierComponents = [identifier componentsSeparatedByString:@"\t"];
+	
+	if ([identifierComponents count] == 1)
+		urlString = [NSString stringWithFormat:@"http://tbn0.google.com/images?q=tbn:%@", identifier];
+	else
+		urlString = [NSString stringWithFormat:@"http://tbn0.google.com/images?q=tbn:%@%@", [identifierComponents objectAtIndex:0], [identifierComponents objectAtIndex:3]];
+	
+	return [NSURL URLWithString:urlString];
 }	
 
 
 - (NSURL *)contextURLForIdentifier:(NSString *)identifier
 {
-	return nil;
+	NSArray		*identifierComponents = [identifier componentsSeparatedByString:@"\t"];
+	
+	if ([identifierComponents count] > 1)
+	{
+		NSURL		*imageRefURL = [NSURL URLWithString:[identifierComponents objectAtIndex:4] relativeToURL:[NSURL URLWithString:[identifierComponents objectAtIndex:3]]];
+		NSString	*googlePage = [NSString stringWithFormat:@"http://images.google.com/imgres?imgurl=%@&imgrefurl=%@&hl=en&start=1&um=1&tbnid=%@&tbnw=%@&tbnh=%@", [identifierComponents objectAtIndex:3], [imageRefURL absoluteString], [identifierComponents objectAtIndex:0], [identifierComponents objectAtIndex:1], [identifierComponents objectAtIndex:2]];
+		
+		return [NSURL URLWithString:googlePage];
+	}
+	else
+		return nil;
 }	
 
 
 - (NSString *)descriptionForIdentifier:(NSString *)identifier
 {
-	return nil;
+	NSArray		*identifierComponents = [identifier componentsSeparatedByString:@"\t"];
+	
+	if ([identifierComponents count] > 1)
+		return [identifierComponents objectAtIndex:5];
+	else
+		return nil;
 }	
 
 

@@ -8,9 +8,13 @@
 
 #import <Cocoa/Cocoa.h>
 
+@class MacOSaiXBitmapImageRep;
+
 
 @interface NSImage (MacOSaiX)
 
 - (NSImage *)copyWithLargestDimension:(int)size;
+
+- (MacOSaiXBitmapImageRep *)reasonablyFullSizedBitmapRep;
 
 @end

@@ -12,16 +12,16 @@
 #define USE_RIEMERSMA 0
 
 #if USE_RIEMERSMA
-	#define MAX_COLOR_DIFF (255.0 * 255.0 * 9.0)
+	#define MAX_COLOR_DIFF (255.0f * 255.0f * 9.0f)
 #else
-	#define MAX_COLOR_DIFF (255.0 * 255.0 * 3.0)
+	#define MAX_COLOR_DIFF (255.0f * 255.0f * 4.0f)
 #endif
 
 static MacOSaiXImageMatcher	*sharedMatcher = nil;
 
 typedef struct pixelColor
 {
-	unsigned char	red, green, blue;
+	unsigned char	red, green, blue, alpha;
 } pixelColor;
 
 
@@ -30,17 +30,18 @@ float colorDifference(pixelColor color1, pixelColor color2)
 {
 	int			redDiff = color1.red - color2.red, 
 				greenDiff = color1.green - color2.green, 
-				blueDiff = color1.blue - color2.blue;
+				blueDiff = color1.blue - color2.blue, 
+				alphaDiff = color1.alpha - color2.alpha;
 	
 	#if USE_RIEMERSMA
 			// Use the Riemersma metric (courtesy of Dr. Dobbs 11/2001 pg. 58)
-		float	redAverage = (color1.red + color2.red) / 2.0;
-		return ((2.0 + redAverage / 255.0) * redDiff * redDiff + 
-			    4 * greenDiff * greenDiff + 
-			    (2 + (255.0 - redAverage) / 255.0) * blueDiff * blueDiff);
+		float	redAverage = (color1.red + color2.red) / 2.0f;
+		return ((2.0f + redAverage / 255.0f) * redDiff * redDiff + 
+			    4.0f * greenDiff * greenDiff + 
+			    (2.0f + (255.0f - redAverage) / 255.0f) * blueDiff * blueDiff);
 	#else
 			// Do a direct RGB colorspace calculation.
-		return redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff;
+		return redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff + alphaDiff * alphaDiff;
 	#endif
 }
 
@@ -91,7 +92,7 @@ float colorDifference(pixelColor color1, pixelColor color2)
 //					}
 //			float			adjustment = (MAX_COLOR_DIFF - (totalDifference / neighborCount)) / MAX_COLOR_DIFF;
 //			adjustedMask[startX + startY * pixelsWide] = (maskRep ? (float)maskByte : 255.0) * adjustment;
-			adjustedMask[startX + startY * pixelsWide] = (maskRep ? (float)maskByte : 255.0);
+			adjustedMask[startX + startY * pixelsWide] = (maskRep ? (float)maskByte : 255.0f);
 #else			
 				// Alter the mask weight based on the size of the color patch this pixel is in.
 			NSMutableArray	*pointsInPatch = [NSMutableArray array], 
@@ -160,35 +161,42 @@ float colorDifference(pixelColor color1, pixelColor color2)
 }
 
 
-- (float)compareImageRep:(NSBitmapImageRep *)bitmapRep1
-				withMask:(NSBitmapImageRep *)maskRep
-			  toImageRep:(NSBitmapImageRep *)bitmapRep2
-		    previousBest:(float)valueToBeat
+- (NSNumber *)compareImageRep:(NSBitmapImageRep *)bitmapRep1
+					 withMask:(NSBitmapImageRep *)maskRep
+				   toImageRep:(NSBitmapImageRep *)bitmapRep2
+				 previousBest:(float)valueToBeat
 {
 	if (!bitmapRep1 || !bitmapRep2 || 
 		[bitmapRep1 pixelsWide] != [maskRep pixelsWide] || [bitmapRep1 pixelsWide] != [bitmapRep2 pixelsWide] || 
 		[bitmapRep1 pixelsHigh] != [maskRep pixelsHigh] || [bitmapRep1 pixelsHigh] != [bitmapRep2 pixelsHigh])
 		[NSException raise:@"Invalid bitmap(s)" format:@"The bitmaps to compare are not the same size"];
 	
-	float				matchValue = 0.0;
-	int					bytesPerPixel1 = [bitmapRep1 hasAlpha] ? 4 : 3, 
+	#ifdef DEBUG
+		NSAssert1([[bitmapRep1 colorSpaceName] hasSuffix:@"RGBColorSpace"], @"Bitmap to be compared is not RGB (%@)", [bitmapRep1 colorSpaceName]);
+		NSAssert1([[bitmapRep2 colorSpaceName] hasSuffix:@"RGBColorSpace"], @"Bitmap to be compared is not RGB (%@)", [bitmapRep2 colorSpaceName]);
+	#endif
+	
+	float				matchValue = 0.0f;
+	BOOL				bitmapRep1HasAlpha = [bitmapRep1 hasAlpha], 
+						bitmapRep2HasAlpha = [bitmapRep2 hasAlpha];
+	int					bytesPerPixel1 = bitmapRep1HasAlpha ? 4 : 3, 
 						bytesPerRow1 = [bitmapRep1 bytesPerRow], 
-						bytesPerPixel2 = [bitmapRep2 hasAlpha] ? 4 : 3, 
+						bytesPerPixel2 = bitmapRep2HasAlpha ? 4 : 3, 
 						bytesPerRow2 = [bitmapRep2 bytesPerRow], 
 						maskBytesPerPixel = [maskRep hasAlpha] ? 4 : 3, 
 						maskBytesPerRow = [maskRep bytesPerRow], 
 						xSize = [bitmapRep1 size].width,
 						ySize = [bitmapRep1 size].height;
-	float				pixelCount = 0.0, // fractional pixels are counted
+	float				pixelCount = 0.0f, // fractional pixels are counted
 						pixelsLeft = xSize * ySize;
-	NSData				*adjustedMask = [self adjustedMaskForMaskRep:maskRep ofImageRep:bitmapRep1];
+//	NSData				*adjustedMask = [self adjustedMaskForMaskRep:maskRep ofImageRep:bitmapRep1];
 	unsigned char		*bitmap1Bytes = [bitmapRep1 bitmapData], 
 						*bitmap2Bytes = [bitmapRep2 bitmapData], 
-						*maskBytes = [maskRep bitmapData], 
-						*adjustedMaskBytes = (unsigned char *)[adjustedMask bytes];
+						*maskBytes = [maskRep bitmapData]; 
+//						*adjustedMaskBytes = (unsigned char *)[adjustedMask bytes];
 	
 		// Scale the 0.0<->1.0 value back to our internal scale to make calculation faster.
-	valueToBeat *= MAX_COLOR_DIFF;
+//	valueToBeat *= MAX_COLOR_DIFF;
 	
 		// the size of bitmapRep will be a maximum of TILE_BITMAP_SIZE pixels
 		// the size of the smaller dimension of imageRep will be TILE_BITMAP_SIZE pixels
@@ -201,27 +209,28 @@ float colorDifference(pixelColor color1, pixelColor color2)
 		for (y = 0; y < ySize; y++)
 		{
 			unsigned char	*bitmap1_off = bitmap1Bytes + x * bytesPerPixel1 + y * bytesPerRow1,
-							*bitmap2_off = bitmap2Bytes + x * bytesPerPixel2 + y * bytesPerRow2;
-			pixelColor		color1 = {*bitmap1_off, *(bitmap1_off + 1), *(bitmap1_off + 2)}, 
-							color2 = {*bitmap2_off, *(bitmap2_off + 1), *(bitmap2_off + 2)};
-			float			adjustedMaskWeight = *(adjustedMaskBytes++) / 255.0;	// 0.0 <-> 1.0
+							*bitmap2_off = bitmap2Bytes + x * bytesPerPixel2 + y * bytesPerRow2, 
+							*mask_off = maskBytes + x * maskBytesPerPixel + y * maskBytesPerRow;
+			pixelColor		color1 = {*bitmap1_off, *(bitmap1_off + 1), *(bitmap1_off + 2), (bitmapRep1HasAlpha ? *(bitmap1_off + 3) : 255)}, 
+							color2 = {*bitmap2_off, *(bitmap2_off + 1), *(bitmap2_off + 2), (bitmapRep2HasAlpha ? *(bitmap2_off + 3) : 255)};
+			float			adjustedMaskWeight = *mask_off / 255.0f;	//*(adjustedMaskBytes++) / 255.0f;	// 0.0 <-> 1.0
 			
 			matchValue += (MAX_COLOR_DIFF - colorDifference(color1, color2)) * adjustedMaskWeight;
-			pixelCount += (maskRep ? *(maskBytes + x * maskBytesPerPixel + y * maskBytesPerRow) / 255.0 : 1.0);
+			pixelCount += (maskRep ? *mask_off / 255.0f : 1.0f);
 		}
 		pixelsLeft -= ySize;
 		
 		// Optimization: the lower the matchValue the better so if it's already greater 
 		// than the previous best then it's no use going any further.
-//		if (matchValue / (float)(pixelCount + pixelsLeft) > valueToBeat)
-//			return 1.0;
+		if ((1.0f - (matchValue + pixelsLeft * MAX_COLOR_DIFF) / (float)(pixelCount + pixelsLeft) / MAX_COLOR_DIFF) > valueToBeat)
+			return nil;
 	}
 
 		// Average the value per active pixel in the original mask and scale into the 0-1 range.
 		// A pixel count of zero means that the image was completely transparent and we shouldn't use it.
-	matchValue = (pixelCount == 0 ? 1.0 : 1.0 - matchValue / pixelCount / MAX_COLOR_DIFF);
+	matchValue = (pixelCount == 0 ? 1.0f : 1.0f - matchValue / pixelCount / MAX_COLOR_DIFF);
 	
-	return matchValue;
+	return [NSNumber numberWithFloat:matchValue];
 }
 
 

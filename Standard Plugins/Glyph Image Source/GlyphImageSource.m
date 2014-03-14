@@ -76,13 +76,32 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
++ (NSString *)standardNameForGlyph:(UInt16)glyphNum
+{
+	static NSArray	*glyphNames = nil;
+	
+	if (!glyphNames)
+	{
+		NSString	*plistPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"Glyph Names" ofType:@"plist"];
+		
+		glyphNames = [[NSArray arrayWithContentsOfFile:plistPath] retain];
+	}
+	
+	return (glyphNum < [glyphNames count] ? [glyphNames objectAtIndex:glyphNum] : nil);
+}
+
+
 - (id)init
 {
 	if (self = [super init])
 	{
-		focusWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(-10000, -10000, 128, 128)
+		focusWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(-10000.0, -10000.0, 512.0, 512.0)
 							   styleMask:NSBorderlessWindowMask
 							 backing:NSBackingStoreBuffered defer:NO];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(focusWindowWillClose:) 
+													 name:NSWindowWillCloseNotification 
+												   object:focusWindow];
 		focusWindowLock = [[NSLock alloc] init];
 		
 		fontNames = [[NSMutableArray array] retain];
@@ -180,6 +199,7 @@ static NSImage	*glyphSourceImage = nil;
 		while (colorListName = [colorListNameEnumerator nextObject])
 			[copy addColorList:colorListName ofClass:colorListClass];
 	}
+	[copy setAllowTransparentImages:allowTransparentImages];
 	
 	[copy setLetterPool:letterPool];
 	
@@ -211,7 +231,8 @@ static NSImage	*glyphSourceImage = nil;
 {
 	float		red = 0.0,
 				green = 0.0,
-				blue = 0.0;
+				blue = 0.0, 
+				alpha = 0.0;
 	NSString	*colorListClass = [[colorLists allKeys] objectAtIndex:(random() % [[colorLists allKeys] count])];
 	NSArray		*colorClassLists = [colorLists objectForKey:colorListClass];
 	NSString	*colorListName = [colorClassLists objectAtIndex:(random() % [colorClassLists count])];
@@ -220,47 +241,67 @@ static NSImage	*glyphSourceImage = nil;
 	{
 		if ([colorListName isEqualToString:@"All Colors"])
 		{
-			red = (random() % 256) / 256.0;
-			green = (random() % 256) / 256.0;
-			blue = (random() % 256) / 256.0;
+			red = (random() % 256) / 255.0;
+			green = (random() % 256) / 255.0;
+			blue = (random() % 256) / 255.0;
+			alpha = (allowTransparentImages ? (random() % 256) / 255.0 : 1.0);
 		}
 		else if ([colorListName isEqualToString:@"Grayscale"])
-			red = green = blue = (random() % 256) / 256.0;
+		{
+			red = green = blue = (random() % 256) / 255.0;
+			alpha = (allowTransparentImages ? (random() % 256) / 255.0 : 1.0);
+		}
 		else if ([colorListName isEqualToString:@"Redscale"])
 		{
-			red = (random() % 256) / 256.0;
-			green = blue = (random() % (int)(red * 256.0)) / 256.0;
+			red = (random() % 256) / 255.0;
+			green = blue = (red >= 1.0 / 255.0 ? (random() % (int)(red * 255.0)) / 255.0 : 0.0);
+			alpha = (allowTransparentImages ? (random() % 256) / 255.0 : 1.0);
 		}
 		else if ([colorListName isEqualToString:@"Greenscale"])
 		{
-			green = (random() % 256) / 256.0;
-			red = blue = (random() % (int)(green * 256.0)) / 256.0;
+			green = (random() % 256) / 255.0;
+			red = blue = (green >= 1.0 / 255.0 ? (random() % (int)(green * 255.0)) / 255.0 : 0.0);
+			alpha = (allowTransparentImages ? (random() % 256) / 255.0 : 1.0);
 		}
 		else if ([colorListName isEqualToString:@"Bluescale"])
 		{
-			blue = (random() % 256) / 256.0;
-			red = green = (random() % (int)(blue * 256.0)) / 256.0;
+			blue = (random() % 256) / 255.0;
+			red = green = (blue >= 1.0 / 255.0 ? (random() % (int)(blue * 255.0)) / 255.0 : 0.0);
+			alpha = (allowTransparentImages ? (random() % 256) / 255.0 : 1.0);
 		}
 		else if ([colorListName isEqualToString:@"Sepia Tone"])
 		{
 				// Convert from HSV space: Hue = 50 degrees, Saturation = 35%, Value = random
-			red = (random() % 256) / 256.0;
+			red = (random() % 256) / 255.0;
 			green = red * (1.0 - (0.35 * (1.0 - 5.0 / 6.0)));
 			blue = red * (1.0 - 0.35);
+			alpha = (allowTransparentImages ? (random() % 256) / 255.0 : 1.0);
 		}
 	}
 	else if ([colorListClass isEqualToString:@"System-wide"])
 	{
 		NSColorList	*colorList = [NSColorList colorListNamed:colorListName];
 		NSArray		*colorKeys = [colorList allKeys];
-		NSColor		*color = [colorList colorWithKey:[colorKeys objectAtIndex:(random() % [colorKeys count])]];
 		
-		red = [color redComponent];
-		green = [color greenComponent];
-		blue = [color blueComponent];
+		if ([colorKeys count] > 0)
+		{
+			NSColor		*color = [colorList colorWithKey:[colorKeys objectAtIndex:(random() % [colorKeys count])]];
+			
+			red = [color redComponent];
+			green = [color greenComponent];
+			blue = [color blueComponent];
+			alpha = [color alphaComponent];
+		}
+		else
+		{
+			red = (random() % 256) / 255.0;
+			green = (random() % 256) / 255.0;
+			blue = (random() % 256) / 255.0;
+			alpha = (allowTransparentImages ? (random() % 256) / 255.0 : 1.0);
+		}
 	}
 	
-	return [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:1.0];
+	return [NSColor colorWithCalibratedRed:red green:green blue:blue alpha:alpha];
 }
 
 
@@ -304,9 +345,12 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
-- (NSImage *)nextImageAndIdentifier:(NSString **)identifier
+- (NSError *)nextImage:(NSImage **)image andIdentifier:(NSString **)identifier
 {
-	NSImage	*image = nil;
+	NSError	*error = nil;
+	
+	*image = nil;
+	*identifier = nil;
 	
 	if ([fontNames count] > 0 && [colorLists count] > 0)
 	{
@@ -342,26 +386,28 @@ static NSImage	*glyphSourceImage = nil;
 							*backgroundColor = [self randomColor];
 				
 					// Make sure the colors are a little different.
-				while (fabsf([foregroundColor redComponent] - [backgroundColor redComponent]) < 0.1 && 
-					   fabsf([foregroundColor greenComponent] - [backgroundColor greenComponent]) < 0.1 && 
-					   fabsf([foregroundColor blueComponent] - [backgroundColor blueComponent]) < 0.1)
+				while (fabs([foregroundColor redComponent] - [backgroundColor redComponent]) < 0.02 && 
+					   fabs([foregroundColor greenComponent] - [backgroundColor greenComponent]) < 0.02 && 
+					   fabs([foregroundColor blueComponent] - [backgroundColor blueComponent]) < 0.02)
 				{
 					foregroundColor = [self randomColor];
 					backgroundColor = [self randomColor];
 				}
 				
 				NSString	*tempIdentifier = [NSString stringWithFormat:
-													@"%@\t%d %d %d %d %d %d %d", 
+													@"%@\t%d %d %d %d %d %d %d %d %d", 
 													[fontNames objectAtIndex:fontNum], glyphNum,
-													(int)(256.0 * [foregroundColor redComponent]), 
-													(int)(256.0 * [foregroundColor greenComponent]), 
-													(int)(256.0 * [foregroundColor blueComponent]), 
-													(int)(256.0 * [backgroundColor redComponent]), 
-													(int)(256.0 * [backgroundColor greenComponent]), 
-													(int)(256.0 * [backgroundColor blueComponent])];
+													(int)(255.0 * [foregroundColor redComponent]), 
+													(int)(255.0 * [foregroundColor greenComponent]), 
+													(int)(255.0 * [foregroundColor blueComponent]), 
+													(int)(255.0 * [backgroundColor redComponent]), 
+													(int)(255.0 * [backgroundColor greenComponent]), 
+													(int)(255.0 * [backgroundColor blueComponent]), 
+													(int)(255.0 * [foregroundColor alphaComponent]), 
+													(int)(255.0 * [backgroundColor alphaComponent])];
 				
-				image = [self imageForIdentifier:tempIdentifier];
-				if (image && identifier)
+				*image = [self imageForIdentifier:tempIdentifier];
+				if (*image)
 				{
 					*identifier = tempIdentifier;
 					imageCount++;
@@ -370,18 +416,30 @@ static NSImage	*glyphSourceImage = nil;
 		}
 	}
 	
-	return image;
+	return error;
+}
+
+
+- (BOOL)canReenumerateImages
+{
+	// TBD: return YES if a limited number of colors/fonts/letters are chosen?
+	
+	return NO;
 }
 
 
 - (BOOL)canRefetchImages
 {
+	// TBD: return NO if non-system font in use?
+	
 	return YES;
 }
 
 
 - (NSImage *)imageForIdentifier:(NSString *)identifier
 {
+	// TODO: create a PDF rep instead of a bitmap
+	
 	NSImage	*image = nil;
 	NSArray	*fontNameAndNumbers = [identifier componentsSeparatedByString:@"\t"];
 	NSFont	*font = [NSFont fontWithName:[fontNameAndNumbers objectAtIndex:0] size:12.0];
@@ -395,7 +453,9 @@ static NSImage	*glyphSourceImage = nil;
 							foreBlue = [[numbers objectAtIndex:3] intValue], 
 							backRed = [[numbers objectAtIndex:4] intValue], 
 							backGreen = [[numbers objectAtIndex:5] intValue], 
-							backBlue = [[numbers objectAtIndex:6] intValue];
+							backBlue = [[numbers objectAtIndex:6] intValue], 
+							foreAlpha = ([numbers count] > 7 ? [[numbers objectAtIndex:7] intValue] : 255), 
+							backAlpha = ([numbers count] > 8 ? [[numbers objectAtIndex:8] intValue] : 255);
 		NSBezierPath		*glyphPath = [NSBezierPath bezierPath];
 		NSRect				glyphRect, 
 							destRect = NSZeroRect;
@@ -405,14 +465,17 @@ static NSImage	*glyphSourceImage = nil;
 		image = [[[NSImage alloc] initWithSize:glyphsBounds.size] autorelease];
 		
 			// Get the bounds of the glyph.
-		[focusWindowLock lock];
-			while (![[focusWindow contentView] lockFocusIfCanDraw])
-				[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
+//		[focusWindowLock lock];
+//			while (![[focusWindow contentView] lockFocusIfCanDraw])
+//				[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
+		[image lockFocus];
 			[glyphPath moveToPoint:NSZeroPoint];
 			[glyphPath appendBezierPathWithGlyph:glyphNum inFont:font];
 			glyphRect = [glyphPath bounds];
-			[[focusWindow contentView] unlockFocus];
-		[focusWindowLock unlock];
+		[image unlockFocus];
+		[image removeRepresentation:[[image representations] lastObject]];
+//			[[focusWindow contentView] unlockFocus];
+//		[focusWindowLock unlock];
 		
 			// Make sure it's non-empty.
 		if (glyphRect.size.width > 0 && glyphRect.size.height > 0)
@@ -436,25 +499,30 @@ static NSImage	*glyphSourceImage = nil;
 			[transform translateXBy:-glyphRect.origin.x yBy:-glyphRect.origin.y];
 			[glyphPath transformUsingAffineTransform:transform];
 			
-			[focusWindowLock lock];
-				while (![[focusWindow contentView] lockFocusIfCanDraw])
-					[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
+//			[focusWindowLock lock];
+//				while (![[focusWindow contentView] lockFocusIfCanDraw])
+//					[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:0.1]];
+			[image lockFocus];
+					// start with a clear background
+				[[NSColor clearColor] set];
+				NSRectFill(glyphsBounds);
 				
 					// draw the background color
-				[[NSColor colorWithCalibratedRed:backRed/256.0 green:backGreen/256.0 blue:backBlue/256.0
-							alpha:1.0] set];
-				[NSBezierPath fillRect:glyphsBounds];
+				[[NSColor colorWithCalibratedRed:backRed/255.0 green:backGreen/255.0 blue:backBlue/255.0 alpha:backAlpha/255.0] set];
+				NSRectFillUsingOperation(glyphsBounds, NSCompositeSourceOver);
 				
 					// draw the glyph in the foreground color
-				[[NSColor colorWithCalibratedRed:foreRed/256.0 green:foreGreen/256.0 blue:foreBlue/256.0
-							alpha:1.0] set];
+				[[NSColor colorWithCalibratedRed:foreRed/255.0 green:foreGreen/255.0 blue:foreBlue/255.0 alpha:foreAlpha/255.0] set];
 				[glyphPath fill];
 				
 					// grab the image
-				imageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:glyphsBounds] autorelease];
-				
-				[[focusWindow contentView] unlockFocus];
-			[focusWindowLock unlock];
+//				imageRep = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:glyphsBounds] autorelease];
+//				
+//				[[focusWindow contentView] unlockFocus];
+//			[focusWindowLock unlock];
+			[image unlockFocus];
+			
+			imageRep = [NSBitmapImageRep imageRepWithData:[image TIFFRepresentation]];
 
 			if (imageRep)
 				[image addRepresentation:imageRep];
@@ -497,13 +565,13 @@ static NSImage	*glyphSourceImage = nil;
 	{
 		if (glyphsBounds.size.width > glyphsBounds.size.height)
 		{
-			glyphsBounds.size.height = 64.0 / glyphsBounds.size.width * glyphsBounds.size.height;
-			glyphsBounds.size.width = 64.0;
+			glyphsBounds.size.height = round(512.0 / glyphsBounds.size.width * glyphsBounds.size.height);
+			glyphsBounds.size.width = 512.0;
 		}
 		else
 		{
-			glyphsBounds.size.width = 64.0 / glyphsBounds.size.height * glyphsBounds.size.width;
-			glyphsBounds.size.height = 64.0;
+			glyphsBounds.size.width = round(512.0 / glyphsBounds.size.height * glyphsBounds.size.width);
+			glyphsBounds.size.height = 512.0;
 		}
 	}
 	
@@ -588,6 +656,18 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
+- (void)setAllowTransparentImages:(BOOL)flag
+{
+	allowTransparentImages = flag;
+}
+
+
+- (BOOL)allowTransparentImages
+{
+	return allowTransparentImages;
+}
+
+
 #pragma mark Letters
 
 
@@ -634,7 +714,98 @@ static NSImage	*glyphSourceImage = nil;
 
 - (NSString *)descriptionForIdentifier:(NSString *)identifier
 {
-	return nil;
+	NSArray			*fontNameAndNumbers = [identifier componentsSeparatedByString:@"\t"];
+	NSString		*fontName = [fontNameAndNumbers objectAtIndex:0], 
+					*fontDisplayName = [[NSFont fontWithName:fontName size:0.0] displayName], 
+					*glyphName = nil;
+	UInt16			glyphNum = [[[[fontNameAndNumbers objectAtIndex:1] componentsSeparatedByString:@" "] objectAtIndex:0] intValue];
+	ATSFontRef		fontRef = ATSFontFindFromPostScriptName((CFStringRef)fontName, kATSOptionFlagsDefault);
+	
+	if (fontRef)
+	{
+		// Pull the glyph name from the 'post' table in the font.  (<http://developer.apple.com/textfonts/TTRefMan/RM06/Chap6post.html>)
+		
+		ByteCount		bufferSize = 0;
+		unsigned char	*buffer = nil;
+		OSStatus		status = ATSFontGetTable(fontRef, 'post', 0, 0, NULL, &bufferSize);
+		buffer = malloc(bufferSize);
+		status = ATSFontGetTable(fontRef, 'post', 0, bufferSize, buffer, &bufferSize);
+		
+		unsigned char	postFormatBuffer[4], 
+						postFormat1[4] = {0x0, 0x1, 0x0, 0x0}, 
+						postFormat2[4] = {0x0, 0x2, 0x0, 0x0}, 
+						postFormat3[4] = {0x0, 0x3, 0x0, 0x0}, 
+						postFormat4[4] = {0x0, 0x4, 0x0, 0x0};
+		memcpy(postFormatBuffer, buffer, 4);
+		
+		if (memcmp(postFormatBuffer, postFormat1, 4) == 0)
+			glyphName = [[self class] standardNameForGlyph:glyphNum];
+		else if (memcmp(postFormatBuffer, postFormat2, 4) == 0)
+		{
+			UInt16			glyphCount = *(buffer + 32) * 256 + *(buffer + 33), 
+							glyphNameIndex = *(buffer + 34 + glyphNum * 2) * 256 + *(buffer + 34 + glyphNum * 2 + 1);
+			
+			if (glyphNameIndex < 258)
+				glyphName = [[self class] standardNameForGlyph:glyphNameIndex];
+			else
+			{
+				unsigned char	*glyphNamePtr = buffer + 34 + glyphCount * 2;
+				UInt16			curIndex;
+				
+				glyphNameIndex -= 258;
+				
+				if (glyphNameIndex < glyphCount)
+				{
+					for (curIndex = 0; curIndex < glyphNameIndex; curIndex++)
+					{
+						unsigned char	nameLength = *glyphNamePtr;
+						
+						glyphNamePtr += nameLength + 1;
+					}
+					
+					if (glyphNamePtr < buffer + bufferSize)
+						glyphName = [[[NSString alloc] initWithData:[NSData dataWithBytes:glyphNamePtr + 1 length:*glyphNamePtr] encoding:NSASCIIStringEncoding] autorelease];
+					else
+					{
+						#ifdef DEBUG
+							NSLog(@"Name of glyph #%d beyond name table of %@", glyphNum, fontName);
+						#endif
+					}
+				}
+				else
+				{
+					#ifdef DEBUG
+						NSLog(@"Glyph #%d outside of name table of %@", glyphNum, fontName);
+					#endif
+				}
+			}
+		}
+		else if (memcmp(postFormatBuffer, postFormat3, 4) == 0)
+		{
+			// Format 3 does not specify any glyph names.
+		}
+		else if (memcmp(postFormatBuffer, postFormat4, 4) == 0)
+		{
+			#ifdef DEBUG
+				//NSLog(@"Don't know what to do with 'post' format 4.0: %@", fontName);
+			#endif
+		}
+		else
+		{
+			#ifdef DEBUG
+				NSLog(@"unknown 'post' format");
+			#endif
+		}
+		
+		free(buffer);
+	}
+	
+	// TBD: Use <http://partners.adobe.com/public/developer/en/opentype/aglfn13.txt> to lookup an even better name?
+	
+	if ([glyphName length] == 0)
+		return [NSString stringWithFormat:@"%@ #%d", fontDisplayName, glyphNum];
+	else
+		return [NSString stringWithFormat:@"%@ #%d (%@)", fontDisplayName, glyphNum, glyphName];
 }	
 
 
@@ -644,8 +815,16 @@ static NSImage	*glyphSourceImage = nil;
 }
 
 
+- (void)focusWindowWillClose:(NSNotification *)notification
+{
+	focusWindow = nil;
+}
+
+
 - (void)dealloc
 {
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	
     [fontNames release];
 	[colorLists release];
 	[letterPool release];

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>companyAddress</key>
@@ -68,14 +68,33 @@
 	<key>productPrice</key>
 	<string>0</string>
 	<key>productReleaseNotes</key>
-	<string>• Images for tiles can now be hand picked.
-• You can now fade between the original image and the mosaic both on screen and in exported images.
-• Selecting one or more image sources now highlights the tiles using images from those sources.
-• Images that will be cropped more than a certain amount can now be filtered out.
-• Choosing an iPhoto album or keyword by clicking on the radio buttons now works correctly.
-• Fixed crash when using iPhoto image sources.
-• Fixed display problem when zooming.
-• Fixed memory leak in image cache.
+	<string>• New features:
+	• Added an iTunes album artwork image source.
+	• Added a Delicious Library image source.
+	• flickr image sources can now search using flickr groups.
+	• Google image sources can now search for news or face images.
+	• Google image sources can now search the database of LIFE images.
+	• Support for transparency:
+		• in original images.
+		• in images placed in tiles.
+		• in images created by the Glyphs image source.
+		• when saving a mosaic as JPG, PNG or TIFF.
+	• Now showing how well the mosaic matches the original image.
+	• Mosaics made with small numbers of images now look better.
+	• Image sources can now report errors when finding images.
+	• Images can now be repeated in adjacent tiles.
+• Performance improvements:
+	• Now taking better advantage of Macs with multiple CPUs/cores.
+	• Mosaics that allow image repeats are now created much faster.
+	• Images are now pulled from QuickTime movies much faster.
+	• Can now save images at larger sizes.
+	• Improved handling of very large images from sources.
+• Bugs fixed:
+	• The image usage rules (repeats, distance apart) are now always honored.
+	• CMYK images are now handled correctly.
+	• No longer crashing when iPhoto is not installed.
+	• No longer crashing when Google becomes inaccessible.
+	• No longer crashing when an image source is added to a mosaic with no original image.
 </string>
 	<key>productRequirements</key>
 	<string></string>

@@ -15,14 +15,15 @@
 	IBOutlet NSTextField			*queryField;
 	IBOutlet NSMatrix				*queryTypeMatrix;
 	
+	IBOutlet NSPopUpButton			*groupPopUp;
 	IBOutlet NSTextField			*matchingPhotosCount;
 	IBOutlet NSProgressIndicator	*matchingPhotosIndicator;
-	NSTimer							*matchingPhotosTimer;
 	
 	FlickrImageSource				*currentImageSource;
 }
 
 - (IBAction)visitFlickr:(id)sender;
 - (IBAction)setQueryType:(id)sender;
+- (IBAction)setGroup:(id)sender;
 
 @end

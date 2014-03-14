@@ -8,32 +8,32 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import "MacOSaiXImageSource.h"
-
-@class MacOSaiXTile;
+@class MacOSaiXSourceImage, MacOSaiXTile;
 
 
 @interface MacOSaiXImageMatch : NSObject
 {
     float					matchValue;
-    id<MacOSaiXImageSource>	imageSource;
-	NSString				*imageIdentifier;
+	MacOSaiXSourceImage		*sourceImage;
 	MacOSaiXTile			*tile;
+//	NSLock					*lock;
 }
 
 + (id)imageMatchWithValue:(float)value 
-	   forImageIdentifier:(NSString *)identifier 
-		  fromImageSource:(id<MacOSaiXImageSource>)source
-				  forTile:(MacOSaiXTile *)tile;
+			  sourceImage:(MacOSaiXSourceImage *)sourceImage
+					 tile:(MacOSaiXTile *)tile;
+
 - (id)initWithMatchValue:(float)inMatchValue 
-	  forImageIdentifier:(NSString *)inImageIdentifier 
-		 fromImageSource:(id<MacOSaiXImageSource>)inImageSource
-				 forTile:(MacOSaiXTile *)inTile;
+			 sourceImage:(MacOSaiXSourceImage *)inSourceImage
+					tile:(MacOSaiXTile *)inTile;
+
+- (void)setMatchValue:(float)value;
 - (float)matchValue;
-- (id<MacOSaiXImageSource>)imageSource;
-- (NSString *)imageIdentifier;
-- (MacOSaiXTile *)tile;
+- (MacOSaiXSourceImage *)sourceImage;
 - (void)setTile:(MacOSaiXTile *)inTile;
-- (NSComparisonResult)compare:(MacOSaiXImageMatch *)otherMatch;
+- (MacOSaiXTile *)tile;
+
+- (NSComparisonResult)compareByMatchThenSourceImage:(MacOSaiXImageMatch *)otherMatch;
+- (NSComparisonResult)compareByMatchThenTile:(MacOSaiXImageMatch *)otherMatch;
 
 @end

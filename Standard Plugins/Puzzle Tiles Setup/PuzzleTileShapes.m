@@ -274,6 +274,9 @@
 	
 	[copy setTilesAcross:[self tilesAcross]];
 	[copy setTilesDown:[self tilesDown]];
+	[copy setTabbedSidesRatio:[self tabbedSidesRatio]];
+	[copy setCurviness:[self curviness]];
+	[copy setImagesAligned:[self imagesAligned]];
 	
 	return copy;
 }
@@ -422,7 +425,9 @@
 	}
 	if ([settingType isEqualToString:@"ATTRIBUTES"])
 	{
-		// TODO
+		[self setTabbedSidesRatio:[[settingDict objectForKey:@"TABBED_SIDES"] floatValue]];
+		[self setCurviness:[[settingDict objectForKey:@"CURVINESS"] floatValue]];
+		[self setImagesAligned:([[settingDict objectForKey:@"ALIGN_IMAGES"] isEqualToString:@"YES"])];
 	}
 }
 

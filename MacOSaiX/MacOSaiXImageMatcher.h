@@ -16,9 +16,9 @@
 
 + (MacOSaiXImageMatcher *)sharedMatcher;
 
-- (float)compareImageRep:(NSBitmapImageRep *)bitmapRep1
-				withMask:(NSBitmapImageRep *)maskRep
-			  toImageRep:(NSBitmapImageRep *)bitmapRep2
-		    previousBest:(float)valueToBeat;
+- (NSNumber *)compareImageRep:(NSBitmapImageRep *)bitmapRep1
+					 withMask:(NSBitmapImageRep *)maskRep
+				   toImageRep:(NSBitmapImageRep *)bitmapRep2
+				 previousBest:(float)valueToBeat;
 
 @end

@@ -1,0 +1,2693 @@
+// !$*UTF8*$!
+{
+	00E5856D005F0FA87F000001 /* MacOSaiXDocument.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {918, 13702}}";
+			sepNavSelRange = "{9989, 13}";
+			sepNavVisRange = "{9129, 2091}";
+			sepNavVisRect = "{{0, 5296}, {1064, 538}}";
+		};
+	};
+	00E5856E005F0FA87F000001 /* MacOSaiXDocument.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 780}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 921}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	00EAAC6000853DFB7F000001 /* Tiles.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {874, 819}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 1341}";
+			sepNavVisRect = "{{0, 336}, {1104, 538}}";
+		};
+	};
+	00EAAC6100853DFB7F000001 /* Tiles.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1133, 6617}}";
+			sepNavSelRange = "{3412, 0}";
+			sepNavVisRange = "{0, 0}";
+			sepNavVisRect = "{{0, 6028}, {1064, 538}}";
+		};
+	};
+	0109CA3E09D385DF008290BE /* MacOSaiXWarningController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {886, 3430}}";
+			sepNavSelRange = "{1584, 44}";
+			sepNavVisRect = "{{0, 541}, {886, 557}}";
+		};
+	};
+	0109D41409E084D8008290BE /* MacOSaiXEventCatchingPanel.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{288, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	0127354207CD6EBB0053037A /* Defaults.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 952}}";
+			sepNavSelRange = "{1676, 0}";
+			sepNavVisRect = "{{0, 148}, {1064, 776}}";
+			sepNavWindowFrame = "{{64, -5}, {957, 878}}";
+		};
+	};
+	01297700086A63D30095AD36 /* MacOSaiXCrashReporterController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {890, 4466}}";
+			sepNavSelRange = "{290, 23}";
+			sepNavVisRect = "{{0, 0}, {890, 557}}";
+		};
+	};
+	01453D49071B6F2D00BCEC7C /* Puzzle Tiles Setup */ = {
+		activeExec = 0;
+	};
+	01453D51071B6F8000BCEC7C /* Info.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{781, 3}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	014DB625071A2C8D00DF68C0 /* Info.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{780, 3}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	016A2C5008CD2611002D56C1 /* MacOSaiXImageMatch.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {889, 560}}";
+			sepNavSelRange = "{345, 0}";
+			sepNavVisRect = "{{0, 0}, {889, 557}}";
+		};
+	};
+	016A2C5108CD2611002D56C1 /* MacOSaiXImageMatch.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 1989}}";
+			sepNavSelRange = "{267, 47}";
+			sepNavVisRange = "{0, 1013}";
+			sepNavVisRect = "{{0, 1271}, {1064, 776}}";
+		};
+	};
+	016A2CCC08CD3023002D56C1 /* MacOSaiXHandPickedImageSource.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 2604}}";
+			sepNavSelRange = "{2190, 5}";
+			sepNavVisRect = "{{0, 1614}, {1064, 538}}";
+		};
+	};
+	016A2E3108D1459D002D56C1 /* Version.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 1666}}";
+			sepNavSelRange = "{3809, 0}";
+			sepNavVisRect = "{{0, 249}, {1064, 776}}";
+		};
+	};
+	01722B8D09298D3300290929 /* FlickrImageSource.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 897}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 979}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	01722B8E09298D3300290929 /* FlickrImageSource.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1133, 20384}}";
+			sepNavSelRange = "{44353, 63}";
+			sepNavVisRange = "{43936, 891}";
+			sepNavVisRect = "{{0, 3700}, {1064, 538}}";
+			sepNavWindowFrame = "{{62, 0}, {956, 878}}";
+		};
+	};
+	01722B8F09298D3300290929 /* FlickrImageSourceController.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {890, 557}}";
+			sepNavSelRange = "{700, 0}";
+			sepNavVisRect = "{{0, 0}, {890, 557}}";
+		};
+	};
+	01722B9009298D3300290929 /* FlickrImageSourceController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 3724}}";
+			sepNavSelRange = "{228, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 538}}";
+		};
+	};
+	01722B9109298D3300290929 /* Info.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{781, 3}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	01722B9409298D3E00290929 /* Flickr Image Source Plug-In */ = {
+		activeExec = 0;
+	};
+	018F9A620964BE2F00CABB48 /* GooglePreferencesController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 1778}}";
+			sepNavSelRange = "{2781, 0}";
+			sepNavVisRect = "{{0, 998}, {1065, 538}}";
+		};
+	};
+	01A94F76097050DB00EF07B6 /* MacOSaiXPreferencesController.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 481}}";
+			sepNavSelRange = "{226, 26}";
+			sepNavVisRange = "{0, 361}";
+		};
+	};
+	01AB92EA07DB797300DB4B86 /* NSString+MacOSaiX.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 975}}";
+			sepNavSelRange = "{228, 26}";
+			sepNavVisRange = "{213, 2233}";
+			sepNavVisRect = "{{0, 480}, {1065, 538}}";
+		};
+	};
+	01BBDECB0747081400F17A9F /* NSImage+MacOSaiX.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 538}}";
+			sepNavSelRange = "{203, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 538}}";
+		};
+	};
+	01BBDECC0747081400F17A9F /* NSImage+MacOSaiX.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 1764}}";
+			sepNavSelRange = "{2611, 5}";
+			sepNavVisRect = "{{0, 1068}, {1064, 538}}";
+		};
+	};
+	01CB07E5071A1F2B00710BCF /* Hexagonal Tiles Plug-in */ = {
+		activeExec = 0;
+	};
+	01FE978B08E8EDFE00E4AC7C /* MacOSaiXKioskController.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {890, 840}}";
+			sepNavSelRange = "{510, 24}";
+			sepNavVisRect = "{{0, 0}, {890, 557}}";
+		};
+	};
+	01FE978C08E8EDFE00E4AC7C /* MacOSaiXKioskController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 6097}}";
+			sepNavSelRange = "{6312, 0}";
+			sepNavVisRange = "{5541, 1885}";
+			sepNavVisRect = "{{0, 3774}, {1064, 776}}";
+		};
+	};
+	01FE981008F365C600E4AC7C /* MacOSaiXMosaic.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 2418}}";
+			sepNavSelRange = "{6336, 0}";
+			sepNavVisRange = "{3855, 2495}";
+			sepNavVisRect = "{{0, 722}, {1064, 776}}";
+		};
+	};
+	01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1117, 32266}}";
+			sepNavSelRange = "{13905, 0}";
+			sepNavVisRange = "{0, 0}";
+			sepNavVisRect = "{{0, 25610}, {1064, 538}}";
+		};
+	};
+	29B97313FDCFA39411CA2CEA /* Project object */ = {
+		activeBuildConfigurationName = Debug;
+		activeExecutable = 735810110C9EEBC900BE2261 /* MacOSaiX.app */;
+		activeTarget = 9284897106611CE5003B3514 /* MacOSaiX.app */;
+		addToTargets = (
+			73B750801114A80E0046D7C2 /* Guitar Pick Tiles Plug-In */,
+		);
+		breakpoints = (
+			735812760CA16FD700BE2261 /* QuickTimeImageSource.m:449 */,
+			735812780CA194EF00BE2261 /* AttachMovieToCurrentThread */,
+			735812BE0CA199F800BE2261 /* QuickTimeImageSource.m:513 */,
+			73C343B00CAB01F300E3447C /* QuickTimeImageSource.m:543 */,
+			73497B3A0D63DB48003B7547 /* FlickrImageSource.m:1291 */,
+			73E170C80D7F05870055B57A /* MacOSaiXWindowController.m:2043 */,
+			73661CB40D860B3400BC972A /* FlickrImageSource.m:1300 */,
+			73DB51D20D8EF46E00273345 /* MacOSaiXiTunesImageSource.m:426 */,
+			73DB51D40D8EF46F00273345 /* MacOSaiXiTunesImageSource.m:430 */,
+			73DB57AB0D98522100273345 /* MacOSaiXMosaic.m:1264 */,
+			73DB57CE0D98920300273345 /* MacOSaiXMosaic.m:1504 */,
+			739C07DB0DA52ED100ABBCCB /* MacOSaiXSourceImage.m:68 */,
+			73233FF80DB10DAD00F80232 /* MacOSaiXMosaic.m:1487 */,
+			732340020DB10E0400F80232 /* MacOSaiXSourceImage.m:83 */,
+			732340A40DB3A9AA00F80232 /* MacOSaiXMosaic.m:2021 */,
+			732346D80DBD243800F80232 /* QuickTimeImageSource.m:351 */,
+			732346DC0DBD243F00F80232 /* QuickTimeImageSource.m:290 */,
+			732346E50DBD249700F80232 /* QuickTimeImageSource.m:362 */,
+			732347910DC61A3B00F80232 /* QuickTimeImageSource.m:213 */,
+			732347930DC61B0000F80232 /* QuickTimeImageSource.m:223 */,
+			7323497C0DC62B6100F80232 /* QuickTimeImageSource.m:374 */,
+			732349EF0DC64FE300F80232 /* QuickTimeImageSource.m:384 */,
+			73234A0E0DC653C200F80232 /* QuickTimeImageSource.m:394 */,
+			73234A100DC653C300F80232 /* QuickTimeImageSource.m:416 */,
+			73234A120DC653C700F80232 /* QuickTimeImageSource.m:432 */,
+			73234A5D0DC6551200F80232 /* MacOSaiXImageCache.m:412 */,
+			73234C8C0DC831DD00F80232 /* MacOSaiXFlickrCategory.m:117 */,
+			73234CCC0DC834D800F80232 /* MacOSaiXFlickrCategory.m:122 */,
+			73234D2F0DD0CF5100F80232 /* FlickrPreferencesController.m:399 */,
+			73331AD80E13EDC3007C4779 /* -[NSBitmapImageRep bitmapData] */,
+			73276D12110F7D4C005F1EAF /* MacOSaiXMosaic.m:1334 */,
+			73B750C11114B26B0046D7C2 /* GuitarPickTileShapes.m:178 */,
+			73DB5CC411F53E3700FB59C8 /* MacOSaiXSourceImage.m:38 */,
+			73487D45125685DE0034C183 /* GoogleImageSource.m:862 */,
+			736A11091263E9B2007CE739 /* MacOSaiXDocument.m:706 */,
+		);
+		codeSenseManager = 735810310C9EEBF200BE2261 /* Code sense */;
+		executables = (
+			735810110C9EEBC900BE2261 /* MacOSaiX.app */,
+		);
+		perUserDictionary = {
+			"PBXConfiguration.PBXBreakpointsDataSource.v1:1CA1AED706398EBD00589147" = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXBreakpointsDataSource_BreakpointID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					20,
+					253,
+					20,
+					153,
+					151,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXBreakpointsDataSource_ActionID,
+					PBXBreakpointsDataSource_TypeID,
+					PBXBreakpointsDataSource_BreakpointID,
+					PBXBreakpointsDataSource_UseID,
+					PBXBreakpointsDataSource_LocationID,
+					PBXBreakpointsDataSource_ConditionID,
+					PBXBreakpointsDataSource_ContinueID,
+				);
+			};
+			"PBXConfiguration.PBXBreakpointsDataSource.v1:1CA23EDF0692099D00951B8B" = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXBreakpointsDataSource_BreakpointID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					20,
+					10,
+					20,
+					10,
+					10,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXBreakpointsDataSource_ActionID,
+					PBXBreakpointsDataSource_TypeID,
+					PBXBreakpointsDataSource_BreakpointID,
+					PBXBreakpointsDataSource_UseID,
+					PBXBreakpointsDataSource_LocationID,
+					PBXBreakpointsDataSource_ConditionID,
+					PBXBreakpointsDataSource_ContinueID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXBookmarksDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXBookmarksDataSource_NameID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					200,
+					200,
+					57.58349609375,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXBookmarksDataSource_LocationID,
+					PBXBookmarksDataSource_NameID,
+					PBXBookmarksDataSource_CommentsID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXErrorsWarningsDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXErrorsWarningsDataSource_LocationID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					300,
+					763,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXErrorsWarningsDataSource_TypeID,
+					PBXErrorsWarningsDataSource_MessageID,
+					PBXErrorsWarningsDataSource_LocationID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXExecutablesDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXExecutablesDataSource_NameID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					22,
+					300,
+					57.58349609375,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXExecutablesDataSource_ActiveFlagID,
+					PBXExecutablesDataSource_NameID,
+					PBXExecutablesDataSource_CommentsID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					10,
+					20,
+					48,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXFindDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFindDataSource_LocationID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					221,
+					42.29736328125,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFindDataSource_LocationID,
+					PBXFindDataSource_MessageID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXSymbolsDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXSymbolsDataSource_SymbolNameID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					16,
+					200,
+					50,
+					45.20849609375,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXSymbolsDataSource_SymbolTypeIconID,
+					PBXSymbolsDataSource_SymbolNameID,
+					PBXSymbolsDataSource_SymbolTypeID,
+					PBXSymbolsDataSource_ReferenceNameID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.XCSCMDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					20,
+					849,
+					20,
+					48,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_SCM_ColumnID,
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXConfiguration.PBXTargetDataSource.PBXTargetDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					10,
+					60,
+					20,
+					48,
+					43,
+					43,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXTargetDataSource_PrimaryAttribute,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+				);
+			};
+			PBXPerProjectTemplateStateSaveDate = 318747415;
+			PBXWorkspaceStateSaveDate = 318747415;
+		};
+		perUserProjectItems = {
+			730B96651290905E005D3F02 = 730B96651290905E005D3F02 /* PBXTextBookmark */;
+			733DC592126B8CBE00B9A81C = 733DC592126B8CBE00B9A81C /* PBXTextBookmark */;
+			733DC5A3126B8D6700B9A81C = 733DC5A3126B8D6700B9A81C /* PBXTextBookmark */;
+			733DC5E8126BE9C600B9A81C = 733DC5E8126BE9C600B9A81C /* PBXTextBookmark */;
+			733DC5E9126BE9C600B9A81C = 733DC5E9126BE9C600B9A81C /* PBXTextBookmark */;
+			736A111F1263EB02007CE739 = 736A111F1263EB02007CE739 /* PBXTextBookmark */;
+			736A11351263FDCE007CE739 = 736A11351263FDCE007CE739 /* PBXTextBookmark */;
+			739C4A231273437B00D439A6 = 739C4A231273437B00D439A6 /* PBXTextBookmark */;
+			739C4A65127FD3DD00D439A6 = 739C4A65127FD3DD00D439A6 /* PBXTextBookmark */;
+			739C4A66127FD3DD00D439A6 = 739C4A66127FD3DD00D439A6 /* PBXTextBookmark */;
+			739C4A6D127FD6B400D439A6 = 739C4A6D127FD6B400D439A6 /* PBXTextBookmark */;
+			739C4A6E127FD6B400D439A6 = 739C4A6E127FD6B400D439A6 /* PBXTextBookmark */;
+			739C4A70127FD6B400D439A6 = 739C4A70127FD6B400D439A6 /* PBXTextBookmark */;
+			739C4A90127FE6A200D439A6 = 739C4A90127FE6A200D439A6 /* PBXTextBookmark */;
+			739C4A92127FE6A200D439A6 = 739C4A92127FE6A200D439A6 /* PBXTextBookmark */;
+			739C4AA71281364100D439A6 = 739C4AA71281364100D439A6 /* PBXTextBookmark */;
+			73A004321288E7950050C0AF = 73A004321288E7950050C0AF /* PBXTextBookmark */;
+			73A004901288EB310050C0AF = 73A004901288EB310050C0AF /* PBXTextBookmark */;
+			73A004A51288EC8A0050C0AF = 73A004A51288EC8A0050C0AF /* PBXTextBookmark */;
+			73A004F7128A4FDF0050C0AF = 73A004F7128A4FDF0050C0AF /* PBXTextBookmark */;
+			73A004F8128A4FDF0050C0AF = 73A004F8128A4FDF0050C0AF /* PBXTextBookmark */;
+			73A004F9128A4FDF0050C0AF = 73A004F9128A4FDF0050C0AF /* PBXTextBookmark */;
+			73A0050E128A56A70050C0AF = 73A0050E128A56A70050C0AF /* PBXTextBookmark */;
+			73A00521128A58E70050C0AF = 73A00521128A58E70050C0AF /* PBXTextBookmark */;
+			73A0052C128A59360050C0AF = 73A0052C128A59360050C0AF /* PBXTextBookmark */;
+			73A0052D128A59360050C0AF = 73A0052D128A59360050C0AF /* PBXTextBookmark */;
+			73A0053F128A5A9A0050C0AF = 73A0053F128A5A9A0050C0AF /* PBXTextBookmark */;
+			73A00560128A5C510050C0AF = 73A00560128A5C510050C0AF /* PBXTextBookmark */;
+			73A00585128A61690050C0AF = 73A00585128A61690050C0AF /* PBXTextBookmark */;
+			73BB664C12A082D5009EE353 = 73BB664C12A082D5009EE353 /* PBXTextBookmark */;
+			73BB666D12A5F857009EE353 = 73BB666D12A5F857009EE353 /* PBXTextBookmark */;
+			73BB666E12A5F857009EE353 = 73BB666E12A5F857009EE353 /* PBXTextBookmark */;
+			73C32AFC12EA1B5900ED9331 = 73C32AFC12EA1B5900ED9331 /* PBXTextBookmark */;
+			73C32B0012EA1B5900ED9331 = 73C32B0012EA1B5900ED9331 /* PBXTextBookmark */;
+			73C32B0512EA1B9600ED9331 = 73C32B0512EA1B9600ED9331 /* PBXTextBookmark */;
+			73C32B0C12EA239200ED9331 = 73C32B0C12EA239200ED9331 /* PBXTextBookmark */;
+			73C32B0D12EA239200ED9331 = 73C32B0D12EA239200ED9331 /* PBXTextBookmark */;
+			73CBCD2E125BDEA400C3A076 = 73CBCD2E125BDEA400C3A076 /* PBXTextBookmark */;
+			73D4BBB61271D2D800554352 = 73D4BBB61271D2D800554352 /* PBXTextBookmark */;
+			73D4BBF61273203C00554352 = 73D4BBF61273203C00554352 /* PBXTextBookmark */;
+			73DB5D4211F5514F00FB59C8 = 73DB5D4211F5514F00FB59C8 /* PBXTextBookmark */;
+			73DB5D4311F5514F00FB59C8 = 73DB5D4311F5514F00FB59C8 /* PBXTextBookmark */;
+			73DB5D5E11F5597200FB59C8 = 73DB5D5E11F5597200FB59C8 /* PBXTextBookmark */;
+			73E369C512FFB31D0082E4CA /* PBXTextBookmark */ = 73E369C512FFB31D0082E4CA /* PBXTextBookmark */;
+			73E369C612FFB32C0082E4CA /* PBXTextBookmark */ = 73E369C612FFB32C0082E4CA /* PBXTextBookmark */;
+			73E369C712FFB32C0082E4CA /* PBXTextBookmark */ = 73E369C712FFB32C0082E4CA /* PBXTextBookmark */;
+			73E369CB12FFB32C0082E4CA /* PBXTextBookmark */ = 73E369CB12FFB32C0082E4CA /* PBXTextBookmark */;
+		};
+		sourceControlManager = 735810300C9EEBF200BE2261 /* Source Control */;
+		userBuildSettings = {
+		};
+	};
+	730B96651290905E005D3F02 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */;
+		name = "MacOSaiXMosaic.m: 464";
+		rLen = 0;
+		rLoc = 13905;
+		rType = 0;
+		vrLen = 0;
+		vrLoc = 0;
+	};
+	73233FF80DB10DAD00F80232 /* MacOSaiXMosaic.m:1487 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */;
+		functionName = "-betterMatchesForTile:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 1487;
+		location = MacOSaiXMosaic.ob;
+		modificationTime = 317334416.10276;
+		originalNumberOfMultipleMatches = 0;
+		state = 2;
+	};
+	732340020DB10E0400F80232 /* MacOSaiXSourceImage.m:83 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 73EDD04A0D60CE4300217C44 /* MacOSaiXSourceImage.m */;
+		functionName = "-size";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 83;
+		location = MacOSaiXSourceImage.ob;
+		modificationTime = 317334416.102989;
+		originalNumberOfMultipleMatches = 0;
+		state = 2;
+	};
+	732340A40DB3A9AA00F80232 /* MacOSaiXMosaic.m:2021 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */;
+		functionName = "-placeNextImage";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 2021;
+		location = MacOSaiXMosaic_732340A80DB3AA9200F80232.ob;
+		modificationTime = 317334416.103183;
+		originalNumberOfMultipleMatches = 0;
+		state = 2;
+	};
+	732346D80DBD243800F80232 /* QuickTimeImageSource.m:351 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 92F2B1D4048027510000011E /* QuickTimeImageSource.m */;
+		functionName = "-imageAtTime:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 351;
+		location = "QuickTime Image Source";
+		modificationTime = 317334416.103401;
+		originalNumberOfMultipleMatches = 1;
+		state = 0;
+	};
+	732346DC0DBD243F00F80232 /* QuickTimeImageSource.m:290 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 92F2B1D4048027510000011E /* QuickTimeImageSource.m */;
+		functionName = "-setCurrentImage:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 290;
+		location = "QuickTime Image Source";
+		modificationTime = 317334416.1035939;
+		originalNumberOfMultipleMatches = 1;
+		state = 0;
+	};
+	732346E50DBD249700F80232 /* QuickTimeImageSource.m:362 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 92F2B1D4048027510000011E /* QuickTimeImageSource.m */;
+		functionName = "-imageAtTime:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 362;
+		location = "QuickTime Image Source";
+		modificationTime = 317334416.103786;
+		originalNumberOfMultipleMatches = 1;
+		state = 0;
+	};
+	732347910DC61A3B00F80232 /* QuickTimeImageSource.m:213 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 92F2B1D4048027510000011E /* QuickTimeImageSource.m */;
+		functionName = "-setPath:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 213;
+		location = "QuickTime Image Source";
+		modificationTime = 317334416.103979;
+		originalNumberOfMultipleMatches = 1;
+		state = 0;
+	};
+	732347930DC61B0000F80232 /* QuickTimeImageSource.m:223 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 92F2B1D4048027510000011E /* QuickTimeImageSource.m */;
+		functionName = "-setPath:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 223;
+		location = "QuickTime Image Source";
+		modificationTime = 317334416.104172;
+		originalNumberOfMultipleMatches = 1;
+		state = 0;
+	};
+	7323497C0DC62B6100F80232 /* QuickTimeImageSource.m:374 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 92F2B1D4048027510000011E /* QuickTimeImageSource.m */;
+		functionName = "-imageAtTime:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 374;
+		location = "QuickTime Image Source";
+		modificationTime = 317334416.1043681;
+		originalNumberOfMultipleMatches = 1;
+		state = 0;
+	};
+	732349EF0DC64FE300F80232 /* QuickTimeImageSource.m:384 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 92F2B1D4048027510000011E /* QuickTimeImageSource.m */;
+		functionName = "-imageAtTime:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 384;
+		location = "QuickTime Image Source";
+		modificationTime = 317334416.104564;
+		originalNumberOfMultipleMatches = 1;
+		state = 0;
+	};
+	73234A0E0DC653C200F80232 /* QuickTimeImageSource.m:394 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 92F2B1D4048027510000011E /* QuickTimeImageSource.m */;
+		functionName = "-imageAtTime:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 394;
+		location = "QuickTime Image Source";
+		modificationTime = 317334416.104758;
+		originalNumberOfMultipleMatches = 1;
+		state = 0;
+	};
+	73234A100DC653C300F80232 /* QuickTimeImageSource.m:416 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 92F2B1D4048027510000011E /* QuickTimeImageSource.m */;
+		functionName = "-imageAtTime:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 416;
+		location = "QuickTime Image Source";
+		modificationTime = 317334416.104952;
+		originalNumberOfMultipleMatches = 1;
+		state = 0;
+	};
+	73234A120DC653C700F80232 /* QuickTimeImageSource.m:432 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 92F2B1D4048027510000011E /* QuickTimeImageSource.m */;
+		functionName = "-imageAtTime:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 432;
+		location = "QuickTime Image Source";
+		modificationTime = 317334416.105148;
+		originalNumberOfMultipleMatches = 1;
+		state = 0;
+	};
+	73234A5D0DC6551200F80232 /* MacOSaiXImageCache.m:412 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */;
+		functionName = "-imageRepAtSize:forSourceImage:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 412;
+		location = MacOSaiX;
+		modificationTime = 317334416.933557;
+		originalNumberOfMultipleMatches = 1;
+		state = 1;
+	};
+	73234B300DC8028900F80232 /* MacOSaiXFlickrGroup.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {890, 557}}";
+			sepNavSelRange = "{439, 20}";
+			sepNavVisRect = "{{0, 0}, {890, 557}}";
+		};
+	};
+	73234B310DC8028900F80232 /* MacOSaiXFlickrGroup.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 2618}}";
+			sepNavSelRange = "{2283, 0}";
+			sepNavVisRect = "{{0, 1152}, {1065, 776}}";
+		};
+	};
+	73234B480DC809F300F80232 /* MacOSaiXFlickrCategory.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 3136}}";
+			sepNavSelRange = "{4376, 0}";
+			sepNavVisRect = "{{0, 1467}, {1065, 776}}";
+		};
+	};
+	73234B490DC809F300F80232 /* MacOSaiXFlickrCategory.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {890, 560}}";
+			sepNavSelRange = "{711, 25}";
+			sepNavVisRect = "{{0, 0}, {890, 557}}";
+		};
+	};
+	73234C8C0DC831DD00F80232 /* MacOSaiXFlickrCategory.m:117 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 73234B480DC809F300F80232 /* MacOSaiXFlickrCategory.m */;
+		functionName = "-fetchChildren";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 117;
+		location = "Flickr Image Source";
+		modificationTime = 317334416.105584;
+		originalNumberOfMultipleMatches = 1;
+		state = 0;
+	};
+	73234CCC0DC834D800F80232 /* MacOSaiXFlickrCategory.m:122 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 73234B480DC809F300F80232 /* MacOSaiXFlickrCategory.m */;
+		functionName = "-fetchChildren";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 122;
+		location = "Flickr Image Source";
+		modificationTime = 317334416.105794;
+		originalNumberOfMultipleMatches = 1;
+		state = 0;
+	};
+	73234D2F0DD0CF5100F80232 /* FlickrPreferencesController.m:399 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 9298FCC8098C1C6800E7A096 /* FlickrPreferencesController.m */;
+		functionName = "-getMatchingGroupsInThread:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 399;
+		location = "Flickr Image Source";
+		modificationTime = 317334416.1060041;
+		originalNumberOfMultipleMatches = 1;
+		state = 0;
+	};
+	73276D12110F7D4C005F1EAF /* MacOSaiXMosaic.m:1334 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */;
+		functionName = "-betterMatchesForSourceImage:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 1334;
+		location = MacOSaiX;
+		modificationTime = 317334416.9656739;
+		originalNumberOfMultipleMatches = 1;
+		state = 1;
+	};
+	73331AD80E13EDC3007C4779 /* -[NSBitmapImageRep bitmapData] */ = {
+		isa = PBXSymbolicBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 1;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		hitCount = 0;
+		ignoreCount = 0;
+		location = AppKit;
+		modificationTime = 317334416.1083511;
+		originalNumberOfMultipleMatches = 0;
+		state = 2;
+		symbolName = "-[NSBitmapImageRep bitmapData]";
+	};
+	733DC592126B8CBE00B9A81C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = F540721E023FE6E00100010A /* GoogleImageSource.m */;
+		name = "GoogleImageSource.m: 63";
+		rLen = 14;
+		rLoc = 2095;
+		rType = 0;
+		vrLen = 1468;
+		vrLoc = 1465;
+	};
+	733DC5A3126B8D6700B9A81C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 733DC5A4126B8D6700B9A81C /* NSBezierPath.h */;
+		name = "NSBezierPath.h: 134";
+		rLen = 90;
+		rLoc = 3732;
+		rType = 0;
+		vrLen = 1203;
+		vrLoc = 3027;
+	};
+	733DC5A4126B8D6700B9A81C /* NSBezierPath.h */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.c.h;
+		name = NSBezierPath.h;
+		path = /Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks/AppKit.framework/Versions/C/Headers/NSBezierPath.h;
+		sourceTree = "<absolute>";
+	};
+	733DC5E8126BE9C600B9A81C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 92F2B1D5048027510000011E /* QuickTimeImageSourceController.h */;
+		name = "QuickTimeImageSourceController.h: 13";
+		rLen = 0;
+		rLoc = 299;
+		rType = 0;
+		vrLen = 903;
+		vrLoc = 0;
+	};
+	733DC5E9126BE9C600B9A81C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 92F2B1D3048027510000011E /* QuickTimeImageSource.h */;
+		name = "QuickTimeImageSource.h: 18";
+		rLen = 0;
+		rLoc = 326;
+		rType = 0;
+		vrLen = 655;
+		vrLoc = 0;
+	};
+	73487D45125685DE0034C183 /* GoogleImageSource.m:862 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = F540721E023FE6E00100010A /* GoogleImageSource.m */;
+		functionName = "-populateImageQueueFromNextPage";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 862;
+		location = "Google Image Source";
+		modificationTime = 317334416.106911;
+		originalNumberOfMultipleMatches = 1;
+		state = 2;
+	};
+	73497B3A0D63DB48003B7547 /* FlickrImageSource.m:1291 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 01722B8E09298D3300290929 /* FlickrImageSource.m */;
+		functionName = "-populateImageQueueFromNextPage";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 1291;
+		location = "Flickr Image Source";
+		modificationTime = 317334416.1008111;
+		originalNumberOfMultipleMatches = 0;
+		state = 2;
+	};
+	735810110C9EEBC900BE2261 /* MacOSaiX.app */ = {
+		isa = PBXExecutable;
+		activeArgIndices = (
+		);
+		argumentStrings = (
+		);
+		autoAttachOnCrash = 1;
+		breakpointsEnabled = 1;
+		configStateDict = {
+			"PBXLSLaunchAction-0" = {
+				PBXLSLaunchAction = 0;
+				PBXLSLaunchStartAction = 1;
+				PBXLSLaunchStdioStyle = 2;
+				PBXLSLaunchStyle = 0;
+				class = PBXLSRunLaunchConfig;
+				displayName = "Executable Runner";
+				identifier = com.apple.Xcode.launch.runConfig;
+				remoteHostInfo = "";
+				startActionInfo = "";
+			};
+			"PBXLSLaunchAction-1" = {
+				PBXLSLaunchAction = 1;
+				PBXLSLaunchStartAction = 1;
+				PBXLSLaunchStdioStyle = 2;
+				PBXLSLaunchStyle = 0;
+				class = PBXGDB_LaunchConfig;
+				displayName = GDB;
+				identifier = com.apple.Xcode.launch.GDBMI_Config;
+				remoteHostInfo = "fmidgley@tatiana.local";
+				startActionInfo = "";
+			};
+		};
+		customDataFormattersEnabled = 1;
+		dataTipCustomDataFormattersEnabled = 1;
+		dataTipShowTypeColumn = 1;
+		dataTipSortType = 0;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		dylibVariantSuffix = "";
+		enableDebugStr = 1;
+		environmentEntries = (
+			{
+				active = NO;
+				name = NSZombieEnabled;
+				value = YES;
+			},
+			{
+				active = NO;
+				name = NSFastEnumerationShouldThrow;
+				value = YES;
+			},
+			{
+				active = NO;
+				name = CFZombieLevel;
+				value = 19;
+			},
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = MacOSaiX.app;
+		savedGlobals = {
+		};
+		showTypeColumn = 0;
+		sourceDirectories = (
+		);
+		variableFormatDictionary = {
+			$cs = 1;
+			$ds = 1;
+			$eax = 1;
+			$ebp = 1;
+			$ebx = 1;
+			$ecx = 1;
+			$edi = 1;
+			$edx = 1;
+			$eflags = 1;
+			$eip = 1;
+			$es = 1;
+			$esi = 1;
+			$esp = 1;
+			$gs = 1;
+			$mm0 = 1;
+			$mm1 = 1;
+			$mm2 = 1;
+			$mm3 = 1;
+			$mm4 = 1;
+			$mm5 = 1;
+			$mm6 = 1;
+			$mm7 = 1;
+			$mxcsr = 1;
+			$ss = 1;
+			$xmm0 = 1;
+			$xmm1 = 1;
+			$xmm2 = 1;
+			$xmm3 = 1;
+			$xmm4 = 1;
+			$xmm5 = 1;
+			$xmm6 = 1;
+			$xmm7 = 1;
+			"3-unsigned char--[MacOSaiXiTunesImageSource artworkDataForTrackID:]" = 1;
+			"_data-unsigned char *--[MacOSaiXImageCache addImageRep:toMemoryCacheForKey:]" = 1;
+			"buffer-unsigned char [4]--[MacOSaiXiTunesImageSource nextImage:andIdentifier:]" = 1;
+			cachedArtworkSize = 2;
+			"crc-long unsigned int-+[MacOSaiXiTunesImageSource initialize]" = 1;
+			"curOSX-SInt32-+[MacOSaiXCrashReporterController checkForCrash]" = 1;
+			"fixedPostFormat-Fixed--[MacOSaiXGlyphImageSource descriptionForIdentifier:]" = 1;
+			"itemType-NSNumber *--[MacOSaiXDeliciousLibrary nameOfType:]" = 5;
+			"itemType-OSType--[MacOSaiXDeliciousLibrary loadVersion2Library:]" = 5;
+			"location-unsigned int--[GoogleImageSource populateImageQueueFromNextPage]" = 1;
+			"shelfType-OSType--[MacOSaiXDeliciousLibrary loadVersion2Library:]" = 5;
+		};
+	};
+	735810300C9EEBF200BE2261 /* Source Control */ = {
+		isa = PBXSourceControlManager;
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 0;
+		scmConfiguration = {
+			repositoryNamesForRoots = {
+				"" = "";
+			};
+		};
+		scmType = "";
+	};
+	735810310C9EEBF200BE2261 /* Code sense */ = {
+		isa = PBXCodeSenseManager;
+		indexTemplatePath = "";
+	};
+	735812760CA16FD700BE2261 /* QuickTimeImageSource.m:449 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 92F2B1D4048027510000011E /* QuickTimeImageSource.m */;
+		functionName = "-imageAtTime:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 449;
+		location = "QuickTime Image Source";
+		modificationTime = 317334416.09963;
+		originalNumberOfMultipleMatches = 0;
+		state = 2;
+	};
+	735812780CA194EF00BE2261 /* AttachMovieToCurrentThread */ = {
+		isa = PBXSymbolicBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 1;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		hitCount = 0;
+		ignoreCount = 0;
+		location = QuickTime;
+		modificationTime = 317334416.108163;
+		originalNumberOfMultipleMatches = 0;
+		state = 2;
+		symbolName = AttachMovieToCurrentThread;
+	};
+	735812BE0CA199F800BE2261 /* QuickTimeImageSource.m:513 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 92F2B1D4048027510000011E /* QuickTimeImageSource.m */;
+		functionName = "-nextImageAndIdentifier:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 513;
+		location = "QuickTime Image Source";
+		modificationTime = 317334416.100227;
+		originalNumberOfMultipleMatches = 0;
+		state = 2;
+	};
+	73661CB40D860B3400BC972A /* FlickrImageSource.m:1300 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 01722B8E09298D3300290929 /* FlickrImageSource.m */;
+		functionName = "-populateImageQueueFromNextPage";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 1300;
+		location = "Flickr Image Source";
+		modificationTime = 317334416.101262;
+		originalNumberOfMultipleMatches = 0;
+		state = 2;
+	};
+	7366200A0D8C743600BC972A /* Delicious Library Image Source */ = {
+		activeExec = 0;
+	};
+	736620710D8C759200BC972A /* Info.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{803, 3}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	736620720D8C759200BC972A /* MacOSaiXDLImageSource.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 538}}";
+			sepNavSelRange = "{491, 18}";
+			sepNavVisRect = "{{0, 0}, {1065, 538}}";
+		};
+	};
+	736620730D8C759200BC972A /* MacOSaiXDLImageSource.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1109, 4810}}";
+			sepNavSelRange = "{3960, 0}";
+			sepNavVisRange = "{3723, 668}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	736620740D8C759200BC972A /* MacOSaiXDLImageSourceEditor.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{685, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	736620750D8C759200BC972A /* MacOSaiXDLImageSourceEditor.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 3682}}";
+			sepNavSelRange = "{5405, 0}";
+			sepNavVisRect = "{{0, 2251}, {1065, 776}}";
+		};
+	};
+	736620810D8C76CE00BC972A /* MacOSaiXDeliciousLibrary.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {890, 840}}";
+			sepNavSelRange = "{795, 0}";
+			sepNavVisRect = "{{0, 150}, {890, 557}}";
+		};
+	};
+	736620820D8C76CE00BC972A /* MacOSaiXDeliciousLibrary.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 7168}}";
+			sepNavSelRange = "{11414, 1}";
+			sepNavVisRange = "{5794, 928}";
+			sepNavVisRect = "{{0, 3266}, {1064, 776}}";
+		};
+	};
+	736A11091263E9B2007CE739 /* MacOSaiXDocument.m:706 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 00E5856D005F0FA87F000001 /* MacOSaiXDocument.m */;
+		functionName = "createStructure()";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 706;
+		location = MacOSaiX;
+		modificationTime = 317334417.01665;
+		originalNumberOfMultipleMatches = 1;
+		state = 1;
+	};
+	736A111F1263EB02007CE739 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 01AB92E907DB797300DB4B86 /* NSString+MacOSaiX.h */;
+		name = "NSString+MacOSaiX.h: 14";
+		rLen = 26;
+		rLoc = 226;
+		rType = 0;
+		vrLen = 361;
+		vrLoc = 0;
+	};
+	736A11351263FDCE007CE739 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 01AB92EA07DB797300DB4B86 /* NSString+MacOSaiX.m */;
+		name = "NSString+MacOSaiX.m: 15";
+		rLen = 26;
+		rLoc = 228;
+		rType = 0;
+		vrLen = 2233;
+		vrLoc = 213;
+	};
+	739C06520DA4150D00ABBCCB /* MacOSaiXDLItemType.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1148, 538}}";
+			sepNavSelRange = "{322, 0}";
+			sepNavVisRect = "{{0, 0}, {1148, 538}}";
+		};
+	};
+	739C06530DA4150D00ABBCCB /* MacOSaiXDLItemType.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 1330}}";
+			sepNavSelRange = "{217, 35}";
+			sepNavVisRect = "{{0, 370}, {1065, 538}}";
+		};
+	};
+	739C07740DA520D700ABBCCB /* MacOSaiXBitmapImageRep.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {874, 575}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 518}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	739C07750DA520D700ABBCCB /* MacOSaiXBitmapImageRep.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {874, 1885}}";
+			sepNavSelRange = "{3118, 0}";
+			sepNavVisRange = "{2277, 1031}";
+			sepNavVisRect = "{{0, 1212}, {1064, 776}}";
+		};
+	};
+	739C07DB0DA52ED100ABBCCB /* MacOSaiXSourceImage.m:68 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		condition = 739C07E20DA52F0600ABBCCB /* XCGDBBreakpointCondition */;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 73EDD04A0D60CE4300217C44 /* MacOSaiXSourceImage.m */;
+		functionName = "-imageRepAtSize:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 68;
+		location = MacOSaiXSourceImage.ob;
+		modificationTime = 317334416.102568;
+		originalNumberOfMultipleMatches = 0;
+		state = 2;
+	};
+	739C07E20DA52F0600ABBCCB /* XCGDBBreakpointCondition */ = {
+		isa = XCGDBBreakpointCondition;
+		conditionString = "size.width > 75 && size.width < 85";
+	};
+	739C4A231273437B00D439A6 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = F540721D023FE6E00100010A /* GoogleImageSource.h */;
+		name = "GoogleImageSource.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 1797;
+		vrLoc = 0;
+	};
+	739C4A65127FD3DD00D439A6 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 01722B8E09298D3300290929 /* FlickrImageSource.m */;
+		name = "FlickrImageSource.m: 58";
+		rLen = 14;
+		rLoc = 1729;
+		rType = 0;
+		vrLen = 2061;
+		vrLoc = 3363;
+	};
+	739C4A66127FD3DD00D439A6 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = F540721E023FE6E00100010A /* GoogleImageSource.m */;
+		name = "GoogleImageSource.m: 181";
+		rLen = 0;
+		rLoc = 5265;
+		rType = 0;
+		vrLen = 2330;
+		vrLoc = 4722;
+	};
+	739C4A6D127FD6B400D439A6 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = F540721A023FE6860100010A /* DirectoryImageSource.m */;
+		name = "DirectoryImageSource.m: 347";
+		rLen = 80;
+		rLoc = 9278;
+		rType = 0;
+		vrLen = 909;
+		vrLoc = 8802;
+	};
+	739C4A6E127FD6B400D439A6 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 01722B8E09298D3300290929 /* FlickrImageSource.m */;
+		name = "FlickrImageSource.m: 1448";
+		rLen = 63;
+		rLoc = 44353;
+		rType = 0;
+		vrLen = 891;
+		vrLoc = 43936;
+	};
+	739C4A70127FD6B400D439A6 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 9298FE020995592300E7A096 /* MacOSaiXExportController.m */;
+		name = "MacOSaiXExportController.m: 345";
+		rLen = 0;
+		rLoc = 10059;
+		rType = 0;
+		vrLen = 1522;
+		vrLoc = 9384;
+	};
+	739C4A90127FE6A200D439A6 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 739C4A91127FE6A200D439A6 /* QTMovie.h */;
+		name = "QTMovie.h: 318";
+		rLen = 110;
+		rLoc = 19782;
+		rType = 0;
+		vrLen = 2030;
+		vrLoc = 18257;
+	};
+	739C4A91127FE6A200D439A6 /* QTMovie.h */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.c.h;
+		name = QTMovie.h;
+		path = /Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks/QTKit.framework/Versions/A/Headers/QTMovie.h;
+		sourceTree = "<absolute>";
+	};
+	739C4A92127FE6A200D439A6 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 739C4A93127FE6A200D439A6 /* NSInvocation.h */;
+		name = "NSInvocation.h: 38";
+		rLen = 26;
+		rLoc = 849;
+		rType = 0;
+		vrLen = 1398;
+		vrLoc = 0;
+	};
+	739C4A93127FE6A200D439A6 /* NSInvocation.h */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.c.h;
+		name = NSInvocation.h;
+		path = /Developer/SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/Foundation.framework/Versions/C/Headers/NSInvocation.h;
+		sourceTree = "<absolute>";
+	};
+	739C4AA71281364100D439A6 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 92F2B1D6048027510000011E /* QuickTimeImageSourceController.m */;
+		name = "QuickTimeImageSourceController.m: 32";
+		rLen = 0;
+		rLoc = 889;
+		rType = 0;
+		vrLen = 1525;
+		vrLoc = 252;
+	};
+	73A004321288E7950050C0AF /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 92F2B1D3048027510000011E /* QuickTimeImageSource.h */;
+		name = "QuickTimeImageSource.h: 18";
+		rLen = 0;
+		rLoc = 326;
+		rType = 0;
+		vrLen = 655;
+		vrLoc = 0;
+	};
+	73A004901288EB310050C0AF /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 92F2B1D6048027510000011E /* QuickTimeImageSourceController.m */;
+		name = "QuickTimeImageSourceController.m: 179";
+		rLen = 0;
+		rLoc = 6017;
+		rType = 0;
+		vrLen = 961;
+		vrLoc = 5526;
+	};
+	73A004A51288EC8A0050C0AF /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 92F2B1D5048027510000011E /* QuickTimeImageSourceController.h */;
+		name = "QuickTimeImageSourceController.h: 13";
+		rLen = 0;
+		rLoc = 299;
+		rType = 0;
+		vrLen = 903;
+		vrLoc = 0;
+	};
+	73A004F7128A4FDF0050C0AF /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 92F2B1D4048027510000011E /* QuickTimeImageSource.m */;
+		name = "QuickTimeImageSource.m: 628";
+		rLen = 0;
+		rLoc = 18015;
+		rType = 0;
+		vrLen = 1290;
+		vrLoc = 17049;
+	};
+	73A004F8128A4FDF0050C0AF /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 92DCA7CC08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m */;
+		name = "MacOSaiXKioskSetupController.m: 355";
+		rLen = 28;
+		rLoc = 11344;
+		rType = 0;
+		vrLen = 1889;
+		vrLoc = 10923;
+	};
+	73A004F9128A4FDF0050C0AF /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = F5666CCAC5B062B401D943E0 /* MacOSaiX.m */;
+		name = "MacOSaiX.m: 492";
+		rLen = 0;
+		rLoc = 17772;
+		rType = 0;
+		vrLen = 2328;
+		vrLoc = 12061;
+	};
+	73A0050E128A56A70050C0AF /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 01FE978C08E8EDFE00E4AC7C /* MacOSaiXKioskController.m */;
+		name = "MacOSaiXKioskController.m: 171";
+		rLen = 18;
+		rLoc = 5925;
+		rType = 0;
+		vrLen = 1828;
+		vrLoc = 4958;
+	};
+	73A00521128A58E70050C0AF /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 01FE981008F365C600E4AC7C /* MacOSaiXMosaic.h */;
+		name = "MacOSaiXMosaic.h: 185";
+		rLen = 0;
+		rLoc = 6336;
+		rType = 0;
+		vrLen = 2495;
+		vrLoc = 3855;
+	};
+	73A0052C128A59360050C0AF /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 92F2B1D4048027510000011E /* QuickTimeImageSource.m */;
+		name = "QuickTimeImageSource.m: 724";
+		rLen = 0;
+		rLoc = 20659;
+		rType = 0;
+		vrLen = 1033;
+		vrLoc = 0;
+	};
+	73A0052D128A59360050C0AF /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = F5517EEF020CD88F01000106 /* MosaicView.m */;
+		name = "MosaicView.m: 336";
+		rLen = 0;
+		rLoc = 9790;
+		rType = 0;
+		vrLen = 1261;
+		vrLoc = 9117;
+	};
+	73A0053F128A5A9A0050C0AF /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */;
+		name = "MacOSaiXMosaic.m: 470";
+		rLen = 0;
+		rLoc = 14160;
+		rType = 0;
+		vrLen = 1584;
+		vrLoc = 13201;
+	};
+	73A00560128A5C510050C0AF /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 73A00561128A5C510050C0AF /* NSStringDrawing.h */;
+		name = "NSStringDrawing.h: 16";
+		rLen = 10;
+		rLoc = 413;
+		rType = 0;
+		vrLen = 2811;
+		vrLoc = 0;
+	};
+	73A00561128A5C510050C0AF /* NSStringDrawing.h */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.c.h;
+		name = NSStringDrawing.h;
+		path = /Developer/SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/AppKit.framework/Versions/C/Headers/NSStringDrawing.h;
+		sourceTree = "<absolute>";
+	};
+	73A00585128A61690050C0AF /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = F5517EEF020CD88F01000106 /* MosaicView.m */;
+		name = "MosaicView.m: 1229";
+		rLen = 1;
+		rLoc = 42418;
+		rType = 0;
+		vrLen = 2078;
+		vrLoc = 41264;
+	};
+	73AF84150CC6760700E22C78 /* Watched Folder Image Source */ = {
+		activeExec = 0;
+	};
+	73AF84290CC676CB00E22C78 /* Info.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{797, 3}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	73AF842A0CC676CB00E22C78 /* MacOSaiXWatchedFolderImageSource.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{497, 0}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	73AF842B0CC676CB00E22C78 /* MacOSaiXWatchedFolderImageSource.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 4298}}";
+			sepNavSelRange = "{5987, 5}";
+			sepNavVisRect = "{{0, 3126}, {1065, 538}}";
+		};
+	};
+	73AF842C0CC676CB00E22C78 /* MacOSaiXWatchedFolderImageSourceEditor.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{508, 49}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	73AF842D0CC676CB00E22C78 /* MacOSaiXWatchedFolderImageSourceEditor.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 2002}}";
+			sepNavSelRange = "{603, 0}";
+			sepNavVisRect = "{{0, 378}, {1064, 776}}";
+		};
+	};
+	73B750801114A80E0046D7C2 /* Guitar Pick Tiles Plug-In */ = {
+		activeExec = 0;
+	};
+	73B750B61114A86A0046D7C2 /* GuitarPickTileShapes.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 757}}";
+			sepNavSelRange = "{210, 28}";
+			sepNavVisRange = "{0, 442}";
+		};
+	};
+	73B750B71114A86A0046D7C2 /* GuitarPickTileShapes.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 2821}}";
+			sepNavSelRange = "{4444, 0}";
+			sepNavVisRange = "{3993, 2320}";
+		};
+	};
+	73B750B81114A86A0046D7C2 /* GuitarPickTileShapesEditor.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 755}}";
+			sepNavSelRange = "{616, 0}";
+			sepNavVisRange = "{0, 622}";
+		};
+	};
+	73B750B91114A86A0046D7C2 /* GuitarPickTileShapesEditor.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1158, 1794}}";
+			sepNavSelRange = "{1454, 0}";
+			sepNavVisRange = "{0, 656}";
+		};
+	};
+	73B750C11114B26B0046D7C2 /* GuitarPickTileShapes.m:178 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 73B750B71114A86A0046D7C2 /* GuitarPickTileShapes.m */;
+		functionName = "-shapes";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 178;
+		location = "Guitar Pick Tiles";
+		modificationTime = 317334416.106472;
+		originalNumberOfMultipleMatches = 1;
+		state = 0;
+	};
+	73BB664C12A082D5009EE353 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 01FE978C08E8EDFE00E4AC7C /* MacOSaiXKioskController.m */;
+		name = "MacOSaiXKioskController.m: 181";
+		rLen = 0;
+		rLoc = 6312;
+		rType = 0;
+		vrLen = 1885;
+		vrLoc = 5541;
+	};
+	73BB666D12A5F857009EE353 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = F540721E023FE6E00100010A /* GoogleImageSource.m */;
+		name = "GoogleImageSource.m: 599";
+		rLen = 6;
+		rLoc = 19449;
+		rType = 0;
+		vrLen = 1846;
+		vrLoc = 18598;
+	};
+	73BB666E12A5F857009EE353 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */;
+		name = "MacOSaiXMosaic.m: 464";
+		rLen = 0;
+		rLoc = 13905;
+		rType = 0;
+		vrLen = 0;
+		vrLoc = 0;
+	};
+	73C32AFC12EA1B5900ED9331 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = F540721E023FE6E00100010A /* GoogleImageSource.m */;
+		name = "GoogleImageSource.m: 599";
+		rLen = 6;
+		rLoc = 19449;
+		rType = 0;
+		vrLen = 1853;
+		vrLoc = 18598;
+	};
+	73C32B0012EA1B5900ED9331 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */;
+		name = "MacOSaiXMosaic.m: 464";
+		rLen = 0;
+		rLoc = 13905;
+		rType = 0;
+		vrLen = 0;
+		vrLoc = 0;
+	};
+	73C32B0512EA1B9600ED9331 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = F540721E023FE6E00100010A /* GoogleImageSource.m */;
+		name = "GoogleImageSource.m: 603";
+		rLen = 0;
+		rLoc = 19603;
+		rType = 0;
+		vrLen = 1846;
+		vrLoc = 18598;
+	};
+	73C32B0C12EA239200ED9331 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = F540721E023FE6E00100010A /* GoogleImageSource.m */;
+		name = "GoogleImageSource.m: 603";
+		rLen = 0;
+		rLoc = 19603;
+		rType = 0;
+		vrLen = 1846;
+		vrLoc = 18598;
+	};
+	73C32B0D12EA239200ED9331 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */;
+		name = "MacOSaiXMosaic.m: 464";
+		rLen = 0;
+		rLoc = 13905;
+		rType = 0;
+		vrLen = 0;
+		vrLoc = 0;
+	};
+	73C343B00CAB01F300E3447C /* QuickTimeImageSource.m:543 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 92F2B1D4048027510000011E /* QuickTimeImageSource.m */;
+		functionName = "-nextImageAndIdentifier:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 543;
+		location = "QuickTime Image Source";
+		modificationTime = 317334416.1005639;
+		originalNumberOfMultipleMatches = 0;
+		state = 2;
+	};
+	73C3460D0CB155EA00E3447C /* MacOSaiXExportSavePanel.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1148, 619}}";
+			sepNavSelRange = "{213, 0}";
+			sepNavVisRect = "{{0, 0}, {1148, 619}}";
+		};
+	};
+	73C3460E0CB155EA00E3447C /* MacOSaiXExportSavePanel.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{491, 231}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	73C370690E097E3700C7FD74 /* MacOSaiXKioskPasswordController.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{306, 15}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	73C3706A0E097E3700C7FD74 /* MacOSaiXKioskPasswordController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {890, 756}}";
+			sepNavSelRange = "{457, 0}";
+			sepNavVisRect = "{{0, 48}, {890, 557}}";
+		};
+	};
+	73CBCD2E125BDEA400C3A076 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 9227FD6E07E37A240020C5F4 /* HexagonalTileShapes.m */;
+		name = "HexagonalTileShapes.m: 9";
+		rLen = 32;
+		rLoc = 165;
+		rType = 0;
+		vrLen = 1069;
+		vrLoc = 0;
+	};
+	73D4BBB61271D2D800554352 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 73F6A3A90D6CA6C900805FCC /* MacOSaiXImageMatchCache.m */;
+		name = "MacOSaiXImageMatchCache.m: 275";
+		rLen = 0;
+		rLoc = 6581;
+		rType = 0;
+		vrLen = 1122;
+		vrLoc = 5576;
+	};
+	73D4BBF61273203C00554352 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */;
+		name = "MacOSaiXImageCache.m: 461";
+		rLen = 0;
+		rLoc = 14390;
+		rType = 0;
+		vrLen = 1321;
+		vrLoc = 13396;
+	};
+	73DB4EF80D8C79CE00273345 /* MacOSaiXDLItem.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1148, 644}}";
+			sepNavSelRange = "{255, 0}";
+			sepNavVisRect = "{{0, 0}, {1148, 538}}";
+		};
+	};
+	73DB4EF90D8C79CE00273345 /* MacOSaiXDLItem.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {890, 1974}}";
+			sepNavSelRange = "{1976, 0}";
+			sepNavVisRect = "{{0, 1360}, {890, 557}}";
+		};
+	};
+	73DB4EFB0D8C7C1C00273345 /* MacOSaiXDLShelf.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {890, 557}}";
+			sepNavSelRange = "{522, 17}";
+			sepNavVisRect = "{{0, 0}, {890, 557}}";
+		};
+	};
+	73DB4EFC0D8C7C1C00273345 /* MacOSaiXDLShelf.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {890, 1148}}";
+			sepNavSelRange = "{755, 1}";
+			sepNavVisRect = "{{0, 222}, {890, 557}}";
+		};
+	};
+	73DB50BF0D8EEED000273345 /* iTunes Image Source */ = {
+		activeExec = 0;
+	};
+	73DB50C50D8EEEDB00273345 /* Info.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{781, 3}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	73DB50C60D8EEEDB00273345 /* MacOSaiXiTunesImageSource.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{461, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	73DB50C70D8EEEDB00273345 /* MacOSaiXiTunesImageSource.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 7952}}";
+			sepNavSelRange = "{12869, 5}";
+			sepNavVisRect = "{{0, 6458}, {1064, 538}}";
+		};
+	};
+	73DB50C80D8EEEDB00273345 /* MacOSaiXiTunesImageSourceEditor.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 538}}";
+			sepNavSelRange = "{244, 31}";
+			sepNavVisRect = "{{0, 0}, {1065, 538}}";
+		};
+	};
+	73DB50C90D8EEEDB00273345 /* MacOSaiXiTunesImageSourceEditor.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {889, 2310}}";
+			sepNavSelRange = "{3968, 0}";
+			sepNavVisRect = "{{0, 1675}, {889, 557}}";
+		};
+	};
+	73DB51D20D8EF46E00273345 /* MacOSaiXiTunesImageSource.m:426 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 73DB50C70D8EEEDB00273345 /* MacOSaiXiTunesImageSource.m */;
+		functionName = "-nextImage:andIdentifier:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 426;
+		location = "iTunes Image Source";
+		modificationTime = 317334416.101486;
+		originalNumberOfMultipleMatches = 0;
+		state = 2;
+	};
+	73DB51D40D8EF46F00273345 /* MacOSaiXiTunesImageSource.m:430 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 73DB50C70D8EEEDB00273345 /* MacOSaiXiTunesImageSource.m */;
+		functionName = "-nextImage:andIdentifier:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 430;
+		location = "iTunes Image Source";
+		modificationTime = 317334416.101807;
+		originalNumberOfMultipleMatches = 0;
+		state = 2;
+	};
+	73DB52390D90468500273345 /* NSData+MacOSaiX.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{199, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	73DB523A0D90468500273345 /* NSData+MacOSaiX.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 882}}";
+			sepNavSelRange = "{144, 28}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	73DB57AB0D98522100273345 /* MacOSaiXMosaic.m:1264 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */;
+		functionName = "-sourceImage:matchesBetterThanMatch:forTile:betterMatch:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 1264;
+		location = MacOSaiXMosaic.ob;
+		modificationTime = 317334416.102036;
+		originalNumberOfMultipleMatches = 0;
+		state = 2;
+	};
+	73DB57CE0D98920300273345 /* MacOSaiXMosaic.m:1504 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		condition = 73DB57D10D9892E700273345 /* XCGDBBreakpointCondition */;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */;
+		functionName = "-betterMatchesForTile:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 1504;
+		location = MacOSaiXMosaic_73DB57FC0D9ABEC300273345.ob;
+		modificationTime = 317334416.102348;
+		originalNumberOfMultipleMatches = 0;
+		state = 2;
+	};
+	73DB57D10D9892E700273345 /* XCGDBBreakpointCondition */ = {
+		isa = XCGDBBreakpointCondition;
+		conditionString = "(int)[betterMatches count] > 500";
+	};
+	73DB5CC411F53E3700FB59C8 /* MacOSaiXSourceImage.m:38 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 73EDD04A0D60CE4300217C44 /* MacOSaiXSourceImage.m */;
+		functionName = "-initWithImage:identifier:source:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 38;
+		location = MacOSaiX;
+		modificationTime = 317334416.997436;
+		originalNumberOfMultipleMatches = 1;
+		state = 1;
+	};
+	73DB5D4211F5514F00FB59C8 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 92902AEFC5B082BD00F96641 /* RectangularTileShapesEditor.m */;
+		name = "RectangularTileShapesEditor.m: 1";
+		rLen = 0;
+		rLoc = 2;
+		rType = 0;
+		vrLen = 706;
+		vrLoc = 0;
+	};
+	73DB5D4311F5514F00FB59C8 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 92902AEEC5B082BD00F96641 /* RectangularTileShapesEditor.h */;
+		name = "RectangularTileShapesEditor.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 1007;
+		vrLoc = 0;
+	};
+	73DB5D5E11F5597200FB59C8 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = F540721D023FE6E00100010A /* GoogleImageSource.h */;
+		name = "GoogleImageSource.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 1331;
+		vrLoc = 0;
+	};
+	73E170C80D7F05870055B57A /* MacOSaiXWindowController.m:2043 */ = {
+		isa = PBXFileBreakpoint;
+		actions = (
+		);
+		breakpointStyle = 0;
+		continueAfterActions = 0;
+		countType = 0;
+		delayBeforeContinue = 0;
+		fileReference = 9289DDA6073D713100C88091 /* MacOSaiXWindowController.m */;
+		functionName = "-tableView:objectValueForTableColumn:row:";
+		hitCount = 0;
+		ignoreCount = 0;
+		lineNumber = 2043;
+		location = MacOSaiX;
+		modificationTime = 317334416.885146;
+		originalNumberOfMultipleMatches = 1;
+		state = 1;
+	};
+	73E369C512FFB31D0082E4CA /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = F540721E023FE6E00100010A /* GoogleImageSource.m */;
+		name = "GoogleImageSource.m: 603";
+		rLen = 0;
+		rLoc = 19603;
+		rType = 0;
+		vrLen = 1402;
+		vrLoc = 18856;
+	};
+	73E369C612FFB32C0082E4CA /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = F540721E023FE6E00100010A /* GoogleImageSource.m */;
+		name = "GoogleImageSource.m: 603";
+		rLen = 0;
+		rLoc = 19603;
+		rType = 0;
+		vrLen = 1905;
+		vrLoc = 18546;
+	};
+	73E369C712FFB32C0082E4CA /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 73F6A3A90D6CA6C900805FCC /* MacOSaiXImageMatchCache.m */;
+		name = "MacOSaiXImageMatchCache.m: 68";
+		rLen = 18;
+		rLoc = 1374;
+		rType = 0;
+		vrLen = 1760;
+		vrLoc = 732;
+	};
+	73E369CB12FFB32C0082E4CA /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 01FE981108F365C600E4AC7C /* MacOSaiXMosaic.m */;
+		name = "MacOSaiXMosaic.m: 464";
+		rLen = 0;
+		rLoc = 13905;
+		rType = 0;
+		vrLen = 0;
+		vrLoc = 0;
+	};
+	73EDD0490D60CE4200217C44 /* MacOSaiXSourceImage.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 624}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 854}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	73EDD04A0D60CE4300217C44 /* MacOSaiXSourceImage.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 2184}}";
+			sepNavSelRange = "{822, 31}";
+			sepNavVisRange = "{148, 850}";
+			sepNavVisRect = "{{0, 1047}, {1065, 776}}";
+		};
+	};
+	73EF4ECC0F9EBCC0003B680E /* Standard Plug-ins */ = {
+		activeExec = 0;
+	};
+	73F61ABC0CCEA06A00E2BCFB /* MacOSaiXAnimationSettingsController.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1062, 776}}";
+			sepNavSelRange = "{929, 0}";
+			sepNavVisRect = "{{0, 0}, {1062, 776}}";
+		};
+	};
+	73F61ABD0CCEA06A00E2BCFB /* MacOSaiXAnimationSettingsController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 2058}}";
+			sepNavSelRange = "{2750, 183}";
+			sepNavVisRect = "{{0, 1225}, {1065, 538}}";
+		};
+	};
+	73F61B300CCEAADD00E2BCFB /* NSBezierPath+MacOSaiX.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{173, 0}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	73F61B310CCEAADD00E2BCFB /* NSBezierPath+MacOSaiX.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 1246}}";
+			sepNavSelRange = "{149, 34}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	73F623000CD67E5B00E2BCFB /* Glyph Names.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1062, 3696}}";
+			sepNavSelRange = "{5723, 4}";
+			sepNavVisRect = "{{0, 2769}, {1062, 776}}";
+		};
+	};
+	73F6A3A80D6CA6C900805FCC /* MacOSaiXImageMatchCache.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 757}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 1036}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	73F6A3A90D6CA6C900805FCC /* MacOSaiXImageMatchCache.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 4004}}";
+			sepNavSelRange = "{1374, 18}";
+			sepNavVisRange = "{732, 1760}";
+			sepNavVisRect = "{{0, 2416}, {1064, 776}}";
+		};
+	};
+	921607B008E5B7C30018C4C1 /* NSFileManager+MacOSaiX.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1210, 560}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {1210, 273}}";
+		};
+	};
+	921607B108E5B7C30018C4C1 /* NSFileManager+MacOSaiX.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 3724}}";
+			sepNavSelRange = "{4548, 2}";
+			sepNavVisRect = "{{0, 1936}, {1065, 538}}";
+		};
+	};
+	9226836009267C1B00BF4EF7 /* PuzzleTileShapes.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1062, 7140}}";
+			sepNavSelRange = "{16561, 12}";
+			sepNavVisRect = "{{0, 5362}, {1062, 776}}";
+		};
+	};
+	9226836209267C1B00BF4EF7 /* PuzzleTileShapesEditor.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1062, 5306}}";
+			sepNavSelRange = "{2103, 0}";
+			sepNavVisRect = "{{0, 806}, {1062, 776}}";
+		};
+	};
+	9227FD6D07E37A240020C5F4 /* HexagonalTileShapes.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1062, 776}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {1062, 776}}";
+		};
+	};
+	9227FD6E07E37A240020C5F4 /* HexagonalTileShapes.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1109, 2795}}";
+			sepNavSelRange = "{165, 32}";
+			sepNavVisRange = "{0, 1069}";
+		};
+	};
+	92319C8E09A7D5F9007CA9CD /* English */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	92319CA209A7D656007CA9CD /* English */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	92319CA709A7D6AA007CA9CD /* English */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{160, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	92319CAA09A7D6C5007CA9CD /* English */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{84, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	923384DB072180700010BE04 /* MacOSaiXImageSource.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 1498}}";
+			sepNavSelRange = "{3395, 0}";
+			sepNavVisRect = "{{0, 722}, {1065, 776}}";
+		};
+	};
+	924E805C099E8C0D006977E3 /* MacOSaiXTilesSetupController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 4522}}";
+			sepNavSelRange = "{9440, 0}";
+			sepNavVisRect = "{{0, 3434}, {1065, 538}}";
+		};
+	};
+	9254088A0915741F00384904 /* MacOSaiXKioskMessageView.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	9254088B0915741F00384904 /* MacOSaiXKioskMessageView.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {890, 1974}}";
+			sepNavSelRange = "{1389, 0}";
+			sepNavVisRect = "{{0, 681}, {890, 557}}";
+		};
+	};
+	9284897106611CE5003B3514 /* MacOSaiX.app */ = {
+		activeExec = 0;
+		executables = (
+			735810110C9EEBC900BE2261 /* MacOSaiX.app */,
+		);
+	};
+	928489B506611CE6003B3514 /* Directory Image Source Plug-In */ = {
+		activeExec = 0;
+	};
+	928489C506611CE6003B3514 /* Google Image Source Plug-In */ = {
+		activeExec = 0;
+	};
+	928489D506611CE6003B3514 /* Glyph Image Source Plug-In */ = {
+		activeExec = 0;
+	};
+	928489E606611CE6003B3514 /* Rectangular Tiles Plug-In */ = {
+		activeExec = 0;
+	};
+	928489F406611CE6003B3514 /* QuickTime Image Source Plug-In */ = {
+		activeExec = 0;
+	};
+	9287C13A075A5CC6004C07EF /* MacOSaiXTileShapes.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {889, 1008}}";
+			sepNavSelRange = "{238, 51}";
+			sepNavVisRect = "{{0, 0}, {889, 557}}";
+		};
+	};
+	9287C153075A5F55004C07EF /* RectangularTileShapes.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1062, 538}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {1062, 538}}";
+		};
+	};
+	9287C154075A5F55004C07EF /* RectangularTileShapes.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 2509}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{3245, 1373}";
+			sepNavVisRect = "{{0, 1918}, {889, 557}}";
+		};
+	};
+	92887D9A094CCC83000FA225 /* MacOSaiXPopUpImageView.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 538}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {1064, 538}}";
+		};
+	};
+	92887D9B094CCC83000FA225 /* MacOSaiXPopUpImageView.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 1568}}";
+			sepNavSelRange = "{1117, 0}";
+			sepNavVisRect = "{{0, 788}, {1065, 538}}";
+		};
+	};
+	9289DDA3073D713100C88091 /* MacOSaiXImageCache.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 826}}";
+			sepNavSelRange = "{627, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	9289DDA4073D713100C88091 /* MacOSaiXImageCache.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1133, 7046}}";
+			sepNavSelRange = "{14390, 0}";
+			sepNavVisRange = "{13396, 1321}";
+			sepNavVisRect = "{{0, 5520}, {1064, 538}}";
+			sepNavWindowFrame = "{{64, 19}, {921, 854}}";
+		};
+	};
+	9289DDA5073D713100C88091 /* MacOSaiXWindowController.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1146, 2366}}";
+			sepNavSelRange = "{798, 0}";
+			sepNavVisRect = "{{0, 0}, {1146, 460}}";
+		};
+	};
+	9289DDA6073D713100C88091 /* MacOSaiXWindowController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {917, 27833}}";
+			sepNavSelRange = "{58545, 0}";
+			sepNavVisRange = "{57740, 1182}";
+			sepNavVisRect = "{{0, 28002}, {1064, 538}}";
+		};
+	};
+	928F724A0661214000873AE2 /* Info.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{1253, 3}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+			sepNavWindowFrame = "{{143, 0}, {956, 878}}";
+		};
+	};
+	928F72D80661230700873AE2 /* Info.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{784, 3}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	928F72DC0661231B00873AE2 /* Info.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{780, 3}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	928F72E00661234700873AE2 /* Info.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{794, 3}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	928F72E40661235B00873AE2 /* Info.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{793, 3}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	928F72E80661237300873AE2 /* Info.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{784, 3}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	92902AEEC5B082BD00F96641 /* RectangularTileShapesEditor.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 572}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 1007}";
+		};
+	};
+	92902AEFC5B082BD00F96641 /* RectangularTileShapesEditor.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 3692}}";
+			sepNavSelRange = "{2, 0}";
+			sepNavVisRange = "{0, 706}";
+			sepNavVisRect = "{{0, 2478}, {1104, 538}}";
+			sepNavWindowFrame = "{{62, -5}, {956, 878}}";
+		};
+	};
+	9298FCC7098C1C6800E7A096 /* FlickrPreferencesController.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 952}}";
+			sepNavSelRange = "{1388, 0}";
+			sepNavVisRect = "{{0, 28}, {1065, 776}}";
+		};
+	};
+	9298FCC8098C1C6800E7A096 /* FlickrPreferencesController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1133, 10218}}";
+			sepNavSelRange = "{6648, 0}";
+			sepNavVisRange = "{6131, 1201}";
+			sepNavVisRect = "{{0, 956}, {1065, 538}}";
+		};
+	};
+	9298FE010995592300E7A096 /* MacOSaiXExportController.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 1050}}";
+			sepNavSelRange = "{1734, 0}";
+			sepNavVisRect = "{{0, 260}, {1065, 776}}";
+		};
+	};
+	9298FE020995592300E7A096 /* MacOSaiXExportController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1133, 10283}}";
+			sepNavSelRange = "{10059, 0}";
+			sepNavVisRange = "{9384, 1522}";
+			sepNavVisRect = "{{0, 8551}, {1064, 776}}";
+			sepNavWindowFrame = "{{62, -5}, {956, 878}}";
+		};
+	};
+	9298FE5E09955B0E00E7A096 /* English */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 538}}";
+			sepNavSelRange = "{208, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 538}}";
+		};
+	};
+	9298FE6009955B0E00E7A096 /* English */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 1974}}";
+			sepNavSelRange = "{3299, 0}";
+			sepNavVisRect = "{{0, 238}, {1065, 538}}";
+		};
+	};
+	9298FE7B09955BB600E7A096 /* English */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1148, 542}}";
+			sepNavSelRange = "{248, 0}";
+			sepNavVisRect = "{{0, 0}, {1148, 542}}";
+		};
+	};
+	9298FE7D09955BB600E7A096 /* English */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 780}}";
+			sepNavSelRange = "{110, 4}";
+			sepNavVisRange = "{0, 133}";
+			sepNavVisRect = "{{0, 0}, {1064, 538}}";
+		};
+	};
+	9298FE7F09955BB600E7A096 /* English */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{513, 1}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	92B45F71041A9DF1006867F5 /* DirectoryImageSourceController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {890, 4522}}";
+			sepNavSelRange = "{8305, 0}";
+			sepNavVisRect = "{{0, 3495}, {890, 557}}";
+		};
+	};
+	92B45F74041A9E78006867F5 /* GlyphImageSourceController.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 966}}";
+			sepNavSelRange = "{592, 28}";
+			sepNavVisRect = "{{0, 168}, {1065, 776}}";
+		};
+	};
+	92B45F75041A9E78006867F5 /* GlyphImageSourceController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 7756}}";
+			sepNavSelRange = "{967, 0}";
+			sepNavVisRect = "{{0, 420}, {1065, 776}}";
+		};
+	};
+	92B9087908C25F0500D621F5 /* MacOSaiXImageMatcher.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{187, 20}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	92B9087A08C25F0500D621F5 /* MacOSaiXImageMatcher.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {874, 3328}}";
+			sepNavSelRange = "{7610, 0}";
+			sepNavVisRange = "{6648, 2198}";
+			sepNavVisRect = "{{0, 2473}, {890, 557}}";
+		};
+	};
+	92DCA7CB08F8894C00B40FA6 /* MacOSaiXKioskSetupController.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{1075, 0}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	92DCA7CC08F8894C00B40FA6 /* MacOSaiXKioskSetupController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 5278}}";
+			sepNavSelRange = "{11344, 28}";
+			sepNavVisRange = "{10923, 1889}";
+			sepNavVisRect = "{{0, 4628}, {1065, 776}}";
+			sepNavWindowFrame = "{{62, 0}, {956, 878}}";
+		};
+	};
+	92E3E15207E7BE8C00E62AB8 /* iPhoto Image Source Plug-In */ = {
+		activeExec = 0;
+	};
+	92E3E17407E7BF1B00E62AB8 /* Info.plist */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 776}}";
+			sepNavSelRange = "{781, 3}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	92E3E17507E7BF1B00E62AB8 /* iPhotoImageSource.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {884, 557}}";
+			sepNavSelRange = "{167, 0}";
+			sepNavVisRect = "{{0, 0}, {884, 557}}";
+		};
+	};
+	92E3E17607E7BF1B00E62AB8 /* iPhotoImageSource.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 6062}}";
+			sepNavSelRange = "{8397, 5}";
+			sepNavVisRect = "{{0, 4568}, {1065, 538}}";
+		};
+	};
+	92E3E17807E7BF1B00E62AB8 /* iPhotoImageSourceController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {917, 2067}}";
+			sepNavSelRange = "{3190, 0}";
+			sepNavVisRange = "{1956, 1639}";
+			sepNavVisRect = "{{0, 0}, {1064, 776}}";
+		};
+	};
+	92F00CCC07C1AA55004F6D06 /* MacPADSocket.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 994}}";
+			sepNavSelRange = "{897, 0}";
+			sepNavVisRect = "{{0, 218}, {1064, 776}}";
+		};
+	};
+	92F00CCD07C1AA55004F6D06 /* MacPADSocket.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {890, 6412}}";
+			sepNavSelRange = "{965, 13}";
+			sepNavVisRect = "{{0, 364}, {890, 557}}";
+		};
+	};
+	92F00CE307C1B1D0004F6D06 /* MacOSaiXUpdateAvailableController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {888, 1078}}";
+			sepNavSelRange = "{754, 27}";
+			sepNavVisRect = "{{0, 280}, {888, 557}}";
+		};
+	};
+	92F2B1D3048027510000011E /* QuickTimeImageSource.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 780}}";
+			sepNavSelRange = "{326, 0}";
+			sepNavVisRange = "{0, 655}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	92F2B1D4048027510000011E /* QuickTimeImageSource.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1129, 9854}}";
+			sepNavSelRange = "{20659, 0}";
+			sepNavVisRange = "{0, 1033}";
+			sepNavVisRect = "{{0, 7179}, {1064, 776}}";
+			sepNavWindowFrame = "{{62, 0}, {1010, 878}}";
+		};
+	};
+	92F2B1D5048027510000011E /* QuickTimeImageSourceController.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 780}}";
+			sepNavSelRange = "{299, 0}";
+			sepNavVisRange = "{0, 903}";
+			sepNavVisRect = "{{0, 0}, {890, 557}}";
+		};
+	};
+	92F2B1D6048027510000011E /* QuickTimeImageSourceController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {917, 4615}}";
+			sepNavSelRange = "{6017, 0}";
+			sepNavVisRange = "{5526, 1034}";
+			sepNavVisRect = "{{0, 1750}, {1065, 538}}";
+		};
+	};
+	F514D5A203949AA801B25AF1 /* GoogleImageSourceController.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {889, 557}}";
+			sepNavSelRange = "{790, 38}";
+			sepNavVisRect = "{{0, 0}, {889, 557}}";
+		};
+	};
+	F514D5A303949AA801B25AF1 /* GoogleImageSourceController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1064, 1764}}";
+			sepNavSelRange = "{903, 0}";
+			sepNavVisRect = "{{0, 126}, {1064, 776}}";
+		};
+	};
+	F540721A023FE6860100010A /* DirectoryImageSource.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1133, 5187}}";
+			sepNavSelRange = "{9278, 80}";
+			sepNavVisRange = "{8802, 909}";
+			sepNavVisRect = "{{0, 4057}, {1064, 776}}";
+		};
+	};
+	F540721D023FE6E00100010A /* GoogleImageSource.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 845}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 1797}";
+			sepNavVisRect = "{{0, 339}, {889, 557}}";
+		};
+	};
+	F540721E023FE6E00100010A /* GoogleImageSource.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 14248}}";
+			sepNavSelRange = "{19603, 0}";
+			sepNavVisRange = "{18546, 1905}";
+			sepNavVisRect = "{{0, 12127}, {1184, 372}}";
+		};
+	};
+	F54D1108020F41F001000116 /* To Do */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 2436}}";
+			sepNavSelRange = "{5261, 0}";
+			sepNavVisRect = "{{0, 1782}, {1065, 538}}";
+			sepNavWindowFrame = "{{62, -5}, {957, 878}}";
+		};
+	};
+	F5517EEE020CD88F01000106 /* MosaicView.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1133, 1287}}";
+			sepNavSelRange = "{1052, 0}";
+			sepNavVisRange = "{223, 1099}";
+			sepNavVisRect = "{{0, 8}, {1064, 776}}";
+		};
+	};
+	F5517EEF020CD88F01000106 /* MosaicView.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {917, 18356}}";
+			sepNavSelRange = "{42418, 1}";
+			sepNavVisRange = "{41771, 1529}";
+			sepNavVisRect = "{{0, 8390}, {1064, 538}}";
+		};
+	};
+	F5666CC9C5B062B401D943E0 /* MacOSaiX.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{551, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	F5666CCAC5B062B401D943E0 /* MacOSaiX.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1050, 7111}}";
+			sepNavSelRange = "{17772, 0}";
+			sepNavVisRange = "{12061, 2328}";
+			sepNavVisRect = "{{0, 2509}, {1064, 538}}";
+		};
+	};
+	F566B485028052CF01000108 /* PreferencesController.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {917, 585}}";
+			sepNavSelRange = "{498, 13}";
+			sepNavVisRange = "{0, 1059}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	F566B486028052CF01000108 /* PreferencesController.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {917, 3107}}";
+			sepNavSelRange = "{2353, 53}";
+			sepNavVisRange = "{1415, 1984}";
+			sepNavVisRect = "{{0, 891}, {889, 557}}";
+			sepNavWindowFrame = "{{62, 0}, {956, 878}}";
+		};
+	};
+	F57C77AC025D0CFF01000102 /* GlyphImageSource.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 776}}";
+			sepNavSelRange = "{388, 0}";
+			sepNavVisRect = "{{0, 0}, {1065, 776}}";
+		};
+	};
+	F57C77AD025D0CFF01000102 /* GlyphImageSource.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {1065, 11760}}";
+			sepNavSelRange = "{23112, 5}";
+			sepNavVisRect = "{{0, 10784}, {1065, 538}}";
+		};
+	};
+}

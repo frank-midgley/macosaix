@@ -10,10 +10,13 @@
 #import "MacOSaiXDocument.h"
 
 #import "MacOSaiX.h"
+#import "MacOSaiXImageCache.h"
+#import "MacOSaiXSourceImage.h"
 #import "Tiles.h"
 #import "NSImage+MacOSaiX.h"
 #import "NSString+MacOSaiX.h"
 
+#import <pthread.h>
 #import <unistd.h>
 
 
@@ -59,7 +62,10 @@
 {
 	if (![self fileName])	// TBD: is this the right way to check for this?
 	{
-			// This is a new document, not one loaded from disk.
+		// This is a new document, not one loaded from disk.
+		
+		loading = YES;
+		
 		NSString	*defaultShapesClassString = [[NSUserDefaults standardUserDefaults] objectForKey:@"Last Chosen Tile Shapes Class"];
 		[mosaic setTileShapes:[[[NSClassFromString(defaultShapesClassString) alloc] init] autorelease]
 				creatingTiles:YES];
@@ -76,6 +82,8 @@
 				char		*tempPath = mkdtemp((char *)[tempPathTemplate fileSystemRepresentation]);
 				if (tempPath)
 					[[self mosaic] setDiskCachePath:[NSString stringWithCString:tempPath]];
+				
+				CFRelease(chewableItemsURLRef);
 			}
 		}
 	}
@@ -84,6 +92,9 @@
 	[mainWindowController setMosaic:[self mosaic]];
 	[self addWindowController:mainWindowController];
 	[mainWindowController showWindow:self];
+	
+	if (![self fileName])	// TBD: is this the right way to check for this?
+		loading = NO;
 }
 
 
@@ -100,11 +111,26 @@
 	
 	[mosaic autorelease];
 	mosaic = [inMosaic retain];
-
-	[[NSNotificationCenter defaultCenter] addObserver:self 
-											 selector:@selector(mosaicDidChangeState:) 
-												 name:MacOSaiXMosaicDidChangeStateNotification 
-											   object:mosaic];
+	
+	if (mosaic)
+	{
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(mosaicDidChange:) 
+													 name:MacOSaiXOriginalImageDidChangeNotification 
+												   object:mosaic];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(mosaicDidChange:) 
+													 name:MacOSaiXTileShapesDidChangeStateNotification 
+												   object:mosaic];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(mosaicDidChange:) 
+													 name:MacOSaiXMosaicDidChangeImageSourcesNotification 
+												   object:mosaic];
+		[[NSNotificationCenter defaultCenter] addObserver:self 
+												 selector:@selector(mosaicDidChange:) 
+													 name:MacOSaiXTileImageDidChangeNotification 
+												   object:mosaic];
+	}
 }
 
 
@@ -114,9 +140,10 @@
 }
 
 
-- (void)mosaicDidChangeState:(NSNotification *)notification
+- (void)mosaicDidChange:(NSNotification *)notification
 {
-	[self updateChangeCount:NSChangeDone];
+	if (!loading)
+		[self updateChangeCount:NSChangeDone];
 }
 
 
@@ -162,7 +189,7 @@
 }
 
 
-- (void)startAutosaveTimer:(id)dummy
+- (void)startAutosaveTimer
 {
 		// Clear out any previous timer.
 	if ([autosaveTimer isValid])
@@ -200,25 +227,21 @@
 #pragma mark Saving
 
 
+- (void)updateChangeCountOnMainThread:(NSNumber *)changeType
+{
+	if ([changeType intValue] == NSChangeDone && !autosaveTimer && [[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Save Mosaics"])
+		[self startAutosaveTimer];
+	
+	[super updateChangeCount:[changeType intValue]];
+}
+
+
 - (void)updateChangeCount:(NSDocumentChangeType)changeType
 {
-	if (changeType == NSChangeDone && !autosaveTimer && 
-		[[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Save Mosaics"])
-		[self performSelectorOnMainThread:@selector(startAutosaveTimer:) withObject:nil waitUntilDone:YES];
-	
-	[super updateChangeCount:changeType];
-}
-
-
-- (BOOL)isSaving
-{
-	return saving;
-}
-
-
-- (void)setIsSaving:(BOOL)isSaving
-{
-	saving = isSaving;
+	if (!pthread_main_np())
+		[self performSelectorOnMainThread:@selector(updateChangeCountOnMainThread:) withObject:[NSNumber numberWithInt:changeType] waitUntilDone:YES];
+	else
+		[self updateChangeCountOnMainThread:[NSNumber numberWithInt:changeType]];
 }
 
 
@@ -229,19 +252,209 @@
 }
 
 
-- (void)createFileWrapperAtPath:(NSString *)newPath 
-		   fromOldWrapperAtPath:(NSString *)oldPath 
-			copyingCachedImages:(BOOL)copyCachedImages
+- (NSString *)xmlRepresentation
 {
-	// Create the wrapper directory if it doesn't already exist.
-	NSFileManager	*fileManager = [NSFileManager defaultManager];
-	BOOL			isDir;
-	if (([fileManager fileExistsAtPath:newPath isDirectory:&isDir] && isDir) || 
-		[fileManager createDirectoryAtPath:newPath attributes:nil])
+	NSMutableString	*xmlRepresentation = [NSMutableString string];
+	NSArray			*imageSources = [[self mosaic] imageSources];
+	
+		// Write out the XML header.
+	[xmlRepresentation appendString:@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"];
+	[xmlRepresentation appendString:@"<!DOCTYPE plist PUBLIC \"-//Frank M. Midgley//DTD MacOSaiX 1.0//EN\" \"http://homepage.mac.com/knarf/DTDs/MacOSaiX-1.0.dtd\">\n\n"];
+
+	[xmlRepresentation appendString:@"<MOSAIC>\n\n"];
+
+		// Write out the path to the original image
+		// TODO: also store an alias
+	[xmlRepresentation appendFormat:@"<ORIGINAL_IMAGE PATH=\"%@\"/>\n\n", [[self originalImagePath] stringByEscapingXMLEntites]];
+	
+	{		// Write out the tile shapes settings
+		NSString		*className = NSStringFromClass([[mosaic tileShapes] class]);
+		NSMutableString	*tileShapesXML = [NSMutableString stringWithString:
+														[[[mosaic tileShapes] settingsAsXMLElement] stringByTrimmingCharactersInSet:
+															[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
+		[tileShapesXML replaceOccurrencesOfString:@"\n" withString:@"\n\t" options:0 range:NSMakeRange(0, [tileShapesXML length])];
+		[tileShapesXML insertString:@"\t" atIndex:0];
+		[tileShapesXML appendString:@"\n"];
+		[xmlRepresentation appendFormat:@"<TILE_SHAPES_SETTINGS CLASS=\"%@\">\n%@</TILE_SHAPES_SETTINGS>\n\n", className, tileShapesXML];
+		
+		[xmlRepresentation appendString:@"<IMAGE_USAGE>\n"];
+		[xmlRepresentation appendFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\"/>\n", [mosaic imageUseCount], [mosaic imageReuseDistance]];
+		[xmlRepresentation appendFormat:@"\t<IMAGE_CROP LIMIT=\"%d\"/>\n", [mosaic imageCropLimit]];
+		[xmlRepresentation appendString:@"</IMAGE_USAGE>\n\n"];
+	}
+	
+	{		// Write out the image sources.
+		[xmlRepresentation appendString:@"<IMAGE_SOURCES>\n"];
+		
+		int		index;
+		for (index = 0; index < [imageSources count]; index++)
+		{
+			id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:index];
+			NSString				*className = NSStringFromClass([imageSource class]);
+			BOOL					isFiller = [mosaic imageSourceIsFiller:imageSource], 
+									imagesLost = [mosaic imageSourceHasLostImages:imageSource];
+			
+			if ([imageSource canRefetchImages])
+				[xmlRepresentation appendFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\" FILLER=\"%@\" IMAGES_LOST=\"%@\">\n", 
+												index, className, [mosaic countOfImagesFromSource:imageSource], (isFiller ? @"YES" : @"NO"), (imagesLost ? @"YES" : @"NO")];
+			else
+				[xmlRepresentation appendFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\" FILLER=\"%@\" IMAGES_LOST=\"%@\" CACHE_NAME=\"%@\">\n", 
+												index, className, [mosaic countOfImagesFromSource:imageSource], (isFiller ? @"YES" : @"NO"), (imagesLost ? @"YES" : @"NO"),
+												[[self mosaic] diskCacheSubPathForImageSource:imageSource]];
+			
+				// Output the settings for this image source.
+				// TODO: need to tag this element with the source's namespace
+			NSMutableString			*imageSourceXML = [NSMutableString stringWithString:
+														[[imageSource settingsAsXMLElement] stringByTrimmingCharactersInSet:
+															[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
+			[imageSourceXML replaceOccurrencesOfString:@"\n" withString:@"\n\t\t" options:0 range:NSMakeRange(0, [imageSourceXML length])];
+			[imageSourceXML insertString:@"\t\t" atIndex:0];
+			[imageSourceXML appendString:@"\n"];
+			[xmlRepresentation appendString:imageSourceXML];
+			
+			NSArray					*queuedImages = [[self mosaic] imagesQueuedForSource:imageSource];
+			if ([queuedImages count] > 0)
+			{
+				[xmlRepresentation appendString:@"\t\t<QUEUED_IMAGES>\n"];
+				NSEnumerator	*queuedImageEnumerator = [queuedImages objectEnumerator];
+				NSString		*queuedImageIdentifier = nil;
+				while (queuedImageIdentifier = [queuedImageEnumerator nextObject])
+					[xmlRepresentation appendFormat:@"\t\t\t<QUEUED_IMAGE ID=\"%@\"/>\n", [queuedImageIdentifier stringByEscapingXMLEntites]];
+				// TODO: also save the image if the source can't refetch.
+				[xmlRepresentation appendString:@"\t\t</QUEUED_IMAGES>\n"];
+			}
+			
+			NSArray					*scrapImages = [[self mosaic] scrapImagesForSource:imageSource];
+			if ([scrapImages count] > 0)
+			{
+				[xmlRepresentation appendString:@"\t\t<SCRAP_IMAGES>\n"];
+				NSEnumerator	*scrapImageEnumerator = [scrapImages objectEnumerator];
+				NSString		*scrapImageIdentifier = nil;
+				while (scrapImageIdentifier = [scrapImageEnumerator nextObject])
+					[xmlRepresentation appendFormat:@"\t\t\t<SCRAP_IMAGE ID=\"%@\"/>\n", [scrapImageIdentifier stringByEscapingXMLEntites]];
+				// TODO: also save the image if the source can't refetch.
+				[xmlRepresentation appendString:@"\t\t</SCRAP_IMAGES>\n"];
+			}
+			
+			[xmlRepresentation appendString:@"\t</IMAGE_SOURCE>\n\n"];
+		}
+		
+		[xmlRepresentation appendString:@"</IMAGE_SOURCES>\n\n"];
+	}
+	
+	{		// Write out the tiles
+		NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
+		MacOSaiXTile	*tile = nil;
+		
+		[xmlRepresentation appendString:@"<TILES>\n"];
+		
+		while (tile = [tileEnumerator nextObject])
+		{
+			NSAutoreleasePool	*tilePool = [[NSAutoreleasePool alloc] init];
+			
+			[xmlRepresentation appendFormat:@"\t<TILE%@>\n", ([tile uniqueImageMatchIsOptimal] ? @"" : @" OPTIMAL=\"NO\"")];
+			
+				// First write out the tile's outline
+			[xmlRepresentation appendString:@"\t\t<OUTLINE>\n"];
+			int index;
+			for (index = 0; index < [[tile outline] elementCount]; index++)
+			{
+				NSPoint points[3];
+				switch ([[tile outline] elementAtIndex:index associatedPoints:points])
+				{
+					case NSMoveToBezierPathElement:
+						[xmlRepresentation appendFormat:@"\t\t\t<MOVE_TO X=\"%g\" Y=\"%g\"/>\n", points[0].x, points[0].y];
+						break;
+					case NSLineToBezierPathElement:
+						[xmlRepresentation appendFormat:@"\t\t\t<LINE_TO X=\"%g\" Y=\"%g\"/>\n", points[0].x, points[0].y];
+						break;
+					case NSCurveToBezierPathElement:
+						[xmlRepresentation appendFormat:@"\t\t\t<CURVE_TO X=\"%g\" Y=\"%g\" C1X=\"%g\" C1Y=\"%g\" C2X=\"%g\" C2Y=\"%g\"/>\n", points[2].x, points[2].y, points[0].x, points[0].y, points[1].x, points[1].y];
+						break;
+					case NSClosePathBezierPathElement:
+						[xmlRepresentation appendString:@"\t\t\t<CLOSE_PATH/>\n"];
+						break;
+				}
+			}
+			[xmlRepresentation appendString:@"\t\t</OUTLINE>\n"];
+			
+				// Now write out the tile's matches.
+			MacOSaiXImageMatch	*userChosenMatch = [tile userChosenImageMatch];
+			if (userChosenMatch)
+				[xmlRepresentation appendFormat:@"\t\t<USER_CHOSEN_MATCH ID=\"%@\" VALUE=\"%g\"/>\n", 
+												[[[userChosenMatch sourceImage] identifier] stringByEscapingXMLEntites], [userChosenMatch matchValue]];
+			MacOSaiXImageMatch	*uniqueMatch = [tile uniqueImageMatch];
+			if (uniqueMatch)
+			{
+				unsigned long	sourceIndex = [imageSources indexOfObjectIdenticalTo:[[uniqueMatch sourceImage] source]];
+					// Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
+					// fully working.
+				if (sourceIndex != NSNotFound)
+					[xmlRepresentation appendFormat:@"\t\t<UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%g\"/>\n", 
+													sourceIndex, [[[uniqueMatch sourceImage] identifier] stringByEscapingXMLEntites], [uniqueMatch matchValue]];
+#ifdef DEBUG
+				else
+					NSLog(@"oops");
+#endif
+			}
+			MacOSaiXImageMatch	*bestMatch = [tile bestImageMatch];
+			if (bestMatch)
+			{
+				unsigned long	sourceIndex = [imageSources indexOfObjectIdenticalTo:[[bestMatch sourceImage] source]];
+					// Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
+					// fully working.
+				if (sourceIndex != NSNotFound)
+					[xmlRepresentation appendFormat:@"\t\t<BEST_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%g\"/>\n", 
+													sourceIndex, [[[bestMatch sourceImage] identifier] stringByEscapingXMLEntites], [bestMatch matchValue]];
+#ifdef DEBUG
+				else
+					NSLog(@"oops");
+#endif
+			}
+			
+			[xmlRepresentation appendString:@"\t</TILE>\n"];
+			
+			[tilePool release];
+		}
+		
+		[xmlRepresentation appendString:@"</TILES>\n"];
+	}
+	
+	[xmlRepresentation appendString:@"</MOSAIC>\n\n"];
+	
+	return xmlRepresentation;
+}
+
+
+- (NSFileWrapper *)fileWrapperRepresentationOfType:(NSString *)type
+{
+	NSFileWrapper	*fileWrapper = nil;
+	
+	if ([type isEqualToString:@"MacOSaiX Project"])
+	{
+		NSMutableDictionary	*fileWrappers = [NSMutableDictionary dictionary];
+		
+		[fileWrappers setObject:[[[NSFileWrapper alloc] initRegularFileWithContents:[[self xmlRepresentation] dataUsingEncoding:NSUTF8StringEncoding]] autorelease] forKey:@"Mosaic.xml"];
+		
+		fileWrapper = [[[NSFileWrapper alloc] initDirectoryWithFileWrappers:fileWrappers] autorelease];
+	}
+	
+	return fileWrapper;
+}
+
+
+- (BOOL)writeToFile:(NSString *)fileName 
+			 ofType:(NSString *)docType 
+	   originalFile:(NSString *)originalFileName 
+	  saveOperation:(NSSaveOperationType)saveOperationType
+{
+	BOOL	success = [super writeToFile:fileName ofType:docType originalFile:originalFileName saveOperation:saveOperationType];
+	
+	if (success && ![fileName isEqualToString:originalFileName])
 	{
 			// Make the folder a package.
 		FSRef		folderRef;
-		OSStatus	status = FSPathMakeRef([newPath UTF8String], &folderRef, NULL);
+		OSStatus	status = FSPathMakeRef((const UInt8 *)[fileName UTF8String], &folderRef, NULL);
 		if (status == noErr)
 		{
 			FSCatalogInfo	info;
@@ -253,346 +466,59 @@
 			}
 		}
 		
-			// Move or copy any image source cache directories to the new file wrapper.
+			// Move or copy the disk caches to the save location.
 		NSEnumerator			*imageSourceEnumerator = [[[self mosaic] imageSources] objectEnumerator];
 		id<MacOSaiXImageSource>	imageSource = nil;
+		NSString				*originalCachePath = [[self mosaic] diskCachePath];
 		while (imageSource = [imageSourceEnumerator nextObject])
 			if (![imageSource canRefetchImages])
 			{
 				NSString	*subPath = [[self mosaic] diskCacheSubPathForImageSource:imageSource], 
-							*oldCachePath = [oldPath stringByAppendingPathComponent:subPath], 
-							*newCachePath = [newPath stringByAppendingPathComponent:subPath];
+							*oldCachePath = [originalCachePath stringByAppendingPathComponent:subPath], 
+							*newCachePath = [fileName stringByAppendingPathComponent:subPath];
 				
-				if (copyCachedImages)
-					[[NSFileManager defaultManager] copyPath:oldCachePath toPath:newCachePath handler:nil];
-				else
+				if (!originalFileName || saveOperationType == NSSaveOperation)
 					[[NSFileManager defaultManager] movePath:oldCachePath toPath:newCachePath handler:nil];
-			}
-	}
-}
-
-
-- (void)saveToFile:(NSString *)fileName 
-	 saveOperation:(NSSaveOperationType)saveOperation 
-		  delegate:(id)delegate 
-   didSaveSelector:(SEL)didSaveSelector 
-	   contextInfo:(void *)contextInfo;
-{
-	if (!fileName)
-		return;	// the user cancelled the save
-	
-	[self setIsSaving:YES];
-	
-	BOOL			wasPaused = [mosaic isPaused];
-	
-		// Display a sheet while the save is underway
-// TODO:	[[self mainWindowController] setCancelAction:@selector(cancelSave) andTarget:self];
-	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving mosaic project..."];
-	
-		// Pause the mosaic so that it is in a static state while saving.
-	[mosaic pause];
-	
-		// Create the new file wrapper and move over any cached images.
-	[self createFileWrapperAtPath:fileName 
-			 fromOldWrapperAtPath:[[self mosaic] diskCachePath] 
-			  copyingCachedImages:NO];
-	[[self mosaic] setDiskCachePath:fileName];
-	
-	NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-											fileName, @"Save Path", 
-											[NSNumber numberWithInt:saveOperation], @"Save Operation", 
-											[NSNumber numberWithBool:wasPaused], @"Was Paused", 
-											nil];
-	if (delegate)
-		[parameters setObject:delegate forKey:@"Did Save Delegate"];
-	if (didSaveSelector)
-		[parameters setObject:NSStringFromSelector(didSaveSelector) forKey:@"Did Save Selector"];
-	if (contextInfo)
-		[parameters setObject:[NSNumber numberWithUnsignedLong:(unsigned long)contextInfo] forKey:@"Context Info"];
-	
-	[NSThread detachNewThreadSelector:@selector(threadedSaveWithParameters:) 
-							 toTarget:self 
-						   withObject:parameters];
-}
-
-
-- (BOOL)writeToFile:(NSString *)newDocumentPath 
-			 ofType:(NSString *)docType 
-	   originalFile:(NSString *)oldDocumentPath 
-	  saveOperation:(NSSaveOperationType)saveOperationType
-{
-	[self setIsSaving:YES];
-	
-	BOOL			wasPaused = [mosaic isPaused];
-	
-	[[self mainWindowController] displayProgressPanelWithMessage:@"Saving mosaic project..."];
-
-		// Pause the mosaic so that it is in a static state while saving.
-	[[self mosaic] pause];
-	
-		// Create the new file wrapper and move/copy over any cached images.
-	[self createFileWrapperAtPath:newDocumentPath 
-			 fromOldWrapperAtPath:oldDocumentPath 
-			  copyingCachedImages:(saveOperationType != NSSaveOperation)];
-	if (saveOperationType == NSSaveOperation || saveOperationType == NSSaveAsOperation)
-		[[self mosaic] setDiskCachePath:newDocumentPath];
-	
-	NSMutableDictionary	*parameters = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-											newDocumentPath, @"Save Path", 
-											[NSNumber numberWithInt:saveOperationType], @"Save Operation", 
-											[NSNumber numberWithBool:wasPaused], @"Was Paused", 
-											nil];
-	[NSThread detachNewThreadSelector:@selector(threadedSaveWithParameters:) 
-							 toTarget:self 
-						   withObject:parameters];
-
-	return YES;
-}
-
-
-- (void)cancelSave
-{
-	// TODO
-}
-
-
-- (NSString *)indexAsAlpha:(int)index
-{
-	char	buffer[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-	char	*p = &buffer[6];
-	
-	do
-	{
-		*p-- = (index % 26) + 65;
-		index /= 26;
-	}
-	while (index != 0);
-	
-	return [NSString stringWithCString:++p];
-}
-
-
-- (void)threadedSaveWithParameters:(NSDictionary *)parameters
-{
-	NSAutoreleasePool	*pool = [[NSAutoreleasePool alloc] init];
-	BOOL				saveSucceeded = NO;
-	NSString			*savePath = [parameters objectForKey:@"Save Path"];
-	id					didSaveDelegate = [parameters objectForKey:@"Did Save Delegate"];
-	SEL					didSaveSelector = NSSelectorFromString([parameters objectForKey:@"Did Save Selector"]);
-	void				*contextInfo = (void *)[[parameters objectForKey:@"Context Info"] unsignedLongValue];
-	BOOL				wasPaused = [[parameters objectForKey:@"Was Paused"] boolValue];
-	
-	NS_DURING
-			// Don't usurp the main thread.
-		[NSThread setThreadPriority:0.1];
-		
-			// Create the master save file in XML format.
-		NSString	*xmlPath = [savePath stringByAppendingPathComponent:@"Mosaic.xml"];
-		if (![[NSFileManager defaultManager] createFileAtPath:xmlPath contents:nil attributes:nil])
-		{
-			// TODO
-		}
-		else
-		{
-			NSFileHandle	*fileHandle = [NSFileHandle fileHandleForWritingAtPath:xmlPath];
-			
-				// Write out the XML header.
-			[fileHandle writeData:[@"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[@"<!DOCTYPE plist PUBLIC \"-//Frank M. Midgley//DTD MacOSaiX 1.0//EN\" \"http://homepage.mac.com/knarf/DTDs/MacOSaiX-1.0.dtd\">\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
-
-			[fileHandle writeData:[@"<MOSAIC>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
-
-				// Write out the path to the original image
-			[fileHandle writeData:[[NSString stringWithFormat:@"<ORIGINAL_IMAGE PATH=\"%@\"/>\n\n", 
-												[[self originalImagePath] stringByEscapingXMLEntites]] 
-												dataUsingEncoding:NSUTF8StringEncoding]];
-			
-				// Write out the tile shapes settings
-			NSString		*className = NSStringFromClass([[mosaic tileShapes] class]);
-			NSMutableString	*tileShapesXML = [NSMutableString stringWithString:
-															[[[mosaic tileShapes] settingsAsXMLElement] stringByTrimmingCharactersInSet:
-																[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
-			[tileShapesXML replaceOccurrencesOfString:@"\n" withString:@"\n\t" options:0 range:NSMakeRange(0, [tileShapesXML length])];
-			[tileShapesXML insertString:@"\t" atIndex:0];
-			[tileShapesXML appendString:@"\n"];
-			[fileHandle writeData:[[NSString stringWithFormat:@"<TILE_SHAPES_SETTINGS CLASS=\"%@\">\n", className] dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[tileShapesXML dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[@"</TILE_SHAPES_SETTINGS>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			
-			[fileHandle writeData:[@"<IMAGE_USAGE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_REUSE COUNT=\"%d\" DISTANCE=\"%d\"/>\n", [mosaic imageUseCount], [mosaic imageReuseDistance]] dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_CROP LIMIT=\"%d\"/>\n", [mosaic imageCropLimit]] dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[@"</IMAGE_USAGE>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			
-				// Write out the image sources.
-			[fileHandle writeData:[@"<IMAGE_SOURCES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			NSArray	*imageSources = [[self mosaic] imageSources];
-			int		index;
-			for (index = 0; index < [imageSources count]; index++)
-			{
-				id<MacOSaiXImageSource>	imageSource = [imageSources objectAtIndex:index];
-				NSString				*className = NSStringFromClass([imageSource class]);
-				if ([imageSource canRefetchImages])
-					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\">\n", 
-																	  index, className, [mosaic countOfImagesFromSource:imageSource]] 
-												dataUsingEncoding:NSUTF8StringEncoding]];
 				else
-					[fileHandle writeData:[[NSString stringWithFormat:@"\t<IMAGE_SOURCE ID=\"%d\" CLASS=\"%@\" IMAGE_COUNT=\"%d\" CACHE_NAME=\"%@\">\n", 
-																	  index, className, [mosaic countOfImagesFromSource:imageSource],
-																	  [[self mosaic] diskCacheSubPathForImageSource:imageSource]] 
-												dataUsingEncoding:NSUTF8StringEncoding]];
-				
-					// Output the settings for this image source.
-					// TODO: need to tag this element with the source's namespace
-				NSMutableString			*imageSourceXML = [NSMutableString stringWithString:
-															[[imageSource settingsAsXMLElement] stringByTrimmingCharactersInSet:
-																[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
-				[imageSourceXML replaceOccurrencesOfString:@"\n" withString:@"\n\t\t" options:0 range:NSMakeRange(0, [imageSourceXML length])];
-				[imageSourceXML insertString:@"\t\t" atIndex:0];
-				[imageSourceXML appendString:@"\n"];
-				[fileHandle writeData:[imageSourceXML dataUsingEncoding:NSUTF8StringEncoding]];
-				
-				[fileHandle writeData:[@"\t</IMAGE_SOURCE>\n" dataUsingEncoding:NSUTF8StringEncoding]];
+					[[NSFileManager defaultManager] copyPath:oldCachePath toPath:newCachePath handler:nil];
 			}
-			[fileHandle writeData:[@"</IMAGE_SOURCES>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			
-				// Write out the tiles
-			[fileHandle writeData:[@"<TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			NSMutableString	*buffer = [NSMutableString string];
-			NSEnumerator	*tileEnumerator = [[mosaic tiles] objectEnumerator];
-			MacOSaiXTile	*tile = nil;
-			while (tile = [tileEnumerator nextObject])
-			{
-				NSAutoreleasePool	*tilePool = [[NSAutoreleasePool alloc] init];
-				
-				[buffer appendString:@"\t<TILE>\n"];
-				
-					// First write out the tile's outline
-				[buffer appendString:@"\t\t<OUTLINE>\n"];
-				int index;
-				for (index = 0; index < [[tile outline] elementCount]; index++)
-				{
-					NSPoint points[3];
-					switch ([[tile outline] elementAtIndex:index associatedPoints:points])
-					{
-						case NSMoveToBezierPathElement:
-							[buffer appendString:[NSString stringWithFormat:@"\t\t\t<MOVE_TO X=\"%g\" Y=\"%g\"/>\n", 
-																			points[0].x, points[0].y]];
-							break;
-						case NSLineToBezierPathElement:
-							[buffer appendString:[NSString stringWithFormat:@"\t\t\t<LINE_TO X=\"%g\" Y=\"%g\"/>\n", 
-																			points[0].x, points[0].y]];
-							break;
-						case NSCurveToBezierPathElement:
-							[buffer appendString:[NSString stringWithFormat:@"\t\t\t<CURVE_TO X=\"%g\" Y=\"%g\" C1X=\"%g\" C1Y=\"%g\" C2X=\"%g\" C2Y=\"%g\"/>\n", 
-																			points[2].x, points[2].y, 
-																			points[0].x, points[0].y, 
-																			points[1].x, points[1].y]];
-							break;
-						case NSClosePathBezierPathElement:
-							[buffer appendString:@"\t\t\t<CLOSE_PATH/>\n"];
-							break;
-					}
-				}
-				[buffer appendString:@"\t\t</OUTLINE>\n"];
-				
-					// Now write out the tile's matches.
-				MacOSaiXImageMatch	*userChosenMatch = [tile userChosenImageMatch];
-				if (userChosenMatch)
-					[buffer appendString:[NSString stringWithFormat:@"\t\t<USER_CHOSEN_MATCH ID=\"%@\" VALUE=\"%g\"/>\n", 
-																	  [[userChosenMatch imageIdentifier] stringByEscapingXMLEntites],
-																	  [userChosenMatch matchValue]]];
-				MacOSaiXImageMatch	*uniqueMatch = [tile uniqueImageMatch];
-				if (uniqueMatch)
-				{
-					int	sourceIndex = [imageSources indexOfObjectIdenticalTo:[uniqueMatch imageSource]];
-						// Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
-						// fully working.
-					if (sourceIndex != NSNotFound)
-						[buffer appendString:[NSString stringWithFormat:@"\t\t<UNIQUE_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%g\"/>\n", 
-																		  sourceIndex,
-																		  [[uniqueMatch imageIdentifier] stringByEscapingXMLEntites],
-																		  [uniqueMatch matchValue]]];
-#ifdef DEBUG
-					else
-						NSLog(@"oops");
-#endif
-				}
-				MacOSaiXImageMatch	*bestMatch = [tile bestImageMatch];
-				if (bestMatch)
-				{
-					int	sourceIndex = [imageSources indexOfObjectIdenticalTo:[bestMatch imageSource]];
-						// Hack: this check shouldn't be necessary if the "Remove Image Source" code was 
-						// fully working.
-					if (sourceIndex != NSNotFound)
-						[buffer appendString:[NSString stringWithFormat:@"\t\t<BEST_MATCH SOURCE=\"%d\" ID=\"%@\" VALUE=\"%g\"/>\n", 
-																		  sourceIndex,
-																		  [[bestMatch imageIdentifier] stringByEscapingXMLEntites],
-																		  [bestMatch matchValue]]];
-#ifdef DEBUG
-					else
-						NSLog(@"oops");
-#endif
-				}
-				
-				[buffer appendString:@"\t</TILE>\n"];
-				
-				if ([buffer length] > 1<<20)
-				{
-					[fileHandle writeData:[buffer dataUsingEncoding:NSUTF8StringEncoding]];
-					[buffer setString:@""];
-				}
-				
-				[tilePool release];
-			}
-			[fileHandle writeData:[buffer dataUsingEncoding:NSUTF8StringEncoding]];
-			[fileHandle writeData:[@"</TILES>\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			
-			[fileHandle writeData:[@"</MOSAIC>\n\n" dataUsingEncoding:NSUTF8StringEncoding]];
-			
-			[fileHandle closeFile];
-			
-			saveSucceeded = YES;
-		}
-	NS_HANDLER
-		NSLog(@"Save failed %@", localException);
-	NS_ENDHANDLER
+	}
 	
-		// Dismiss the "Saving..." sheet.
+	return success;
+}
+
+
+- (BOOL)writeWithBackupToFile:(NSString *)fullDocumentPath ofType:(NSString *)docType saveOperation:(NSSaveOperationType)saveOperationType
+{
+	BOOL	success = NO, 
+			wasRunning = ![mosaic isPaused];
+	
+	if (wasRunning)
+		[mosaic pause];
+	
+	[[self mainWindowController] setProgressCancelAction:nil];
+	[[self mainWindowController] displayProgressPanelWithMessage:NSLocalizedString(@"Saving mosaic project...", @"")];
+
+	// Moving image source disk cache folders and updating their disk cache path must be done atomically.  Otherwise the "refresh tiles" thread could try to grab an image from disk after the cache folder had moved but before the path got updated.
+	// TODO: Figure out how to do this without blocking all mosaics.
+	[[MacOSaiXImageCache sharedImageCache] lock];
+	{
+		success = [super writeWithBackupToFile:fullDocumentPath ofType:docType saveOperation:saveOperationType];
+		
+		if (success && (saveOperationType == NSSaveOperation || saveOperationType == NSSaveAsOperation))
+			[[self mosaic] setDiskCachePath:fullDocumentPath];
+	}
+	[[MacOSaiXImageCache sharedImageCache] unlock];
+	
 	[[self mainWindowController] closeProgressPanel];
 	
-	[self setFileName:savePath];
-	[self setFileType:@"MacOSaiX Project"];
-	[self updateChangeCount:NSChangeCleared];
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Save Mosaics"])
+		[self startAutosaveTimer];
 	
-	[self setIsSaving:NO];
-	
-	if (didSaveDelegate && [didSaveDelegate respondsToSelector:didSaveSelector])
-	{
-			// Now that the save has completed (successfully or not) let the delegate know.
-			// The delegate's selector has the signature:
-			// - (void)document:(NSDocument *)doc didSave:(BOOL)didSave contextInfo:(void *)contextInfo
-		NSMethodSignature	*signature = [[didSaveDelegate class] instanceMethodSignatureForSelector:didSaveSelector];
-		NSInvocation		*saveCallback = [NSInvocation invocationWithMethodSignature:signature];
-		
-		[saveCallback setTarget:didSaveDelegate];
-		[saveCallback setSelector:didSaveSelector];
-		[saveCallback setArgument:&self atIndex:2];
-		[saveCallback setArgument:&saveSucceeded atIndex:3];
-		[saveCallback setArgument:&contextInfo atIndex:4];
-		[saveCallback invoke];
-	}
-	
-	if (![(MacOSaiX *)[NSApp delegate] isQuitting])
-	{
-		if ([[NSUserDefaults standardUserDefaults] boolForKey:@"Automatically Save Mosaics"])
-			[self performSelectorOnMainThread:@selector(startAutosaveTimer:) withObject:nil waitUntilDone:NO];
-		
-		if (!wasPaused)
-			[mosaic resume];
-	}
+	if (wasRunning)
+		[mosaic resume];
 
-	[pool release];
+	return success;
 }
 
 
@@ -670,12 +596,7 @@ void		endStructure(CFXMLParserRef parser, void *xmlType, void *info);
 		errorMessage = @"The file could not be read.";
 	
 	if (!errorMessage)
-	{
-			// Let anyone who cares know that our tile shapes (and thus our tiles array) have changed.
-		[[NSNotificationCenter defaultCenter] postNotificationName:MacOSaiXTileShapesDidChangeStateNotification 
-															object:self 
-														  userInfo:nil];
-	}
+		[NSApplication detachDrawingThread:@selector(extractTileBitmaps) toTarget:mosaic withObject:nil];
 	
 	[[self mainWindowController] closeProgressPanel];
 	
@@ -755,13 +676,58 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 				{
 					NSString	*className = [nodeAttributes objectForKey:@"CLASS"],
 								*imageCount = [nodeAttributes objectForKey:@"IMAGE_COUNT"], 
-								*cacheName = [nodeAttributes objectForKey:@"CACHE_NAME"];
+								*cacheName = [nodeAttributes objectForKey:@"CACHE_NAME"], 
+								*isFiller = [nodeAttributes objectForKey:@"FILLER"], 
+								*imagesLost = [nodeAttributes objectForKey:@"IMAGES_LOST"];
 					
 					newObject = [[NSClassFromString(className) alloc] init];
 					
 					[mosaic setImageCount:[imageCount intValue] forImageSource:newObject];
+					
+					[mosaic setImageSource:newObject isFiller:[isFiller isEqualToString:@"YES"]];
+					
+					[mosaic setImageSource:newObject hasLostImages:[imagesLost isEqualToString:@"YES"]];
+					
 					if (cacheName)
 						[mosaic setDiskCacheSubPath:cacheName forImageSource:newObject];
+				}
+				else if ([elementType isEqualToString:@"QUEUED_IMAGES"])
+				{
+					newObject = mosaic;
+				}
+				else if ([elementType isEqualToString:@"QUEUED_IMAGE"] && [stack lastObject] == mosaic)
+				{
+					NSString				*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
+					NSEnumerator			*stackEnumerator = [stack reverseObjectEnumerator];
+					id<MacOSaiXImageSource>	imageSource = [stackEnumerator nextObject];
+					while (imageSource && ![imageSource conformsToProtocol:@protocol(MacOSaiXImageSource)])
+						imageSource = [stackEnumerator nextObject];
+					
+					if (imageSource)
+						[mosaic revisitSourceImage:[MacOSaiXSourceImage sourceImageWithImage:nil 
+																				  identifier:imageIdentifier 
+																					  source:imageSource]];
+					
+					newObject = mosaic;
+				}
+				else if ([elementType isEqualToString:@"SCRAP_IMAGES"])
+				{
+					newObject = mosaic;
+				}
+				else if ([elementType isEqualToString:@"SCRAP_IMAGE"])
+				{
+					NSString				*imageIdentifier = [[nodeAttributes objectForKey:@"ID"] stringByUnescapingXMLEntites];
+					NSEnumerator			*stackEnumerator = [stack reverseObjectEnumerator];
+					id<MacOSaiXImageSource>	imageSource = [stackEnumerator nextObject];
+					while (imageSource && ![imageSource conformsToProtocol:@protocol(MacOSaiXImageSource)])
+						imageSource = [stackEnumerator nextObject];
+					
+					if (imageSource)
+						[mosaic addSourceImageToScrap:[MacOSaiXSourceImage sourceImageWithImage:nil 
+																					 identifier:imageIdentifier 
+																						 source:imageSource]];
+					
+					newObject = mosaic;
 				}
 				else if ([elementType isEqualToString:@"TILES"])
 				{
@@ -769,7 +735,13 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 				}
 				else if ([elementType isEqualToString:@"TILE"])
 				{
-					newObject = [[MacOSaiXTile alloc] initWithOutline:nil fromMosaic:mosaic];
+					NSString		*optimalAttribute = [nodeAttributes objectForKey:@"OPTIMAL"];
+					MacOSaiXTile	*tile = [[MacOSaiXTile alloc] initWithOutline:nil fromMosaic:mosaic];
+					
+					if ([optimalAttribute isEqualToString:@"NO"])
+						[tile setUniqueImageMatchIsOptimal:NO];
+					
+					newObject = tile;
 				}
 				else if ([elementType isEqualToString:@"OUTLINE"])
 				{
@@ -797,9 +769,10 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						float		matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
 						
 						newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
-																forImageIdentifier:imageIdentifier 
-																   fromImageSource:[[mosaic imageSources] objectAtIndex:sourceIndex] 
-																		   forTile:(MacOSaiXTile *)@"Best"];
+																	   sourceImage:[MacOSaiXSourceImage sourceImageWithImage:nil 
+																												  identifier:imageIdentifier 
+																													  source:[[mosaic imageSources] objectAtIndex:sourceIndex]] 
+																			  tile:(MacOSaiXTile *)@"Best"];
 					}
 					else
 						CFXMLParserAbort(parser,kCFXMLErrorMalformedStartTag, CFSTR("Tile is using an image from an unknown source."));
@@ -818,9 +791,10 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 						float		matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
 						
 						newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
-																forImageIdentifier:imageIdentifier 
-																   fromImageSource:[[mosaic imageSources] objectAtIndex:sourceIndex] 
-																		   forTile:(MacOSaiXTile *)@"Unique"];
+																	   sourceImage:[MacOSaiXSourceImage sourceImageWithImage:nil 
+																												  identifier:imageIdentifier 
+																													  source:[[mosaic imageSources] objectAtIndex:sourceIndex]] 
+																			  tile:(MacOSaiXTile *)@"Unique"];
 					}
 					else
 						CFXMLParserAbort(parser,kCFXMLErrorMalformedStartTag, CFSTR("Tile is using an image from an unknown source."));
@@ -831,9 +805,10 @@ void *createStructure(CFXMLParserRef parser, CFXMLNodeRef node, void *info)
 					float		matchValue = [[nodeAttributes objectForKey:@"VALUE"] floatValue];
 					
 					newObject = [[MacOSaiXImageMatch alloc] initWithMatchValue:matchValue 
-															forImageIdentifier:imageIdentifier 
-															   fromImageSource:[mosaic handPickedImageSource] 
-																	   forTile:(MacOSaiXTile *)@"User Chosen"];
+																   sourceImage:[MacOSaiXSourceImage sourceImageWithImage:nil 
+																											  identifier:imageIdentifier 
+																												  source:[mosaic handPickedImageSource]] 
+																		  tile:(MacOSaiXTile *)@"User Chosen"];
 				}
 				else
 				{
@@ -910,11 +885,6 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 			// Add a tile to the mosaic.
 		[mosaic addTile:(MacOSaiXTile *)child];
 	}
-	else if ([(id)parent isKindOfClass:[MacOSaiXTile class]] && [(id)child isKindOfClass:[NSBezierPath class]])
-	{
-			// Add the bezier path outline for a tile.
-		[(MacOSaiXTile *)parent setOutline:(NSBezierPath *)child];
-	}
 	else if ([(id)parent isKindOfClass:[NSBezierPath class]] && [(id)child isKindOfClass:[NSDictionary class]])
 	{
 			// Add a path element to a tile's outline.
@@ -938,10 +908,16 @@ void addChild(CFXMLParserRef parser, void *parent, void *child, void *info)
 		MacOSaiXImageMatch	*match = child;
 		NSString			*matchType = (NSString *)[match tile];
 		
+		[match setTile:parent];
+		
 		if ([matchType isEqualToString:@"Best"])
 			[(MacOSaiXTile *)parent setBestImageMatch:match];
 		else if ([matchType isEqualToString:@"Unique"])
+		{
 			[(MacOSaiXTile *)parent setUniqueImageMatch:match];
+			
+			[mosaic setImageMatchIsInUse:match];
+		}
 		else if ([matchType isEqualToString:@"User Chosen"])
 			[(MacOSaiXTile *)parent setUserChosenImageMatch:match];
 		
@@ -960,7 +936,8 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	NSMutableArray		*stack = [(NSArray *)info objectAtIndex:0];
 	MacOSaiXDocument	*document = [stack objectAtIndex:0];
 	MacOSaiXMosaic		*mosaic = [stack objectAtIndex:1];
-
+	id					parent = [stack objectAtIndex:[stack count] - 2];
+	
 	if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXTileShapes)])
 	{
 		[mosaic setTileShapes:(id<MacOSaiXTileShapes>)newObject creatingTiles:NO];
@@ -968,8 +945,16 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	}
 	else if ([(id)newObject conformsToProtocol:@protocol(MacOSaiXImageSource)])
 	{
-		[mosaic addImageSource:(id<MacOSaiXImageSource>)newObject];
+		BOOL	isFiller = [mosaic imageSourceIsFiller:(id<MacOSaiXImageSource>)newObject];
+
+		[mosaic addImageSource:(id<MacOSaiXImageSource>)newObject isFiller:isFiller];
+		
 		[(id)newObject release];
+	}
+	else if ([(id)newObject isKindOfClass:[NSBezierPath class]] && [(id)parent isKindOfClass:[MacOSaiXTile class]])
+	{
+		// Add the bezier path outline for a tile.
+		[(MacOSaiXTile *)parent setOutline:(NSBezierPath *)newObject];
 	}
 	else if ([(id)newObject isKindOfClass:[MacOSaiXTile class]] || 
 			 [(id)newObject isKindOfClass:[NSBezierPath class]] || 
@@ -1025,124 +1010,6 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 #pragma mark -
 
 
-- (void)canCloseDocumentWithDelegate:(id)delegate 
-				 shouldCloseSelector:(SEL)shouldCloseSelector
-						 contextInfo:(void *)contextInfo
-{
-		// pause threads so document dirty state doesn't change
-    if (![mosaic isPaused])
-		[mosaic pause];
-    
-	if ([self isDocumentEdited])
-	{
-			// Present a sheet that allows the user to save, cancel or not save.
-			// TODO: get the localized versions of these strings
-		NSString		*title = [NSString stringWithFormat:@"Do you want to save the changes you made in document \"%@\"?",
-															[[self fileName] lastPathComponent]], 
-						*saveString = @"Save",
-						*dontSaveString = @"Don't Save", 
-						*cancelString = @"Cancel", 
-						*message = @"Your changes will be lost if you don't save them.";
-		NSDictionary	*metaContextInfo = [[NSDictionary dictionaryWithObjectsAndKeys:
-												delegate, @"Should Close Delegate", 
-												NSStringFromSelector(shouldCloseSelector), @"Should Close Selector", 
-												[NSValue valueWithPointer:contextInfo], @"Context Info",
-												nil] retain];
-		
-		NSBeginAlertSheet(title, saveString, dontSaveString, cancelString, 
-						  [[self mainWindowController] window],
-						  self, nil, @selector(shouldCloseSheetDidDismiss:returnCode:contextInfo:), metaContextInfo, 
-						  message);
-	}
-	else
-		[super canCloseDocumentWithDelegate:delegate shouldCloseSelector:shouldCloseSelector 
-					contextInfo:contextInfo];
-}
-
-
-- (void)shouldCloseSheetDidDismiss:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)metaContextInfo
-{
-	BOOL	shouldClose = NO;
-	
-	switch (returnCode)
-	{
-		case NSAlertDefaultReturn:
-				// The user chose to save.  When the save is complete it will call back to our
-				// method which will then call back to the close initiator.
-			[self saveDocumentWithDelegate:self 
-						   didSaveSelector:@selector(closeAfterDocument:didSave:contextInfo:) 
-							   contextInfo:metaContextInfo];
-			break;
-
-			// The user chose to cancel or not to save.  Immediately call back to the close initiator,
-			// returning NO if they cancelled or YES if they chose not to save.
-		case NSAlertAlternateReturn:
-			shouldClose = YES;
-		case NSAlertOtherReturn:
-		{
-			id		shouldCloseDelegate = [(NSDictionary *)metaContextInfo objectForKey:@"Should Close Delegate"];
-			SEL		shouldCloseSelector = NSSelectorFromString([(NSDictionary *)metaContextInfo objectForKey:@"Should Close Selector"]);
-			void	*contextInfo = nil;
-			if ([(NSDictionary *)metaContextInfo objectForKey:@"Context Info"])
-				contextInfo = [(NSValue *)[(NSDictionary *)metaContextInfo objectForKey:@"Context Info"] pointerValue];
-			
-			if (shouldCloseDelegate && [shouldCloseDelegate respondsToSelector:shouldCloseSelector])
-			{
-					// Now that the save has completed (successfully or not) let the delegate know.
-					// The delegate's selector has the signature:
-					// - (void)document:(NSDocument *)doc shouldClose:(BOOL)didSave contextInfo:(void *)contextInfo
-				NSMethodSignature	*signature = [[shouldCloseDelegate class] instanceMethodSignatureForSelector:shouldCloseSelector];
-				NSInvocation		*shouldCloseCallback = [NSInvocation invocationWithMethodSignature:signature];
-				
-				[shouldCloseCallback setTarget:shouldCloseDelegate];
-				[shouldCloseCallback setSelector:shouldCloseSelector];
-				[shouldCloseCallback setArgument:&self atIndex:2];
-				[shouldCloseCallback setArgument:&shouldClose atIndex:3];
-				[shouldCloseCallback setArgument:&contextInfo atIndex:4];
-				[shouldCloseCallback invoke];
-			}
-			
-			[(id)metaContextInfo release];
-			break;
-		}
-	}
-}
-
-
-- (void)closeAfterDocument:(NSDocument *)doc didSave:(BOOL)didSave contextInfo:(void *)metaContextInfo
-{
-		// Wait for the save thread to complete.
-		// TBD: is the method above necessary if we do this?
-	while (saving)
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
-	
-		// The save has completed so call back to the close initiator.
-	id		shouldCloseDelegate = [(NSDictionary *)metaContextInfo objectForKey:@"Should Close Delegate"];
-	SEL		shouldCloseSelector = NSSelectorFromString([(NSDictionary *)metaContextInfo objectForKey:@"Should Close Selector"]);
-	void	*contextInfo = nil;
-	if ([(NSDictionary *)metaContextInfo objectForKey:@"Context Info"])
-		contextInfo = [(NSValue *)[(NSDictionary *)metaContextInfo objectForKey:@"Context Info"] pointerValue];
-	
-	if (shouldCloseDelegate && [shouldCloseDelegate respondsToSelector:shouldCloseSelector])
-	{
-			// Now that the save has completed (successfully or not) let the delegate know.
-			// The delegate's selector has the signature:
-			// - (void)document:(NSDocument *)doc shouldClose:(BOOL)didSave contextInfo:(void *)contextInfo
-		NSMethodSignature	*signature = [[shouldCloseDelegate class] instanceMethodSignatureForSelector:shouldCloseSelector];
-		NSInvocation		*shouldCloseCallback = [NSInvocation invocationWithMethodSignature:signature];
-		
-		[shouldCloseCallback setTarget:shouldCloseDelegate];
-		[shouldCloseCallback setSelector:shouldCloseSelector];
-		[shouldCloseCallback setArgument:&self atIndex:2];
-		[shouldCloseCallback setArgument:&didSave atIndex:3];
-		[shouldCloseCallback setArgument:&contextInfo atIndex:4];
-		[shouldCloseCallback invoke];
-	}
-	
-	[(id)metaContextInfo release];
-}
-
-
 - (BOOL)isClosing
 {
 	return documentIsClosing;
@@ -1156,7 +1023,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	
 		// Let the helper threads know we are closing and resume so that they can clean up and exit.
 	documentIsClosing = YES;
-	[mosaic pause];
+	[mosaic documentIsClosing];
 	
 	if ([autosaveTimer isValid])
 	{
@@ -1167,7 +1034,7 @@ void endStructure(CFXMLParserRef parser, void *newObject, void *info)
 	
 		// wait for the threads to shut down
     while ([mosaic isBusy])
-		[NSThread sleepUntilDate:[[NSDate date] addTimeInterval:1.0]];
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.2]];
 	
     [super close];
 }

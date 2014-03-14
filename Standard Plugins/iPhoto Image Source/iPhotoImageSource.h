@@ -14,18 +14,19 @@
 @interface MacOSaiXiPhotoImageSource : NSObject <MacOSaiXImageSource>
 {
     NSString				*albumName,
-							*keywordName;
+							*keywordName, 
+							*eventName;
 	NSAttributedString		*sourceDescription;
     NSMutableArray			*remainingPhotoIDs;
 }
-
-+ (NSImage *)albumImage;
-+ (NSImage *)keywordImage;
 
 - (NSString *)albumName;
 - (void)setAlbumName:(NSString *)name;
 
 - (NSString *)keywordName;
 - (void)setKeywordName:(NSString *)name;
+
+- (NSString *)eventName;
+- (void)setEventName:(NSString *)name;
 
 @end

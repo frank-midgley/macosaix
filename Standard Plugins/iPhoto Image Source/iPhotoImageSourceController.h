@@ -19,7 +19,8 @@
 	IBOutlet NSImageView		*iconView;
 	IBOutlet NSMatrix			*matrix;
 	IBOutlet NSPopUpButton		*albumsPopUp,
-								*keywordsPopUp;
+								*keywordsPopUp, 
+								*eventsPopUp;
 	
 		// The image source instance currently being edited.
 	MacOSaiXiPhotoImageSource	*currentImageSource;
@@ -29,5 +30,6 @@
 - (IBAction)chooseAllPhotos:(id)sender;
 - (IBAction)chooseAlbum:(id)sender;
 - (IBAction)chooseKeyword:(id)sender;
+- (IBAction)chooseEvent:(id)sender;
 
 @end

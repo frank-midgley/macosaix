@@ -121,7 +121,7 @@ Riemersma metric:
 Ã	Make sure all prefs UI is functional
 Ã	Add cropping limit checkbox (now a slider)
 	Exporting
-¥		Re-enforce 10,000 pixel limit
+Ã		Re-enforce 10,000 pixel limit
 Ã		Fade display
 Ã		Cancelling
 ?		Initial units
@@ -147,3 +147,27 @@ Riemersma metric:
 Ã	Get rid of all NSLog's
 Ã	Selected tile highlight cropped when zoomed
 Ã	Wrong rect being displayed in full screen mode
+
+
+What's New in 2.0
+-------------------
+¥	Now works with Leopard.
+¥	Newly found images now "zoom" into place.
+¥	Image sources can now be designated as "filler".
+¥	Folder image sources no longer reset when a mosaic project is re-opened.
+¥	Symbolic links are now handled correctly by Folder image sources.
+¥	Searching for flickr photos that match all of the given tags now works correctly.
+¥	Google images sources are working again when running on Mac OS X 10.3 (Panther).
+¥	Google images sources now load correctly when a mosaic project is re-opened.
+¥	QuickTime image sources now behave better.
+¥	Saving mosaics as very large images is now handled more gracefully.
+¥	Handling of EPS images was improved.
+¥	Many memory leaks were fixed.
+¥	Many crashing bugs were fixed:
+	¥	No longer crashing when using red-, green- or bluescale colors with a Glyphs image source.
+	¥	No longer crashing when getting the count of matching photos from flickr.
+	¥	No longer crashing when an invalid image is chosen as the original.
+	¥	No longer crashing when double-clicking the hand-picked image source.
+	¥	No longer crashing at some point after editing an image source.
+	¥	No longer crashing on quit when there is an unsaved Glyphs image source.
+	¥	No longer crashing when clicking in the menu bar when no windows are open.

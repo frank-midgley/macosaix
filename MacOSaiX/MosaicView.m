@@ -7,10 +7,18 @@
 //
 
 #import "MosaicView.h"
+
+#import "MacOSaiXAnimationSettingsController.h"
 #import "MacOSaiXWindowController.h"
 #import "MacOSaiXImageCache.h"
+#import "MacOSaiXSourceImage.h"
+#import "NSBezierPath+MacOSaiX.h"
+#import "NSImage+MacOSaiX.h"
 
 #import <pthread.h>
+
+
+#define REDRAW_ON_MAIN_THREAD 1
 
 
 @interface MosaicView (PrivateMethods)
@@ -32,29 +40,37 @@
 		tilesToRefresh = [[NSMutableArray alloc] init];
 		tileMatchTypesToRefresh = [[NSMutableArray alloc] init];
 		tileRefreshLock = [[NSLock alloc] init];
+		
+		imagePlacementLock = [[NSLock alloc] init];
+		imagePlacementLastTime = [[NSDate date] retain];
+		
+		mainImageLock = [[NSLock alloc] init];
+		backgroundImageLock = [[NSLock alloc] init];
+		tilesNeedingDisplay = [[NSMutableArray alloc] init];
+		tilesNeedDisplayLock = [[NSLock alloc] init];
+		
+		highlightedImageSourcesLock = [[NSLock alloc] init];
 	}
 	
 	return self;
 }
 
 
-- (void)awakeFromNib
-{
-	mainImageLock = [[NSLock alloc] init];
-	backgroundImageLock = [[NSLock alloc] init];
-	tilesNeedingDisplay = [[NSMutableArray alloc] init];
-	tilesNeedDisplayLock = [[NSLock alloc] init];
-	
-	highlightedImageSourcesLock = [[NSLock alloc] init];
-}
-
-
 - (void)setMosaic:(MacOSaiXMosaic *)inMosaic
 {
-    if (inMosaic && mosaic != inMosaic)
+    if (mosaic != inMosaic)
 	{
 		if (mosaic)
+		{
 			[[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:mosaic];
+			
+			[tileRefreshLock lock];
+				[tilesToRefresh removeAllObjects];
+			[tileRefreshLock unlock];
+			
+			while (refreshingTiles)
+				[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+		}
 		
 		mosaic = inMosaic;
 		
@@ -69,8 +85,20 @@
 														 name:MacOSaiXTileShapesDidChangeStateNotification 
 													   object:mosaic];
 			[[NSNotificationCenter defaultCenter] addObserver:self 
+													 selector:@selector(imageSourcesDidChange:) 
+														 name:MacOSaiXMosaicDidChangeImageSourcesNotification 
+													   object:mosaic];
+			[[NSNotificationCenter defaultCenter] addObserver:self 
+													 selector:@selector(imageWasPlacedInMosaic:) 
+														 name:MacOSaiXImageWasPlacedInMosaicNotification 
+													   object:mosaic];
+			[[NSNotificationCenter defaultCenter] addObserver:self 
 													 selector:@selector(tileImageDidChange:) 
 														 name:MacOSaiXTileImageDidChangeNotification 
+													   object:mosaic];
+			[[NSNotificationCenter defaultCenter] addObserver:self 
+													 selector:@selector(mosaicDidExtractTileBitmaps:) 
+														 name:MacOSaiXMosaicDidExtractTileBitmapsNotification 
 													   object:mosaic];
 		}
 		
@@ -86,18 +114,58 @@
 }
 
 
+- (void)resetMainAndBackgroundImages
+{
+		// Pick a size for the main and background images.
+		// (somewhat arbitrary but large enough for decent zooming)
+	NSImage	*originalImage = [mosaic originalImage];
+	
+	if (originalImage)
+	{
+		float	aspectRatio = [originalImage size].width / [originalImage size].height, 
+				maxSize = 3200.0;	//([mosaic averageUnitTileSize].width > 0.01 ? 1600.0 : 3200.0);
+		mainImageSize = (aspectRatio > 1.0 ? NSMakeSize(maxSize, round(maxSize / aspectRatio)) : 
+						 NSMakeSize(round(maxSize * aspectRatio), maxSize));
+		
+		[mainImageLock lock];
+				// Release the current main image.  A new one will be created later off the main thread.
+			[mainImage autorelease];
+			mainImage = nil;
+			
+				// Set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined on a unit square)
+			[mainImageTransform autorelease];
+			mainImageTransform = [[NSAffineTransform alloc] init];
+			[mainImageTransform scaleXBy:mainImageSize.width yBy:mainImageSize.height];
+		[mainImageLock unlock];
+		
+			// Release the current background image.  A new one will be created later if needed off the main thread.
+		[backgroundImageLock lock];
+			[backgroundImage autorelease];
+			backgroundImage = nil;
+		[backgroundImageLock unlock];
+		
+		if (viewTileOutlines)
+			[self updateTileOutlinesImage];
+	}
+}
+
+
 - (void)originalImageDidChange:(NSNotification *)notification
 {
 	NSImage	*originalImage = [mosaic originalImage];
 	
 	if (originalImage != previousOriginalImage)
 	{
-		originalFadeStartTime = [[NSDate alloc] init];
-		[NSTimer scheduledTimerWithTimeInterval:0.1 
-										 target:self 
-									   selector:@selector(completeFadeToNewOriginalImage:) 
-									   userInfo:nil 
-										repeats:YES];
+		if (originalImage)
+		{
+			[originalFadeStartTime autorelease];
+			originalFadeStartTime = [[NSDate alloc] init];
+			[NSTimer scheduledTimerWithTimeInterval:0.1 
+											 target:self 
+										   selector:@selector(completeFadeToNewOriginalImage:) 
+										   userInfo:nil 
+											repeats:YES];
+		}
 		
 			// De-queue any pending tile refreshes based on the previous original image.
 		[tilesNeedDisplayLock lock];
@@ -105,33 +173,7 @@
 		[tilesNeedDisplayLock unlock];
 		
 		if (originalImage)
-		{
-				// Pick a size for the main and background images.
-				// (somewhat arbitrary but large enough for decent zooming)
-			float	aspectRatio = [originalImage size].width / [originalImage size].height;
-			mainImageSize = (aspectRatio > 1.0 ? NSMakeSize(3200.0, 3200.0 / aspectRatio) : 
-												 NSMakeSize(3200.0 * aspectRatio, 3200.0));
-			
-			[mainImageLock lock];
-					// Release the current main image.  A new one will be created later off the main thread.
-				[mainImage autorelease];
-				mainImage = nil;
-				
-					// Set up a transform so we can scale tiles to the mosaic image's size (tile shapes are defined on a unit square)
-				[mainImageTransform autorelease];
-				mainImageTransform = [[NSAffineTransform alloc] init];
-				[mainImageTransform scaleXBy:mainImageSize.width yBy:mainImageSize.height];
-			[mainImageLock unlock];
-			
-				// Release the current background image.  A new one will be created later if needed off the main thread.
-			[backgroundImageLock lock];
-					[backgroundImage autorelease];
-					backgroundImage = nil;
-			[backgroundImageLock unlock];
-			
-			if (viewTileOutlines)
-				[self updateTileOutlinesImage];
-		}
+			[self resetMainAndBackgroundImages];
 	}
 }
 
@@ -144,9 +186,10 @@
 
 - (void)completeFadeToNewOriginalImage:(NSTimer *)timer
 {
-	if ([[NSDate date] timeIntervalSinceDate:originalFadeStartTime] > originalFadeTime)
+	if (!originalFadeStartTime || [[NSDate date] timeIntervalSinceDate:originalFadeStartTime] > originalFadeTime)
 	{
 		[timer invalidate];
+		
 		[self setNeedsDisplay:YES];
 	}
 }
@@ -186,30 +229,115 @@
 
 - (void)tileShapesDidChange:(NSNotification *)notification
 {
-	[mainImageLock lock];
-		if (mainImage)
+    // De-queue any pending tile refreshes based on the previous original image and tiles.
+    [tilesNeedDisplayLock lock];
+        [tilesNeedingDisplay removeAllObjects];
+    [tilesNeedDisplayLock unlock];
+    
+    [self resetMainAndBackgroundImages];
+	
+		// TBD: main thread?
+	[self setNeedsDisplay:YES];
+}
+
+
+- (void)imageSourcesDidChange:(NSNotification *)notification
+{
+	if ([[mosaic imageSources] count] == 0)
+	{
+		// Don't bother erasing every tile, just nuke the whole thing.
+		
+		[tileRefreshLock lock];
+			[tilesToRefresh removeAllObjects];
+			[tileMatchTypesToRefresh removeAllObjects];
+		[tileRefreshLock unlock];
+		
+		[self resetMainAndBackgroundImages];
+		
+			// TBD: main thread?
+		[self setNeedsDisplay:YES];
+	}
+}
+
+
+#pragma mark -
+#pragma mark New image placement
+
+
+- (void)imageWasPlacedInMosaic:(NSNotification *)notification
+{
+	[imagePlacementLock lock];
+	
+	NSTimeInterval	timeSinceLastPlacement = -[imagePlacementLastTime timeIntervalSinceNow];
+	BOOL			imageWasHandPicked = [[[notification userInfo] objectForKey:@"Handpicked"] boolValue],
+					placeThisImage = (imageWasHandPicked || (![mosaic isPausing] && ((!imagePlacementStartTime && timeSinceLastPlacement > [mosaic delayBetweenImagePlacements]) || [mosaic animateAllImagePlacements])));
+	
+	[imagePlacementLock unlock];
+	
+	if (placeThisImage)
+	{
+		MacOSaiXSourceImage	*sourceImage = [[notification userInfo] objectForKey:@"Source Image"];
+		if (sourceImage)
 		{
-			[mainImage lockFocus];
-				[[NSColor clearColor] set];
-				NSRectFill(NSMakeRect(0.0, 0.0, [mainImage size].width, [mainImage size].height));
-			[mainImage unlockFocus];
+			NSImageRep			*imageRep = [sourceImage imageRepAtSize:NSZeroSize];
+			
+			if ([mosaic animateAllImagePlacements])
+			{
+					// Wait for the current placement to complete.  This intentionally blocks the "calculate matches" thread.
+				while (![mosaic isPausing] && (imagePlacementStartTime || timeSinceLastPlacement < [mosaic delayBetweenImagePlacements]))
+				{
+					[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+					[imagePlacementLock lock];
+						timeSinceLastPlacement = -[imagePlacementLastTime timeIntervalSinceNow];
+					[imagePlacementLock unlock];
+				}
+			}
+			
+			if (imageWasHandPicked || (![mosaic isPausing] && ![mosaic isPaused]))
+			{
+					// Grab the description before locking in case the plug-in messages the main thread.
+				NSString	*description = [sourceImage description];
+				if (!description)
+				{
+					NSBundle	*plugInBundle = [NSBundle bundleForClass:[[sourceImage source] class]];
+					NSString	*imageSourceClassName = [plugInBundle objectForInfoDictionaryKey:@"CFBundleName"];
+					description = [[NSString stringWithFormat:NSLocalizedString(@"%@ Image", @"<image source type> Image"), imageSourceClassName] retain];
+				}
+				NSImage		*imageSourceImage = [[sourceImage source] image];
+				
+				[imagePlacementLock lock];
+					[imagePlacementTiles release];
+					imagePlacementTiles = [[[notification userInfo] objectForKey:@"Tiles"] retain];
+					if ([imagePlacementTiles count] > 16)
+						[imagePlacementTiles removeObjectsInRange:NSMakeRange(16, [imagePlacementTiles count] - 16)];
+					[imagePlacementImage release];
+					imagePlacementImage = [[NSImage alloc] initWithSize:NSMakeSize([imageRep pixelsWide], [imageRep pixelsHigh])];
+					[imagePlacementImage addRepresentation:imageRep];
+					imagePlacementDescription = [description copy];
+					if ([mosaic includeSourceImageWithImagePlacementMessage])
+						imagePlacementSourceImage = [imageSourceImage retain];
+					imagePlacementStartTime = [[NSDate date] retain];
+				[imagePlacementLock unlock];
+				
+				[self performSelectorOnMainThread:@selector(animateImagePlacement) withObject:nil waitUntilDone:NO];
+			}
 		}
-	[mainImageLock unlock];
-	
-	[backgroundImageLock lock];
-		if (backgroundImage)
-		{
-			[backgroundImage lockFocus];
-				[[NSColor clearColor] set];
-				NSRectFill(NSMakeRect(0.0, 0.0, [backgroundImage size].width, [backgroundImage size].height));
-			[backgroundImage unlockFocus];
-		}
-	[backgroundImageLock unlock];
-	
-	if (viewTileOutlines)
-		[self updateTileOutlinesImage];
-	
-		// TODO: main thread?
+	}
+}
+
+
+- (void)animateImagePlacement
+{
+	[self setNeedsDisplay:YES];
+}
+
+
+#pragma mark -
+#pragma mark Tile image changes
+
+
+- (void)mosaicDidExtractTileBitmaps:(NSNotification *)notification
+{
 	[self setNeedsDisplay:YES];
 }
 
@@ -223,7 +351,7 @@
 //	MacOSaiXImageMatch	*previousMatch = [tileDict objectForKey:@"Previous Match"];
 	
 	[tileRefreshLock lock];
-		unsigned	index= [tilesToRefresh indexOfObject:tile];
+		unsigned long	index= [tilesToRefresh indexOfObject:tile];
 		if (index != NSNotFound)
 		{
 				// Add the match type for the tile.
@@ -265,13 +393,27 @@
 	NSMutableSet		*matchTypesToRefresh = nil;
 	NSDate				*lastRedraw = [NSDate date];
 	NSMutableArray		*tilesToRedraw = [NSMutableArray array];
-	MacOSaiXImageCache	*imageCache = [MacOSaiXImageCache sharedImageCache];
+	
+		// Don't allow non-thread safe QuickTime component access on this thread.
+	CSSetComponentsThreadMode(kCSAcceptThreadSafeComponentsOnlyMode);
 	
 	do
 	{
 		NSAutoreleasePool	*innerPool = [[NSAutoreleasePool alloc] init];
 		
-			// Get the next tile from the queue, if there is one.
+		// Don't update the main image while an image is being placed to make the animation smoother.
+		BOOL				placingImage = NO;
+		do
+		{
+			[imagePlacementLock lock];
+				placingImage = (imagePlacementStartTime != nil);
+			[imagePlacementLock unlock];
+			
+			if (placingImage)
+				[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+		} while (placingImage);
+		
+		// Get the next tile from the queue, if there is one.
 		[tileRefreshLock lock];
 			if ([tilesToRefresh count] == 0)
 				tileToRefresh = nil;
@@ -308,9 +450,7 @@
 						// TBD: But what if the image rep isn't opaque?
 					redrawBackground = NO;
 					
-					mainImageRep = [imageCache imageRepAtSize:NSIntegralRect([clipPath bounds]).size
-												forIdentifier:[mainImageMatch imageIdentifier] 
-												   fromSource:[mainImageMatch imageSource]];
+					mainImageRep = [[mainImageMatch sourceImage] imageRepAtSize:[clipPath bounds].size];
 				}
 				
 					// If no image will be displayed for the tile in the main layer then 
@@ -320,9 +460,7 @@
 				
 					// TODO: background should not be redrawn if all tiles have a unique match.
 				if (backgroundMode == bestMatchMode && redrawBackground && backgroundImageMatch)
-					backgroundImageRep = [imageCache imageRepAtSize:NSIntegralRect([clipPath bounds]).size
-													  forIdentifier:[backgroundImageMatch imageIdentifier] 
-														 fromSource:[backgroundImageMatch imageSource]];
+					backgroundImageRep = [[backgroundImageMatch sourceImage] imageRepAtSize:[clipPath bounds].size];
 				
 				[tileRefreshLock lock];
 					if (redrawMain)
@@ -330,6 +468,7 @@
 						[tilesToRedraw addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 														@"Main", @"Layer", 
 														tileToRefresh, @"Tile", 
+														[mainImageMatch sourceImage], @"Source Image", 
 														mainImageRep, @"Image Rep", // could be nil
 														nil]];
 						
@@ -373,9 +512,13 @@
 					
 					if ([tilesToRedraw count] > 0 && [lastRedraw timeIntervalSinceNow] < -0.2)
 					{
-						[self performSelectorOnMainThread:@selector(redrawTiles:) 
-											   withObject:[NSArray arrayWithArray:tilesToRedraw] 
-											waitUntilDone:NO];
+						#if REDRAW_ON_MAIN_THREAD
+							[self performSelectorOnMainThread:@selector(redrawTiles:) 
+												   withObject:[NSArray arrayWithArray:tilesToRedraw] 
+												waitUntilDone:NO];
+						#else
+							[self performSelector:@selector(redrawTiles:) withObject:tilesToRedraw];
+						#endif
 						[tilesToRedraw removeAllObjects];
 					}
 				[tileRefreshLock unlock];
@@ -406,10 +549,15 @@
 	
 	[tileRefreshLock lock];
 		if ([tilesToRedraw count] > 0)
-			[self performSelector:@selector(redrawTiles:) withObject:[NSArray arrayWithArray:tilesToRedraw]];
-//			[self performSelectorOnMainThread:@selector(redrawTiles:) 
-//								   withObject:[NSArray arrayWithArray:tilesToRedraw] 
-//								waitUntilDone:NO];
+		{
+			#if REDRAW_ON_MAIN_THREAD
+				[self performSelectorOnMainThread:@selector(redrawTiles:) 
+									   withObject:[NSArray arrayWithArray:tilesToRedraw] 
+									waitUntilDone:NO];
+			#else
+				[self performSelector:@selector(redrawTiles:) withObject:tilesToRedraw];
+			#endif
+		}
 		refreshingTiles = NO;
 	[tileRefreshLock unlock];
 	
@@ -453,6 +601,8 @@
 					NS_ENDHANDLER
 				}
 			[mainImageLock unlock];
+				
+			// TODO: -[QTMovie addImage:forDuration:withAttributes] (or maybe add it to a track)
 		}
 		else
 		{
@@ -477,6 +627,8 @@
 					NS_ENDHANDLER
 				}
 			[backgroundImageLock unlock];
+			
+			// TODO: -[QTMovie addImage:forDuration:withAttributes] (or maybe add it to a track)
 		}
 		
 		[tilesNeedDisplayLock lock];
@@ -484,30 +636,22 @@
 		[tilesNeedDisplayLock unlock];
 	}
 	
-		// Don't force a refresh every time we update the mosaic but make sure 
-		// it gets refreshed at least 5 times a second.
-	[tilesNeedDisplayLock lock];
-		if (!tilesNeedDisplayTimer)
-			[self performSelectorOnMainThread:@selector(startNeedsDisplayTimer) withObject:nil waitUntilDone:NO];
-	[tilesNeedDisplayLock unlock];
+	[self performSelectorOnMainThread:@selector(startNeedsDisplayTimer) withObject:nil waitUntilDone:NO];
 }
 
 
 - (void)startNeedsDisplayTimer
 {
-	[tilesNeedDisplayLock lock];
-		if (!tilesNeedDisplayTimer)
-			tilesNeedDisplayTimer = [[NSTimer scheduledTimerWithTimeInterval:0.2 
-																	  target:self 
-																	selector:@selector(setTilesNeedDisplay:) 
-																	userInfo:nil 
-																	 repeats:NO] retain];
-	[tilesNeedDisplayLock unlock];
+		// Don't force a refresh every time we update the mosaic but make sure it gets refreshed at least 2 times a second.
+//	[[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(setTilesNeedDisplay) object:nil];
+	[self performSelector:@selector(setTilesNeedDisplay) withObject:nil afterDelay:0.5];
 }
 
 
-- (void)setTilesNeedDisplay:(NSTimer *)timer
+- (void)setTilesNeedDisplay
 {
+	[[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(setTilesNeedDisplay) object:nil];
+	
 	NSRect				mosaicBounds = [self boundsForOriginalImage:[mosaic originalImage]];
 	NSAffineTransform	*transform = [NSAffineTransform transform];
 	[transform translateXBy:NSMinX(mosaicBounds) yBy:NSMinY(mosaicBounds)];
@@ -520,11 +664,11 @@
 			[self setNeedsDisplayInRect:NSInsetRect([[transform transformBezierPath:[tileNeedingDisplay outline]] bounds], -1.0, -1.0)];
 		
 		[tilesNeedingDisplay removeAllObjects];
-		
-		[tilesNeedDisplayTimer release];
-		tilesNeedDisplayTimer = nil;
 	[tilesNeedDisplayLock unlock];
 }
+
+
+#pragma mark -
 
 
 - (void)setFade:(float)fade;
@@ -681,31 +825,52 @@
 
 - (void)drawRect:(NSRect)theRect
 {
+	if (!mosaic)
+		return;
+	
 	float	originalFade = 1.0;
 	if (originalFadeStartTime)
 	{
 		originalFade = ([[NSDate date] timeIntervalSinceDate:originalFadeStartTime] / originalFadeTime);
 		if (originalFade > 1.0)
 			originalFade = 1.0;
-	}
-	if (originalFade == 1.0)
-	{
-		[previousOriginalImage release];
-		previousOriginalImage = [[mosaic originalImage] retain];
-		[originalFadeStartTime release];
-		originalFadeStartTime = nil;
+	
+		if (originalFade == 1.0)
+		{
+			[previousOriginalImage release];
+			previousOriginalImage = [[mosaic originalImage] retain];
+			[originalFadeStartTime release];
+			originalFadeStartTime = nil;
+		}
 	}
 	
 	BOOL	drawLoRes = ([self inLiveResize] || inLiveRedraw || originalFade < 1.0);
+//	[imagePlacementLock lock];
+//		if (imagePlacementStartTime && -[imagePlacementStartTime timeIntervalSinceNow] > [mosaic imagePlacementFullSizedDuration])
+//			drawLoRes = YES;
+//	[imagePlacementLock unlock];
 	[[NSGraphicsContext currentContext] setImageInterpolation:drawLoRes ? NSImageInterpolationNone : NSImageInterpolationHigh];
 	
 		// Get the list of rectangles that need to be redrawn.
 		// Especially when !drawLoRes the image rendering is expensive so the less done the better.
 	NSRect			fallbackDrawRects[1] = { theRect };
 	const NSRect	*drawRects = nil;
-	int				drawRectCount = 0;
+	long			drawRectCount = 0;
 	if ([self respondsToSelector:@selector(getRectsBeingDrawn:count:)])
+	{
 		[self getRectsBeingDrawn:&drawRects count:&drawRectCount];
+		// unlimited -> 48.7%	51.3%
+		//        32 -> 21.4%	21.3%
+		//        16 -> 21.3%	
+		//         8 -> 21.4%	21.4/17.7%
+		//         4 -> 21.5%
+		//         1 -> 21.4%	21.3/17.9%
+		if (drawRectCount > 16)
+		{
+			drawRects = fallbackDrawRects;
+			drawRectCount = 1;
+		}
+	}
 	else
 	{
 		drawRects = fallbackDrawRects;
@@ -748,7 +913,7 @@
 				[originalImage drawInRect:drawRect 
 								 fromRect:originalRect 
 								operation:NSCompositeSourceOver 
-								 fraction:viewFade];
+								 fraction:1.0];
 				break;
 			case bestMatchMode:
 				[backgroundImageLock lock];
@@ -771,7 +936,7 @@
 			[mainImage drawInRect:drawRect 
 						 fromRect:mainImageRect 
 						operation:NSCompositeSourceOver 
-						 fraction:viewFade];
+						 fraction:1.0];
 		[mainImageLock unlock];
 		
 			// Overlay the faded original if appropriate and if it's not already there.
@@ -797,7 +962,7 @@
 	
 		// Highlight the selected image sources.
 	[highlightedImageSourcesLock lock];
-	if (highlightedImageSourcesOutline && !drawLoRes)
+	if (highlightedImageSourcesOutline && !tilesWithSubOptimalUniqueMatchesOutline)		//&& !drawLoRes)
 	{
 		NSSize				boundsSize = mosaicBounds.size;
 		NSAffineTransform	*transform = [NSAffineTransform transform];
@@ -822,6 +987,30 @@
 	}
 	[highlightedImageSourcesLock unlock];
 	
+	if (tilesWithSubOptimalUniqueMatchesOutline)
+	{
+		NSSize				boundsSize = mosaicBounds.size;
+		NSAffineTransform	*transform = [NSAffineTransform transform];
+		[transform translateXBy:0.5 yBy:0.5];
+		[transform scaleXBy:boundsSize.width yBy:boundsSize.height];
+		NSBezierPath		*transformedOutline = [transform transformBezierPath:tilesWithSubOptimalUniqueMatchesOutline];
+		
+			// Lighten the tiles that have optimal unique matches.
+		NSBezierPath		*lightenOutline = [NSBezierPath bezierPath];
+		[lightenOutline moveToPoint:NSMakePoint(0, 0)];
+		[lightenOutline lineToPoint:NSMakePoint(0, boundsSize.height)];
+		[lightenOutline lineToPoint:NSMakePoint(boundsSize.width, boundsSize.height)];
+		[lightenOutline lineToPoint:NSMakePoint(boundsSize.width, 0)];
+		[lightenOutline closePath];
+		[lightenOutline appendBezierPath:transformedOutline];
+		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
+		[lightenOutline fill];
+		
+			// Darken the outline of the tiles with sub-optimal matches.
+		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
+		[transformedOutline stroke];
+	}
+	
 		// Highlight the selected tile.
 	if (highlightedTile)
 	{
@@ -838,11 +1027,11 @@
 		[bezierPath setLineWidth:4];
 		
 		float				dashes[2] = {5.0, 5.0};
-		[bezierPath setLineDash:dashes count:2 phase:phase];
+		[bezierPath setLineDash:dashes count:2 phase:(float)phase];
 		[[NSColor colorWithCalibratedWhite:1.0 alpha:0.5] set];
 		[bezierPath stroke];
 		
-		[bezierPath setLineDash:dashes count:2 phase:(phase + 5) % 10];
+		[bezierPath setLineDash:dashes count:2 phase:((int)phase + 5) % 10];
 		[[NSColor colorWithCalibratedWhite:0.0 alpha:0.5] set];
 		[bezierPath stroke];
 		
@@ -862,6 +1051,201 @@
 			[[transform transformBezierPath:[highlightedTile outline]] stroke];
 		}
 	}
+	
+		// Zoom any images into place
+	[imagePlacementLock lock];
+		if (imagePlacementStartTime)
+		{
+			NSTimeInterval		timeSincePlacementStarted = -[imagePlacementStartTime timeIntervalSinceNow];
+			float				imageWidth = [imagePlacementImage size].width, 
+								imageHeight = [imagePlacementImage size].height;
+			
+				// Calculate the bounds of the image when displayed full size.
+			NSRect				fullSizeFrame;
+			if ((imageWidth / NSWidth(mosaicBounds)) < (imageHeight / NSHeight(mosaicBounds)))
+			{
+				float	scaledHeight = imageHeight * NSWidth(mosaicBounds) / imageWidth;
+				fullSizeFrame = NSMakeRect(NSMinX(mosaicBounds), NSMinY(mosaicBounds) + (NSHeight(mosaicBounds) - scaledHeight) / 2.0, NSWidth(mosaicBounds), scaledHeight);
+			}
+			else
+			{
+				float	scaledWidth = imageWidth * NSHeight(mosaicBounds) / imageHeight;
+				fullSizeFrame = NSMakeRect(NSMinX(mosaicBounds) + (NSWidth(mosaicBounds) - scaledWidth) / 2.0, NSMinY(mosaicBounds), scaledWidth, NSHeight(mosaicBounds));
+			}
+			
+				// Cancel any pending calls to update the animation.
+			[[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(animateImagePlacement) object:nil];
+			
+			if (timeSincePlacementStarted < [mosaic imagePlacementFullSizedDuration])
+			{
+					// Draw the image to be placed at full size.
+				[imagePlacementImage drawInRect:fullSizeFrame fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0];
+				
+					// Overlay any message.
+				NSString	*imagePlacementFormat = [mosaic imagePlacementMessage];
+				if ([imagePlacementFormat length] > 0)
+				{
+					NSMutableString	*imagePlacementMessage = [NSMutableString stringWithString:imagePlacementFormat];
+					if ([imagePlacementDescription length] > 0)
+						[imagePlacementMessage replaceOccurrencesOfString:[MacOSaiXAnimationSettingsController imageDescriptionPlaceholder] withString:imagePlacementDescription options:0 range:NSMakeRange(0, [imagePlacementMessage length])];
+					
+					float			fontHeight = floor(NSHeight(mosaicBounds) / 16.0);
+					if (fontHeight < 9.0)
+						fontHeight = 9.0;
+					
+					NSMutableParagraphStyle	*paraStyle = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
+					[paraStyle setLineBreakMode:NSLineBreakByTruncatingTail];
+					NSMutableDictionary		*attributes = [NSMutableDictionary dictionaryWithObject:paraStyle forKey:NSParagraphStyleAttributeName];
+					NSSize					messageSize;
+					float					widthDiff;
+					NSRect					messageFrame;
+					do
+					{
+						[attributes setObject:[NSFont boldSystemFontOfSize:fontHeight] forKey:NSFontAttributeName];
+						messageSize = [imagePlacementMessage sizeWithAttributes:attributes];
+						widthDiff = NSWidth(mosaicBounds) - messageSize.width - 30.0;
+						messageFrame = NSMakeRect(NSMinX(mosaicBounds) + 5.0 + widthDiff / 2.0, NSMinY(mosaicBounds) + 5.0, messageSize.width + 20.0, messageSize.height + 10.0);
+						
+						if (imagePlacementSourceImage)
+						{
+							widthDiff -= messageSize.height + 10.0;
+							messageFrame.origin.x -= (messageSize.height + 10.0) / 2.0;
+							messageFrame.size.width += messageSize.height + 10.0;
+						}
+						
+						if (widthDiff < 0.0)
+							fontHeight -= 1.0;
+					} while (widthDiff < 0.0 && fontHeight > 9.0);
+					
+					if (widthDiff < 0.0)
+					{
+						messageFrame.origin.x -= widthDiff / 2.0;
+						messageFrame.size.width += widthDiff;
+					}
+					
+					NSBezierPath			*messagePath = [NSBezierPath bezierPathWithRoundedRect:messageFrame radius:10.0];
+					[[NSColor colorWithDeviceWhite:1.0 alpha:0.75] set];
+					[messagePath fill];
+					[[NSColor colorWithDeviceWhite:0.0 alpha:0.25] set];
+					[messagePath stroke];
+					
+					NSRect					textFrame = NSInsetRect(messageFrame, 10.0, 5.0);
+					if (imagePlacementSourceImage)
+					{
+						textFrame.origin.x += messageSize.height + 10.0;
+						textFrame.size.width -= messageSize.height + 10.0;
+					}
+					[[NSColor blackColor] set];
+					[imagePlacementMessage drawInRect:textFrame withAttributes:attributes];
+					
+					if (imagePlacementSourceImage)
+					{
+						NSImage	*scaledImage = [imagePlacementSourceImage copyWithLargestDimension:messageSize.height];
+						[imagePlacementSourceImage drawInRect:NSMakeRect(NSMinX(messageFrame) + 10.0 + (messageSize.height - [scaledImage size].width) / 2.0, NSMinY(messageFrame) + 5.0 + (messageSize.height - [scaledImage size].height) / 2.0, [scaledImage size].width, [scaledImage size].height) 
+													 fromRect:NSZeroRect 
+													operation:NSCompositeSourceOver 
+													 fraction:1.0];
+						[scaledImage release];
+					}
+				}
+				
+				[self performSelector:@selector(animateImagePlacement) withObject:nil afterDelay:[mosaic imagePlacementFullSizedDuration] - timeSincePlacementStarted];
+			}
+			else if (timeSincePlacementStarted < [mosaic imagePlacementFullSizedDuration] + 1.0)
+			{
+				// Animate the image moving into the tile(s).
+				
+				NSAffineTransform	*transform = [NSAffineTransform transform];
+				[transform translateXBy:NSMinX(mosaicBounds) yBy:NSMinY(mosaicBounds)];
+				[transform scaleXBy:NSWidth(mosaicBounds) yBy:NSHeight(mosaicBounds)];
+				
+				NSEnumerator		*tileEnumerator = [imagePlacementTiles objectEnumerator];
+				MacOSaiXTile		*tile = nil;
+				
+				while (tile = [tileEnumerator nextObject])
+				{
+						// Calculate the bounds of the image when displayed in the tile.
+					NSRect	tileFrame = [[transform transformBezierPath:[tile outline]] bounds], 
+							tileImageFrame;
+					if ((imageWidth / NSWidth(tileFrame)) < (imageHeight / NSHeight(tileFrame)))
+					{
+						float	scaledHeight = imageHeight * NSWidth(tileFrame) / imageWidth;
+						tileImageFrame = NSMakeRect(NSMinX(tileFrame), NSMinY(tileFrame) + (NSHeight(tileFrame) - scaledHeight) / 2.0, NSWidth(tileFrame), scaledHeight);
+					}
+					else
+					{
+						float	scaledWidth = imageWidth * NSHeight(tileFrame) / imageHeight;
+						tileImageFrame = NSMakeRect(NSMinX(tileFrame) + (NSWidth(tileFrame) - scaledWidth) / 2.0, NSMinY(tileFrame), scaledWidth, NSHeight(tileFrame));
+					}
+					
+						// Animate the image moving into place.
+					float	animationPhase = (timeSincePlacementStarted - [mosaic imagePlacementFullSizedDuration]) / 1.0;
+					NSRect	currentFrame = NSMakeRect(NSMinX(fullSizeFrame) + (NSMinX(tileImageFrame) - NSMinX(fullSizeFrame)) * animationPhase, 
+													  NSMinY(fullSizeFrame) + (NSMinY(tileImageFrame) - NSMinY(fullSizeFrame)) * animationPhase, 
+													  NSWidth(fullSizeFrame) + (NSWidth(tileImageFrame) - NSWidth(fullSizeFrame)) * animationPhase, 
+													  NSHeight(fullSizeFrame) + (NSHeight(tileImageFrame) - NSHeight(fullSizeFrame)) * animationPhase);
+					
+					[imagePlacementImage drawInRect:currentFrame fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0 - animationPhase / 4.0];
+				}
+				
+				[self performSelector:@selector(animateImagePlacement) withObject:nil afterDelay:0.04];	// max 25 fps
+			}
+			else
+			{
+				// The animation is finished.
+				
+				[imagePlacementTiles release];
+				imagePlacementTiles = nil;
+				[imagePlacementImage release];
+				imagePlacementImage = nil;
+				[imagePlacementDescription release];
+				imagePlacementDescription = nil;
+				[imagePlacementSourceImage release];
+				imagePlacementSourceImage = nil;
+				
+				[imagePlacementLastTime release];
+				imagePlacementLastTime = [[NSDate date] retain];
+				
+				[imagePlacementStartTime release];
+				imagePlacementStartTime = nil;
+				
+					// Make sure the animation gets erased.
+				[self performSelector:@selector(animateImagePlacement) withObject:nil afterDelay:0.0];
+			}
+		}
+	[imagePlacementLock unlock];
+	
+	// Draw an indicator while the tile bitmaps are being extracted.
+	if (![mosaic allTilesHaveExtractedBitmaps])
+	{
+		NSRect			viewBounds = [self bounds];
+		float			maxWidth = NSWidth(viewBounds) / 2.0;
+		NSRect			indicatorBounds = NSMakeRect(NSMinX(viewBounds) + maxWidth / 2.0, 
+													 NSMidY(viewBounds) - 8.0, 
+													 maxWidth, 
+													 16.0), 
+						panelBounds = NSInsetRect(indicatorBounds, -8.0, -8.0), 
+						progressBounds = indicatorBounds;
+
+		panelBounds.size.height += 16.0;
+		progressBounds.size.width = maxWidth * [mosaic tileBitmapExtractionFractionComplete];
+
+		NSBezierPath	*panelPath = [NSBezierPath bezierPathWithRoundedRect:panelBounds radius:8.0], 
+						*indicatorPath = [NSBezierPath bezierPathWithRoundedRect:indicatorBounds radius:8.0];
+		
+		[[NSColor colorWithDeviceWhite:0.0 alpha:0.25] set];
+		[panelPath fill];
+		
+		[NSLocalizedString(@"Extracting tile images...", @"") drawInRect:NSOffsetRect(indicatorBounds, 8.0, 20.0) 
+														  withAttributes:[NSDictionary dictionaryWithObject:[NSColor colorWithDeviceWhite:1.0 alpha:0.75] forKey:NSForegroundColorAttributeName]];
+		
+		[[NSColor colorWithDeviceWhite:1.0 alpha:0.75] set];
+		[indicatorPath setLineWidth:2.0];
+		[indicatorPath stroke];
+		
+		[indicatorPath setClip];
+		NSRectFill(progressBounds);
+	}
 }
 
 
@@ -870,6 +1254,7 @@
 	if (!inLiveRedraw && [flag boolValue])
 	{
 		inLiveRedraw = YES;
+		[[self class] cancelPreviousPerformRequestsWithTarget:self selector:_cmd object:[NSNumber numberWithBool:NO]];
 		[self performSelector:_cmd withObject:[NSNumber numberWithBool:NO] afterDelay:0.0];
 	}
 	else if (inLiveRedraw && ![flag boolValue])
@@ -886,6 +1271,7 @@
 }
 
 
+#pragma mark -
 #pragma mark Highlight methods
 
 
@@ -920,11 +1306,11 @@
 	MacOSaiXTile	*tile = nil;
 	while (tile = [tileEnumerator nextObject])
 	{
-		id<MacOSaiXImageSource>	displayedSource = [[tile userChosenImageMatch] imageSource];
+		id<MacOSaiXImageSource>	displayedSource = [[[tile userChosenImageMatch] sourceImage] source];
 		if (!displayedSource)
-			displayedSource = [[tile uniqueImageMatch] imageSource];
+			displayedSource = [[[tile uniqueImageMatch] sourceImage] source];
 		if (!displayedSource && backgroundMode == bestMatchMode)
-			displayedSource = [[tile bestImageMatch] imageSource];
+			displayedSource = [[[tile bestImageMatch] sourceImage] source];
 		
 		if (displayedSource && [highlightedImageSources containsObject:displayedSource])
 		{
@@ -973,15 +1359,46 @@
 }
 
 
-- (NSImage *)image
+// TBD: anybody using this?
+//- (NSImage *)image
+//{
+//	return mainImage;
+//}
+
+
+- (void)setTilesWithSubOptimalUniqueMatchesHighlighted:(BOOL)flag
 {
-	return mainImage;
+	if (flag != tilesWithSubOptimalUniqueMatchesAreHighlighted)
+	{
+		tilesWithSubOptimalUniqueMatchesAreHighlighted = flag;
+		
+		if (tilesWithSubOptimalUniqueMatchesAreHighlighted)
+		{
+			NSEnumerator	*tileEnumerator = [[mosaic tilesWithSubOptimalUniqueMatches] objectEnumerator];
+			MacOSaiXTile	*tile = nil;
+			
+			tilesWithSubOptimalUniqueMatchesOutline = [[NSBezierPath bezierPath] retain];
+			while (tile = [tileEnumerator nextObject])
+				[tilesWithSubOptimalUniqueMatchesOutline appendBezierPath:[tile outline]];
+		}
+		else
+		{
+			[tilesWithSubOptimalUniqueMatchesOutline release];
+			tilesWithSubOptimalUniqueMatchesOutline = nil;
+		}
+		
+		[self setNeedsDisplay:YES];
+	}
 }
+
+
+#pragma mark -
 
 
 - (void)dealloc
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	[[self class] cancelPreviousPerformRequestsWithTarget:self];
 	
 	[mainImage release];
 	[mainImageLock release];
@@ -992,13 +1409,22 @@
 	[highlightedImageSources release];
 	[highlightedImageSourcesLock release];
 	[highlightedImageSourcesOutline release];
-	if ([tilesNeedDisplayTimer isValid])
-		[tilesNeedDisplayTimer invalidate];
-	[tilesNeedDisplayTimer release];
+	[tilesWithSubOptimalUniqueMatchesOutline release];
 	[tilesNeedingDisplay release];
+	[tilesNeedDisplayLock release];
 	[tilesToRefresh release];
 	[tileMatchTypesToRefresh release];
+	[tileRefreshLock release];
 	[previousOriginalImage release];
+	[originalFadeStartTime release];
+	
+	[imagePlacementTiles release];
+	[imagePlacementImage release];
+	[imagePlacementDescription release];
+	[imagePlacementSourceImage release];
+	[imagePlacementLock release];
+	[imagePlacementLastTime release];
+	[imagePlacementStartTime release];
 	
 	[super dealloc];
 }

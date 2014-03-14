@@ -28,6 +28,7 @@
 							*heightField;
 	IBOutlet NSPopUpButton	*unitsPopUp, 
 							*resolutionPopUp;
+	IBOutlet NSImageView	*warningImageView;
 	
 	IBOutlet NSButton		*openWhenCompleteButton;
 	
@@ -66,5 +67,8 @@
 - (IBAction)cancelExport:(id)sender;
 
 - (NSString *)exportFormat;
+- (int)exportPixelWidth;
+- (int)exportPixelHeight;
+- (BOOL)exportCouldCrash;
 
 @end
